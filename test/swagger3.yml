@@ -1,0 +1,107 @@
+openapi: 3.0.0
+info:
+  title: Example API
+  version: 1.0.0
+paths:
+  /pets:
+    get:
+      operationId: getPets
+      parameters:
+      - name: petType
+        in: query
+        schema:
+          type: string
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+        5XX:
+          content:
+            type: string
+            default: Internal Server Error
+        default:
+          description: Something else happened
+  /pets/{id}:
+    get:
+      operationId: getPet
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+    put:
+      operationId: putPet
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: The pet's name
+                  type: string
+                papers:
+                  description: Papers documenting the pet.
+                  type: string
+                  format: binary
+                petType:
+                  description: The pet type.
+                  type: string
+                  enum:
+                  - cat
+                  - dog
+                  - gato
+                  - perro
+                photo:
+                  description: A photo of the pet.
+                  type: string
+                  format: byte
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+components:
+  schemas:
+    Cat:
+      allOf:
+      - $ref: '#/components/schemas/Pet'
+      - type: object
+        properties:
+          kitten:
+            type: boolean
+    Dog:
+      allOf:
+      - $ref: '#/components/schemas/Pet'
+      - type: object
+        properties:
+          puppy:
+            type: boolean
+    Pet:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        petType:
+          type: string
+        photo:
+          type: string
+          format: byte
+      discriminator:
+        propertyName: petType
+        mapping:
+          gato: '#/components/schema/Cat'
+          perro: Dog
