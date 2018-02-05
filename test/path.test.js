@@ -15,8 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const SwaggerEnforcer   = require('../index');
-const expect            = require('chai').expect;
+const Enforcer      = require('../index');
+const expect        = require('chai').expect;
 
 describe('path', () => {
 
@@ -66,7 +66,7 @@ describe('path', () => {
     let enforcer;
 
     before(() => {
-        enforcer = new SwaggerEnforcer(definition);
+        enforcer = new Enforcer(definition);
     });
 
     it('unknown path', () => {
@@ -121,7 +121,7 @@ describe('path', () => {
     });
 
     describe('parameter paths', () => {
-        let swagger;
+        let enforcer;
 
         const pathSchema = {
             responses: { '200': {} }
@@ -138,11 +138,11 @@ describe('path', () => {
         };
 
         before(() => {
-            swagger = new SwaggerEnforcer(def);
+            enforcer = new Enforcer(def);
         });
 
         it('start with param', () => {
-            expect(swagger.path('/abc')).to.deep.equal({
+            expect(enforcer.path('/abc')).to.deep.equal({
                 params: { path: 'abc' },
                 path: '/{path}',
                 schema: pathSchema
@@ -150,7 +150,7 @@ describe('path', () => {
         });
 
         it('last param', () => {
-            expect(swagger.path('/param/abc')).to.deep.equal({
+            expect(enforcer.path('/param/abc')).to.deep.equal({
                 params: { path: 'abc' },
                 path: '/param/{path}',
                 schema: pathSchema
@@ -158,7 +158,7 @@ describe('path', () => {
         });
 
         it('middle param', () => {
-            expect(swagger.path('/param/abc/value')).to.deep.equal({
+            expect(enforcer.path('/param/abc/value')).to.deep.equal({
                 params: { path: 'abc' },
                 path: '/param/{path}/value',
                 schema: pathSchema
@@ -166,7 +166,7 @@ describe('path', () => {
         });
 
         it('multiple parameters', () => {
-            expect(swagger.path('/param/abc/value/123')).to.deep.equal({
+            expect(enforcer.path('/param/abc/value/123')).to.deep.equal({
                 params: { path: 'abc', x: '123' },
                 path: '/param/{path}/value/{x}',
                 schema: pathSchema
@@ -174,7 +174,7 @@ describe('path', () => {
         });
 
         it('sub pathing', () => {
-            expect(swagger.path('/param/abc/value/123', 'responses/200')).to.deep.equal({
+            expect(enforcer.path('/param/abc/value/123', 'responses/200')).to.deep.equal({
                 params: { path: 'abc', x: '123' },
                 path: '/param/{path}/value/{x}',
                 schema: pathSchema.responses['200']

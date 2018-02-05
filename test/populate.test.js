@@ -15,8 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const SwaggerEnforcer   = require('../index');
-const expect            = require('chai').expect;
+const Enforcer      = require('../index');
+const expect        = require('chai').expect;
 
 describe('populate', () => {
 
@@ -32,7 +32,7 @@ describe('populate', () => {
     let enforcer;
 
     before(() => {
-        enforcer = new SwaggerEnforcer(definition);
+        enforcer = new Enforcer(definition);
     });
 
     describe('integer', () => {
@@ -63,14 +63,14 @@ describe('populate', () => {
         });
 
         it('auto format enabled', () => {
-            const enforcer = new SwaggerEnforcer(definition, { populate: { autoFormat: true } });
+            const enforcer = new Enforcer(definition, { populate: { autoFormat: true } });
             const date = new Date();
             const value = enforcer.populate({ type: 'number', 'x-variable': 'myNumber' }, { myNumber: date });
             expect(value).to.equal(+date);
         });
 
         it('auto format disabled', () => {
-            const enforcer = new SwaggerEnforcer(definition, { populate: { autoFormat: false } });
+            const enforcer = new Enforcer(definition, { populate: { autoFormat: false } });
             const date = new Date();
             const value = enforcer.populate({ type: 'number', 'x-variable': 'myNumber' }, { myNumber: date });
             expect(value).to.equal(date);
@@ -148,7 +148,7 @@ describe('populate', () => {
         });
 
         it('don\'t ignore missing requires', () => {
-            const enforcer = new SwaggerEnforcer(definition, { populate: { ignoreMissingRequired: false } });
+            const enforcer = new Enforcer(definition, { populate: { ignoreMissingRequired: false } });
             const schema = {
                 required: ['name'],
                 properties: {

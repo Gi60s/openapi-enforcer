@@ -58,7 +58,7 @@ Version.defaults = {
     },
 
     request: {
-        purge: true,                // any provided request data (in query or form data) that is not specified in the swagger will be ignored
+        purge: true,                // any provided request data (in query or form data) that is not specified in the open api will be ignored
         strict: true                // the request can only supply data (in query or form data) in the spec or an error is thrown
     },
 
@@ -118,8 +118,8 @@ exports.request = function(context, request, strPath, store) {
 
     // find the matching path
     const path = this.path(request.path);
-    if (!path) throw Error('Requested path not defined in the swagger document: ' + request.path);
-    if (!path.schema[request.method]) throw Error('Requested method is not defined in the swagger document for this path: ' + request.method + ' ' + request.path);
+    if (!path) throw Error('Requested path not defined in the Open API document: ' + request.path);
+    if (!path.schema[request.method]) throw Error('Requested method is not defined in the Open API document for this path: ' + request.method + ' ' + request.path);
 
 
     const options = store.defaults.request;

@@ -1,7 +1,7 @@
 {
   "name": "openapi-enforcer",
   "version": "0.0.2",
-  "description": "Automatically validate a value against the swagger schema while you build it. Alternatively you can validate the final value.",
+  "description": "Library for validating, parsing, and formatting data against open api schemas.",
   "main": "index.js",
   "directories": {
     "test": "tests"
@@ -13,21 +13,24 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/byu-oit/swagger-enforcer.git"
+    "url": "git+https://github.com/byu-oit/openapi-enforcer.git"
   },
   "keywords": [
+    "openapi",
     "swagger",
     "response",
     "build",
     "compose",
-    "validate"
+    "validate",
+    "parse",
+    "format"
   ],
   "author": "James Speirs",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/byu-oit/swagger-enforcer/issues"
+    "url": "https://github.com/byu-oit/openapi-enforcer/issues"
   },
-  "homepage": "https://github.com/byu-oit/swagger-enforcer#readme",
+  "homepage": "https://github.com/byu-oit/openapi-enforcer#readme",
   "devDependencies": {
     "body-parser": "^1.18.2",
     "chai": "^3.5.0",

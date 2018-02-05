@@ -16,10 +16,10 @@
  **/
 'use strict';
 const expect            = require('chai').expect;
-const SwaggerEnforcer   = require('../index');
+const Enforcer          = require('../index');
 
 describe('#schema', () => {
-    let swagger;
+    let enforcer;
     const def = {
         swagger: '2.0',
         definitions: {
@@ -34,31 +34,31 @@ describe('#schema', () => {
     };
 
     before(() => {
-        swagger = new SwaggerEnforcer(def);
+        enforcer = new Enforcer(def);
     });
 
     it('defaults to get full schema', () => {
-        expect(swagger.schema()).to.deep.equal(def);
+        expect(enforcer.schema()).to.deep.equal(def);
     });
 
     it('empty path gets full schema', () => {
-        expect(swagger.schema('')).to.deep.equal(def);
+        expect(enforcer.schema('')).to.deep.equal(def);
     });
 
     it('slash path gets full schema', () => {
-        expect(swagger.schema('/')).to.deep.equal(def);
+        expect(enforcer.schema('/')).to.deep.equal(def);
     });
 
     it('simple path', () => {
-        expect(swagger.schema('/definitions')).to.deep.equal(def.definitions);
+        expect(enforcer.schema('/definitions')).to.deep.equal(def.definitions);
     });
 
     it('deep path', () => {
-        expect(swagger.schema('/definitions/examples/application/json')).to.equal(def.definitions.examples.application.json);
+        expect(enforcer.schema('/definitions/examples/application/json')).to.equal(def.definitions.examples.application.json);
     });
 
     it('compound key', () => {
-        expect(swagger.schema('/definitions/examples/application//json//xml')).to.equal(def.definitions.examples['application/json/xml']);
+        expect(enforcer.schema('/definitions/examples/application//json//xml')).to.equal(def.definitions.examples['application/json/xml']);
     });
 
 });

@@ -15,8 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const SwaggerEnforcer   = require('../index');
-const expect            = require('chai').expect;
+const Enforcer      = require('../index');
+const expect        = require('chai').expect;
 
 describe('validate', () => {
 
@@ -36,7 +36,7 @@ describe('validate', () => {
     let validate;
 
     before(() => {
-        enforcer = new SwaggerEnforcer(definition);
+        enforcer = new Enforcer(definition);
         validate = function(schema, value) {
             return enforcer.errors(schema, value);
         };
@@ -751,7 +751,7 @@ describe('validate', () => {
         };
 
         before(() => {
-            const enforcer = SwaggerEnforcer(definition);
+            const enforcer = Enforcer(definition);
             validate = function(schema, value) {
                 return enforcer.errors(schema, value);
             };

@@ -15,8 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const expect            = require('chai').expect;
-const SwaggerEnforcer   = require('../index');
+const expect        = require('chai').expect;
+const Enforcer      = require('../index');
 
 describe('request', () => {
 
@@ -24,7 +24,7 @@ describe('request', () => {
         let request;
 
         before(() => {
-            const enforcer = new SwaggerEnforcer('3.0.0');
+            const enforcer = new Enforcer('3.0.0');
             request = enforcer.request.bind(enforcer);
         });
 

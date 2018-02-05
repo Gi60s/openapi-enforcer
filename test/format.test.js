@@ -15,14 +15,14 @@
  *    limitations under the License.
  **/
 'use strict';
-const SwaggerEnforcer   = require('../index');
+const OpenApiEnforcer   = require('../index');
 const expect            = require('chai').expect;
 
 describe('#format', () => {
-    let swagger;
+    let enforcer;
 
     before(() => {
-        swagger = new SwaggerEnforcer('2.0');
+        enforcer = new OpenApiEnforcer('2.0');
     });
 
     describe('array', () => {
@@ -30,7 +30,7 @@ describe('#format', () => {
 
         it('number', () => {
             const ar = [1.2, 1.7];
-            expect(swagger.format(ar, schema)).to.deep.equal([1,2]);
+            expect(enforcer.format(ar, schema)).to.deep.equal([1,2]);
         });
     });
 
@@ -38,36 +38,36 @@ describe('#format', () => {
         const schema = { type: 'string', format: 'binary' };
 
         it('true', () => {
-            expect(swagger.format(true, schema)).to.equal('00000001');
+            expect(enforcer.format(true, schema)).to.equal('00000001');
         });
 
         it('false', () => {
-            expect(swagger.format(false, schema)).to.equal('00000000');
+            expect(enforcer.format(false, schema)).to.equal('00000000');
         });
 
         it('number', () => {
-            expect(swagger.format(1, schema)).to.equal('00000001');
+            expect(enforcer.format(1, schema)).to.equal('00000001');
         });
 
         it('full byte', () => {
-            expect(swagger.format(255, schema)).to.equal('11111111');
+            expect(enforcer.format(255, schema)).to.equal('11111111');
         });
 
         it('large number', () => {
-            expect(swagger.format(256, schema)).to.equal('0000000100000000');
+            expect(enforcer.format(256, schema)).to.equal('0000000100000000');
         });
 
         it('string', () => {
-            expect(swagger.format('\r', schema)).to.equal('00001101');
+            expect(enforcer.format('\r', schema)).to.equal('00001101');
         });
 
         it('buffer', () => {
             const buf = Buffer.from('\r');
-            expect(swagger.format(buf, schema)).to.equal('00001101');
+            expect(enforcer.format(buf, schema)).to.equal('00001101');
         });
 
         it('object', () => {
-            expect(() => swagger.format({}, schema)).to.throw(Error);
+            expect(() => enforcer.format({}, schema)).to.throw(Error);
         });
 
     });
@@ -76,27 +76,27 @@ describe('#format', () => {
         const schema = { type: 'boolean' };
 
         it('true', () => {
-            expect(swagger.format(true, schema)).to.be.true;
+            expect(enforcer.format(true, schema)).to.be.true;
         });
 
         it('false', () => {
-            expect(swagger.format(false, schema)).to.be.false;
+            expect(enforcer.format(false, schema)).to.be.false;
         });
 
         it('1', () => {
-            expect(swagger.format(1, schema)).to.be.true;
+            expect(enforcer.format(1, schema)).to.be.true;
         });
 
         it('0', () => {
-            expect(swagger.format(0, schema)).to.be.false;
+            expect(enforcer.format(0, schema)).to.be.false;
         });
 
         it('{}', () => {
-            expect(swagger.format({}, schema)).to.be.true;
+            expect(enforcer.format({}, schema)).to.be.true;
         });
 
         it('null', () => {
-            expect(swagger.format(null, schema)).to.be.false;
+            expect(enforcer.format(null, schema)).to.be.false;
         });
 
     });
@@ -105,40 +105,40 @@ describe('#format', () => {
         const schema = { type: 'string', format: 'byte' };
 
         it('true', () => {
-            expect(swagger.format(true, schema)).to.equal('AQ==');
+            expect(enforcer.format(true, schema)).to.equal('AQ==');
         });
 
         it('false', () => {
-            expect(swagger.format(false, schema)).to.equal('');
+            expect(enforcer.format(false, schema)).to.equal('');
         });
 
         it('number', () => {
-            expect(swagger.format(1, schema)).to.equal('AQ==');
+            expect(enforcer.format(1, schema)).to.equal('AQ==');
         });
 
         it('large number', () => {
-            expect(swagger.format(256, schema)).to.equal('AQA=');
+            expect(enforcer.format(256, schema)).to.equal('AQA=');
         });
 
         it('larger number', () => {
-            expect(swagger.format(270721, schema)).to.equal('BCGB');
+            expect(enforcer.format(270721, schema)).to.equal('BCGB');
         });
 
         it('M', () => {
-            expect(swagger.format('M', schema)).to.equal('TQ==');
+            expect(enforcer.format('M', schema)).to.equal('TQ==');
         });
 
         it('Ma', () => {
-            expect(swagger.format('Ma', schema)).to.equal('TWE=');
+            expect(enforcer.format('Ma', schema)).to.equal('TWE=');
         });
 
         it('buffer', () => {
             const b = Buffer.from('M', schema);
-            expect(swagger.format(b, schema)).to.equal('TQ==')
+            expect(enforcer.format(b, schema)).to.equal('TQ==')
         });
 
         it('invalid type', () => {
-            expect(() => swagger.format(null, schema)).to.throw(Error);
+            expect(() => enforcer.format(null, schema)).to.throw(Error);
         });
 
     });
@@ -149,28 +149,28 @@ describe('#format', () => {
 
         it('Date object', () => {
             const d = new Date(iso);
-            expect(swagger.format(d, schema)).to.equal('2000-01-01');
+            expect(enforcer.format(d, schema)).to.equal('2000-01-01');
         });
 
         it('ISO format', () => {
-            expect(swagger.format(iso, schema)).to.equal('2000-01-01');
+            expect(enforcer.format(iso, schema)).to.equal('2000-01-01');
         });
 
         it('date format', () => {
-            expect(swagger.format('2000-01-01', schema)).to.equal('2000-01-01');
+            expect(enforcer.format('2000-01-01', schema)).to.equal('2000-01-01');
         });
 
         it('oveflow', () => {
-            expect(swagger.format('2000-02-30', schema)).to.equal('2000-03-01');
+            expect(enforcer.format('2000-02-30', schema)).to.equal('2000-03-01');
         });
 
         it('number', () => {
             const d = new Date(iso);
-            expect(swagger.format(+d, schema)).to.equal('2000-01-01');
+            expect(enforcer.format(+d, schema)).to.equal('2000-01-01');
         });
 
         it('boolean', () => {
-            expect(() => swagger.format(true, schema)).to.throw(Error);
+            expect(() => enforcer.format(true, schema)).to.throw(Error);
         });
 
     });
@@ -181,28 +181,28 @@ describe('#format', () => {
 
         it('Date object', () => {
             const d = new Date(iso);
-            expect(swagger.format(d, schema)).to.equal(iso);
+            expect(enforcer.format(d, schema)).to.equal(iso);
         });
 
         it('ISO format', () => {
-            expect(swagger.format(iso, schema)).to.equal(iso);
+            expect(enforcer.format(iso, schema)).to.equal(iso);
         });
 
         it('date format', () => {
-            expect(swagger.format('2000-01-01', schema)).to.equal('2000-01-01T00:00:00.000Z');
+            expect(enforcer.format('2000-01-01', schema)).to.equal('2000-01-01T00:00:00.000Z');
         });
 
         it('oveflow', () => {
-            expect(swagger.format('2000-02-30', schema)).to.equal('2000-03-01T00:00:00.000Z');
+            expect(enforcer.format('2000-02-30', schema)).to.equal('2000-03-01T00:00:00.000Z');
         });
 
         it('number', () => {
             const d = new Date(iso);
-            expect(swagger.format(+d, schema)).to.equal(iso);
+            expect(enforcer.format(+d, schema)).to.equal(iso);
         });
 
         it('boolean', () => {
-            expect(() => swagger.format(true, schema)).to.throw(Error);
+            expect(() => enforcer.format(true, schema)).to.throw(Error);
         });
 
     });
@@ -211,36 +211,36 @@ describe('#format', () => {
         const schema = { type: 'integer' };
 
         it('integer', () => {
-            expect(swagger.format(123, schema)).to.equal(123);
+            expect(enforcer.format(123, schema)).to.equal(123);
         });
 
         it('float', () => {
-            expect(swagger.format(123.7, schema)).to.equal(124);
+            expect(enforcer.format(123.7, schema)).to.equal(124);
         });
 
         it('string integer', () => {
-            expect(swagger.format('123', schema)).to.equal(123);
+            expect(enforcer.format('123', schema)).to.equal(123);
         });
 
         it('string float', () => {
-            expect(swagger.format('123.7', schema)).to.equal(124);
+            expect(enforcer.format('123.7', schema)).to.equal(124);
         });
 
         it('date', () => {
             const dt = new Date('2000-01-01T00:00:00.000Z');
-            expect(swagger.format(dt, schema)).to.equal(+dt);
+            expect(enforcer.format(dt, schema)).to.equal(+dt);
         });
 
         it('true', () => {
-            expect(swagger.format(true, schema)).to.equal(1);
+            expect(enforcer.format(true, schema)).to.equal(1);
         });
 
         it('false', () => {
-            expect(swagger.format(false, schema)).to.equal(0);
+            expect(enforcer.format(false, schema)).to.equal(0);
         });
 
         it('object', () => {
-            expect(() => swagger.format({}, schema)).to.throw(/must be numeric/);
+            expect(() => enforcer.format({}, schema)).to.throw(/must be numeric/);
         });
 
     });
@@ -249,36 +249,36 @@ describe('#format', () => {
         const schema = { type: 'number' };
 
         it('integer', () => {
-            expect(swagger.format(123, schema)).to.equal(123);
+            expect(enforcer.format(123, schema)).to.equal(123);
         });
 
         it('float', () => {
-            expect(swagger.format(123.7, schema)).to.equal(123.7);
+            expect(enforcer.format(123.7, schema)).to.equal(123.7);
         });
 
         it('string integer', () => {
-            expect(swagger.format('123', schema)).to.equal(123);
+            expect(enforcer.format('123', schema)).to.equal(123);
         });
 
         it('string float', () => {
-            expect(swagger.format('123.7', schema)).to.equal(123.7);
+            expect(enforcer.format('123.7', schema)).to.equal(123.7);
         });
 
         it('date', () => {
             const dt = new Date('2000-01-01T00:00:00.000Z');
-            expect(swagger.format(dt, schema)).to.equal(+dt);
+            expect(enforcer.format(dt, schema)).to.equal(+dt);
         });
 
         it('true', () => {
-            expect(swagger.format(true, schema)).to.equal(1);
+            expect(enforcer.format(true, schema)).to.equal(1);
         });
 
         it('false', () => {
-            expect(swagger.format(false, schema)).to.equal(0);
+            expect(enforcer.format(false, schema)).to.equal(0);
         });
 
         it('object', () => {
-            expect(() => swagger.format({}, schema)).to.throw(/must be numeric/);
+            expect(() => enforcer.format({}, schema)).to.throw(/must be numeric/);
         });
 
     });
@@ -300,7 +300,7 @@ describe('#format', () => {
 
         it('number', () => {
             const o = create(1.7);
-            expect(swagger.format(o, schema)).to.deep.equal({
+            expect(enforcer.format(o, schema)).to.deep.equal({
                 a: 2,
                 b: '1.7',
                 c: true,
@@ -314,28 +314,28 @@ describe('#format', () => {
         const schema = { type: 'string' };
 
         it('true', () => {
-            expect(swagger.format(true, schema)).to.equal('true');
+            expect(enforcer.format(true, schema)).to.equal('true');
         });
 
         it('false', () => {
-            expect(swagger.format(false, schema)).to.equal('false');
+            expect(enforcer.format(false, schema)).to.equal('false');
         });
 
         it('number', () => {
-            expect(swagger.format(123.7, schema)).to.equal('123.7');
+            expect(enforcer.format(123.7, schema)).to.equal('123.7');
         });
 
         it('null', () => {
-            expect(swagger.format(null, schema)).to.equal('null');
+            expect(enforcer.format(null, schema)).to.equal('null');
         });
 
         it('object', () => {
-            expect(swagger.format({ a: 1 }, schema)).to.equal('{"a":1}');
+            expect(enforcer.format({ a: 1 }, schema)).to.equal('{"a":1}');
         });
 
         it('date', () => {
             const iso = '2000-01-01T01:03:04.005Z';
-            expect(swagger.format(new Date(iso), schema)).to.equal(iso);
+            expect(enforcer.format(new Date(iso), schema)).to.equal(iso);
         });
 
     });

@@ -23,7 +23,7 @@ const fs            = require('fs');
 const multiparty    = require('multiparty');
 const refParser     = require('json-schema-ref-parser');
 const request       = require('request');
-const Swagger       = require('../index');
+const Enforcer      = require('../index');
 const yaml          = require('js-yaml');
 
 describe.skip('middleware', () => {
@@ -35,7 +35,7 @@ describe.skip('middleware', () => {
         const obj = yaml.safeLoad(fs.readFileSync(__dirname + '/swagger3.yml', 'utf8'));
         refParser.dereference(obj)
             .then(schema => {
-                const swagger = new Swagger(schema);
+                const enforcer = new Enforcer(schema);
 
                 const app = express();
 
@@ -96,7 +96,7 @@ describe.skip('middleware', () => {
                     }
                 });
 
-                app.use(swagger.middleware());
+                app.use(enforcer.middleware());
 
                 app.use((req, res, next) => handler(req, res, next));
 

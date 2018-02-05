@@ -426,9 +426,9 @@ Validate that the value adheres to the schema or throw an `Error`. This function
 Returns: Nothing.
 
 ```js
-const Swagger = require('../index');
+const OpenApiEnforcer = require('../index');
 
-const swagger = new Swagger({ openapi: '3.0.0' });
+const enforcer = new OpenApiEnforcer({ openapi: '3.0.0' });
 
 const schema = {
     type: 'object',
@@ -449,7 +449,7 @@ const schema = {
     }
 };
 
-swagger.validate(schema, {
+enforcer.validate(schema, {
     names: [ 'Bob', 'Jan', '' ],
     date: '2010-01-01T00:00:00.000Z',
     num: 8

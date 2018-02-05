@@ -21,23 +21,21 @@ const populate      = require('./populate');
 const util          = require('./util');
 const validate      = require('./validate');
 
-// TODO: rename swagger to openapi
-
-module.exports = SwaggerEnforcer;
+module.exports = OpenApiEnforcer;
 
 const store = new WeakMap();
 const rxPathParam = /{([^}]+)}/;
 
 /**
- * Produce a swagger instance.
- * @param {object, string} definition The swagger definition object or a string representing the version to use.
+ * Produce an open api enforcer instance.
+ * @param {object, string} definition The open api definition object or a string representing the version to use.
  * @param {object} [defaultOptions]
  * @constructor
  */
-function SwaggerEnforcer(definition, defaultOptions) {
+function OpenApiEnforcer(definition, defaultOptions) {
 
     // make sure that this is called as a new instance
-    if (!(this instanceof SwaggerEnforcer)) return new SwaggerEnforcer(definition, defaultOptions);
+    if (!(this instanceof OpenApiEnforcer)) return new OpenApiEnforcer(definition, defaultOptions);
 
     // if the definition was passed in as a version number then rebuild the definition object
     if (definition === '2.0') {
@@ -49,12 +47,12 @@ function SwaggerEnforcer(definition, defaultOptions) {
     // get the version number from the definition
     const v = definition.openapi || definition.swagger;
     const match = /^(\d+)(?:\.(\d+))?(?:\.(\d+))?/.exec(v);
-    if (!match) throw Error('Unsupported swagger version specified: ' + v);
+    if (!match) throw Error('Unsupported Open API version specified: ' + v);
 
     // attempt to load the version specific settings and functions
     const major = match[1];
     const Version = util.tryRequire('./versions/v' + major);
-    if (!Version) throw Error('The swagger definition version is either invalid or not supported: ' + v);
+    if (!Version) throw Error('The Open API definition version is either invalid or not supported: ' + v);
     const version = new Version(definition);
 
     // normalize defaults
@@ -154,7 +152,7 @@ function SwaggerEnforcer(definition, defaultOptions) {
  * @param {*} value
  * @returns {string[]|undefined}
  */
-SwaggerEnforcer.prototype.errors = function(schema, value) {
+OpenApiEnforcer.prototype.errors = function(schema, value) {
     const data = store.get(this);
     const version = data.version;
     const v = {
@@ -174,7 +172,7 @@ SwaggerEnforcer.prototype.errors = function(schema, value) {
  * @param {object} schema
  * @returns {*}
  */
-SwaggerEnforcer.prototype.format = function(value, schema) {
+OpenApiEnforcer.prototype.format = function(value, schema) {
     const type = util.schemaType(schema);
     switch (type) {
         case 'array':
@@ -213,11 +211,11 @@ SwaggerEnforcer.prototype.format = function(value, schema) {
     }
 };
 
-SwaggerEnforcer.prototype.middleware = function(options) {
-    const swagger = this;
+OpenApiEnforcer.prototype.middleware = function(options) {
+    const enforcer = this;
     return function(req, res, next) {
         // parse the incoming request
-        const data = swagger.path(req.path);
+        const data = enforcer.path(req.path);
 
         // TODO: multipart fields and files merged into single body object
         // TODO: can openapi specify what types of files to update and size limits?
@@ -225,11 +223,11 @@ SwaggerEnforcer.prototype.middleware = function(options) {
         // overwrite the send method to validate the response prior to sending
         /*const send = res.send;
         res.send = function(status, body) {
-            const errors = swagger.errors(schema, body);
+            const errors = enforcer.errors(schema, body);
             send.apply(send, arguments);
         };*/
 
-        req.swagger = swagger;
+        req.openapi = openapi;
     }
 };
 
@@ -238,7 +236,7 @@ SwaggerEnforcer.prototype.middleware = function(options) {
  * @param {string} path
  * @returns {{path: string, params: Object.<string, *>, schema: object}|undefined}
  */
-SwaggerEnforcer.prototype.path = function(path) {
+OpenApiEnforcer.prototype.path = function(path) {
     const parsers = store.get(this).pathParsers;
 
     // normalize path
@@ -278,7 +276,7 @@ SwaggerEnforcer.prototype.path = function(path) {
  * @param {object} [map]
  * @param {*} [initialValue]
  */
-SwaggerEnforcer.prototype.populate = function(schema, map, initialValue) {
+OpenApiEnforcer.prototype.populate = function(schema, map, initialValue) {
     const data = store.get(this);
     const options = data.defaults.populate;
 
@@ -314,7 +312,7 @@ SwaggerEnforcer.prototype.populate = function(schema, map, initialValue) {
  * @param {string} [request.path=''] The request path. The path can contain the query parameters.
  * @param {string|Object.<string,string|undefined|Array.<string|undefined>>} [request.query={}] The request query. If the path also has the query defined then this query will overwrite the path query parameters.
  */
-SwaggerEnforcer.prototype.request = function(request) {
+OpenApiEnforcer.prototype.request = function(request) {
     let type;
     let hasError;
 
@@ -432,10 +430,10 @@ SwaggerEnforcer.prototype.request = function(request) {
 /**
  * Get a copy of the schema at the specified path.
  * @param {string} [path=''] The path in the schema to get a sub-schema from. Supports variable substitution for path parameters.
- * @param {object} [schema] The schema to traverse. Defaults to the entire SwaggerEnforcer document.
+ * @param {object} [schema] The schema to traverse. Defaults to the entire OpenApiEnforcer document.
  * @returns {object|undefined} Will return undefined if the specified path is invalid.
  */
-SwaggerEnforcer.prototype.schema = function(path, schema) {
+OpenApiEnforcer.prototype.schema = function(path, schema) {
     let result = schema || store.get(this).definition;
 
     // normalize path
@@ -475,7 +473,7 @@ SwaggerEnforcer.prototype.schema = function(path, schema) {
  * @param {*} value
  * @throws {Error}
  */
-SwaggerEnforcer.prototype.validate = function(schema, value) {
+OpenApiEnforcer.prototype.validate = function(schema, value) {
     const errors = this.errors(schema, value);
     if (errors) {
         if (errors.length === 1) throw Error(errors[0]);
@@ -484,7 +482,7 @@ SwaggerEnforcer.prototype.validate = function(schema, value) {
 };
 
 
-SwaggerEnforcer.is = require('./is');
+OpenApiEnforcer.is = require('./is');
 
 /**
  * Parse query string into object mapped to array of values.
