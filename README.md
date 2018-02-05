@@ -14,6 +14,8 @@ Features
 
 \* *Some features coming soon*
 
+**THIS IS A WORK IN PROGRESS - SUBJECT TO CHANGE**
+
 # Table of Contents
 
 - [API](#api)
