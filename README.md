@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/byu-oit/swagger-enforcer.svg?branch=master)](https://travis-ci.org/byu-oit/swagger-enforcer)
-[![Coverage Status](https://coveralls.io/repos/github/byu-oit/swagger-enforcer/badge.svg?branch=master)](https://coveralls.io/github/byu-oit/swagger-enforcer?branch=master)
 
 # OpenAPI-Enforcer
 
