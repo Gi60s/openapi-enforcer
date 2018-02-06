@@ -31,63 +31,101 @@ exports.binary = function(value) {
 /**
  * Parse client supplied boolean.
  * @param {*} value
+ * @param {boolean} [force=false]
  * @returns {boolean}
  */
-exports.boolean = function(value) {
+exports.boolean = function(value, force) {
     if (typeof value === 'boolean') return value;
-    if (value === undefined) return false;
     if (value === 'false') return false;
     if (value === 'true') return true;
+    if (force) return !!value;
     throw Error('Expected "true", "false" or a boolean. Received: ' + smart(value));
 };
 
 /**
  * Parse client supplied base64 encoded string to a buffer.
  * @param {boolean, number, string, buffer} value
- * @returns {string}
+ * @returns {Buffer}
  */
 exports.byte = function(value) {
     if (!is.byte(value)) throw Error('Expected a base64 string. Received: ' + smart(value));
-    return Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'binary');
+    return Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64');
 };
 
 /**
  * Parse client supplied date string into a Date object.
- * @param {string} value
+ * @param {string, number, Date} value
+ * @param {boolean} [force=false]
  * @returns {Date}
  */
-exports.date = function(value) {
-    if (!is.date(value)) throw Error('Expected a date string of the format: YYYY-MM-DD. Received: ' + smart(value));
-    return new Date(value + 'T00:00:00.000Z');
+exports.date = function(value, force) {
+    let result;
+
+    if (value instanceof Date || is.date(value)) {
+        result = new Date(value);
+    } else if (!force) {
+        throw Error('Expected a Date object or a date string of the format: YYYY-MM-DD. Received: ' + smart(value));
+    } else if (is.dateTime(value)) {
+        result = new Date(value);
+    } else if (!isNaN(value)) {
+        result = new Date(+value);
+    } else {
+        throw Error('Expected a Date object, a date string of the format YYYY-MM-DD or YYYY-MM-DDTmm:hh:ss.sssZ, or a numeric type. Received: ' + smart(value));
+    }
+
+    result.setUTCHours(0);
+    result.setUTCMinutes(0);
+    result.setUTCSeconds(0);
+    result.setUTCMilliseconds(0);
+    return result;
 };
 
 /**
  * Parse client supplied date-time string into a Date object.
- * @param {string} value
+ * @param {string, number, Date} value
+ * @param {boolean} [force=false]
  * @returns {Date}
  */
-exports.dateTime = function(value) {
-    if (!is.dateTime(value)) throw Error('Expected a date-time string of the format: YYYY-MM-DDThh:mm:ss.sss. Received: ' + smart(value));
-    return new Date(value);
+exports.dateTime = function(value, force) {
+    if (value instanceof Date || is.dateTime(value)) {
+        return new Date(value);
+    } else if (!force) {
+        throw Error('Expected a Date object or a date-time string of the format: YYYY-MM-DDThh:mm:ss.sss. Received: ' + smart(value));
+    } else if (is.date(value)) {
+        return new Date(value);
+    } else if (!isNaN(value)) {
+        return new Date(+value);
+    } else {
+        throw Error('Expected a Date object, a date string of the format YYYY-MM-DD or YYYY-MM-DDTmm:hh:ss.sssZ, or a numeric type. Received: ' + smart(value));
+    }
 };
 exports['date-time'] = exports.dateTime;
 
 /**
  * Parse client supplied value to an integer.
- * @param {*} value
+ * @param {string, number, boolean} value
+ * @param {boolean} [force=false]
  * @returns {number}
  */
-exports.integer = function(value) {
-    if (!is.integer(value)) throw Error('Cannot convert to integer. The value must be numeric without decimals. Received: ' + smart(value));
-    return +value;
+exports.integer = function(value, force) {
+    if (!force && !is.integer(value)) {
+        throw Error('Cannot convert to integer. The value must be numeric without decimals. Received: ' + smart(value));
+    } else if (isNaN(value)) {
+        throw Error('Cannot convert to integer. The value must be numeric. Received: ' + smart(value));
+    } else {
+        return Math.round(+value);
+    }
 };
 
 /**
  * Parse client supplied value to a number.
  * @param {string, number, boolean} value
+ * @param {boolean} [force=false]
  * @returns {number}
  */
-exports.number = function(value) {
-    if (!is.number(value)) throw Error('Cannot convert to number. The value must be numeric. Received: ' + smart(value));
+exports.number = function(value, force) {
+    if ((!force && !is.number(value)) || isNaN(value)) {
+        throw Error('Cannot convert to number. The value must be numeric. Received: ' + smart(value));
+    }
     return +value;
 };
