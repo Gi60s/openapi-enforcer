@@ -338,6 +338,11 @@ describe('#format', () => {
             expect(enforcer.format(new Date(iso), schema)).to.equal(iso);
         });
 
+        it('symbol', () => {
+            const s = Symbol('my-symbol');
+            expect(() => enforcer.format(s, schema)).to.throw(/Cannot convert to string/i);
+        });
+
     });
 
 });
