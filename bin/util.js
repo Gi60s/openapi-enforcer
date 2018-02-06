@@ -137,14 +137,14 @@ exports.schemaFormat = function(schema) {
 };
 
 /**
- * Wrap with quotations in the value is a string.
+ * Wrap with quotations if the value is a string.
  * @param value
  * @returns {*}
  */
 exports.smart = function(value) {
     if (typeof value === 'string') return "'" + value.replace(/'/g, "\\'") + "'";
     if (value instanceof Date) return value.toISOString();
-    return value;
+    return String(value);
 };
 
 exports.traverse = function(object, callback) {
