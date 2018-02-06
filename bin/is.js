@@ -17,24 +17,62 @@
 'use strict';
 const rx        = require('./rx');
 
+/**
+ * Check if a value is a valid base64 encoded string
+ * @param {string} v
+ * @returns {boolean}
+ */
 exports.byte = v => typeof v === 'string' && rx.byte.test(v) && v.length % 4 === 0;
 
+/**
+ * Check if a value is a valid binary string.
+ * @param {string} v
+ * @returns {boolean}
+ */
 exports.binary = v => typeof v === 'string' && rx.binary.test(v);
 
+/**
+ * Check to see if a value is a boolean.
+ * @param {boolean|string} value
+ * @param {boolean} [strict] If set to true the value must be typeof boolean
+ * @returns {boolean}
+ */
 exports.boolean = (value, strict) => {
     if (strict && typeof value !== 'boolean') return false;
     return rx.boolean.test(value);
 };
 
+/**
+ * Check to see if a value is a valid date format.
+ * @param {string} v
+ * @returns {boolean}
+ */
 exports.date = v => typeof v === 'string' && rx.date.test(v);
 
+/**
+ * Check to see if a value is a valid date-time format.
+ * @param {string} v
+ * @returns {boolean}
+ */
 exports.dateTime = v => typeof v === 'string' && rx.dateTime.test(v);
 
+/**
+ * Check to see if the value is an integer.
+ * @param {number|string} value
+ * @param {boolean} [strict] If set to true the value must be typeof number and !isNaN
+ * @returns {boolean}
+ */
 exports.integer = (value, strict) => {
     if (strict && (typeof value !== 'number' || isNaN(value))) return false;
     return rx.integer.test(value);
 };
 
+/**
+ * Check to see if the value is a number.
+ * @param {number|string} value
+ * @param {boolean} [strict] If set to true the value must be typeof number and !isNaN
+ * @returns {boolean}
+ */
 exports.number = (value, strict) => {
     if (strict && (typeof value !== 'number' || isNaN(value))) return false;
     return rx.number.test(value);
