@@ -18,7 +18,7 @@
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
 
-describe('validate', () => {
+describe('#validate', () => {
 
     const definition = {
         openapi: '3.0.0',
