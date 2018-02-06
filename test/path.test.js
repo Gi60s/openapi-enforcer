@@ -18,7 +18,7 @@
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
 
-describe('path', () => {
+describe('#path', () => {
 
     const inside = {
         in: 'path',

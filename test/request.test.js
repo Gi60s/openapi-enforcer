@@ -18,7 +18,7 @@
 const expect        = require('chai').expect;
 const Enforcer      = require('../index');
 
-describe('request', () => {
+describe('#request', () => {
 
     describe('pre-processor', () => {
         let request;
