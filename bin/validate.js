@@ -34,7 +34,7 @@ function validate(v, prefix, depth, schema, value) {
     // validate oneOf
     } else if (v.options.oneOf && schema.oneOf) {
         const result = anyOf(v, nestedPrefix(prefix), depth, schema.oneOf, value);
-        if (result.valid !== 1) v.error.push(prefix, 'Did not match exactly one schema. Matched: ' + result.valid + '\n' + result.messages.join('\n'));
+        if (result.valid !== 1) v.errors.push(prefix, 'Did not match exactly one schema. Matched: ' + result.valid + '\n' + result.messages.join('\n'));
 
     // validate allOf
     } else if (v.options.allOf && schema.allOf) {
