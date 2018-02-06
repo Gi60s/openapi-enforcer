@@ -173,14 +173,6 @@ describe('path', () => {
             });
         });
 
-        it('sub pathing', () => {
-            expect(enforcer.path('/param/abc/value/123', 'responses/200')).to.deep.equal({
-                params: { path: 'abc', x: '123' },
-                path: '/param/{path}/value/{x}',
-                schema: pathSchema.responses['200']
-            });
-        });
-
     });
 
 });
