@@ -16,26 +16,33 @@ Features
 
 # Table of Contents
 
-- [API](#api)
-    - [new Enforcer](#new-enforcer--definition--options--)
-        - [options](#options)
-    - [enforcer.errors](#enforcererrors--schema-value-)
-    - [enforcer.format](#enforcerformat--schema-value-)
-    - [enforcer.populate](#enforcerpopulate--schema-params--value--)
-    - [enforcer.validate](#enforcervalidate--schema-value-)
+- [Constructor](#constructor)
+- Prototype Methods
+    - [Enforcer.prototype.errors](#enforcerprototypeerrors)
+    - [Enforcer.prototype.format](#enforcerprototypeformat)
+    - [Enforcer.prototype.middleware](#enforcerprototypemiddleware)
+    - [Enforcer.prototype.path](#enforcerprototypepath)
+    - [Enforcer.prototype.populate](#enforcerprototypepopulate)
+    - [Enforcer.prototype.request](#enforcerprototyperequest)
+    - [Enforcer.prototype.schema](#enforcerprototypeschema)
+    - [Enforcer.prototype.validate](#enforcerprototypevalidate)
+- Static Methods
+    - [Enforcer.format](#enforcerformat)
+    - [Enforcer.is](#enforceris)
+    - [Enforcer.parse](#enforcerparse)
 
-# API
-
-## new Enforcer ( definition [, options ] ) 
+# Constructor
 
 Create an OpenAPI enforcer instance.
+
+`new Enforcer ( definition [, options ] )`
 
 | Parameter | Description | Type | Default |
 | --------- | ----------- | ---- | ------- |
 | definition | An openapi document or a string representing the version to use. | `string` or `object` | |
 | options | The configuration options to apply to the instance. | `object` | `{}` |
 
-Returns: An instance of the OpenAPI Enforcer
+**Returns** an instance of the OpenAPI Enforcer
 
 **Example 1 - Version as parameter**
 
@@ -180,11 +187,11 @@ app.use(enforcer.middleware());
 
 Default: `'files'`
 
-
-
-## enforcer.errors ( schema, value )
+## Enforcer.prototype.errors
 
 Validate a value against a schema and receive a detailed report where errors exist and why.
+
+`Enforcer.prototype.errors ( schema, value )`
 
 | Parameter | Description | Type |
 | --------- | ----------- | ---- |
@@ -232,9 +239,11 @@ const errors = enforcer.errors(schema, {
 // ]
 ```
 
-## enforcer.format ( schema, value )
+## Enforcer.prototype.format
 
 Format a value to match the schema. This works for primitives, arrays, and objects. Arrays and objects will be traversed and their values also formatted recursively.
+
+`Enforcer.prototype.format ( schema, value )`
 
 | Parameter | Description | Type |
 | --------- | ----------- | ---- |
@@ -287,9 +296,15 @@ const value = enforcer.format(schema, {
 // }
 ```
 
-## enforcer.populate ( schema, params [, value ] )
+## Enforcer.prototype.middleware
+
+## Enforcer.prototype.path
+
+## Enforcer.prototype.populate
 
 Build a value from a schema. While traversing the schema the final populated value may be derived from the provided value in combination with the schema's `default` value, the `x-template` value, or the `x-variable` value.
+
+`Enforcer.prototype.populate ( schema, params [, value ] )`
 
 | Parameter | Description | Type |
 | --------- | ----------- | ---- |
@@ -413,9 +428,15 @@ Parameter replacement is when part of a string is populated with parameters. Thi
     // value ===> 'Bob is 25 years old
     ```
 
-## enforcer.validate ( schema, value )
+## Enforcer.prototype.request
+
+## Enforcer.prototype.schema
+
+## Enforcer.prototype.validate
 
 Validate that the value adheres to the schema or throw an `Error`. This function calls [`enforcer.errors`](#enforcererrors--schema-value-) and if any errors occur then it packages them into a single `Error` instance and throws the `Error`.
+
+`Enforcer.prototype.validate ( schema, value )`
 
 | Parameter | Description | Type |
 | --------- | ----------- | ---- |
@@ -459,4 +480,53 @@ enforcer.validate(schema, {
 //   /date: Expected date-time to be less than or equal to 2000-01-01T00:00:00.000Z. Received: 2010-01-01T00:00:00.000Z
 //   /num: Property not allowed
 //     at ...
+```
+
+## Enforcer.format
+
+## Enforcer.is
+
+Various functions that take a single parameter as input and detect if the value fits to a specific type. Some functions have an optional second parameter that can be used to increase the strictness of the check. Returns `true` if of the correct type, otherwise `false`.
+
+| Function | Input | Strict Option |
+| -------- | ------| ------------- |
+| binary | A binary `String` made up of zeros and ones with a length divisible by 8. | No
+| boolean | `"true"`, `"false"`, or any other value. | Yes - must be a `Boolean` |
+| byte | A base64 encoded `String`. | No |
+| date | A `Date` object or `String` in ISO date format | No |
+| dateTime | A `Date` object or `String` in ISO date format | No |
+| integer | An integer `String`, an integer `Number`, or `Boolean` | Yes - must be a `Number` |
+| number | A `String`, `Number`, or `Boolean` | Yes - must be a `Number` |
+
+**Example**
+
+```js
+const Enforcer = require('openapi-enforcer');
+
+Enforcer.is.integer("123");          // => 123 (as a number)
+Enforcer.is.integer("5.67", true);   // => 6 (as a number)
+```
+
+## Enforcer.parse
+
+Various functions that take a single parameter as input and return the parsed value. Some functions have an optional second parameter that can be used to force parse and allow for more leniency in input.
+
+| Function | Input | Force Option | Return Value |
+| -------- | ----- | ------------ | ------------ |
+| binary | A binary `String` made up of zeros and ones. | No | `Buffer` |
+| boolean | `"true"`, `"false"`, or a `Boolean`. | Yes - any value accepted | `Boolean` |
+| byte | A base64 encoded `String`. | No | `Buffer` |
+| date | A `Date` object or `String` in ISO date format | Yes - `Number` or ISO date-time string | `Date` |
+| dateTime | A `Date` object or `String` in ISO date-time format | Yes - `Number` or ISO date string | `Date` |
+| integer | An integer `String`, an integer `Number`, or `Boolean` | Yes - anything not isNaN | `Number` |
+| number | A `String`, `Number`, or `Boolean` | Yes - anything not isNaN | `Number` |
+
+**Example**
+
+```js
+const Enforcer = require('openapi-enforcer');
+
+Enforcer.parse.integer("123");          // => 123 (as a number)
+Enforcer.parse.integer("5.67");         // => throws Error
+Enforcer.parse.integer("5.67", true);   // => 6 (as a number)
 ```
