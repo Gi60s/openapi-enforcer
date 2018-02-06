@@ -71,7 +71,6 @@ function OpenApiEnforcer(definition, defaultOptions) {
                 definition: definition.paths[path],
                 path: path
             };
-            const parameterNames = [];
 
             // if no parameters then store as a static path
             if (!rxPathParam.test(path)) {
@@ -79,10 +78,17 @@ function OpenApiEnforcer(definition, defaultOptions) {
 
             // analyze the dynamic path and prep for parsing of actual paths
             } else {
+                let match;
+
+                // figure out path parameter names
+                const parameterNames = [];
+                const rxParamNames = new RegExp(rxPathParam, 'g');
+                while (match = rxParamNames.exec(path)) {
+                    parameterNames.push(match[1]);
+                }
 
                 // build search regular expression
                 const rxFind = /{([^}]+)}/g;
-                let match;
                 let rxStr = '';
                 let offset = 0;
                 while (match = rxFind.exec(path)) {
@@ -256,6 +262,10 @@ OpenApiEnforcer.prototype.path = function(path) {
     } else {
         const pathLength = path.split('/').length - 1;
         const dynamics = parsers.dynamics[pathLength];
+
+        // no matches
+        if (!dynamics) return;
+
         const length = dynamics.length;
         for (let i = 0; i < length; i++) {
             const parser = dynamics[i];
