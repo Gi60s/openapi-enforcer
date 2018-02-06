@@ -159,7 +159,7 @@ exports.string = function(value) {
             return JSON.stringify(value);
     }
 
-    throw Error('Cannot convert to string. The value must be a string, a number, or a boolean. Received: ' + smart(value));
+    throw Error('Cannot convert to string. The value must be a string, a number, or a boolean, and Object, or a Date. Received: ' + smart(value));
 };
 
 function decToBin(dec) {
