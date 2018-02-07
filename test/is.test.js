@@ -18,7 +18,7 @@
 const expect    = require('chai').expect;
 const is        = require('../bin/is');
 
-describe.only('is', () => {
+describe('is', () => {
 
     describe('binary', () => {
 
@@ -58,21 +58,105 @@ describe.only('is', () => {
 
     describe('byte', () => {
 
+        it('base64 encoded string', () => {
+            expect(is.byte('aGVsbG8=')).to.be.true;
+        });
+
+        it('not base64 encoded string', () => {
+            expect(is.byte('5*2')).to.be.false;
+        });
+
     });
 
     describe('date', () => {
+
+        it('date at start of day is date', () => {
+            expect(is.date(new Date('2000-01-01T00:00:00.000Z'))).to.be.true;
+        });
+
+        it('date not at start of day is not date', () => {
+            expect(is.date(new Date('2000-01-01T11:11:11.111Z'))).to.be.false;
+        });
+
+        it('string with ISO date format is date', () => {
+            expect(is.date('2000-01-01')).to.be.true;
+        });
+
+        it('string with ISO date-time format is not date', () => {
+            expect(is.date('2000-01-01T00:00:00.000Z')).to.be.false;
+        });
+
+        it('number is not date', () => {
+            expect(is.date(1)).to.be.false;
+        });
+
+        it('string with ISO date format is not date in strict mode', () => {
+            expect(is.date('2000-01-01', true)).to.be.false;
+        });
 
     });
 
     describe('dateTime', () => {
 
+        it('date is date-time', () => {
+            expect(is.dateTime(new Date())).to.be.true;
+        });
+
+        it('string with ISO date format not is date-time', () => {
+            expect(is.dateTime('2000-01-01')).to.be.false;
+        });
+
+        it('string with ISO date-time format is date-time', () => {
+            expect(is.dateTime('2000-01-01T00:00:00.000Z')).to.be.true;
+        });
+
+        it('number is not date-time', () => {
+            expect(is.dateTime(1)).to.be.false;
+        });
+
+        it('string with ISO date-time format is not date-time in strict mode', () => {
+            expect(is.dateTime('2000-01-01T00:00:00.000Z', true)).to.be.false;
+        });
+
     });
 
     describe('integer', () => {
 
+        it('string integer is integer', () => {
+            expect(is.integer('123')).to.be.true;
+        });
+
+        it('string decimal is not integer', () => {
+            expect(is.integer('1.23')).to.be.false;
+        });
+
+        it('integer number is integer', () => {
+            expect(is.integer(123)).to.be.true;
+        });
+
+        it('decimal number is integer', () => {
+            expect(is.integer(1.23)).to.be.false;
+        });
+
+        it('string integer is not integer in strict', () => {
+            expect(is.integer('123', true)).to.be.false;
+        });
+
     });
 
     describe('number', () => {
+
+        it('string number is number', () => {
+            expect(is.number('1.23')).to.be.true;
+        });
+
+        it('number is number', () => {
+            expect(is.number(1.23)).to.be.true;
+        });
+
+        it('string number is not number in strict', () => {
+            expect(is.number('1.23', true)).to.be.false;
+        });
 
     });
 
