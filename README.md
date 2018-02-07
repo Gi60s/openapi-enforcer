@@ -491,20 +491,22 @@ Various functions that take a single parameter as input and detect if the value 
 | Function | Input | Strict Option |
 | -------- | ------| ------------- |
 | binary | A binary `String` made up of zeros and ones with a length divisible by 8. | No
-| boolean | `"true"`, `"false"`, or any other value. | Yes - must be a `Boolean` |
+| boolean | `"true"`, `"false"`, or a `Boolean`. | Yes - must be a `Boolean` |
 | byte | A base64 encoded `String`. | No |
 | date | A `Date` object or `String` in ISO date format | No |
 | dateTime | A `Date` object or `String` in ISO date format | No |
-| integer | An integer `String`, an integer `Number`, or `Boolean` | Yes - must be a `Number` |
-| number | A `String`, `Number`, or `Boolean` | Yes - must be a `Number` |
+| integer | An integer `String` or an integer `Number` | Yes - must be a `Number` |
+| number | A `String` or `Number` | Yes - must be a `Number` |
 
 **Example**
 
 ```js
 const Enforcer = require('openapi-enforcer');
 
-Enforcer.is.integer("123");          // => 123 (as a number)
-Enforcer.is.integer("5.67", true);   // => 6 (as a number)
+Enforcer.is.integer("123");         // => true
+Enforcer.is.integer(123);           // => true
+Enforcer.is.integer(1.23);          // => false
+Enforcer.is.integer("123", true);   // => false
 ```
 
 ## Enforcer.parse
@@ -513,7 +515,7 @@ Various functions that take a single parameter as input and return the parsed va
 
 | Function | Input | Force Option | Return Value |
 | -------- | ----- | ------------ | ------------ |
-| binary | A binary `String` made up of zeros and ones. | No | `Buffer` |
+| binary | A binary `String` made up of zeros and ones with a length divisible by 8. | No | `Buffer` |
 | boolean | `"true"`, `"false"`, or a `Boolean`. | Yes - any value accepted | `Boolean` |
 | byte | A base64 encoded `String`. | No | `Buffer` |
 | date | A `Date` object or `String` in ISO date format | Yes - `Number` or ISO date-time string | `Date` |
