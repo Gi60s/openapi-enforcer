@@ -18,7 +18,7 @@
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
 
-describe('#validate', () => {
+describe('validate', () => {
 
     const definition = {
         openapi: '3.0.0',
@@ -33,20 +33,16 @@ describe('#validate', () => {
     };
 
     let enforcer;
-    let validate;
 
     before(() => {
         enforcer = new Enforcer(definition);
-        validate = function(schema, value) {
-            return enforcer.errors(schema, value);
-        };
     });
 
     describe('array', () => {
         const base = { type: 'array', items: { type: 'number' } };
 
         it('is array', () => {
-            const errors = validate(base, 5);
+            const errors = enforcer.errors(base, 5);
             expect(errors[0]).to.match(/expected an array/i);
         });
 
@@ -54,12 +50,12 @@ describe('#validate', () => {
             const schema = extend(base, { maxItems: 10 });
 
             it('zero items', () => {
-                const errors = validate(schema, []);
+                const errors = enforcer.errors(schema, []);
                 expect(errors).to.be.null;
             });
 
             it('11 items', () => {
-                const errors = validate(schema, [1,2,3,4,5,6,7,8,9,10,11]);
+                const errors = enforcer.errors(schema, [1,2,3,4,5,6,7,8,9,10,11]);
                 expect(errors[0]).to.match(/array length above maximum/i);
             });
 
@@ -69,12 +65,12 @@ describe('#validate', () => {
             const schema = extend(base, { minItems: 2 });
 
             it('zero items', () => {
-                const errors = validate(schema, []);
+                const errors = enforcer.errors(schema, []);
                 expect(errors[0]).to.match(/array length below minimum/i);
             });
 
             it('3 items', () => {
-                const errors = validate(schema, [1,2,3]);
+                const errors = enforcer.errors(schema, [1,2,3]);
                 expect(errors).to.be.null;
             });
 
@@ -84,12 +80,12 @@ describe('#validate', () => {
             const schema = extend(base, { uniqueItems: true });
 
             it('unique', () => {
-                const errors = validate(schema, [1,2,3]);
+                const errors = enforcer.errors(schema, [1,2,3]);
                 expect(errors).to.be.null;
             });
 
             it('duplicate', () => {
-                const errors = validate(schema, [1,2,1]);
+                const errors = enforcer.errors(schema, [1,2,1]);
                 expect(errors[0]).to.match(/array values must be unique/i);
             });
 
@@ -99,17 +95,17 @@ describe('#validate', () => {
             const schema = extend(base, { enum: [[1,2], [3,4]] });
 
             it('in enum 1', () => {
-                const errors = validate(schema, [1,2]);
+                const errors = enforcer.errors(schema, [1,2]);
                 expect(errors).to.be.null;
             });
 
             it('in enum 2', () => {
-                const errors = validate(schema, [3,4]);
+                const errors = enforcer.errors(schema, [3,4]);
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = validate(schema, [1,2,1]);
+                const errors = enforcer.errors(schema, [1,2,1]);
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -121,12 +117,12 @@ describe('#validate', () => {
         const base = { type: 'string', format: 'binary' };
 
         it('is binary', () => {
-            const errors = validate(base, '00110011');
+            const errors = enforcer.errors(base, '00110011');
             expect(errors).to.be.null;
         });
 
         it('is not binary', () => {
-            const errors = validate(base, 'abc');
+            const errors = enforcer.errors(base, 'abc');
             expect(errors[0]).to.match(/Expected a binary string/i);
         });
 
@@ -134,12 +130,12 @@ describe('#validate', () => {
             const schema = extend(base, { enum: ['00110011'] });
 
             it('in enum', () => {
-                const errors = validate(schema, '00110011');
+                const errors = enforcer.errors(schema, '00110011');
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = validate(schema, '10101010');
+                const errors = enforcer.errors(schema, '10101010');
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -151,17 +147,17 @@ describe('#validate', () => {
         const base = { type: 'boolean' };
 
         it('is true', () => {
-            const errors = validate(base, true);
+            const errors = enforcer.errors(base, true);
             expect(errors).to.be.null;
         });
 
         it('is false', () => {
-            const errors = validate(base, false);
+            const errors = enforcer.errors(base, false);
             expect(errors).to.be.null;
         });
 
         it('is zero', () => {
-            const errors = validate(base, 0);
+            const errors = enforcer.errors(base, 0);
             expect(errors[0]).to.match(/Expected a boolean/);
         });
 
@@ -169,12 +165,12 @@ describe('#validate', () => {
             const schema = extend(base, { enum: [true] });
 
             it('in enum', () => {
-                const errors = validate(schema, true);
+                const errors = enforcer.errors(schema, true);
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = validate(schema, false);
+                const errors = enforcer.errors(schema, false);
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -186,17 +182,17 @@ describe('#validate', () => {
         const base = { type: 'string', format: 'byte' };
 
         it('is byte', () => {
-            const errors = validate(base, 'Aa==');
+            const errors = enforcer.errors(base, 'Aa==');
             expect(errors).to.be.null;
         });
 
         it('has invalid character', () => {
-            const errors = validate(base, 'Aa%%');
+            const errors = enforcer.errors(base, 'Aa%%');
             expect(errors[0]).to.match(/Expected a base64 string/i);
         });
 
         it('has invalid length', () => {
-            const errors = validate(base, 'Aa=');
+            const errors = enforcer.errors(base, 'Aa=');
             expect(errors[0]).to.match(/Expected a base64 string/i);
         });
 
@@ -204,12 +200,12 @@ describe('#validate', () => {
             const schema = extend(base, { enum: ['Aa=='] });
 
             it('in enum', () => {
-                const errors = validate(schema, 'Aa==');
+                const errors = enforcer.errors(schema, 'Aa==');
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = validate(schema, 'Bb==');
+                const errors = enforcer.errors(schema, 'Bb==');
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -221,17 +217,17 @@ describe('#validate', () => {
         const base = { type: 'string', format: 'date' };
 
         it('valid date', () => {
-            const errors = validate(base, '2000-01-01');
+            const errors = enforcer.errors(base, '2000-01-01');
             expect(errors).to.be.null;
         });
 
         it('invalid date', () => {
-            const errors = validate(base, 'abc');
+            const errors = enforcer.errors(base, 'abc');
             expect(errors[0]).to.match(/full-date string/);
         });
 
         it('out of bounds date', () => {
-            const errors = validate(base, '2000-02-31');
+            const errors = enforcer.errors(base, '2000-02-31');
             expect(errors[0]).to.match(/date does not exist/);
         });
 
@@ -239,17 +235,17 @@ describe('#validate', () => {
             const schema = extend(base, { minimum: '2000-01-02' });
 
             it('above minimum', () => {
-                const errors = validate(schema, '2000-01-03');
+                const errors = enforcer.errors(schema, '2000-01-03');
                 expect(errors).to.be.null;
             });
 
             it('at minimum', () => {
-                const errors = validate(schema, '2000-01-02');
+                const errors = enforcer.errors(schema, '2000-01-02');
                 expect(errors).to.be.null;
             });
 
             it('below minimum', () => {
-                const errors = validate(schema, '2000-01-01');
+                const errors = enforcer.errors(schema, '2000-01-01');
                 expect(errors[0]).to.match(/greater than or equal/);
             });
 
@@ -259,17 +255,17 @@ describe('#validate', () => {
             const schema = extend(base, { maximum: '2000-01-02' });
 
             it('above maximum', () => {
-                const errors = validate(schema, '2000-01-03');
+                const errors = enforcer.errors(schema, '2000-01-03');
                 expect(errors[0]).to.match(/less than or equal/);
             });
 
             it('at maximum', () => {
-                const errors = validate(schema, '2000-01-02');
+                const errors = enforcer.errors(schema, '2000-01-02');
                 expect(errors).to.be.null;
             });
 
             it('below maximum', () => {
-                const errors = validate(schema, '2000-01-01');
+                const errors = enforcer.errors(schema, '2000-01-01');
                 expect(errors).to.be.null;
             });
 
@@ -279,12 +275,12 @@ describe('#validate', () => {
             const schema = extend(base, { enum: ['2000-01-01'] });
 
             it('in enum', () => {
-                const errors = validate(schema, '2000-01-01');
+                const errors = enforcer.errors(schema, '2000-01-01');
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = validate(schema, '2001-02-02');
+                const errors = enforcer.errors(schema, '2001-02-02');
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -296,12 +292,12 @@ describe('#validate', () => {
         const base = { type: 'string', format: 'date-time' };
 
         it('valid date-time', () => {
-            const errors = validate(base, '2000-01-01T00:00:00.000Z');
+            const errors = enforcer.errors(base, '2000-01-01T00:00:00.000Z');
             expect(errors).to.be.null;
         });
 
         it('out of bounds time', () => {
-            const errors = validate(base, '2000-01-01T24:00:00.000Z');
+            const errors = enforcer.errors(base, '2000-01-01T24:00:00.000Z');
             expect(errors[0]).to.match(/time is invalid/);
         });
 
@@ -309,12 +305,12 @@ describe('#validate', () => {
             const schema = extend(base, { enum: ['2000-01-01T00:00:00.000Z'] });
 
             it('in enum', () => {
-                const errors = validate(schema, '2000-01-01T00:00:00.000Z');
+                const errors = enforcer.errors(schema, '2000-01-01T00:00:00.000Z');
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = validate(schema, '2001-01-01T00:00:00.000Z');
+                const errors = enforcer.errors(schema, '2001-01-01T00:00:00.000Z');
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -326,12 +322,12 @@ describe('#validate', () => {
         const base = { type: 'integer' };
 
         it('is an integer', () => {
-            const errors = validate(base, 5);
+            const errors = enforcer.errors(base, 5);
             expect(errors).to.be.null;
         });
 
         it('is a number with decimal', () => {
-            const errors = validate(base, 1.5);
+            const errors = enforcer.errors(base, 1.5);
             expect(errors[0]).to.match(/Expected an integer/);
         });
 
@@ -339,12 +335,12 @@ describe('#validate', () => {
             const schema = extend(base, { multipleOf: 2 });
 
             it('is multiple of 2', () => {
-                const errors = validate(schema, 4);
+                const errors = enforcer.errors(schema, 4);
                 expect(errors).to.be.null;
             });
 
             it('is not a multiple of 2', () => {
-                const errors = validate(schema, 5);
+                const errors = enforcer.errors(schema, 5);
                 expect(errors[0]).to.match(/Expected a multiple/);
             });
 
@@ -354,17 +350,17 @@ describe('#validate', () => {
             const schema = extend(base, { minimum: 2 });
 
             it('above minimum', () => {
-                const errors = validate(schema, 3);
+                const errors = enforcer.errors(schema, 3);
                 expect(errors).to.be.null;
             });
 
             it('at minimum', () => {
-                const errors = validate(schema, 2);
+                const errors = enforcer.errors(schema, 2);
                 expect(errors).to.be.null;
             });
 
             it('below minimum', () => {
-                const errors = validate(schema, 1);
+                const errors = enforcer.errors(schema, 1);
                 expect(errors[0]).to.match(/greater than or equal/);
             });
 
@@ -374,17 +370,17 @@ describe('#validate', () => {
             const schema = extend(base, { minimum: 2, exclusiveMinimum: true });
 
             it('above minimum', () => {
-                const errors = validate(schema, 3);
+                const errors = enforcer.errors(schema, 3);
                 expect(errors).to.be.null;
             });
 
             it('at minimum', () => {
-                const errors = validate(schema, 2);
+                const errors = enforcer.errors(schema, 2);
                 expect(errors[0]).to.match(/greater than 2/);
             });
 
             it('below minimum', () => {
-                const errors = validate(schema, 1);
+                const errors = enforcer.errors(schema, 1);
                 expect(errors[0]).to.match(/greater than 2/);
             });
 
@@ -394,17 +390,17 @@ describe('#validate', () => {
             const schema = extend(base, { maximum: 2 });
 
             it('above maximum', () => {
-                const errors = validate(schema, 3);
+                const errors = enforcer.errors(schema, 3);
                 expect(errors[0]).to.match(/less than or equal/);
             });
 
             it('at maximum', () => {
-                const errors = validate(schema, 2);
+                const errors = enforcer.errors(schema, 2);
                 expect(errors).to.be.null;
             });
 
             it('below maximum', () => {
-                const errors = validate(schema, 1);
+                const errors = enforcer.errors(schema, 1);
                 expect(errors).to.be.null;
             });
 
@@ -414,17 +410,17 @@ describe('#validate', () => {
             const schema = extend(base, { maximum: 2, exclusiveMaximum: true });
 
             it('above maximum', () => {
-                const errors = validate(schema, 3);
+                const errors = enforcer.errors(schema, 3);
                 expect(errors[0]).to.match(/less than 2/);
             });
 
             it('at maximum', () => {
-                const errors = validate(schema, 2);
+                const errors = enforcer.errors(schema, 2);
                 expect(errors[0]).to.match(/less than 2/);
             });
 
             it('below maximum', () => {
-                const errors = validate(schema, 1);
+                const errors = enforcer.errors(schema, 1);
                 expect(errors).to.be.null;
             });
 
@@ -434,12 +430,12 @@ describe('#validate', () => {
             const schema = extend(base, { enum: [1] });
 
             it('in enum', () => {
-                const errors = validate(schema, 1);
+                const errors = enforcer.errors(schema, 1);
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = validate(schema, 2);
+                const errors = enforcer.errors(schema, 2);
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -451,12 +447,12 @@ describe('#validate', () => {
         const base = { type: 'number' };
 
         it('is a number', () => {
-            const errors = validate(base, 1.2);
+            const errors = enforcer.errors(base, 1.2);
             expect(errors).to.be.null;
         });
 
         it('is not a number', () => {
-            const errors = validate(base, 'a');
+            const errors = enforcer.errors(base, 'a');
             expect(errors[0]).to.match(/Expected a number/);
         });
 
@@ -464,12 +460,12 @@ describe('#validate', () => {
             const schema = extend(base, { enum: [1.2] });
 
             it('in enum', () => {
-                const errors = validate(schema, 1.2);
+                const errors = enforcer.errors(schema, 1.2);
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = validate(schema, 1.3);
+                const errors = enforcer.errors(schema, 1.3);
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -484,17 +480,17 @@ describe('#validate', () => {
             const schema = extend(base, { minProperties: 1 });
 
             it('more than minimum', () => {
-                const errors = validate(schema, { a: 1, b: 2 });
+                const errors = enforcer.errors(schema, { a: 1, b: 2 });
                 expect(errors).to.be.null;
             });
 
             it('same as minimum', () => {
-                const errors = validate(schema, { a: 1 });
+                const errors = enforcer.errors(schema, { a: 1 });
                 expect(errors).to.be.null;
             });
 
             it('less than minimum', () => {
-                const errors = validate(schema, {});
+                const errors = enforcer.errors(schema, {});
                 expect(errors[0]).to.match(/greater than or equal/);
             });
 
@@ -504,17 +500,17 @@ describe('#validate', () => {
             const schema = extend(base, { maxProperties: 1 });
 
             it('more than maximum', () => {
-                const errors = validate(schema, { a: 1, b: 2 });
+                const errors = enforcer.errors(schema, { a: 1, b: 2 });
                 expect(errors[0]).to.match(/less than or equal/);
             });
 
             it('same as maximum', () => {
-                const errors = validate(schema, { a: 1 });
+                const errors = enforcer.errors(schema, { a: 1 });
                 expect(errors).to.be.null;
             });
 
             it('less than maximum', () => {
-                const errors = validate(schema, {});
+                const errors = enforcer.errors(schema, {});
                 expect(errors).to.be.null;
             });
 
@@ -529,17 +525,17 @@ describe('#validate', () => {
             });
 
             it('valid property values 1', () => {
-                const errors = validate(schema, { x: 1 });
+                const errors = enforcer.errors(schema, { x: 1 });
                 expect(errors).to.be.null;
             });
 
             it('valid property values 2', () => {
-                const errors = validate(schema, { x: 1, y: true });
+                const errors = enforcer.errors(schema, { x: 1, y: true });
                 expect(errors).to.be.null;
             });
 
             it('invalid property value', () => {
-                const errors = validate(schema, { y: 0 });
+                const errors = enforcer.errors(schema, { y: 0 });
                 expect(errors[0]).to.match(/Expected a boolean/);
             });
 
@@ -549,17 +545,17 @@ describe('#validate', () => {
             const schema = extend(base, { enum: [{ x: 1 }] });
 
             it('in enum', () => {
-                const errors = validate(schema, { x: 1 });
+                const errors = enforcer.errors(schema, { x: 1 });
                 expect(errors).to.be.null;
             });
 
             it('not in enum 1', () => {
-                const errors = validate(schema, { x: 2 });
+                const errors = enforcer.errors(schema, { x: 2 });
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
             it('not in enum 2', () => {
-                const errors = validate(schema, { y: 1 });
+                const errors = enforcer.errors(schema, { y: 1 });
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -569,12 +565,12 @@ describe('#validate', () => {
             const schema = extend(base, { required: ['name'] });
 
             it('has required property', () => {
-                const errors = validate(schema, { name: true });
+                const errors = enforcer.errors(schema, { name: true });
                 expect(errors).to.be.null;
             });
 
             it('missing required property', () => {
-                const errors = validate(schema, { age: true });
+                const errors = enforcer.errors(schema, { age: true });
                 expect(errors[0]).to.match(/required properties missing/);
             });
 
@@ -589,18 +585,18 @@ describe('#validate', () => {
             };
 
             it('both valid', () => {
-                const errors = validate(schema, { x: 2, y: 'hello' });
+                const errors = enforcer.errors(schema, { x: 2, y: 'hello' });
                 expect(errors).to.be.null;
             });
 
             it('first invalid', () => {
-                const errors = validate(schema, { x: true, y: 'hello' });
+                const errors = enforcer.errors(schema, { x: true, y: 'hello' });
                 expect(errors.length).to.equal(1);
                 expect(errors[0]).to.match(/x: expected a number/i);
             });
 
             it('second invalid', () => {
-                const errors = validate(schema, { x: 2, y: 4 });
+                const errors = enforcer.errors(schema, { x: 2, y: 4 });
                 expect(errors.length).to.equal(1);
                 expect(errors[0]).to.match(/y: expected a string/i);
             });
@@ -609,32 +605,32 @@ describe('#validate', () => {
                 const schemas = definition.components.schemas;
 
                 it('valid Dog from Pet', () => {
-                    const errors = validate(schemas.Pet, { animalType: 'Pet', petType: 'Dog', packSize: 2 });
+                    const errors = enforcer.errors(schemas.Pet, { animalType: 'Pet', petType: 'Dog', packSize: 2 });
                     expect(errors).to.be.null;
                 });
 
                 it('invalid Dog from Pet', () => {
-                    const errors = validate(schemas.Pet, { animalType: 'Pet', petType: 'Dog', packSize: 'a' });
+                    const errors = enforcer.errors(schemas.Pet, { animalType: 'Pet', petType: 'Dog', packSize: 'a' });
                     expect(errors[0]).to.match(/expected a number/i);
                 });
 
                 it('undefined discriminator', () => {
-                    const errors = validate(schemas.Pet, { petType: 'Mouse' });
+                    const errors = enforcer.errors(schemas.Pet, { petType: 'Mouse' });
                     expect(errors[0]).to.match(/Undefined discriminator schema/);
                 });
 
                 it('valid Cat from Pet', () => {
-                    const errors = validate(schemas.Pet, { animalType: 'Pet', petType: 'Cat', huntingSkill: 'sneak' });
+                    const errors = enforcer.errors(schemas.Pet, { animalType: 'Pet', petType: 'Cat', huntingSkill: 'sneak' });
                     expect(errors).to.be.null;
                 });
 
                 it('invalid Cat from Pet', () => {
-                    const errors = validate(schemas.Pet, { animalType: 'Pet', petType: 'Cat', huntingSkill: 1 });
+                    const errors = enforcer.errors(schemas.Pet, { animalType: 'Pet', petType: 'Cat', huntingSkill: 1 });
                     expect(errors[0]).to.match(/expected a string/i);
                 });
 
                 it('valid Dog from Animal', () => {
-                    const errors = validate(schemas.Animal, { animalType: 'Pet', petType: 'Dog', packSize: 2 });
+                    const errors = enforcer.errors(schemas.Animal, { animalType: 'Pet', petType: 'Dog', packSize: 2 });
                     expect(errors).to.be.null;
                 });
 
@@ -651,17 +647,17 @@ describe('#validate', () => {
             };
 
             it('valid 1', () => {
-                const errors = validate(schema, 5);
+                const errors = enforcer.errors(schema, 5);
                 expect(errors).to.be.null;
             });
 
             it('valid 2', () => {
-                const errors = validate(schema, true);
+                const errors = enforcer.errors(schema, true);
                 expect(errors).to.be.null;
             });
 
             it('invalid', () => {
-                const errors = validate(schema, { x: 'abc' });
+                const errors = enforcer.errors(schema, { x: 'abc' });
                 expect(errors[0]).to.match(/Did not match any/i);
             });
 
@@ -676,17 +672,17 @@ describe('#validate', () => {
             };
 
             it('found 0', () => {
-                const errors = validate(schema, { x: 11 });
+                const errors = enforcer.errors(schema, { x: 11 });
                 expect(errors[0]).to.match(/Did not match exactly one/i);
             });
 
             it('found 1', () => {
-                const errors = validate(schema, { x: 6 });
+                const errors = enforcer.errors(schema, { x: 6 });
                 expect(errors).to.be.null;
             });
 
             it('found 2', () => {
-                const errors = validate(schema, { x: 3 });
+                const errors = enforcer.errors(schema, { x: 3 });
                 expect(errors[0]).to.match(/Did not match exactly one/i);
             });
 
@@ -701,12 +697,12 @@ describe('#validate', () => {
             const schema = extend(base, { enum: ['abc'] });
 
             it('in enum', () => {
-                const errors = validate(schema, 'abc');
+                const errors = enforcer.errors(schema, 'abc');
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = validate(schema, 'def');
+                const errors = enforcer.errors(schema, 'def');
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -738,7 +734,7 @@ describe('#validate', () => {
     });
 
     describe('v2', () => {
-        let validate;
+        let enforcer;
 
         const definition = {
             swagger: '2.0',
@@ -751,41 +747,38 @@ describe('#validate', () => {
         };
 
         before(() => {
-            const enforcer = Enforcer(definition);
-            validate = function(schema, value) {
-                return enforcer.errors(schema, value);
-            };
+            enforcer = Enforcer(definition);
         });
 
         describe('object discriminator', () => {
 
             it('valid Dog from Pet', () => {
-                const errors = validate(definition.definitions.Pet, { animalType: 'Pet', petType: 'Dog', packSize: 2 });
+                const errors = enforcer.errors(definition.definitions.Pet, { animalType: 'Pet', petType: 'Dog', packSize: 2 });
                 expect(errors).to.be.null;
             });
 
             it('invalid Dog from Pet', () => {
-                const errors = validate(definition.definitions.Pet, { animalType: 'Pet', petType: 'Dog', packSize: 'a' });
+                const errors = enforcer.errors(definition.definitions.Pet, { animalType: 'Pet', petType: 'Dog', packSize: 'a' });
                 expect(errors[0]).to.match(/expected a number/i);
             });
 
             it('undefined discriminator', () => {
-                const errors = validate(definition.definitions.Pet, { petType: 'Mouse' });
+                const errors = enforcer.errors(definition.definitions.Pet, { petType: 'Mouse' });
                 expect(errors[0]).to.match(/Undefined discriminator schema/);
             });
 
             it('valid Cat from Pet', () => {
-                const errors = validate(definition.definitions.Pet, { animalType: 'Pet', petType: 'Cat', huntingSkill: 'sneak' });
+                const errors = enforcer.errors(definition.definitions.Pet, { animalType: 'Pet', petType: 'Cat', huntingSkill: 'sneak' });
                 expect(errors).to.be.null;
             });
 
             it('invalid Cat from Pet', () => {
-                const errors = validate(definition.definitions.Pet, { animalType: 'Pet', petType: 'Cat', huntingSkill: 1 });
+                const errors = enforcer.errors(definition.definitions.Pet, { animalType: 'Pet', petType: 'Cat', huntingSkill: 1 });
                 expect(errors[0]).to.match(/expected a string/i);
             });
 
             it('valid Dog from Animal', () => {
-                const errors = validate(definition.definitions.Animal, { animalType: 'Pet', petType: 'Dog', packSize: 2 });
+                const errors = enforcer.errors(definition.definitions.Animal, { animalType: 'Pet', petType: 'Dog', packSize: 2 });
                 expect(errors).to.be.null;
             });
 
