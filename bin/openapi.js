@@ -174,15 +174,15 @@ OpenApiEnforcer.prototype.errors = function(schema, value) {
 
 /**
  * Format a value for sending as a response.
- * @param {*} value
  * @param {object} schema
+ * @param {*} value
  * @returns {*}
  */
-OpenApiEnforcer.prototype.format = function(value, schema) {
+OpenApiEnforcer.prototype.format = function(schema, value) {
     const type = util.schemaType(schema);
     switch (type) {
         case 'array':
-            if (Array.isArray(value)) return value.map(v => this.format(v, schema.items));
+            if (Array.isArray(value)) return value.map(v => this.format(schema.items, v));
             break;
 
         case 'boolean':
@@ -207,9 +207,9 @@ OpenApiEnforcer.prototype.format = function(value, schema) {
                 const properties = schema.properties || {};
                 Object.keys(value).forEach(key => {
                     if (properties.hasOwnProperty(key)) {
-                        result[key] = this.format(value[key], properties[key]);
+                        result[key] = this.format(properties[key], value[key]);
                     } else if (additionalProperties) {
-                        result[key] = this.format(value[key], additionalProperties);
+                        result[key] = this.format(additionalProperties, value[key]);
                     }
                 });
                 return result;
