@@ -484,6 +484,31 @@ enforcer.validate(schema, {
 
 ## Enforcer.format
 
+Various functions that take a single parameter as input and convert it to a format that is ready for sending as an HTTP response. For example, the `binary` format function will convert a value to a binary string; the date format function will convert a value to a date string.
+
+Note: this static method should not be confused with the [Enforcer.prototype.format](#enforcerprototypeformat) function that formats a value to a provided schema.
+
+| Function | Input |
+| -------- | ------|
+| binary | A `Boolean`, `Number`, `String`, or `Buffer`. |
+| boolean | Any value. |
+| byte | A `Boolean`, `Number`, `String`, or `Buffer`. |
+| date | A `Date` object, `String` in ISO date or date-time format, or a `Number`. |
+| dateTime | A `Date` object, `String` in ISO date or date-time format, or a `Number`. |
+| integer | Any value not isNaN. |
+| number | Any value not isNaN. |
+| string | A `String`, `Number`, `Boolean`, `Object`, of `Date`. |
+
+**Example**
+
+```js
+const Enforcer = require('openapi-enforcer');
+
+Enforcer.format.binary(true);       // => "00000001"
+Enforcer.format.date(0);            // => "1970-01-01"
+Enforcer.format.integer(5.67);      // => 6
+```
+
 ## Enforcer.is
 
 Various functions that take a single parameter as input and detect if the value fits to a specific type. Some functions have an optional second parameter that can be used to increase the strictness of the check. Returns `true` if of the correct type, otherwise `false`.
