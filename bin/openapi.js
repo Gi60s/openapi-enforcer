@@ -317,7 +317,7 @@ OpenApiEnforcer.prototype.populate = function(schema, map, initialValue) {
  * Convert input into values.
  * @param {object|string} request A request object or the path to use with GET method.
  * @param {string|object} [request.body=''] The body of the request.
- * @param {string|Object.<string,string>} [request.header={}] The request header as a string or object
+ * @param {string|Object.<string,string>} [request.headers={}] The request header as a string or object
  * @param {string} [request.method=GET] The request method.
  * @param {string} [request.path=''] The request path. The path can contain the query parameters.
  * @param {string|Object.<string,string|undefined|Array.<string|undefined>>} [request.query={}] The request query. If the path also has the query defined then this query will overwrite the path query parameters.
@@ -330,48 +330,49 @@ OpenApiEnforcer.prototype.request = function(request) {
     if (arguments.length === 0) request = '';
     if (typeof request === 'string') request = { path: request };
     if (!request || typeof request !== 'object') throw Error('Expected an object or a string. Received: ' + util.smart(request));
-    const req = Object.assign({ body: '', header: {}, method: 'GET', path: '', query: {} }, request);
+    const req = Object.assign({ body: '', headers: {}, method: 'GET', path: '', query: {} }, request);
 
     // validate path
     if (typeof req.path !== 'string') throw Error('Invalid request path specified. Expected a string. Received: ' + util.smart(req.path));
     const pathComponents = req.path.split('?');
     req.path = '/' + pathComponents[0].replace(/^\//, '').replace(/\/$/, '');
 
+    // TODO: this returns a value...
     this.path(req.path);
 
     // normalize and validate header
-    type = typeof req.header;
+    type = typeof req.headers;
     if (type === 'string') {
-        req.header = req.header.split('\n')
+        req.headers = req.headers.split('\n')
             .reduce((p, c) => {
                 const match = /^([^:]+): ([\s\S]*?)\r?$/.exec(c);
                 p[match[1].toLowerCase()] = match[2] || '';
                 return p;
             }, {});
-    } else if (req.header && type === 'object') {
-        const header = {};
-        const keys = Object.keys(req.header);
+    } else if (req.headers && type === 'object') {
+        const headers = {};
+        const keys = Object.keys(req.headers);
         const length = keys.length;
         for (let i = 0; i < length; i++) {
             const key = keys[i];
-            const value = req.header[key];
+            const value = req.headers[key];
             if (typeof value !== 'string') {
                 hasError = true;
                 break;
             }
-            header[key.toLowerCase()] = value;
+            headers[key.toLowerCase()] = value;
         }
-        req.header = header;
+        req.headers = headers;
     } else {
         hasError = true;
     }
-    if (hasError) throw Error('Invalid request header specified. Expected a string or an object. Received: ' + util.smart(req.header));
+    if (hasError) throw Error('Invalid request header specified. Expected a string or an object. Received: ' + util.smart(req.headers));
 
     // normalize and validate body
     type = typeof req.body;
     if (type !== 'string' && type !== 'object') throw Error('Invalid request body. Expected a string or an object. Received: ' + util.smart(req.body));
-    if (type === 'string' && req.body && req.header['content-type']) {
-        const contentType = req.header['content-type'];
+    if (type === 'string' && req.body && req.headers['content-type']) {
+        const contentType = req.headers['content-type'];
         const index = contentType.indexOf(';');
         switch (index !== -1 ? contentType.substr(0, index) : contentType) {
             case 'application/json':
@@ -381,7 +382,7 @@ OpenApiEnforcer.prototype.request = function(request) {
                 req.body = parseQueryString(req.body);
                 break;
             case 'multipart/form-data':
-                req.body = multipart(req.header, req.body);
+                req.body = multipart(req.headers, req.body);
         }
     }
 
