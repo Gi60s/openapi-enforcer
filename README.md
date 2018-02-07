@@ -518,8 +518,8 @@ Various functions that take a single parameter as input and return the parsed va
 | byte | A base64 encoded `String`. | No | `Buffer` |
 | date | A `Date` object or `String` in ISO date format | Yes - `Number` or ISO date-time string | `Date` |
 | dateTime | A `Date` object or `String` in ISO date-time format | Yes - `Number` or ISO date string | `Date` |
-| integer | An integer `String`, an integer `Number`, or `Boolean` | Yes - anything not isNaN | `Number` |
-| number | A `String`, `Number`, or `Boolean` | Yes - anything not isNaN | `Number` |
+| integer | An integer `String` or an integer `Number` | Yes - anything not isNaN | `Number` |
+| number | A `String` or `Number` | Yes - anything not isNaN | `Number` |
 
 **Example**
 

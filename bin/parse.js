@@ -103,7 +103,7 @@ exports['date-time'] = exports.dateTime;
 
 /**
  * Parse client supplied value to an integer.
- * @param {string, number, boolean} value
+ * @param {string, number} value
  * @param {boolean} [force=false]
  * @returns {number}
  */
