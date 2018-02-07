@@ -19,7 +19,7 @@ const Buffer    = require('buffer').Buffer;
 const expect    = require('chai').expect;
 const parse     = require('../bin/parse');
 
-describe.only('parse', () => {
+describe('parse', () => {
 
     describe('binary', () => {
 
