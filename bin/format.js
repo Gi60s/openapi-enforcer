@@ -22,7 +22,7 @@ const zeros = '00000000';
 
 /**
  * Convert value into a binary octet string.
- * @param {boolean, number, string, buffer} value
+ * @param {boolean, number, string, Buffer} value
  * @returns {string}
  */
 exports.binary = function(value) {
@@ -66,7 +66,7 @@ exports.byte = function(value) {
     const type = typeof value;
 
     if (type === 'boolean') {
-        return value ? 'AQ==' : '';
+        return value ? 'AQ==' : 'AA==';
 
     } else if (type === 'number' && !isNaN(value)) {
         const binary = decToBin(value);
