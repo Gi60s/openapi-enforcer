@@ -44,17 +44,34 @@ exports.boolean = (value, strict) => {
 
 /**
  * Check to see if a value is a valid date format.
- * @param {string} v
+ * @param {string|Date} value
+ * @param {boolean} [strict] If set to true the value must be a Date instance
  * @returns {boolean}
  */
-exports.date = v => typeof v === 'string' && rx.date.test(v);
+exports.date = (value, strict) => {
+    if (!strict && typeof value === 'string') {
+        return rx.date.test(value);
+    } else if (value instanceof Date) {
+        return !(isNaN(value) || value.getUTCHours() || value.getUTCMinutes() ||
+            value.getUTCSeconds() || value.getUTCMilliseconds());
+    } else {
+        return false;
+    }
+};
 
 /**
  * Check to see if a value is a valid date-time format.
- * @param {string} v
+ * @param {string|Date} value
+ * @param {boolean} [strict] If set to true the value must be a Date instance
  * @returns {boolean}
  */
-exports.dateTime = v => typeof v === 'string' && rx.dateTime.test(v);
+exports.dateTime = (value, strict) => {
+    if (!strict && typeof value === 'string') {
+        return rx.dateTime.test(value);
+    } else {
+        return value instanceof Date && !isNaN(value);
+    }
+};
 
 /**
  * Check to see if the value is an integer.
