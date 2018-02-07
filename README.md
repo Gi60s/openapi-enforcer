@@ -493,10 +493,10 @@ Various functions that take a single parameter as input and detect if the value 
 | binary | A binary `String` made up of zeros and ones with a length divisible by 8. | No
 | boolean | `"true"`, `"false"`, or a `Boolean`. | Yes - must be a `Boolean` |
 | byte | A base64 encoded `String`. | No |
-| date | A `Date` object or `String` in ISO date format | No |
-| dateTime | A `Date` object or `String` in ISO date format | No |
-| integer | An integer `String` or an integer `Number` | Yes - must be a `Number` |
-| number | A `String` or `Number` | Yes - must be a `Number` |
+| date | A `Date` object at start of UTC day or `String` in ISO date format. | Yes - must be a `Date` |
+| dateTime | A `Date` object or `String` in ISO date or date-time format. | Yes - must be a `Date` |
+| integer | An integer `String` or an integer `Number`. | Yes - must be a `Number` |
+| number | A `String` or `Number`. | Yes - must be a `Number` |
 
 **Example**
 
@@ -518,10 +518,10 @@ Various functions that take a single parameter as input and return the parsed va
 | binary | A binary `String` made up of zeros and ones with a length divisible by 8. | No | `Buffer` |
 | boolean | `"true"`, `"false"`, or a `Boolean`. | Yes - any value accepted | `Boolean` |
 | byte | A base64 encoded `String`. | No | `Buffer` |
-| date | A `Date` object or `String` in ISO date format | Yes - `Number` or ISO date-time string | `Date` |
-| dateTime | A `Date` object or `String` in ISO date-time format | Yes - `Number` or ISO date string | `Date` |
-| integer | An integer `String` or an integer `Number` | Yes - anything not isNaN | `Number` |
-| number | A `String` or `Number` | Yes - anything not isNaN | `Number` |
+| date | A `Date` object or `String` in ISO date format. | Yes - `Number` or ISO date-time string | `Date` |
+| dateTime | A `Date` object or `String` in ISO date-time format. | Yes - `Number` or ISO date string | `Date` |
+| integer | An integer `String` or an integer `Number`. | Yes - anything not isNaN | `Number` |
+| number | A `String` or `Number`. | Yes - anything not isNaN | `Number` |
 
 **Example**
 
