@@ -16,6 +16,7 @@
  **/
 'use strict';
 const params    = require('./param-style');
+const parse     = require('../parse');
 const util      = require('../util');
 const validate  = require('../validate');
 
@@ -60,11 +61,15 @@ Version.prototype.getParameterSchema = function(pathSchema, paramName) {
 
 /**
  * Deserialize the request parameters.
- * @param {object} schema
+ * @param {object} schema The path schema object.
  * @param {object} req
- * @param {object} req.path
- * @param {object}
- * @returns {*}
+ * @param {object|string} req.body
+ * @param {Object<string>} req.cookie
+ * @param {Object<string>} req.header
+ * @param {string} req.method
+ * @param {object<string>} req.path
+ * @param {string} req.query
+ * @returns {{ body: string|object, cookie: object, header: object, path: object, query: object }}
  */
 Version.prototype.parseRequestParameters = function(schema, req) {
     const errors = [];
@@ -115,27 +120,16 @@ Version.prototype.parseRequestParameters = function(schema, req) {
 
     // parse and validate cookie, headers, path, and query
     paramTypes.forEach(type => {
-        const from = req[type];
-        const to = result[type];
-        Object.keys(from).forEach(name => {
-            const definition = params[type][name];
-            if (definition) {
-                const schema = definition.schema || definition.content[Object.keys(definition.content)[0]];
-                deserialize(this.enforcer, )
-
-                const data = this.enforcer.deserialize(schema, value);
-                if (data.errors) {
-                    errors.push(data.errors);
-                } else {
-                    to[name] = data.value;
-                }
-            } else {
-                to[name] = value;
-            }
-        });
+        const data = deserialize(params[type], req[type]);
+        if (data.errors.length) {
+            errors.push.apply(errors, data.errors);
+        } else {
+            result[type] = data.value;
+        }
     });
 
     // validate that all required parameters were provided
+/*
     paramTypes.forEach(type => {
         const from = req[type];
         const store = params[type];
@@ -145,6 +139,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
             }
         });
     });
+*/
 
     // if there are errors then return that
     if (errors.length > 0) {
@@ -155,9 +150,9 @@ Version.prototype.parseRequestParameters = function(schema, req) {
     } else {
         return {
             body: result.body,
-            cookies: result.cookie,
-            headers: result.header,
-            params: result.path,
+            cookie: result.cookie,
+            header: result.header,
+            path: result.path,
             query: result.query,
             statusCode: 200
         };
@@ -273,77 +268,80 @@ function defaultStyle(paramType) {
 }
 
 // deserialize request parameters
-function deserialize(enforcer, schemas, values) {
+function deserialize(schemas, values) {
     const errors = [];
     const result = {};
 
     Object.keys(schemas).forEach(name => {
-        const schema = schemas[name];
+        const definition = schemas[name];
+        if (!definition.schema && !definition.content) return;
+        const schema = definition.schema || definition.content[Object.keys(definition.content)[0]];
+        if (!schema) return;
 
         if (values.hasOwnProperty(name)) {
-            const at = schema.in;
-            const style = schema.style || defaultStyle(at);
-            const explode = schema.hasOwnProperty('explode') ? schema.explode : style === 'form';
+            const at = definition.in;
+            const style = definition.style || defaultStyle(at);
+            const explode = definition.hasOwnProperty('explode') ? definition.explode : style === 'form';
             const type = util.schemaType(schema);
             let parsed;
             let value = values[name];
 
-            const formatError = 'Expected value to be formatted in ' +
-                (explode ? 'exploded ' : '') +
-                style + ' style for ' + at + ' parameter ' + name + '. Received: ' + value;
-
             switch (style) {
                 case 'deepObject':
                     // throw Error because it's a problem with the swagger
-                    if (at !== 'query') throw Error('The deepObject style only works with query parameters. Error at ' + at + ' ' + name);
+                    if (at !== 'query') throw Error('The deepObject style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
                     parsed = params.deepObject(name, value);
                     break;
 
                 case 'form':
                     // throw Error because it's a problem with the swagger
-                    if (at !== 'cookie' && at !== 'query') throw Error('The form style only works with cookie and query parameters. Error at ' + at + ' ' + name);
+                    if (at !== 'cookie' && at !== 'query') throw Error('The form style only works with cookie and query parameters. Error at ' + at + ' parameter "' + name + '"');
                     parsed = params.form(type, explode, name, value);
                     break;
 
                 case 'label':
                     // throw Error because it's a problem with the swagger
-                    if (at !== 'path') throw Error('The label style only works with path parameters. Error at ' + at + ' ' + name);
+                    if (at !== 'path') throw Error('The label style only works with path parameters. Error at ' + at + ' parameter "' + name + '"');
                     parsed = params.label(type, explode, value);
                     break;
 
                 case 'matrix':
                     // throw Error because it's a problem with the swagger
-                    if (at !== 'path') throw Error('The matrix style only works with path parameters. Error at ' + at + ' ' + name);
+                    if (at !== 'path') throw Error('The matrix style only works with path parameters. Error at ' + at + ' parameter "' + name + '"');
                     parsed = params.matrix(type, explode, name, value);
                     break;
+
                 case 'pipeDelimited':
                     // throw Error because it's a problem with the swagger
-                    if (at !== 'query') throw Error('The pipeDelimited style only works with query parameters. Error at ' + at + ' ' + name);
+                    if (at !== 'query') throw Error('The pipeDelimited style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
                     parsed = params.pipeDelimited(type, value);
                     break;
 
                 case 'simple':
                     // throw Error because it's a problem with the swagger
-                    if (at !== 'path' && at !== 'header') throw Error('The simple style only works with path and header parameters. Error at ' + at + ' ' + name);
+                    if (at !== 'path' && at !== 'header') throw Error('The simple style only works with path and header parameters. Error at ' + at + ' parameter "' + name + '"');
                     parsed = params.simple(type, explode, value);
                     break;
 
                 case 'spaceDelimited':
                     // throw Error because it's a problem with the swagger
-                    if (at !== 'query') throw Error('The pipeDelimited style only works with query parameters. Error at ' + at + ' ' + name);
+                    if (at !== 'query') throw Error('The spaceDelimited style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
                     parsed = params.spaceDelimited(type, value);
                     break;
             }
 
             if (parsed.match) {
-                const data = enforcer.deserialize(schema, parsed.value);
-                if (data.errors) {
-                    errors.push('One or more errors with ' + at + ' parameter: ' + name + '\n\t' + data.errors.join('\n\t'));
+                const errors2 = [];
+                const data = deserialize2(errors2, '', schema, parsed.value);
+                if (errors2.length) {
+                    errors.push('One or more errors with ' + at + ' parameter "' + name + '":\n\t' + errors2.join('\n\t'));
                 } else {
-                    result[name] = data.value;
+                    result[name] = data;
                 }
             } else {
-                errors.push(formatError);
+                errors.push('Expected value to be formatted in ' +
+                    (explode ? 'exploded ' : '') +
+                    style + ' style for ' + at + ' parameter "' + name + '". Received: ' + value);
             }
 
         } else if (schema.required) {
@@ -357,93 +355,55 @@ function deserialize(enforcer, schemas, values) {
     };
 }
 
-
-// parse external input
-function parse(errors, prefix, schema, value) {
+function deserialize2(errors, prefix, schema, value) {
+    const type = util.schemaType(schema);
     let result;
-    switch (schema.type) {
+    switch (type) {
         case 'array':
-            switch (schema.collectionFormat) {
-                case 'ssv':
-                    result = value.split(' ');
-                    break;
-                case 'tsv':
-                    result = value.split('\t');
-                    break;
-                case 'pipes':
-                    result = value.split('|');
-                    break;
-                case 'csv':
-                default:
-                    result = value.split(',');
-                    break;
-            }
-            validate.array(errors, prefix, schema.items, result);
-            return result.map((v, i) => parse(errors, prefix + '/' + i, schema.items, v));
+            if (Array.isArray(value)) return value.map((v,i) => deserialize2(errors, prefix + '/' + i, schema.items, v));
+            errors.push(prefix + ': Expected an array. Received: ' + value);
+            break;
 
         case 'boolean':
-            if (value === 'false') return false;
-            return !!value;
-
         case 'integer':
-            result = +value;
-            validate.integer(errors, prefix, schema, result);
-            return result;
-
         case 'number':
-            result = +value;
-            validate.number(errors, prefix, schema, result);
-            return result;
+            result = parse[type](value);
+            if (result.error) errors.push(prefix + ': ' + result.error);
+            return result.value;
 
         case 'string':
             switch (schema.format) {
                 case 'binary':
-                    validate.binary(errors, prefix, schema, value);
-                    return new Buffer(value, 'binary');
-
                 case 'byte':
-                    validate.byte(errors, prefix, schema, value);
-                    return new Buffer(value, 'base64');
-
                 case 'date':
-                    validate.date(errors, prefix, schema, value);
-                    return new Date(value + 'T00:00:00.000Z');
-
                 case 'date-time':
-                    validate.dateTime(errors, prefix, schema, value);
-                    return new Date(value);
-
+                    result = parse[schema.format](value);
+                    break;
                 default:
-                    validate.string(errors, prefix, schema, value);
-                    return value;
+                    result = { value: value };
             }
-    }
-}
+            if (result.error) errors.push(prefix + ': ' + result.error);
+            return result.value;
 
-function parseStyleObject(setDelimiter, valueDelimiter, value) {
+        case 'object':
+            if (value && typeof value === 'object') {
+                const result = {};
+                const additionalProperties = schema.additionalProperties;
+                const properties = schema.properties || {};
+                Object.keys(value).forEach(key => {
+                    if (properties.hasOwnProperty(key)) {
+                        result[key] = deserialize2(errors, prefix + '/' + key, properties[key], value[key]);
+                    } else if (additionalProperties) {
+                        result[key] = deserialize2(errors, prefix + '/' + key, additionalProperties, value[key]);
+                    }
+                });
+                return result;
+            }
+            errors.push(prefix + ': Expected an object. Received: ' + value);
+            return;
 
-    if (setDelimiter) {
-        const str = 's([^v]+?)v([^s]+?)?';
-        const rx = RegExp(str.replace(/v/g, valueDelimiter).replace(/s/g, setDelimiter), 'g');
-        const result = {};
-        let match;
-        let offset = 0;
-        while (match = rx.exec(value)) {
-            result[match[1]] = match[2] || '';
-            offset = match.index + match[0].length;
-        }
-        if (offset !== value.length) return null;
-        return result;
-
-    } else {
-        const result = {};
-        const ar = value.substr(1).split(valueDelimiter);
-        const length = ar.length;
-
-        if (length % 2 !== 0) return null;
-        for (let i = 1; i < length; i += 2) {
-            result[ar[i - 1]] = ar[i];
-        }
-        return result;
+        default:
+            errors.push(prefix + ': unknown schema type');
+            return;
     }
 }
