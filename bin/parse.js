@@ -16,116 +16,119 @@
  **/
 'use strict';
 const is            = require('./is');
+const rx            = require('./rx');
 const smart         = require('./util').smart;
 
 /**
  * Parse client supplied binary string to a buffer.
  * @param {string} value
- * @returns {Buffer}
+ * @returns {{ error: string|null, value: Buffer }}
  */
 exports.binary = function(value) {
-    if (!is.binary(value)) throw Error('Expected a binary octet string. Received: ' + smart(value));
-    return Buffer.from ? Buffer.from(value, 'binary') : new Buffer(value, 'binary');
+    if (!is.binary(value)) return parsed('Expected a binary octet string. Received: ' + smart(value));
+    return parsed(null, Buffer.from ? Buffer.from(value, 'binary') : new Buffer(value, 'binary'));
 };
 
 /**
  * Parse client supplied boolean.
- * @param {*} value
- * @param {boolean} [force=false]
- * @returns {boolean}
+ * @param {string} value
+ * @returns {{ error: string|null, value: boolean }}
  */
-exports.boolean = function(value, force) {
-    if (typeof value === 'boolean') return value;
-    if (value === 'false') return false;
-    if (value === 'true') return true;
-    if (force) return !!value;
-    throw Error('Expected "true", "false" or a boolean. Received: ' + smart(value));
+exports.boolean = function(value) {
+    if (value === 'false' || value === '') return parsed(null, false);
+    if (value === 'true') return parsed(null, true);
+    return parsed('Expected "true", "false" or an empty string. Received: ' + smart(value));
 };
 
 /**
  * Parse client supplied base64 encoded string to a buffer.
- * @param {boolean, number, string, buffer} value
- * @returns {Buffer}
+ * @param {string} value
+ * @returns {{ error: string|null, value: Buffer }}
  */
 exports.byte = function(value) {
-    if (!is.byte(value)) throw Error('Expected a base64 string. Received: ' + smart(value));
-    return Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64');
+    if (!is.byte(value)) return parsed('Expected a base64 string. Received: ' + smart(value));
+    return parsed(null, Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64'));
 };
 
 /**
  * Parse client supplied date string into a Date object.
- * @param {string, number, Date} value
- * @param {boolean} [force=false]
- * @returns {Date}
+ * @param {string} value
+ * @returns {{ error: string|null, value: Date }}
  */
-exports.date = function(value, force) {
-    let result;
+exports.date = function(value) {
+    if (typeof value !== 'string' || !(isDateTime(value) || isDate(value))) {
+        return parsed('Expected a Date object, a date string of the format YYYY-MM-DD or YYYY-MM-DDTmm:hh:ss.sssZ, or a numeric type. Received: ' + smart(value));
 
-    if (value instanceof Date || is.date(value)) {
-        result = new Date(value);
-    } else if (!force) {
-        throw Error('Expected a Date object or a date string of the format: YYYY-MM-DD. Received: ' + smart(value));
-    } else if (is.dateTime(value)) {
-        result = new Date(value);
-    } else if (!isNaN(value)) {
-        result = new Date(+value);
     } else {
-        throw Error('Expected a Date object, a date string of the format YYYY-MM-DD or YYYY-MM-DDTmm:hh:ss.sssZ, or a numeric type. Received: ' + smart(value));
+        const result = new Date(+value);
+        result.setUTCHours(0);
+        result.setUTCMinutes(0);
+        result.setUTCSeconds(0);
+        result.setUTCMilliseconds(0);
+        return parsed(null, result);
     }
-
-    result.setUTCHours(0);
-    result.setUTCMinutes(0);
-    result.setUTCSeconds(0);
-    result.setUTCMilliseconds(0);
-    return result;
 };
 
 /**
  * Parse client supplied date-time string into a Date object.
- * @param {string, number, Date} value
- * @param {boolean} [force=false]
- * @returns {Date}
+ * @param {string} value
+ * @returns {{ error: string|null, value: Date }}
  */
-exports.dateTime = function(value, force) {
-    if (value instanceof Date || is.dateTime(value)) {
-        return new Date(value);
-    } else if (!force) {
-        throw Error('Expected a Date object or a date-time string of the format: YYYY-MM-DDThh:mm:ss.sss. Received: ' + smart(value));
-    } else if (is.date(value)) {
-        return new Date(value);
-    } else if (!isNaN(value)) {
-        return new Date(+value);
+exports.dateTime = function(value) {
+    if (typeof value !== 'string' || !(isDateTime(value) || isDate(value))) {
+        return parsed('Expected a Date object or a date-time string of the format: YYYY-MM-DDThh:mm:ss.sss. Received: ' + smart(value));
     } else {
-        throw Error('Expected a Date object, a date string of the format YYYY-MM-DD or YYYY-MM-DDTmm:hh:ss.sssZ, or a numeric type. Received: ' + smart(value));
+        return parsed(null, new Date(value));
     }
 };
 exports['date-time'] = exports.dateTime;
 
 /**
  * Parse client supplied value to an integer.
- * @param {string, number} value
- * @param {boolean} [force=false]
- * @returns {number}
+ * @param {string} value
+ * @returns {{ error: string|null, value: number }}
  */
-exports.integer = function(value, force) {
-    if (!force && !is.integer(value)) {
-        throw Error('Cannot convert to integer. The value must be numeric without decimals. Received: ' + smart(value));
-    } else if (isNaN(value)) {
-        throw Error('Cannot convert to integer. The value must be numeric. Received: ' + smart(value));
+exports.integer = function(value) {
+    if (!rx.integer.test(value)) {
+        return parsed('Cannot convert to integer. The value must be numeric without decimals. Received: ' + smart(value));
     } else {
-        return Math.round(+value);
+        return parsed(null, +value);
     }
 };
 
 /**
  * Parse client supplied value to a number.
- * @param {string, number, boolean} value
- * @param {boolean} [force=false]
- * @returns {number}
+ * @param {string} value
+ * @returns {{ error: string|null, value: number }}
  */
-exports.number = function(value, force) {
-    if ((!force && !is.number(value)) || isNaN(value)) {
-        throw Error('Cannot convert to number. The value must be numeric. Received: ' + smart(value));
+exports.number = function(value) {
+    if (!rx.number.test(value)) {
+        return parsed('Cannot convert to number. The value must be numeric. Received: ' + smart(value));
+    } else {
+        return parsed(null, +value);
     }
-    return +value;
 };
+
+
+function isDate(value) {
+    const match = rx.date.exec(value);
+    if (!match) return false;
+    const d = new Date(value);
+    return d.getUTCFullYear() === +match[1] && d.getUTCMonth() + 1 === +match[2] && d.getUTCDate() === +match[3];
+}
+
+function isDateTime(value) {
+    const match = rx.dateTime.exec(value);
+    if (!match) return false;
+    const d = new Date(value);
+    return d.getUTCFullYear() === +match[1] && d.getUTCMonth() + 1 === +match[2] && d.getUTCDate() === +match[3] &&
+        d.getUTCHours() === +match[4] && d.getUTCMinutes() === +match[5] && d.getUTCSeconds() === +match[6] &&
+        d.getUTCMilliseconds() === +match[7];
+}
+
+function parsed(err, value) {
+    return {
+        error: err ? err : null,
+        value: err ? null : value
+    }
+}
