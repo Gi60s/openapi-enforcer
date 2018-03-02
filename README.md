@@ -20,16 +20,44 @@ Features
 - Prototype Methods
     - [Enforcer.prototype.errors](#enforcerprototypeerrors)
     - [Enforcer.prototype.format](#enforcerprototypeformat)
-    - [Enforcer.prototype.middleware](#enforcerprototypemiddleware)
     - [Enforcer.prototype.path](#enforcerprototypepath)
     - [Enforcer.prototype.populate](#enforcerprototypepopulate)
-    - [Enforcer.prototype.request](#enforcerprototyperequest)
     - [Enforcer.prototype.schema](#enforcerprototypeschema)
     - [Enforcer.prototype.validate](#enforcerprototypevalidate)
 - Static Methods
     - [Enforcer.format](#enforcerformat)
     - [Enforcer.is](#enforceris)
     - [Enforcer.parse](#enforcerparse)
+
+# Example
+
+```js
+const RefParser = require('json-schema-ref-parser');
+const Enforcer = require('openapi-enforcer');
+
+// load, parse, dereference openapi document
+RefParser.dereference('/path/to/schema/file.json')  // path can also be yaml
+    .then(function(schema) {
+
+        // create an enforcer instance
+        const enforcer = Enforcer(schema);
+
+        // get the schema that defines a user
+        const userSchema = schema.components.schemas.user;
+
+        // create a user object that uses the schema and variable mapping
+        const user = enforcer.populate(userSchema, {
+            name: 'Bob Smith',
+            birthday: new Date('2000-01-01')
+        });
+
+        // check the user object for any schema errors
+        // (FYI - it wont have errors because it was just populated from the schema)
+        const errors = enforcer.errors(userSchema, user);
+
+        // continue processing
+    });
+```
 
 # Constructor
 
@@ -296,8 +324,6 @@ const value = enforcer.format(schema, {
 // }
 ```
 
-## Enforcer.prototype.middleware
-
 ## Enforcer.prototype.path
 
 ## Enforcer.prototype.populate
@@ -427,8 +453,6 @@ Parameter replacement is when part of a string is populated with parameters. Thi
     const value = enforcer.populate(schema, { name: 'Bob', age: 25 });
     // value ===> 'Bob is 25 years old
     ```
-
-## Enforcer.prototype.request
 
 ## Enforcer.prototype.schema
 
