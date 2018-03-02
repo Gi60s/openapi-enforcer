@@ -18,7 +18,7 @@
 const expect        = require('chai').expect;
 const param         = require('../../bin/v3/param-style');
 
-describe.only('v3/param-style', () => {
+describe('v3/param-style', () => {
 
     describe('form', () => {
 
