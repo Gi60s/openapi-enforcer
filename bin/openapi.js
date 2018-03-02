@@ -17,6 +17,7 @@
 'use strict';
 const format        = require('./format');
 const multipart     = require('./multipart-parser');
+const parse         = require('./parse');
 const populate      = require('./populate');
 const util          = require('./util');
 const validate      = require('./validate');
@@ -53,7 +54,7 @@ function OpenApiEnforcer(definition, defaultOptions) {
     const major = match[1];
     const Version = util.tryRequire('./versions/v' + major);
     if (!Version) throw Error('The Open API definition version is either invalid or not supported: ' + v);
-    const version = new Version(definition);
+    const version = new Version(this, definition);
 
     // normalize defaults
     const defaults = Object.assign({}, defaultOptions);
@@ -63,85 +64,52 @@ function OpenApiEnforcer(definition, defaultOptions) {
         });
 
     // build path parser functions
-    const pathParsers = { statics: {}, dynamics: {} };
+    const pathParsers = {};
     if (!definition.paths || typeof definition.paths !== 'object') definition.paths = {};
     Object.keys(definition.paths)
         .forEach(path => {
-            const about = {
+            const parser = {
                 definition: definition.paths[path],
                 path: path
             };
+            const pathLength = path.split('/').length - 1;
+            let match;
 
-            // if no parameters then store as a static path
-            if (!rxPathParam.test(path)) {
-                pathParsers.statics[path] = about;
-
-            // analyze the dynamic path and prep for parsing of actual paths
-            } else {
-                let match;
-
-                // figure out path parameter names
-                const parameterNames = [];
-                const rxParamNames = new RegExp(rxPathParam, 'g');
-                while (match = rxParamNames.exec(path)) {
-                    parameterNames.push(match[1]);
-                }
-
-                // build search regular expression
-                const rxFind = /{([^}]+)}/g;
-                let rxStr = '';
-                let offset = 0;
-                while (match = rxFind.exec(path)) {
-                    console.log(match);
-                    rxStr += path.substring(offset, match.index) + '([\\s\\S]+?)';
-                    offset = match.index + match[0].length;
-                }
-                rxStr += path.substr(offset);
-                const rx = new RegExp('^' + rxStr + '$');
-
-                // determine static path percentage
-                const pathParts = path.split('/');
-                const pathLength = pathParts.length - 1;
-                pathParts.shift();
-                const total = pathParts
-                    .map(v => {
-                        const rx = /{([^}]+)}/g;
-                        let statics = 0;
-                        let params = 0;
-                        let offset = 0;
-                        let match;
-                        while (match = rx.exec(v)) {
-                            if (match.index > offset) statics++;
-                            params++;
-                            offset = match.index + match[0].length;
-                        }
-                        if (offset < v.length) statics++;
-                        return statics / (statics + params);
-                    })
-                    .reduce((prev, curr) => prev + curr, 0);
-                about.weight = total / (pathLength - 1);
-
-                // add the parse function
-                about.parse = str => {
-                    str = util.edgeSlashes(str, true, false);
-
-                    const match = rx.exec(str);
-                    if (!match) return undefined;
-
-                    const params = {};
-                    parameterNames.forEach((name, index) => params[name] = match[index + 1]);
-                    return params;
-                };
-
-                if (!pathParsers.dynamics[pathLength]) pathParsers.dynamics[pathLength] = [];
-                pathParsers.dynamics[pathLength].push(about);
+            // figure out path parameter names
+            const parameterNames = [];
+            const rxParamNames = new RegExp(rxPathParam, 'g');
+            while (match = rxParamNames.exec(path)) {
+                parameterNames.push(match[1]);
             }
-        });
-    Object.keys(pathParsers.dynamics)
-        .forEach(key => {
-            pathParsers.dynamics[key].sort((a, b) => a.weight < b.weight ? -1 : 1);
-        });
 
+            // build search regular expression
+            const rxFind = /{([^}]+)}/g;
+            let rxStr = '';
+            let offset = 0;
+            while (match = rxFind.exec(path)) {
+                console.log(match);
+                rxStr += path.substring(offset, match.index) + '([\\s\\S]+?)';
+                offset = match.index + match[0].length;
+            }
+            rxStr += path.substr(offset);
+            const rx = new RegExp('^' + rxStr + '$');
+
+            // add the parse function
+            parser.parse = path => {
+
+                // check if this path is a match
+                const match = rx.exec(path);
+                if (!match) return undefined;
+
+                // get path parameter strings
+                const pathParams = {};
+                parameterNames.forEach((name, index) => pathParams[name] = match[index + 1]);
+                return pathParams;
+            };
+
+            if (!pathParsers[pathLength]) pathParsers[pathLength] = [];
+            pathParsers[pathLength].push(parser);
+        });
 
     // store protected properties
     store.set(this, {
@@ -150,7 +118,28 @@ function OpenApiEnforcer(definition, defaultOptions) {
         pathParsers: pathParsers,
         version: version
     });
+
+    this.parser = parse(false);
 }
+
+/**
+ * Deserialize a value. Useful for taking request input and parsing.
+ * @param {object} schema
+ * @param {*} value
+ * @returns {{ errors:string[], value:* }}
+ */
+OpenApiEnforcer.prototype.deserialize = function(schema, value) {
+    const errors = [];
+    const value = deserialize(errors, schema, value);
+    const error = errors.length > 0
+        ? Error('One or more errors encountered during deserialization:\n\t' + errors.join('\n\t'))
+        : null;
+    if (error) error.errors = errors;
+    return {
+        errors: error ? errors : null,
+        value: error ? null : value
+    };
+};
 
 /**
  * Check a value against a schema for errors.
@@ -172,13 +161,14 @@ OpenApiEnforcer.prototype.errors = function(schema, value) {
     return v.errors.length > 0 ? v.errors : null;
 };
 
+// TODO: rename to serialize
 /**
- * Format a value for sending as a response.
+ * Serialize a value for sending as a response.
  * @param {object} schema
  * @param {*} value
  * @returns {*}
  */
-OpenApiEnforcer.prototype.format = function(schema, value) {
+OpenApiEnforcer.prototype.serialize = function(schema, value) {
     const type = util.schemaType(schema);
     switch (type) {
         case 'array':
@@ -217,67 +207,33 @@ OpenApiEnforcer.prototype.format = function(schema, value) {
     }
 };
 
-OpenApiEnforcer.prototype.middleware = function(options) {
-    const enforcer = this;
-    return function(req, res, next) {
-        // parse the incoming request
-        const data = enforcer.path(req.path);
-
-        // TODO: multipart fields and files merged into single body object
-        // TODO: can openapi specify what types of files to update and size limits?
-
-        // overwrite the send method to validate the response prior to sending
-        /*const send = res.send;
-        res.send = function(status, body) {
-            const errors = enforcer.errors(schema, body);
-            send.apply(send, arguments);
-        };*/
-
-        req.openapi = openapi;
-    }
-};
-
 /**
  * Get details about the matching path.
  * @param {string} path
  * @returns {{path: string, params: Object.<string, *>, schema: object}|undefined}
  */
 OpenApiEnforcer.prototype.path = function(path) {
-    const parsers = store.get(this).pathParsers;
 
-    // normalize path
-    if (!path) path = '';
-    path = util.edgeSlashes(path, true, false);
+    // normalize the path
+    path = util.edgeSlashes(path.split('?')[0], true, false);
 
-    // check for static path match - simple key lookup
-    const staticPath = parsers.statics[path];
-    if (staticPath) {
-        return {
-            params: {},
-            path: staticPath.path,
-            schema: util.copy(staticPath.definition)
-        }
+    // get all parsers that fit the path length
+    const pathLength = path.split('/').length - 1;
+    const parsers = store.get(this).pathParsers[pathLength];
 
-    // process dynamic path matches - test each regular expression
-    } else {
-        const pathLength = path.split('/').length - 1;
-        const dynamics = parsers.dynamics[pathLength];
-
-        // no matches
-        if (!dynamics) return;
-
-        const length = dynamics.length;
-        for (let i = 0; i < length; i++) {
-            const parser = dynamics[i];
-            const params = parser.parse(path);
-            if (params) return {
+    // find the right parser
+    const length = parsers.length;
+    for (let i = 0; i < length; i++) {
+        const parser = parsers[i];
+        const params = parser.parse(path);
+        if (params) {
+            return {
                 params: params,
                 path: parser.path,
                 schema: util.copy(parser.definition)
             };
         }
     }
-
 };
 
 /**
@@ -285,6 +241,7 @@ OpenApiEnforcer.prototype.path = function(path) {
  * @param {object} schema
  * @param {object} [map]
  * @param {*} [initialValue]
+ * @returns {*}
  */
 OpenApiEnforcer.prototype.populate = function(schema, map, initialValue) {
     const data = store.get(this);
@@ -314,128 +271,50 @@ OpenApiEnforcer.prototype.populate = function(schema, map, initialValue) {
 };
 
 /**
- * Convert input into values.
- * @param {object|string} request A request object or the path to use with GET method.
- * @param {string|object} [request.body=''] The body of the request.
- * @param {string|Object.<string,string>} [request.headers={}] The request header as a string or object
- * @param {string} [request.method=GET] The request method.
- * @param {string} [request.path=''] The request path. The path can contain the query parameters.
- * @param {string|Object.<string,string|undefined|Array.<string|undefined>>} [request.query={}] The request query. If the path also has the query defined then this query will overwrite the path query parameters.
+ * Parse and validate input parameters for a request..
+ * @param {string|object} req
+ * @param {string|object} [req.body]
+ * @param {object} [req.cookies]
+ * @param {object} [req.headers]
+ * @param {string} [req.method='get']
+ * @param {string} [req.path]
+ * @returns {object}
  */
-OpenApiEnforcer.prototype.request = function(request) {
-    let type;
-    let hasError;
+OpenApiEnforcer.prototype.request = function(req) {
 
-    // process and validate input parameter
-    if (arguments.length === 0) request = '';
-    if (typeof request === 'string') request = { path: request };
-    if (!request || typeof request !== 'object') throw Error('Expected an object or a string. Received: ' + util.smart(request));
-    const req = Object.assign({ body: '', headers: {}, method: 'GET', path: '', query: {} }, request);
+    // normalize input parameter
+    if (typeof req === 'string') req = { path: req };
+    if (typeof req !== 'object') throw Error('Invalid request. Must be a string or an object. Received: ' + req);
+    if (req.hasOwnProperty('body') && typeof req.body !== 'object' && typeof req.body !== 'string') throw Error('Invalid request body. Must be a string or an object. Received: ' + req.body);
+    if (req.cookies && typeof req.cookies !== 'object') throw Error('Invalid request cookies. Must be an object. Received: ' + req.cookies);
+    if (req.headers && typeof req.headers !== 'object') throw Error('Invalid request headers. Must be an object. Received: ' + req.headers);
+    if (typeof req.path !== 'string') throw Error('Invalid request path. Must be a string. Received: ' + req.path);
+    if (!req.method) req.method = 'get';
+    if (typeof req.method !== 'string') throw Error('Invalid request method. Must be a string. Received: ' + req.method);
 
-    // validate path
-    if (typeof req.path !== 'string') throw Error('Invalid request path specified. Expected a string. Received: ' + util.smart(req.path));
-    const pathComponents = req.path.split('?');
-    req.path = '/' + pathComponents[0].replace(/^\//, '').replace(/\/$/, '');
+    // build request path and query
+    const pathAndQuery = req.path.split('?');
+    req.path = pathAndQuery[0];
+    req.query = pathAndQuery[1];
+    req.path = util.edgeSlashes(req.path, true, false);
 
-    // TODO: this returns a value...
-    this.path(req.path);
+    // get the defined open api path or call next middleware
+    const path = this.path(req.path);
+    if (!path) return { statusCode: 404, message: 'Not found' };
 
-    // normalize and validate header
-    type = typeof req.headers;
-    if (type === 'string') {
-        req.headers = req.headers.split('\n')
-            .reduce((p, c) => {
-                const match = /^([^:]+): ([\s\S]*?)\r?$/.exec(c);
-                p[match[1].toLowerCase()] = match[2] || '';
-                return p;
-            }, {});
-    } else if (req.headers && type === 'object') {
-        const headers = {};
-        const keys = Object.keys(req.headers);
-        const length = keys.length;
-        for (let i = 0; i < length; i++) {
-            const key = keys[i];
-            const value = req.headers[key];
-            if (typeof value !== 'string') {
-                hasError = true;
-                break;
-            }
-            headers[key.toLowerCase()] = value;
-        }
-        req.headers = headers;
-    } else {
-        hasError = true;
-    }
-    if (hasError) throw Error('Invalid request header specified. Expected a string or an object. Received: ' + util.smart(req.headers));
+    // validate that the path supports the method
+    const method = req.method.toLowerCase();
+    if (!path.schema[method]) return { statusCode: 405, message: 'Method not allowed' };
 
-    // normalize and validate body
-    type = typeof req.body;
-    if (type !== 'string' && type !== 'object') throw Error('Invalid request body. Expected a string or an object. Received: ' + util.smart(req.body));
-    if (type === 'string' && req.body && req.headers['content-type']) {
-        const contentType = req.headers['content-type'];
-        const index = contentType.indexOf(';');
-        switch (index !== -1 ? contentType.substr(0, index) : contentType) {
-            case 'application/json':
-                req.body = JSON.parse(req.body);
-                break;
-            case 'application/x-www-form-urlencoded':
-                req.body = parseQueryString(req.body);
-                break;
-            case 'multipart/form-data':
-                req.body = multipart(req.headers, req.body);
-        }
-    }
-
-    // normalize and validate method
-    req.method = req.method.toLowerCase();
-    if (['get', 'post', 'put', 'delete', 'options', 'head', 'patch'].indexOf(req.method) === -1) {
-        throw Error('Invalid request method specified. Expected on of: GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH. Received: ' + util.smart(req.method));
-    }
-
-    // normalize and validate query
-    type = typeof req.query;
-    if (type === 'string') {
-        req.query = parseQueryString(req.query);
-    } else if (type === 'object') {
-        const query = {};
-        const keys = Object.keys(req.query);
-        const length = keys.length;
-        for (let i = 0; i < length; i++) {
-            const value = req.query[keys[i]];
-            const type = typeof value;
-            if (type === 'string' || value === undefined) {
-                query[key] = [ value ];
-            } else if (Array.isArray(value)) {
-                const length = value.length;
-                for (let j = 0; j < length; j++) {
-                    const type = typeof value[j];
-                    if (type !== 'string' && type !== 'undefined') {
-                        hasError = true;
-                        break;
-                    }
-                }
-            } else {
-                hasError = true;
-                break;
-            }
-        }
-    } else {
-        hasError = true;
-    }
-    if (hasError) throw Error('Invalid request query. Expected a string or an object with values that are string or arrays of strings/undefined. Received: ' + util.smart(req.query));
-
-    // merge path component of query with query
-    if (pathComponents[1]) {
-        const query = parseQueryString(pathComponents[1]);
-        Object.keys(query).forEach(key => {
-            if (!req.query[key]) req.query[key] = [];
-            req.query[key].push.apply(req.query[key], query[key]);
-        });
-    }
-
-    //return store.get(this).version.request(req);
-
-    return req;
+    // parse and validate request input
+    return store.get(this).version.parseRequestParameters(path.schema, {
+        body: req.body,
+        cookie: req.cookies || {},
+        header: req.headers || {},
+        method: method,
+        path: path.params,
+        query: path.query || ''
+    });
 };
 
 /**
@@ -492,8 +371,67 @@ OpenApiEnforcer.prototype.validate = function(schema, value) {
     }
 };
 
+Object.defineProperties(OpenApiEnforcer.prototype, {
+    version: {
+        get: () => {
+            const definition = store.get(this).definition;
+            return definition.openapi || definition.swagger;
+        }
+    }
+});
 
+
+// static properties with methods
+OpenApiEnforcer.format = format;
 OpenApiEnforcer.is = require('./is');
+OpenApiEnforcer.parse = parse;
+
+
+function deserialize(errors, schema, value) {
+    const type = util.schemaType(schema);
+    let result;
+    switch (type) {
+        case 'array':
+            if (Array.isArray(value)) return value.map(v => deserialize(errors, schema.items, v));
+            break;
+
+        case 'boolean':
+        case 'integer':
+        case 'number':
+            result = parse[type](value);
+            if (result.error) errors.push(result.error);
+            return result.value;
+
+        case 'string':
+            switch (schema.format) {
+                case 'binary':
+                case 'byte':
+                case 'date':
+                case 'date-time':
+                    result = parse[schema.format](value);
+                    break;
+                default:
+                   result = parse.string(value);
+            }
+            if (result.error) errors.push(result.error);
+            return result.value;
+
+        case 'object':
+            if (value && typeof value === 'object') {
+                const result = {};
+                const additionalProperties = schema.additionalProperties;
+                const properties = schema.properties || {};
+                Object.keys(value).forEach(key => {
+                    if (properties.hasOwnProperty(key)) {
+                        result[key] = deserialize(errors, properties[key], value[key]);
+                    } else if (additionalProperties) {
+                        result[key] = deserialize(errors, additionalProperties, value[key]);
+                    }
+                });
+                return result;
+            }
+    }
+}
 
 /**
  * Parse query string into object mapped to array of values.
