@@ -42,6 +42,44 @@ exports.edgeSlashes = function(value, start, end) {
 };
 
 /**
+ * Provide an accept media type string and possible matches and get the match.
+ * @param {string} input
+ * @param {string[]} matches
+ * @returns {string|undefined} The match string that matches.
+ */
+exports.findMediaMatch = function(input, matches) {
+    const accepts = input
+        .split(/, */)
+        .map(value => {
+            const set = value.split(';');
+            const type = set[0].split('/');
+            const q = /q=(\d\.\d)/.exec(set[1]);
+            return {
+                quality: +((q && q[1]) || 1),
+                subType: type[1].split('+')[0],
+                type: type[0]
+            }
+        });
+    accepts.sort((a, b) => {
+        if (a.quality === b.quality) return 0;
+        return a.quality < b.quality ? 1 : -1
+    });
+
+    const acceptsLength = accepts.length;
+    const matchesLength = matches.length;
+    for (let i = 0; i < acceptsLength; i++) {
+        const accept = accepts[i];
+        for (let j = 0; j < matchesLength; j++) {
+            const ar = matches[j].split('/');
+            const type = ar[0];
+            const subtype = ar[1].split('+')[0];
+            if ((accept.type === type || accept.type === '*' || type === '*') &&
+                (accept.subtype === subtype || accept.subtype === '*' || subtype === '*')) return matches[j];
+        }
+    }
+};
+
+/**
  * If a property does not exist then set it to the value.
  * @param {object} obj
  * @param {string|Symbol} property
