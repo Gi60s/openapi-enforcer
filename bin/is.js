@@ -50,7 +50,11 @@ exports.boolean = (value, strict) => {
  */
 exports.date = (value, strict) => {
     if (!strict && typeof value === 'string') {
-        return rx.date.test(value);
+        const match = rx.date.exec(value);
+        if (!match) return false;
+        const d = new Date(value);
+        return d.getUTCFullYear() === +match[1] && d.getUTCMonth() + 1 === +match[2] && d.getUTCDate() === +match[3];
+
     } else if (value instanceof Date) {
         return !(isNaN(value) || value.getUTCHours() || value.getUTCMinutes() ||
             value.getUTCSeconds() || value.getUTCMilliseconds());
@@ -67,7 +71,13 @@ exports.date = (value, strict) => {
  */
 exports.dateTime = (value, strict) => {
     if (!strict && typeof value === 'string') {
-        return rx.dateTime.test(value);
+        const match = rx.dateTime.exec(value);
+        if (!match) return false;
+        const d = new Date(value);
+        return d.getUTCFullYear() === +match[1] && d.getUTCMonth() + 1 === +match[2] && d.getUTCDate() === +match[3] &&
+            d.getUTCHours() === +match[4] && d.getUTCMinutes() === +match[5] && d.getUTCSeconds() === match[6] &&
+            d.getUTCMilliseconds() === +match[7];
+
     } else {
         return value instanceof Date && !isNaN(value);
     }
