@@ -20,7 +20,8 @@ const validate  = require('../validate');
 
 module.exports = Version;
 
-function Version(definition) {
+function Version(enforcer, definition) {
+    this.enforcer = enforcer;
     this.definition = definition;
 
     this.callbacks = {};
@@ -42,6 +43,14 @@ Version.prototype.getDiscriminatorKey = function(schema, value) {
 Version.prototype.getDiscriminatorSchema = function(schema, value) {
     const key = this.getDiscriminatorKey(schema, value);
     if (key) return this.definition.definitions[key];
+};
+
+Version.prototype.getParameterSchema = function(pathSchema, paramName) {
+
+};
+
+Version.prototype.parseRequestParameters = function(schema, req) {
+
 };
 
 Version.defaults = {
@@ -108,6 +117,7 @@ Version.defaults = {
     }
 
 };
+
 
 
 
