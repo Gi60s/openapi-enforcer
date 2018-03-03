@@ -21,91 +21,81 @@ const v3        = require('../../bin/v3/index');
 
 describe.only('v3/request', () => {
     const schema = {
-        openapi: '3.0.0',
-        paths: {
-            '/pets': {
-                get: {},
-                parameters: [
-                    {
-                        name: 'user',
-                        in: 'cookie',
-                        schema: {
-                            type: 'object',
-                            required: ['id', 'sessionStart'],
-                            properties: {
-                                id: { type: 'number' },
-                                sessionStart: { type: 'string', format: 'date-time' }
-                            }
-                        }
-                    },
-                    {
-                        name: 'petType',
-                        in: 'query'
-                    },
-                    {
-                        name: 'x-number',
-                        in: 'header',
-                        schema: { type: 'number' }
+        get: {},
+        parameters: [
+            {
+                name: 'user',
+                in: 'cookie',
+                schema: {
+                    type: 'object',
+                    required: ['id', 'sessionStart'],
+                    properties: {
+                        id: { type: 'number' },
+                        sessionStart: { type: 'string', format: 'date-time' }
                     }
-                ]
+                }
+            },
+            {
+                name: 'petType',
+                in: 'query'
+            },
+            {
+                name: 'x-number',
+                in: 'header',
+                schema: { type: 'number' }
             }
-        }
+        ]
     };
+    let instance;
+
+    before(() => {
+        instance = new v3(null, {});
+    });
 
     describe('cookie', () => {
         const ds = '2000-01-02T03:04:05.678Z';
-        const d = new Date(ds);
 
         it('default style (form)', () => {
-            const instance = new v3(null, {});
-            const req = request({
-                cookie: { user: 'id=12345&sessionStart=' + ds }
-            });
-            const params = instance.parseRequestParameters(schema.paths['/pets'], req);
-            expect(params.statusCode).to.equal(200);
-            expect(params.cookie.user).to.deep.equal({ id: 12345, sessionStart: d });
+            const req = request({ cookie: { user: 'id=12345&sessionStart=' + ds } });
+            const params = instance.parseRequestParameters(schema, req);
+            expect(params.errors).to.be.null;
+            expect(params.value.cookie.user).to.deep.equal({ id: '12345', sessionStart: ds });
         });
 
         it('cannot use matrix style', () => {
-            const schema2 = modSchema(schema, { 'paths./pets.parameters.0': { style: 'matrix' } });
-            const instance = new v3(null, schema2);
+            const schema2 = modSchema(schema, { 'parameters.0': { style: 'matrix' } });
             const req = request({ cookie: { user: '' } });
-            expect(() => instance.parseRequestParameters(schema2.paths['/pets'], req)).to.throw(/matrix style/);
+            expect(() => instance.parseRequestParameters(schema2, req)).to.throw(/matrix style/);
         });
 
         it('cannot use label style', () => {
-            const schema2 = modSchema(schema, { 'paths./pets.parameters.0': { style: 'label' } });
-            const instance = new v3(null, schema2);
+            const schema2 = modSchema(schema, { 'parameters.0': { style: 'label' } });
             const req = request({ cookie: { user: '' } });
-            expect(() => instance.parseRequestParameters(schema2.paths['/pets'], req)).to.throw(/label style/);
+            expect(() => instance.parseRequestParameters(schema2, req)).to.throw(/label style/);
         });
 
         it('cannot use simple style', () => {
-            const schema2 = modSchema(schema, { 'paths./pets.parameters.0': { style: 'simple' } });
-            const instance = new v3(null, schema2);
+            const schema2 = modSchema(schema, { 'parameters.0': { style: 'simple' } });
             const req = request({ cookie: { user: '' } });
-            expect(() => instance.parseRequestParameters(schema2.paths['/pets'], req)).to.throw(/simple style/);
+            expect(() => instance.parseRequestParameters(schema2, req)).to.throw(/simple style/);
         });
 
         it('cannot use spaceDelimited style', () => {
-            const schema2 = modSchema(schema, { 'paths./pets.parameters.0': { style: 'spaceDelimited' } });
-            const instance = new v3(null, schema2);
+            const schema2 = modSchema(schema, { 'parameters.0': { style: 'spaceDelimited' } });
             const req = request({ cookie: { user: '' } });
-            expect(() => instance.parseRequestParameters(schema2.paths['/pets'], req)).to.throw(/spaceDelimited style/);
+            expect(() => instance.parseRequestParameters(schema2, req)).to.throw(/spaceDelimited style/);
         });
 
         it('cannot use pipeDelimited style', () => {
-            const schema2 = modSchema(schema, { 'paths./pets.parameters.0': { style: 'pipeDelimited' } });
-            const instance = new v3(null, schema2);
+            const schema2 = modSchema(schema, { 'parameters.0': { style: 'pipeDelimited' } });
             const req = request({ cookie: { user: '' } });
-            expect(() => instance.parseRequestParameters(schema2.paths['/pets'], req)).to.throw(/pipeDelimited style/);
+            expect(() => instance.parseRequestParameters(schema2, req)).to.throw(/pipeDelimited style/);
         });
 
         it('cannot use deepObject style', () => {
-            const schema2 = modSchema(schema, { 'paths./pets.parameters.0': { style: 'deepObject' } });
-            const instance = new v3(null, schema2);
+            const schema2 = modSchema(schema, { 'parameters.0': { style: 'deepObject' } });
             const req = request({ cookie: { user: '' } });
-            expect(() => instance.parseRequestParameters(schema2.paths['/pets'], req)).to.throw(/deepObject style/);
+            expect(() => instance.parseRequestParameters(schema2, req)).to.throw(/deepObject style/);
         });
 
     });
