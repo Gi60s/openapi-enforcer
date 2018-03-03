@@ -69,7 +69,7 @@ Version.prototype.getParameterSchema = function(pathSchema, paramName) {
  * @param {string} req.method
  * @param {object<string>} req.path
  * @param {string} req.query
- * @returns {{ body: string|object, cookie: object, header: object, path: object, query: object }}
+ * @returns {{ error: Array<string>|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object }}}
  */
 Version.prototype.parseRequestParameters = function(schema, req) {
     const errors = [];
@@ -83,7 +83,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
     };
 
     // build a parameter map
-    const params = {
+    const paramMap = {
         cookie: {},
         header: {},
         path: {},
@@ -92,70 +92,121 @@ Version.prototype.parseRequestParameters = function(schema, req) {
     [schema, mSchema].forEach(schema => {
         if (schema.parameters) {
             schema.parameters.forEach(param => {
-                const store = params[param.in];
+                const store = paramMap[param.in];
                 if (store) store[param.name] = param;
             });
         }
     });
 
-    // parse and validate body
-    // TODO: body doesn't need parsing or deserializing - it is already an object so just validate it
-    if (mSchema.requestBody && req.body !== undefined   ) {
+    // body already parsed so just check it for errors
+    if (mSchema.requestBody && req.body !== undefined) {
         const contentType = req.headers['content-type'] || '*/*';
         const requestBody = mSchema.requestBody;
         const key = util.findMediaMatch(contentType, Object.keys(requestBody.content));
         if (key) {
-            const data = this.enforcer.deserialize(requestBody.content[key].schema, req.body);
-            if (data.errors) {
-                errors.push(data.errors);
-            } else {
-                result.body = data.value;
-            }
+            const bodyErrors = this.enforcer.errors(requestBody.content[key].schema, req.body);
+            if (bodyErrors) errors.push('One or more errors with body:\n\t' + bodyErrors.join('\n\t'));
+            result.body = bodyErrors ? undefined : util.copy(req.body);
         }
     }
 
-    // parse and validate path
-
-
-
     // parse and validate cookie, headers, path, and query
-    paramTypes.forEach(type => {
-        const data = deserialize(params[type], req[type]);
-        if (data.errors.length) {
-            errors.push.apply(errors, data.errors);
-        } else {
-            result[type] = data.value;
-        }
-    });
+    paramTypes.forEach(paramType => {
+        const schemas = paramMap[paramType];
+        const values = req[paramType];
 
-    // validate that all required parameters were provided
-/*
-    paramTypes.forEach(type => {
-        const from = req[type];
-        const store = params[type];
-        Object.keys(store).forEach(name => {
-            if (store[name].required && !from.hasOwnProperty(name)) {
-                errors.push('Missing required ' + type + ' parameter: ' + name);
+        Object.keys(schemas).forEach(name => {
+            const definition = schemas[name];
+            if (!definition.schema && !definition.content) return;
+            const schema = definition.schema || definition.content[Object.keys(definition.content)[0]];
+            if (!schema) return;
+
+            const at = definition.in;
+            if (values.hasOwnProperty(name)) {
+                const at = definition.in;
+                const style = definition.style || defaultStyle(at);
+                const explode = definition.hasOwnProperty('explode') ? definition.explode : style === 'form';
+                const type = util.schemaType(schema);
+                let parsed;
+                let value = values[name];
+
+                switch (style) {
+                    case 'deepObject':
+                        // throw Error because it's a problem with the swagger
+                        if (at !== 'query') throw Error('The deepObject style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
+                        parsed = params.deepObject(name, value);
+                        break;
+
+                    case 'form':
+                        // throw Error because it's a problem with the swagger
+                        if (at !== 'cookie' && at !== 'query') throw Error('The form style only works with cookie and query parameters. Error at ' + at + ' parameter "' + name + '"');
+                        parsed = params.form(type, explode, name, value);
+                        break;
+
+                    case 'label':
+                        // throw Error because it's a problem with the swagger
+                        if (at !== 'path') throw Error('The label style only works with path parameters. Error at ' + at + ' parameter "' + name + '"');
+                        parsed = params.label(type, explode, value);
+                        break;
+
+                    case 'matrix':
+                        // throw Error because it's a problem with the swagger
+                        if (at !== 'path') throw Error('The matrix style only works with path parameters. Error at ' + at + ' parameter "' + name + '"');
+                        parsed = params.matrix(type, explode, name, value);
+                        break;
+
+                    case 'pipeDelimited':
+                        // throw Error because it's a problem with the swagger
+                        if (at !== 'query') throw Error('The pipeDelimited style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
+                        parsed = params.pipeDelimited(type, value);
+                        break;
+
+                    case 'simple':
+                        // throw Error because it's a problem with the swagger
+                        if (at !== 'path' && at !== 'header') throw Error('The simple style only works with path and header parameters. Error at ' + at + ' parameter "' + name + '"');
+                        parsed = params.simple(type, explode, value);
+                        break;
+
+                    case 'spaceDelimited':
+                        // throw Error because it's a problem with the swagger
+                        if (at !== 'query') throw Error('The spaceDelimited style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
+                        parsed = params.spaceDelimited(type, value);
+                        break;
+
+                    default:
+                        throw Error('Invalid parameter style: ' + style);
+                }
+
+                // parse was successful, now convert type, then validate data
+                if (parsed.match) {
+                    const typed = this.enforcer.deserialize(schema, parsed.value);
+                    if (typed.errors) {
+                        errors.push('Invalid type for ' + at + ' parameter "' + name + '":\n\t' + typed.errors.join('\n\t'));
+                    } else {
+                        const validationErrors = this.enforcer.errors(schema, typed.value);
+                        if (validationErrors) {
+                            errors.push('Invalid value for ' + at + ' parameter "' + name + '":\n\t' + validationErrors.join('\n\t'));
+                        }
+                    }
+
+                    // store typed value
+                    result[paramType][name] = typed.value;
+                } else {
+                    errors.push('Expected ' + at + ' parameter "' + name + '" to be formatted in ' +
+                        (explode ? 'exploded ' : '') + style + 'style');
+                }
+
+            // value not provided - check if required
+            } else if (schema.required) {
+                errors.push('Missing required ' + at + ' parameter "' + name + '"');
             }
         });
     });
-*/
 
-    // if there are errors then return that
-    if (errors.length > 0) {
-        return {
-            statusCode: 400,
-            message: 'There are one or more errors in the request:\n\t' + errors.join('\n\t')
-        };
-    } else {
-        return {
-            body: result.body,
-            cookie: result.cookie,
-            header: result.header,
-            path: result.path,
-            query: result.query,
-            statusCode: 200
-        };
+    const hasErrors = errors.length;
+    return {
+        errors: hasErrors ? errors : null,
+        value: hasErrors ? null : result
     }
 };
 
@@ -267,143 +318,3 @@ function defaultStyle(paramType) {
     }
 }
 
-// deserialize request parameters
-function deserialize(schemas, values) {
-    const errors = [];
-    const result = {};
-
-    Object.keys(schemas).forEach(name => {
-        const definition = schemas[name];
-        if (!definition.schema && !definition.content) return;
-        const schema = definition.schema || definition.content[Object.keys(definition.content)[0]];
-        if (!schema) return;
-
-        if (values.hasOwnProperty(name)) {
-            const at = definition.in;
-            const style = definition.style || defaultStyle(at);
-            const explode = definition.hasOwnProperty('explode') ? definition.explode : style === 'form';
-            const type = util.schemaType(schema);
-            let parsed;
-            let value = values[name];
-
-            switch (style) {
-                case 'deepObject':
-                    // throw Error because it's a problem with the swagger
-                    if (at !== 'query') throw Error('The deepObject style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
-                    parsed = params.deepObject(name, value);
-                    break;
-
-                case 'form':
-                    // throw Error because it's a problem with the swagger
-                    if (at !== 'cookie' && at !== 'query') throw Error('The form style only works with cookie and query parameters. Error at ' + at + ' parameter "' + name + '"');
-                    parsed = params.form(type, explode, name, value);
-                    break;
-
-                case 'label':
-                    // throw Error because it's a problem with the swagger
-                    if (at !== 'path') throw Error('The label style only works with path parameters. Error at ' + at + ' parameter "' + name + '"');
-                    parsed = params.label(type, explode, value);
-                    break;
-
-                case 'matrix':
-                    // throw Error because it's a problem with the swagger
-                    if (at !== 'path') throw Error('The matrix style only works with path parameters. Error at ' + at + ' parameter "' + name + '"');
-                    parsed = params.matrix(type, explode, name, value);
-                    break;
-
-                case 'pipeDelimited':
-                    // throw Error because it's a problem with the swagger
-                    if (at !== 'query') throw Error('The pipeDelimited style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
-                    parsed = params.pipeDelimited(type, value);
-                    break;
-
-                case 'simple':
-                    // throw Error because it's a problem with the swagger
-                    if (at !== 'path' && at !== 'header') throw Error('The simple style only works with path and header parameters. Error at ' + at + ' parameter "' + name + '"');
-                    parsed = params.simple(type, explode, value);
-                    break;
-
-                case 'spaceDelimited':
-                    // throw Error because it's a problem with the swagger
-                    if (at !== 'query') throw Error('The spaceDelimited style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
-                    parsed = params.spaceDelimited(type, value);
-                    break;
-            }
-
-            if (parsed.match) {
-                const errors2 = [];
-                const data = deserialize2(errors2, '', schema, parsed.value);
-                if (errors2.length) {
-                    errors.push('One or more errors with ' + at + ' parameter "' + name + '":\n\t' + errors2.join('\n\t'));
-                } else {
-                    result[name] = data;
-                }
-            } else {
-                errors.push('Expected value to be formatted in ' +
-                    (explode ? 'exploded ' : '') +
-                    style + ' style for ' + at + ' parameter "' + name + '". Received: ' + value);
-            }
-
-        } else if (schema.required) {
-            errors.push('Missing required parameter: ' + name);
-        }
-    });
-
-    return {
-        errors,
-        value: result
-    };
-}
-
-function deserialize2(errors, prefix, schema, value) {
-    const type = util.schemaType(schema);
-    let result;
-    switch (type) {
-        case 'array':
-            if (Array.isArray(value)) return value.map((v,i) => deserialize2(errors, prefix + '/' + i, schema.items, v));
-            errors.push(prefix + ': Expected an array. Received: ' + value);
-            break;
-
-        case 'boolean':
-        case 'integer':
-        case 'number':
-            result = parse[type](value);
-            if (result.error) errors.push(prefix + ': ' + result.error);
-            return result.value;
-
-        case 'string':
-            switch (schema.format) {
-                case 'binary':
-                case 'byte':
-                case 'date':
-                case 'date-time':
-                    result = parse[schema.format](value);
-                    break;
-                default:
-                    result = { value: value };
-            }
-            if (result.error) errors.push(prefix + ': ' + result.error);
-            return result.value;
-
-        case 'object':
-            if (value && typeof value === 'object') {
-                const result = {};
-                const additionalProperties = schema.additionalProperties;
-                const properties = schema.properties || {};
-                Object.keys(value).forEach(key => {
-                    if (properties.hasOwnProperty(key)) {
-                        result[key] = deserialize2(errors, prefix + '/' + key, properties[key], value[key]);
-                    } else if (additionalProperties) {
-                        result[key] = deserialize2(errors, prefix + '/' + key, additionalProperties, value[key]);
-                    }
-                });
-                return result;
-            }
-            errors.push(prefix + ': Expected an object. Received: ' + value);
-            return;
-
-        default:
-            errors.push(prefix + ': unknown schema type');
-            return;
-    }
-}

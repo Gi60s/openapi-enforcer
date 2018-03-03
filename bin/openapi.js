@@ -130,14 +130,11 @@ function OpenApiEnforcer(definition, defaultOptions) {
  */
 OpenApiEnforcer.prototype.deserialize = function(schema, value) {
     const errors = [];
-    const value = deserialize(errors, schema, value);
-    const error = errors.length > 0
-        ? Error('One or more errors encountered during deserialization:\n\t' + errors.join('\n\t'))
-        : null;
-    if (error) error.errors = errors;
+    const value = deserialize(errors, '', schema, value);
+    const hasErrors = errors.length;
     return {
-        errors: error ? errors : null,
-        value: error ? null : value
+        errors: hasErrors ? errors.map(v => v.trim()) : null,
+        value: hasErrors ? null : value
     };
 };
 
@@ -274,8 +271,8 @@ OpenApiEnforcer.prototype.populate = function(schema, map, initialValue) {
  * Parse and validate input parameters for a request..
  * @param {string|object} req
  * @param {string|object} [req.body]
- * @param {object} [req.cookies]
- * @param {object} [req.headers]
+ * @param {object} [req.cookie]
+ * @param {object} [req.header]
  * @param {string} [req.method='get']
  * @param {string} [req.path]
  * @returns {object}
@@ -286,8 +283,8 @@ OpenApiEnforcer.prototype.request = function(req) {
     if (typeof req === 'string') req = { path: req };
     if (typeof req !== 'object') throw Error('Invalid request. Must be a string or an object. Received: ' + req);
     if (req.hasOwnProperty('body') && typeof req.body !== 'object' && typeof req.body !== 'string') throw Error('Invalid request body. Must be a string or an object. Received: ' + req.body);
-    if (req.cookies && typeof req.cookies !== 'object') throw Error('Invalid request cookies. Must be an object. Received: ' + req.cookies);
-    if (req.headers && typeof req.headers !== 'object') throw Error('Invalid request headers. Must be an object. Received: ' + req.headers);
+    if (req.cookie && typeof req.cookie !== 'object') throw Error('Invalid request cookies. Must be an object. Received: ' + req.cookie);
+    if (req.header && typeof req.header !== 'object') throw Error('Invalid request headers. Must be an object. Received: ' + req.header);
     if (typeof req.path !== 'string') throw Error('Invalid request path. Must be a string. Received: ' + req.path);
     if (!req.method) req.method = 'get';
     if (typeof req.method !== 'string') throw Error('Invalid request method. Must be a string. Received: ' + req.method);
@@ -309,8 +306,8 @@ OpenApiEnforcer.prototype.request = function(req) {
     // parse and validate request input
     return store.get(this).version.parseRequestParameters(path.schema, {
         body: req.body,
-        cookie: req.cookies || {},
-        header: req.headers || {},
+        cookies: req.cookie || {},
+        headers: req.header || {},
         method: method,
         path: path.params,
         query: path.query || ''
@@ -387,19 +384,21 @@ OpenApiEnforcer.is = require('./is');
 OpenApiEnforcer.parse = parse;
 
 
-function deserialize(errors, schema, value) {
+// convert from string values to correct data types
+function deserialize(errors, prefix, schema, value) {
     const type = util.schemaType(schema);
     let result;
     switch (type) {
         case 'array':
-            if (Array.isArray(value)) return value.map(v => deserialize(errors, schema.items, v));
+            if (Array.isArray(value)) return value.map((v,i) => deserialize(errors, prefix + '/' + i, schema.items, v));
+            errors.push(prefix + ' Expected an array. Received: ' + value);
             break;
 
         case 'boolean':
         case 'integer':
         case 'number':
             result = parse[type](value);
-            if (result.error) errors.push(result.error);
+            if (result.error) errors.push(prefix + ' ' + result.error);
             return result.value;
 
         case 'string':
@@ -411,9 +410,9 @@ function deserialize(errors, schema, value) {
                     result = parse[schema.format](value);
                     break;
                 default:
-                   result = parse.string(value);
+                    result = { value: value };
             }
-            if (result.error) errors.push(result.error);
+            if (result.error) errors.push(prefix + ' ' + result.error);
             return result.value;
 
         case 'object':
@@ -423,31 +422,18 @@ function deserialize(errors, schema, value) {
                 const properties = schema.properties || {};
                 Object.keys(value).forEach(key => {
                     if (properties.hasOwnProperty(key)) {
-                        result[key] = deserialize(errors, properties[key], value[key]);
+                        result[key] = deserialize(errors, prefix + '/' + key, properties[key], value[key]);
                     } else if (additionalProperties) {
-                        result[key] = deserialize(errors, additionalProperties, value[key]);
+                        result[key] = deserialize(errors, prefix + '/' + key, additionalProperties, value[key]);
                     }
                 });
                 return result;
             }
-    }
-}
+            errors.push(prefix + ' Expected an object. Received: ' + value);
+            return;
 
-/**
- * Parse query string into object mapped to array of values.
- * @param {string} string
- * @returns {Object.<string, string[]>}
- */
-function parseQueryString(string) {
-    const result = {};
-    string
-        .split('&')
-        .forEach(v => {
-            const ar = v.split('=');
-            const name = ar[0];
-            const value = ar[1];
-            if (!result[name]) result[name] = [];
-            result[name].push(value);
-        });
-    return result;
+        default:
+            errors.push(prefix + ' Unknown schema type');
+            return;
+    }
 }
