@@ -113,7 +113,7 @@ exports.pipeDelimited = function(type, value) {
 };
 
 exports.deepObject = function(name, value) {
-    const rx = RegExp('(?:^|&)' + name + '\\[([^\\]]+)\\]=([^&]+)', 'g');
+    const rx = RegExp('(?:^|&)' + name + '\\[([^\\]]+)\\]=([^&]*)', 'g');
     const result = {};
     let match;
     let hasValue = false;
