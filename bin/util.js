@@ -79,6 +79,10 @@ exports.findMediaMatch = function(input, matches) {
     }
 };
 
+exports.isDate = function (value) {
+    return value && !isNaN(value) && value.getDate !== undefined;
+};
+
 /**
  * If a property does not exist then set it to the value.
  * @param {object} obj
@@ -116,8 +120,8 @@ exports.same = function same(v1, v2) {
     } else if (Buffer.isBuffer(v1)) {
         return Buffer.isBuffer(v2) && v1.toString() === v2.toString();
 
-    } else if (isDate(v1)) {
-        return isDate(v2) && +v2 === +v1;
+    } else if (exports.isDate(v1)) {
+        return exports.isDate(v2) && +v2 === +v1;
 
     } else if (v1 && type === 'object') {
         if (!v2) return false;
@@ -232,10 +236,6 @@ function copy(map, value) {
     } else {
         return value;
     }
-}
-
-function isDate(value) {
-    return value && !isNaN(value) && value.getDate !== undefined;
 }
 
 function traverse(map, path, property, parent, value, callback) {
