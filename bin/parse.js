@@ -65,7 +65,7 @@ exports.byte = function(value) {
  */
 exports.date = function(value) {
     if (typeof value !== 'string' || !(isDateTime(value) || isDate(value))) {
-        return parsed('Expected a Date object, a date string of the format YYYY-MM-DD or YYYY-MM-DDTmm:hh:ss.sssZ, or a numeric type. Received: ' + smart(value));
+        return parsed('Expected a date string of the format YYYY-MM-DD or YYYY-MM-DDTmm:hh:ss.sssZ. Received: ' + smart(value));
 
     } else {
         const result = new Date(+value);
@@ -84,7 +84,7 @@ exports.date = function(value) {
  */
 exports.dateTime = function(value) {
     if (typeof value !== 'string' || !(isDateTime(value) || isDate(value))) {
-        return parsed('Expected a Date object or a date-time string of the format: YYYY-MM-DDThh:mm:ss.sss. Received: ' + smart(value));
+        return parsed('Expected a date string of the format YYYY-MM-DD or YYYY-MM-DDTmm:hh:ss.sssZ. Received: ' + smart(value));
     } else {
         return parsed(null, new Date(value));
     }
