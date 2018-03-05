@@ -16,7 +16,6 @@
  **/
 'use strict';
 const format        = require('./format');
-const multipart     = require('./multipart-parser');
 const parse         = require('./parse');
 const populate      = require('./populate');
 const util          = require('./util');
@@ -52,7 +51,7 @@ function OpenApiEnforcer(definition, defaultOptions) {
 
     // attempt to load the version specific settings and functions
     const major = match[1];
-    const Version = util.tryRequire('./versions/v' + major);
+    const Version = util.tryRequire('./v' + major + '/index');
     if (!Version) throw Error('The Open API definition version is either invalid or not supported: ' + v);
     const version = new Version(this, definition);
 
@@ -87,7 +86,6 @@ function OpenApiEnforcer(definition, defaultOptions) {
             let rxStr = '';
             let offset = 0;
             while (match = rxFind.exec(path)) {
-                console.log(match);
                 rxStr += path.substring(offset, match.index) + '([\\s\\S]+?)';
                 offset = match.index + match[0].length;
             }
@@ -118,8 +116,6 @@ function OpenApiEnforcer(definition, defaultOptions) {
         pathParsers: pathParsers,
         version: version
     });
-
-    this.parser = parse(false);
 }
 
 /**
@@ -130,11 +126,11 @@ function OpenApiEnforcer(definition, defaultOptions) {
  */
 OpenApiEnforcer.prototype.deserialize = function(schema, value) {
     const errors = [];
-    const value = deserialize(errors, '', schema, value);
+    const result = deserialize(errors, '', schema, value);
     const hasErrors = errors.length;
     return {
         errors: hasErrors ? errors.map(v => v.trim()) : null,
-        value: hasErrors ? null : value
+        value: hasErrors ? null : result
     };
 };
 
@@ -158,7 +154,6 @@ OpenApiEnforcer.prototype.errors = function(schema, value) {
     return v.errors.length > 0 ? v.errors : null;
 };
 
-// TODO: rename to serialize
 /**
  * Serialize a value for sending as a response.
  * @param {object} schema
@@ -278,6 +273,7 @@ OpenApiEnforcer.prototype.populate = function(schema, map, initialValue) {
  * @returns {object}
  */
 OpenApiEnforcer.prototype.request = function(req) {
+    req = Object.assign({}, req);
 
     // normalize input parameter
     if (typeof req === 'string') req = { path: req };
@@ -306,11 +302,11 @@ OpenApiEnforcer.prototype.request = function(req) {
     // parse and validate request input
     return store.get(this).version.parseRequestParameters(path.schema, {
         body: req.body,
-        cookies: req.cookie || {},
-        headers: req.header || {},
+        cookie: req.cookie || {},
+        header: req.header || {},
         method: method,
         path: path.params,
-        query: path.query || ''
+        query: req.query || ''
     });
 };
 
@@ -380,7 +376,6 @@ Object.defineProperties(OpenApiEnforcer.prototype, {
 
 // static properties with methods
 OpenApiEnforcer.format = format;
-OpenApiEnforcer.is = require('./is');
 OpenApiEnforcer.parse = parse;
 
 
