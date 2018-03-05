@@ -15,10 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
-const params    = require('./param-style');
-const parse     = require('../parse');
-const util      = require('../util');
-const validate  = require('../validate');
+const params        = require('./param-style');
+const querystring   = require('querystring');
+const util          = require('../util');
 
 module.exports = Version;
 
@@ -122,7 +121,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
             if (!schema) return;
 
             const at = definition.in;
-            if (values.hasOwnProperty(name)) {
+            if (values.hasOwnProperty(name) || at === 'query') {
                 const at = definition.in;
                 const style = definition.style || defaultStyle(at);
                 const explode = definition.hasOwnProperty('explode') ? definition.explode : style === 'form';
@@ -134,12 +133,20 @@ Version.prototype.parseRequestParameters = function(schema, req) {
                     case 'deepObject':
                         // throw Error because it's a problem with the swagger
                         if (at !== 'query') throw Error('The deepObject style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
-                        parsed = params.deepObject(name, value);
+                        if (type !== 'object') throw Error('The deepObject style only works with objects but the parameter schema type is ' + type);
+                        parsed = params.deepObject(name, req.query);
                         break;
 
                     case 'form':
                         // throw Error because it's a problem with the swagger
                         if (at !== 'cookie' && at !== 'query') throw Error('The form style only works with cookie and query parameters. Error at ' + at + ' parameter "' + name + '"');
+                        if (at === 'query') {
+                            // TODO
+                            /*if (explode)
+
+                            if (explode && type === 'object') throw Error('The query parameter form style does not work with exploded objects. Error at ' + at + ' parameter "' + name + '"');
+                            value = explode ? name + '=' + value.join('&' + name + '=') : value.pop();*/
+                        }
                         parsed = params.form(type, explode, name, value);
                         break;
 
@@ -158,7 +165,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
                     case 'pipeDelimited':
                         // throw Error because it's a problem with the swagger
                         if (at !== 'query') throw Error('The pipeDelimited style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
-                        parsed = params.pipeDelimited(type, value);
+                        parsed = params.pipeDelimited(type, queryParseDelimited(name, '|', req.query));
                         break;
 
                     case 'simple':
@@ -170,7 +177,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
                     case 'spaceDelimited':
                         // throw Error because it's a problem with the swagger
                         if (at !== 'query') throw Error('The spaceDelimited style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
-                        parsed = params.spaceDelimited(type, value);
+                        parsed = params.spaceDelimited(type, queryParseDelimited(name, '%20', req.query));
                         break;
 
                     default:
@@ -193,11 +200,11 @@ Version.prototype.parseRequestParameters = function(schema, req) {
                     result[paramType][name] = typed.value;
                 } else {
                     errors.push('Expected ' + at + ' parameter "' + name + '" to be formatted in ' +
-                        (explode ? 'exploded ' : '') + style + 'style');
+                        (explode ? 'exploded ' : '') + style + ' style');
                 }
 
             // value not provided - check if required
-            } else if (schema.required) {
+            } else if (definition.required) {
                 errors.push('Missing required ' + at + ' parameter "' + name + '"');
             }
         });
@@ -317,4 +324,3 @@ function defaultStyle(paramType) {
             return 'simple';
     }
 }
-
