@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const is            = require('./is');
 const rx            = require('./rx');
 const smart         = require('./util').smart;
 
@@ -25,8 +24,14 @@ const smart         = require('./util').smart;
  * @returns {{ error: string|null, value: Buffer }}
  */
 exports.binary = function(value) {
-    if (!is.binary(value)) return parsed('Expected a binary octet string. Received: ' + smart(value));
-    return parsed(null, Buffer.from ? Buffer.from(value, 'binary') : new Buffer(value, 'binary'));
+    if (typeof value !== 'string' || !rx.binary.test(value)) {
+        return parsed('Expected a binary octet string. Received: ' + smart(value));
+    } else {
+        const length = value.length;
+        const array = [];
+        for (let i = 0; i < length; i+=8) array.push(parseInt(value.substr(i, 8), 2))
+        return parsed(null, Buffer.from ? Buffer.from(array, 'binary') : new Buffer(array, 'binary'));
+    }
 };
 
 /**
@@ -46,8 +51,11 @@ exports.boolean = function(value) {
  * @returns {{ error: string|null, value: Buffer }}
  */
 exports.byte = function(value) {
-    if (!is.byte(value)) return parsed('Expected a base64 string. Received: ' + smart(value));
-    return parsed(null, Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64'));
+    if (typeof value !== 'string' || !rx.byte.test(value) && value.length % 4 !== 0) {
+        return parsed('Expected a base64 string. Received: ' + smart(value));
+    } else {
+        return parsed(null, Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64'));
+    }
 };
 
 /**
