@@ -101,10 +101,9 @@ exports.same = function same(v1, v2) {
     const type = typeof v1;
     if (type !== typeof v2) return false;
 
-    const isArray = Array.isArray(v1);
-    if (isArray && !Array.isArray(v2)) return false;
+    if (Array.isArray(v1)) {
+        if (!Array.isArray(v2)) return false;
 
-    if (isArray) {
         const length = v1.length;
         if (length !== v2.length) return false;
 
@@ -113,6 +112,12 @@ exports.same = function same(v1, v2) {
         }
 
         return true;
+
+    } else if (Buffer.isBuffer(v1)) {
+        return Buffer.isBuffer(v2) && v1.toString() === v2.toString();
+
+    } else if (isDate(v1)) {
+        return isDate(v2) && +v2 === +v1;
 
     } else if (v1 && type === 'object') {
         if (!v2) return false;
@@ -227,6 +232,10 @@ function copy(map, value) {
     } else {
         return value;
     }
+}
+
+function isDate(value) {
+    return value && !isNaN(value) && value.getDate !== undefined;
 }
 
 function traverse(map, path, property, parent, value, callback) {
