@@ -15,8 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const is        = require('./is');
-const rx        = require('./rx');
 const util      = require('./util');
 
 const smart = util.smart;
@@ -79,7 +77,7 @@ function validate(v, prefix, depth, schema, value) {
 validate.array = function(v, prefix, depth, schema, value) {
     if (!v.options.array) return;
     if (!Array.isArray(value)) {
-        v.error(prefix, 'Expected an array. Received: ' + smart(value))
+        v.error(prefix, 'Expected an array. Received: ' + smart(value));
     } else {
         const length = value.length;
         if (v.options.maxItems && schema.hasOwnProperty('maxItems') && schema.maxItems < length) {
@@ -113,13 +111,14 @@ validate.array = function(v, prefix, depth, schema, value) {
     }
 };
 
+// TODO: convert enum values to parsed equivalents
 validate.binary = function(v, prefix, depth, schema, value) {
     if (!v.options.binary) return;
-    if (typeof value !== 'string') {
-        v.error(prefix, 'Expected a string. Received: ' + smart(value));
+    if (!Buffer.isBuffer(value)) {
+        v.error(prefix, 'Expected value to be a buffer. Received: ' + smart(value));
     } else {
-        if (!is.binary(value)) v.error(prefix, 'Expected a binary string. Received: ' + smart(value));
-        validate.string(v, prefix, depth, schema, value);
+        maxMin(v, prefix, schema, 'binary length', 'maxLength', 'minLength', true, value.length * 8, schema.maxLength, schema.minLength);
+        _enum(v, prefix, schema, value);
     }
 };
 
@@ -134,31 +133,31 @@ validate.boolean = function(v, prefix, depth, schema, value) {
 
 validate.byte = function(v, prefix, depth, schema, value) {
     if (!v.options.byte) return;
-    if (typeof value !== 'string') {
-        v.error(prefix, 'Expected a string. Received: ' + smart(value));
+    if (!Buffer.isBuffer(value)) {
+        v.error(prefix, 'Expected value to be a buffer. Received: ' + smart(value));
     } else {
-        if (!is.byte(value)) v.error(prefix, 'Expected a base64 string. Received: ' + smart(value));
-        validate.string(v, prefix, depth, schema, value);
+        maxMin(v, prefix, schema, 'byte length', 'maxLength', 'minLength', true, value.length, schema.maxLength, schema.minLength);
+        _enum(v, prefix, schema, value);
     }
 };
 
 validate.date = function(v, prefix, depth, schema, value) {
     if (!v.options.date) return;
-    if (typeof value !== 'string' || !is.date(value)) {
-        v.error(prefix, 'Expected a full-date string as described by RFC3339 at https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14. Received: ' + smart(value));
+    if (!util.isDate(value)) {
+        v.error(prefix, 'Expected a valid date object. Received: ' + smart(value));
     } else {
-        date('date', v, prefix, schema, value);
-        validate.string(v, prefix, depth, schema, value);
+        maxMin(v, prefix, schema, 'date', 'maximum', 'minimum', false, value, new Date(schema.maximum), new Date(schema.minimum));
+        _enum(v, prefix, schema, value);
     }
 };
 
 validate.dateTime = function(v, prefix, depth, schema, value) {
-    if (!v.options.dateTime) return;
-    if (typeof value !== 'string' || !is.dateTime(value)) {
-        v.error(prefix, 'Expected a date-time as described by RFC3339 at https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14. Received: ' + smart(value));
-    } else if (is.dateTime(value)) {
-        date('date-time', v, prefix, schema, value);
-        validate.string(v, prefix, depth, schema, value);
+    if (!v.options.date) return;
+    if (!util.isDate(value)) {
+        v.error(prefix, 'Expected a valid date object. Received: ' + smart(value));
+    } else {
+        maxMin(v, prefix, schema, 'date-time', 'maximum', 'minimum', false, value, new Date(schema.maximum), new Date(schema.minimum));
+        _enum(v, prefix, schema, value);
     }
 };
 validate['date-time'] = validate.dateTime;
@@ -278,28 +277,6 @@ function anyOf(v, prefix, depth, schemas, value) {
         messages: messages,
         valid: valid
     };
-}
-
-function date(descriptor, v, prefix, schema, value) {
-    const suffix = descriptor === 'date-time' ? '' : 'T00:00:00.000Z';
-    const match = rx.dateTime.exec(value + suffix);
-    const dt = new Date(value);
-
-    const year = +match[1];
-    const month = +match[2] - 1;
-    const day = +match[3];
-    const hour = +match[4];
-    const minute = +match[5];
-    const second = +match[6];
-
-    if (v.options.timeExists && (hour >= 24 || minute >= 60 || second >= 60)) {
-        v.error(prefix, 'The specified time is invalid: ' + value.substr(11))
-    }
-    if (v.options.dateExists && (year !== dt.getUTCFullYear() || month !== dt.getUTCMonth() || day !== dt.getUTCDate())) {
-        v.error(prefix, 'The specified date does not exist: ' + value.substr(0, 10));
-    }
-
-    maxMin(v, prefix, schema, descriptor, 'maximum', 'minimum', false, dt, new Date(schema.maximum), new Date(schema.minimum));
 }
 
 function _enum(v, prefix, schema, value) {
