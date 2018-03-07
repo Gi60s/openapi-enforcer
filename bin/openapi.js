@@ -385,7 +385,9 @@ function deserialize(errors, prefix, schema, value) {
     let result;
     switch (type) {
         case 'array':
-            if (Array.isArray(value)) return value.map((v,i) => deserialize(errors, prefix + '/' + i, schema.items, v));
+            if (Array.isArray(value)) return schema.items
+                ? value.map((v,i) => deserialize(errors, prefix + '/' + i, schema.items, v))
+                : value;
             errors.push(prefix + ' Expected an array. Received: ' + value);
             break;
 
