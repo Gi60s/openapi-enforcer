@@ -105,7 +105,7 @@ exports.simple = function(type, explode, value) {
 };
 
 exports.spaceDelimited = function(type, value) {
-    return delimited(type, ' ', value);
+    return delimited(type, '%20', value);
 };
 
 exports.pipeDelimited = function(type, value) {
@@ -147,9 +147,6 @@ function delimited(type, delimiter, value) {
     } else if (type === 'object') {
         const parsed = objectFlattened(delimiter, value);
         return parsed ? { match: true, value: parsed } : { match: false };
-
-    } else {
-        return { match: false };
     }
 }
 

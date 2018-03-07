@@ -127,6 +127,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
                 const explode = definition.hasOwnProperty('explode') ? definition.explode : style === 'form';
                 const type = util.schemaType(schema);
                 let parsed;
+                let queryValue;
                 let value = values[name];
 
                 switch (style) {
@@ -141,11 +142,21 @@ Version.prototype.parseRequestParameters = function(schema, req) {
                         // throw Error because it's a problem with the swagger
                         if (at !== 'cookie' && at !== 'query') throw Error('The form style only works with cookie and query parameters. Error at ' + at + ' parameter "' + name + '"');
                         if (at === 'query') {
-                            // TODO
-                            /*if (explode)
+                            const results = queryParams(name, req.query);
+                            if (!results) return;
+                            if (type === 'array') {
+                                value = explode
+                                    ? name + '=' + results.join('&' + name + '=')
+                                    : name + '=' + results.pop();
 
-                            if (explode && type === 'object') throw Error('The query parameter form style does not work with exploded objects. Error at ' + at + ' parameter "' + name + '"');
-                            value = explode ? name + '=' + value.join('&' + name + '=') : value.pop();*/
+                            } else if (type === 'object') {
+                                value = explode
+                                    ? decodeURIComponent(results.pop())
+                                    : 'color=' + results.pop();
+
+                            } else {
+                                value = name + '=' + results.pop();
+                            }
                         }
                         parsed = params.form(type, explode, name, value);
                         break;
@@ -164,8 +175,10 @@ Version.prototype.parseRequestParameters = function(schema, req) {
 
                     case 'pipeDelimited':
                         // throw Error because it's a problem with the swagger
-                        if (at !== 'query') throw Error('The pipeDelimited style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
-                        parsed = params.pipeDelimited(type, queryParseDelimited(name, '|', req.query));
+                        if (at !== 'query' || (type !== 'object' && type !== 'array')) throw Error('The pipeDelimited style only works with query parameters for the schema type array or object. Error at ' + at + ' parameter "' + name + '"');
+                        queryValue = queryParams(name, req.query);
+                        if (!queryValue) return;
+                        parsed = params.pipeDelimited(type, queryValue.pop());
                         break;
 
                     case 'simple':
@@ -176,8 +189,10 @@ Version.prototype.parseRequestParameters = function(schema, req) {
 
                     case 'spaceDelimited':
                         // throw Error because it's a problem with the swagger
-                        if (at !== 'query') throw Error('The spaceDelimited style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
-                        parsed = params.spaceDelimited(type, queryParseDelimited(name, '%20', req.query));
+                        if (at !== 'query' || (type !== 'object' && type !== 'array')) throw Error('The spaceDelimited style only works with query parameters for the schema type array or object. Error at ' + at + ' parameter "' + name + '"');
+                        queryValue = queryParams(name, req.query);
+                        if (!queryValue) return;
+                        parsed = params.spaceDelimited(type, queryValue.pop());
                         break;
 
                     default:
@@ -323,4 +338,18 @@ function defaultStyle(paramType) {
         case 'path':
             return 'simple';
     }
+}
+
+function queryParams(name, value) {
+    const rx = RegExp('(?:^|&)' + name + '=([^&]*)', 'g');
+    const results = [];
+    let match;
+    while (match = rx.exec(value)) results.push(match[1]);
+    return results.length ? results : null;
+
+}
+
+function queryParseDelimited(name, delimiter, value) {
+    const matches = queryParams(name, value);
+    return matches ? matches.pop().split(delimiter) : null;
 }
