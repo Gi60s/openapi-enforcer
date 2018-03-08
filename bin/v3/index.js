@@ -16,7 +16,6 @@
  **/
 'use strict';
 const params        = require('./param-style');
-const querystring   = require('querystring');
 const util          = require('../util');
 
 module.exports = Version;
@@ -97,15 +96,24 @@ Version.prototype.parseRequestParameters = function(schema, req) {
         }
     });
 
-    // body already parsed so just check it for errors
+    // body already parsed, need to deserialize and check for errors
     if (mSchema.requestBody && req.body !== undefined) {
         const contentType = req.header['content-type'] || '*/*';
-        const requestBody = mSchema.requestBody;
-        const key = util.findMediaMatch(contentType, Object.keys(requestBody.content));
+        const content = mSchema.requestBody.content;
+        const key = util.findMediaMatch(contentType, Object.keys(content));
         if (key) {
-            const bodyErrors = this.enforcer.errors(requestBody.content[key].schema, req.body);
-            if (bodyErrors) errors.push('One or more errors with body:\n\t' + bodyErrors.join('\n\t'));
-            result.body = bodyErrors ? undefined : util.copy(req.body);
+            const schema = content[key].schema;
+            const typed = this.enforcer.deserialize(schema, req.body);
+            if (typed.errors) {
+                errors.push('Invalid request body:\n\t' + typed.errors.join('\n\t'));
+            } else {
+                const validationErrors = this.enforcer.errors(schema, typed.value);
+                if (validationErrors) {
+                    errors.push('Invalid request body":\n\t' + validationErrors.join('\n\t'));
+                } else {
+                    result.body = typed.value;
+                }
+            }
         }
     }
 
@@ -347,9 +355,4 @@ function queryParams(name, value) {
     while (match = rx.exec(value)) results.push(match[1]);
     return results.length ? results : null;
 
-}
-
-function queryParseDelimited(name, delimiter, value) {
-    const matches = queryParams(name, value);
-    return matches ? matches.pop().split(delimiter) : null;
 }

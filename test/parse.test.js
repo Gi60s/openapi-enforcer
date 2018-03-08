@@ -62,12 +62,20 @@ describe('parse', () => {
             expect(parse.boolean('').value).to.be.false;
         });
 
+        it('accepts true', () => {
+            expect(parse.boolean(true).value).to.be.true;
+        });
+
+        it('accepts false', () => {
+            expect(parse.boolean(false).value).to.be.false;
+        });
+
         it('does not accept other string', () => {
             expect(parse.boolean(" ").error).not.to.be.null;
         });
 
-        it('does not accept non-string', () => {
-            expect(parse.boolean(true).error).not.to.be.null;
+        it('does not accept other non-string', () => {
+            expect(parse.boolean(1).error).not.to.be.null;
         });
 
     });

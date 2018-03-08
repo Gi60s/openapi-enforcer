@@ -38,6 +38,16 @@ describe('v3/request', () => {
                                     }
                                 },
                             },
+                            'application/json2': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        approved: { type: 'boolean' },
+                                        end: { type: 'string', format: 'date-time' },
+                                        start: { type: 'string', format: 'date' }
+                                    }
+                                }
+                            },
                             'text/plain': {
                                 schema: {
                                     type: 'string'
@@ -114,6 +124,23 @@ describe('v3/request', () => {
             const params = instance.request(req);
             expect(params.errors).to.be.null;
             expect(params.value.body).to.deep.equal({ R: 100, G: 200, B: 150 });
+        });
+
+        it('application/json2 content', () => {
+            const end = new Date('2000-01-02T01:02:03.456Z');
+            const start = new Date('2000-01-01T01:02:03.456Z');
+            const req = request({
+                body: {
+                    approved: true,
+                    end: end.toISOString(),
+                    start: start.toISOString()   // date type (not date-time)
+                },
+                header: { 'content-type': 'application/json2' }
+            });
+            const params = instance.request(req);
+            expect(params.errors).to.be.null;
+            expect(+params.value.body.end).to.equal(+end);
+            expect(+params.value.body.start).to.equal(+new Date('2000-01-01'));
         });
 
         it('wrong content', () => {

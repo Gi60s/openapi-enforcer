@@ -36,12 +36,12 @@ exports.binary = function(value) {
 
 /**
  * Parse client supplied boolean.
- * @param {string} value
+ * @param {string|boolean} value
  * @returns {{ error: string|null, value: boolean }}
  */
 exports.boolean = function(value) {
-    if (value === 'false' || value === '') return parsed(null, false);
-    if (value === 'true') return parsed(null, true);
+    if (value === false || value === 'false' || value === '') return parsed(null, false);
+    if (value === true || value === 'true') return parsed(null, true);
     return parsed('Expected "true", "false" or an empty string. Received: ' + smart(value));
 };
 
