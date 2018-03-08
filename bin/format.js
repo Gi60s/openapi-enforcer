@@ -15,24 +15,28 @@
  *    limitations under the License.
  **/
 'use strict';
-const smart         = require('./util').smart;
 const rx            = require('./rx');
+const util          = require('./util');
 
+const Error = util.Error;
+const smart = util.smart;
 const zeros = '00000000';
 
 /**
  * Convert value into a binary octet string.
+ * @param {string} errPrefix
  * @param {boolean, number, string, Buffer} value
- * @returns {{ error: Error|null, value: string }}
+ * @returns {string}
+ * @throws {Error}
  */
-exports.binary = function(value) {
+exports.binary = function(errPrefix, value) {
     const type = typeof value;
 
     if (type === 'boolean') {
-        return format(null, '0000000' + (value ? '1' : '0'));
+        return '0000000' + (value ? '1' : '0');
 
     } else if (type === 'number' && !isNaN(value)) {
-        return format(null, decToBin(value));
+        return decToBin(value);
 
     } else if (type === 'string' || value instanceof Buffer) {
         const buffer = Buffer.from(value);
@@ -41,139 +45,147 @@ exports.binary = function(value) {
             const byte = buffer[i].toString(2);
             binary += zeros.substr(byte.length) + byte;
         }
-        return format(null, binary);
+        return binary;
 
     } else {
-        return format(Error('Cannot convert to binary. The value must be a boolean, number, string, or buffer. Received: ' + smart(value)));
+        throw Error(`${errPrefix} Cannot convert to binary. 
+            The value must be a boolean, number, string, or buffer. 
+            Received: ${smart(value)}`);
     }
 };
 
 /**
  * Convert a value to a boolean.
+ * @param {string} errPrefix
  * @param {*} value
- * @returns {{ error: Error|null, value: boolean }}
+ * @returns {boolean}
  */
-exports.boolean = function(value) {
-    return format(null, !!value);
+exports.boolean = function(errPrefix, value) {
+    return !!value;
 };
 
 /**
  * Convert to base64 encoded string.
+ * @param {string} errPrefix
  * @param {boolean, number, string, buffer} value
- * @returns {{ error: Error|null, value: string }}
+ * @returns {string}
  */
-exports.byte = function(value) {
+exports.byte = function(errPrefix, value) {
     const type = typeof value;
 
     if (type === 'boolean') {
-        return format(null, value ? 'AQ==' : 'AA==');
+        return value ? 'AQ==' : 'AA==';
 
     } else if (type === 'number' && !isNaN(value)) {
         const binary = decToBin(value);
         const bytes = [];
         for (let i = 0; i < binary.length; i += 8) bytes.push(parseInt(binary.substr(i, 8), 2));
-        return format(null, Buffer.from(bytes).toString('base64'));
+        return Buffer.from(bytes).toString('base64');
 
     } else if (type === 'string') {
-        return format(null, Buffer.from(value, 'utf8').toString('base64'));
+        return Buffer.from(value, 'utf8').toString('base64');
 
     } else if (value instanceof Buffer) {
-        return format(null, value.toString('base64'));
+        return value.toString('base64');
 
     } else {
-        return format(Error('Cannot convert to byte. The value must be a boolean, number, string, or buffer. Received: ' + smart(value)));
+        throw Error(`${errPrefix} Cannot convert to byte. 
+            The value must be a boolean, number, string, or buffer. 
+            Received: ${smart(value)}`);
     }
 };
 
 /**
  * Take a number, date value, or a date string and convert to date format.
+ * @param {string} errPrefix
  * @param {Date, string, number} value
- * @returns {{ error: Error|null, value: string }}
+ * @returns {string}
  */
-exports.date = function(value) {
-    const data = exports.dateTime(value);
-    if (data.error) return format(data.error);
-    return format(null, data.value.substr(0, 10));
+exports.date = function(errPrefix, value) {
+    return exports.dateTime(errPrefix, value).substr(0, 10);
 };
 
 /**
  * Take a number, date value, or a date string and convert to ISO date format.
+ * @param {string} errPrefix
  * @param {Date, string, number} value
- * @returns {{ error: Error|null, value: string }}
+ * @returns {string}
  */
-exports.dateTime = function(value) {
+exports.dateTime = function(errPrefix, value) {
     const type = typeof value;
     const isString = type === 'string';
 
     if (isString && rx.dateTime.test(value)) {
-        return format(null, new Date(value).toISOString());
+        return new Date(value).toISOString();
 
     } else if (isString && rx.date.test(value)) {
-        return format(null, new Date(value + 'T00:00:00.000Z').toISOString());
+        return new Date(value + 'T00:00:00.000Z').toISOString();
 
-    } else if (value instanceof Date) {
-        return format(null, value.toISOString());
+    } else if (util.isDate(value)) {
+        return value.toISOString();
 
     } else if (type === 'number') {
-        return format(null, new Date(value).toISOString());
+        return new Date(value).toISOString();
 
     } else {
-        return format(Error('Cannot convert to date. The value must be a Date, a number, or a date string. Received: ' + smart(value)));
+        throw Error(`${errPrefix} Cannot convert to date. 
+            The value must be a Date, a number, or a date string. 
+            Received: ${smart(value)}`);
     }
 };
 exports['date-time'] = exports.dateTime;
 
 /**
  * Convert a value to an integer.
+ * @param {string} errPrefix
  * @param {*} value
- * @returns {{ error: Error|null, value: number }}
+ * @returns {number}
  */
-exports.integer = function(value) {
+exports.integer = function(errPrefix, value) {
     const result = +value;
-    return isNaN(result)
-        ? format(Error('Cannot convert to integer. The value must be numeric. Received: ' + smart(value)))
-        : format(null, Math.round(result));
+    if (!isNaN(result)) return Math.round(result);
+    throw Error(`${errPrefix} Cannot convert to integer. 
+        The value must be numeric. 
+        Received: ${smart(value)}`);
 };
 
 /**
  * Convert a value to a number.
+ * @param {string} errPrefix
  * @param {string, number, boolean} value
- * @returns {{ error: Error|null, value: number }}
+ * @returns {number}
  */
-exports.number = function(value) {
+exports.number = function(errPrefix, value) {
     const result = +value;
-    return isNaN(result)
-        ? format(Error('Cannot convert to number. The value must be numeric. Received: ' + smart(value)))
-        : format(null, result);
+    if (!isNaN(result)) return result;
+    throw Error(`${errPrefix} Cannot convert to number. 
+        The value must be numeric. 
+        Received: ${smart(value)}`);
 };
 
 /**
  * Convert a value to a string.
+ * @param {string} errPrefix
  * @param {string, number, boolean, object, date} value
- * @returns {{ error: Error|null, value: string }}
+ * @returns {string}
  */
-exports.string = function(value) {
+exports.string = function(errPrefix, value) {
     switch (typeof value) {
         case 'boolean':
         case 'number':
         case 'string':
-            return format(null, String(value));
+            return String(value);
         case 'object':
-            if (value instanceof Date) return format(null, value.toISOString());
-            return format(null, JSON.stringify(value));
+            if (util.isDate(value)) return value.toISOString();
+            return JSON.stringify(value);
     }
-    return format(Error('Cannot convert to string. The value must be a string, a number, or a boolean, and Object, or a Date. Received: ' + smart(value)));
+    throw Error(`${errPrefix} Cannot convert to string.
+        The value must be a string, a number, or a boolean, and Object, or a Date.
+        Received: ${smart(value)}`);
 };
 
 function decToBin(dec) {
     const binary = (dec >>> 0).toString(2);
     const mod = binary.length % 8;
     return mod === 0 ? binary : zeros.substr(mod) + binary;
-}
-
-function format(err, value) {
-    return {
-        error: err ? err.message : null,
-        value: err ? null : value
-    };
 }
