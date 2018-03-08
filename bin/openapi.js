@@ -228,11 +228,11 @@ OpenApiEnforcer.prototype.populate = function(schema, map, initialValue) {
  * @returns {object}
  */
 OpenApiEnforcer.prototype.request = function(req) {
-    req = Object.assign({}, req);
 
     // normalize input parameter
     if (typeof req === 'string') req = { path: req };
     if (typeof req !== 'object') throw Error('Invalid request. Must be a string or an object. Received: ' + req);
+    req = Object.assign({}, req);
     if (req.hasOwnProperty('body') && typeof req.body !== 'object' && typeof req.body !== 'string') throw Error('Invalid request body. Must be a string or an object. Received: ' + req.body);
     if (req.cookie && typeof req.cookie !== 'object') throw Error('Invalid request cookies. Must be an object. Received: ' + req.cookie);
     if (req.header && typeof req.header !== 'object') throw Error('Invalid request headers. Must be an object. Received: ' + req.header);
