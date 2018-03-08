@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const format    = require('./format');
 const util      = require('./util');
 
 const smart = util.smart;
@@ -118,7 +119,7 @@ validate.binary = function(v, prefix, depth, schema, value) {
         v.error(prefix, 'Expected value to be a buffer. Received: ' + smart(value));
     } else {
         maxMin(v, prefix, schema, 'binary length', 'maxLength', 'minLength', true, value.length * 8, schema.maxLength, schema.minLength);
-        _enum(v, prefix, schema, value);
+        if (v.options.enum && schema.enum) _enum(v, prefix, schema, format.binary('', value));
     }
 };
 
@@ -137,7 +138,7 @@ validate.byte = function(v, prefix, depth, schema, value) {
         v.error(prefix, 'Expected value to be a buffer. Received: ' + smart(value));
     } else {
         maxMin(v, prefix, schema, 'byte length', 'maxLength', 'minLength', true, value.length, schema.maxLength, schema.minLength);
-        _enum(v, prefix, schema, value);
+        if (v.options.enum && schema.enum) _enum(v, prefix, schema, format.byte('', value));
     }
 };
 
@@ -147,7 +148,7 @@ validate.date = function(v, prefix, depth, schema, value) {
         v.error(prefix, 'Expected a valid date object. Received: ' + smart(value));
     } else {
         maxMin(v, prefix, schema, 'date', 'maximum', 'minimum', false, value, new Date(schema.maximum), new Date(schema.minimum));
-        _enum(v, prefix, schema, value);
+        if (v.options.enum && schema.enum) _enum(v, prefix, schema, format.date('', value));
     }
 };
 
@@ -157,7 +158,7 @@ validate.dateTime = function(v, prefix, depth, schema, value) {
         v.error(prefix, 'Expected a valid date object. Received: ' + smart(value));
     } else {
         maxMin(v, prefix, schema, 'date-time', 'maximum', 'minimum', false, value, new Date(schema.maximum), new Date(schema.minimum));
-        _enum(v, prefix, schema, value);
+        if (v.options.enum && schema.enum) _enum(v, prefix, schema, format.dateTime('', value));
     }
 };
 validate['date-time'] = validate.dateTime;

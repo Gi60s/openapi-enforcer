@@ -116,26 +116,52 @@ describe('validate', () => {
     describe('binary', () => {
         const base = { type: 'string', format: 'binary' };
 
-        it('is binary', () => {
-            const errors = enforcer.errors(base, '00110011');
+        it('value is a buffer', () => {
+            const errors = enforcer.errors(base, Buffer.from(['00110011'], 'binary'));
             expect(errors).to.be.null;
         });
 
-        it('is not binary', () => {
-            const errors = enforcer.errors(base, 'abc');
-            expect(errors[0]).to.match(/Expected a binary string/i);
+        it('value is not a buffer', () => {
+            const errors = enforcer.errors(base, '00110011');
+            expect(errors).to.match(/expected value to be a buffer/i);
+        });
+
+        describe('min length', () => {
+            const schema = extend(base, { minLength: 8 });
+
+            it('below minimum', () => {
+                expect(enforcer.errors(schema, Buffer.from([]))).to.match(/expected binary length/i);
+            });
+
+            it('at minimum', () => {
+                expect(enforcer.errors(schema, Buffer.from(['00110011'], 'binary'))).to.be.null;
+            });
+
+        });
+
+        describe('max length', () => {
+            const schema = extend(base, { maxLength: 8 });
+
+            it('above max', () => {
+                expect(enforcer.errors(schema, Buffer.from([51, 51]))).to.match(/expected binary length/i);
+            });
+
+            it('at max', () => {
+                expect(enforcer.errors(schema, Buffer.from([51], 'binary'))).to.be.null;
+            });
+
         });
 
         describe('enum', () => {
-            const schema = extend(base, { enum: ['00110011'] });
+            const schema = extend(base, { enum: ['00110011'] }); // 00110011 => 51
 
             it('in enum', () => {
-                const errors = enforcer.errors(schema, '00110011');
+                const errors = enforcer.errors(schema, Buffer.from([51], 'binary'));
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = enforcer.errors(schema, '10101010');
+                const errors = enforcer.errors(schema, Buffer.from([52], 'binary'));
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -181,31 +207,26 @@ describe('validate', () => {
     describe('byte', () => {
         const base = { type: 'string', format: 'byte' };
 
-        it('is byte', () => {
-            const errors = enforcer.errors(base, 'Aa==');
+        it('is buffer', () => {
+            const errors = enforcer.errors(base, Buffer.from('Aa==', 'base64'));
             expect(errors).to.be.null;
         });
 
-        it('has invalid character', () => {
-            const errors = enforcer.errors(base, 'Aa%%');
-            expect(errors[0]).to.match(/Expected a base64 string/i);
-        });
-
-        it('has invalid length', () => {
-            const errors = enforcer.errors(base, 'Aa=');
-            expect(errors[0]).to.match(/Expected a base64 string/i);
+        it('is not buffer', () => {
+            const errors = enforcer.errors(base, 'Aa==');
+            expect(errors).to.match(/expected value to be a buffer/i);
         });
 
         describe('enum', () => {
-            const schema = extend(base, { enum: ['Aa=='] });
+            const schema = extend(base, { enum: ['AQ=='] });
 
             it('in enum', () => {
-                const errors = enforcer.errors(schema, 'Aa==');
+                const errors = enforcer.errors(schema, Buffer.from('AQ==', 'base64'));
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = enforcer.errors(schema, 'Bb==');
+                const errors = enforcer.errors(schema, Buffer.from('BQ==', 'base64'));
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -216,36 +237,31 @@ describe('validate', () => {
     describe('date', () => {
         const base = { type: 'string', format: 'date' };
 
-        it('valid date', () => {
-            const errors = enforcer.errors(base, '2000-01-01');
+        it('is date object', () => {
+            const errors = enforcer.errors(base, new Date());
             expect(errors).to.be.null;
         });
 
-        it('invalid date', () => {
+        it('is not date object', () => {
             const errors = enforcer.errors(base, 'abc');
-            expect(errors[0]).to.match(/full-date string/);
-        });
-
-        it('out of bounds date', () => {
-            const errors = enforcer.errors(base, '2000-02-31');
-            expect(errors[0]).to.match(/date does not exist/);
+            expect(errors[0]).to.match(/expected a valid date object/i);
         });
 
         describe('minimum', () => {
             const schema = extend(base, { minimum: '2000-01-02' });
 
             it('above minimum', () => {
-                const errors = enforcer.errors(schema, '2000-01-03');
+                const errors = enforcer.errors(schema, new Date('2000-01-03'));
                 expect(errors).to.be.null;
             });
 
             it('at minimum', () => {
-                const errors = enforcer.errors(schema, '2000-01-02');
+                const errors = enforcer.errors(schema, new Date('2000-01-02'));
                 expect(errors).to.be.null;
             });
 
             it('below minimum', () => {
-                const errors = enforcer.errors(schema, '2000-01-01');
+                const errors = enforcer.errors(schema, new Date('2000-01-01'));
                 expect(errors[0]).to.match(/greater than or equal/);
             });
 
@@ -255,17 +271,17 @@ describe('validate', () => {
             const schema = extend(base, { maximum: '2000-01-02' });
 
             it('above maximum', () => {
-                const errors = enforcer.errors(schema, '2000-01-03');
+                const errors = enforcer.errors(schema, new Date('2000-01-03'));
                 expect(errors[0]).to.match(/less than or equal/);
             });
 
             it('at maximum', () => {
-                const errors = enforcer.errors(schema, '2000-01-02');
+                const errors = enforcer.errors(schema, new Date('2000-01-02'));
                 expect(errors).to.be.null;
             });
 
             it('below maximum', () => {
-                const errors = enforcer.errors(schema, '2000-01-01');
+                const errors = enforcer.errors(schema, new Date('2000-01-01'));
                 expect(errors).to.be.null;
             });
 
@@ -275,12 +291,12 @@ describe('validate', () => {
             const schema = extend(base, { enum: ['2000-01-01'] });
 
             it('in enum', () => {
-                const errors = enforcer.errors(schema, '2000-01-01');
+                const errors = enforcer.errors(schema, new Date('2000-01-01'));
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = enforcer.errors(schema, '2001-02-02');
+                const errors = enforcer.errors(schema, new Date('2001-02-02'));
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
@@ -291,26 +307,26 @@ describe('validate', () => {
     describe('date-time', () => {
         const base = { type: 'string', format: 'date-time' };
 
-        it('valid date-time', () => {
-            const errors = enforcer.errors(base, '2000-01-01T00:00:00.000Z');
+        it('is date object', () => {
+            const errors = enforcer.errors(base, new Date());
             expect(errors).to.be.null;
         });
 
-        it('out of bounds time', () => {
-            const errors = enforcer.errors(base, '2000-01-01T24:00:00.000Z');
-            expect(errors[0]).to.match(/time is invalid/);
+        it('is not date object', () => {
+            const errors = enforcer.errors(base, 'abc');
+            expect(errors[0]).to.match(/expected a valid date object/i);
         });
 
         describe('enum', () => {
-            const schema = extend(base, { enum: ['2000-01-01T00:00:00.000Z'] });
+            const schema = extend(base, { enum: ['2000-01-01T01:02:00.000Z'] });
 
             it('in enum', () => {
-                const errors = enforcer.errors(schema, '2000-01-01T00:00:00.000Z');
+                const errors = enforcer.errors(schema, new Date('2000-01-01T01:02:00.000Z'));
                 expect(errors).to.be.null;
             });
 
             it('not in enum', () => {
-                const errors = enforcer.errors(schema, '2001-01-01T00:00:00.000Z');
+                const errors = enforcer.errors(schema, new Date('2000-01-01T00:00:00.000Z'));
                 expect(errors[0]).to.match(/did not meet enum requirements/i);
             });
 
