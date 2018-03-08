@@ -23,17 +23,6 @@ module.exports = Version;
 function Version(enforcer, definition) {
     this.enforcer = enforcer;
     this.definition = definition;
-
-    const components = definition.components || {};
-    this.callbacks = components.callback || {};
-    this.examples = components.examples || {};
-    this.headers = components.headers || {};
-    this.links = components.links || {};
-    this.parameters = components.parameters || {};
-    this.requestBodies = components.requestBodies || {};
-    this.responses = components.responses || {};
-    this.schemas = components.schemas || {};
-    this.securitySchemes = components.securitySchemes || {};
 }
 
 Version.prototype.getDiscriminatorKey = function(schema, value) {
@@ -51,10 +40,6 @@ Version.prototype.getDiscriminatorSchema = function(schema, value) {
         const schemas = this.definition.components.schemas;
         if (schemas && schemas[key]) return schemas[key];
     }
-};
-
-Version.prototype.getParameterSchema = function(pathSchema, paramName) {
-
 };
 
 /**
@@ -309,33 +294,6 @@ Version.defaults = {
     }
 
 };
-
-exports.getDiscriminatorSchema = function(definition, schema, value) {
-    const discriminator = schema.discriminator;
-    if (discriminator && value.hasOwnProperty(discriminator.propertyName)) {
-        const key = value[discriminator.propertyName];
-        const mapping = discriminator.mapping;
-        if (mapping && mapping[key]) return mapping[key];
-
-        const schemas = definition.components.schemas;
-        if (schemas && schemas[key]) return schemas[key];
-    }
-};
-
-exports.initialize = function(openapi) {
-    openapi.components = Object.assign({
-        callbacks: {},
-        examples: {},
-        headers: {},
-        links: {},
-        parameters: {},
-        requestBodies: {},
-        responses: {},
-        schemas: openapi.definitions || {},
-        securitySchemes: {}
-    }, openapi.components);
-};
-
 
 function defaultStyle(paramType) {
     switch (paramType) {
