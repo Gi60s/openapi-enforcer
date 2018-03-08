@@ -19,12 +19,33 @@ const copy      = require('../../bin/util').copy;
 const expect    = require('chai').expect;
 const enforcer  = require('../../index');
 
-describe.only('v3/request', () => {
+describe('v3/request', () => {
     const schema = {
         openapi: '3.0.0',
         paths: {
             '/': {
                 get: {},
+                put: {
+                    requestBody: {
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        R: { type: 'number' },
+                                        B: { type: 'number' },
+                                        G: { type: 'number' }
+                                    }
+                                },
+                            },
+                            'text/plain': {
+                                schema: {
+                                    type: 'string'
+                                }
+                            }
+                        }
+                    }
+                },
                 parameters: [
                     {
                         name: 'user',
@@ -72,6 +93,41 @@ describe.only('v3/request', () => {
         instance = new enforcer(schema, {});
     });
 
+    describe('body', () => {
+        const request = Request({ path: '/', method: 'put' });
+
+        it('string content', () => {
+            const req = request({
+                body: 'this is some text',
+                header: { 'content-type': 'text/plain' }
+            });
+            const params = instance.request(req);
+            expect(params.errors).to.be.null;
+            expect(params.value.body).to.equal('this is some text');
+        });
+
+        it('application/json content', () => {
+            const req = request({
+                body: { R: 100, G: 200, B: 150 },
+                header: { 'content-type': 'application/json' }
+            });
+            const params = instance.request(req);
+            expect(params.errors).to.be.null;
+            expect(params.value.body).to.deep.equal({ R: 100, G: 200, B: 150 });
+        });
+
+        it('wrong content', () => {
+            const req = request({
+                body: { R: 100, G: 200, B: 150 },
+                header: { 'content-type': 'text/plain' }
+            });
+            const params = instance.request(req);
+            expect(params.errors.length).not.to.equal(0);
+            expect(params.errors[0]).to.match(/expected a string/i);
+        });
+
+    });
+
     describe('cookie', () => {
         const ds = '2000-01-02T03:04:05.678Z';
         const request = Request({ path: '/' });
@@ -86,42 +142,42 @@ describe.only('v3/request', () => {
         it('cannot use matrix style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { style: 'matrix' } });
             const req = request({ cookie: { user: '' } });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/matrix style/);
         });
 
         it('cannot use label style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { style: 'label' } });
             const req = request({ cookie: { user: '' } });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/label style/);
         });
 
         it('cannot use simple style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { style: 'simple' } });
             const req = request({ cookie: { user: '' } });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/simple style/);
         });
 
         it('cannot use spaceDelimited style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { style: 'spaceDelimited' } });
             const req = request({ cookie: { user: '' } });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/spaceDelimited style/);
         });
 
         it('cannot use pipeDelimited style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { style: 'pipeDelimited' } });
             const req = request({ cookie: { user: '' } });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/pipeDelimited style/);
         });
 
         it('cannot use deepObject style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { style: 'deepObject' } });
             const req = request({ cookie: { user: '' } });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/deepObject style/);
         });
 
@@ -141,42 +197,42 @@ describe.only('v3/request', () => {
         it('cannot use matrix style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.2': { style: 'matrix' } });
             const req = request(config);
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/matrix style/);
         });
 
         it('cannot use label style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.2': { style: 'label' } });
             const req = request(config);
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/label style/);
         });
 
         it('cannot use form style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.2': { style: 'form' } });
             const req = request(config);
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/form style/);
         });
 
         it('cannot use spaceDelimited style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.2': { style: 'spaceDelimited' } });
             const req = request(config);
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/spaceDelimited style/);
         });
 
         it('cannot use pipeDelimited style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.2': { style: 'pipeDelimited' } });
             const req = request(config);
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/pipeDelimited style/);
         });
 
         it('cannot use deepObject style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.2': { style: 'deepObject' } });
             const req = request(config);
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/deepObject style/);
         });
 
@@ -195,7 +251,7 @@ describe.only('v3/request', () => {
         it('can use matrix style', () => {
             const schema2 = modSchema(schema, { 'paths./{name}.get.parameters.0': { style: 'matrix' } });
             const req = request({ path: '/;name=Bob'});
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             const params = instance.request(req);
             expect(params.value.path.name).to.equal('Bob');
         });
@@ -203,7 +259,7 @@ describe.only('v3/request', () => {
         it('can use label style', () => {
             const schema2 = modSchema(schema, { 'paths./{name}.get.parameters.0': { style: 'label' } });
             const req = request({ path: '/.Bob'});
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             const params = instance.request(req);
             expect(params.value.path.name).to.equal('Bob');
         });
@@ -211,28 +267,28 @@ describe.only('v3/request', () => {
         it('cannot use form style', () => {
             const schema2 = modSchema(schema, { 'paths./{name}.get.parameters.0': { style: 'form' } });
             const req = request({ path: '/name=Bob' });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/form style/);
         });
 
         it('cannot use spaceDelimited style', () => {
             const schema2 = modSchema(schema, { 'paths./{name}.get.parameters.0': { style: 'spaceDelimited' } });
             const req = request({ path: '/Bob' });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/spaceDelimited style/);
         });
 
         it('cannot use pipeDelimited style', () => {
             const schema2 = modSchema(schema, { 'paths./{name}.get.parameters.0': { style: 'pipeDelimited' } });
             const req = request({ path: '/Bob' });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/pipeDelimited style/);
         });
 
         it('cannot use deepObject style', () => {
             const schema2 = modSchema(schema, { 'paths./{name}.get.parameters.0': { style: 'deepObject' } });
             const req = request({ path: '/Bob' });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/deepObject style/);
         });
 
@@ -346,21 +402,21 @@ describe.only('v3/request', () => {
         it('cannot use matrix style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.1': { style: 'matrix' } });
             const req = request({ path: '/?color=' });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/matrix style/);
         });
 
         it('cannot use label style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.1': { style: 'label' } });
             const req = request({ path: '/?color=' });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/label style/);
         });
 
         it('cannot use simple style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.1': { style: 'simple' } });
             const req = request({ path: '/?color=' });
-            instance = new enforcer(schema2, {});
+            const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/simple style/);
         });
 
