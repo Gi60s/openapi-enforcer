@@ -99,7 +99,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
 
     // body already parsed so just check it for errors
     if (mSchema.requestBody && req.body !== undefined) {
-        const contentType = req.headers['content-type'] || '*/*';
+        const contentType = req.header['content-type'] || '*/*';
         const requestBody = mSchema.requestBody;
         const key = util.findMediaMatch(contentType, Object.keys(requestBody.content));
         if (key) {
