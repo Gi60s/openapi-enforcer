@@ -74,7 +74,7 @@ exports.findMediaMatch = function(input, matches) {
             const type = ar[0];
             const subtype = ar[1].split('+')[0];
             if ((accept.type === type || accept.type === '*' || type === '*') &&
-                (accept.subtype === subtype || accept.subtype === '*' || subtype === '*')) return matches[j];
+                (accept.subType === subtype || accept.subType === '*' || subtype === '*')) return matches[j];
         }
     }
 };
@@ -146,13 +146,13 @@ exports.same = function same(v1, v2) {
  * Determine the schema type using the schema. It isn't always specified but enough
  * information is generally provided to determine it.
  * @param {object} schema
- * @returns {string, undefined}
+ * @returns {string}
  */
 exports.schemaType = function(schema) {
     if (schema.type) return schema.type;
     if (schema.items) return 'array';
     if (schema.properties || schema.additionalProperties || schema.allOf || schema.anyOf || schema.oneOf) return 'object';
-    return undefined;
+    return 'string';
 };
 
 /**
