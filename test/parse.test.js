@@ -23,43 +23,51 @@ describe('parse', () => {
 
     describe('binary', () => {
 
-        it('accepts string of 0s and 1s', () => {
-            const result = parse.binary('01010101');
+        // 01011001 => 89 => Y
+        it('accepts string binary octet', () => {
+            const result = parse.binary('01011001').value;
             expect(result).to.be.an.instanceof(Buffer);
-            expect(result.length).to.equal(8);
-            expect(result.toString()).to.equal('01010101');
+            expect(result.length).to.equal(1);
+            expect(result.toString('utf8')).to.equal('Y');
         });
 
-        it('cannot take a number', () => {
-            expect(() => parse.binary(1)).to.throw(Error);
+        it('accepts string binary octet (3x)', () => {
+            const result = parse.binary('010000100101100101010101').value;
+            expect(result).to.be.an.instanceof(Buffer);
+            expect(result.length).to.equal(3);
+            expect(result.toString('utf8')).to.equal('BYU');
+        });
+
+        it('does not accept string binary quartet', () => {
+            expect(parse.binary('0101').error).not.to.be.null;
+        });
+
+        it('does not accept non-string', () => {
+            expect(parse.binary(1).error).not.to.be.null;
         });
 
     });
 
     describe('boolean', () => {
 
-        it('accepts boolean', () => {
-            expect(parse.boolean(true)).to.be.true;
-        });
-
         it('accepts "true"', () => {
-            expect(parse.boolean('true')).to.be.true;
+            expect(parse.boolean('true').value).to.be.true;
         });
 
         it('accepts "false"', () => {
-            expect(parse.boolean('false')).to.be.false;
+            expect(parse.boolean('false').value).to.be.false;
         });
 
-        it('does not accept number', () => {
-            expect(() => parse.boolean(0)).to.throw(Error);
+        it('accepts ""', () => {
+            expect(parse.boolean('').value).to.be.false;
         });
 
-        it('accepts number when forced', () => {
-            expect(parse.boolean(0, true)).to.be.false;
+        it('does not accept other string', () => {
+            expect(parse.boolean(" ").error).not.to.be.null;
         });
 
-        it('accepts object when forced', () => {
-            expect(parse.boolean({}, true)).to.be.true;
+        it('does not accept non-string', () => {
+            expect(parse.boolean(true).error).not.to.be.null;
         });
 
     });
@@ -67,126 +75,77 @@ describe('parse', () => {
     describe('byte', () => {
 
         it('accepts base64 string', () => {
-            const result = parse.byte('aGVsbG8=');
+            const result = parse.byte('aGVsbG8=').value;
             expect(result).to.be.an.instanceof(Buffer);
             expect(result.toString()).to.equal('hello');
         });
 
         it('does not accept non base64 string', () => {
-            expect(() => parse.byte(123)).to.throw(Error);
+            expect(parse.byte('a').error).not.to.be.null;
+        });
+
+        it('does not accept non string', () => {
+            expect(parse.byte(1).error).not.to.be.null;
         });
 
     });
 
     describe('date', () => {
 
-        it('accepts Date object', () => {
-            const d = new Date();
-            const p = parse.date(d);
-            expect(p).not.to.equal(d);
-            expect(p.toISOString()).to.equal(d.toISOString().substr(0, 10) + 'T00:00:00.000Z');
-        });
-
         it('accepts ISO date string', () => {
             const iso = '2000-01-01';
-            const p = parse.date(iso);
+            const p = parse.date(iso).value;
             expect(p.toISOString()).to.equal(iso + 'T00:00:00.000Z');
         });
 
-        it('does not accept ISO date-time string', () => {
-            const iso = '2000-01-01T00:00:00.000Z';
-            expect(() => parse.date(iso)).to.throw(Error);
+        it('accepts ISO date-time string', () => {
+            const iso = '2000-01-01T01:02:03.456Z';
+            const p = parse.date(iso).value;
+            expect(p.toISOString()).to.equal(iso.substr(0, 10) + 'T00:00:00.000Z');
         });
 
-        it('does not accept number', () => {
-            expect(() => parse.date(1)).to.throw(Error);
-        });
-
-        it('accepts ISO date-time string if forced', () => {
-            const iso = '2000-01-01T00:00:00.000Z';
-            const p = parse.date(iso, true);
-            expect(p.toISOString()).to.equal(iso);
-        });
-
-        it('forced ISO date-time string looses time component', () => {
-            const iso = '2000-01-01T11:11:11.111Z';
-            const p = parse.date(iso, true);
-            expect(p.toISOString()).to.equal('2000-01-01T00:00:00.000Z');
-        });
-
-        it('accepts number if forced', () => {
-            const num = +(new Date('2000-01-01T11:11:11.111Z'));
-            const p = parse.date(num, true);
-            expect(p.toISOString()).to.equal('2000-01-01T00:00:00.000Z');
+        it('does not accept non-string', () => {
+            expect(parse.date(1).error).not.to.be.null;
         });
 
     });
 
     describe('dateTime', () => {
 
-        it('accepts Date object', () => {
-            const d = new Date();
-            const p = parse.dateTime(d);
-            expect(p).not.to.equal(d);
-            expect(p.toISOString()).to.equal(d.toISOString());
-        });
-
         it('accepts ISO date-time string', () => {
             const iso = '2000-01-01T00:00:00.000Z';
-            const p = parse.dateTime(iso);
+            const p = parse.dateTime(iso).value;
             expect(p.toISOString()).to.equal(iso);
         });
 
-        it('does not accept ISO date string', () => {
+        it('accepts ISO date string', () => {
             const iso = '2000-01-01';
-            expect(() => parse.dateTime(iso)).to.throw(Error);
-        });
-
-        it('does not accept number', () => {
-            expect(() => parse.dateTime(1)).to.throw(Error);
-        });
-
-        it('accepts ISO date string if forced', () => {
-            const iso = '2000-01-01';
-            const p = parse.dateTime(iso, true);
+            const p = parse.dateTime(iso).value;
             expect(p.toISOString()).to.equal(iso + 'T00:00:00.000Z');
         });
 
-        it('accepts number if forced', () => {
-            const num = +(new Date('2000-01-01T11:11:11.111Z'));
-            const p = parse.dateTime(num, true);
-            expect(p.toISOString()).to.equal('2000-01-01T11:11:11.111Z');
+        it('does not accept non-string', () => {
+            expect(parse.dateTime(1).error).not.to.be.null;
         });
+
     });
 
     describe('integer', () => {
 
-        it('accepts integer number', () => {
-            expect(parse.integer(123)).to.equal(123);
-        });
-
         it('accepts integer string', () => {
-            expect(parse.integer('123')).to.equal(123);
-        });
-
-        it('does not accept decimal number', () => {
-            expect(() => parse.integer(1.23)).to.throw(Error);
+            expect(parse.integer('123').value).to.equal(123);
         });
 
         it('does not accept decimal string', () => {
-            expect(() => parse.integer('1.23')).to.throw(Error);
+            expect(parse.integer('1.23').error).not.to.be.null;
         });
 
-        it('accepts decimal number when forced', () => {
-            expect(parse.integer(1.23, true)).to.equal(1);
+        it('accepts number', () => {
+            expect(parse.integer(123).value).to.equal(123);
         });
 
-        it('accepts decimal string when forced', () => {
-            expect(parse.integer('1.23', true)).to.equal(1);
-        });
-
-        it('accepts boolean when forced', () => {
-            expect(parse.integer(true, true)).to.equal(1);
+        it('does not accept decimal', () => {
+            expect(parse.integer(1.23).error).not.to.be.null;
         });
 
     });
@@ -194,19 +153,19 @@ describe('parse', () => {
     describe('number', () => {
 
         it('accepts number', () => {
-            expect(parse.number(1.23)).to.equal(1.23);
+            expect(parse.number(1.23).value).to.equal(1.23);
         });
 
         it('accepts number string', () => {
-            expect(parse.number('1.23')).to.equal(1.23);
+            expect(parse.number('1.23').value).to.equal(1.23);
+        });
+
+        it('does not accept non-number string', () => {
+            expect(parse.number('abc').error).not.to.be.null;
         });
 
         it('does not accept boolean', () => {
-            expect(() => parse.number(true)).to.throw(Error);
-        });
-
-        it('accepts boolean when forced', () => {
-            expect(parse.number(true, true)).to.equal(1);
+            expect(parse.number(true).error).not.to.be.null;
         });
     });
 
