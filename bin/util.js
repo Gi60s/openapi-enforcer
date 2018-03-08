@@ -41,6 +41,18 @@ exports.edgeSlashes = function(value, start, end) {
     return value;
 };
 
+exports.Error = function(meta, message) {
+    if (arguments.length === 1) {
+        meta = {};
+        message = arguments[0];
+    } else if (typeof meta === 'string') {
+        meta = { code: meta };
+    }
+    const err = Error(message.replace(/\s+/g, ' '));
+    Object.assign(err, meta);
+    return err;
+};
+
 /**
  * Provide an accept media type string and possible matches and get the match.
  * @param {string} input
@@ -80,7 +92,7 @@ exports.findMediaMatch = function(input, matches) {
 };
 
 exports.isDate = function (value) {
-    return value && !isNaN(value) && value.getDate !== undefined;
+    return value && !isNaN(value) && value instanceof Date;
 };
 
 /**
