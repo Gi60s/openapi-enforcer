@@ -155,51 +155,6 @@ OpenApiEnforcer.prototype.errors = function(schema, value) {
 };
 
 /**
- * Serialize a value for sending as a response.
- * @param {object} schema
- * @param {*} value
- * @returns {*}
- */
-OpenApiEnforcer.prototype.serialize = function(schema, value) {
-    const type = util.schemaType(schema);
-    switch (type) {
-        case 'array':
-            if (Array.isArray(value)) return value.map(v => this.format(schema.items, v));
-            break;
-
-        case 'boolean':
-        case 'integer':
-        case 'number':
-            return format[type](value);
-
-        case 'string':
-            switch (schema.format) {
-                case 'binary':
-                case 'byte':
-                case 'date':
-                case 'date-time':
-                    return format[schema.format](value);
-            }
-            return format.string(value);
-
-        case 'object':
-            if (value && typeof value === 'object') {
-                const result = {};
-                const additionalProperties = schema.additionalProperties;
-                const properties = schema.properties || {};
-                Object.keys(value).forEach(key => {
-                    if (properties.hasOwnProperty(key)) {
-                        result[key] = this.format(properties[key], value[key]);
-                    } else if (additionalProperties) {
-                        result[key] = this.format(additionalProperties, value[key]);
-                    }
-                });
-                return result;
-            }
-    }
-};
-
-/**
  * Get details about the matching path.
  * @param {string} path
  * @returns {{path: string, params: Object.<string, *>, schema: object}|undefined}
@@ -351,6 +306,16 @@ OpenApiEnforcer.prototype.schema = function(path, schema) {
 };
 
 /**
+ * Serialize a value for sending as a response.
+ * @param {object} schema
+ * @param {*} value
+ * @returns {*}
+ */
+OpenApiEnforcer.prototype.serialize = function(schema, value) {
+    return serialize('', schema, value);
+};
+
+/**
  * Check a value against a schema for errors and throw any errors encountered.
  * @param {object} schema
  * @param {*} value
@@ -432,5 +397,46 @@ function deserialize(errors, prefix, schema, value) {
         default:
             errors.push(prefix + ' Unknown schema type');
             return;
+    }
+}
+
+function serialize(prefix, schema, value) {
+    const type = util.schemaType(schema);
+    switch (type) {
+        case 'array':
+            if (Array.isArray(value)) return value.map((v, i) => serialize(prefix + '/' + i, schema.items || {}, v));
+            break;
+
+        case 'boolean':
+        case 'integer':
+        case 'number':
+            return format[type](prefix, value);
+
+        case 'object':
+            if (value && typeof value === 'object') {
+                const result = {};
+                const additionalProperties = schema.additionalProperties;
+                const properties = schema.properties || {};
+                Object.keys(value).forEach(key => {
+                    if (properties.hasOwnProperty(key)) {
+                        result[key] = serialize(prefix + '/' + key, properties[key], value[key]);
+                    } else if (additionalProperties) {
+                        result[key] = serialize(prefix + '/' + key, additionalProperties, value[key]);
+                    }
+                });
+                return result;
+            }
+            return value;
+
+        case 'string':
+        default:
+            switch (schema.format) {
+                case 'binary':
+                case 'byte':
+                case 'date':
+                case 'date-time':
+                    return format[schema.format](prefix, value);
+            }
+            return format.string(prefix, value);
     }
 }
