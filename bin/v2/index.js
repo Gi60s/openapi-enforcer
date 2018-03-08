@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const multipart = require('../multipart-parser');
 const validate  = require('../validate');
 
 module.exports = Version;
