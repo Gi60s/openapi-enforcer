@@ -68,7 +68,7 @@ exports.date = function(value) {
         return parsed('Expected a date string of the format YYYY-MM-DD or YYYY-MM-DDTmm:hh:ss.sssZ. Received: ' + smart(value));
 
     } else {
-        const result = new Date(+value);
+        const result = new Date(value);
         result.setUTCHours(0);
         result.setUTCMinutes(0);
         result.setUTCSeconds(0);
@@ -93,7 +93,7 @@ exports['date-time'] = exports.dateTime;
 
 /**
  * Parse client supplied value to an integer.
- * @param {string} value
+ * @param {string|number} value
  * @returns {{ error: string|null, value: number }}
  */
 exports.integer = function(value) {
@@ -106,7 +106,7 @@ exports.integer = function(value) {
 
 /**
  * Parse client supplied value to a number.
- * @param {string} value
+ * @param {string|number} value
  * @returns {{ error: string|null, value: number }}
  */
 exports.number = function(value) {
