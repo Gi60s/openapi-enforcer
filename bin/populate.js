@@ -116,7 +116,7 @@ function apply(v, schema, type, object, property) {
             const value = map[schema['x-variable']];
             if (options.autoFormat) {
                 const form = util.schemaFormat(schema);
-                object[property] = format[form](value);
+                object[property] = format[form]('', value);
             } else {
                 object[property] = value;
             }
