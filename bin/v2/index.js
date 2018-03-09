@@ -33,8 +33,44 @@ Version.prototype.getDiscriminatorSchema = function(schema, value) {
     if (key) return this.definition.definitions[key];
 };
 
+/**
+ * Deserialize the request parameters.
+ * @param {object} schema The path schema object.
+ * @param {object} req
+ * @param {object|string} req.body
+ * @param {Object<string>} req.cookie
+ * @param {Object<string>} req.header
+ * @param {string} req.method
+ * @param {object<string>} req.path
+ * @param {string} req.query
+ * @returns {{ error: Array<string>|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object }}}
+ */
 Version.prototype.parseRequestParameters = function(schema, req) {
+    const errors = [];
+    const mSchema  = schema[req.method];
+    const paramTypes = ['cookie', 'header', 'path', 'query'];
+    const result = {
+        cookie: {},
+        header: {},
+        path: {},
+        query: {}
+    };
 
+    // build a parameter map
+    const paramMap = {
+        cookie: {},
+        header: {},
+        path: {},
+        query: {}
+    };
+    [schema, mSchema].forEach(schema => {
+        if (schema.parameters) {
+            schema.parameters.forEach(param => {
+                const store = paramMap[param.in];
+                if (store) store[param.name] = param;
+            });
+        }
+    });
 };
 
 Version.defaults = {
