@@ -552,7 +552,122 @@ Parameter replacement is when part of a string is populated with parameters. Thi
     // value ===> 'Bob is 25 years old
     ```
 
+## Enforcer.prototype.request
+
+Pass in an object that is representative of an HTTP request to have it validated, parsed, and deserialized. The path must match one of the definition paths.
+
+`Enforcer.prototype.request ( req )`
+
+| Parameter | Description | Type |
+| --------- | ----------- | ---- |
+| request | The request. If a string is provided then it will represent the request path and all other request properties will use defaults. | `object`, `string` |
+
+**Request Object**
+
+| Property | Description | Default | Type |
+| -------- | ----------- | ------- | ---- |
+| body | The parsed request body. This value will still be deserialized and validated, but not parsed. | `undefined` | Any |
+| cookie | An object of cookie key value pairs where each value is a string. | `{}` | `object` |
+| header | An object of header key value pairs where each value is a string. | `{}` | `object` |
+| method | The HTTP method. | `"get"` | `string` |
+| path | The request path, including query string parameters. | `""` | `string` |
+
+Returns: A parsed, deserialized, and validated request object.
+
+```js
+
+// create the enforcer instance
+const enforcer = new Enforcer({
+    openapi: '3.0.0',
+    paths: {
+        '/path/{id}': {
+            put: {
+                requestBody: {
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    x: {
+                                        type: 'number'
+                                    },
+                                    y: {
+                                        type: 'integer'
+                                    },
+                                    d: {
+                                        type: 'string',
+                                        format: 'date-time'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            parameters: [
+                {
+                    name: 'id',
+                    in: 'path',
+                    required: true,
+                    schema: {
+                        type: 'number'
+                    }
+                },
+                {
+                    name: 'date',
+                    in: 'query',
+                    explode: true,
+                    schema: {
+                        type: 'string',
+                        format: 'date'
+                    }
+                }
+            ]
+        }
+    }
+});
+
+// parse, deserialize, and validate request
+const req = enforcer.request({
+    body: {
+        x: '123.4',     // value will be deserialized
+        y: 2,           // already deserialized is OK too
+        d: '2000-01-01T01:02:03.456Z'   // will be deserialized to Date object
+    },
+    header: {
+        'content-type': 'application/json' // needed to identify body schema
+    },
+    method: 'put',
+    path: '/path/25?date=2000-01-01&date=2000-01-02'
+});
+
+/*
+req => {
+    body: {
+        x: 123.4,
+        y: 2,
+        d: <Date Object>
+    },
+    header: {
+        'content-type': 'application/json'
+    },
+    method: 'put',
+    path: {
+        id: 25
+    },
+    query: {
+        date: [
+            <Date Object>,
+            <Date Object>
+        ]
+    }
+}
+*/
+```
+
 ## Enforcer.prototype.schema
+
+## Enforcer.prototype.serialize
 
 ## Enforcer.prototype.validate
 
