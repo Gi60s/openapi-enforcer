@@ -18,11 +18,12 @@ Features
 
 - [Constructor](#constructor)
 - Prototype Methods
+    - [Enforcer.prototype.deserialize](#enforcerprototypedeserialize)
     - [Enforcer.prototype.errors](#enforcerprototypeerrors)
-    - [Enforcer.prototype.format](#enforcerprototypeformat)
     - [Enforcer.prototype.path](#enforcerprototypepath)
     - [Enforcer.prototype.populate](#enforcerprototypepopulate)
     - [Enforcer.prototype.schema](#enforcerprototypeschema)
+    - [Enforcer.prototype.serialize](#enforcerprototypeserialize)
     - [Enforcer.prototype.validate](#enforcerprototypevalidate)
 - Static Methods
     - [Enforcer.format](#enforcerformat)
@@ -215,6 +216,58 @@ app.use(enforcer.middleware());
 
 Default: `'files'`
 
+## Enforcer.prototype.deserialize
+
+Convert a serialized value into its deserialized equivalent.
+
+`Enforcer.prototype.deserialize ( schema, value )`
+
+| Parameter | Description | Type |
+| --------- | ----------- | ---- |
+| schema | The schema to use to convert serialized values. | `object` |
+| value | The value to deserialize. | Any |
+
+Returns: An object with two properties: `error` and `value`. If deserialization failed due to an error then the `error` property will contain details about the error. If deserialization succeeds then the `error` property will be `null` and the `value` property will have the deserialized value.
+
+```js
+const Enforcer = require('openapi-enforcer');
+
+// create the enforcer instance
+const enforcer = new Enforcer({ openapi: '3.0.0' });
+
+// define a schema that defines deserialization instructions
+const schema = {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+        integers: {
+            type: 'array',
+            items: {
+                type: 'integer'
+            }
+        },
+        date: {
+            type: 'string',
+            format: 'date-time'
+        }
+    }
+};
+
+const serializedValue = {
+    integers: [1, '2', 3.1, '3.8'],
+    date: '2000-01-01T01:02:03:456Z'
+};
+
+const deserialized = enforcer.deserialize(schema, serializedValue);
+// {
+//    error: null,
+//    value: {
+//        integers: [1, 2, 3, 4],
+//        date: <Date Object>
+//    }
+// }
+```
+
 ## Enforcer.prototype.errors
 
 Validate a value against a schema and receive a detailed report where errors exist and why.
@@ -267,64 +320,52 @@ const errors = enforcer.errors(schema, {
 // ]
 ```
 
-## Enforcer.prototype.format
+## Enforcer.prototype.path
 
-Format a value to match the schema. This works for primitives, arrays, and objects. Arrays and objects will be traversed and their values also formatted recursively.
+Get the matching path's path parameters and schema.
 
-`Enforcer.prototype.format ( schema, value )`
+`Enforcer.prototype.path ( path )`
 
 | Parameter | Description | Type |
 | --------- | ----------- | ---- |
-| schema | The schema to format to. | `object` |
-| value | The value to format. | Any |
+| path | The lookup path (optionally with path parameters) | `string` |
 
-Returns: The formatted value.
-
-Can format:
-
-- arrays and objects recursively
-- binary from boolean, number, string, or Buffer
-- boolean from any value
-- byte from boolean, number, string, or Buffer
-- date from Date, string, or number
-- date-time from Date, string, or number
-- integer from anything that !isNaN(value)
-- number from anything that !isNaN(value)
-- string from string, number, boolean, object, or Date
+Returns: An object with the `path` (definition path), `params` (path parameters), and `schema` definition path schema.
 
 ```js
-const Enforcer = require('openapi-enforcer');
-const enforcer = new Enforcer('3.0.0');
-
-const schema = {
-    type: 'object',
-    properties: {
-        time: {
-            type: 'string',
-            format: 'date-time'
-        },
-        public: {
-            type: 'boolean'
-        },
-        seatsAvailable: {
-            type: 'integer'
+const pathItem = {
+    get: {},
+    parameters: [
+        {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+                type: 'number'
+            }
         }
-    }
+    ]
 };
 
-const value = enforcer.format(schema, {
-    time: new Date(2000, 0, 1, 11), // formatted to ISO Date
-    public: 1,                      // formatted to true
-    seatsAvailable: 23.7            // formatted to integer
-});
-// value ==> {
-//   startTime: '2000-01-01T11:00:00.000Z',
-//   public: true,
-//   seatsAvailable: 24
+const definition = {
+    openapi: '3.0.0',
+    paths: {
+        '/path/{id}': pathItem
+    }
+}
+
+// create the enforcer instance
+const enforcer = new Enforcer(definition);
+
+const match = enforcer.path('/path/25');
+// {
+//     path: '/path/{id}',
+//     params: {
+//         id: 25
+//     },
+//     schema: { ... } <== pathItem object
 // }
 ```
-
-## Enforcer.prototype.path
 
 ## Enforcer.prototype.populate
 
@@ -393,6 +434,63 @@ const value = enforcer.populate(schema, params);
 //   lastName: 'Smith',
 //   fullName: 'Jan Smith',
 //   profileUrl: 'https://your-domain.com/users/12345'
+// }
+```
+
+## Enforcer.prototype.serialize
+
+Serialize an value according to the schema. This works for primitives, arrays, and objects. Arrays and objects will be traversed and their values also formatted recursively.
+
+`Enforcer.prototype.serialize ( schema, value )`
+
+| Parameter | Description | Type |
+| --------- | ----------- | ---- |
+| schema | The schema to serialize to. | `object` |
+| value | The value to format. | Any |
+
+Returns: The serialized value.
+
+Can serialize:
+
+- arrays and objects recursively
+- binary from boolean, number, string, or Buffer
+- boolean from any value
+- byte from boolean, number, string, or Buffer
+- date from Date, string, or number
+- date-time from Date, string, or number
+- integer from anything that !isNaN(value)
+- number from anything that !isNaN(value)
+- string from string, number, boolean, object, or Date
+
+```js
+const Enforcer = require('openapi-enforcer');
+const enforcer = new Enforcer('3.0.0');
+
+const schema = {
+    type: 'object',
+    properties: {
+        time: {
+            type: 'string',
+            format: 'date-time'
+        },
+        public: {
+            type: 'boolean'
+        },
+        seatsAvailable: {
+            type: 'integer'
+        }
+    }
+};
+
+const value = enforcer.serialize(schema, {
+    time: new Date(2000, 0, 1, 11), // formatted to ISO Date
+    public: 1,                      // formatted to true
+    seatsAvailable: 23.7            // formatted to integer
+});
+// value ==> {
+//   startTime: '2000-01-01T11:00:00.000Z',
+//   public: true,
+//   seatsAvailable: 24
 // }
 ```
 
