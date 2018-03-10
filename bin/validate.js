@@ -290,7 +290,7 @@ function _enum(v, prefix, schema, value) {
                 break;
             }
         }
-        if (!found) v.error(prefix, 'Value did not meet enum requirements: ' + smart(value));
+        if (!found) v.error(prefix, 'Value (' + smart(value) + ') did not meet enum requirements');
     }
 }
 
