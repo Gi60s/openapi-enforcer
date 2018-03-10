@@ -233,7 +233,7 @@ OpenApiEnforcer.prototype.request = function(req) {
     if (typeof req === 'string') req = { path: req };
     if (typeof req !== 'object') throw Error('Invalid request. Must be a string or an object. Received: ' + req);
     req = Object.assign({}, req);
-    if (req.hasOwnProperty('body') && typeof req.body !== 'object' && typeof req.body !== 'string') throw Error('Invalid request body. Must be a string or an object. Received: ' + req.body);
+    if (req.body !== undefined && typeof req.body !== 'object' && typeof req.body !== 'string') throw Error('Invalid request body. Must be a string or an object. Received: ' + req.body);
     if (req.cookie && typeof req.cookie !== 'object') throw Error('Invalid request cookies. Must be an object. Received: ' + req.cookie);
     if (req.header && typeof req.header !== 'object') throw Error('Invalid request headers. Must be an object. Received: ' + req.header);
     if (typeof req.path !== 'string') throw Error('Invalid request path. Must be a string. Received: ' + req.path);
@@ -248,14 +248,14 @@ OpenApiEnforcer.prototype.request = function(req) {
 
     // get the defined open api path or call next middleware
     const path = this.path(req.path);
-    if (!path) return { statusCode: 404, message: 'Not found' };
+    if (!path) return { statusCode: 404, errors: ['Not found'] };
 
     // validate that the path supports the method
     const method = req.method.toLowerCase();
-    if (!path.schema[method]) return { statusCode: 405, message: 'Method not allowed' };
+    if (!path.schema[method]) return { statusCode: 405, errors: ['Method not allowed'] };
 
     // parse and validate request input
-    return store.get(this).version.parseRequestParameters(path.schema, {
+    const result = store.get(this).version.parseRequestParameters(path.schema, {
         body: req.body,
         cookie: req.cookie || {},
         header: req.header || {},
@@ -263,6 +263,10 @@ OpenApiEnforcer.prototype.request = function(req) {
         path: path.params,
         query: req.query || ''
     });
+    result.requestPath = path.path;
+    result.statusCode = result.errors ? 400 : 200;
+    result.schema = path.schema;
+    return result;
 };
 
 /**
