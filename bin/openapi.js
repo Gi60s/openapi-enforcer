@@ -258,7 +258,7 @@ OpenApiEnforcer.prototype.request = function(req) {
     const result = store.get(this).version.parseRequestParameters(path.schema, {
         body: req.body,
         cookie: req.cookie || {},
-        header: req.header || {},
+        header: util.lowerCaseProperties(req.header) || {},
         method: method,
         path: path.params,
         query: req.query || ''
