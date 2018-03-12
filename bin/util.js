@@ -57,7 +57,7 @@ exports.Error = function(meta, message) {
  * Provide an accept media type string and possible matches and get the match.
  * @param {string} input
  * @param {string[]} matches
- * @returns {string|undefined} The match string that matches.
+ * @returns {string[]|undefined} The media type matches.
  */
 exports.findMediaMatch = function(input, matches) {
     const accepts = input
@@ -79,6 +79,7 @@ exports.findMediaMatch = function(input, matches) {
 
     const acceptsLength = accepts.length;
     const matchesLength = matches.length;
+    const results = [];
     for (let i = 0; i < acceptsLength; i++) {
         const accept = accepts[i];
         for (let j = 0; j < matchesLength; j++) {
@@ -86,13 +87,33 @@ exports.findMediaMatch = function(input, matches) {
             const type = ar[0];
             const subtype = ar[1].split('+')[0];
             if ((accept.type === type || accept.type === '*' || type === '*') &&
-                (accept.subType === subtype || accept.subType === '*' || subtype === '*')) return matches[j];
+                (accept.subType === subtype || accept.subType === '*' || subtype === '*')) {
+
+                let priority = .5 * (i / acceptsLength);
+                if (type === '*') priority += 2;
+                if (subtype === '*') priority ++;
+                results.push({
+                    priority: priority,
+                    type: matches[j]
+                });
+            }
         }
     }
+
+    results.sort((a, b) => a.priority < b.priority ? - 1: 1);
+    return results.map(v => v.type);
 };
 
 exports.isDate = function (value) {
     return value && !isNaN(value) && value instanceof Date;
+};
+
+exports.lowerCaseProperties = function(obj) {
+    const result = {};
+    Object.keys(obj).forEach(key => {
+        result[key.toLowerCase()] = obj[key];
+    });
+    return result;
 };
 
 /**
