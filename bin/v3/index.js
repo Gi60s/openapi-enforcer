@@ -52,7 +52,7 @@ Version.prototype.getDiscriminatorSchema = function(schema, value) {
  * @param {string} req.method
  * @param {object<string>} req.path
  * @param {string} req.query
- * @returns {{ error: Array<string>|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object }}}
+ * @returns {{ error: Array<string>|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object, responses: object }}}
  */
 Version.prototype.parseRequestParameters = function(schema, req) {
     const errors = [];
@@ -62,7 +62,8 @@ Version.prototype.parseRequestParameters = function(schema, req) {
         cookie: {},
         header: {},
         path: {},
-        query: {}
+        query: {},
+        responses: {}
     };
 
     // build a parameter map
@@ -85,7 +86,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
     if (mSchema.requestBody && req.body !== undefined) {
         const contentType = req.header['content-type'] || '*/*';
         const content = mSchema.requestBody.content;
-        const key = util.findMediaMatch(contentType, Object.keys(content));
+        const key = util.findMediaMatch(contentType, Object.keys(content))[0];
         if (key) {
             const schema = content[key].schema;
             const typed = this.enforcer.deserialize(schema, req.body);
@@ -218,7 +219,26 @@ Version.prototype.parseRequestParameters = function(schema, req) {
         });
     });
 
+    // check for errors
     const hasErrors = errors.length;
+
+    // produce valid response schemas
+    if (!hasErrors) {
+        Object.keys(mSchema.responses).forEach(code => {
+            const accept = req.header.accept;
+            const content = mSchema.responses[code].content;
+            if (!accept || accept === '*/*') {
+                result.responses = content ? util.copy(content) || {};
+            } else if (content) {
+                util.findMediaMatch(accept, Object.keys(content))
+                    .forEach(mediaType => {
+                        result.responses[mediaType] = util.copy(content[mediaType]);
+                    });
+            }
+        })
+    }
+
+
     return {
         errors: hasErrors ? errors : null,
         value: hasErrors ? null : result
