@@ -223,12 +223,12 @@ Version.prototype.parseRequestParameters = function(schema, req) {
     const hasErrors = errors.length;
 
     // produce valid response schemas
-    if (!hasErrors) {
+    if (!hasErrors && mSchema.responses) {
         Object.keys(mSchema.responses).forEach(code => {
             const accept = req.header.accept;
             const content = mSchema.responses[code].content;
             if (!accept || accept === '*/*') {
-                result.responses = content ? util.copy(content) || {};
+                result.responses = content ? util.copy(content) : {};
             } else if (content) {
                 util.findMediaMatch(accept, Object.keys(content))
                     .forEach(mediaType => {
