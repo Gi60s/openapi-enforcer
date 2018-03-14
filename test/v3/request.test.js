@@ -24,7 +24,23 @@ describe('v3/request', () => {
         openapi: '3.0.0',
         paths: {
             '/': {
-                get: {},
+                get: {
+                    responses: {
+                        200: {
+                            content: {
+                                'application/xml': {
+                                    type: 'string'
+                                },
+                                'application/json': {
+                                    type: 'number'
+                                },
+                                'text/plain': {
+                                    type: 'boolean'
+                                }
+                            }
+                        }
+                    }
+                },
                 put: {
                     requestBody: {
                         content: {
@@ -113,7 +129,7 @@ describe('v3/request', () => {
             });
             const params = instance.request(req);
             expect(params.errors).to.be.null;
-            expect(params.value.body).to.equal('this is some text');
+            expect(params.request.body).to.equal('this is some text');
         });
 
         it('application/json content', () => {
@@ -123,7 +139,7 @@ describe('v3/request', () => {
             });
             const params = instance.request(req);
             expect(params.errors).to.be.null;
-            expect(params.value.body).to.deep.equal({ R: 100, G: 200, B: 150 });
+            expect(params.request.body).to.deep.equal({ R: 100, G: 200, B: 150 });
         });
 
         it('application/json2 content', () => {
@@ -139,8 +155,8 @@ describe('v3/request', () => {
             });
             const params = instance.request(req);
             expect(params.errors).to.be.null;
-            expect(+params.value.body.end).to.equal(+end);
-            expect(+params.value.body.start).to.equal(+new Date('2000-01-01'));
+            expect(+params.request.body.end).to.equal(+end);
+            expect(+params.request.body.start).to.equal(+new Date('2000-01-01'));
         });
 
         it('wrong content', () => {
@@ -163,7 +179,7 @@ describe('v3/request', () => {
             const req = request({ cookie: { user: 'id=12345&sessionStart=' + ds } });
             const params = instance.request(req);
             expect(params.errors).to.be.null;
-            expect(params.value.cookie.user).to.deep.equal({ id: 12345, sessionStart: new Date(ds) });
+            expect(params.request.cookie.user).to.deep.equal({ id: 12345, sessionStart: new Date(ds) });
         });
 
         it('cannot use matrix style', () => {
@@ -218,7 +234,7 @@ describe('v3/request', () => {
             const req = request(config);
             const params = instance.request(req);
             expect(params.errors).to.be.null;
-            expect(params.value.header['x-number']).to.equal(12345);
+            expect(params.request.header['x-number']).to.equal(12345);
         });
 
         it('cannot use matrix style', () => {
@@ -272,7 +288,7 @@ describe('v3/request', () => {
             const req = request({ path: '/Bob' });
             const params = instance.request(req);
             expect(params.errors).to.be.null;
-            expect(params.value.path.name).to.equal('Bob');
+            expect(params.request.path.name).to.equal('Bob');
         });
 
         it('can use matrix style', () => {
@@ -280,7 +296,7 @@ describe('v3/request', () => {
             const req = request({ path: '/;name=Bob'});
             const instance = new enforcer(schema2, {});
             const params = instance.request(req);
-            expect(params.value.path.name).to.equal('Bob');
+            expect(params.request.path.name).to.equal('Bob');
         });
 
         it('can use label style', () => {
@@ -288,7 +304,7 @@ describe('v3/request', () => {
             const req = request({ path: '/.Bob'});
             const instance = new enforcer(schema2, {});
             const params = instance.request(req);
-            expect(params.value.path.name).to.equal('Bob');
+            expect(params.request.path.name).to.equal('Bob');
         });
 
         it('cannot use form style', () => {
@@ -332,7 +348,7 @@ describe('v3/request', () => {
                 const req = request({ path: '/?color=' });
                 const params = instance.request(req);
                 expect(params.errors).to.be.null;
-                expect(params.value.query.color).to.equal('');
+                expect(params.request.query.color).to.equal('');
             });
 
             it('string', () => {
@@ -341,7 +357,7 @@ describe('v3/request', () => {
                 const req = request({ path: '/?x=1&color=red&y=2' });
                 const params = instance.request(req);
                 expect(params.errors).to.be.null;
-                expect(params.value.query.color).to.equal('red');
+                expect(params.request.query.color).to.equal('red');
             });
 
             it('array', () => {
@@ -350,7 +366,7 @@ describe('v3/request', () => {
                 const req = request({ path: '/?color=orange&color=blue,black,brown' });
                 const params = instance.request(req);
                 expect(params.errors).to.be.null;
-                expect(params.value.query.color).to.deep.equal(['blue', 'black', 'brown']);
+                expect(params.request.query.color).to.deep.equal(['blue', 'black', 'brown']);
             });
 
             it('array (default exploded)', () => {
@@ -359,7 +375,7 @@ describe('v3/request', () => {
                 const req = request({ path: '/?color=blue&color=black&x=1&color=brown' });
                 const params = instance.request(req);
                 expect(params.errors).to.be.null;
-                expect(params.value.query.color).to.deep.equal(['blue', 'black', 'brown']);
+                expect(params.request.query.color).to.deep.equal(['blue', 'black', 'brown']);
             });
 
             it('object (default exploded)', () => {
@@ -368,7 +384,7 @@ describe('v3/request', () => {
                 const req = request({ path: '/?color=' + encoded });
                 const params = instance.request(req);
                 expect(params.errors).to.be.null;
-                expect(params.value.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                expect(params.request.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
             });
 
             it('object', () => {
@@ -377,7 +393,7 @@ describe('v3/request', () => {
                 const req = request({ path: '/?color=R,100,G,200,B,150' });
                 const params = instance.request(req);
                 expect(params.errors).to.be.null;
-                expect(params.value.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                expect(params.request.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
             });
 
         });
@@ -390,7 +406,7 @@ describe('v3/request', () => {
                 const req = request({ path: '/?color=blue%20black%20brown'});
                 const params = instance.request(req);
                 expect(params.errors).to.be.null;
-                expect(params.value.query.color).to.deep.equal(['blue', 'black', 'brown']);
+                expect(params.request.query.color).to.deep.equal(['blue', 'black', 'brown']);
             });
 
             it('object', () => {
@@ -399,7 +415,7 @@ describe('v3/request', () => {
                 const req = request({ path: '/?color=R%20100%20G%20200%20B%20150'});
                 const params = instance.request(req);
                 expect(params.errors).to.be.null;
-                expect(params.value.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                expect(params.request.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
             });
 
         });
@@ -412,7 +428,7 @@ describe('v3/request', () => {
                 const req = request({ path: '/?color=blue|black|brown'});
                 const params = instance.request(req);
                 expect(params.errors).to.be.null;
-                expect(params.value.query.color).to.deep.equal(['blue', 'black', 'brown']);
+                expect(params.request.query.color).to.deep.equal(['blue', 'black', 'brown']);
             });
 
             it('object', () => {
@@ -421,7 +437,7 @@ describe('v3/request', () => {
                 const req = request({ path: '/?color=R|100|G|200|B|150'});
                 const params = instance.request(req);
                 expect(params.errors).to.be.null;
-                expect(params.value.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                expect(params.request.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
             });
 
         });
@@ -453,7 +469,7 @@ describe('v3/request', () => {
             const req = request({ path: '/?color[R]=100&color[G]=200&color[B]=150'});
             const params = instance.request(req);
             expect(params.errors).to.be.null;
-            expect(params.value.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+            expect(params.request.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
         });
 
     });

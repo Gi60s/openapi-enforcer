@@ -263,10 +263,34 @@ OpenApiEnforcer.prototype.request = function(req) {
         path: path.params,
         query: req.query || ''
     });
-    result.requestPath = path.path;
-    result.statusCode = result.errors ? 400 : 200;
-    result.schema = path.schema;
-    return result;
+
+    return {
+        errors: result.errors,
+        path: path.path,
+        request: result.value,
+        response: (code, body, headers) => responsePrep(this, path.schema[method], code, body, headers),
+        schema: path.schema,
+        statusCode: result.errors ? 400 : 200
+    };
+};
+
+/**
+ * Validate and serialize a response.
+ * @param {object} req The request object.
+ * @param {
+ * @param code
+ * @param body
+ * @param headers
+ * @returns {{errors, value}}
+ */
+OpenApiEnforcer.prototype.response = function(req, code, body, headers) {
+    const path = this.path(req.path);
+    if (!path) throw Error('Invalid request path. The path is not defined in the specification: ' + req.path);
+
+    const method = req.method.toLowerCase();
+    if (!path.schema[method]) throw Error('Invalid method for request path. The method is not defined in the specification: ' + method.toUpperCase() + ' ' + req.path);
+
+    return responsePrep(this, path.schema[method], code, body, headers);
 };
 
 /**
@@ -443,4 +467,50 @@ function serialize(prefix, schema, value) {
             }
             return format.string(prefix, value);
     }
+}
+
+function responsePrep(context, pathSchema, code, body, headers) {
+    const result = { header: {} };
+    const errors = [];
+
+    // validate and serialize the body if a schema exists
+    const bodySchema = store.get(context).version.getResponseBodySchema(pathSchema, code, headers && headers['content-type']);
+    if (bodySchema) {
+        const err = context.errors(bodySchema, body);
+        if (err) {
+            errors.push('One or more errors in response body: \n' + err.join('\n\t'));
+        } else {
+            result.body = context.serialize(bodySchema, body);
+        }
+    } else {
+        result.body = body;
+    }
+
+    // validate and serialize each header if a schema exists
+    if (headers && pathSchema.responses) {
+        const schema = pathSchema.responses[code] || pathSchema.responses.default;
+        if (schema.headers) {
+            const schemas = schema.headers;
+            Object.keys(headers)
+                .forEach(key => {
+                    key = key.toLowerCase();
+                    if (schemas[key]) {
+                        const err = context.errors(schemas[key].schema, headers[key]);
+                        if (err) {
+                            errors.push('One or more errors in response header "' + key + '": \n' + err.join('\n\t'));
+                        } else {
+                            result.header[key] = context.serialize(schemas[key].schema, headers[key]);
+                        }
+                    } else {
+                        result.header[key] = headers[key];
+                    }
+                });
+        }
+    }
+
+    const hasErrors = errors.length;
+    return {
+        errors: hasErrors ? errors : undefined,
+        value: result
+    };
 }

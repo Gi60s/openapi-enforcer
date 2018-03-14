@@ -221,28 +221,21 @@ Version.prototype.parseRequestParameters = function(schema, req) {
 
     // check for errors
     const hasErrors = errors.length;
-
-    // produce valid response schemas
-    if (!hasErrors && mSchema.responses) {
-        Object.keys(mSchema.responses).forEach(code => {
-            const accept = req.header.accept;
-            const content = mSchema.responses[code].content;
-            if (!accept || accept === '*/*') {
-                result.responses = content ? util.copy(content) : {};
-            } else if (content) {
-                util.findMediaMatch(accept, Object.keys(content))
-                    .forEach(mediaType => {
-                        result.responses[mediaType] = util.copy(content[mediaType]);
-                    });
-            }
-        })
-    }
-
-
     return {
         errors: hasErrors ? errors : null,
         value: hasErrors ? null : result
     }
+};
+
+Version.prototype.getResponseBodySchema = function(pathSchema, code, type) {
+    if (!pathSchema.responses) return;
+
+    const schema = pathSchema.responses[code] || pathSchema.responses.default;
+    if (!schema) return;
+
+    if (!type && schema.content) type = Object.keys(schema.content)[0];
+
+    return schema.content && schema.content[type];
 };
 
 
