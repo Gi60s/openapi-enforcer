@@ -238,6 +238,29 @@ Version.prototype.getResponseBodySchema = function(pathSchema, code, type) {
     return schema.content && schema.content[type];
 };
 
+Version.prototype.getResponseExamples = function(responseSchema, accepts, name) {
+    const content = responseSchema.content;
+    if (!content) return;
+
+    const matches = util.findMediaMatch(accepts || '*/*', Object.keys(content));
+    const results = {};
+    matches.forEach(contentType => {
+        const schema = content[contentType];
+        results.contentType = contentType;
+        results.schema = schema.schema;
+        results.examples = [];
+        if (schema.example) {
+            results.examples.push({ body: util.copy(schema.example) });
+        } else if (schema.examples) {
+            Object.keys(schema.examples).forEach(name => {
+                results.examples.push(Object.assign(example, { name: name, body: schema.examples[name] }));
+            });
+        }
+    });
+
+    return results;
+};
+
 
 Version.defaults = {
 

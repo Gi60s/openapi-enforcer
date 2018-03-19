@@ -264,11 +264,15 @@ OpenApiEnforcer.prototype.request = function(req) {
         query: req.query || ''
     });
 
+    const responses = path.schema[method].responses;
     return {
         errors: result.errors,
         path: path.path,
         request: result.value,
-        response: (code, body, headers) => responsePrep(this, path.schema[method], code, body, headers),
+        response: {
+            example: (code, contentType, name) => responses ? responseExample(this, responses[code], contentType, name) : undefined,
+            serialize: (code, body, headers) => responseValidateSerialize(this, path.schema[method], code, body, headers)
+        },
         schema: path.schema,
         statusCode: result.errors ? 400 : 200
     };
@@ -277,20 +281,20 @@ OpenApiEnforcer.prototype.request = function(req) {
 /**
  * Validate and serialize a response.
  * @param {object} req The request object.
- * @param {
- * @param code
- * @param body
- * @param headers
- * @returns {{errors, value}}
+ * @returns {{example: function, serialize: function}}
  */
-OpenApiEnforcer.prototype.response = function(req, code, body, headers) {
+OpenApiEnforcer.prototype.response = function(req) {
     const path = this.path(req.path);
     if (!path) throw Error('Invalid request path. The path is not defined in the specification: ' + req.path);
 
     const method = req.method.toLowerCase();
     if (!path.schema[method]) throw Error('Invalid method for request path. The method is not defined in the specification: ' + method.toUpperCase() + ' ' + req.path);
 
-    return responsePrep(this, path.schema[method], code, body, headers);
+    const responses = path.schema[method].responses;
+    return {
+        example: (code, contentType, name) => responses ? responseExample(this, responses[code], contentType, name) : undefined,
+        serialize: (code, body, headers) => responseValidateSerialize(this, path.schema[method], code, body, headers)
+    };
 };
 
 /**
@@ -428,48 +432,18 @@ function deserialize(errors, prefix, schema, value) {
     }
 }
 
-function serialize(prefix, schema, value) {
-    const type = util.schemaType(schema);
-    switch (type) {
-        case 'array':
-            if (Array.isArray(value)) return value.map((v, i) => serialize(prefix + '/' + i, schema.items || {}, v));
-            break;
-
-        case 'boolean':
-        case 'integer':
-        case 'number':
-            return format[type](prefix, value);
-
-        case 'object':
-            if (value && typeof value === 'object') {
-                const result = {};
-                const additionalProperties = schema.additionalProperties;
-                const properties = schema.properties || {};
-                Object.keys(value).forEach(key => {
-                    if (properties.hasOwnProperty(key)) {
-                        result[key] = serialize(prefix + '/' + key, properties[key], value[key]);
-                    } else if (additionalProperties) {
-                        result[key] = serialize(prefix + '/' + key, additionalProperties, value[key]);
-                    }
-                });
-                return result;
-            }
-            return value;
-
-        case 'string':
-        default:
-            switch (schema.format) {
-                case 'binary':
-                case 'byte':
-                case 'date':
-                case 'date-time':
-                    return format[schema.format](prefix, value);
-            }
-            return format.string(prefix, value);
+function responseExample(context, responseSchema, accepts, name) {
+    const data = store.get(context).version.getResponseExamples(responseSchema, accepts);
+    if (!data) return;
+    if (!name) {
+        data.example = data.examples[0];
+    } else {
+        data.example = data.examples.filter(example => example.name === name)[0]
     }
+    return data;
 }
 
-function responsePrep(context, pathSchema, code, body, headers) {
+function responseValidateSerialize(context, pathSchema, code, body, headers) {
     const result = { header: {} };
     const errors = [];
 
@@ -513,4 +487,45 @@ function responsePrep(context, pathSchema, code, body, headers) {
         errors: hasErrors ? errors : undefined,
         value: result
     };
+}
+
+function serialize(prefix, schema, value) {
+    const type = util.schemaType(schema);
+    switch (type) {
+        case 'array':
+            if (Array.isArray(value)) return value.map((v, i) => serialize(prefix + '/' + i, schema.items || {}, v));
+            break;
+
+        case 'boolean':
+        case 'integer':
+        case 'number':
+            return format[type](prefix, value);
+
+        case 'object':
+            if (value && typeof value === 'object') {
+                const result = {};
+                const additionalProperties = schema.additionalProperties;
+                const properties = schema.properties || {};
+                Object.keys(value).forEach(key => {
+                    if (properties.hasOwnProperty(key)) {
+                        result[key] = serialize(prefix + '/' + key, properties[key], value[key]);
+                    } else if (additionalProperties) {
+                        result[key] = serialize(prefix + '/' + key, additionalProperties, value[key]);
+                    }
+                });
+                return result;
+            }
+            return value;
+
+        case 'string':
+        default:
+            switch (schema.format) {
+                case 'binary':
+                case 'byte':
+                case 'date':
+                case 'date-time':
+                    return format[schema.format](prefix, value);
+            }
+            return format.string(prefix, value);
+    }
 }
