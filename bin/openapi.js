@@ -185,34 +185,38 @@ OpenApiEnforcer.prototype.path = function(path) {
 
 /**
  * Populate an object or an array using default, x-template, x-variable, and a parameter map.
- * @param {object} schema
- * @param {object} [map]
- * @param {*} [initialValue]
+ * @param {object} config
+ * @param {object} config.schema
+ * @param {object} [config.map={}]
+ * @param {object} [config.options]
+ * @param {*} [config.value]
  * @returns {*}
  */
-OpenApiEnforcer.prototype.populate = function(schema, map, initialValue) {
+OpenApiEnforcer.prototype.populate = function(config) {
     const data = store.get(this);
-    const options = data.defaults.populate;
+    const options = config.options
+        ? Object.assign({}, data.defaults.populate, config.options)
+        : data.defaults.populate;
 
     // initialize variables
-    const initialValueProvided = arguments.length > 3;
+    const initialValueProvided = config.hasOwnProperty('value');
     const version = data.version;
     const v = {
         injector: populate.injector[options.replacement],
-        map: map || {},
-        options: data.defaults.populate,
+        map: config.map || {},
+        options: options,
         schemas: version.schemas,
         version: version
     };
 
     // produce start value
     const value = v.options.copy && initialValueProvided
-        ? util.copy(initialValue)
-        : initialValue;
+        ? util.copy(config.value)
+        : config.value;
 
     // begin population
     const root = { root: value };
-    populate.populate(v, '<root>', schema, root, 'root');
+    populate.populate(v, '<root>', config.schema, root, 'root');
 
     return root.root;
 };
@@ -384,64 +388,6 @@ Object.defineProperties(OpenApiEnforcer.prototype, {
 OpenApiEnforcer.format = format;
 OpenApiEnforcer.parse = parse;
 
-
-function buildExample(schema) {
-    const type = util.schemaType(schema);
-    let result;
-    switch (type) {
-        case 'array':
-            if (Array.isArray(value)) return schema.items
-                ? value.map((v,i) => deserialize(errors, prefix + '/' + i, schema.items, v))
-                : value;
-            errors.push(prefix + ' Expected an array. Received: ' + value);
-            break;
-
-        case 'boolean':
-            return
-
-
-        case 'integer':
-        case 'number':
-            result = parse[type](value);
-            if (result.error) errors.push(prefix + ' ' + result.error);
-            return result.value;
-
-        case 'string':
-            switch (schema.format) {
-                case 'binary':
-                case 'byte':
-                case 'date':
-                case 'date-time':
-                    result = parse[schema.format](value);
-                    break;
-                default:
-                    result = { value: value };
-            }
-            if (result.error) errors.push(prefix + ' ' + result.error);
-            return result.value;
-
-        case 'object':
-            if (value && typeof value === 'object') {
-                const result = {};
-                const additionalProperties = schema.additionalProperties;
-                const properties = schema.properties || {};
-                Object.keys(value).forEach(key => {
-                    if (properties.hasOwnProperty(key)) {
-                        result[key] = deserialize(errors, prefix + '/' + key, properties[key], value[key]);
-                    } else if (additionalProperties) {
-                        result[key] = deserialize(errors, prefix + '/' + key, additionalProperties, value[key]);
-                    }
-                });
-                return result;
-            }
-            errors.push(prefix + ' Expected an object. Received: ' + value);
-            return;
-
-        default:
-            errors.push(prefix + ' Unknown schema type');
-            return;
-    }
-}
 
 // convert from string values to correct data types
 function deserialize(errors, prefix, schema, value) {
