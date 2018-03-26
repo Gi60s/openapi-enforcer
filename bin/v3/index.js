@@ -16,7 +16,7 @@
  **/
 'use strict';
 const params        = require('./param-style');
-const _random       = require('../random');
+const Random        = require('../random');
 const util          = require('../util');
 
 module.exports = Version;
@@ -24,6 +24,30 @@ module.exports = Version;
 function Version(enforcer, definition) {
     this.enforcer = enforcer;
     this.definition = definition;
+
+
+    const random = Object.create(Random);
+    random._object = random.object;
+    random.object = function(schema) {
+        if (schema.oneOf) {
+            const index = Math.floor(Math.random() * schema.oneOf.length);
+            return this._object(schema.oneOf[index]);
+
+        } else if (schema.anyOf) {
+            const index = Math.floor(Math.random() * schema.anyOf.length);
+            return this._object(schema.anyOf[index]);
+
+        } else if (schema.not) {
+            throw Error('Cannot generate example object using "not"');
+
+        } else {
+            return this._object(schema);
+        }
+    };
+
+    this.random = function(schema) {
+        return random.byType(schema);
+    };
 }
 
 Version.prototype.getDiscriminatorKey = function(schema, value) {
@@ -228,6 +252,11 @@ Version.prototype.parseRequestParameters = function(schema, req) {
     }
 };
 
+/**
+ * @returns {function}
+ */
+Version.prototype.random = function() {}; // implemented in constructor
+
 Version.prototype.getResponseBodySchema = function(pathSchema, code, type) {
     if (!pathSchema.responses) return;
 
@@ -349,28 +378,4 @@ function queryParams(name, value) {
     let match;
     while (match = rx.exec(value)) results.push(match[1]);
     return results.length ? results : null;
-}
-
-function Random() {
-    const random = Object.create(_random);
-
-    random._object = random.object;
-    random.object = function(schema) {
-        if (schema.oneOf) {
-            const index = Math.floor(Math.random() * schema.oneOf.length);
-            return this._object(schema.oneOf[index]);
-
-        } else if (schema.anyOf) {
-            const index = Math.floor(Math.random() * schema.anyOf.length);
-            return this._object(schema.anyOf[index]);
-
-        } else if (schema.not) {
-            throw Error('Cannot generate example object using "not"');
-
-        } else {
-
-        }
-    };
-
-    return random;
 }

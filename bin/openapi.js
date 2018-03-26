@@ -500,14 +500,15 @@ function deserialize(errors, prefix, schema, value) {
 }
 
 function responseExample(context, responseSchema, accepts, name) {
-    const data = store.get(context).version.getResponseExamples(responseSchema, accepts);
+    const version = store.get(context).version;
+    const data = version.getResponseExamples(responseSchema, accepts);
     if (!data) return;
     if (!name) {
         data.example = data.examples[0];
     } else {
         data.example = data.examples.filter(example => example.name === name)[0] || data.examples[0];
     }
-    if (!data.example && data.schema) data.example = buildExample(data.schema);
+    if (!data.example && data.schema) data.example = { body: context.random(data.schema) };
     return data;
 }
 

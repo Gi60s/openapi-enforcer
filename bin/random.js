@@ -259,11 +259,11 @@ function mergeAllOfObjects(allOf) {
 }
 
 function mergeAllOfObjectsProperties(result, schema, key) {
-    if (!result.properties[key]) {
-        result.properties[key] = schema.properties[key];
+    if (!result[key]) {
+        result[key] = schema[key];
     } else {
-        const dest = result.properties[key];
-        const src = schema.properties[key];
+        const dest = result[key];
+        const src = schema[key];
         ['minimum', 'minLength', 'minItems'].forEach(constraint => {
             if (dest[constraint] < src[constraint]) dest[constraint] = src[constraint];
         });
