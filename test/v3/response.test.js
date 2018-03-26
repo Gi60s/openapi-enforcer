@@ -77,25 +77,25 @@ describe('v3/response', () => {
 
         it('valid code and content type omitted', () => {
             const req = request({});
-            const res = instance.response(req, 200, { date: new Date(d) });
+            const res = instance.response(req).serialize(200, { date: new Date(d) });
             expect(res.value.body).to.deep.equal({ date: '2000-01-01' });
         });
 
         it('valid code and content type', () => {
             const req = request({});
-            const res = instance.response(req, 200, { date: new Date(d) }, { 'content-type': 'application/json' });
+            const res = instance.response(req).serialize(200, { date: new Date(d) }, { 'content-type': 'application/json' });
             expect(res.value.body).to.deep.equal({ date: '2000-01-01' });
         });
 
         it('valid code and invalid content type', () => {
             const req = request({});
-            expect(instance.response(req, 200, { date: new Date(d) }, { 'content-type': 'text/plain' }).value.body)
+            expect(instance.response(req).serialize(200, { date: new Date(d) }, { 'content-type': 'text/plain' }).value.body)
                 .to.deep.equal({ date: new Date(d) });
         });
 
         it('invalid code uses default', () => {
             const req = request({});
-            const res = instance.response(req, 400, { date: new Date(d) }, { 'content-type': 'application/json' });
+            const res = instance.response(req).serialize(400, { date: new Date(d) }, { 'content-type': 'application/json' });
             expect(res.value.body).to.deep.equal({ date: '2000-01-01' });
         });
 
@@ -106,13 +106,13 @@ describe('v3/response', () => {
 
         it('header with schema', () => {
             const req = request({});
-            const res = instance.response(req, 200, {}, { 'x-date': new Date(d) });
+            const res = instance.response(req).serialize(200, {}, { 'x-date': new Date(d) });
             expect(res.value.header['x-date']).to.equal('2000-01-01');
         });
 
         it('header without schema', () => {
             const req = request({});
-            const res = instance.response(req, 200, {}, { 'x-abc': new Date(d) });
+            const res = instance.response(req).serialize(200, {}, { 'x-abc': new Date(d) });
             expect(res.value.header['x-abc']).to.deep.equal(new Date(d));
         });
 
