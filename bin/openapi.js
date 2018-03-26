@@ -218,6 +218,15 @@ OpenApiEnforcer.prototype.populate = function(schema, map, initialValue) {
 };
 
 /**
+ * Generate a random value that meets the schema requirements.
+ * @param {object} schema
+ * @returns {*}
+ */
+OpenApiEnforcer.prototype.random = function(schema) {
+    return store.get(this).version.random(schema);
+};
+
+/**
  * Parse and validate input parameters for a request..
  * @param {string|object} req
  * @param {string|object} [req.body]
@@ -376,6 +385,64 @@ OpenApiEnforcer.format = format;
 OpenApiEnforcer.parse = parse;
 
 
+function buildExample(schema) {
+    const type = util.schemaType(schema);
+    let result;
+    switch (type) {
+        case 'array':
+            if (Array.isArray(value)) return schema.items
+                ? value.map((v,i) => deserialize(errors, prefix + '/' + i, schema.items, v))
+                : value;
+            errors.push(prefix + ' Expected an array. Received: ' + value);
+            break;
+
+        case 'boolean':
+            return
+
+
+        case 'integer':
+        case 'number':
+            result = parse[type](value);
+            if (result.error) errors.push(prefix + ' ' + result.error);
+            return result.value;
+
+        case 'string':
+            switch (schema.format) {
+                case 'binary':
+                case 'byte':
+                case 'date':
+                case 'date-time':
+                    result = parse[schema.format](value);
+                    break;
+                default:
+                    result = { value: value };
+            }
+            if (result.error) errors.push(prefix + ' ' + result.error);
+            return result.value;
+
+        case 'object':
+            if (value && typeof value === 'object') {
+                const result = {};
+                const additionalProperties = schema.additionalProperties;
+                const properties = schema.properties || {};
+                Object.keys(value).forEach(key => {
+                    if (properties.hasOwnProperty(key)) {
+                        result[key] = deserialize(errors, prefix + '/' + key, properties[key], value[key]);
+                    } else if (additionalProperties) {
+                        result[key] = deserialize(errors, prefix + '/' + key, additionalProperties, value[key]);
+                    }
+                });
+                return result;
+            }
+            errors.push(prefix + ' Expected an object. Received: ' + value);
+            return;
+
+        default:
+            errors.push(prefix + ' Unknown schema type');
+            return;
+    }
+}
+
 // convert from string values to correct data types
 function deserialize(errors, prefix, schema, value) {
     const type = util.schemaType(schema);
@@ -438,8 +505,9 @@ function responseExample(context, responseSchema, accepts, name) {
     if (!name) {
         data.example = data.examples[0];
     } else {
-        data.example = data.examples.filter(example => example.name === name)[0]
+        data.example = data.examples.filter(example => example.name === name)[0] || data.examples[0];
     }
+    if (!data.example && data.schema) data.example = buildExample(data.schema);
     return data;
 }
 

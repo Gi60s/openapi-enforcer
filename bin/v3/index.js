@@ -16,6 +16,7 @@
  **/
 'use strict';
 const params        = require('./param-style');
+const _random       = require('../random');
 const util          = require('../util');
 
 module.exports = Version;
@@ -253,7 +254,7 @@ Version.prototype.getResponseExamples = function(responseSchema, accepts, name) 
             results.examples.push({ body: util.copy(schema.example) });
         } else if (schema.examples) {
             Object.keys(schema.examples).forEach(name => {
-                results.examples.push(Object.assign(example, { name: name, body: schema.examples[name] }));
+                results.examples.push({ name: name, body: schema.examples[name] });
             });
         }
     });
@@ -348,5 +349,28 @@ function queryParams(name, value) {
     let match;
     while (match = rx.exec(value)) results.push(match[1]);
     return results.length ? results : null;
+}
 
+function Random() {
+    const random = Object.create(_random);
+
+    random._object = random.object;
+    random.object = function(schema) {
+        if (schema.oneOf) {
+            const index = Math.floor(Math.random() * schema.oneOf.length);
+            return this._object(schema.oneOf[index]);
+
+        } else if (schema.anyOf) {
+            const index = Math.floor(Math.random() * schema.anyOf.length);
+            return this._object(schema.anyOf[index]);
+
+        } else if (schema.not) {
+            throw Error('Cannot generate example object using "not"');
+
+        } else {
+
+        }
+    };
+
+    return random;
 }
