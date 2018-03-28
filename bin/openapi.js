@@ -286,11 +286,11 @@ OpenApiEnforcer.prototype.request = function(req) {
             }
             : null,
         response: {
-            example: (code, contentType, name) => responses ? responseExample(this, responses[code], contentType, name) : undefined,
-            serialize: (code, body, headers) => responseValidateSerialize(this, path.schema[method], code, body, headers)
+            example: config => responseExample(this, responses, config),
+            populate: config => responsePopulate(this, responses, config),
+            serialize: config => responseValidateSerialize(this, responses, config)
         },
-        schema: path.schema,
-        statusCode: result.errors ? 400 : 200
+        schema: path.schema
     };
 };
 
@@ -308,8 +308,9 @@ OpenApiEnforcer.prototype.response = function(req) {
 
     const responses = path.schema[method].responses;
     return {
-        example: (code, contentType, name) => responses ? responseExample(this, responses[code], contentType, name) : undefined,
-        serialize: (code, body, headers) => responseValidateSerialize(this, path.schema[method], code, body, headers)
+        example: config => responseExample(this, responses, config),
+        populate: config => responsePopulate(this, responses, config),
+        serialize: config => responseValidateSerialize(this, responses, config)
     };
 };
 
@@ -462,17 +463,33 @@ function deserialize(errors, prefix, schema, value) {
     }
 }
 
-function responseExample(context, responseSchema, accepts, name) {
+function responseExample(context, responses, options) {
+    if (!responses) throw Error('Cannot build example response without schema');
+
+    options = Object.assign({}, options);
+    if (!options.hasOwnProperty('code')) options.code = responses.default ? 'default' : Object.keys(responses)[0];
+
     const version = store.get(context).version;
-    const data = version.getResponseExamples(responseSchema, accepts);
+    const data = version.getResponseExamples(responses[options.code], options.contentType);
+    let example;
+
     if (!data) return;
     if (!name) {
-        data.example = data.examples[0];
+        example = data.examples[0];
     } else {
-        data.example = data.examples.filter(example => example.name === name)[0] || data.examples[0];
+        example = data.examples.filter(example => example.name === name)[0] || data.examples[0];
     }
-    if (!data.example && data.schema) data.example = { body: context.random(data.schema) };
-    return data;
+    if (example === undefined && data.schema) example = context.random(data.schema);
+    return {
+        contentType: data.contentType,
+        example: example,
+        schema: data.schema
+    };
+}
+
+function responsePopulate(context, config) {
+    if (!config.hasOwnProperty('code')) throw Error('Missing required property: code');
+
 }
 
 function responseValidateSerialize(context, pathSchema, code, body, headers) {

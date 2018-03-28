@@ -18,7 +18,7 @@
 const expect    = require('chai').expect;
 const enforcer  = require('../../index');
 
-describe('v3/response', () => {
+describe.only('v3/response', () => {
     const schema = {
         openapi: '3.0.0',
         paths: {
@@ -72,48 +72,142 @@ describe('v3/response', () => {
         request = Request({ path: '/' });
     });
 
-    describe('body', () => {
-        let d = '2000-01-01T00:00:00.000Z';
+    describe('example', () => {
 
-        it('valid code and content type omitted', () => {
-            const req = request({});
-            const res = instance.response(req).serialize(200, { date: new Date(d) });
-            expect(res.value.body).to.deep.equal({ date: '2000-01-01' });
+        it('will use default code if it exists', () => {
+
         });
 
-        it('valid code and content type', () => {
-            const req = request({});
-            const res = instance.response(req).serialize(200, { date: new Date(d) }, { 'content-type': 'application/json' });
-            expect(res.value.body).to.deep.equal({ date: '2000-01-01' });
+        it('will use first code if no default code', () => {
+
         });
 
-        it('valid code and invalid content type', () => {
-            const req = request({});
-            expect(instance.response(req).serialize(200, { date: new Date(d) }, { 'content-type': 'text/plain' }).value.body)
-                .to.deep.equal({ date: new Date(d) });
+        it('will use first response code content type if omitted', () => {
+
         });
 
-        it('invalid code uses default', () => {
-            const req = request({});
-            const res = instance.response(req).serialize(400, { date: new Date(d) }, { 'content-type': 'application/json' });
-            expect(res.value.body).to.deep.equal({ date: '2000-01-01' });
+        it('header content-type added when missing', () => {
+
+        });
+
+        it('will accept wild-card content type', () => {
+
+        });
+
+        it('will accept weighted content type list', () => {
+
+        });
+
+        it('will use named example specified', () => {
+
+        });
+
+        it('returns random if named object not defined', () => {
+
         });
 
     });
 
-    describe('headers', () => {
-        let d = '2000-01-01T00:00:00.000Z';
+    describe('populate', () => {
 
-        it('header with schema', () => {
-            const req = request({});
-            const res = instance.response(req).serialize(200, {}, { 'x-date': new Date(d) });
-            expect(res.value.header['x-date']).to.equal('2000-01-01');
+        it('will use default code if it exists', () => {
+
         });
 
-        it('header without schema', () => {
-            const req = request({});
-            const res = instance.response(req).serialize(200, {}, { 'x-abc': new Date(d) });
-            expect(res.value.header['x-abc']).to.deep.equal(new Date(d));
+        it('will use first code if no default code', () => {
+
+        });
+
+        it('will use first response code content type if omitted', () => {
+
+        });
+
+        it('missing header content-type added from contentType', () => {
+
+        });
+
+        it('if contentType empty will pull from header', () => {
+
+        });
+
+        it('missing header content-type and missing contentType uses first content type', () => {
+
+        });
+
+
+
+    });
+
+    describe('serialize', () => {
+
+        describe('body', () => {
+            let d = '2000-01-01T00:00:00.000Z';
+
+            it('valid code and content type omitted', () => {
+                const req = request({});
+                const res = instance.response(req).serialize({
+                    code: 200,
+                    body: { date: new Date(d) }
+                });
+                expect(res.value.body).to.deep.equal({ date: '2000-01-01' });
+            });
+
+            it('valid code and content type', () => {
+                const req = request({});
+                const res = instance.response(req).serialize({
+                    code: 200,
+                    body: { date: new Date(d) },
+                    headers: { 'content-type': 'application/json' }
+                });
+                expect(res.value.body).to.deep.equal({ date: '2000-01-01' });
+            });
+
+            it('valid code and invalid content type', () => {
+                const req = request({});
+                const options = {
+                    code: 200,
+                    body: { date: new Date(d) },
+                    headers: { 'content-type': 'text/plain' }
+                };
+                expect(instance.response(req).serialize(options).value.body)
+                    .to.deep.equal({ date: new Date(d) });
+            });
+
+            it('invalid code uses default', () => {
+                const req = request({});
+                const res = instance.response(req).serialize({
+                    code: 400,
+                    body: { date: new Date(d) },
+                    headers: { 'content-type': 'application/json' }
+                });
+                expect(res.value.body).to.deep.equal({ date: '2000-01-01' });
+            });
+
+        });
+
+        describe('headers', () => {
+            let d = '2000-01-01T00:00:00.000Z';
+
+            it('header with schema', () => {
+                const req = request({});
+                const res = instance.response(req).serialize({
+                    code: 200,
+                    body: {},
+                    headers: { 'x-date': new Date(d) }
+                });
+                expect(res.value.header['x-date']).to.equal('2000-01-01');
+            });
+
+            it('header without schema', () => {
+                const req = request({});
+                const res = instance.response(req).serialize({
+                    code: 200,
+                    body: {},
+                    headers: { 'x-abc': new Date(d) }
+                });
+                expect(res.value.header['x-abc']).to.deep.equal(new Date(d));
+            });
+
         });
 
     });
