@@ -72,7 +72,6 @@ Create an OpenAPI enforcer instance.
 | Parameter | Description | Type | Default |
 | --------- | ----------- | ---- | ------- |
 | definition | An openapi document or a string representing the version to use. | `string` or `object` | |
-| options | The configuration options to apply to the instance. | `object` | `{}` |
 
 **Returns** an instance of the OpenAPI Enforcer
 
@@ -90,75 +89,33 @@ const Enforcer = require('openapi-enforcer');
 const enforcer = new Enforcer({ openapi: '3.0.0' });   // create an enforcer for OpenAPI version 3.0.0
 ```
 
-### Options
+**Example 3 - Using Discriminators**
 
-The `options` object defines options for several prototype functions. Those options are broken into their specific categories.
-
-```js
-const options = {
-    populate: {     // options apply to enforcer.populate
-        autoFormat: false,
-        copy: false,
-        defaults: true,
-        ignoreMissingRequired: true,
-        replacement: 'handlebar',
-        templateDefaults: true,
-        templates: true,
-        variables: true
-    },
-    
-    validate: {     // options apply to enforce.errors and enforce.validate
-        
-    }
-}
-```
-
-#### options.request.strict
-
-If data is provided in the request body or query parameters that is not defined in the OpenAPI document then a 400 error will be generated.
-
-Default: `false`
-
-#### options.request.files
-
-TODO: move this to request function - files and fields should be in body
-
-The OpenAPI Enforcer does not support request body parsing. Use existing tools like [body-parser](https://www.npmjs.com/package/body-parser) or [formidable](https://www.npmjs.com/package/formidable) for that.
-
-If a request's body has `multipart/form-data` content with binary file uploads then the data associated
-
-If a request is sending one or more files then the request parser/validator needs to know where those files are being stored on the request object. Validation on 
+If your OpenAPI document is using discriminators then you'll want to either include the entire swagger document as the input parameter or include at least the component schemas (OpenAPI 3.x) or definitions (OpenAPI 2.0).
 
 ```js
 const Enforcer = require('openapi-enforcer');
-const express = require('express');
-const formidable = require('formidable');
 
-const options = {
-    request: { files: 'files' }
-};
-const enforcer = new Enforcer({ openapi: '3.0.0' }, options);
-
-const app = express();
-
-// middleware to parse multipart/form-data 
-app.use(function (req, res, next) {
-    const form = new formidable.IncomingForm();
-    form.parse(req, (err, fields, files) => {
-        if (err) return next(err);
-        req.body = Object.assign({}, fields, files);
-        next();
-    });
+const enforcer2 = new Enforcer({
+    swagger: '2.0',
+    definitions: {
+        // ... named schemas here
+    }
 });
 
-app.use(enforcer.middleware());
+const enforcer3 = new Enforcer({
+    openapi: '3.0.0',
+    components: {
+        schemas: {
+            // ... named schemas here
+        }
+    }
+});
 ```
-
-Default: `'files'`
 
 ## Enforcer.prototype.deserialize
 
-Convert a serialized value into its deserialized equivalent.
+When a value is sent over HTTP it is in a serialized state. Calling this function will deserialize a value into its deserialized equivalent.
 
 `Enforcer.prototype.deserialize ( schema, value )`
 
@@ -264,13 +221,19 @@ const errors = enforcer.errors(schema, {
 
 Get the matching path's path parameters and schema.
 
+**This function will not work if you haven't defined paths in your OpenAPI document that was passed into the constructor.**
+
 `Enforcer.prototype.path ( path )`
 
 | Parameter | Description | Type |
 | --------- | ----------- | ---- |
 | path | The lookup path (optionally with path parameters) | `string` |
 
-Returns: An object with the `path` (definition path), `params` (path parameters), and `schema` definition path schema.
+Returns: An object with the following properties:
+
+- *path* - The path as defined in the OpenAPI document.
+- *params* - The path parameters (still serialized)
+- *schema* - The path schema as defined in the OpenAPI document.
 
 ```js
 const pathItem = {
@@ -311,15 +274,15 @@ const match = enforcer.path('/path/25');
 
 Build a value from a schema. While traversing the schema the final populated value may be derived from the provided value in combination with the schema's `default` value, the `x-template` value, or the `x-variable` value.
 
-`Enforcer.prototype.populate ( { schema, map, options, value } )`
+`Enforcer.prototype.populate ( { schema, options, params, value } )`
 
 This function takes one parameter (an `object`) with the following properties:
 
 | Property | Description | Type |
 | --------- | ----------- | ---- |
 | schema | The schema to build a value from. This property is required. | `object` |
-| options | The options to apply during the build phase. Any options specified here will overwrite defaults. | `object` |
 | params | A map of keys to values. These values are used to help build the final value | `object` |
+| options | The options to apply during the build phase. Any options specified here will overwrite defaults. | `object` |
 | value | An initial value to start with. | Any |
 
 Returns: The populated value.
@@ -459,9 +422,178 @@ const value = enforcer.populate(schema, params);
 // }
 ```
 
+## Enforcer.prototype.random
+
+Create a value that is randomly generated but that meets the constraints of a provided schema. Works on simple primitives and complex objects.
+
+**This function will not work if you haven't defined paths in your OpenAPI document that was passed into the constructor.**
+
+`Enforcer.prototype.random ( schema )`
+
+| Parameter | Description | Type |
+| --------- | ----------- | ---- |
+| schema | The schema to use to generate the random value. | `object` |
+
+Returns: A random value that adheres to the provided schema.
+
+## Enforcer.prototype.request
+
+Parse and validate input parameters for a request.
+
+`Enforcer.prototype.request ( { body, cookies, headers, method = 'get', path } )`
+
+This function takes one parameter, an `object`, with the following properties:
+
+| Property | Description | Type |
+| --------- | ----------- | ---- |
+| body | The request body. | `string` or `object` |
+| cookies | The request cookies. An `object` with cookie names as keys and cookie values as the values. | `object` |
+| headers | The request headers. An `object` with cookie names as keys and cookie values as the values. | `object` |
+| method | The HTTP method. Defaults to `"get"`. | `string` |
+| path | The request path. This should include the query string parameters if applicable. | `string` |
+
+Returns an object with the following properties:
+
+- *errors* - If any errors occurred this will be an array of strings, otherwise it will be `null`.
+
+- *path* - The path as defined in the OpenAPI document.
+
+- *request* - The request object, serialized and validated. If an error occurred this value will be `null`.
+
+- *response* - Two helper functions for formulating responses:
+
+    - *example* - A function that produces an example response using the provided status code, content type, and optional name. The content type can be a complex content type, allowing wild cards and multiple content type fallback options. The optional name is only relevant for OpenAPI 3.x when using named examples.
+
+        The example may come from the OpenAPI document if one exists, otherwise it will be generated using the [`Enforcer.prototype.random`](#enforcerprototyperandom) function.
+
+        ```js
+        const request = enforcer.request({ path: '/' });
+        const response = request.response.example(200, 'application/json');
+        ```
+
+    - *serialize* - a function that takes the status code, body, and headers and then validates and serializes the body and headers to prepare them to send as an HTTP response.
+
+        Returns an object that has two properties `error` and `value` where `error` is an array of errors or `null` and the `value` is either `null` or an object with the `header` and `body` properties.
+
+        ```js
+        const request = enforcer.request({ path: '/' });
+        const data = request.response.serialize(200, { num: 1, date: new Date() }, { 'x-header': 'some value' });
+        if (data.errors) {
+            console.error(data.errors.join('\n');
+        } else {
+            const response = data.value;
+        }
+        ```
+
+    - *schema* - The path schema as defined in the OpenAPI document.
+
+## Enforcer.prototype.response
+
+Produces helper functions for making a response that is related to the request.
+
+`Enforcer.prototype.response ( { method = 'get', path } )`
+
+- *example* - A function that produces an example response. The example may come from the OpenAPI document if one exists, otherwise it will be generated using the [`Enforcer.prototype.random`](#enforcerprototyperandom) function.
+
+    Signature: `example ( { code, contentType, name } )`
+    
+    Takes a configuration object as it's parameter with the following properties:
+
+    | Property | Description |
+    | ---------| ----------- |
+    | code | The HTTP status code to produce an example for. If omitted and the `"default"` response is defined then `"default"` will be used, otherwise it will use the first defined response status code. |
+    | contentType | The content type of the schema to produce an example from. This can use wild cards or even specify multiple acceptable content types. For example: `"*/json"`, `"application/*"`, or `"text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8"`. If omitted then the first content type defined for the specified response code will be used. |
+    | name | The name of the example to use when pulling from a named OpenAPI 3.x document example. Not relevant for OpenAPI 2.0 |
+
+    Returns an object with `headers` and `body` properties.
+
+    ```js
+    const request = enforcer.request({ path: '/' });
+    const example = request.response.example({
+        code: 200,
+        contentType: 'application/json'
+    });
+    ```
+
+- *populate* - A function that uses [`enforcer.prototype.populate`](#enforcerprototypepopulate) to build a response value using the response schema and a parameter map.
+
+    Signature: `populate ( { body, code, contentType, headers, params, serialize } )`
+    
+    Takes a configuration object as it's parameter with the following properties:
+
+    | Property | Description |
+    | ---------| ----------- |
+    | body | The initial body value. Omit this value if you want the body to be built from scratch. |
+    | code | The HTTP status code to produce an example for. If omitted and the `"default"` response is defined then `"default"` will be used, otherwise it will use the first defined response status code. |
+    | contentType | The content type of the schema to build a value from.  This can use wild cards or even specify multiple acceptable content types. For example: `"*/json"`, `"application/*"`, or `"text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8"`. If omitted but defined in the headers object then the headers content type will be used. If content type is also not there then the first content type defined for the specified response code will be used. |
+    | headers | An initial header object with header names and values as key value pairs. If the headers object does not define the `'content-type'` header then it will be set to the same value as the contentType option. |
+    | params | The parameter map to pass to [`enforcer.prototype.populate`](#enforcerprototypepopulate) |
+    | serialize| A boolean that if set to `true` will also serialize the populated value. Defaults to `false`. |
+
+    Returns an object with `headers` and `body` properties.
+
+    **Example with automatic serialization**
+
+    ```js
+    const request = enforcer.request({ path: '/' });
+
+    let data = request.response.populate({
+        code: 200,
+        contentType: 'application/json',
+        params: {},
+        body: {},
+        headers: {},
+        serialize: true
+    });
+    ```
+
+    **Example with manual serialization**
+
+    ```js
+    const request = enforcer.request({ path: '/' });
+
+    let data = request.response.populate({
+        code: 200,
+        contentType: 'application/json',
+        params: {},
+        body: {},
+        headers: {}
+    });
+    
+    // manually validate and serialize
+    data = request.response.serialize(200, data.body, data.headers);
+    ```
+
+- *serialize* - A function that takes the status code, body, and headers and then validates and serializes the body and headers to prepare them to send as an HTTP response.
+
+    Signature: `serialize ( { body, code, contentType, headers } )`
+    
+    Takes a configuration object as it's parameter with the following properties:
+
+    | Property | Description |
+    | ---------| ----------- |
+    | body | The initial body value. Omit this value if you want the body to be built from scratch. |
+    | code | The HTTP status code to produce an example for. If omitted and the `"default"` response is defined then `"default"` will be used, otherwise it will use the first defined response status code. |
+    | contentType | The content type of the schema to build a value from.  This can use wild cards or even specify multiple acceptable content types. For example: `"*/json"`, `"application/*"`, or `"text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8"`. If omitted but defined in the headers object then the headers content type will be used. If content type is also not there then the first content type defined for the specified response code will be used. |
+    | headers | An initial header object with header names and values as key value pairs. If the headers object does not define the `'content-type'` header then it will be set to the same value as the contentType option. |
+
+    Returns an object with `headers` and `body` properties.
+
+    ```js
+    const request = enforcer.request({ path: '/' });
+    const schema = request.schema[request.path].responses[200];
+
+    const data = request.response.serialize({
+        code: 200,
+        contentType: 'application/json',
+        body: { num: 1, date: new Date() },
+        headers: { 'x-header': 'some value' }
+    });
+    ```
+
 ## Enforcer.prototype.serialize
 
-Serialize an value according to the schema. This works for primitives, arrays, and objects. Arrays and objects will be traversed and their values also formatted recursively.
+Serialize an value according to the schema. This works for primitives, arrays, and objects. Arrays and objects will be traversed and their values also serialized recursively.
 
 `Enforcer.prototype.serialize ( schema, value )`
 
