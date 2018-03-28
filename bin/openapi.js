@@ -187,23 +187,22 @@ OpenApiEnforcer.prototype.path = function(path) {
  * Populate an object or an array using default, x-template, x-variable, and a parameter map.
  * @param {object} config
  * @param {object} config.schema
- * @param {object} [config.map={}]
+ * @param {object} [config.params={}]
  * @param {object} [config.options]
  * @param {*} [config.value]
  * @returns {*}
  */
-OpenApiEnforcer.prototype.populate = function(config) {
-    const data = store.get(this);
+OpenApiEnforcer.prototype.populate = function (config) {
     const options = config.options
-        ? Object.assign({}, data.defaults.populate, config.options)
-        : data.defaults.populate;
+        ? Object.assign({}, OpenApiEnforcer.defaults.populate, config.options)
+        : OpenApiEnforcer.defaults.populate;
 
     // initialize variables
     const initialValueProvided = config.hasOwnProperty('value');
-    const version = data.version;
+    const version = store.get(this).version;
     const v = {
         injector: populate.injector[options.replacement],
-        map: config.map || {},
+        map: config.params || {},
         options: options,
         schemas: version.schemas,
         version: version
@@ -383,6 +382,20 @@ Object.defineProperties(OpenApiEnforcer.prototype, {
     }
 });
 
+
+OpenApiEnforcer.defaults = {
+    populate: {
+        copy: false,
+        defaults: true,
+        ignoreMissingRequired: true,
+        oneOf: true,
+        replacement: 'handlebar',
+        serialize: false,
+        templateDefaults: true,
+        templates: true,
+        variables: true
+    }
+};
 
 // static properties with methods
 OpenApiEnforcer.format = format;

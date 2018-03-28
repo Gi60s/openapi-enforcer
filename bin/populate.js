@@ -114,7 +114,7 @@ function apply(v, schema, type, object, property) {
         const map = v.map;
         if (options.variables && schema.hasOwnProperty('x-variable') && map.hasOwnProperty(schema['x-variable'])) {
             const value = map[schema['x-variable']];
-            if (options.autoFormat) {
+            if (options.serialize) {
                 const form = util.schemaFormat(schema);
                 object[property] = format[form]('', value);
             } else {

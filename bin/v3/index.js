@@ -294,23 +294,6 @@ Version.prototype.getResponseExamples = function(responseSchema, accepts, name) 
 
 Version.defaults = {
 
-    populate: {
-        autoFormat: false,          // setting this value to true may hide some errors as values are auto formatted to their correct type
-        copy: false,                // mode can be either copy or mutate. Mutate is faster but copy preserves the original object
-        defaults: true,
-        ignoreMissingRequired: true,
-        oneOf: true,
-        replacement: 'handlebar',
-        templateDefaults: true,
-        templates: true,
-        variables: true
-    },
-
-    request: {
-        purge: true,                // any provided request data (in query or form data) that is not specified in the open api will be ignored
-        strict: true                // the request can only supply data (in query or form data) in the spec or an error is thrown
-    },
-
     validate: {
         depth: Number.MAX_VALUE,    // validate to full depth
 

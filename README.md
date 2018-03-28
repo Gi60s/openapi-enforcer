@@ -22,6 +22,9 @@ Features
     - [Enforcer.prototype.errors](#enforcerprototypeerrors)
     - [Enforcer.prototype.path](#enforcerprototypepath)
     - [Enforcer.prototype.populate](#enforcerprototypepopulate)
+    - [Enforcer.prototype.random](#enforcerprototyperandom)
+    - [Enforcer.prototype.request](#enforcerprototyperequest)
+    - [Enforcer.prototype.response](#enforcerprototyperesponse)
     - [Enforcer.prototype.schema](#enforcerprototypeschema)
     - [Enforcer.prototype.serialize](#enforcerprototypeserialize)
     - [Enforcer.prototype.validate](#enforcerprototypevalidate)
@@ -46,7 +49,7 @@ RefParser.dereference('/path/to/schema/file.json')  // path can also be yaml
         // get the schema that defines a user
         const userSchema = schema.components.schemas.user;
 
-        // create a user object that uses the schema and variable mapping
+        // create a user object by using the user schema and variable mapping
         const user = enforcer.populate(userSchema, {
             name: 'Bob Smith',
             birthday: new Date('2000-01-01')
@@ -89,7 +92,7 @@ const enforcer = new Enforcer({ openapi: '3.0.0' });   // create an enforcer for
 
 ### Options
 
-The `options` object defines options for several functions. Those options are broken into their specific categories.
+The `options` object defines options for several prototype functions. Those options are broken into their specific categories.
 
 ```js
 const options = {
@@ -104,74 +107,11 @@ const options = {
         variables: true
     },
     
-    request: {      // options apply to enforce.middleware and enforce.request
-        purge: true,
-        strict: true
-    },
-    
     validate: {     // options apply to enforce.errors and enforce.validate
         
     }
 }
 ```
-
-#### options.populate.autoFormat
-
-If set to `true` then values will automatically be [formatted](#enforcerformat--schema-value-) while populating.
-
-Default: `false` 
-
-#### options.populate.copy
-
-When executing [`enforcer.populate(schema, params [, initialValue ])`](#enforcerpopulate--schema-params--value--) and providing an `initialValue` you have the option to either mutate (modify) that value or to create a copy of the value and mutate that. Mutation is faster, but if you do not want to change the passed in `initialValue` then you should set this value to `true`. 
-
-Default: `false`
-
-#### options.populate.defaults
-
-Allow populated values to be built from a schema's `default` value. 
-
-[More about default, x-template, and x-variable](#about-default-x-template-and-x-variable).
-
-Default: `true`
-
-#### options.populate.ignoreMissingRequired
-
-When executing [`enforcer.populate(schema, params [, initialValue ])`](#enforcerpopulate--schema-params--value--) there will be times where an object with required properties is missing values for those required properties. If this value is set to `false` then [`enforcer.populate`](#enforcerpopulate--schema-params--value--) will not add the object to the populated value. If set to `true` then partially completed objects will still be added to the populated value.
-
-Default: `true`
-
-#### options.populate.replacement
-
-The template [parameter replacement](#parameter-replacement) format to use. This can be one of `'handlebar'`, `'doubleHandlebar'`, or `'colon'`. 
-
-| Format | Example |
-| ------ | ------- |
-| handlebar | `{param}` |
-| doubleHandlebar | `{{param}}` |
-| colon | `:param` |
-
-Default: `'handlebar'`
-
-#### options.populate.templateDefaults
-
-If this is set to `true` and a default is being use to populate a value and the default value is a string then the value will act as an `x-template` value. This can be useful because `default` values generally appear in generated documentation but you may still want to perform an `x-template` transformation on the value.
-
-#### options.populate.templates
-
-Allow populated values to be built from a schema's `x-template` value. 
-
-[More about default, x-template, and x-variable](#about-default-x-template-and-x-variable).
-
-Default: `true`
-
-#### options.populate.variables
-
-Allow populated values to be built from a schema's `x-variable` value. 
-
-[More about default, x-template, and x-variable](#about-default-x-template-and-x-variable).
-
-Default: `true`
 
 #### options.request.strict
 
@@ -371,15 +311,97 @@ const match = enforcer.path('/path/25');
 
 Build a value from a schema. While traversing the schema the final populated value may be derived from the provided value in combination with the schema's `default` value, the `x-template` value, or the `x-variable` value.
 
-`Enforcer.prototype.populate ( schema, params [, value ] )`
+`Enforcer.prototype.populate ( { schema, map, options, value } )`
 
-| Parameter | Description | Type |
+This function takes one parameter (an `object`) with the following properties:
+
+| Property | Description | Type |
 | --------- | ----------- | ---- |
-| schema | The schema to build from | `object` |
+| schema | The schema to build a value from. This property is required. | `object` |
+| options | The options to apply during the build phase. Any options specified here will overwrite defaults. | `object` |
 | params | A map of keys to values. These values are used to help build the final value | `object` |
 | value | An initial value to start with. | Any |
 
 Returns: The populated value.
+
+### Enforcer Populate Options
+
+By using the options you can define how the `Enforcer.prototype.populate` builds the value. It is easy to overwrite the default options for all calls the the `Enforcer.prototype.populate` function:
+
+```js
+const Enforcer = require('openapi-enforcer');
+
+Enforcer.defaults.populate = {
+    copy: false,
+    defaults: true,
+    ignoreMissingRequired: true,
+    replacement: 'handlebar',
+    serialize: false,
+    templateDefaults: true,
+    templates: true,
+    variables: true
+}
+```
+
+Below is a detailed description of each `Enforcer.prototype.populate` option, what it does, and what its default is.
+
+##### copy
+
+When executing [`Enforcer.prototype.populate`](#enforcerprototypepopulate) and providing the `value` property, you have the option to either mutate (modify) that value or to create a copy of the value and mutate that. Mutation is faster, but if you do not want to change the passed in `value` then you should set this value to `true`.
+
+Default: `false`
+
+##### defaults
+
+Allow populated values to be built from a schema's `default` value.
+
+[More about default, x-template, and x-variable](#about-default-x-template-and-x-variable).
+
+Default: `true`
+
+##### ignoreMissingRequired
+
+When executing [`Enforcer.prototype.populate`](#enforcerprototypepopulate) there will be times where an object with required properties is missing values for those required properties. If this value is set to `false` then [`Enforcer.prototype.populate`](#enforcerprototypepopulate) will not add the object to the populated value. If set to `true` then partially completed objects will still be added to the populated value.
+
+Default: `true`
+
+##### replacement
+
+The template [parameter replacement](#parameter-replacement) format to use. This can be one of `'handlebar'`, `'doubleHandlebar'`, or `'colon'`.
+
+| Format | Example |
+| ------ | ------- |
+| handlebar | `{param}` |
+| doubleHandlebar | `{{param}}` |
+| colon | `:param` |
+
+Default: `'handlebar'`
+
+##### serialize
+
+If set to `true` then values will automatically be [serialized](#enforcerprototypeserialize) while populating. Serialized values are less versatile but are ready to be sent as an HTTP response.
+
+Default: `false`
+
+##### templateDefaults
+
+If this is set to `true` and a default is being use to populate a value and the default value is a string then the value will act as an `x-template` value. This can be useful because `default` values generally appear in generated documentation but you may still want to perform an `x-template` transformation on the value.
+
+##### templates
+
+Allow populated values to be built from a schema's `x-template` value.
+
+[More about default, x-template, and x-variable](#about-default-x-template-and-x-variable).
+
+Default: `true`
+
+##### variables
+
+Allow populated values to be built from a schema's `x-variable` value.
+
+[More about default, x-template, and x-variable](#about-default-x-template-and-x-variable).
+
+Default: `true`
 
 ### About default, x-template, and x-variable
 
