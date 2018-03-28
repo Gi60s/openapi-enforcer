@@ -125,7 +125,7 @@ describe('v3/request', () => {
         it('string content', () => {
             const req = request({
                 body: 'this is some text',
-                header: { 'content-type': 'text/plain' }
+                headers: { 'content-type': 'text/plain' }
             });
             const params = instance.request(req);
             expect(params.errors).to.be.null;
@@ -135,7 +135,7 @@ describe('v3/request', () => {
         it('application/json content', () => {
             const req = request({
                 body: { R: 100, G: 200, B: 150 },
-                header: { 'content-type': 'application/json' }
+                headers: { 'content-type': 'application/json' }
             });
             const params = instance.request(req);
             expect(params.errors).to.be.null;
@@ -151,7 +151,7 @@ describe('v3/request', () => {
                     end: end.toISOString(),
                     start: start.toISOString()   // date type (not date-time)
                 },
-                header: { 'content-type': 'application/json2' }
+                headers: { 'content-type': 'application/json2' }
             });
             const params = instance.request(req);
             expect(params.errors).to.be.null;
@@ -162,7 +162,7 @@ describe('v3/request', () => {
         it('wrong content', () => {
             const req = request({
                 body: { R: 100, G: 200, B: 150 },
-                header: { 'content-type': 'text/plain' }
+                headers: { 'content-type': 'text/plain' }
             });
             const params = instance.request(req);
             expect(params.errors.length).not.to.equal(0);
@@ -176,50 +176,50 @@ describe('v3/request', () => {
         const request = Request({ path: '/' });
 
         it('default style (form)', () => {
-            const req = request({ cookie: { user: 'id=12345&sessionStart=' + ds } });
+            const req = request({ cookies: { user: 'id=12345&sessionStart=' + ds } });
             const params = instance.request(req);
             expect(params.errors).to.be.null;
-            expect(params.request.cookie.user).to.deep.equal({ id: 12345, sessionStart: new Date(ds) });
+            expect(params.request.cookies.user).to.deep.equal({ id: 12345, sessionStart: new Date(ds) });
         });
 
         it('cannot use matrix style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { style: 'matrix' } });
-            const req = request({ cookie: { user: '' } });
+            const req = request({ cookies: { user: '' } });
             const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/matrix style/);
         });
 
         it('cannot use label style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { style: 'label' } });
-            const req = request({ cookie: { user: '' } });
+            const req = request({ cookies: { user: '' } });
             const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/label style/);
         });
 
         it('cannot use simple style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { style: 'simple' } });
-            const req = request({ cookie: { user: '' } });
+            const req = request({ cookies: { user: '' } });
             const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/simple style/);
         });
 
         it('cannot use spaceDelimited style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { style: 'spaceDelimited' } });
-            const req = request({ cookie: { user: '' } });
+            const req = request({ cookies: { user: '' } });
             const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/spaceDelimited style/);
         });
 
         it('cannot use pipeDelimited style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { style: 'pipeDelimited' } });
-            const req = request({ cookie: { user: '' } });
+            const req = request({ cookies: { user: '' } });
             const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/pipeDelimited style/);
         });
 
         it('cannot use deepObject style', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { style: 'deepObject' } });
-            const req = request({ cookie: { user: '' } });
+            const req = request({ cookies: { user: '' } });
             const instance = new enforcer(schema2, {});
             expect(() => instance.request(req)).to.throw(/deepObject style/);
         });
@@ -227,14 +227,14 @@ describe('v3/request', () => {
     });
 
     describe('header', () => {
-        const config = { header: { 'x-number': '12345' } };
+        const config = { headers: { 'x-number': '12345' } };
         const request = Request({ path: '/' });
 
         it('default style (simple)', () => {
             const req = request(config);
             const params = instance.request(req);
             expect(params.errors).to.be.null;
-            expect(params.request.header['x-number']).to.equal(12345);
+            expect(params.request.headers['x-number']).to.equal(12345);
         });
 
         it('cannot use matrix style', () => {
@@ -494,8 +494,8 @@ function Request(defaults) {
     return function(obj) {
         return Object.assign({
             body: obj.body || defaults.body || '',
-            cookie: Object.assign({}, defaults.cookie, obj.cookie),
-            header: Object.assign({}, defaults.header, obj.header),
+            cookies: Object.assign({}, defaults.cookies, obj.cookies),
+            headers: Object.assign({}, defaults.headers, obj.headers),
             method: obj.method || defaults.method || 'get',
             path: obj.path || defaults.path || '',
             query: obj.query || defaults.query || ''

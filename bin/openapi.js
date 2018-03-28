@@ -225,11 +225,11 @@ OpenApiEnforcer.prototype.random = function(schema) {
 };
 
 /**
- * Parse and validate input parameters for a request..
+ * Parse and validate input parameters for a request.
  * @param {string|object} req
  * @param {string|object} [req.body]
- * @param {object} [req.cookie]
- * @param {object} [req.header]
+ * @param {object} [req.cookies]
+ * @param {object} [req.headers]
  * @param {string} [req.method='get']
  * @param {string} [req.path]
  * @returns {object}
@@ -241,8 +241,8 @@ OpenApiEnforcer.prototype.request = function(req) {
     if (typeof req !== 'object') throw Error('Invalid request. Must be a string or an object. Received: ' + req);
     req = Object.assign({}, req);
     if (req.body !== undefined && typeof req.body !== 'object' && typeof req.body !== 'string') throw Error('Invalid request body. Must be a string or an object. Received: ' + req.body);
-    if (req.cookie && typeof req.cookie !== 'object') throw Error('Invalid request cookies. Must be an object. Received: ' + req.cookie);
-    if (req.header && typeof req.header !== 'object') throw Error('Invalid request headers. Must be an object. Received: ' + req.header);
+    if (req.cookies && typeof req.cookies !== 'object') throw Error('Invalid request cookies. Must be an object. Received: ' + req.cookies);
+    if (req.headers && typeof req.headers !== 'object') throw Error('Invalid request headers. Must be an object. Received: ' + req.headers);
     if (typeof req.path !== 'string') throw Error('Invalid request path. Must be a string. Received: ' + req.path);
     if (!req.method) req.method = 'get';
     if (typeof req.method !== 'string') throw Error('Invalid request method. Must be a string. Received: ' + req.method);
@@ -264,18 +264,27 @@ OpenApiEnforcer.prototype.request = function(req) {
     // parse and validate request input
     const result = store.get(this).version.parseRequestParameters(path.schema, {
         body: req.body,
-        cookie: req.cookie || {},
-        header: util.lowerCaseProperties(req.header) || {},
+        cookie: req.cookies || {},
+        header: util.lowerCaseProperties(req.headers) || {},
         method: method,
         path: path.params,
         query: req.query || ''
     });
 
     const responses = path.schema[method].responses;
+    const value = result.value;
     return {
         errors: result.errors,
         path: path.path,
-        request: result.value,
+        request: value
+            ? {
+                body: value.body,
+                cookies: value.cookie,
+                headers: value.header,
+                path: value.path,
+                query: value.query
+            }
+            : null,
         response: {
             example: (code, contentType, name) => responses ? responseExample(this, responses[code], contentType, name) : undefined,
             serialize: (code, body, headers) => responseValidateSerialize(this, path.schema[method], code, body, headers)
