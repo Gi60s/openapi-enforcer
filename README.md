@@ -460,36 +460,13 @@ Returns an object with the following properties:
 
 - *request* - The request object, serialized and validated. If an error occurred this value will be `null`.
 
-- *response* - Two helper functions for formulating responses:
+- *response* - An object with the functions from [`enforcer.prototype.response`](#enforcerprototyperesponse).
 
-    - *example* - A function that produces an example response using the provided status code, content type, and optional name. The content type can be a complex content type, allowing wild cards and multiple content type fallback options. The optional name is only relevant for OpenAPI 3.x when using named examples.
-
-        The example may come from the OpenAPI document if one exists, otherwise it will be generated using the [`Enforcer.prototype.random`](#enforcerprototyperandom) function.
-
-        ```js
-        const request = enforcer.request({ path: '/' });
-        const response = request.response.example(200, 'application/json');
-        ```
-
-    - *serialize* - a function that takes the status code, body, and headers and then validates and serializes the body and headers to prepare them to send as an HTTP response.
-
-        Returns an object that has two properties `error` and `value` where `error` is an array of errors or `null` and the `value` is either `null` or an object with the `header` and `body` properties.
-
-        ```js
-        const request = enforcer.request({ path: '/' });
-        const data = request.response.serialize(200, { num: 1, date: new Date() }, { 'x-header': 'some value' });
-        if (data.errors) {
-            console.error(data.errors.join('\n');
-        } else {
-            const response = data.value;
-        }
-        ```
-
-    - *schema* - The path schema as defined in the OpenAPI document.
+- *schema* - The path schema as defined in the OpenAPI document.
 
 ## Enforcer.prototype.response
 
-Produces helper functions for making a response that is related to the request.
+Produces functions for making a response that is associated to the request.
 
 `Enforcer.prototype.response ( { method = 'get', path } )`
 
@@ -505,14 +482,23 @@ Produces helper functions for making a response that is related to the request.
     | contentType | The content type of the schema to produce an example from. This can use wild cards or even specify multiple acceptable content types. For example: `"*/json"`, `"application/*"`, or `"text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8"`. If omitted then the first content type defined for the specified response code will be used. |
     | name | The name of the example to use when pulling from a named OpenAPI 3.x document example. Not relevant for OpenAPI 2.0 |
 
-    Returns an object with `headers` and `body` properties.
+    Returns an object with `contentType` - the content type used, `example` - an object with `headers` and `body` properties, and `schema` - the schema used to create the example.
 
     ```js
     const request = enforcer.request({ path: '/' });
-    const example = request.response.example({
+    const data = request.response.example({
         code: 200,
         contentType: 'application/json'
     });
+    /*
+    data => {
+        contentType: 'application/json',
+        example: {
+            body: { ... },
+            headers: { ... }
+        }
+    }
+    */
     ```
 
 - *populate* - A function that uses [`enforcer.prototype.populate`](#enforcerprototypepopulate) to build a response value using the response schema and a parameter map.
