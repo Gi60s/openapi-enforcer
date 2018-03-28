@@ -29,13 +29,12 @@ const rxPathParam = /{([^}]+)}/;
 /**
  * Produce an open api enforcer instance.
  * @param {object, string} definition The open api definition object or a string representing the version to use.
- * @param {object} [defaultOptions]
  * @constructor
  */
-function OpenApiEnforcer(definition, defaultOptions) {
+function OpenApiEnforcer(definition) {
 
     // make sure that this is called as a new instance
-    if (!(this instanceof OpenApiEnforcer)) return new OpenApiEnforcer(definition, defaultOptions);
+    if (!(this instanceof OpenApiEnforcer)) return new OpenApiEnforcer(definition);
 
     // if the definition was passed in as a version number then rebuild the definition object
     if (definition === '2.0') {
@@ -56,11 +55,7 @@ function OpenApiEnforcer(definition, defaultOptions) {
     const version = new Version(this, definition);
 
     // normalize defaults
-    const defaults = Object.assign({}, defaultOptions);
-    Object.keys(Version.defaults)
-        .forEach(category => {
-            defaults[category] = Object.assign({}, Version.defaults[category], defaults[category]);
-        });
+    const defaults = Version.defaults;
 
     // build path parser functions
     const pathParsers = {};
