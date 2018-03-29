@@ -285,10 +285,14 @@ OpenApiEnforcer.prototype.request = function(req) {
                 query: value.query
             }
             : null,
-        response: {
-            example: config => responseExample(this, responses, config),
-            populate: config => responsePopulate(this, responses, config),
-            serialize: config => responseValidateSerialize(this, responses, config)
+        response: (config) => {
+            const data = responseData(this, responses, config);
+            return {
+                data: data,
+                example: config => responseExample(this, responses, data, config),
+                populate: config => responsePopulate(this, responses, data, config),
+                serialize: config => responseValidateSerialize(this, responses, data, config)
+            }
         },
         schema: path.schema
     };
@@ -296,21 +300,24 @@ OpenApiEnforcer.prototype.request = function(req) {
 
 /**
  * Validate and serialize a response.
- * @param {object} req The request object.
- * @returns {{example: function, serialize: function}}
+ * @param {{ code: string, contentType: string, path: string, method: string }} options The request object.
+ * @returns {{data: function, example: function, populate: function, serialize: function}}
  */
-OpenApiEnforcer.prototype.response = function(req) {
-    const path = this.path(req.path);
+OpenApiEnforcer.prototype.response = function(options) {
+    const path = this.path(options.path);
     if (!path) throw Error('Invalid request path. The path is not defined in the specification: ' + req.path);
 
-    const method = req.method.toLowerCase();
+    options = Object.assign({}, { method: 'get' }, options);
+    const method = options.method.toLowerCase();
     if (!path.schema[method]) throw Error('Invalid method for request path. The method is not defined in the specification: ' + method.toUpperCase() + ' ' + req.path);
 
     const responses = path.schema[method].responses;
+    const data = responseData(this, responses, options);
     return {
-        example: config => responseExample(this, responses, config),
-        populate: config => responsePopulate(this, responses, config),
-        serialize: config => responseValidateSerialize(this, responses, config)
+        data: data,
+        example: config => responseExample(this, responses, data, config),
+        populate: config => responsePopulate(this, responses, data, config),
+        serialize: config => responseValidateSerialize(this, responses, data, config)
     };
 };
 
@@ -463,6 +470,13 @@ function deserialize(errors, prefix, schema, value) {
     }
 }
 
+function responseData(context, responses, config) {
+    const version = store.get(context).version;
+    if (!config) config = {};
+    if (!config.hasOwnProperty('contentType') && config.headers && config.headers['content-type']) config.contentType = config.headers['content-type'];
+    return version.getResponseData(responses, config);
+}
+
 function responseExample(context, responses, options) {
     if (!responses) throw Error('Cannot build example response without schema');
 
@@ -487,9 +501,51 @@ function responseExample(context, responses, options) {
     };
 }
 
-function responsePopulate(context, config) {
-    if (!config.hasOwnProperty('code')) throw Error('Missing required property: code');
+function responsePopulate(context, pathSchema, config) {
+    config = Object.assign({}, config);
+    if (!config.headers) config.headers = {};
+    if (!config.options) config.options = {};
+    if (!config.params) config.params = {};
+    config.headers = util.lowerCaseProperties(config.headers);
 
+    const data = responseData(context, pathSchema, config);
+    if (!data) throw Error('Cannot populate value without schema');
+    const result = {};
+    
+    // populate body
+    if (data.schema) {
+        const options = { 
+            schema: data.schema, 
+            params: config.params,
+            options: config.options
+        };
+        if (config.hasOwnProperty('body')) options.value = config.body;
+        result.body = context.populate(options);
+        if (config.serialize) result.body = context.serialize(data.schema, result.body);
+    }
+
+    // populate headers
+    const headersSchemas = data.code && responses[data.code] && responses[data.code].headers;
+    const headers = config.headers;
+    result.headers = headers;
+    if (headersSchemas) {
+        if (!headers.hasOwnProperty('content-type') && data.contentType) {
+            headers['content-type'] = data.contentType;
+        }
+        Object.keys(headersSchemas).forEach(header => {
+            const schema = headersSchemas[header];
+            const options = { 
+                schema: schema, 
+                params: config.params,
+                options: config.options
+            };
+            if (headers.hasOwnProperty(header)) options.value = headers[header];
+            headers[header] = context.populate(options);
+            if (config.serialize) headers[header] = context.serialize(schema, headers[header]);
+        });
+    }
+
+    return result;
 }
 
 function responseValidateSerialize(context, pathSchema, code, body, headers) {
