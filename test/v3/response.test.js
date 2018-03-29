@@ -18,7 +18,7 @@
 const expect    = require('chai').expect;
 const enforcer  = require('../../index');
 
-describe.only('v3/response', () => {
+describe('v3/response', () => {
     const schema = {
         openapi: '3.0.0',
         paths: {
@@ -43,6 +43,9 @@ describe.only('v3/response', () => {
                                             format: 'date'
                                         }
                                     }
+                                },
+                                'text/plain': {
+                                    type: 'string'
                                 }
                             }
                         },
@@ -61,6 +64,14 @@ describe.only('v3/response', () => {
                         }
                     }
                 }
+            },
+            '/no-default': {
+                get: {
+                    responses: {
+                        200: {},
+                        201: {}
+                    }
+                }
             }
         }
     };
@@ -72,9 +83,50 @@ describe.only('v3/response', () => {
         request = Request({ path: '/' });
     });
 
-    describe('example', () => {
+    describe('data', () => {
 
         it('will use default code if it exists', () => {
+            const req = { path: '/', method: 'get' };
+            const data = instance.response(req).data();
+            expect(data.code).to.equal('default');
+        });
+
+        it('will use first code if no default code', () => {
+            const req = { path: '/no-default', method: 'get' };
+            const data = instance.response(req).data();
+            expect(data.code).to.equal('200');
+        });
+
+        it('will use first response code content type if omitted', () => {
+            const req = { code: 200, path: '/', method: 'get' };
+            const data = instance.response(req).data();
+            expect(data.contentType).to.equal('application/json');
+        });
+
+        it('will accept wild-card content type', () => {
+            const req = { code: 200, path: '/', method: 'get', contentType: '*/plain' };
+            const data = instance.response(req).data();
+            expect(data.contentType).to.equal('text/plain');
+        });
+
+        it('will accept weighted content type list', () => {
+            const req = request({});
+            const data1 = instance.response({ 
+                code: 200, 
+                contentType: 'text/plain;q=0.9, application/json;q=1',
+                method: 'get',
+                path: '/'
+            }).data();
+            const data2 = instance.response(req).data({ code: 200, contentType: 'text/plain, application/json;q=0.9' });
+            expect(data1.contentType).to.equal('application/json');
+            expect(data2.contentType).to.equal('text/plain');
+        });
+
+    });
+
+    describe('example', () => {
+
+        it.only('will use default code if it exists', () => {
 
         });
 
@@ -111,7 +163,7 @@ describe.only('v3/response', () => {
     describe('populate', () => {
 
         it('will use default code if it exists', () => {
-
+            
         });
 
         it('will use first code if no default code', () => {
