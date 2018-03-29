@@ -257,15 +257,30 @@ Version.prototype.parseRequestParameters = function(schema, req) {
  */
 Version.prototype.random = function() {}; // implemented in constructor
 
-Version.prototype.getResponseBodySchema = function(pathSchema, code, type) {
-    if (!pathSchema.responses) return;
+/**
+ * 
+ * @param {object} responses 
+ * @param {{ code: string, contentType: string }} options 
+ * @returns {{ code: string, contentType: string, schema: object }|undefined}
+ */
+Version.prototype.getResponseData = function(responses, options) {
+    if (!responses) return;
 
-    const schema = pathSchema.responses[code] || pathSchema.responses.default;
+    const code = options.hasOwnProperty('code')
+        ? options.code
+        : responses.hasOwnProperty('default') ? 'default' : Object.keys(responses)[0];
+    const schema = responses[code];
     if (!schema) return;
 
-    if (!type && schema.content) type = Object.keys(schema.content)[0];
+    const result = { code: code };
+    if (!schema.content) return result;
 
-    return schema.content && schema.content[type];
+    const match = util.findMediaMatch(options.contentType || '*/*', Object.keys(schema.content))[0];
+    if (!match) return result;
+    result.contentType = match;
+    result.schema = schema.content[match];
+
+    return result;
 };
 
 Version.prototype.getResponseExamples = function(responseSchema, accepts, name) {
