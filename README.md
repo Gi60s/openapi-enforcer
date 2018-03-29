@@ -466,39 +466,59 @@ Returns an object with the following properties:
 
 ## Enforcer.prototype.response
 
-Produces functions for making a response that is associated to the request.
+Get functions that provide details and functionality that is associated to a request and its response.
 
-`Enforcer.prototype.response ( { method = 'get', path } )`
+`Enforcer.prototype.response ( { code, contentType, method = 'get', path } )`
+
+This function takes one parameter, an `object`, with the following properties:
+
+| Property | Description | Required |
+| --------- | ----------- | ---- |
+| code | The HTTP response status code to use. If omitted and the "default" response is defined then "default" will be used, otherwise it will use the first defined response status code. | No |
+| contentType | The content type of the schema to use for the response. This can use wild cards or even specify multiple acceptable content types. For example: `"*/json"`, `"application/*"`, or `"text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8"`. If omitted then the first content type defined for the specified response code will be used. | No |
+| path | The request path. This value can include path parameters. | Yes |
+| method | The request method. Defaults to `"GET"`. | No |
+
+Returns an object with the following properties:
+
+- *data* - An object with the normalized response data. In the case that the `code` or `contentType` were either not specified or used indeterminate values, this object will have the determined values as well as the response body schema to be used. In short, it is an object with these properties:
+
+    - *code* - The determined HTTP response code that aligns with the OpenAPI document.
+
+    - *contentType* - The determined content type that aligns with the OpenAPI document.
+    
+    - *schema* - The response body schema to use for this response.
+
+    Alternatively this value may be `undefined` or partially populated if the OpenAPI document does not have a response or content type match.
+
+    ```js
+    const response = enforcer.response({
+        code: 200, 
+        contentType: 'application/json', 
+        path: '/' 
+    });
+    console.log(response.data);
+    ```
 
 - *example* - A function that produces an example response. The example may come from the OpenAPI document if one exists, otherwise it will be generated using the [`Enforcer.prototype.random`](#enforcerprototyperandom) function.
 
-    Signature: `example ( { code, contentType, name } )`
+    Signature: `example ( { name } )`
     
     Takes a configuration object as it's parameter with the following properties:
 
     | Property | Description |
     | ---------| ----------- |
-    | code | The HTTP status code to produce an example for. If omitted and the `"default"` response is defined then `"default"` will be used, otherwise it will use the first defined response status code. |
-    | contentType | The content type of the schema to produce an example from. This can use wild cards or even specify multiple acceptable content types. For example: `"*/json"`, `"application/*"`, or `"text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8"`. If omitted then the first content type defined for the specified response code will be used. |
     | name | The name of the example to use when pulling from a named OpenAPI 3.x document example. Not relevant for OpenAPI 2.0 |
 
-    Returns an object with `contentType` - the content type used, `example` - an object with `headers` and `body` properties, and `schema` - the schema used to create the example.
+    Returns a value that can be used as an example.
 
     ```js
-    const request = enforcer.request({ path: '/' });
-    const data = request.response.example({
-        code: 200,
-        contentType: 'application/json'
+    const response = enforcer.response({
+        code: 200, 
+        contentType: 'application/json', 
+        path: '/' 
     });
-    /*
-    data => {
-        contentType: 'application/json',
-        example: {
-            body: { ... },
-            headers: { ... }
-        }
-    }
-    */
+    const example = response.example();
     ```
 
 - *populate* - A function that uses [`enforcer.prototype.populate`](#enforcerprototypepopulate) to build a response value using the response schema and a parameter map.
@@ -510,10 +530,8 @@ Produces functions for making a response that is associated to the request.
     | Property | Description |
     | ---------| ----------- |
     | body | The initial body value. Omit this value if you want the body to be built from scratch. |
-    | code | The HTTP status code to produce an example for. If omitted and the `"default"` response is defined then `"default"` will be used, otherwise it will use the first defined response status code. |
-    | contentType | The content type of the schema to build a value from.  This can use wild cards or even specify multiple acceptable content types. For example: `"*/json"`, `"application/*"`, or `"text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8"`. If omitted but defined in the headers object then the headers content type will be used. If content type is also not there then the first content type defined for the specified response code will be used. |
-    | headers | An initial header object with header names and values as key value pairs. If the headers object does not define the `'content-type'` header then it will be set to the same value as the contentType option. |
-    | params | The parameter map to pass to [`enforcer.prototype.populate`](#enforcerprototypepopulate) |
+    | headers | An initial header object with header names and values as key value pairs. If the headers object does not define the `'content-type'` header then it will be set to the same value as the `contentType` option specified by the data object. |
+    | params | The parameter map to pass to [`enforcer.prototype.populate`](#enforcerprototypepopulate) 
     | serialize| A boolean that if set to `true` will also serialize the populated value. Defaults to `false`. |
 
     Returns an object with `headers` and `body` properties.
@@ -521,11 +539,13 @@ Produces functions for making a response that is associated to the request.
     **Example with automatic serialization**
 
     ```js
-    const request = enforcer.request({ path: '/' });
+    const response = enforcer.response({
+        code: 200, 
+        contentType: 'application/json', 
+        path: '/' 
+    });
 
-    let data = request.response.populate({
-        code: 200,
-        contentType: 'application/json',
+    const populated = response.populate({
         params: {},
         body: {},
         headers: {},
@@ -536,43 +556,50 @@ Produces functions for making a response that is associated to the request.
     **Example with manual serialization**
 
     ```js
-    const request = enforcer.request({ path: '/' });
+    const response = enforcer.response({
+        code: 200, 
+        contentType: 'application/json', 
+        path: '/' 
+    });
 
-    let data = request.response.populate({
-        code: 200,
-        contentType: 'application/json',
+    const populated = response.populate({
         params: {},
         body: {},
         headers: {}
     });
     
     // manually validate and serialize
-    data = request.response.serialize(200, data.body, data.headers);
+    const serialized = response.serialize({
+        body: populated.body,
+        headers: populated.headers
+    });
     ```
 
 - *serialize* - A function that takes the status code, body, and headers and then validates and serializes the body and headers to prepare them to send as an HTTP response.
 
-    Signature: `serialize ( { body, code, contentType, headers } )`
+    Signature: `serialize ( { body, headers } )`
     
     Takes a configuration object as it's parameter with the following properties:
 
     | Property | Description |
     | ---------| ----------- |
     | body | The initial body value. Omit this value if you want the body to be built from scratch. |
-    | code | The HTTP status code to produce an example for. If omitted and the `"default"` response is defined then `"default"` will be used, otherwise it will use the first defined response status code. |
-    | contentType | The content type of the schema to build a value from.  This can use wild cards or even specify multiple acceptable content types. For example: `"*/json"`, `"application/*"`, or `"text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8"`. If omitted but defined in the headers object then the headers content type will be used. If content type is also not there then the first content type defined for the specified response code will be used. |
     | headers | An initial header object with header names and values as key value pairs. If the headers object does not define the `'content-type'` header then it will be set to the same value as the contentType option. |
 
     Returns an object with `headers` and `body` properties.
 
     ```js
-    const request = enforcer.request({ path: '/' });
-    const schema = request.schema[request.path].responses[200];
-
-    const data = request.response.serialize({
-        code: 200,
-        contentType: 'application/json',
-        body: { num: 1, date: new Date() },
+    const response = enforcer.response({
+        code: 200, 
+        contentType: 'application/json', 
+        path: '/' 
+    });
+    
+    const data = response.serialize({
+        body: { 
+            num: 1, 
+            date: new Date() 
+        },
         headers: { 'x-header': 'some value' }
     });
     ```
