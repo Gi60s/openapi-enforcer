@@ -6,9 +6,9 @@ interface OpenApiEnforcer {
 interface OpenApiEnforcerInstance {
     deserialize(schema: object, value: any): any;
     errors(schema: object, value: any): string[]|void;
-    serialize(scheam: object, value: any): any;
+    serialize(schema: object, value: any): any;
     path(path: string): { path: string, params: object };
-    populate(schema: object, map: object, initialValue?: any): any;
+    populate(config: { options?: object, params?: object, schema: object, value?: any }): any;
     request(req: string|RequestObject): object;
     schema(path: string, schema?: object);
     validate(schema: string, value: any):void;
