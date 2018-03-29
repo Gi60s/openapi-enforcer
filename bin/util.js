@@ -57,16 +57,17 @@ exports.Error = function(meta, message) {
  * Provide an accept media type string and possible matches and get the match.
  * @param {string} input
  * @param {string[]} matches
- * @returns {string[]|undefined} The media type matches.
+ * @returns {string[]} The media type matches.
  */
 exports.findMediaMatch = function(input, matches) {
     const accepts = input
         .split(/, */)
-        .map(value => {
+        .map((value, index) => {
             const set = value.split(';');
             const type = set[0].split('/');
             const q = /q=(\d\.\d)/.exec(set[1]);
             return {
+                index: index,
                 quality: +((q && q[1]) || 1),
                 subType: type[1].split('+')[0],
                 type: type[0]
@@ -89,19 +90,12 @@ exports.findMediaMatch = function(input, matches) {
             if ((accept.type === type || accept.type === '*' || type === '*') &&
                 (accept.subType === subtype || accept.subType === '*' || subtype === '*')) {
 
-                let priority = .5 * (i / acceptsLength);
-                if (type === '*') priority += 2;
-                if (subtype === '*') priority ++;
-                results.push({
-                    priority: priority,
-                    type: matches[j]
-                });
+                results.push(matches[j]);
             }
         }
     }
 
-    results.sort((a, b) => a.priority < b.priority ? - 1: 1);
-    return results.map(v => v.type);
+    return results;
 };
 
 exports.isDate = function (value) {
