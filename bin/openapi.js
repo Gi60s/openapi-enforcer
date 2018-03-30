@@ -479,15 +479,10 @@ function responseData(context, responses, config) {
 
 function responseExample(context, responses, data, options) {
     if (!responses) throw Error('Cannot build example response without schema');
+    if (!options) options = {};
     let example;
     if (data && data.code && data.contentType && !options.ignoreDocumentExample) {
-        const ex = version.getResponseExamples(responses[data.code], data.contentType);
-        if (!options.name) {
-            const index = Math.floor(Math.random() * ex.examples.length);
-            example = ex.examples[index];
-        } else {
-            example = ex.examples.filter(example => example.name === name)[0];
-        }
+        example = store.get(context).version.getResponseExample(responses[data.code], data.contentType, options.name);
     }
     if (example === undefined && data.schema) example = context.random(data.schema);
     return example;

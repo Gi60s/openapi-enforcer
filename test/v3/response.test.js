@@ -15,8 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
-const expect    = require('chai').expect;
-const enforcer  = require('../../index');
+const { copy, same }    = require('../../bin/util');
+const expect            = require('chai').expect;
+const enforcer          = require('../../index');
 
 describe('v3/response', () => {
     const schema = {
@@ -36,16 +37,34 @@ describe('v3/response', () => {
                             },
                             content: {
                                 'application/json': {
-                                    type: 'object',
-                                    properties: {
-                                        date: {
-                                            type: 'string',
-                                            format: 'date'
+                                    schema: {
+                                        type: 'object',
+                                        properties: {
+                                            date: {
+                                                type: 'string',
+                                                format: 'date'
+                                            }
+                                        },
+                                        example: {
+                                            date: '2000-01-30'
+                                        }
+                                    },
+                                    example: {
+                                        date: '2000-01-29'
+                                    },
+                                    examples: {
+                                        First: {
+                                            date: '2000-01-01'
+                                        },
+                                        Second: {
+                                            date: '2000-01-02'
                                         }
                                     }
                                 },
                                 'text/plain': {
-                                    type: 'string'
+                                    schema: {
+                                        type: 'string'
+                                    }
                                 }
                             }
                         },
@@ -87,75 +106,105 @@ describe('v3/response', () => {
 
         it('will use default code if it exists', () => {
             const req = { path: '/', method: 'get' };
-            const data = instance.response(req).data();
+            const data = instance.response(req).data;
             expect(data.code).to.equal('default');
         });
 
         it('will use first code if no default code', () => {
             const req = { path: '/no-default', method: 'get' };
-            const data = instance.response(req).data();
+            const data = instance.response(req).data;
             expect(data.code).to.equal('200');
         });
 
         it('will use first response code content type if omitted', () => {
             const req = { code: 200, path: '/', method: 'get' };
-            const data = instance.response(req).data();
+            const data = instance.response(req).data;
             expect(data.contentType).to.equal('application/json');
         });
 
         it('will accept wild-card content type', () => {
             const req = { code: 200, path: '/', method: 'get', contentType: '*/plain' };
-            const data = instance.response(req).data();
+            const data = instance.response(req).data;
             expect(data.contentType).to.equal('text/plain');
         });
 
         it('will accept weighted content type list', () => {
-            const req = request({});
             const data1 = instance.response({ 
                 code: 200, 
                 contentType: 'text/plain;q=0.9, application/json;q=1',
-                method: 'get',
                 path: '/'
-            }).data();
-            const data2 = instance.response(req).data({ code: 200, contentType: 'text/plain, application/json;q=0.9' });
+            }).data;
+            const data2 = instance.response({
+                code: 200,
+                contentType: 'text/plain, application/json;q=0.9',
+                path: '/'
+            }).data;
             expect(data1.contentType).to.equal('application/json');
             expect(data2.contentType).to.equal('text/plain');
         });
 
     });
 
-    describe('example', () => {
+    describe.only('example', () => {
+        const req = { path: '/', method: 'get', code: 200, contentType: 'application/json' };
+        let s;
+        let c;
 
-        it.only('will use default code if it exists', () => {
-
+        beforeEach(() => {
+            s = copy(schema);
+            c = s.paths['/'].get.responses[200].content['application/json'];
         });
 
-        it('will use first code if no default code', () => {
-
+        it('use schema example if no overwrite example', () => {
+            delete c.example;
+            delete c.examples;
+            instance = new enforcer(s, {});
+            const example = instance.response(req).example();
+            expect(example).not.to.equal(c.schema.example);
+            expect(example).to.deep.equal(c.schema.example);
         });
 
-        it('will use first response code content type if omitted', () => {
-
+        it('overwrite schema example', () => {
+            delete c.examples;
+            instance = new enforcer(s, {});
+            const example = instance.response(req).example();
+            expect(example).not.to.deep.equal(c.schema.example);
+            expect(example).to.deep.equal(c.example);
         });
 
-        it('header content-type added when missing', () => {
-
+        it('example overwrites examples', () => {
+            instance = new enforcer(s, {});
+            const example = instance.response(req).example();
+            expect(example).to.deep.equal(c.example);
         });
 
-        it('will accept wild-card content type', () => {
-
+        it('selects one of examples', () => {
+            delete c.example;
+            instance = new enforcer(s, {});
+            const example = instance.response(req).example();
+            const oneOf = same(example, c.examples.First) || same(example, c.examples.Second);
+            expect(oneOf).to.be.true;
         });
 
-        it('will accept weighted content type list', () => {
-
+        it('select named example', () => {
+            delete c.example;
+            instance = new enforcer(s, {});
+            const example = instance.response(req).example({ name: 'First' });
+            expect(example).to.deep.equal(c.examples.First);
         });
 
-        it('will use named example specified', () => {
-
+        it('ignore documented examples', () => {
+            instance = new enforcer(s, {});
+            const example = instance.response(req).example({ ignoreDocumentExample: true });
+            expect(example).not.to.deep.equal(c.example);
         });
 
-        it('returns random if named object not defined', () => {
-
+        it('no documented examples', () => {
+            delete c.example;
+            delete c.examples;
+            delete c.schema.example;
+            const example = instance.response(req).example();
+            expect(example).not.to.be.undefined;
         });
 
     });

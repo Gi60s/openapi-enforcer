@@ -283,27 +283,26 @@ Version.prototype.getResponseData = function(responses, options) {
     return result;
 };
 
-Version.prototype.getResponseExamples = function(responseSchema, accepts, name) {
+Version.prototype.getResponseExample = function(responseSchema, contentType, name) {
     const content = responseSchema.content;
-    if (!content) return;
+    if (!content || !content[contentType]) return;
 
-    const matches = util.findMediaMatch(accepts || '*/*', Object.keys(content));
-    const results = {};
-    matches.forEach(contentType => {
-        const schema = content[contentType];
-        results.contentType = contentType;
-        results.schema = schema.schema;
-        results.examples = [];
-        if (schema.example) {
-            results.examples.push({ body: util.copy(schema.example) });
-        } else if (schema.examples) {
-            Object.keys(schema.examples).forEach(name => {
-                results.examples.push({ name: name, body: schema.examples[name] });
-            });
+    const data = content[contentType];
+
+    if (data.example) {
+        return util.copy(data.example);
+
+    } else if (data.examples) {
+        if (name && data.examples.hasOwnProperty('name')) return util.copy(data.examples[name]);
+        const names = Object.keys(data.examples);
+        if (names.length > 0) {
+            const index = Math.floor(Math.random() * names.length);
+            return util.copy(data.examples[names[index]]);
         }
-    });
 
-    return results;
+    } else if (data.schema && data.schema.example) {
+        return util.copy(data.schema.example);
+    }
 };
 
 
