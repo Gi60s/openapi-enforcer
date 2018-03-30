@@ -488,14 +488,13 @@ function responseExample(context, responses, data, options) {
     return example;
 }
 
-function responsePopulate(context, pathSchema, config) {
-    config = Object.assign({}, config);
+function responsePopulate(context, responses, data, options) {
+    const config = Object.assign({}, options);
     if (!config.headers) config.headers = {};
     if (!config.options) config.options = {};
     if (!config.params) config.params = {};
     config.headers = util.lowerCaseProperties(config.headers);
 
-    const data = responseData(context, pathSchema, config);
     if (!data) throw Error('Cannot populate value without schema');
     const result = {};
     
@@ -516,19 +515,27 @@ function responsePopulate(context, pathSchema, config) {
     const headers = config.headers;
     result.headers = headers;
     if (headersSchemas) {
+
+        // add content type to headers if not there already
         if (!headers.hasOwnProperty('content-type') && data.contentType) {
             headers['content-type'] = data.contentType;
         }
+
+        // populate all headers with schemas
         Object.keys(headersSchemas).forEach(header => {
-            const schema = headersSchemas[header];
-            const options = { 
-                schema: schema, 
-                params: config.params,
-                options: config.options
-            };
-            if (headers.hasOwnProperty(header)) options.value = headers[header];
-            headers[header] = context.populate(options);
-            if (config.serialize) headers[header] = context.serialize(schema, headers[header]);
+            const schema = headersSchemas[header].schema;
+            if (schema) {
+                const options = {
+                    schema: schema,
+                    params: config.params,
+                    options: config.options
+                };
+                if (headers.hasOwnProperty(header)) options.value = headers[header];
+                headers[header] = context.populate(options);
+
+                // TODO: headers act similar to parameters - this needs additional work to apply style, etc.
+                if (config.serialize) headers[header] = context.serialize(schema, headers[header]);
+            }
         });
     }
 
