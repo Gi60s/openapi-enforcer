@@ -500,15 +500,16 @@ Returns an object with the following properties:
     console.log(response.data);
     ```
 
-- *example* - A function that produces an example response. The example may come from the OpenAPI document if one exists, otherwise it will be generated using the [`Enforcer.prototype.random`](#enforcerprototyperandom) function.
+- *example* - A function that produces an example response. If the OpenAPI document has one or more examples then one of those will be used, otherwise it will be generated using the [`Enforcer.prototype.random`](#enforcerprototyperandom) function.
 
-    Signature: `example ( { name } )`
+    Signature: `example ( { name, random=false } )`
     
     Takes a configuration object as it's parameter with the following properties:
 
     | Property | Description |
     | ---------| ----------- |
-    | name | The name of the example to use when pulling from a named OpenAPI 3.x document example. Not relevant for OpenAPI 2.0 |
+    | name | The name of the example to use when pulling from a named OpenAPI 3.x document example. Not relevant for OpenAPI 2.0. If the `random` property is set to `true` then this value will be ignored. |
+    | ignoreDocumentExample | If set to `true` then even if an example exists in the OpenAPI document, a random one will be generated instead. Defaults to `false` |
 
     Returns a value that can be used as an example.
 
@@ -523,7 +524,7 @@ Returns an object with the following properties:
 
 - *populate* - A function that uses [`enforcer.prototype.populate`](#enforcerprototypepopulate) to build a response value using the response schema and a parameter map.
 
-    Signature: `populate ( { body, code, contentType, headers, params, serialize } )`
+    Signature: `populate ( { body, headers, options, params, serialize } )`
     
     Takes a configuration object as it's parameter with the following properties:
 
@@ -531,6 +532,7 @@ Returns an object with the following properties:
     | ---------| ----------- |
     | body | The initial body value. Omit this value if you want the body to be built from scratch. |
     | headers | An initial header object with header names and values as key value pairs. If the headers object does not define the `'content-type'` header then it will be set to the same value as the `contentType` option specified by the data object. |
+    | options | Options to pass to the [`enforcer.prototype.populate`](#enforcerprototypepopulate) function. |
     | params | The parameter map to pass to [`enforcer.prototype.populate`](#enforcerprototypepopulate) 
     | serialize| A boolean that if set to `true` will also serialize the populated value. Defaults to `false`. |
 
