@@ -483,7 +483,8 @@ function responseExample(context, responses, data, options) {
     if (data && data.code && data.contentType && !options.ignoreDocumentExample) {
         const ex = version.getResponseExamples(responses[data.code], data.contentType);
         if (!options.name) {
-            example = ex.examples[0];
+            const index = Math.floor(Math.random() * ex.examples.length);
+            example = ex.examples[index];
         } else {
             example = ex.examples.filter(example => example.name === name)[0];
         }
