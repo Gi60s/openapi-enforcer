@@ -477,28 +477,19 @@ function responseData(context, responses, config) {
     return version.getResponseData(responses, config);
 }
 
-function responseExample(context, responses, options) {
+function responseExample(context, responses, data, options) {
     if (!responses) throw Error('Cannot build example response without schema');
-
-    options = Object.assign({}, options);
-    if (!options.hasOwnProperty('code')) options.code = responses.default ? 'default' : Object.keys(responses)[0];
-
-    const version = store.get(context).version;
-    const data = version.getResponseExamples(responses[options.code], options.contentType);
     let example;
-
-    if (!data) return;
-    if (!name) {
-        example = data.examples[0];
-    } else {
-        example = data.examples.filter(example => example.name === name)[0] || data.examples[0];
+    if (data && data.code && data.contentType && !options.ignoreDocumentExample) {
+        const ex = version.getResponseExamples(responses[data.code], data.contentType);
+        if (!options.name) {
+            example = ex.examples[0];
+        } else {
+            example = ex.examples.filter(example => example.name === name)[0];
+        }
     }
     if (example === undefined && data.schema) example = context.random(data.schema);
-    return {
-        contentType: data.contentType,
-        example: example,
-        schema: data.schema
-    };
+    return example;
 }
 
 function responsePopulate(context, pathSchema, config) {
