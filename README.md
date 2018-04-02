@@ -500,6 +500,36 @@ Returns an object with the following properties:
     console.log(response.data);
     ```
 
+- *errors* - A function that returns an array of errors for the body and headers.
+
+    Signature: `errors ( { body, headers })`
+    
+    Takes a configuration object as it's parameter with the following properties:
+
+    | Property | Description |
+    | ---------| ----------- |
+    | body | The response body to check for errors. |
+    | headers | An object with key value pairs where the key is the header name and the value is the header value. Each header name that has an associated OpenAPI schema will be checked for errors. |
+
+    Returns an array of strings if one or more errors occurred, otherwise returns `null`.
+
+    ```js
+    const response = enforcer.response({
+        code: 200, 
+        contentType: 'application/json', 
+        path: '/' 
+    });
+
+    const errors = response.errors({
+        body: {},
+        headers: {
+            'x-date': new Date()
+        }
+    });
+
+    if (errors) console.error(errors.join('\n'));
+    ```
+
 - *example* - A function that produces an example response. If the OpenAPI document has one or more examples then one of those will be used, otherwise it will be generated using the [`Enforcer.prototype.random`](#enforcerprototyperandom) function.
 
     Signature: `example ( { name, random=false } )`
@@ -524,7 +554,7 @@ Returns an object with the following properties:
 
 - *populate* - A function that uses [`enforcer.prototype.populate`](#enforcerprototypepopulate) to build a response value using the response schema and a parameter map.
 
-    Signature: `populate ( { body, headers, options, params, serialize } )`
+    Signature: `populate ( { body, headers, options, params } )`
     
     Takes a configuration object as it's parameter with the following properties:
 
@@ -533,29 +563,9 @@ Returns an object with the following properties:
     | body | The initial body value. Omit this value if you want the body to be built from scratch. |
     | headers | An initial header object with header names and values as key value pairs. If the headers object does not define the `'content-type'` header then it will be set to the same value as the `contentType` option specified by the data object. |
     | options | Options to pass to the [`enforcer.prototype.populate`](#enforcerprototypepopulate) function. |
-    | params | The parameter map to pass to [`enforcer.prototype.populate`](#enforcerprototypepopulate) 
-    | serialize| A boolean that if set to `true` will also serialize the populated value. Defaults to `false`. |
+    | params | The parameter map to pass to [`enforcer.prototype.populate`](#enforcerprototypepopulate) |
 
     Returns an object with `headers` and `body` properties.
-
-    **Example with automatic serialization**
-
-    ```js
-    const response = enforcer.response({
-        code: 200, 
-        contentType: 'application/json', 
-        path: '/' 
-    });
-
-    const populated = response.populate({
-        params: {},
-        body: {},
-        headers: {},
-        serialize: true
-    });
-    ```
-
-    **Example with manual serialization**
 
     ```js
     const response = enforcer.response({
@@ -569,15 +579,9 @@ Returns an object with the following properties:
         body: {},
         headers: {}
     });
-    
-    // manually validate and serialize
-    const serialized = response.serialize({
-        body: populated.body,
-        headers: populated.headers
-    });
     ```
 
-- *serialize* - A function that takes the status code, body, and headers and then validates and serializes the body and headers to prepare them to send as an HTTP response.
+- *serialize* - A function that takes the status code, body, and headers and then validates and then serializes the body and headers to prepare them to send as an HTTP response. If validation fails an error will be thrown.
 
     Signature: `serialize ( { body, headers } )`
     
@@ -587,6 +591,7 @@ Returns an object with the following properties:
     | ---------| ----------- |
     | body | The initial body value. Omit this value if you want the body to be built from scratch. |
     | headers | An initial header object with header names and values as key value pairs. If the headers object does not define the `'content-type'` header then it will be set to the same value as the contentType option. |
+    | skipValidation | Skip validation prior to seraialization. This can save processing cycles if you have already used `Enforcer.prototype.response().errors()` to check for errors and have found none. Skipping validation when errors exist may still cause errors to occur. Defaults to `false`. |
 
     Returns an object with `headers` and `body` properties.
 
@@ -834,9 +839,18 @@ req => {
 */
 ```
 
-## Enforcer.prototype.schema
-
 ## Enforcer.prototype.serialize
+
+Serialize a value for sending via HTTP. This function does not validate the value prior to serialization so you may want to use [`Enforcer.prototype.errors`](#enforcerprototypeerrors) or [`Enforcer.prototype.validate`](#enforcerprototypevalidate) prior to serialization.
+
+Signature: `Enforcer.prototype.validate ( schema, value )`
+
+| Parameter | Description | Type |
+| --------- | ----------- | ---- |
+| schema | The schema to serialize from | `object` |
+| value | The value to serialize | Any |
+
+Returns a serialized value.
 
 ## Enforcer.prototype.validate
 
@@ -850,7 +864,7 @@ Validate that the value adheres to the schema or throw an `Error`. This function
 | params | A map of keys to values. These values are used to help build the final value | `object` |
 | value | An initial value to start with. | Any |
 
-Returns: Nothing.
+Returns `undefined`.
 
 ```js
 const OpenApiEnforcer = require('../index');
@@ -886,80 +900,4 @@ enforcer.validate(schema, {
 //   /date: Expected date-time to be less than or equal to 2000-01-01T00:00:00.000Z. Received: 2010-01-01T00:00:00.000Z
 //   /num: Property not allowed
 //     at ...
-```
-
-## Enforcer.format
-
-Various functions that take a single parameter as input and convert it to a format that is ready for sending as an HTTP response. For example, the `binary` format function will convert a value to a binary string; the date format function will convert a value to a date string.
-
-Note: this static method should not be confused with the [Enforcer.prototype.format](#enforcerprototypeformat) function that formats a value to a provided schema.
-
-| Function | Input |
-| -------- | ------|
-| binary | A `Boolean`, `Number`, `String`, or `Buffer`. |
-| boolean | Any value. |
-| byte | A `Boolean`, `Number`, `String`, or `Buffer`. |
-| date | A `Date` object, `String` in ISO date or date-time format, or a `Number`. |
-| dateTime | A `Date` object, `String` in ISO date or date-time format, or a `Number`. |
-| integer | Any value not isNaN. |
-| number | Any value not isNaN. |
-| string | A `String`, `Number`, `Boolean`, `Object`, of `Date`. |
-
-**Example**
-
-```js
-const Enforcer = require('openapi-enforcer');
-
-Enforcer.format.binary(true);       // => "00000001"
-Enforcer.format.date(0);            // => "1970-01-01"
-Enforcer.format.integer(5.67);      // => 6
-```
-
-## Enforcer.is
-
-Various functions that take a single parameter as input and detect if the value fits to a specific type. Some functions have an optional second parameter that can be used to increase the strictness of the check. Returns `true` if of the correct type, otherwise `false`.
-
-| Function | Input | Strict Option |
-| -------- | ------| ------------- |
-| binary | A binary `String` made up of zeros and ones with a length divisible by 8. | No
-| boolean | `"true"`, `"false"`, or a `Boolean`. | Yes - must be a `Boolean` |
-| byte | A base64 encoded `String`. | No |
-| date | A `Date` object at start of UTC day or `String` in ISO date format. | Yes - must be a `Date` |
-| dateTime | A `Date` object or `String` in ISO date or date-time format. | Yes - must be a `Date` |
-| integer | An integer `String` or an integer `Number`. | Yes - must be a `Number` |
-| number | A `String` or `Number`. | Yes - must be a `Number` |
-
-**Example**
-
-```js
-const Enforcer = require('openapi-enforcer');
-
-Enforcer.is.integer("123");         // => true
-Enforcer.is.integer(123);           // => true
-Enforcer.is.integer(1.23);          // => false
-Enforcer.is.integer("123", true);   // => false
-```
-
-## Enforcer.parse
-
-Various functions that take a single parameter as input and return the parsed value. Some functions have an optional second parameter that can be used to force parse and allow for more leniency in input.
-
-| Function | Input | Force Option | Return Value |
-| -------- | ----- | ------------ | ------------ |
-| binary | A binary `String` made up of zeros and ones with a length divisible by 8. | No | `Buffer` |
-| boolean | `"true"`, `"false"`, or a `Boolean`. | Yes - any value accepted | `Boolean` |
-| byte | A base64 encoded `String`. | No | `Buffer` |
-| date | A `Date` object or `String` in ISO date format. | Yes - `Number` or ISO date-time string | `Date` |
-| dateTime | A `Date` object or `String` in ISO date-time format. | Yes - `Number` or ISO date string | `Date` |
-| integer | An integer `String` or an integer `Number`. | Yes - anything not isNaN | `Number` |
-| number | A `String` or `Number`. | Yes - anything not isNaN | `Number` |
-
-**Example**
-
-```js
-const Enforcer = require('openapi-enforcer');
-
-Enforcer.parse.integer("123");          // => 123 (as a number)
-Enforcer.parse.integer("5.67");         // => throws Error
-Enforcer.parse.integer("5.67", true);   // => 6 (as a number)
 ```
