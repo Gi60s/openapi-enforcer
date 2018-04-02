@@ -28,10 +28,31 @@ describe('v3/response', () => {
                     responses: {
                         200: {
                             headers: {
+                                'x-array': {
+                                    schema: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'string'
+                                        }
+                                    }
+                                },
                                 'x-date': {
                                     schema: {
+                                        'x-variable': 'date',
                                         type: 'string',
                                         format: 'date'
+                                    }
+                                },
+                                'x-required': {
+                                    required: true
+                                },
+                                'x-obj': {
+                                    schema: {
+                                        type: 'object',
+                                        properties: {
+                                            a: { type: 'string' },
+                                            b: { type: 'string' }
+                                        }
                                     }
                                 }
                             },
@@ -41,6 +62,7 @@ describe('v3/response', () => {
                                         type: 'object',
                                         properties: {
                                             date: {
+                                                'x-variable': 'date',
                                                 type: 'string',
                                                 format: 'date'
                                             }
@@ -71,11 +93,13 @@ describe('v3/response', () => {
                         default: {
                             content: {
                                 'application/json': {
-                                    type: 'object',
-                                    properties: {
-                                        date: {
-                                            type: 'string',
-                                            format: 'date'
+                                    schema: {
+                                        type: 'object',
+                                        properties: {
+                                            date: {
+                                                type: 'string',
+                                                format: 'date'
+                                            }
                                         }
                                     }
                                 }
@@ -145,7 +169,7 @@ describe('v3/response', () => {
 
     });
 
-    describe.only('example', () => {
+    describe('example', () => {
         const req = { path: '/', method: 'get', code: 200, contentType: 'application/json' };
         let s;
         let c;
@@ -210,105 +234,43 @@ describe('v3/response', () => {
     });
 
     describe('populate', () => {
+        const req = { path: '/', method: 'get', code: 200, contentType: 'application/json' };
 
-        it('will use default code if it exists', () => {
-            
+        it('will populate body', () => {
+            const d = new Date('2001-01-01');
+            const value = instance.response(req).populate({
+                params: { date: d }
+            });
+            expect(+value.body.date).to.equal(+d);
         });
 
-        it('will use first code if no default code', () => {
-
+        it('will populate headers', () => {
+            const d = new Date('2001-01-01');
+            const value = instance.response(req).populate({
+                params: { date: d }
+            });
+            expect(+value.headers['x-date']).to.equal(+d);
         });
-
-        it('will use first response code content type if omitted', () => {
-
-        });
-
-        it('missing header content-type added from contentType', () => {
-
-        });
-
-        it('if contentType empty will pull from header', () => {
-
-        });
-
-        it('missing header content-type and missing contentType uses first content type', () => {
-
-        });
-
-
 
     });
 
-    describe('serialize', () => {
+    describe.only('serialize', () => {
+        const req = { path: '/', method: 'get', code: 200, contentType: 'application/json' };
+        const str = '2001-01-01';
+        const d = new Date(str);
 
-        describe('body', () => {
-            let d = '2000-01-01T00:00:00.000Z';
-
-            it('valid code and content type omitted', () => {
-                const req = request({});
-                const res = instance.response(req).serialize({
-                    code: 200,
-                    body: { date: new Date(d) }
-                });
-                expect(res.value.body).to.deep.equal({ date: '2000-01-01' });
-            });
-
-            it('valid code and content type', () => {
-                const req = request({});
-                const res = instance.response(req).serialize({
-                    code: 200,
-                    body: { date: new Date(d) },
-                    headers: { 'content-type': 'application/json' }
-                });
-                expect(res.value.body).to.deep.equal({ date: '2000-01-01' });
-            });
-
-            it('valid code and invalid content type', () => {
-                const req = request({});
-                const options = {
-                    code: 200,
-                    body: { date: new Date(d) },
-                    headers: { 'content-type': 'text/plain' }
-                };
-                expect(instance.response(req).serialize(options).value.body)
-                    .to.deep.equal({ date: new Date(d) });
-            });
-
-            it('invalid code uses default', () => {
-                const req = request({});
-                const res = instance.response(req).serialize({
-                    code: 400,
-                    body: { date: new Date(d) },
-                    headers: { 'content-type': 'application/json' }
-                });
-                expect(res.value.body).to.deep.equal({ date: '2000-01-01' });
-            });
-
+        it('will serialize body', () => {
+            const response = instance.response(req);
+            const populated = response.populate({ params: { date: d } });
+            const serialized = response.serialize(populated);
+            expect(serialized.body.date).to.equal(str);
         });
 
-        describe('headers', () => {
-            let d = '2000-01-01T00:00:00.000Z';
-
-            it('header with schema', () => {
-                const req = request({});
-                const res = instance.response(req).serialize({
-                    code: 200,
-                    body: {},
-                    headers: { 'x-date': new Date(d) }
-                });
-                expect(res.value.header['x-date']).to.equal('2000-01-01');
-            });
-
-            it('header without schema', () => {
-                const req = request({});
-                const res = instance.response(req).serialize({
-                    code: 200,
-                    body: {},
-                    headers: { 'x-abc': new Date(d) }
-                });
-                expect(res.value.header['x-abc']).to.deep.equal(new Date(d));
-            });
-
+        it('will serialize headers', () => {
+            const response = instance.response(req);
+            const populated = response.populate({ params: { date: d } });
+            const serialized = response.serialize(populated);
+            expect(serialized.headers['x-date']).to.equal(str);
         });
 
     });

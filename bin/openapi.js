@@ -138,9 +138,10 @@ OpenApiEnforcer.prototype.deserialize = function(schema, value) {
 OpenApiEnforcer.prototype.errors = function(schema, value) {
     const data = store.get(this);
     const version = data.version;
+    const rx = /^\S$/;
     const v = {
         definition: data.definition,
-        error: (prefix, message) => v.errors.push((prefix ? prefix + ': ' : '') + message),
+        error: (prefix, message) => v.errors.push((rx.test(prefix) ? prefix + ': ' : prefix) + message),
         errors: [],
         options: data.defaults.validate,
         version: version
@@ -292,7 +293,7 @@ OpenApiEnforcer.prototype.request = function(req) {
                 errors: config => responseErrors(this, responses, data, config),
                 example: config => responseExample(this, responses, data, config),
                 populate: config => responsePopulate(this, responses, data, config),
-                serialize: config => responseValidateSerialize(this, responses, data, config)
+                serialize: config => responseSerialize(this, responses, data, config)
             }
         },
         schema: path.schema
@@ -319,7 +320,7 @@ OpenApiEnforcer.prototype.response = function(options) {
         errors: config => responseErrors(this, responses, data, config),
         example: config => responseExample(this, responses, data, config),
         populate: config => responsePopulate(this, responses, data, config),
-        serialize: config => responseValidateSerialize(this, responses, data, config)
+        serialize: config => responseSerialize(this, responses, data, config)
     };
 };
 
@@ -442,25 +443,31 @@ function responseErrors(context, responses, data, config) {
     // check body for errors
     if (config.hasOwnProperty('body')) {
         const err = context.errors(data.schema, config.body);
-        if (err) errors = err;
+        if (err) errors.push('One or more errors with body: \n  ' + err.join('\n  '));
     }
 
     // check headers for errors
-    if (config.headers && responses && responses[code]) {
-        const schemas = responses[code].headers;
+    if (config.headers && responses && responses[data.code]) {
+        const schemas = responses[data.code].headers;
         if (schemas) {
             const headers = config.headers;
+            const headerErrors = [];
+
             Object.keys(schemas)
                 .forEach(name => {
                     const schema = schemas[name];
                     if (headers.hasOwnProperty(name)) {
-                        const err = context.errors(schema, headers[name]);
-                        if (err) errors = errors.concat(err);
+                        const err = context.errors(schema.schema, headers[name]);
+                        if (err) headerErrors.push(name + ':\n      ' + err.join('\n      '));
 
                     } else if (schema.required) {
-                        errors.push('Missing required header: ' + name);
+                        headerErrors.push(name + ':\n      Required but not provided');
                     }
                 });
+
+            if (headerErrors.length > 0) {
+                errors.push('One or more errors in headers:\n    ' + headerErrors.join('\n    '));
+            }
         }
     }
 
@@ -520,7 +527,8 @@ function responsePopulate(context, responses, data, options) {
                     options: config.options
                 };
                 if (headers.hasOwnProperty(header)) options.value = headers[header];
-                headers[header] = context.populate(options);
+                const value = context.populate(options);
+                if (value !== undefined) headers[header] = value;
             }
         });
     }
@@ -528,27 +536,30 @@ function responsePopulate(context, responses, data, options) {
     return result;
 }
 
-function responseValidateSerialize(context, responses, data, config) {
+function responseSerialize(context, responses, data, config) {
     const result = { headers: {} };
     const version = store.get(context).version;
 
     if (!config.skipValidation) {
         const errors = responseErrors(context, responses, data, config);
-        if (errors) throw Error('Unable to serialize response due to one or more errors:\n\t' + errors.join('\n\t'));
+        if (errors) throw Error('Unable to serialize response due to one or more errors:\n  ' + errors.join('\n  '));
     }
 
     if (config.hasOwnProperty('body')) {
         result.body = context.serialize(data.schema, config.body);
-
     }
 
-    if (config.headers && responses && responses[code]) {
-        const schemas = responses[code].headers;
+    if (config.headers && responses && responses[data.code]) {
+        const headers = config.headers;
+        const schemas = responses[data.code].headers;
         Object.keys(config.headers)
             .forEach(name => {
-                result.headers[name] = schemas[name]
-                    ? version.serializeResponseHeader(schemas[name], headers[name])
+                const schema = schemas[name];
+                let value = schema && schema.schema
+                    ? serialize('', schema.schema, headers[name])
                     : String(headers[name]);
+                value = version.serializeResponseHeader(schema, value);
+                result.headers[name] = value;
             });
     }
 
