@@ -71,7 +71,7 @@ Version.prototype.getDiscriminatorSchema = function(schema, value) {
  *
  * @param {object} responses
  * @param {{ code: string, contentType: string }} options
- * @returns {{ code: string, contentType: string, schema: object }|undefined}
+ * @returns {{ code: string, contentType: string, headers: object, schema: object }|undefined}
  */
 Version.prototype.getResponseData = function(responses, options) {
     if (!responses) return;
@@ -83,13 +83,15 @@ Version.prototype.getResponseData = function(responses, options) {
     if (!schema) return;
 
     const result = { code: code };
-    if (!schema.content) return result;
+    if (!schema.content) return;
 
     const match = util.findMediaMatch(options.contentType || '*/*', Object.keys(schema.content))[0];
-    if (!match) return result;
-    result.contentType = match;
-    result.schema = schema.content[match];
+    if (!match) return;
 
+    const content = schema.content[match];
+    result.contentType = match;
+    result.schema = content.schema;
+    result.headers = content.headers || {};
     return result;
 };
 
@@ -306,18 +308,20 @@ Version.prototype.parseRequestParameters = function(schema, req) {
 Version.prototype.random = function() {}; // implemented in constructor
 
 Version.prototype.serializeResponseHeader = function(schema, value) {
-    if (Array.isArray(value)) {
-        return schema.explode
-            ? value.map(v => this.serializeResponseHeader(schema, v)).join(',')
-            : this.serializeResponseHeader(schema, value[value.length - 1]);
+    const type = schema && schema.schema && util.schemaType(schema.schema);
+    switch (type) {
+        case 'array':
+            return value.join(',');
 
-    } else if (value && typeof value === 'object') {
+        case 'object':
+            return Object.keys(value)
+                .map(key => key + (schema.explode ? '=' : ',') + value[key])
+                .join(',');
 
-    } else {
-
+        default:
+            return value;
     }
 };
-
 
 Version.defaults = {
 
