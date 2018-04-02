@@ -289,6 +289,7 @@ OpenApiEnforcer.prototype.request = function(req) {
             const data = responseData(this, responses, config);
             return {
                 data: data,
+                errors: config => responseErrors(this, responses, data, config),
                 example: config => responseExample(this, responses, data, config),
                 populate: config => responsePopulate(this, responses, data, config),
                 serialize: config => responseValidateSerialize(this, responses, data, config)
@@ -315,51 +316,13 @@ OpenApiEnforcer.prototype.response = function(options) {
     const data = responseData(this, responses, options);
     return {
         data: data,
+        errors: config => responseErrors(this, responses, data, config),
         example: config => responseExample(this, responses, data, config),
         populate: config => responsePopulate(this, responses, data, config),
         serialize: config => responseValidateSerialize(this, responses, data, config)
     };
 };
 
-/**
- * Get a copy of the schema at the specified path.
- * @param {string} [path=''] The path in the schema to get a sub-schema from. Supports variable substitution for path parameters.
- * @param {object} [schema] The schema to traverse. Defaults to the entire OpenApiEnforcer document.
- * @returns {object|undefined} Will return undefined if the specified path is invalid.
- */
-OpenApiEnforcer.prototype.schema = function(path, schema) {
-    let result = schema || store.get(this).definition;
-
-    // normalize path
-    if (!path) path = '';
-    path = path.replace(/^\/(?!\/)/, '').replace(/(?!\/)\/$/, '');
-
-    // determine path keys
-    const keys = [];
-    let index = 0;
-    let join = false;
-    path.split('/').forEach(key => {
-        if (!key && keys[index - 1]) {
-            join = true;
-        } else if (join) {
-            keys[index - 1] += '/' + key;
-        } else {
-            index = keys.push(key);
-        }
-    });
-
-    // loop through path parts to find object of interest
-    let key;
-    while (key = keys.shift()) {
-        if (result && typeof result === 'object') {
-            result = result[key];
-        } else {
-            return;
-        }
-    }
-
-    return util.copy(result);
-};
 
 /**
  * Serialize a value for sending as a response.
@@ -408,10 +371,6 @@ OpenApiEnforcer.defaults = {
         variables: true
     }
 };
-
-// static properties with methods
-OpenApiEnforcer.format = format;
-OpenApiEnforcer.parse = parse;
 
 
 // convert from string values to correct data types
@@ -477,6 +436,37 @@ function responseData(context, responses, config) {
     return version.getResponseData(responses, config);
 }
 
+function responseErrors(context, responses, data, config) {
+    let errors = [];
+
+    // check body for errors
+    if (config.hasOwnProperty('body')) {
+        const err = context.errors(data.schema, config.body);
+        if (err) errors = err;
+    }
+
+    // check headers for errors
+    if (config.headers && responses && responses[code]) {
+        const schemas = responses[code].headers;
+        if (schemas) {
+            const headers = config.headers;
+            Object.keys(schemas)
+                .forEach(name => {
+                    const schema = schemas[name];
+                    if (headers.hasOwnProperty(name)) {
+                        const err = context.errors(schema, headers[name]);
+                        if (err) errors = errors.concat(err);
+
+                    } else if (schema.required) {
+                        errors.push('Missing required header: ' + name);
+                    }
+                });
+        }
+    }
+
+    return errors.length > 0 ? errors : null;
+}
+
 function responseExample(context, responses, data, options) {
     if (!responses) throw Error('Cannot build example response without schema');
     if (!options) options = {};
@@ -496,7 +486,7 @@ function responsePopulate(context, responses, data, options) {
     config.headers = util.lowerCaseProperties(config.headers);
 
     if (!data) throw Error('Cannot populate value without schema');
-    const result = {};
+    let result = {};
     
     // populate body
     if (data.schema) {
@@ -507,7 +497,6 @@ function responsePopulate(context, responses, data, options) {
         };
         if (config.hasOwnProperty('body')) options.value = config.body;
         result.body = context.populate(options);
-        if (config.serialize) result.body = context.serialize(data.schema, result.body);
     }
 
     // populate headers
@@ -532,9 +521,6 @@ function responsePopulate(context, responses, data, options) {
                 };
                 if (headers.hasOwnProperty(header)) options.value = headers[header];
                 headers[header] = context.populate(options);
-
-                // TODO: headers act similar to parameters - this needs additional work to apply style, etc.
-                if (config.serialize) headers[header] = context.serialize(schema, headers[header]);
             }
         });
     }
@@ -542,50 +528,31 @@ function responsePopulate(context, responses, data, options) {
     return result;
 }
 
-function responseValidateSerialize(context, pathSchema, code, body, headers) {
-    const result = { header: {} };
-    const errors = [];
+function responseValidateSerialize(context, responses, data, config) {
+    const result = { headers: {} };
+    const version = store.get(context).version;
 
-    // validate and serialize the body if a schema exists
-    const bodySchema = store.get(context).version.getResponseBodySchema(pathSchema, code, headers && headers['content-type']);
-    if (bodySchema) {
-        const err = context.errors(bodySchema, body);
-        if (err) {
-            errors.push('One or more errors in response body: \n' + err.join('\n\t'));
-        } else {
-            result.body = context.serialize(bodySchema, body);
-        }
-    } else {
-        result.body = body;
+    if (!config.skipValidation) {
+        const errors = responseErrors(context, responses, data, config);
+        if (errors) throw Error('Unable to serialize response due to one or more errors:\n\t' + errors.join('\n\t'));
     }
 
-    // validate and serialize each header if a schema exists
-    if (headers && pathSchema.responses) {
-        const schema = pathSchema.responses[code] || pathSchema.responses.default;
-        if (schema.headers) {
-            const schemas = schema.headers;
-            Object.keys(headers)
-                .forEach(key => {
-                    key = key.toLowerCase();
-                    if (schemas[key]) {
-                        const err = context.errors(schemas[key].schema, headers[key]);
-                        if (err) {
-                            errors.push('One or more errors in response header "' + key + '": \n' + err.join('\n\t'));
-                        } else {
-                            result.header[key] = context.serialize(schemas[key].schema, headers[key]);
-                        }
-                    } else {
-                        result.header[key] = headers[key];
-                    }
-                });
-        }
+    if (config.hasOwnProperty('body')) {
+        result.body = context.serialize(data.schema, config.body);
+
     }
 
-    const hasErrors = errors.length;
-    return {
-        errors: hasErrors ? errors : undefined,
-        value: result
-    };
+    if (config.headers && responses && responses[code]) {
+        const schemas = responses[code].headers;
+        Object.keys(config.headers)
+            .forEach(name => {
+                result.headers[name] = schemas[name]
+                    ? version.serializeResponseHeader(schemas[name], headers[name])
+                    : String(headers[name]);
+            });
+    }
+
+    return result;
 }
 
 function serialize(prefix, schema, value) {
