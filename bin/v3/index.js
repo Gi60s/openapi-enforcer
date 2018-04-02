@@ -68,6 +68,54 @@ Version.prototype.getDiscriminatorSchema = function(schema, value) {
 };
 
 /**
+ *
+ * @param {object} responses
+ * @param {{ code: string, contentType: string }} options
+ * @returns {{ code: string, contentType: string, schema: object }|undefined}
+ */
+Version.prototype.getResponseData = function(responses, options) {
+    if (!responses) return;
+
+    const code = options.hasOwnProperty('code')
+        ? options.code
+        : responses.hasOwnProperty('default') ? 'default' : Object.keys(responses)[0];
+    const schema = responses[code];
+    if (!schema) return;
+
+    const result = { code: code };
+    if (!schema.content) return result;
+
+    const match = util.findMediaMatch(options.contentType || '*/*', Object.keys(schema.content))[0];
+    if (!match) return result;
+    result.contentType = match;
+    result.schema = schema.content[match];
+
+    return result;
+};
+
+Version.prototype.getResponseExample = function(responseSchema, contentType, name) {
+    const content = responseSchema.content;
+    if (!content || !content[contentType]) return;
+
+    const data = content[contentType];
+
+    if (data.example) {
+        return util.copy(data.example);
+
+    } else if (data.examples) {
+        if (name && data.examples.hasOwnProperty(name)) return util.copy(data.examples[name]);
+        const names = Object.keys(data.examples);
+        if (names.length > 0) {
+            const index = Math.floor(Math.random() * names.length);
+            return util.copy(data.examples[names[index]]);
+        }
+
+    } else if (data.schema && data.schema.example) {
+        return util.copy(data.schema.example);
+    }
+};
+
+/**
  * Deserialize the request parameters.
  * @param {object} schema The path schema object.
  * @param {object} req
@@ -257,51 +305,16 @@ Version.prototype.parseRequestParameters = function(schema, req) {
  */
 Version.prototype.random = function() {}; // implemented in constructor
 
-/**
- * 
- * @param {object} responses 
- * @param {{ code: string, contentType: string }} options 
- * @returns {{ code: string, contentType: string, schema: object }|undefined}
- */
-Version.prototype.getResponseData = function(responses, options) {
-    if (!responses) return;
+Version.prototype.serializeResponseHeader = function(schema, value) {
+    if (Array.isArray(value)) {
+        return schema.explode
+            ? value.map(v => this.serializeResponseHeader(schema, v)).join(',')
+            : this.serializeResponseHeader(schema, value[value.length - 1]);
 
-    const code = options.hasOwnProperty('code')
-        ? options.code
-        : responses.hasOwnProperty('default') ? 'default' : Object.keys(responses)[0];
-    const schema = responses[code];
-    if (!schema) return;
+    } else if (value && typeof value === 'object') {
 
-    const result = { code: code };
-    if (!schema.content) return result;
+    } else {
 
-    const match = util.findMediaMatch(options.contentType || '*/*', Object.keys(schema.content))[0];
-    if (!match) return result;
-    result.contentType = match;
-    result.schema = schema.content[match];
-
-    return result;
-};
-
-Version.prototype.getResponseExample = function(responseSchema, contentType, name) {
-    const content = responseSchema.content;
-    if (!content || !content[contentType]) return;
-
-    const data = content[contentType];
-
-    if (data.example) {
-        return util.copy(data.example);
-
-    } else if (data.examples) {
-        if (name && data.examples.hasOwnProperty('name')) return util.copy(data.examples[name]);
-        const names = Object.keys(data.examples);
-        if (names.length > 0) {
-            const index = Math.floor(Math.random() * names.length);
-            return util.copy(data.examples[names[index]]);
-        }
-
-    } else if (data.schema && data.schema.example) {
-        return util.copy(data.schema.example);
     }
 };
 
