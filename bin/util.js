@@ -16,6 +16,10 @@
  **/
 'use strict';
 
+exports.arrayPushMany = function(target, source) {
+    source.forEach(item => target.push(item));
+};
+
 /**
  * Copies Dates, Buffers, Arrays, plain Objects, and Primitives
  * @param {*} value
