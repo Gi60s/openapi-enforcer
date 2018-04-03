@@ -71,7 +71,7 @@ Version.prototype.getDiscriminatorSchema = function(schema, value) {
  *
  * @param {object} responses
  * @param {{ code: string, contentType: string }} options
- * @returns {{ code: string, contentType: string, headers: object, schema: object }|undefined}
+ * @returns {{ code: string, contentType?: string, headers?: object, schema?: object }|undefined}
  */
 Version.prototype.getResponseData = function(responses, options) {
     if (!responses) return;
@@ -83,10 +83,10 @@ Version.prototype.getResponseData = function(responses, options) {
     if (!schema) return;
 
     const result = { code: code };
-    if (!schema.content) return;
+    if (!schema.content) return result;
 
     const match = util.findMediaMatch(options.contentType || '*/*', Object.keys(schema.content))[0];
-    if (!match) return;
+    if (!match) return result;
 
     const content = schema.content[match];
     result.contentType = match;
