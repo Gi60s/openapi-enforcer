@@ -254,7 +254,7 @@ describe('v3/response', () => {
 
     });
 
-    describe.only('serialize', () => {
+    describe('serialize', () => {
         const req = { path: '/', method: 'get', code: 200, contentType: 'application/json' };
         const str = '2001-01-01';
         const d = new Date(str);
@@ -262,6 +262,7 @@ describe('v3/response', () => {
         it('will serialize body', () => {
             const response = instance.response(req);
             const populated = response.populate({ params: { date: d } });
+            populated.headers['x-required'] = 1;
             const serialized = response.serialize(populated);
             expect(serialized.body.date).to.equal(str);
         });
@@ -269,6 +270,7 @@ describe('v3/response', () => {
         it('will serialize headers', () => {
             const response = instance.response(req);
             const populated = response.populate({ params: { date: d } });
+            populated.headers['x-required'] = 1;
             const serialized = response.serialize(populated);
             expect(serialized.headers['x-date']).to.equal(str);
         });
