@@ -24,6 +24,7 @@ const rxPrefixSpaces = /^ */;
 module.exports = validate;
 
 function validate(v, prefix, depth, schema, value) {
+    if (!schema) return;
 
     // validate anyOf
     if (v.options.anyOf && schema.anyOf) {
