@@ -138,15 +138,15 @@ OpenApiEnforcer.prototype.deserialize = function(schema, value) {
 OpenApiEnforcer.prototype.errors = function(schema, value) {
     const data = store.get(this);
     const version = data.version;
-    const rx = /^\S$/;
+    const options = Object.assign({ prefix: '' }, arguments[2]);
     const v = {
         definition: data.definition,
-        error: (prefix, message) => v.errors.push((rx.test(prefix) ? prefix + ': ' : prefix) + message),
+        error: (prefix, message) => v.errors.push((prefix ? prefix + ': ' : prefix) + message),
         errors: [],
         options: data.defaults.validate,
         version: version
     };
-    validate(v, '', 0, schema, value);
+    validate(v, options.prefix, 0, schema, value);
     return v.errors.length > 0 ? v.errors : null;
 };
 
@@ -442,8 +442,8 @@ function responseErrors(context, responses, data, config) {
 
     // check body for errors
     if (config.hasOwnProperty('body')) {
-        const err = context.errors(data.schema, config.body);
-        if (err) errors.push('One or more errors with body: \n  ' + err.join('\n  '));
+        const err = context.errors(data.schema, config.body, { prefix: 'Error in body' });
+        if (err) util.arrayPushMany(errors, err);
     }
 
     // check headers for errors
@@ -451,23 +451,17 @@ function responseErrors(context, responses, data, config) {
         const schemas = responses[data.code].headers;
         if (schemas) {
             const headers = config.headers;
-            const headerErrors = [];
-
             Object.keys(schemas)
                 .forEach(name => {
                     const schema = schemas[name];
                     if (headers.hasOwnProperty(name)) {
-                        const err = context.errors(schema.schema, headers[name]);
-                        if (err) headerErrors.push(name + ':\n      ' + err.join('\n      '));
+                        const err = context.errors(schema.schema, headers[name], { prefix: 'Error in header "' + name + '"' });
+                        if (err) util.arrayPushMany(errors, err);
 
                     } else if (schema.required) {
-                        headerErrors.push(name + ':\n      Required but not provided');
+                        errors.push('Error in header "' + name + '": Missing required value');
                     }
                 });
-
-            if (headerErrors.length > 0) {
-                errors.push('One or more errors in headers:\n    ' + headerErrors.join('\n    '));
-            }
         }
     }
 
