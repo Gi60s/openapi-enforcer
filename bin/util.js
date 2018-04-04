@@ -124,6 +124,14 @@ exports.propertyDefault = function(obj, property, value) {
     if (!obj.hasOwnProperty(property)) obj[property] = value;
 };
 
+exports.queryParams = function (name, value) {
+    const rx = RegExp('(?:^|&)' + name + '=([^&]*)', 'g');
+    const results = [];
+    let match;
+    while (match = rx.exec(value)) results.push(decodeURIComponent(match[1]));
+    return results.length ? results : null;
+};
+
 /**
  * Do a deep equal on two values.
  * @param {*} v1

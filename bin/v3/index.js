@@ -21,11 +21,9 @@ const util          = require('../util');
 
 module.exports = Version;
 
-function Version(enforcer, definition) {
-    this.enforcer = enforcer;
-    this.definition = definition;
 
-
+// modify the random object
+const random = (() => {
     const random = Object.create(Random);
     random._object = random.object;
     random.object = function(schema) {
@@ -44,17 +42,32 @@ function Version(enforcer, definition) {
             return this._object(schema);
         }
     };
+    return random;
+})();
 
-    this.random = function(schema) {
-        return random.byType(schema);
-    };
+
+function Version(enforcer, definition) {
+    this.enforcer = enforcer;
+    this.definition = definition;
 }
 
+/**
+ * Get the discriminator key.
+ * @param {object} schema
+ * @param {object} value
+ * @returns {string}
+ */
 Version.prototype.getDiscriminatorKey = function(schema, value) {
     const discriminator = schema.discriminator;
     if (discriminator && value.hasOwnProperty(discriminator.propertyName)) return value[discriminator.propertyName];
 };
 
+/**
+ * Get the discriminator schema.
+ * @param {object} schema
+ * @param {object} value
+ * @returns {object}
+ */
 Version.prototype.getDiscriminatorSchema = function(schema, value) {
     const key = this.getDiscriminatorKey(schema, value);
     if (key) {
@@ -68,12 +81,13 @@ Version.prototype.getDiscriminatorSchema = function(schema, value) {
 };
 
 /**
- *
+ * Get general data about the response.
+ * @param {string[]} produces
  * @param {object} responses
  * @param {{ code: string, contentType: string }} options
- * @returns {{ code: string, contentType?: string, headers?: object, schema?: object }|undefined}
+ * @returns {{ accepts: string, code: string, contentType?: string, headers: object, schema?: object }|undefined}
  */
-Version.prototype.getResponseData = function(responses, options) {
+Version.prototype.getResponseData = function(produces, responses, options) {
     if (!responses) return;
 
     const code = options.hasOwnProperty('code')
@@ -82,21 +96,34 @@ Version.prototype.getResponseData = function(responses, options) {
     const schema = responses[code];
     if (!schema) return;
 
-    const result = { code: code };
+    const result = {
+        accepts: options.contentType || '*/*',
+        code: code,
+        headers: schema.headers || {}
+    };
     if (!schema.content) return result;
 
-    const match = util.findMediaMatch(options.contentType || '*/*', Object.keys(schema.content))[0];
+    const match = util.findMediaMatch(result.accepts, Object.keys(schema.content))[0];
     if (!match) return result;
 
     const content = schema.content[match];
     result.contentType = match;
     result.schema = content.schema;
-    result.headers = content.headers || {};
     return result;
 };
 
-Version.prototype.getResponseExample = function(responseSchema, contentType, name) {
-    const content = responseSchema.content;
+/**
+ * Get an existing response example.
+ * @param {object} options
+ * @param {string} [options.accepts]
+ * @param {string} [options.contentType]
+ * @param {string} [options.name]
+ * @param {object} options.responseSchema
+ * @returns {*}
+ */
+Version.prototype.getResponseExample = function(options) {
+    const content = options.responseSchema.content;
+    const contentType = options.contentType;
     if (!content || !content[contentType]) return;
 
     const data = content[contentType];
@@ -162,7 +189,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
         const contentType = req.header['content-type'] || '*/*';
         const content = mSchema.requestBody.content;
         const key = util.findMediaMatch(contentType, Object.keys(content))[0];
-        if (key) {
+        if (key && content[key].schema) {
             const schema = content[key].schema;
             const typed = this.enforcer.deserialize(schema, req.body);
             if (typed.errors) {
@@ -211,7 +238,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
                         // throw Error because it's a problem with the swagger
                         if (at !== 'cookie' && at !== 'query') throw Error('The form style only works with cookie and query parameters. Error at ' + at + ' parameter "' + name + '"');
                         if (at === 'query') {
-                            const results = queryParams(name, req.query);
+                            const results = util.queryParams(name, req.query);
                             if (!results) return;
                             if (type === 'array') {
                                 value = explode
@@ -245,7 +272,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
                     case 'pipeDelimited':
                         // throw Error because it's a problem with the swagger
                         if (at !== 'query' || (type !== 'object' && type !== 'array')) throw Error('The pipeDelimited style only works with query parameters for the schema type array or object. Error at ' + at + ' parameter "' + name + '"');
-                        queryValue = queryParams(name, req.query);
+                        queryValue = util.queryParams(name, req.query);
                         if (!queryValue) return;
                         parsed = params.pipeDelimited(type, queryValue.pop());
                         break;
@@ -259,7 +286,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
                     case 'spaceDelimited':
                         // throw Error because it's a problem with the swagger
                         if (at !== 'query' || (type !== 'object' && type !== 'array')) throw Error('The spaceDelimited style only works with query parameters for the schema type array or object. Error at ' + at + ' parameter "' + name + '"');
-                        queryValue = queryParams(name, req.query);
+                        queryValue = util.queryParams(name, req.query);
                         if (!queryValue) return;
                         parsed = params.spaceDelimited(type, queryValue.pop());
                         break;
@@ -303,10 +330,20 @@ Version.prototype.parseRequestParameters = function(schema, req) {
 };
 
 /**
- * @returns {function}
+ * Generate a random value that matches the schema.
+ * @param {object} schema
+ * @returns {*}
  */
-Version.prototype.random = function() {}; // implemented in constructor
+Version.prototype.random = function(schema) {
+    return random.byType(schema);
+};
 
+/**
+ * Serialize a response header value.
+ * @param {object} schema
+ * @param {*} value
+ * @returns {*}
+ */
 Version.prototype.serializeResponseHeader = function(schema, value) {
     const type = schema && schema.schema && util.schemaType(schema.schema);
     switch (type) {
@@ -384,12 +421,4 @@ function defaultStyle(paramType) {
         case 'path':
             return 'simple';
     }
-}
-
-function queryParams(name, value) {
-    const rx = RegExp('(?:^|&)' + name + '=([^&]*)', 'g');
-    const results = [];
-    let match;
-    while (match = rx.exec(value)) results.push(match[1]);
-    return results.length ? results : null;
 }

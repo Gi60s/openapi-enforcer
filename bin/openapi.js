@@ -266,20 +266,20 @@ OpenApiEnforcer.prototype.request = function(req) {
     const result = store.get(this).version.parseRequestParameters(path.schema, {
         body: req.body,
         cookie: req.cookies || {},
-        header: util.lowerCaseProperties(req.headers) || {},
+        header: req.headers ? util.lowerCaseProperties(req.headers) : {},
         method: method,
         path: path.params,
         query: req.query || ''
     });
 
     const responses = path.schema[method].responses;
+    const produces = path.schema[method].produces;
     const value = result.value;
-    return {
+    const returnValue = {
         errors: result.errors,
         path: path.path,
         request: value
             ? {
-                body: value.body,
                 cookies: value.cookie,
                 headers: value.header,
                 path: value.path,
@@ -287,7 +287,7 @@ OpenApiEnforcer.prototype.request = function(req) {
             }
             : null,
         response: (config) => {
-            const data = responseData(this, responses, config);
+            const data = responseData(this, produces, responses, config);
             return {
                 data: data,
                 errors: config => responseErrors(this, responses, data, config),
@@ -298,6 +298,8 @@ OpenApiEnforcer.prototype.request = function(req) {
         },
         schema: path.schema
     };
+    if (value && value.hasOwnProperty('body')) returnValue.request.body = value.body;
+    return returnValue;
 };
 
 /**
@@ -430,11 +432,11 @@ function deserialize(errors, prefix, schema, value) {
     }
 }
 
-function responseData(context, responses, config) {
+function responseData(context, produces, responses, config) {
     const version = store.get(context).version;
     if (!config) config = {};
     if (!config.hasOwnProperty('contentType') && config.headers && config.headers['content-type']) config.contentType = config.headers['content-type'];
-    return version.getResponseData(responses, config);
+    return version.getResponseData(produces, responses, config);
 }
 
 function responseErrors(context, responses, data, config) {
@@ -473,7 +475,12 @@ function responseExample(context, responses, data, options) {
     if (!options) options = {};
     let example;
     if (data && data.code && data.contentType && !options.ignoreDocumentExample) {
-        example = store.get(context).version.getResponseExample(responses[data.code], data.contentType, options.name);
+        example = store.get(context).version.getResponseExample({
+            accepts: data.accepts,
+            contentType: data.contentType,
+            name: data.name,
+            responseSchema: responses[data.code]
+        });
     }
     if (example === undefined && data.schema) example = context.random(data.schema);
     return example;
