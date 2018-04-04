@@ -124,7 +124,7 @@ When a value is sent over HTTP it is in a serialized state. Calling this functio
 | schema | The schema to use to convert serialized values. | `object` |
 | value | The value to deserialize. | Any |
 
-Returns: An object with two properties: `error` and `value`. If deserialization failed due to an error then the `error` property will contain details about the error. If deserialization succeeds then the `error` property will be `null` and the `value` property will have the deserialized value.
+Returns: An object with two properties: `errors` and `value`. If deserialization failed due to an error then the `errors` property will contain an array of strings for each error that was found. If deserialization succeeds then the `errors` property will be `null` and the `value` property will have the deserialized value.
 
 ```js
 const Enforcer = require('openapi-enforcer');
@@ -157,7 +157,7 @@ const serializedValue = {
 
 const deserialized = enforcer.deserialize(schema, serializedValue);
 // {
-//    error: null,
+//    errors: null,
 //    value: {
 //        integers: [1, 2, 3, 4],
 //        date: <Date Object>
@@ -266,7 +266,7 @@ const match = enforcer.path('/path/25');
 //     params: {
 //         id: 25
 //     },
-//     schema: { ... } <== pathItem object
+//     schema: { ... } <== operation object
 // }
 ```
 
@@ -426,8 +426,6 @@ const value = enforcer.populate(schema, params);
 
 Create a value that is randomly generated but that meets the constraints of a provided schema. Works on simple primitives and complex objects.
 
-**This function will not work if you haven't defined paths in your OpenAPI document that was passed into the constructor.**
-
 `Enforcer.prototype.random ( schema )`
 
 | Parameter | Description | Type |
@@ -462,7 +460,7 @@ Returns an object with the following properties:
 
 - *response* - An object with the functions from [`enforcer.prototype.response`](#enforcerprototyperesponse).
 
-- *schema* - The path schema as defined in the OpenAPI document.
+- *schema* - The path operation schema as defined in the OpenAPI document.
 
 ## Enforcer.prototype.response
 
@@ -613,7 +611,7 @@ Returns an object with the following properties:
 
 ## Enforcer.prototype.serialize
 
-Serialize an value according to the schema. This works for primitives, arrays, and objects. Arrays and objects will be traversed and their values also serialized recursively.
+Serialize a value according to the schema. This works for primitives, arrays, and objects. Arrays and objects will be traversed and their values also be serialized recursively.
 
 `Enforcer.prototype.serialize ( schema, value )`
 
