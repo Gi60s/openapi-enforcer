@@ -105,7 +105,7 @@ exports.simple = function(type, explode, value) {
 };
 
 exports.spaceDelimited = function(type, value) {
-    return delimited(type, '%20', value);
+    return delimited(type, ' ', value);
 };
 
 exports.pipeDelimited = function(type, value) {
