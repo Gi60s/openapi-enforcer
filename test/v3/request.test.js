@@ -400,7 +400,7 @@ describe('v3/request', () => {
 
         describe('spaceDelimited', () => {
 
-            it.only('array', () => {
+            it('array', () => {
                 const schema2 = modSchema(schema, { 'paths./.parameters.1': { style: 'spaceDelimited', schema: { type: 'array' }}});
                 const instance = new enforcer(schema2, {});
                 const req = request({ path: '/?color=blue%20black%20brown'});
