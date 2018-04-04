@@ -316,7 +316,8 @@ OpenApiEnforcer.prototype.response = function(options) {
     if (!path.schema[method]) throw Error('Invalid method for request path. The method is not defined in the specification: ' + method.toUpperCase() + ' ' + req.path);
 
     const responses = path.schema[method].responses;
-    const data = responseData(this, responses, options);
+    const produces = path.schema[method].produces;
+    const data = responseData(this, produces, responses, options);
     return {
         data: data,
         errors: config => responseErrors(this, responses, data, config),
@@ -478,7 +479,7 @@ function responseExample(context, responses, data, options) {
         example = store.get(context).version.getResponseExample({
             accepts: data.accepts,
             contentType: data.contentType,
-            name: data.name,
+            name: options.name,
             responseSchema: responses[data.code]
         });
     }

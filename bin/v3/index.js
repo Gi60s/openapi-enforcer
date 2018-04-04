@@ -124,6 +124,7 @@ Version.prototype.getResponseData = function(produces, responses, options) {
 Version.prototype.getResponseExample = function(options) {
     const content = options.responseSchema.content;
     const contentType = options.contentType;
+    const name = options.name;
     if (!content || !content[contentType]) return;
 
     const data = content[contentType];
