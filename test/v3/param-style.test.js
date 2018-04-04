@@ -173,12 +173,12 @@ describe('v3/param-style', () => {
         });
 
         it('array', () => {
-            const actual = param.spaceDelimited('array', 'blue%20black%20brown').value;
+            const actual = param.spaceDelimited('array', 'blue black brown').value;
             expect(actual).to.deep.equal(['blue', 'black', 'brown']);
         });
 
         it('object', () => {
-            const actual = param.spaceDelimited('object', 'R%20100%20G%20200%20B%20150').value;
+            const actual = param.spaceDelimited('object', 'R 100 G 200 B 150').value;
             expect(actual).to.deep.equal({ R: '100', G: '200', B: '150' });
         });
 
