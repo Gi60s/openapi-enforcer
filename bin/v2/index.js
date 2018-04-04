@@ -112,7 +112,7 @@ Version.prototype.getResponseExample = function(options) {
  * @param {string} req.method
  * @param {object<string>} req.path
  * @param {string} req.query
- * @returns {{ error: Array<string>|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object }}}
+ * @returns {{ errors: Array<string>|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object }}}
  */
 Version.prototype.parseRequestParameters = function(schema, req) {
     const errors = [];
@@ -251,7 +251,21 @@ Version.prototype.random = function(schema) {
  * @returns {*}
  */
 Version.prototype.serializeResponseHeader = function(schema, value) {
+    const type = schema && schema.schema && util.schemaType(schema.schema);
+    switch (type) {
+        case 'array':
+            switch (schema.schema.collectionFormat) {
+                case 'ssv': return value.join(' ');
+                case 'tsv': return value.join('\t');
+                case 'pipes': return value.join('|');
+                case 'csv':
+                default:
+                    return value.join(',');
+            }
 
+        default:
+            return value;
+    }
 };
 
 Version.defaults = {
