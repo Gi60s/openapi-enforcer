@@ -19,12 +19,16 @@ const { copy, same }    = require('../../bin/util');
 const expect            = require('chai').expect;
 const enforcer          = require('../../index');
 
-describe.skip('v3/response', () => {
+describe('v2/response', () => {
     const schema = {
-        openapi: '3.0.0',
+        swagger: '2.0',
         paths: {
             '/': {
                 get: {
+                    produces: [
+                        'application/json',
+                        'application/xml'
+                    ],
                     responses: {
                         200: {
                             headers: {
@@ -32,7 +36,8 @@ describe.skip('v3/response', () => {
                                     schema: {
                                         type: 'array',
                                         items: {
-                                            type: 'string'
+                                            type: 'string',
+                                            format: 'date'
                                         }
                                     }
                                 },
@@ -45,62 +50,37 @@ describe.skip('v3/response', () => {
                                 },
                                 'x-required': {
                                     required: true
-                                },
-                                'x-obj': {
-                                    schema: {
-                                        type: 'object',
-                                        properties: {
-                                            a: { type: 'string' },
-                                            b: { type: 'string' }
-                                        }
-                                    }
                                 }
                             },
-                            content: {
-                                'application/json': {
-                                    schema: {
-                                        type: 'object',
-                                        properties: {
-                                            date: {
-                                                'x-variable': 'date',
-                                                type: 'string',
-                                                format: 'date'
-                                            }
-                                        },
-                                        example: {
-                                            date: '2000-01-30'
-                                        }
-                                    },
-                                    example: {
-                                        date: '2000-01-29'
-                                    },
-                                    examples: {
-                                        First: {
-                                            date: '2000-01-01'
-                                        },
-                                        Second: {
-                                            date: '2000-01-02'
-                                        }
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    date: {
+                                        'x-variable': 'date',
+                                        type: 'string',
+                                        format: 'date'
                                     }
                                 },
-                                'text/plain': {
-                                    schema: {
-                                        type: 'string'
-                                    }
+                                example: {
+                                    date: '2000-01-30'
+                                }
+                            },
+                            examples: {
+                                'application/json': {
+                                    date: '2000-01-29'
+                                },
+                                'application/xml': {
+                                    date: '2000-01-28'
                                 }
                             }
                         },
                         default: {
-                            content: {
-                                'application/json': {
-                                    schema: {
-                                        type: 'object',
-                                        properties: {
-                                            date: {
-                                                type: 'string',
-                                                format: 'date'
-                                            }
-                                        }
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    date: {
+                                        type: 'string',
+                                        format: 'date'
                                     }
                                 }
                             }
@@ -110,6 +90,10 @@ describe.skip('v3/response', () => {
             },
             '/no-default': {
                 get: {
+                    produces: [
+                        'application/json',
+                        'application/xml'
+                    ],
                     responses: {
                         200: {},
                         201: {}
@@ -140,31 +124,31 @@ describe.skip('v3/response', () => {
             expect(data.code).to.equal('200');
         });
 
-        it('will use first response code content type if omitted', () => {
+        it('will use first produces content type if omitted', () => {
             const req = { code: 200, path: '/', method: 'get' };
             const data = instance.response(req).data;
             expect(data.contentType).to.equal('application/json');
         });
 
         it('will accept wild-card content type', () => {
-            const req = { code: 200, path: '/', method: 'get', contentType: '*/plain' };
+            const req = { code: 200, path: '/', method: 'get', contentType: '*/json' };
             const data = instance.response(req).data;
-            expect(data.contentType).to.equal('text/plain');
+            expect(data.contentType).to.equal('application/json');
         });
 
         it('will accept weighted content type list', () => {
             const data1 = instance.response({ 
                 code: 200, 
-                contentType: 'text/plain;q=0.9, application/json;q=1',
+                contentType: 'application/xml;q=0.9, application/json;q=1',
                 path: '/'
             }).data;
             const data2 = instance.response({
                 code: 200,
-                contentType: 'text/plain, application/json;q=0.9',
+                contentType: 'application/xml, application/json;q=0.9',
                 path: '/'
             }).data;
             expect(data1.contentType).to.equal('application/json');
-            expect(data2.contentType).to.equal('text/plain');
+            expect(data2.contentType).to.equal('application/xml');
         });
 
     });
@@ -176,11 +160,10 @@ describe.skip('v3/response', () => {
 
         beforeEach(() => {
             s = copy(schema);
-            c = s.paths['/'].get.responses[200].content['application/json'];
+            c = s.paths['/'].get.responses[200];
         });
 
         it('use schema example if no overwrite example', () => {
-            delete c.example;
             delete c.examples;
             instance = new enforcer(s, {});
             const example = instance.response(req).example();
@@ -189,42 +172,36 @@ describe.skip('v3/response', () => {
         });
 
         it('overwrite schema example', () => {
-            delete c.examples;
             instance = new enforcer(s, {});
             const example = instance.response(req).example();
             expect(example).not.to.deep.equal(c.schema.example);
-            expect(example).to.deep.equal(c.example);
+            expect(example).to.deep.equal(c.examples['application/json']);
         });
 
-        it('example overwrites examples', () => {
+        it('gets example matching content type', () => {
             instance = new enforcer(s, {});
-            const example = instance.response(req).example();
-            expect(example).to.deep.equal(c.example);
+            const example1 = instance.response(req).example();
+            const example2 = instance.response(Object.assign({}, req, { contentType: 'application/xml'})).example();
+            expect(example1).to.deep.equal(c.examples['application/json']);
+            expect(example2).to.deep.equal(c.examples['application/xml']);
         });
 
         it('selects one of examples', () => {
             delete c.example;
             instance = new enforcer(s, {});
             const example = instance.response(req).example();
-            const oneOf = same(example, c.examples.First) || same(example, c.examples.Second);
+            const oneOf = same(example, c.examples['application/json']) || same(example, c.examples['application/xml']);
             expect(oneOf).to.be.true;
-        });
-
-        it('select named example', () => {
-            delete c.example;
-            instance = new enforcer(s, {});
-            const example = instance.response(req).example({ name: 'First' });
-            expect(example).to.deep.equal(c.examples.First);
         });
 
         it('ignore documented examples', () => {
             instance = new enforcer(s, {});
             const example = instance.response(req).example({ ignoreDocumentExample: true });
-            expect(example).not.to.deep.equal(c.example);
+            expect(example).not.to.deep.equal(c.schema.example);
+            expect(example).not.to.deep.equal(c.examples['application/json']);
         });
 
         it('no documented examples', () => {
-            delete c.example;
             delete c.examples;
             delete c.schema.example;
             const example = instance.response(req).example();
@@ -271,8 +248,10 @@ describe.skip('v3/response', () => {
             const response = instance.response(req);
             const populated = response.populate({ params: { date: d } });
             populated.headers['x-required'] = 1;
+            populated.headers['x-array'] = [d, d];
             const serialized = response.serialize(populated);
             expect(serialized.headers['x-date']).to.equal(str);
+            expect(serialized.headers['x-array']).to.equal(str + ',' + str);
         });
 
     });
