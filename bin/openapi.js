@@ -296,7 +296,8 @@ OpenApiEnforcer.prototype.request = function(req) {
                 serialize: config => responseSerialize(this, responses, data, config)
             }
         },
-        schema: path.schema
+        schema: path.schema,
+        statusCode: result.errors ? 400 : 200
     };
     if (value && value.hasOwnProperty('body')) returnValue.request.body = value.body;
     return returnValue;
