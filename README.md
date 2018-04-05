@@ -530,13 +530,13 @@ Returns an object with the following properties:
 
 - *example* - A function that produces an example response. If the OpenAPI document has one or more examples then one of those will be used, otherwise it will be generated using the [`Enforcer.prototype.random`](#enforcerprototyperandom) function.
 
-    Signature: `example ( { name, random=false } )`
+    Signature: `example ( { name, ignoreDocumentExample=false } )`
     
     Takes a configuration object as it's parameter with the following properties:
 
     | Property | Description |
     | ---------| ----------- |
-    | name | The name of the example to use when pulling from a named OpenAPI 3.x document example. Not relevant for OpenAPI 2.0. If the `random` property is set to `true` then this value will be ignored. |
+    | name | The name of the example to use when pulling from a named OpenAPI 3.x document example. Not relevant for OpenAPI 2.0. If the `ignoreDocumentExample` property is set to `true` then this value will be ignored. |
     | ignoreDocumentExample | If set to `true` then even if an example exists in the OpenAPI document, a random one will be generated instead. Defaults to `false` |
 
     Returns a value that can be used as an example.
