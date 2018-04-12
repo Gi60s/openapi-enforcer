@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const rxMediaType = /^([\s\S]+?)\/([\s\S]+?)(?:\+([\s\S]+?))?$/;
 
 exports.arrayPushMany = function(target, source) {
     source.forEach(item => target.push(item));
@@ -60,46 +61,72 @@ exports.Error = function(meta, message) {
 /**
  * Provide an accept media type string and possible matches and get the match.
  * @param {string} input
- * @param {string[]} matches
+ * @param {string[]} store
  * @returns {string[]} The media type matches.
  */
-exports.findMediaMatch = function(input, matches) {
+exports.findMediaMatch = function(input, store) {
     const accepts = input
         .split(/, */)
         .map((value, index) => {
             const set = value.split(';');
-            const type = set[0].split('/');
+            const match = rxMediaType.exec(set[0]);
             const q = /q=(\d\.\d)/.exec(set[1]);
+            if (!match) return;
             return {
+                extension: match[3] || '*',
                 index: index,
                 quality: +((q && q[1]) || 1),
-                subType: type[1].split('+')[0],
-                type: type[0]
+                subType: match[2],
+                type: match[1]
             }
-        });
-    accepts.sort((a, b) => {
-        if (a.quality === b.quality) return 0;
-        return a.quality < b.quality ? 1 : -1
+        })
+        .filter(v => !!v);
+
+    // populate matches
+    const results = [];
+    accepts.forEach(accept => {
+        store.forEach(value => {
+            const match = rxMediaType.exec(value);
+            if (match) {
+                const type = match[1];
+                const subType = match[2];
+                const extension = match[3] || '*';
+                const typeMatch = ((accept.type === type || accept.type === '*' || type === '*') &&
+                    (accept.subType === subType || accept.subType === '*' || subType === '*') &&
+                    (accept.extension === extension || accept.extension === '*' || extension === '*'));
+                if (typeMatch) {
+                    results.push({
+                        index: accept.index,
+                        quality: accept.quality,
+                        score: (accept.type === type ? 1 : 0) + (accept.subType === subType ? 1 : 0) + (accept.extension === extension ? 1 : 0),
+                        value
+                    });
+                }
+            }
+        })
     });
 
-    const acceptsLength = accepts.length;
-    const matchesLength = matches.length;
-    const results = [];
-    for (let i = 0; i < acceptsLength; i++) {
-        const accept = accepts[i];
-        for (let j = 0; j < matchesLength; j++) {
-            const ar = matches[j].split('/');
-            const type = ar[0];
-            const subtype = ar[1].split('+')[0];
-            if ((accept.type === type || accept.type === '*' || type === '*') &&
-                (accept.subType === subtype || accept.subType === '*' || subtype === '*')) {
+    // sort results
+    results.sort((a, b) => {
+        if (a.quality < b.quality) return 1;
+        if (a.quality > b.quality) return -1;
+        if (a.score < b.score) return 1;
+        if (a.score > b.score) return -1;
+        return a.index < b.index ? 1 : -1;
+    });
 
-                results.push(matches[j]);
-            }
+    // make results unique
+    const map = {};
+    const unique = [];
+    results.forEach(item => {
+        const value = item.value;
+        if (!map[value]) {
+            map[value] = item;
+            unique.push(item.value);
         }
-    }
+    });
 
-    return results;
+    return unique;
 };
 
 exports.isDate = function (value) {

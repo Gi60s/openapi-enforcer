@@ -80,4 +80,41 @@ describe('util', () => {
 
     });
 
+    describe.only('media match', () => {
+
+        it('no match', () => {
+            const matches = util.findMediaMatch('text/plain', ['x/y', 'x/z']);
+            expect(matches.length).to.equal(0);
+        });
+
+        it('text match', () => {
+            const accept = 'text/html, application/xhtml';
+            const store = ['text/plain', 'text/html'];
+            const matches = util.findMediaMatch(accept, store);
+            expect(matches).to.deep.equal(['text/html']);
+        });
+
+        it('wildcard subtype match', () => {
+            const accept = 'text/*';
+            const store = ['text/plain', 'text/html'];
+            const matches = util.findMediaMatch(accept, store);
+            expect(matches).to.deep.equal(['text/plain', 'text/html']);
+        });
+
+        it('wildcard type match', () => {
+            const accept = '*/plain';
+            const store = ['text/plain', 'something/plain'];
+            const matches = util.findMediaMatch(accept, store);
+            expect(matches).to.deep.equal(['text/plain', 'something/plain']);
+        });
+
+        it('multiple accept', () => {
+            const accept = 'text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8';
+            const store = ['text/plain', 'text/html'];
+            const matches = util.findMediaMatch(accept, store);
+            expect(matches).to.deep.equal(['text/plain', 'something/plain']);
+        })
+
+    });
+
 });
