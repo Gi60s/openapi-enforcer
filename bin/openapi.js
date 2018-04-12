@@ -476,9 +476,11 @@ function responseExample(context, responses, data, options) {
     if (!responses) throw Error('Cannot build example response without schema');
     if (!options) options = {};
     let example;
-    if (data && data.code && data.contentType && !options.ignoreDocumentExample) {
+    if (data && data.code)
+
+    if (data && data.code && !options.ignoreDocumentExample) {
         example = store.get(context).version.getResponseExample({
-            accepts: data.accepts,
+            accept: data.accept,
             contentType: data.contentType,
             name: options.name,
             responseSchema: responses[data.code]
@@ -557,12 +559,14 @@ function responseSerialize(context, responses, data, config) {
         const schemas = responses[data.code].headers;
         Object.keys(config.headers)
             .forEach(name => {
-                const schema = schemas[name];
-                let value = schema && schema.schema
-                    ? serialize('', schema.schema, headers[name])
-                    : String(headers[name]);
-                value = version.serializeResponseHeader(schema, value);
-                result.headers[name] = value;
+                const schema = schemas && schemas[name];
+                if (schema) {
+                    let value = schema && schema.schema
+                        ? serialize('', schema.schema, headers[name])
+                        : String(headers[name]);
+                    value = version.serializeResponseHeader(schema, value);
+                    result.headers[name] = value;
+                }
             });
     }
 
