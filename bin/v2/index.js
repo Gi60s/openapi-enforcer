@@ -52,7 +52,7 @@ Version.prototype.getDiscriminatorSchema = function(schema, value) {
  * @param {string[]} produces
  * @param {object} responses
  * @param {{ code: string, contentType: string }} options
- * @returns {{ accepts: string, code: string, contentType?: string, headers: object, schema?: object }|undefined}
+ * @returns {{ accept: string, code: string, contentType?: string, headers: object, schema?: object }|undefined}
  */
 Version.prototype.getResponseData = function(produces, responses, options) {
     if (!responses) return;
@@ -64,14 +64,14 @@ Version.prototype.getResponseData = function(produces, responses, options) {
     if (!schema) return;
 
     const result = {
-        accepts: options.contentType || '*/*',
+        accept: options.contentType || '*/*',
         code: code,
         headers: schema.headers || {}
     };
 
     if (schema.schema) result.schema = schema.schema;
 
-    let match = util.findMediaMatch(result.accepts, produces)[0];
+    const match = produces ? util.findMediaMatch(result.accept, produces)[0] : null;
     if (match) result.contentType = match;
 
     return result;
@@ -80,7 +80,7 @@ Version.prototype.getResponseData = function(produces, responses, options) {
 /**
  * Get an existing response example.
  * @param {object} options
- * @param {string} [options.accepts]
+ * @param {string} [options.accept]
  * @param {string} [options.contentType]
  * @param {string} [options.name]
  * @param {object} options.responseSchema
@@ -92,7 +92,10 @@ Version.prototype.getResponseExample = function(options) {
     let contentType = options.contentType;
 
     // produces did not match accept type, maybe one of the examples does
-    if (examples && !contentType) contentType = util.findMediaMatch(options.accepts, Object.keys(examples))[0];
+    if (examples && !contentType) {
+        contentType = util.findMediaMatch(options.accept, Object.keys(examples))[0];
+        options.contentType = contentType;
+    }
 
     if (examples && examples[contentType]) {
         return util.copy(examples[contentType]);

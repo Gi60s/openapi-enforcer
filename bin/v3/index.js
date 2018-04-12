@@ -85,7 +85,7 @@ Version.prototype.getDiscriminatorSchema = function(schema, value) {
  * @param {string[]} produces
  * @param {object} responses
  * @param {{ code: string, contentType: string }} options
- * @returns {{ accepts: string, code: string, contentType?: string, headers: object, schema?: object }|undefined}
+ * @returns {{ accept: string, code: string, contentType?: string, headers: object, schema?: object }|undefined}
  */
 Version.prototype.getResponseData = function(produces, responses, options) {
     if (!responses) return;
@@ -97,13 +97,13 @@ Version.prototype.getResponseData = function(produces, responses, options) {
     if (!schema) return;
 
     const result = {
-        accepts: options.contentType || '*/*',
+        accept: options.contentType || '*/*',
         code: code,
         headers: schema.headers || {}
     };
     if (!schema.content) return result;
 
-    const match = util.findMediaMatch(result.accepts, Object.keys(schema.content))[0];
+    const match = util.findMediaMatch(result.accept, Object.keys(schema.content))[0];
     if (!match) return result;
 
     const content = schema.content[match];
@@ -115,7 +115,7 @@ Version.prototype.getResponseData = function(produces, responses, options) {
 /**
  * Get an existing response example.
  * @param {object} options
- * @param {string} [options.accepts]
+ * @param {string} [options.accept]
  * @param {string} [options.contentType]
  * @param {string} [options.name]
  * @param {object} options.responseSchema
