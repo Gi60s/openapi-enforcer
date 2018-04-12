@@ -458,7 +458,7 @@ Returns an object with the following properties:
 
 - *request* - The request object, serialized and validated. If an error occurred this value will be `null`.
 
-- *response* - An object with the functions from [`enforcer.prototype.response`](#enforcerprototyperesponse).
+- *response* - The same function as [`enforcer.prototype.response`](#enforcerprototyperesponse) except that the `path` and `method` properties are already specified..
 
 - *schema* - The path operation schema as defined in the OpenAPI document.
 
