@@ -194,7 +194,7 @@ exports.object = function(schema) {
         let count = 0;
         let index = 1;
         while (count < 3 && remaining) {
-            const key = 'additionalProperty' + index;
+            const key = 'additionalProperty' + index++;
             if (!result.hasOwnProperty(key)) {
                 count++;
                 remaining--;
