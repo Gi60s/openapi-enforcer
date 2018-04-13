@@ -80,7 +80,7 @@ describe('util', () => {
 
     });
 
-    describe.only('media match', () => {
+    describe('media match', () => {
 
         it('no match', () => {
             const matches = util.findMediaMatch('text/plain', ['x/y', 'x/z']);
@@ -110,10 +110,24 @@ describe('util', () => {
 
         it('multiple accept', () => {
             const accept = 'text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8';
-            const store = ['text/plain', 'text/html'];
+            const store = ['text/plain', 'text/html', 'application/xml', 'application/xhtml'];
             const matches = util.findMediaMatch(accept, store);
-            expect(matches).to.deep.equal(['text/plain', 'something/plain']);
-        })
+            expect(matches).to.deep.equal(['text/html', 'application/xhtml', 'application/xml', 'text/plain']);
+        });
+
+        it('specified extension match', () => {
+            const accept = 'application/json+abc';
+            const store = ['application/json+xyz', 'application/json', 'application/json+abc'];
+            const matches = util.findMediaMatch(accept, store);
+            expect(matches).to.deep.equal(['application/json+abc', 'application/json']);
+        });
+
+        it('non specified extension match', () => {
+            const accept = 'application/json';
+            const store = ['application/json+xyz', 'application/json', 'application/json+abc'];
+            const matches = util.findMediaMatch(accept, store);
+            expect(matches).to.deep.equal(['application/json', 'application/json+xyz', 'application/json+abc']);
+        });
 
     });
 
