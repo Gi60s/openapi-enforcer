@@ -70,7 +70,7 @@ exports.findMediaMatch = function(input, store) {
         .map((value, index) => {
             const set = value.split(';');
             const match = rxMediaType.exec(set[0]);
-            const q = /q=(\d\.\d)/.exec(set[1]);
+            const q = /q=(\d(?:\.\d)?)/.exec(set[1]);
             if (!match) return;
             return {
                 extension: match[3] || '*',
