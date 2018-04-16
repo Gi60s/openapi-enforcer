@@ -113,7 +113,6 @@ validate.array = function(v, prefix, depth, schema, value) {
     }
 };
 
-// TODO: convert enum values to parsed equivalents
 validate.binary = function(v, prefix, depth, schema, value) {
     if (!v.options.binary) return;
     if (!Buffer.isBuffer(value)) {
