@@ -476,8 +476,6 @@ function responseExample(context, responses, data, options) {
     if (!responses) throw Error('Cannot build example response without schema');
     if (!options) options = {};
     let example;
-    if (data && data.code)
-
     if (data && data.code && !options.ignoreDocumentExample) {
         example = store.get(context).version.getResponseExample({
             accept: data.accept,
