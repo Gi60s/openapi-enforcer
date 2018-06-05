@@ -157,17 +157,22 @@ Version.prototype.parseRequestParameters = function(schema, req) {
     };
 
     // body already parsed, need to deserialize and check for errors
-    if (paramMap.body && paramMap.body.schema && req.body !== undefined) {
-        const schema = paramMap.body.schema;
-        const typed = this.enforcer.deserialize(schema, req.body);
-        if (typed.errors) {
-            errors.push('Invalid request body:\n\t' + typed.errors.join('\n\t'));
-        } else {
-            const validationErrors = this.enforcer.errors(schema, typed.value);
-            if (validationErrors) {
-                errors.push('Invalid request body":\n\t' + validationErrors.join('\n\t'));
+    if (paramMap.body) {
+        if (paramMap.body.required && req.body === undefined) {
+            errors.push('Missing required body parameter "' + name + '"');
+
+        } else if (paramMap.body.schema && req.body !== undefined) {
+            const schema = paramMap.body.schema;
+            const typed = this.enforcer.deserialize(schema, req.body);
+            if (typed.errors) {
+                errors.push('Invalid request body:\n\t' + typed.errors.join('\n\t'));
             } else {
-                result.body = typed.value;
+                const validationErrors = this.enforcer.errors(schema, typed.value);
+                if (validationErrors) {
+                    errors.push('Invalid request body":\n\t' + validationErrors.join('\n\t'));
+                } else {
+                    result.body = typed.value;
+                }
             }
         }
     }

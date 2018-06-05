@@ -186,23 +186,28 @@ Version.prototype.parseRequestParameters = function(schema, req) {
     });
 
     // body already parsed, need to deserialize and check for errors
-    if (mSchema.requestBody && req.body !== undefined) {
-        const contentType = req.header['content-type'] || '*/*';
-        const content = mSchema.requestBody.content;
-        const key = util.findMediaMatch(contentType, Object.keys(content))[0];
-        if (key && content[key].schema) {
-            const schema = content[key].schema;
-            const typed = this.enforcer.deserialize(schema, req.body);
-            if (typed.errors) {
-                errors.push('Invalid request body:\n\t' + typed.errors.join('\n\t'));
-            } else {
-                const validationErrors = this.enforcer.errors(schema, typed.value);
-                if (validationErrors) {
-                    errors.push('Invalid request body":\n\t' + validationErrors.join('\n\t'));
+    if (mSchema.requestBody) {
+        if (req.body !== undefined) {
+            const contentType = req.header['content-type'] || '*/*';
+            const content = mSchema.requestBody.content;
+            const key = util.findMediaMatch(contentType, Object.keys(content))[0];
+            if (key && content[key].schema) {
+                const schema = content[key].schema;
+                const typed = this.enforcer.deserialize(schema, req.body);
+                if (typed.errors) {
+                    errors.push('Invalid request body:\n\t' + typed.errors.join('\n\t'));
                 } else {
-                    result.body = typed.value;
+                    const validationErrors = this.enforcer.errors(schema, typed.value);
+                    if (validationErrors) {
+                        errors.push('Invalid request body":\n\t' + validationErrors.join('\n\t'));
+                    } else {
+                        result.body = typed.value;
+                    }
                 }
             }
+
+        } else if (mSchema.requestBody.required && req.body === undefined) {
+            errors.push('Missing required request body');
         }
     }
 
