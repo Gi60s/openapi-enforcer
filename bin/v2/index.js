@@ -159,7 +159,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
     // body already parsed, need to deserialize and check for errors
     if (paramMap.body) {
         if (paramMap.body.required && req.body === undefined) {
-            errors.push('Missing required body parameter "' + name + '"');
+            errors.push('Missing required body parameter "' + paramMap.body.name + '"');
 
         } else if (paramMap.body.schema && req.body !== undefined) {
             const schema = paramMap.body.schema;

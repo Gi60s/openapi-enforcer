@@ -169,6 +169,14 @@ describe('v3/request', () => {
             expect(params.errors[0]).to.match(/expected a string/i);
         });
 
+        it('missing required body', () => {
+            const schema2 = modSchema(schema, { 'paths./.put.requestBody': { required: true } });
+            const instance = new enforcer(schema2, {});
+            const params = instance.request({ path: '/', method: 'put' });
+            expect(params.errors.length).to.equal(1);
+            expect(params.errors[0]).to.match(/missing required request body/i);
+        });
+
     });
 
     describe('cookie', () => {
