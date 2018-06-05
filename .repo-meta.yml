@@ -26,6 +26,8 @@ software:
     microservice: true # optional
     technologies_used: # optional
       - JavaScript
+      - NodeJS
+      - Travis-ci.com
     standard_change_template:
     stages:
       development:
