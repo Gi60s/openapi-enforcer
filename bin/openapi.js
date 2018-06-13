@@ -25,6 +25,7 @@ module.exports = OpenApiEnforcer;
 
 const store = new WeakMap();
 const rxPathParam = /{([^}]+)}/;
+const rxVersion = /^2.0$|^\d+\.\d+\.\d+$/;
 
 /**
  * Produce an open api enforcer instance.
@@ -39,19 +40,19 @@ function OpenApiEnforcer(definition) {
     // if the definition was passed in as a version number then rebuild the definition object
     if (definition === '2.0') {
         definition = { swagger: '2.0' };
-    } else if (/^3\.\d+\.\d+$/.test(definition)) {
+    } else if (typeof definition === 'string') {
         definition = { openapi: definition };
     }
 
-    // get the version number from the definition
+    // validate the version number from the definition
     const v = definition.openapi || definition.swagger;
-    const match = /^(\d+)(?:\.(\d+))?(?:\.(\d+))?/.exec(v);
-    if (!match) throw Error('Unsupported Open API version specified: ' + v);
+    if (!rxVersion.test(v)) throw Error('Unsupported Open API version specified: ' + v);
 
     // attempt to load the version specific settings and functions
+    const match = /^(\d+)\./.exec(v);
     const major = match[1];
     const Version = util.tryRequire('./v' + major + '/index');
-    if (!Version) throw Error('The Open API definition version is either invalid or not supported: ' + v);
+    if (!Version) throw Error('The Open API definition version is either invalid or unsupported: ' + v);
     const version = new Version(this, definition);
 
     // normalize defaults
@@ -353,14 +354,10 @@ OpenApiEnforcer.prototype.validate = function(schema, value) {
     }
 };
 
-Object.defineProperties(OpenApiEnforcer.prototype, {
-    version: {
-        get: () => {
-            const definition = store.get(this).definition;
-            return definition.openapi || definition.swagger;
-        }
-    }
-});
+OpenApiEnforcer.prototype.version = function() {
+    const definition = store.get(this).definition;
+    return definition.openapi || definition.swagger;
+};
 
 
 OpenApiEnforcer.defaults = {
