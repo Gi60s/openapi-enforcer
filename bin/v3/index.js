@@ -85,16 +85,22 @@ Version.prototype.getDiscriminatorSchema = function(schema, value) {
  * @param {string[]} produces
  * @param {object} responses
  * @param {{ code: string, contentType: string }} options
- * @returns {{ accept: string, code: string, contentType?: string, headers: object, schema?: object }|undefined}
+ * @returns {{ accept?: string, code?: string, contentType?: string, error?: string, headers?: object, schema?: object }}
  */
 Version.prototype.getResponseData = function(produces, responses, options) {
-    if (!responses) return;
+    if (!responses) return { error: 'No response definitions exists' };
 
-    const code = options.hasOwnProperty('code')
-        ? options.code
+    let code = options.hasOwnProperty('code')
+        ? '' + options.code
         : responses.hasOwnProperty('default') ? 'default' : Object.keys(responses)[0];
+    if (!responses.hasOwnProperty(code)) {
+        if (responses.hasOwnProperty('default')) {
+            code = 'default';
+        } else {
+            return { error: 'Response code not valid' };
+        }
+    }
     const schema = responses[code];
-    if (!schema) return;
 
     const result = {
         accept: options.contentType || '*/*',

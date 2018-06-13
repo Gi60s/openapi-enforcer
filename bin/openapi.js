@@ -442,7 +442,12 @@ function responseData(context, produces, responses, config) {
 }
 
 function responseErrors(context, responses, data, config) {
-    let errors = [];
+    const errors = [];
+
+    if (data.error) {
+        errors.push(data.error);
+        return errors;
+    }
 
     // check body for errors
     if (config.hasOwnProperty('body')) {
@@ -473,6 +478,7 @@ function responseErrors(context, responses, data, config) {
 }
 
 function responseExample(context, responses, data, options) {
+    if (data.error) throw Error(data.error);
     if (!responses) throw Error('Cannot build example response without schema');
     if (!options) options = {};
     let example;
@@ -489,6 +495,8 @@ function responseExample(context, responses, data, options) {
 }
 
 function responsePopulate(context, responses, data, options) {
+    if (data.error) throw Error(data.error);
+
     const config = Object.assign({}, options);
     if (!config.headers) config.headers = {};
     if (!config.options) config.options = {};
@@ -540,6 +548,8 @@ function responsePopulate(context, responses, data, options) {
 }
 
 function responseSerialize(context, responses, data, config) {
+    if (data.error) throw Error(data.error);
+
     const result = { headers: {} };
     const version = store.get(context).version;
 
