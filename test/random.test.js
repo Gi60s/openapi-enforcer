@@ -1,9 +1,18 @@
 'use strict';
 const Buffer    = require('buffer').Buffer;
+const Enforcer  = require('../index');
 const expect    = require('chai').expect;
 const random    = require('../bin/random');
 
 describe('random', () => {
+
+    it('via enforcer', () => {
+        const enforcer = new Enforcer('2.0');
+        const schema = { type: 'integer', minimum: 0, maximum: 5 };
+        const value = enforcer.random(schema);
+        expect(value).to.be.at.most(5);
+        expect(value).to.be.at.least(0);
+    });
 
     describe('array', () => {
 
