@@ -16,7 +16,6 @@
  **/
 'use strict';
 const format        = require('./format');
-const parse         = require('./parse');
 const populate      = require('./populate');
 const util          = require('./util');
 const validate      = require('./validate');
@@ -121,8 +120,10 @@ function OpenApiEnforcer(definition) {
  * @returns {{ errors:string[], value:* }}
  */
 OpenApiEnforcer.prototype.deserialize = function(schema, value) {
+    const data = store.get(this);
     const errors = [];
-    const result = deserialize(errors, '', schema, value);
+    const version = data.version;
+    const result = version.serial.deserialize(errors, '', schema, value);
     const hasErrors = errors.length;
     return {
         errors: hasErrors ? errors.map(v => v.trim()) : null,
@@ -375,61 +376,6 @@ OpenApiEnforcer.defaults = {
 };
 
 
-// convert from string values to correct data types
-function deserialize(errors, prefix, schema, value) {
-    const type = util.schemaType(schema);
-    let result;
-    switch (type) {
-        case 'array':
-            if (Array.isArray(value)) return schema.items
-                ? value.map((v,i) => deserialize(errors, prefix + '/' + i, schema.items, v))
-                : value;
-            errors.push(prefix + ' Expected an array. Received: ' + value);
-            break;
-
-        case 'boolean':
-        case 'integer':
-        case 'number':
-            result = parse[type](value);
-            if (result.error) errors.push(prefix + ' ' + result.error);
-            return result.value;
-
-        case 'string':
-            switch (schema.format) {
-                case 'binary':
-                case 'byte':
-                case 'date':
-                case 'date-time':
-                    result = parse[schema.format](value);
-                    break;
-                default:
-                    result = { value: value };
-            }
-            if (result.error) errors.push(prefix + ' ' + result.error);
-            return result.value;
-
-        case 'object':
-            if (value && typeof value === 'object') {
-                const result = {};
-                const additionalProperties = schema.additionalProperties;
-                const properties = schema.properties || {};
-                Object.keys(value).forEach(key => {
-                    if (properties.hasOwnProperty(key)) {
-                        result[key] = deserialize(errors, prefix + '/' + key, properties[key], value[key]);
-                    } else if (additionalProperties) {
-                        result[key] = deserialize(errors, prefix + '/' + key, additionalProperties, value[key]);
-                    }
-                });
-                return result;
-            }
-            errors.push(prefix + ' Expected an object. Received: ' + value);
-            return;
-
-        default:
-            errors.push(prefix + ' Unknown schema type');
-            return;
-    }
-}
 
 function responseData(context, produces, responses, config) {
     const version = store.get(context).version;

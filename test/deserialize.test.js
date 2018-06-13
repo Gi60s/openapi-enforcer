@@ -76,6 +76,53 @@ describe('deserialize', () => {
         expect(v.value).to.equal('plain text');
     });
 
+    it('array', () => {
+        const schema = {
+            type: 'array',
+            items: { type: 'string', format: 'date' }
+        };
+        const v = enforcer.deserialize(schema, ['2000-01-01']);
+        expect(v.value).to.deep.equal([new Date('2000-01-01')]);
+    });
+
+    it('object', () => {
+        const schema = {
+            type: 'object',
+            properties: {
+                a: { type: 'integer' },
+                b: { type: 'string', format: 'date' }
+            }
+        };
+        const v = enforcer.deserialize(schema, { a: 1, b: '2000-01-01' });
+        expect(v.value).to.deep.equal({ a: 1, b: new Date('2000-01-01') });
+    });
+
+    it('object allOf', () => {
+        const schema = {
+            allOf: [
+                {
+                    type: 'object',
+                    properties: {
+                        a: { type: 'integer' },
+                        b: { type: 'string', format: 'date' }
+                    }
+                },
+                {
+                    type: 'object',
+                    properties: {
+                        c: { type: 'string', format: 'binary' }
+                    }
+                }
+            ]
+        };
+        const v = enforcer.deserialize(schema, { a: 1, b: '2000-01-01', c: '01100001' });
+        expect(v.value).to.deep.equal({
+            a: 1,
+            b: new Date('2000-01-01'),
+            c: Buffer.from([97])
+        });
+    });
+
     it('error', () => {
         const v = enforcer.deserialize({ type: 'integer' }, '2.4');
         expect(v.errors.length).to.equal(1);

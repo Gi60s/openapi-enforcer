@@ -17,6 +17,7 @@
 'use strict';
 const params        = require('./param-style');
 const Random        = require('../random');
+const serial        = require('./serialize');
 const util          = require('../util');
 
 module.exports = Version;
@@ -49,6 +50,7 @@ const random = (() => {
 function Version(enforcer, definition) {
     this.enforcer = enforcer;
     this.definition = definition;
+    this.serial = serial;
 }
 
 /**
