@@ -132,11 +132,14 @@ describe('#populate', () => {
 
         it('array of numbers', () => {
             const schema = { type: 'array', items: { type: 'number', default: 5 }};
+            const initValue = [1, 2, undefined, 3, 4, undefined];
             const value = enforcer.populate({
+                options: { copy: true },
                 schema: schema,
                 params: {},
-                value: [1, 2, undefined, 3, 4, undefined]
+                value: initValue
             });
+            expect(value).not.to.equal(initValue);
             expect(value).to.deep.equal([1, 2, 5, 3, 4, 5]);
         });
 
