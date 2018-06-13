@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const copy      = require('../bin/util').copy;
 const expect    = require('chai').expect;
 const Enforcer  = require('../index');
 
