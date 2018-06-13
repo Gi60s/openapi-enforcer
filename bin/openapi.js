@@ -166,6 +166,9 @@ OpenApiEnforcer.prototype.path = function(path) {
     const pathLength = path.split('/').length - 1;
     const parsers = store.get(this).pathParsers[pathLength];
 
+    // if the parser was not found then they have a bad path
+    if (!parsers) return;
+
     // find the right parser
     const length = parsers.length;
     for (let i = 0; i < length; i++) {
