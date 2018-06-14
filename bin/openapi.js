@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const format        = require('./format');
 const populate      = require('./populate');
 const util          = require('./util');
 const validate      = require('./validate');
@@ -117,18 +116,33 @@ function OpenApiEnforcer(definition) {
  * Deserialize a value. Useful for taking request input and parsing.
  * @param {object} schema
  * @param {*} value
- * @returns {{ errors:string[], value:* }}
+ * @param {object} options
+ * @param {boolean} [options.throw=true] If true then throw errors if found, otherwise return errors array.
+ * @returns {*|{ errors: string[], value:* }}
  */
-OpenApiEnforcer.prototype.deserialize = function(schema, value) {
-    const data = store.get(this);
+OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
     const errors = [];
-    const version = data.version;
+    const version = store.get(this).version;
+
+    // normalize options
+    if (!options) options = {};
+    if (!options.hasOwnProperty('throw')) options.throw = true;
+
+    // run version specific deserialization
     const result = version.serial.deserialize(errors, '', schema, value);
+
+    // determine how to handle deserialization data
     const hasErrors = errors.length;
-    return {
-        errors: hasErrors ? errors.map(v => v.trim()) : null,
-        value: hasErrors ? null : result
-    };
+    if (hasErrors && options.throw) {
+        throw Error('One or more errors occurred during deserialization: \n\t' + errors.join('\n\t'))
+    } else if (options.throw) {
+        return result;
+    } else {
+        return {
+            errors: hasErrors ? errors.map(v => v.trim()) : null,
+            value: hasErrors ? null : result
+        };
+    }
 };
 
 /**
@@ -186,14 +200,18 @@ OpenApiEnforcer.prototype.path = function(path) {
 
 /**
  * Populate an object or an array using default, x-template, x-variable, and a parameter map.
+ * @param {object} schema
  * @param {object} config
- * @param {object} config.schema
  * @param {object} [config.params={}]
- * @param {object} [config.options]
+ * @param {object} [config.options] The populate options
+ * @param {boolean} [config.throw=true] If true then throw errors if found, otherwise return errors array.
  * @param {*} [config.value]
- * @returns {*}
+ * @returns {{ errors: string[]|null, value: *}}
  */
-OpenApiEnforcer.prototype.populate = function (config) {
+OpenApiEnforcer.prototype.populate = function (schema, config) {
+    if (!config) config = {};
+    if (!config.hasOwnProperty('throw')) config.throw = true;
+
     const options = config.options
         ? Object.assign({}, OpenApiEnforcer.defaults.populate, config.options)
         : OpenApiEnforcer.defaults.populate;
@@ -202,6 +220,7 @@ OpenApiEnforcer.prototype.populate = function (config) {
     const initialValueProvided = config.hasOwnProperty('value');
     const version = store.get(this).version;
     const v = {
+        errors: [],
         injector: populate.injector[options.replacement],
         map: config.params || {},
         options: options,
@@ -216,9 +235,20 @@ OpenApiEnforcer.prototype.populate = function (config) {
 
     // begin population
     const root = { root: value };
-    populate.populate(v, '<root>', config.schema, root, 'root');
+    populate.populate(v, '<root>', schema, root, 'root');
 
-    return root.root;
+    // determine how to handle population data
+    const hasErrors = v.errors.length;
+    if (hasErrors && options.throw) {
+        throw Error('One or more errors occurred during population: \n\t' + v.errors.join('\n\t'))
+    } else if (options.throw) {
+        return root.root;
+    } else {
+        return {
+            errors: hasErrors ? v.errors : null,
+            value: hasErrors ? null : root.root
+        };
+    }
 };
 
 /**
@@ -338,10 +368,33 @@ OpenApiEnforcer.prototype.response = function(options) {
  * Serialize a value for sending as a response.
  * @param {object} schema
  * @param {*} value
+ * @param {object} options
+ * @param {boolean} [options.throw=true] If true then throw errors if found, otherwise return errors array.
  * @returns {*}
  */
-OpenApiEnforcer.prototype.serialize = function(schema, value) {
-    return serialize('', schema, value);
+OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
+    const errors = [];
+    const version = store.get(this).version;
+
+    // normalize options
+    if (!options) options = {};
+    if (!options.hasOwnProperty('throw')) options.throw = true;
+
+    // run version specific deserialization
+    const result = version.serial.serialize(errors, '', schema, value);
+
+    // determine how to handle serialization data
+    const hasErrors = errors.length;
+    if (hasErrors && options.throw) {
+        throw Error('One or more errors occurred during serialization: \n\t' + errors.join('\n\t'))
+    } else if (options.throw) {
+        return result;
+    } else {
+        return {
+            errors: hasErrors ? errors.map(v => v.trim()) : null,
+            value: hasErrors ? null : result
+        };
+    }
 };
 
 /**
@@ -527,43 +580,3 @@ function responseSerialize(context, responses, data, config) {
     return result;
 }
 
-function serialize(prefix, schema, value) {
-    const type = util.schemaType(schema);
-    switch (type) {
-        case 'array':
-            if (Array.isArray(value)) return value.map((v, i) => serialize(prefix + '/' + i, schema.items || {}, v));
-            break;
-
-        case 'boolean':
-        case 'integer':
-        case 'number':
-            return format[type](prefix, value);
-
-        case 'object':
-            if (value && typeof value === 'object') {
-                const result = {};
-                const additionalProperties = schema.additionalProperties;
-                const properties = schema.properties || {};
-                Object.keys(value).forEach(key => {
-                    if (properties.hasOwnProperty(key)) {
-                        result[key] = serialize(prefix + '/' + key, properties[key], value[key]);
-                    } else if (additionalProperties) {
-                        result[key] = serialize(prefix + '/' + key, additionalProperties, value[key]);
-                    }
-                });
-                return result;
-            }
-            return value;
-
-        case 'string':
-        default:
-            switch (schema.format) {
-                case 'binary':
-                case 'byte':
-                case 'date':
-                case 'date-time':
-                    return format[schema.format](prefix, value);
-            }
-            return format.string(prefix, value);
-    }
-}
