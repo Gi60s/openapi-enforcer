@@ -31,10 +31,11 @@ exports.populate = function(v, prefix, schema, object, property) {
     if (type === 'array') {
         let value = object[property];
         if (value !== undefined && !Array.isArray(object[property])) {
-            throw Error(prefix + ': Provided value must be an array. Received: ' + util.smart(value));
+            v.errors.push(prefix + ': Provided value must be an array. Received: ' + util.smart(value));
+            return;
         }
 
-        apply(v, schema, type, object, property);
+        apply(v, prefix, schema, type, object, property);
 
         value = object[property];
         if (value) {
@@ -46,7 +47,8 @@ exports.populate = function(v, prefix, schema, object, property) {
     } else if (type === 'object') {
         const value = object[property];
         if (value !== undefined && (!value || typeof value !== 'object')) {
-            throw Error(prefix + ': Provided value must be a non-null object. Received: ' + util.smart(value));
+            v.errors.push(prefix + ': Provided value must be a non-null object. Received: ' + util.smart(value));
+            return;
         }
 
         // if allOf then apply each item
@@ -59,7 +61,7 @@ exports.populate = function(v, prefix, schema, object, property) {
             if (discriminator) exports.populate(v, prefix, discriminator, object, property);
 
         } else {
-            apply(v, schema, type, object, property);
+            apply(v, prefix, schema, type, object, property);
             const value = object[property];
 
             // if not ignoring required then these values may not actually populate
@@ -101,14 +103,14 @@ exports.populate = function(v, prefix, schema, object, property) {
 
         }
     } else {
-        apply(v, schema, type, object, property);
+        apply(v, prefix, schema, type, object, property);
     }
 
 
 };
 
 
-function apply(v, schema, type, object, property) {
+function apply(v, prefix, schema, type, object, property) {
     if (object[property] === undefined) {
         const options = v.options;
         const map = v.map;
@@ -116,7 +118,12 @@ function apply(v, schema, type, object, property) {
             const value = map[schema['x-variable']];
             if (options.serialize) {
                 const form = util.schemaFormat(schema);
-                object[property] = format[form]('', value);
+                const data = format[form](value);
+                if (data.error) {
+                    v.errors.push(prefix + ': ' + data.error);
+                } else {
+                    object[property] = data.value;
+                }
             } else {
                 object[property] = value;
             }
