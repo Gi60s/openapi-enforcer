@@ -119,7 +119,14 @@ validate.binary = function(v, prefix, depth, schema, value) {
         v.error(prefix, 'Expected value to be a buffer. Received: ' + smart(value));
     } else {
         maxMin(v, prefix, schema, 'binary length', 'maxLength', 'minLength', true, value.length * 8, schema.maxLength, schema.minLength);
-        if (v.options.enum && schema.enum) _enum(v, prefix, schema, format.binary('', value));
+        if (v.options.enum && schema.enum) {
+            const d = format.binary(value);
+            if (d.error) {
+                v.error(prefix, d.error)
+            } else {
+                _enum(v, prefix, schema, d.value);
+            }
+        }
     }
 };
 
@@ -138,7 +145,14 @@ validate.byte = function(v, prefix, depth, schema, value) {
         v.error(prefix, 'Expected value to be a buffer. Received: ' + smart(value));
     } else {
         maxMin(v, prefix, schema, 'byte length', 'maxLength', 'minLength', true, value.length, schema.maxLength, schema.minLength);
-        if (v.options.enum && schema.enum) _enum(v, prefix, schema, format.byte('', value));
+        if (v.options.enum && schema.enum) {
+            const d = format.byte(value);
+            if (d.error) {
+                v.error(prefix, d.error);
+            } else {
+                _enum(v, prefix, schema, d.value);
+            }
+        }
     }
 };
 
@@ -148,7 +162,14 @@ validate.date = function(v, prefix, depth, schema, value) {
         v.error(prefix, 'Expected a valid date object. Received: ' + smart(value));
     } else {
         maxMin(v, prefix, schema, 'date', 'maximum', 'minimum', false, value, new Date(schema.maximum), new Date(schema.minimum));
-        if (v.options.enum && schema.enum) _enum(v, prefix, schema, format.date('', value));
+        if (v.options.enum && schema.enum) {
+            const d = format.date(value);
+            if (d.error) {
+                v.error(prefix, d.error);
+            } else {
+                _enum(v, prefix, schema, d.value);
+            }
+        }
     }
 };
 
@@ -158,7 +179,14 @@ validate.dateTime = function(v, prefix, depth, schema, value) {
         v.error(prefix, 'Expected a valid date object. Received: ' + smart(value));
     } else {
         maxMin(v, prefix, schema, 'date-time', 'maximum', 'minimum', false, value, new Date(schema.maximum), new Date(schema.minimum));
-        if (v.options.enum && schema.enum) _enum(v, prefix, schema, format.dateTime('', value));
+        if (v.options.enum && schema.enum) {
+            const d = format.dateTime(value);
+            if (d.error) {
+                v.error(prefix, d.error);
+            } else {
+                _enum(v, prefix, schema, d.value);
+            }
+        }
     }
 };
 validate['date-time'] = validate.dateTime;
