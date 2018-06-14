@@ -15,13 +15,12 @@
  *    limitations under the License.
  **/
 'use strict';
+const format    = require('../format');
 const parse     = require('../parse');
 const util      = require('../util');
 
 exports.deserialize = deserialize;
-exports.serialize = function(schema, value) {
-
-};
+exports.serialize = serialize;
 
 function deserialize(errors, prefix, schema, value) {
     if (schema.allOf) {
@@ -31,6 +30,7 @@ function deserialize(errors, prefix, schema, value) {
             Object.assign(result, v)
         });
         return result;
+
     } else {
         const type = util.schemaType(schema);
         let result;
@@ -39,8 +39,8 @@ function deserialize(errors, prefix, schema, value) {
                 if (Array.isArray(value)) return schema.items
                     ? value.map((v,i) => deserialize(errors, prefix + '/' + i, schema.items, v))
                     : value;
-                errors.push(prefix + ' Expected an array. Received: ' + value);
-                break;
+                errors.push(prefix + ' Expected an array. Received: ' + util.smart(value));
+                return;
 
             case 'boolean':
             case 'integer':
@@ -83,6 +83,67 @@ function deserialize(errors, prefix, schema, value) {
             default:
                 errors.push(prefix + ' Unknown schema type');
                 return;
+        }
+    }
+}
+
+function serialize(errors, prefix, schema, value) {
+    if (schema.allOf) {
+        const result = {};
+        schema.allOf.forEach((schema, index) => {
+            const v = deserialize(errors, prefix + '/allOf/' + index, schema, value);
+            Object.assign(result, v)
+        });
+        return result;
+
+    } else {
+        const type = util.schemaType(schema);
+        let result;
+        switch (type) {
+            case 'array':
+                if (Array.isArray(value)) return schema.items
+                    ? value.map((v, i) => serialize(errors, prefix + '/' + i, schema.items || {}, v))
+                    : value;
+                errors.push(prefix + ' Expected an array. Received: ' + util.smart(value));
+                return;
+
+            case 'boolean':
+            case 'integer':
+            case 'number':
+                result = format[type](value);
+                if (result.error) errors.push(prefix + ' ' + result.error);
+                return result.value;
+
+            case 'string':
+            default:
+                switch (schema.format) {
+                    case 'binary':
+                    case 'byte':
+                    case 'date':
+                    case 'date-time':
+                        result = format[schema.format](value);
+                        break;
+                    default:
+                        result = format.string(value);
+                }
+                if (result.error) errors.push(prefix + ' ' + result.error);
+                return result.value;
+
+            case 'object':
+                if (value && typeof value === 'object') {
+                    const result = {};
+                    const additionalProperties = schema.additionalProperties;
+                    const properties = schema.properties || {};
+                    Object.keys(value).forEach(key => {
+                        if (properties.hasOwnProperty(key)) {
+                            result[key] = serialize(errors, prefix + '/' + key, properties[key], value[key]);
+                        } else if (additionalProperties) {
+                            result[key] = serialize(errors, prefix + '/' + key, additionalProperties, value[key]);
+                        }
+                    });
+                    return result;
+                }
+                return value;
         }
     }
 }
