@@ -27,53 +27,53 @@ describe('deserialize', () => {
 
     it('string', () => {
         const v = enforcer.deserialize({ type: 'string' }, 'hello');
-        expect(v.value).to.equal('hello');
+        expect(v).to.equal('hello');
     });
 
     it('number', () => {
         const v = enforcer.deserialize({ type: 'number' }, '2.4');
-        expect(v.value).to.equal(2.4);
+        expect(v).to.equal(2.4);
     });
 
     it('integer', () => {
         const v = enforcer.deserialize({ type: 'integer' }, '2');
-        expect(v.value).to.equal(2);
+        expect(v).to.equal(2);
     });
 
     it('byte', () => {
         const v = enforcer.deserialize({ type: 'string', format: 'byte' }, 'aGVsbG8=');
-        expect(v.value).to.be.instanceOf(Buffer);
-        expect(v.value.toString()).to.equal('hello');
+        expect(v).to.be.instanceOf(Buffer);
+        expect(v.toString()).to.equal('hello');
     });
 
     it('binary', () => {
         const v = enforcer.deserialize({ type: 'string', format: 'binary' }, '01100001');
-        expect(v.value).to.be.instanceOf(Buffer);
-        expect(v.value[0]).to.equal(97);
-        expect(v.value.toString()).to.equal('a');
+        expect(v).to.be.instanceOf(Buffer);
+        expect(v[0]).to.equal(97);
+        expect(v.toString()).to.equal('a');
     });
 
     it('boolean', () => {
-        expect(enforcer.deserialize({ type: 'boolean' }, '').value).to.be.false;
-        expect(enforcer.deserialize({ type: 'boolean' }, 'false').value).to.be.false;
-        expect(enforcer.deserialize({ type: 'boolean' }, 'true').value).to.be.true;
+        expect(enforcer.deserialize({ type: 'boolean' }, '')).to.be.false;
+        expect(enforcer.deserialize({ type: 'boolean' }, 'false')).to.be.false;
+        expect(enforcer.deserialize({ type: 'boolean' }, 'true')).to.be.true;
     });
 
     it('date', () => {
         const v = enforcer.deserialize({ type: 'string', format: 'date' }, '2000-01-01');
-        expect(v.value).to.be.instanceOf(Date);
-        expect(v.value.toISOString()).to.equal('2000-01-01T00:00:00.000Z');
+        expect(v).to.be.instanceOf(Date);
+        expect(v.toISOString()).to.equal('2000-01-01T00:00:00.000Z');
     });
 
     it('date-time', () => {
         const v = enforcer.deserialize({ type: 'string', format: 'date-time' }, '2000-01-01T01:02:03.456Z');
-        expect(v.value).to.be.instanceOf(Date);
-        expect(v.value.toISOString()).to.equal('2000-01-01T01:02:03.456Z');
+        expect(v).to.be.instanceOf(Date);
+        expect(v.toISOString()).to.equal('2000-01-01T01:02:03.456Z');
     });
 
     it('password', () => {
         const v = enforcer.deserialize({ type: 'string', format: 'password' }, 'plain text');
-        expect(v.value).to.equal('plain text');
+        expect(v).to.equal('plain text');
     });
 
     it('array', () => {
@@ -82,7 +82,7 @@ describe('deserialize', () => {
             items: { type: 'string', format: 'date' }
         };
         const v = enforcer.deserialize(schema, ['2000-01-01']);
-        expect(v.value).to.deep.equal([new Date('2000-01-01')]);
+        expect(v).to.deep.equal([new Date('2000-01-01')]);
     });
 
     it('object', () => {
@@ -94,7 +94,7 @@ describe('deserialize', () => {
             }
         };
         const v = enforcer.deserialize(schema, { a: 1, b: '2000-01-01' });
-        expect(v.value).to.deep.equal({ a: 1, b: new Date('2000-01-01') });
+        expect(v).to.deep.equal({ a: 1, b: new Date('2000-01-01') });
     });
 
     it('object allOf', () => {
@@ -116,17 +116,21 @@ describe('deserialize', () => {
             ]
         };
         const v = enforcer.deserialize(schema, { a: 1, b: '2000-01-01', c: '01100001' });
-        expect(v.value).to.deep.equal({
+        expect(v).to.deep.equal({
             a: 1,
             b: new Date('2000-01-01'),
             c: Buffer.from([97])
         });
     });
 
-    it('error', () => {
-        const v = enforcer.deserialize({ type: 'integer' }, '2.4');
+    it('thrown error', () => {
+        expect(() => enforcer.deserialize({ type: 'integer' }, '2.4')).to.throw(Error);
+    });
+
+    it('reported error', () => {
+        const v = enforcer.deserialize({ type: 'integer' }, '2.4', { throw: false });
         expect(v.errors.length).to.equal(1);
         expect(v.value).to.be.null;
-    })
+    });
 
 });
