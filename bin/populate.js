@@ -116,26 +116,30 @@ function apply(v, prefix, schema, type, object, property) {
         const map = v.map;
         if (options.variables && schema.hasOwnProperty('x-variable') && map.hasOwnProperty(schema['x-variable'])) {
             const value = map[schema['x-variable']];
-            if (options.serialize) {
-                const form = util.schemaFormat(schema);
-                const data = format[form](value);
-                if (data.error) {
-                    v.errors.push(prefix + ': ' + data.error);
+            if (value !== undefined) {
+                if (options.serialize) {
+                    const form = util.schemaFormat(schema);
+                    const data = format[form](value);
+                    if (data.error) {
+                        v.errors.push(prefix + ': ' + data.error);
+                    } else {
+                        object[property] = data.value;
+                    }
                 } else {
-                    object[property] = data.value;
+                    object[property] = value;
                 }
-            } else {
-                object[property] = value;
             }
 
         } else if (options.templates && type === 'string' && schema.hasOwnProperty('x-template')) {
-            object[property] = v.injector(schema['x-template'], map);
+            if (map[schema['x-template']] !== undefined) object[property] = v.injector(schema['x-template'], map);
 
         } else if (options.defaults && schema.hasOwnProperty('default')) {
             const value = schema.default;
-            object[property] = options.templateDefaults && typeof value === 'string'
-                ? v.injector(value, map)
-                : value;
+            if (value !== undefined) {
+                object[property] = options.templateDefaults && typeof value === 'string'
+                    ? v.injector(value, map)
+                    : value;
+            }
         }
     }
 }
