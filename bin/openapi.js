@@ -227,7 +227,7 @@ OpenApiEnforcer.prototype.populate = function (schema, config) {
     if (!config.hasOwnProperty('throw')) config.throw = true;
 
     const options = config.options
-        ? Object.assign({}, defaults.populate, OpenApiEnforcer.defaults.populate, config.options)
+        ? Object.assign({}, defaults.populate, OpenApiEnforcer.defaults && OpenApiEnforcer.defaults.populate, config.options)
         : OpenApiEnforcer.defaults.populate;
 
     // initialize variables
