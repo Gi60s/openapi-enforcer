@@ -97,7 +97,10 @@ exports.byte = function(value) {
  */
 exports.date = function(value) {
     const data = exports.dateTime(value);
-    if (data.error) return data;
+    if (data.error) {
+        data.error = data.error.replace('date-time', 'date');
+        return data;
+    }
     return formatted(null, data.value.substr(0, 10));
 };
 
@@ -123,7 +126,7 @@ exports.dateTime = function(value) {
         return formatted(null, new Date(value).toISOString());
 
     } else {
-        return formatted('Cannot convert to date. The value must be a Date, ' +
+        return formatted('Cannot convert to date-time. The value must be a Date, ' +
             'a number, or a date string. Received: ' + smart(value));
     }
 };
