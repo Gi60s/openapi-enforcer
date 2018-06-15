@@ -25,6 +25,20 @@ const store = new WeakMap();
 const rxPathParam = /{([^}]+)}/;
 const rxVersion = /^2.0$|^\d+\.\d+\.\d+$/;
 
+const defaults = {
+    populate: {
+        copy: false,
+        defaults: true,
+        ignoreMissingRequired: true,
+        oneOf: true,
+        replacement: 'handlebar',
+        serialize: false,
+        templateDefaults: true,
+        templates: true,
+        variables: true
+    }
+};
+
 /**
  * Produce an open api enforcer instance.
  * @param {object, string} definition The open api definition object or a string representing the version to use.
@@ -213,7 +227,7 @@ OpenApiEnforcer.prototype.populate = function (schema, config) {
     if (!config.hasOwnProperty('throw')) config.throw = true;
 
     const options = config.options
-        ? Object.assign({}, OpenApiEnforcer.defaults.populate, config.options)
+        ? Object.assign({}, defaults.populate, OpenApiEnforcer.defaults.populate, config.options)
         : OpenApiEnforcer.defaults.populate;
 
     // initialize variables
@@ -416,20 +430,8 @@ OpenApiEnforcer.prototype.version = function() {
     return definition.openapi || definition.swagger;
 };
 
-
-OpenApiEnforcer.defaults = {
-    populate: {
-        copy: false,
-        defaults: true,
-        ignoreMissingRequired: true,
-        oneOf: true,
-        replacement: 'handlebar',
-        serialize: false,
-        templateDefaults: true,
-        templates: true,
-        variables: true
-    }
-};
+// expose an interface for updating defaults
+OpenApiEnforcer.defaults = util.copy(defaults);
 
 
 
