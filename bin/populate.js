@@ -131,7 +131,7 @@ function apply(v, prefix, schema, type, object, property) {
             }
 
         } else if (options.templates && type === 'string' && schema.hasOwnProperty('x-template')) {
-            if (map[schema['x-template']] !== undefined) object[property] = v.injector(schema['x-template'], map);
+            object[property] = v.injector(schema['x-template'], map);
 
         } else if (options.defaults && schema.hasOwnProperty('default')) {
             const value = schema.default;
@@ -157,7 +157,7 @@ function buildInjector(rxGenerator) {
         let offset = 0;
         while (match = rx.exec(value)) {
             const property = match[1];
-            result += value.substring(offset, match.index) + (data.hasOwnProperty(property) ? data[property] : match[0]);
+            result += value.substring(offset, match.index) + (data[property] !== undefined ? data[property] : match[0]);
             offset = match.index + match[0].length;
         }
         return result + value.substr(offset);
