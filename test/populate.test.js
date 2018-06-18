@@ -28,68 +28,57 @@ describe('#populate', () => {
         },
         paths: {}
     };
-
+    let defaults;
     let enforcer;
 
     before(() => {
         enforcer = new Enforcer(definition);
+        defaults = Enforcer.defaults.populate;
+        Enforcer.defaults.populate.throw = true;
+    });
+
+    after(() => {
+        Enforcer.defaults.populate = defaults;
     });
 
     describe('integer', () => {
 
         it('default', () => {
-            const value = enforcer.populate({ schema: { type: 'number', default: 5 }});
+            const value = enforcer.populate({ type: 'number', default: 5 });
             expect(value).to.equal(5);
         });
 
         it('x-template', () => {
-            const value = enforcer.populate({
-                schema: {type: 'number', 'x-template': ':myNumber'},
-                params: {myNumber: 5}
-            });
+            const value = enforcer.populate({type: 'number', 'x-template': ':myNumber'}, {myNumber: 5});
             expect(value).to.be.undefined; // x-template only works for strings
         });
 
         it('x-variable', () => {
-            const value = enforcer.populate({
-                schema: {type: 'number', 'x-variable': 'myNumber'},
-                params: {myNumber: 5}
-            });
+            const value = enforcer.populate({type: 'number', 'x-variable': 'myNumber'}, {myNumber: 5});
             expect(value).to.equal(5);
         });
 
         it('default and x-variable 1', () => {
-            const value = enforcer.populate({
-                schema: { type: 'number', default: 5, 'x-variable': 'myNumber' },
-                params: { myNumber: 6 }
-            });
+            const value = enforcer.populate({ type: 'number', default: 5, 'x-variable': 'myNumber' }, { myNumber: 6 });
             expect(value).to.equal(6);
         });
 
         it('default and x-variable 2', () => {
-            const value = enforcer.populate({ schema: { type: 'number', default: 5, 'x-variable': 'myNumber' }});
+            const value = enforcer.populate({ type: 'number', default: 5, 'x-variable': 'myNumber' });
             expect(value).to.equal(5);
         });
 
         it('auto format enabled', () => {
             const enforcer = new Enforcer(definition);
             const date = new Date();
-            const value = enforcer.populate({
-                schema: { type: 'number', 'x-variable': 'myNumber' },
-                params: { myNumber: date },
-                options: { serialize: true }
-            });
+            const value = enforcer.populate({ type: 'number', 'x-variable': 'myNumber' }, { myNumber: date }, { serialize: true });
             expect(value).to.equal(+date);
         });
 
         it('auto format disabled', () => {
             const enforcer = new Enforcer(definition);
             const date = new Date();
-            const value = enforcer.populate({
-                schema: {type: 'number', 'x-variable': 'myNumber'},
-                params: {myNumber: date},
-                options: { serialize: false }
-            });
+            const value = enforcer.populate({type: 'number', 'x-variable': 'myNumber'}, {myNumber: date}, { serialize: false });
             expect(value).to.equal(date);
         });
 
@@ -98,31 +87,22 @@ describe('#populate', () => {
     describe('string', () => {
 
         it('default', () => {
-            const value = enforcer.populate({ schema: { type: 'string', default: 'hello' } });
+            const value = enforcer.populate({ type: 'string', default: 'hello' });
             expect(value).to.equal('hello');
         });
 
         it('x-template', () => {
-            const value = enforcer.populate({
-                schema: { type: 'string', 'x-template': '{varName}' },
-                params: { varName: 'hello' }
-            });
+            const value = enforcer.populate({ type: 'string', 'x-template': '{varName}' }, { varName: 'hello' });
             expect(value).to.equal('hello');
         });
 
         it('x-template multiple', () => {
-            const value = enforcer.populate({
-                schema: {type: 'string', 'x-template': '{greeting}, {name}!'},
-                params: {greeting: 'Hello', name: 'Bob'}
-            });
+            const value = enforcer.populate({type: 'string', 'x-template': '{greeting}, {name}!'}, {greeting: 'Hello', name: 'Bob'});
             expect(value).to.equal('Hello, Bob!');
         });
 
         it('x-variable', () => {
-            const value = enforcer.populate({
-                schema: {type: 'string', 'x-variable': 'varName'},
-                params: {varName: 'hello'}
-            });
+            const value = enforcer.populate({type: 'string', 'x-variable': 'varName'},{varName: 'hello'});
             expect(value).to.equal('hello');
         });
 
@@ -133,12 +113,7 @@ describe('#populate', () => {
         it('array of numbers', () => {
             const schema = { type: 'array', items: { type: 'number', default: 5 }};
             const initValue = [1, 2, undefined, 3, 4, undefined];
-            const value = enforcer.populate({
-                options: { copy: true },
-                schema: schema,
-                params: {},
-                value: initValue
-            });
+            const value = enforcer.populate(schema, {}, { copy: true, value: initValue });
             expect(value).not.to.equal(initValue);
             expect(value).to.deep.equal([1, 2, 5, 3, 4, 5]);
         });
@@ -160,7 +135,7 @@ describe('#populate', () => {
                     }
                 }
             };
-            const value = enforcer.populate({ schema: schema });
+            const value = enforcer.populate(schema);
             expect(value).to.deep.equal([{ x: 'hello', y: 'hi' }, { x: 'bye', y: 'later' }]);
         });
 
@@ -176,7 +151,7 @@ describe('#populate', () => {
                     age: { type: 'number', default: 5 }
                 }
             };
-            const value = enforcer.populate({ schema: schema });
+            const value = enforcer.populate(schema);
             expect(value).to.deep.equal({ age: 5 })
         });
 
@@ -189,11 +164,7 @@ describe('#populate', () => {
                     age: { type: 'number', default: 5 }
                 }
             };
-            const value = enforcer.populate({
-                schema: schema,
-                params: {},
-                options: { ignoreMissingRequired: false }
-            });
+            const value = enforcer.populate(schema, {}, { ignoreMissingRequired: false });
             expect(value).to.be.undefined;
         });
 
@@ -206,7 +177,7 @@ describe('#populate', () => {
                     }
                 }
             };
-            const value = enforcer.populate({ schema: schema, params: {}, value: { a: {} }});
+            const value = enforcer.populate(schema, {}, { value: { a: {} } });
             expect(value).to.deep.equal({ a: { x: 5 } });
         });
 
@@ -224,7 +195,7 @@ describe('#populate', () => {
                     }
                 ]
             };
-            const value = enforcer.populate({ schema: schema });
+            const value = enforcer.populate(schema);
             expect(value).to.deep.equal({ a: 'A', b: 'B' });
         });
 
@@ -237,7 +208,7 @@ describe('#populate', () => {
             };
 
             it('does nothing', () => {
-                const value = enforcer.populate({ schema: schema, params: {} });
+                const value = enforcer.populate(schema);
                 expect(value).to.be.undefined;
             });
         });
@@ -267,12 +238,12 @@ describe('#populate', () => {
             };
 
             it('one', () => {
-                const value = enforcer.populate({ schema: schema, params: {}, value: { mode: 'one' }});
+                const value = enforcer.populate(schema, {}, { value: { mode: 'one' }});
                 expect(value).to.deep.equal({ mode: 'one', value: 5 });
             });
 
             it('two', () => {
-                const value = enforcer.populate({ schema: schema, params: {}, value: { mode: 'two' }});
+                const value = enforcer.populate(schema, {}, {value: { mode: 'two' }});
                 expect(value).to.deep.equal({ mode: 'two', value: 'hello' });
             });
 
