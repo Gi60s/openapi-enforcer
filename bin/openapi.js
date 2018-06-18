@@ -26,6 +26,9 @@ const rxPathParam = /{([^}]+)}/;
 const rxVersion = /^2.0$|^\d+\.\d+\.\d+$/;
 
 const defaults = {
+    deserialize: {
+        throw: true
+    },
     populate: {
         copy: false,
         defaults: true,
@@ -35,6 +38,7 @@ const defaults = {
         serialize: false,
         templateDefaults: true,
         templates: true,
+        throw: true,
         variables: true
     }
 };
@@ -139,8 +143,7 @@ OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
     const version = store.get(this).version;
 
     // normalize options
-    if (!options) options = {};
-    if (!options.hasOwnProperty('throw')) options.throw = true;
+    options = Object.assign({}, defaults.deserialize, OpenApiEnforcer.defaults && OpenApiEnforcer.defaults.deserialize, options);
 
     // run version specific deserialization
     const result = version.serial.deserialize(errors, '', schema, value);
@@ -215,28 +218,36 @@ OpenApiEnforcer.prototype.path = function(path) {
 /**
  * Populate an object or an array using default, x-template, x-variable, and a parameter map.
  * @param {object} schema
- * @param {object} config
- * @param {object} [config.params={}]
- * @param {object} [config.options] The populate options
- * @param {boolean} [config.throw=true] If true then throw errors if found, otherwise return errors array.
- * @param {*} [config.value]
- * @returns {{ errors: string[]|null, value: *}}
+ * @param {object} [params={}]
+ * @param {object} options
+ * @param {boolean} [options.copy]
+ * @param {boolean} [options.ignoreMissingRequired]
+ * @param {boolean} [options.oneOf]
+ * @param {string} [options.replacement]
+ * @param {boolean} [options.serialize]
+ * @param {boolean} [options.templateDefaults]
+ * @param {boolean} [options.templates]
+ * @param {boolean} [options.throw=true] If true then throw errors if found, otherwise return errors array.
+ * @param {boolean} [options.variables]
+ * @param {*} [options.value] Initial value
+ * @returns {{ errors: string[]|null, value: *}|*}
  */
-OpenApiEnforcer.prototype.populate = function (schema, config) {
-    if (!config) config = {};
-    if (!config.hasOwnProperty('throw')) config.throw = true;
+OpenApiEnforcer.prototype.populate = function (schema, params, options) {
+    if (!options) options = {};
 
-    const options = config.options
-        ? Object.assign({}, defaults.populate, OpenApiEnforcer.defaults && OpenApiEnforcer.defaults.populate, config.options)
-        : OpenApiEnforcer.defaults.populate;
+    // normalize options
+    options = Object.assign({},
+        defaults.populate,
+        OpenApiEnforcer.defaults && OpenApiEnforcer.defaults.populate,
+        options);
 
     // initialize variables
-    const initialValueProvided = config.hasOwnProperty('value');
+    const initialValueProvided = options.hasOwnProperty('value');
     const version = store.get(this).version;
     const v = {
         errors: [],
         injector: populate.injector[options.replacement],
-        map: config.params || {},
+        map: params || {},
         options: options,
         schemas: version.schemas,
         version: version
@@ -244,8 +255,8 @@ OpenApiEnforcer.prototype.populate = function (schema, config) {
 
     // produce start value
     const value = v.options.copy && initialValueProvided
-        ? util.copy(config.value)
-        : config.value;
+        ? util.copy(options.value)
+        : options.value;
 
     // begin population
     const root = { root: value };
