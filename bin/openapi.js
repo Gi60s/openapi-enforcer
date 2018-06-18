@@ -40,6 +40,9 @@ const defaults = {
         templates: true,
         throw: true,
         variables: true
+    },
+    serialize: {
+        throw: true
     }
 };
 
@@ -402,8 +405,7 @@ OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
     const version = store.get(this).version;
 
     // normalize options
-    if (!options) options = {};
-    if (!options.hasOwnProperty('throw')) options.throw = true;
+    options = Object.assign({}, defaults.serialize, OpenApiEnforcer.defaults && OpenApiEnforcer.defaults.serialize, options);
 
     // run version specific deserialization
     const result = version.serial.serialize(errors, '', schema, value);
@@ -526,7 +528,7 @@ function responsePopulate(context, responses, data, options) {
             options: config.options
         };
         if (config.hasOwnProperty('body')) options.value = config.body;
-        result.body = context.populate(options);
+        result.body = context.populate(data.schema, config.params, config.options);
     }
 
     // populate headers
@@ -544,13 +546,8 @@ function responsePopulate(context, responses, data, options) {
         Object.keys(headersSchemas).forEach(header => {
             const schema = headersSchemas[header].schema;
             if (schema) {
-                const options = {
-                    schema: schema,
-                    params: config.params,
-                    options: config.options
-                };
                 if (headers.hasOwnProperty(header)) options.value = headers[header];
-                const value = context.populate(options);
+                const value = context.populate(schema, config.params, config.options);
                 if (value !== undefined) headers[header] = value;
             }
         });
@@ -571,7 +568,7 @@ function responseSerialize(context, responses, data, config) {
     }
 
     if (config.hasOwnProperty('body')) {
-        result.body = context.serialize(data.schema, config.body);
+        result.body = context.serialize(data.schema, config.body, config.options);
     }
 
     if (config.headers && responses && responses[data.code]) {
@@ -582,7 +579,7 @@ function responseSerialize(context, responses, data, config) {
                 const schema = schemas && schemas[name];
                 if (schema) {
                     let value = schema && schema.schema
-                        ? serialize('', schema.schema, headers[name])
+                        ? context.serialize(schema.schema, headers[name], config.options)
                         : String(headers[name]);
                     value = version.serializeResponseHeader(schema, value);
                     result.headers[name] = value;
