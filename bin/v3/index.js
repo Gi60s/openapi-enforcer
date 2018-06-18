@@ -201,7 +201,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
             const key = util.findMediaMatch(contentType, Object.keys(content))[0];
             if (key && content[key].schema) {
                 const schema = content[key].schema;
-                const typed = this.enforcer.deserialize(schema, req.body);
+                const typed = this.enforcer.deserialize(schema, req.body, { throw: false });
                 if (typed.errors) {
                     errors.push('Invalid request body:\n\t' + typed.errors.join('\n\t'));
                 } else {
@@ -311,7 +311,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
 
                 // parse was successful, now convert type, then validate data
                 if (parsed.match) {
-                    const typed = this.enforcer.deserialize(schema, parsed.value);
+                    const typed = this.enforcer.deserialize(schema, parsed.value, { throw: false });
                     if (typed.errors) {
                         errors.push('Invalid type for ' + at + ' parameter "' + name + '":\n\t' + typed.errors.join('\n\t'));
                     } else {

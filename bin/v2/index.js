@@ -158,7 +158,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
     });
 
     const deserializeValidate = (schema, value, at, name) => {
-        let data = this.enforcer.deserialize(schema, value);
+        let data = this.enforcer.deserialize(schema, value, { throw: false });
         if (!data.errors) data.errors = this.enforcer.errors(schema, data.value);
         if (data.errors) errors.push('Invalid value for ' + at + ' parameter "' + name + '":\n\t' + data.errors.join('\n\t'));
         return data.value;
@@ -171,7 +171,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
 
         } else if (paramMap.body.schema && req.body !== undefined) {
             const schema = paramMap.body.schema;
-            const typed = this.enforcer.deserialize(schema, req.body);
+            const typed = this.enforcer.deserialize(schema, req.body, { throw: false });
             if (typed.errors) {
                 errors.push('Invalid request body:\n\t' + typed.errors.join('\n\t'));
             } else {
