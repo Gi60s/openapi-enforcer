@@ -15,15 +15,12 @@
  *    limitations under the License.
  **/
 'use strict';
-const parse     = require('../parse');
 const serial    = require('../v2/serialize');
-const util      = require('../util');
 
 exports.deserialize = deserialize;
-exports.serialize = function(schema, value) {
+exports.serialize = serialize;
 
-};
-
+// TODO: add oneOf and anyOf support
 function deserialize(errors, prefix, schema, value) {
     if (schema.oneOf) {
 
@@ -31,5 +28,16 @@ function deserialize(errors, prefix, schema, value) {
 
     } else {
         return serial.deserialize(errors, prefix, schema, value);
+    }
+}
+
+// TODO: add oneOf and anyOf support
+function serialize(errors, prefix, schema, value) {
+    if (schema.oneOf) {
+
+    } else if (schema.anyOf) {
+
+    } else {
+        return serial.serialize(errors, prefix, schema, value);
     }
 }
