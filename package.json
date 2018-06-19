@@ -10,7 +10,7 @@
     "test": "mocha test/*.js",
     "coverage": "nyc --reporter=html mocha test/*.js",
     "coverage:report": "nyc mocha test/*.js && nyc report --reporter=text-lcov | coveralls",
-    "coverage:watch": "chokidar 'test/**/*' -c 'npm run coverage'"
+    "coverage:watch": "chokidar 'test/**/*' 'bin/**/*' -c 'npm run coverage'"
   },
   "repository": {
     "type": "git",
