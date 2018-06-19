@@ -25,9 +25,12 @@ const store = new WeakMap();
 const rxPathParam = /{([^}]+)}/;
 const rxVersion = /^2.0$|^\d+\.\d+\.\d+$/;
 
-const defaults = {
+const staticDefaults = {
     deserialize: {
         throw: true
+    },
+    errors: {
+        prefix: ''
     },
     populate: {
         copy: false,
@@ -35,7 +38,6 @@ const defaults = {
         ignoreMissingRequired: true,
         oneOf: true,
         replacement: 'handlebar',
-        serialize: false,
         templateDefaults: true,
         templates: true,
         throw: true,
@@ -49,12 +51,13 @@ const defaults = {
 /**
  * Produce an open api enforcer instance.
  * @param {object, string} definition The open api definition object or a string representing the version to use.
+ * @param {object} [options] The default options.
  * @constructor
  */
-function OpenApiEnforcer(definition) {
+function OpenApiEnforcer(definition, options) {
 
     // make sure that this is called as a new instance
-    if (!(this instanceof OpenApiEnforcer)) return new OpenApiEnforcer(definition);
+    if (!(this instanceof OpenApiEnforcer)) return new OpenApiEnforcer(definition, options);
 
     // if the definition was passed in as a version number then rebuild the definition object
     if (definition === '2.0') {
@@ -73,9 +76,7 @@ function OpenApiEnforcer(definition) {
     const Version = util.tryRequire('./v' + major + '/index');
     if (!Version) throw Error('The Open API definition version is either invalid or unsupported: ' + v);
     const version = new Version(this, definition);
-
-    // normalize defaults
-    const defaults = Version.defaults;
+    version.defaults = Version.defaults;
 
     // build path parser functions
     const pathParsers = {};
@@ -124,6 +125,15 @@ function OpenApiEnforcer(definition) {
             pathParsers[pathLength].push(parser);
         });
 
+    // normalize defaults
+    const defaults = {};
+    Object.keys(staticDefaults)
+        .forEach(key => {
+            defaults[key] = Object.assign({}, staticDefaults[key],
+                OpenApiEnforcer.defaults && OpenApiEnforcer.defaults[key],
+                options && options[key]);
+        });
+
     // store protected properties
     store.set(this, {
         defaults: defaults,
@@ -143,10 +153,11 @@ function OpenApiEnforcer(definition) {
  */
 OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
     const errors = [];
-    const version = store.get(this).version;
+    const data = store.get(this);
+    const version = data.version;
 
     // normalize options
-    options = Object.assign({}, defaults.deserialize, OpenApiEnforcer.defaults && OpenApiEnforcer.defaults.deserialize, options);
+    options = Object.assign({}, data.defaults.deserialize, options);
 
     // run version specific deserialization
     const result = version.serial.deserialize(errors, '', schema, value);
@@ -169,19 +180,22 @@ OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
  * Check a value against a schema for errors.
  * @param {object} schema
  * @param {*} value
+ * @param {object} [options]
+ * @param {string} [options.prefix='']
  * @returns {string[]|undefined}
  */
-OpenApiEnforcer.prototype.errors = function(schema, value) {
+OpenApiEnforcer.prototype.errors = function(schema, value, options) {
     const data = store.get(this);
     const version = data.version;
-    const options = Object.assign({ prefix: '' }, arguments[2]);
     const v = {
         definition: data.definition,
         error: (prefix, message) => v.errors.push((prefix ? prefix + ': ' : prefix) + message),
         errors: [],
-        options: data.defaults.validate,
+        options: version.defaults.validate,
         version: version
     };
+
+    options = Object.assign({}, data.defaults.errors, options);
     validate(v, options.prefix, 0, schema, value);
     return v.errors.length > 0 ? v.errors : null;
 };
@@ -222,6 +236,7 @@ OpenApiEnforcer.prototype.path = function(path) {
  * Populate an object or an array using default, x-template, x-variable, and a parameter map.
  * @param {object} schema
  * @param {object} [params={}]
+ * @param {*} [value=undefined]
  * @param {object} options
  * @param {boolean} [options.copy]
  * @param {boolean} [options.ignoreMissingRequired]
@@ -232,22 +247,18 @@ OpenApiEnforcer.prototype.path = function(path) {
  * @param {boolean} [options.templates]
  * @param {boolean} [options.throw=true] If true then throw errors if found, otherwise return errors array.
  * @param {boolean} [options.variables]
- * @param {*} [options.value] Initial value
  * @returns {{ errors: string[]|null, value: *}|*}
  */
-OpenApiEnforcer.prototype.populate = function (schema, params, options) {
-    if (!options) options = {};
+OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
+    const data = store.get(this);
 
     // normalize options
-    options = Object.assign({},
-        defaults.populate,
-        OpenApiEnforcer.defaults && OpenApiEnforcer.defaults.populate,
-        options);
+    options = Object.assign({}, data.defaults.populate, options);
 
     // initialize variables
-    const initialValueProvided = options.hasOwnProperty('value');
-    const version = store.get(this).version;
+    const version = data.version;
     const v = {
+        context: this,
         errors: [],
         injector: populate.injector[options.replacement],
         map: params || {},
@@ -257,9 +268,7 @@ OpenApiEnforcer.prototype.populate = function (schema, params, options) {
     };
 
     // produce start value
-    const value = v.options.copy && initialValueProvided
-        ? util.copy(options.value)
-        : options.value;
+    if (v.options.copy) value = util.copy(value);
 
     // begin population
     const root = { root: value };
@@ -401,11 +410,12 @@ OpenApiEnforcer.prototype.response = function(options) {
  * @returns {*}
  */
 OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
+    const data = store.get(this);
     const errors = [];
-    const version = store.get(this).version;
+    const version = data.version;
 
     // normalize options
-    options = Object.assign({}, defaults.serialize, OpenApiEnforcer.defaults && OpenApiEnforcer.defaults.serialize, options);
+    options = Object.assign({}, data.defaults.serialize, options);
 
     // run version specific deserialization
     const result = version.serial.serialize(errors, '', schema, value);
@@ -421,6 +431,25 @@ OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
             errors: hasErrors ? errors.map(v => v.trim()) : null,
             value: hasErrors ? null : result
         };
+    }
+};
+
+/**
+ * Get an object that will allow a simplified execution context for a recurring schema and options.
+ * @param {object} schema
+ * @param {object} [options]
+ * @returns {{deserialize: (function(*=): (*|{errors: string[], value: *})), errors: (function(*=): string[]), populate: (function(*=, *=, *=): *), random: (function(): *), serialize: (function(*=, *=): {errors, value}), validate: (function(*=): void)}}
+ */
+OpenApiEnforcer.prototype.schema = function(schema, options) {
+    const context = this;
+    if (!options || typeof options !== 'object') options = {};
+    return {
+        deserialize: (value) => context.deserialize(schema, value, options.deserialize),
+        errors: (value) => context.errors(schema, value, options.errors),
+        populate: (params, value) => context.populate(schema, params, value, options.populate),
+        random: () => context.random(schema),
+        serialize: (value) => context.serialize(schema, value, options.serialize),
+        validate: (value) => context.validate(schema, value)
     }
 };
 
@@ -444,7 +473,7 @@ OpenApiEnforcer.prototype.version = function() {
 };
 
 // expose an interface for updating defaults
-OpenApiEnforcer.defaults = util.copy(defaults);
+OpenApiEnforcer.defaults = util.copy(staticDefaults);
 
 
 
@@ -521,15 +550,7 @@ function responsePopulate(context, responses, data, options) {
     let result = {};
     
     // populate body
-    if (data.schema) {
-        const options = { 
-            schema: data.schema, 
-            params: config.params,
-            options: config.options
-        };
-        if (config.hasOwnProperty('body')) options.value = config.body;
-        result.body = context.populate(data.schema, config.params, config.options);
-    }
+    if (data.schema) result.body = context.populate(data.schema, config.params, config.body, config.options);
 
     // populate headers
     const headersSchemas = data.code && responses[data.code] && responses[data.code].headers;
@@ -546,8 +567,7 @@ function responsePopulate(context, responses, data, options) {
         Object.keys(headersSchemas).forEach(header => {
             const schema = headersSchemas[header].schema;
             if (schema) {
-                if (headers.hasOwnProperty(header)) options.value = headers[header];
-                const value = context.populate(schema, config.params, config.options);
+                const value = context.populate(schema, config.params, headers[header], config.options);
                 if (value !== undefined) headers[header] = value;
             }
         });

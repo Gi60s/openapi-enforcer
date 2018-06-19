@@ -74,6 +74,11 @@ describe('#path', () => {
         expect(path).to.be.undefined;
     });
 
+    it('unmatched path length', () => {
+        const path = enforcer.path('/a/b/c/d/e/f/g');
+        expect(path).to.be.undefined;
+    });
+
     describe('path without parameters', () => {
         let path;
 

@@ -28,17 +28,12 @@ describe('#populate', () => {
         },
         paths: {}
     };
-    let defaults;
     let enforcer;
 
     before(() => {
-        enforcer = new Enforcer(definition);
-        defaults = Enforcer.defaults.populate;
-        Enforcer.defaults.populate.throw = true;
-    });
-
-    after(() => {
-        Enforcer.defaults.populate = defaults;
+        enforcer = new Enforcer(definition, {
+            populate: { throw: true }
+        });
     });
 
     describe('integer', () => {
@@ -68,18 +63,28 @@ describe('#populate', () => {
             expect(value).to.equal(5);
         });
 
-        it('auto format enabled', () => {
+        it('does not format', () => {
             const enforcer = new Enforcer(definition);
             const date = new Date();
-            const value = enforcer.populate({ type: 'number', 'x-variable': 'myNumber' }, { myNumber: date }, { serialize: true });
-            expect(value).to.equal(+date);
+            const value = enforcer.populate({type: 'number', 'x-variable': 'myNumber'}, {myNumber: date}, undefined);
+            expect(value).to.equal(date);
         });
 
-        it('auto format disabled', () => {
+        it('report data', () => {
             const enforcer = new Enforcer(definition);
-            const date = new Date();
-            const value = enforcer.populate({type: 'number', 'x-variable': 'myNumber'}, {myNumber: date}, { serialize: false });
-            expect(value).to.equal(date);
+            const data = enforcer.populate({type: 'number', 'x-variable': 'myNumber'}, {myNumber: 1}, undefined, { throw: false });
+            expect(data.value).to.equal(1);
+        });
+
+        it('report error', () => {
+            const enforcer = new Enforcer(definition);
+            const data = enforcer.populate({type: 'array'}, {}, {}, { throw: false });
+            expect(data.errors).not.to.be.null;
+        });
+
+        it('throw error', () => {
+            const enforcer = new Enforcer(definition);
+            expect(() => enforcer.populate({type: 'array'}, {}, {}, { throw: true })).to.throw(Error);
         });
 
     });
@@ -113,7 +118,7 @@ describe('#populate', () => {
         it('array of numbers', () => {
             const schema = { type: 'array', items: { type: 'number', default: 5 }};
             const initValue = [1, 2, undefined, 3, 4, undefined];
-            const value = enforcer.populate(schema, {}, { copy: true, value: initValue });
+            const value = enforcer.populate(schema, {}, initValue, { copy: true });
             expect(value).not.to.equal(initValue);
             expect(value).to.deep.equal([1, 2, 5, 3, 4, 5]);
         });
@@ -164,7 +169,7 @@ describe('#populate', () => {
                     age: { type: 'number', default: 5 }
                 }
             };
-            const value = enforcer.populate(schema, {}, { ignoreMissingRequired: false });
+            const value = enforcer.populate(schema, {}, undefined, { ignoreMissingRequired: false });
             expect(value).to.be.undefined;
         });
 
@@ -177,7 +182,7 @@ describe('#populate', () => {
                     }
                 }
             };
-            const value = enforcer.populate(schema, {}, { value: { a: {} } });
+            const value = enforcer.populate(schema, {}, { a: {} });
             expect(value).to.deep.equal({ a: { x: 5 } });
         });
 
@@ -238,12 +243,12 @@ describe('#populate', () => {
             };
 
             it('one', () => {
-                const value = enforcer.populate(schema, {}, { value: { mode: 'one' }});
+                const value = enforcer.populate(schema, {}, { mode: 'one' });
                 expect(value).to.deep.equal({ mode: 'one', value: 5 });
             });
 
             it('two', () => {
-                const value = enforcer.populate(schema, {}, {value: { mode: 'two' }});
+                const value = enforcer.populate(schema, {}, { mode: 'two' });
                 expect(value).to.deep.equal({ mode: 'two', value: 'hello' });
             });
 

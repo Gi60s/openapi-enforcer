@@ -22,7 +22,7 @@ describe('#serialize', () => {
     let enforcer;
 
     before(() => {
-        enforcer = new OpenApiEnforcer('2.0');
+        enforcer = new OpenApiEnforcer('2.0', { serialize: { throw: true }});
     });
 
     describe('array', () => {

@@ -123,6 +123,12 @@ describe('deserialize', () => {
         });
     });
 
+    it('reported data', () => {
+        const v = enforcer.deserialize({ type: 'integer' }, '2', { throw: false });
+        expect(v.errors).to.equal(null);
+        expect(v.value).to.equal(2);
+    });
+
     it('thrown error', () => {
         expect(() => enforcer.deserialize({ type: 'integer' }, '2.4')).to.throw(Error);
     });

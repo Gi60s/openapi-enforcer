@@ -116,19 +116,7 @@ function apply(v, prefix, schema, type, object, property) {
         const map = v.map;
         if (options.variables && schema.hasOwnProperty('x-variable') && map.hasOwnProperty(schema['x-variable'])) {
             const value = map[schema['x-variable']];
-            if (value !== undefined) {
-                if (options.serialize) {
-                    const form = util.schemaFormat(schema);
-                    const data = format[form](value);
-                    if (data.error) {
-                        v.errors.push(prefix + ': ' + data.error);
-                    } else {
-                        object[property] = data.value;
-                    }
-                } else {
-                    object[property] = value;
-                }
-            }
+            if (value !== undefined) object[property] = value;
 
         } else if (options.templates && type === 'string' && schema.hasOwnProperty('x-template')) {
             object[property] = v.injector(schema['x-template'], map);
