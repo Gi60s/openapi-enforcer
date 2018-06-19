@@ -20,8 +20,47 @@ const Enforcer      = require('../index');
 
 describe('request', () => {
 
-    it.skip('no paths defined', () => {
-        const enforcer = Enforcer('2.0')
-    })
+    describe('request object normalization', () => {
+        let enforcer;
+
+        before(() => {
+            enforcer = new Enforcer({
+                swagger: '2.0',
+                paths: {
+                    '/hello': {
+                        get: {
+                            'parameters': [
+                                { name: 'name', type: 'string', in: 'query' },
+                                { name: 'a', type: 'string', in: 'cookie' }
+                            ]
+                        }
+                    }
+                }
+            }, { request: { throw: true }});
+        });
+
+        it('invalid parameter', () => {
+            expect(() => enforcer.request(5)).to.throw(Error);
+        });
+
+        it('as string path', () => {
+            const result = enforcer.request('/hello');
+            expect(result.path).to.equal('/hello');
+        });
+
+        it('as string path with query parameter', () => {
+            const result = enforcer.request('/hello?name=Bob');
+            expect(result.path).to.equal('/hello');
+            expect(result.request.query).to.deep.equal({ name: 'Bob' });
+        });
+
+        it('cookie as an object', () => {
+            const result = enforcer.request({
+                path: '/hello',
+                cookies: { a: 1 }
+            });
+            expect(result.request.cookies).to.deep.equal({ a: '1' });
+        })
+    });
 
 });
