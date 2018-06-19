@@ -43,6 +43,9 @@ const staticDefaults = {
         throw: true,
         variables: true
     },
+    request: {
+        throw: true
+    },
     serialize: {
         throw: true
     }
@@ -163,17 +166,7 @@ OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
     const result = version.serial.deserialize(errors, '', schema, value);
 
     // determine how to handle deserialization data
-    const hasErrors = errors.length;
-    if (hasErrors && options.throw) {
-        throw Error('One or more errors occurred during deserialization: \n\t' + errors.join('\n\t'))
-    } else if (options.throw) {
-        return result;
-    } else {
-        return {
-            errors: hasErrors ? errors.map(v => v.trim()) : null,
-            value: hasErrors ? null : result
-        };
-    }
+    return errorHandler(options.throw, errors, result, 'One or more errors occurred during deserialization:');
 };
 
 /**
@@ -274,18 +267,8 @@ OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
     const root = { root: value };
     populate.populate(v, '<root>', schema, root, 'root');
 
-    // determine how to handle population data
-    const hasErrors = v.errors.length;
-    if (hasErrors && options.throw) {
-        throw Error('One or more errors occurred during population: \n\t' + v.errors.join('\n\t'))
-    } else if (options.throw) {
-        return root.root;
-    } else {
-        return {
-            errors: hasErrors ? v.errors : null,
-            value: hasErrors ? null : root.root
-        };
-    }
+    // determine how to handle deserialization data
+    return errorHandler(options.throw, v.errors, root.root, 'One or more errors occurred during population:');
 };
 
 /**
@@ -305,15 +288,20 @@ OpenApiEnforcer.prototype.random = function(schema) {
  * @param {object} [req.headers]
  * @param {string} [req.method='get']
  * @param {string} [req.path]
+ * @param {object} [options]
+ * @param {boolean} [options.throw]
  * @returns {object}
  */
-OpenApiEnforcer.prototype.request = function(req) {
+OpenApiEnforcer.prototype.request = function(req, options) {
+    const data = store.get(this);
+    const errMessage = 'One or more problems exist with the request:';
+    options = Object.assign({}, data.defaults.request, options);
 
     // normalize input parameter
     if (typeof req === 'string') req = { path: req };
     if (typeof req !== 'object') throw Error('Invalid request. Must be a string or an object. Received: ' + req);
     req = Object.assign({}, req);
-    if (req.body !== undefined && typeof req.body !== 'object' && typeof req.body !== 'string') throw Error('Invalid request body. Must be a string or an object. Received: ' + req.body);
+    if (req.body !== undefined && typeof req.body !== 'object') req.body = String(req.body);
     if (req.cookies && typeof req.cookies !== 'object') throw Error('Invalid request cookies. Must be an object. Received: ' + req.cookies);
     if (req.headers && typeof req.headers !== 'object') throw Error('Invalid request headers. Must be an object. Received: ' + req.headers);
     if (typeof req.path !== 'string') throw Error('Invalid request path. Must be a string. Received: ' + req.path);
@@ -322,17 +310,16 @@ OpenApiEnforcer.prototype.request = function(req) {
 
     // build request path and query
     const pathAndQuery = req.path.split('?');
-    req.path = pathAndQuery[0];
-    req.query = pathAndQuery[1];
-    req.path = util.edgeSlashes(req.path, true, false);
+    req.path = util.edgeSlashes(pathAndQuery[0], true, false);
+    const query = pathAndQuery[1];
 
     // get the defined open api path or call next middleware
     const path = this.path(req.path);
-    if (!path) return { statusCode: 404, errors: ['Not found'] };
+    if (!path) return errorHandler(options.throw, ['Path not found'], null, errMessage, { statusCode: 404 });
 
     // validate that the path supports the method
     const method = req.method.toLowerCase();
-    if (!path.schema[method]) return { statusCode: 405, errors: ['Method not allowed'] };
+    if (!path.schema[method]) return errorHandler(options.throw, ['Method not allowed'], null, errMessage, { statusCode: 405 });
 
     // parse and validate request input
     const result = store.get(this).version.parseRequestParameters(path.schema, {
@@ -341,38 +328,41 @@ OpenApiEnforcer.prototype.request = function(req) {
         header: req.headers ? util.lowerCaseProperties(req.headers) : {},
         method: method,
         path: path.params,
-        query: req.query || ''
+        query: query || ''
     });
 
-    const responses = path.schema[method].responses;
-    const produces = path.schema[method].produces;
-    const value = result.value;
-    const returnValue = {
-        errors: result.errors,
-        path: path.path,
-        request: value
-            ? {
-                cookies: value.cookie,
-                headers: value.header,
-                path: value.path,
-                query: value.query
-            }
-            : null,
-        response: (config) => {
-            const data = responseData(this, produces, responses, config);
-            return {
-                data: data,
-                errors: config => responseErrors(this, responses, data, config),
-                example: config => responseExample(this, responses, data, config),
-                populate: config => responsePopulate(this, responses, data, config),
-                serialize: config => responseSerialize(this, responses, data, config)
-            }
-        },
-        schema: path.schema,
-        statusCode: result.errors ? 400 : 200
-    };
-    if (value && value.hasOwnProperty('body')) returnValue.request.body = value.body;
-    return returnValue;
+    // if no errors then generate the return value
+    let returnValue = null;
+    if (!result.errors) {
+        const responses = path.schema[method].responses;
+        const produces = path.schema[method].produces;
+        const value = result.value;
+        returnValue = {
+            path: path.path,
+            request: value
+                ? {
+                    cookies: value.cookie,
+                    headers: value.header,
+                    path: value.path,
+                    query: value.query
+                }
+                : null,
+            response: (config) => {
+                const data = responseData(this, produces, responses, config);
+                return {
+                    data: data,
+                    errors: config => responseErrors(this, responses, data, config),
+                    example: config => responseExample(this, responses, data, config),
+                    populate: config => responsePopulate(this, responses, data, config),
+                    serialize: config => responseSerialize(this, responses, data, config)
+                }
+            },
+            schema: path.schema
+        };
+        if (value && value.hasOwnProperty('body')) returnValue.request.body = value.body;
+    }
+
+    return errorHandler(options.throw, result.errors, returnValue, errMessage, { statusCode: 400 });
 };
 
 /**
@@ -421,17 +411,7 @@ OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
     const result = version.serial.serialize(errors, '', schema, value);
 
     // determine how to handle serialization data
-    const hasErrors = errors.length;
-    if (hasErrors && options.throw) {
-        throw Error('One or more errors occurred during serialization: \n\t' + errors.join('\n\t'))
-    } else if (options.throw) {
-        return result;
-    } else {
-        return {
-            errors: hasErrors ? errors.map(v => v.trim()) : null,
-            value: hasErrors ? null : result
-        };
-    }
+    return errorHandler(options.throw, errors, result, 'One or more errors occurred during serialization:');
 };
 
 /**
@@ -476,6 +456,23 @@ OpenApiEnforcer.prototype.version = function() {
 OpenApiEnforcer.defaults = util.copy(staticDefaults);
 
 
+
+function errorHandler(useThrow, errors, value, message, meta) {
+    const hasErrors = errors && errors.length;
+    if (hasErrors && useThrow) {
+        const err = Error(message + '\n\t' + errors.join('\n\t'));
+        Object.assign(err, meta);
+        throw err;
+    } else if (useThrow) {
+        return value;
+    } else {
+        if (hasErrors) Object.assign(errors, meta);
+        return {
+            errors: hasErrors ? errors : null,
+            value: hasErrors ? null : value
+        };
+    }
+}
 
 function responseData(context, produces, responses, config) {
     const version = store.get(context).version;
