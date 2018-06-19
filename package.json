@@ -9,7 +9,8 @@
   "scripts": {
     "test": "mocha test/*.js",
     "coverage": "nyc --reporter=html mocha test/*.js",
-    "coverage:report": "nyc mocha test/*.js && nyc report --reporter=text-lcov | coveralls"
+    "coverage:report": "nyc mocha test/*.js && nyc report --reporter=text-lcov | coveralls",
+    "coverage:watch": "chokidar 'test/**/*' -c 'npm run coverage'"
   },
   "repository": {
     "type": "git",
@@ -34,6 +35,7 @@
   "devDependencies": {
     "body-parser": "^1.18.3",
     "chai": "^3.5.0",
+    "chokidar-cli": "^1.2.0",
     "connect-busboy": "0.0.2",
     "connect-multiparty": "^2.1.0",
     "coveralls": "^3.0.1",
