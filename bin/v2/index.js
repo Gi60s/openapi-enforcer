@@ -182,6 +182,8 @@ Version.prototype.parseRequestParameters = function(schema, req) {
                     result.body = typed.value;
                 }
             }
+        } else if (req.body !== undefined) {
+            result.body = req.body;
         }
     }
 
