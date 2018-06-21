@@ -228,7 +228,7 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
     // query parameters
     Object.keys(paramMap.query).forEach(name => {
         const definition = paramMap.query[name];
-        const values = util.queryParams(name, req.query);
+        const values = util.queryParamsByName(name, req.query);
         const store = result.query;
 
         if (values) {
@@ -246,6 +246,13 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
 
         } else if (definition.required) {
             exception.push('Missing required query parameter "' + name + '"');
+        }
+    });
+
+    // look for any query parameters that are not allowed
+    util.queryParamNames(req.query).forEach(name => {
+        if (!paramMap.query.hasOwnProperty(name)) {
+            exception.push('Unexpected query parameter "' + name + '" not permitted');
         }
     });
 

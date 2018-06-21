@@ -220,6 +220,9 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
         }
     }
 
+    // look for any query parameters that are not allowed
+    const definedQueryParams = util.queryParamNames(req.query, false);
+
     // parse and validate cookie, headers, path, and query
     paramTypes.forEach(paramType => {
         const schemas = paramMap[paramType];
@@ -232,7 +235,10 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
             if (!schema) return;
 
             const at = definition.in;
-            if (values.hasOwnProperty(name) || at === 'query') {
+            const inQuery = at === 'query';
+            if (definedQueryParams.hasOwnProperty(name)) definedQueryParams[name] = true;
+
+            if (values.hasOwnProperty(name) || inQuery) {
                 const at = definition.in;
                 const style = definition.style || defaultStyle(at);
                 const explode = definition.hasOwnProperty('explode') ? definition.explode : style === 'form';
@@ -244,16 +250,20 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
                 switch (style) {
                     case 'deepObject':
                         // throw Error because it's a problem with the swagger
-                        if (at !== 'query') throw Error('The deepObject style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
+                        if (!inQuery) throw Error('The deepObject style only works with query parameters. Error at ' + at + ' parameter "' + name + '"');
                         if (type !== 'object') throw Error('The deepObject style only works with objects but the parameter schema type is ' + type);
-                        parsed = params.deepObject(name, req.query);
+                        parsed = params.deepObject(name, req.query, definedQueryParams);
+                        if (parsed.value) {
+                            Object.keys(parsed.value)
+                                .forEach(key => definedQueryParams[name + '[' + key + ']'] = true);
+                        }
                         break;
 
                     case 'form':
                         // throw Error because it's a problem with the swagger
-                        if (at !== 'cookie' && at !== 'query') throw Error('The form style only works with cookie and query parameters. Error at ' + at + ' parameter "' + name + '"');
-                        if (at === 'query') {
-                            const results = util.queryParams(name, req.query);
+                        if (at !== 'cookie' && !inQuery) throw Error('The form style only works with cookie and query parameters. Error at ' + at + ' parameter "' + name + '"');
+                        if (inQuery) {
+                            const results = util.queryParamsByName(name, req.query);
                             if (!results) return;
                             if (type === 'array') {
                                 value = explode
@@ -269,7 +279,7 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
                                 value = name + '=' + results.pop();
                             }
                         }
-                        parsed = params.form(type, explode, name, value);
+                        parsed = params.form(type, explode, name, value, inQuery && definedQueryParams);
                         break;
 
                     case 'label':
@@ -286,10 +296,10 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
 
                     case 'pipeDelimited':
                         // throw Error because it's a problem with the swagger
-                        if (at !== 'query' || (type !== 'object' && type !== 'array')) throw Error('The pipeDelimited style only works with query parameters for the schema type array or object. Error at ' + at + ' parameter "' + name + '"');
-                        queryValue = util.queryParams(name, req.query);
+                        if (!inQuery || (type !== 'object' && type !== 'array')) throw Error('The pipeDelimited style only works with query parameters for the schema type array or object. Error at ' + at + ' parameter "' + name + '"');
+                        queryValue = util.queryParamsByName(name, req.query);
                         if (!queryValue) return;
-                        parsed = params.pipeDelimited(type, queryValue.pop());
+                        parsed = params.pipeDelimited(type, queryValue.pop(), inQuery && definedQueryParams);
                         break;
 
                     case 'simple':
@@ -300,10 +310,10 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
 
                     case 'spaceDelimited':
                         // throw Error because it's a problem with the swagger
-                        if (at !== 'query' || (type !== 'object' && type !== 'array')) throw Error('The spaceDelimited style only works with query parameters for the schema type array or object. Error at ' + at + ' parameter "' + name + '"');
-                        queryValue = util.queryParams(name, req.query);
+                        if (!inQuery || (type !== 'object' && type !== 'array')) throw Error('The spaceDelimited style only works with query parameters for the schema type array or object. Error at ' + at + ' parameter "' + name + '"');
+                        queryValue = util.queryParamsByName(name, req.query);
                         if (!queryValue) return;
-                        parsed = params.spaceDelimited(type, queryValue.pop());
+                        parsed = params.spaceDelimited(type, queryValue.pop(), inQuery && definedQueryParams);
                         break;
 
                     default:
@@ -334,6 +344,14 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
             }
         });
     });
+
+    // look for any query parameters that are not allowed
+    Object.keys(definedQueryParams)
+        .forEach(name => {
+            if (!definedQueryParams[name]) {
+                exception.push('Unexpected query parameter "' + name + '" not permitted');
+            }
+        });
 
     // check for errors
     const hasErrors = Exception.hasException(exception);

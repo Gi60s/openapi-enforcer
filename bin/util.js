@@ -151,12 +151,24 @@ exports.propertyDefault = function(obj, property, value) {
     if (!obj.hasOwnProperty(property)) obj[property] = value;
 };
 
-exports.queryParams = function (name, value) {
+exports.queryParamsByName = function (name, value) {
     const rx = RegExp('(?:^|&)' + name + '=([^&]*)', 'g');
     const results = [];
     let match;
     while (match = rx.exec(value)) results.push(decodeURIComponent(match[1]));
     return results.length ? results : null;
+};
+
+exports.queryParamNames = function(value, objValue) {
+    const retObject = arguments.length >= 2;
+    const names = {};
+    const boolean = !!objValue;
+    value.split('&').forEach(pair => {
+        const kv = pair.split('=');
+        const name = kv[0];
+        if (name) names[name] = boolean;
+    });
+    return retObject ? names : Object.keys(names);
 };
 
 /**
