@@ -44,9 +44,6 @@ OpenAPIException.prototype.toString = function() {
         : '';
 };
 
-Object.defineProperty(OpenAPIException.prototype, 'stack', {
-    get: () => this.toString()
-});
 
 OpenAPIException.hasException = function(exception) {
     const children = exception.children;
