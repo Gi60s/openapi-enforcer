@@ -17,6 +17,7 @@
 'use strict';
 const expect    = require('chai').expect;
 const Enforcer  = require('../index');
+const Exception = require('../bin/exception');
 
 describe('deserialize', () => {
     let enforcer;
@@ -125,17 +126,17 @@ describe('deserialize', () => {
 
     it('reported data', () => {
         const v = enforcer.deserialize({ type: 'integer' }, '2', { throw: false });
-        expect(v.errors).to.equal(null);
+        expect(v.error).to.equal(null);
         expect(v.value).to.equal(2);
     });
 
     it('thrown error', () => {
-        expect(() => enforcer.deserialize({ type: 'integer' }, '2.4')).to.throw(Error);
+        expect(() => enforcer.deserialize({ type: 'integer' }, '2.4')).to.throw(Exception);
     });
 
     it('reported error', () => {
         const v = enforcer.deserialize({ type: 'integer' }, '2.4', { throw: false });
-        expect(v.errors.length).to.equal(1);
+        expect(v.error).to.be.instanceOf(Exception);
         expect(v.value).to.be.null;
     });
 

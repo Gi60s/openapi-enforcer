@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception     = require('../exception');
 const params        = require('./param-style');
 const Random        = require('../random');
 const serial        = require('./serialize');
@@ -156,6 +157,7 @@ Version.prototype.getResponseExample = function(options) {
 /**
  * Deserialize the request parameters.
  * @param {object} schema The path schema object.
+ * @param {OpenAPIException} exception
  * @param {object} req
  * @param {object|string} req.body
  * @param {Object<string>} req.cookie
@@ -163,10 +165,9 @@ Version.prototype.getResponseExample = function(options) {
  * @param {string} req.method
  * @param {object<string>} req.path
  * @param {string} req.query
- * @returns {{ error: Array<string>|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object, responses: object }}}
+ * @returns {{ exception: OpenAPIException|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object, responses: object }}}
  */
-Version.prototype.parseRequestParameters = function(schema, req) {
-    const errors = [];
+Version.prototype.parseRequestParameters = function(schema, exception, req) {
     const mSchema  = schema[req.method];
     const paramTypes = ['cookie', 'header', 'path', 'query'];
     const result = {
@@ -201,21 +202,21 @@ Version.prototype.parseRequestParameters = function(schema, req) {
             const key = util.findMediaMatch(contentType, Object.keys(content))[0];
             if (key && content[key].schema) {
                 const schema = content[key].schema;
-                const typed = this.enforcer.deserialize(schema, req.body, { throw: false });
-                if (typed.errors) {
-                    errors.push('Invalid request body:\n\t' + typed.errors.join('\n\t'));
-                } else {
-                    const validationErrors = this.enforcer.errors(schema, typed.value);
+                const bodyException = exception.nest('Invalid request body');
+                const value = serial.deserialize(exception, schema, req.body);
+
+                if (!Exception.hasException(bodyException)) {
+                    const validationErrors = this.enforcer.errors(schema, value);
                     if (validationErrors) {
-                        errors.push('Invalid request body":\n\t' + validationErrors.join('\n\t'));
+                        bodyException.forEach(error => bodyException.push(error));
                     } else {
-                        result.body = typed.value;
+                        result.body = value;
                     }
                 }
             }
 
         } else if (mSchema.requestBody.required && req.body === undefined) {
-            errors.push('Missing required request body');
+            exception.push('Missing required request body');
         }
     }
 
@@ -311,34 +312,33 @@ Version.prototype.parseRequestParameters = function(schema, req) {
 
                 // parse was successful, now convert type, then validate data
                 if (parsed.match) {
-                    const typed = this.enforcer.deserialize(schema, parsed.value, { throw: false });
-                    if (typed.errors) {
-                        errors.push('Invalid type for ' + at + ' parameter "' + name + '":\n\t' + typed.errors.join('\n\t'));
-                    } else {
-                        const validationErrors = this.enforcer.errors(schema, typed.value);
-                        if (validationErrors) {
-                            errors.push('Invalid value for ' + at + ' parameter "' + name + '":\n\t' + validationErrors.join('\n\t'));
-                        }
+                    const paramException = exception.nest('Invalid type for ' + at + ' parameter "' + name + '"');
+                    const value = serial.deserialize(paramException, schema, parsed.value);
+
+                    if (!Exception.hasException(paramException)) {
+                        const errors = this.enforcer.errors(schema, value);
+                        if (errors) errors.forEach(error => paramException.push(error));
                     }
 
-                    // store typed value
-                    result[paramType][name] = typed.value;
+                    // store deserialized value
+                    result[paramType][name] = value;
+
                 } else {
-                    errors.push('Expected ' + at + ' parameter "' + name + '" to be formatted in ' +
+                    exception.push('Expected ' + at + ' parameter "' + name + '" to be formatted in ' +
                         (explode ? 'exploded ' : '') + style + ' style');
                 }
 
             // value not provided - check if required
             } else if (definition.required) {
-                errors.push('Missing required ' + at + ' parameter "' + name + '"');
+                exception.push('Missing required ' + at + ' parameter "' + name + '"');
             }
         });
     });
 
     // check for errors
-    const hasErrors = errors.length;
+    const hasErrors = Exception.hasException(exception);
     return {
-        errors: hasErrors ? errors : null,
+        exception: hasErrors ? exception : null,
         value: hasErrors ? null : result
     }
 };

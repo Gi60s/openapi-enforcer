@@ -20,7 +20,7 @@ const Enforcer      = require('../index');
 
 describe('request', () => {
 
-    describe('request object normalization', () => {
+    describe('v2 request parsing', () => {
         let enforcer;
 
         before(() => {
@@ -29,11 +29,34 @@ describe('request', () => {
                 paths: {
                     '/hello': {
                         get: {
-                            'parameters': [
-                                { name: 'name', type: 'string', in: 'query' },
-                                { name: 'a', type: 'string', in: 'cookie' }
+                        },
+                        post: {
+                            parameters: [
+                                {
+                                    name: 'body',
+                                    in: 'body',
+                                    schema: { type: 'string' }
+                                }
                             ]
-                        }
+                        },
+                        put: {
+                            parameters: [
+                                {
+                                    name: 'body',
+                                    in: 'body',
+                                    schema: {
+                                        type: 'object',
+                                        properties: {
+                                            x: {type: 'number'}
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        parameters: [
+                            { name: 'name', type: 'string', in: 'query' },
+                            { name: 'a', type: 'string', in: 'cookie' }
+                        ]
                     }
                 }
             }, { request: { throw: true }});
@@ -43,24 +66,51 @@ describe('request', () => {
             expect(() => enforcer.request(5)).to.throw(Error);
         });
 
-        it('as string path', () => {
-            const result = enforcer.request('/hello');
-            expect(result.path).to.equal('/hello');
-        });
+        describe('path and query', () => {
 
-        it('as string path with query parameter', () => {
-            const result = enforcer.request('/hello?name=Bob');
-            expect(result.path).to.equal('/hello');
-            expect(result.request.query).to.deep.equal({ name: 'Bob' });
-        });
-
-        it('cookie as an object', () => {
-            const result = enforcer.request({
-                path: '/hello',
-                cookies: { a: 1 }
+            it('as string path', () => {
+                const result = enforcer.request('/hello');
+                expect(result.path).to.equal('/hello');
             });
-            expect(result.request.cookies).to.deep.equal({ a: '1' });
-        })
+
+            it('as string path with query parameter', () => {
+                const result = enforcer.request('/hello?name=Bob');
+                expect(result.path).to.equal('/hello');
+                expect(result.request.query).to.deep.equal({ name: 'Bob' });
+            });
+
+        });
+
+        it('cookie as an object ok', () => {
+            expect(() => enforcer.request({ path: '/hello', cookies: { a: 1 } })).not.to.throw(Error);
+        });
+
+        it('cookie as string throws error', () => {
+            expect(() => enforcer.request({ path: '/hello', cookies: 'hello' })).to.throw(Error);
+        });
+
+        describe('body', () => {
+
+            it('body input string for type string', () => {
+                const result = enforcer.request({
+                    path: '/hello',
+                    method: 'post',
+                    body: 'this is the body'
+                });
+                expect(result.request.body).to.equal('this is the body');
+            });
+
+            it('body input object for type string', () => {
+                const result = enforcer.request({
+                    path: '/hello',
+                    method: 'post',
+                    body: { x: 1 }
+                });
+                expect(result.request.body).to.equal('{"x":1}');
+            });
+
+        });
+
     });
 
 });

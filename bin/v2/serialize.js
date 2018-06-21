@@ -22,11 +22,11 @@ const util      = require('../util');
 exports.deserialize = deserialize;
 exports.serialize = serialize;
 
-function deserialize(errors, prefix, schema, value) {
+function deserialize(exception, schema, value) {
     if (schema.allOf) {
         const result = {};
         schema.allOf.forEach((schema, index) => {
-            const v = deserialize(errors, prefix + '/allOf/' + index, schema, value);
+            const v = deserialize(exception.nest('/allOf/' + index), schema, value);
             Object.assign(result, v)
         });
         return result;
@@ -37,16 +37,16 @@ function deserialize(errors, prefix, schema, value) {
         switch (type) {
             case 'array':
                 if (Array.isArray(value)) return schema.items
-                    ? value.map((v,i) => deserialize(errors, prefix + '/' + i, schema.items, v))
+                    ? value.map((v,i) => deserialize(exception.nest('/' + i), schema.items, v))
                     : value;
-                errors.push(prefix + ' Expected an array. Received: ' + util.smart(value));
+                exception.push('Expected an array. Received: ' + util.smart(value));
                 return;
 
             case 'boolean':
             case 'integer':
             case 'number':
                 result = parse[type](value);
-                if (result.error) errors.push(prefix + ' ' + result.error);
+                if (result.error) exception.push(result.error);
                 return result.value;
 
             case 'string':
@@ -60,7 +60,7 @@ function deserialize(errors, prefix, schema, value) {
                     default:
                         result = { value: value };
                 }
-                if (result.error) errors.push(prefix + ' ' + result.error);
+                if (result.error) exception.push(result.error);
                 return result.value;
 
             case 'object':
@@ -70,28 +70,28 @@ function deserialize(errors, prefix, schema, value) {
                     const properties = schema.properties || {};
                     Object.keys(value).forEach(key => {
                         if (properties.hasOwnProperty(key)) {
-                            result[key] = deserialize(errors, prefix + '/' + key, properties[key], value[key]);
+                            result[key] = deserialize(exception.nest('/' + key), properties[key], value[key]);
                         } else if (additionalProperties) {
-                            result[key] = deserialize(errors, prefix + '/' + key, additionalProperties, value[key]);
+                            result[key] = deserialize(exception.nest('/' + key), additionalProperties, value[key]);
                         }
                     });
                     return result;
                 }
-                errors.push(prefix + ' Expected an object. Received: ' + value);
+                exception.push('Expected an object. Received: ' + util.smart(value));
                 return;
 
             default:
-                errors.push(prefix + ' Unknown schema type');
+                exception.push('Unknown schema type');
                 return;
         }
     }
 }
 
-function serialize(errors, prefix, schema, value) {
+function serialize(exception, schema, value) {
     if (schema.allOf) {
         const result = {};
         schema.allOf.forEach((schema, index) => {
-            const v = deserialize(errors, prefix + '/allOf/' + index, schema, value);
+            const v = serialize(exception.nest('/allOf/' + index), schema, value);
             Object.assign(result, v)
         });
         return result;
@@ -101,17 +101,19 @@ function serialize(errors, prefix, schema, value) {
         let result;
         switch (type) {
             case 'array':
-                if (Array.isArray(value)) return schema.items
-                    ? value.map((v, i) => serialize(errors, prefix + '/' + i, schema.items || {}, v))
-                    : value;
-                errors.push(prefix + ' Expected an array. Received: ' + util.smart(value));
+                if (Array.isArray(value)) {
+                    return schema.items
+                        ? value.map((v, i) => serialize(exception.nest('/' + i), schema.items || {}, v))
+                        : value;
+                }
+                exception.push('Expected an array. Received: ' + util.smart(value));
                 return;
 
             case 'boolean':
             case 'integer':
             case 'number':
                 result = format[type](value);
-                if (result.error) errors.push(prefix + ' ' + result.error);
+                if (result.error) exception.push(result.error);
                 return result.value;
 
             case 'string':
@@ -126,7 +128,7 @@ function serialize(errors, prefix, schema, value) {
                     default:
                         result = format.string(value);
                 }
-                if (result.error) errors.push(prefix + ' ' + result.error);
+                if (result.error) exception.push(result.error);
                 return result.value;
 
             case 'object':
@@ -136,9 +138,9 @@ function serialize(errors, prefix, schema, value) {
                     const properties = schema.properties || {};
                     Object.keys(value).forEach(key => {
                         if (properties.hasOwnProperty(key)) {
-                            result[key] = serialize(errors, prefix + '/' + key, properties[key], value[key]);
+                            result[key] = serialize(exception.nest('/' + key), properties[key], value[key]);
                         } else if (additionalProperties) {
-                            result[key] = serialize(errors, prefix + '/' + key, additionalProperties, value[key]);
+                            result[key] = serialize(exception.nest('/' + key), additionalProperties, value[key]);
                         }
                     });
                     return result;

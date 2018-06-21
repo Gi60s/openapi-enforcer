@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception          = require('./exception');
 const populate      = require('./populate');
 const util          = require('./util');
 const validate      = require('./validate');
@@ -152,10 +153,10 @@ function OpenApiEnforcer(definition, options) {
  * @param {*} value
  * @param {object} options
  * @param {boolean} [options.throw=true] If true then throw errors if found, otherwise return errors array.
- * @returns {*|{ errors: string[], value:* }}
+ * @returns {*|{ exception: OpenAPIException, value:* }}
  */
 OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
-    const errors = [];
+    const exception = new Exception('One or more errors occurred during deserialization');
     const data = store.get(this);
     const version = data.version;
 
@@ -163,10 +164,10 @@ OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
     options = Object.assign({}, data.defaults.deserialize, options);
 
     // run version specific deserialization
-    const result = version.serial.deserialize(errors, '', schema, value);
+    const result = version.serial.deserialize(exception, schema, value);
 
     // determine how to handle deserialization data
-    return errorHandler(options.throw, errors, result, 'One or more errors occurred during deserialization:');
+    return errorHandler(options.throw, exception, result);
 };
 
 /**
@@ -240,10 +241,11 @@ OpenApiEnforcer.prototype.path = function(path) {
  * @param {boolean} [options.templates]
  * @param {boolean} [options.throw=true] If true then throw errors if found, otherwise return errors array.
  * @param {boolean} [options.variables]
- * @returns {{ errors: string[]|null, value: *}|*}
+ * @returns {{ exception: OpenAPIException|null, value: *}|*}
  */
 OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
     const data = store.get(this);
+    const exception = new Exception('One or more errors occurred during population');
 
     // normalize options
     options = Object.assign({}, data.defaults.populate, options);
@@ -252,7 +254,6 @@ OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
     const version = data.version;
     const v = {
         context: this,
-        errors: [],
         injector: populate.injector[options.replacement],
         map: params || {},
         options: options,
@@ -265,10 +266,10 @@ OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
 
     // begin population
     const root = { root: value };
-    populate.populate(v, '<root>', schema, root, 'root');
+    populate.populate(v, exception, '<root>', schema, root, 'root');
 
     // determine how to handle deserialization data
-    return errorHandler(options.throw, v.errors, root.root, 'One or more errors occurred during population:');
+    return errorHandler(options.throw, exception, root.root);
 };
 
 /**
@@ -294,7 +295,7 @@ OpenApiEnforcer.prototype.random = function(schema) {
  */
 OpenApiEnforcer.prototype.request = function(req, options) {
     const data = store.get(this);
-    const errMessage = 'One or more problems exist with the request:';
+    const exception = new Exception('One or more problems exist with the request');
     options = Object.assign({}, data.defaults.request, options);
 
     // normalize input parameter
@@ -315,14 +316,22 @@ OpenApiEnforcer.prototype.request = function(req, options) {
 
     // get the defined open api path or call next middleware
     const path = this.path(req.path);
-    if (!path) return errorHandler(options.throw, ['Path not found'], null, errMessage, { statusCode: 404 });
+    if (!path) {
+        exception.push('Path not found');
+        exception.meta = { statusCode: 404 };
+        return errorHandler(options.throw, exception);
+    }
 
     // validate that the path supports the method
     const method = req.method.toLowerCase();
-    if (!path.schema[method]) return errorHandler(options.throw, ['Method not allowed'], null, errMessage, { statusCode: 405 });
+    if (!path.schema[method]) {
+        exception.push('Method not allowed');
+        exception.meta = { statusCode: 405 };
+        return errorHandler(options.throw, exception);
+    }
 
     // parse and validate request input
-    const result = store.get(this).version.parseRequestParameters(path.schema, {
+    const result = store.get(this).version.parseRequestParameters(path.schema, exception, {
         body: req.body,
         cookie: req.cookies || {},
         header: req.headers ? util.lowerCaseProperties(req.headers) : {},
@@ -457,18 +466,15 @@ OpenApiEnforcer.defaults = util.copy(staticDefaults);
 
 
 
-function errorHandler(useThrow, errors, value, message, meta) {
-    const hasErrors = errors && errors.length;
+function errorHandler(useThrow, exception, value) {
+    const hasErrors = Exception.hasException(exception);
     if (hasErrors && useThrow) {
-        const err = Error(message + '\n\t' + errors.join('\n\t'));
-        Object.assign(err, meta);
-        throw err;
+        throw exception;
     } else if (useThrow) {
         return value;
     } else {
-        if (hasErrors) Object.assign(errors, meta);
         return {
-            errors: hasErrors ? errors : null,
+            error: hasErrors ? exception : null,
             value: hasErrors ? null : value
         };
     }

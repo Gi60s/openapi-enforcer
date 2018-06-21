@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception     = require('../exception');
 const random        = require('../random');
 const serial        = require('./serialize');
 const util          = require('../util');
@@ -116,6 +117,7 @@ Version.prototype.getResponseExample = function(options) {
 /**
  * Deserialize the request parameters.
  * @param {object} schema The path schema object.
+ * @param {OpenAPIException} exception
  * @param {object} req
  * @param {object|string} req.body
  * @param {Object<string>} req.cookie
@@ -125,8 +127,7 @@ Version.prototype.getResponseExample = function(options) {
  * @param {string} req.query
  * @returns {{ errors: Array<string>|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object }}}
  */
-Version.prototype.parseRequestParameters = function(schema, req) {
-    const errors = [];
+Version.prototype.parseRequestParameters = function(schema, exception, req) {
     const mSchema  = schema[req.method];
     const result = {
         cookie: {},
@@ -158,26 +159,28 @@ Version.prototype.parseRequestParameters = function(schema, req) {
     });
 
     const deserializeValidate = (schema, value, at, name) => {
-        let data = this.enforcer.deserialize(schema, value, { throw: false });
-        if (!data.errors) data.errors = this.enforcer.errors(schema, data.value);
-        if (data.errors) errors.push('Invalid value for ' + at + ' parameter "' + name + '":\n\t' + data.errors.join('\n\t'));
-        return data.value;
+        const deserializeException = exception.nest('Invalid value for ' + at + ' parameter "' + name + '"');
+        const result = serial.deserialize(deserializeException, schema, value);
+        if (!Exception.hasException(deserializeException)) {
+            const errors = this.enforcer.errors(schema, result);
+            if (errors) errors.forEach(error => deserializeException.push(error))
+        }
+        return result;
     };
 
     // body already parsed, need to deserialize and check for errors
     if (paramMap.body) {
         if (paramMap.body.required && req.body === undefined) {
-            errors.push('Missing required body parameter "' + paramMap.body.name + '"');
+            exception.push('Missing required body parameter "' + paramMap.body.name + '"');
 
         } else if (paramMap.body.schema && req.body !== undefined) {
             const schema = paramMap.body.schema;
-            const typed = this.enforcer.deserialize(schema, req.body, { throw: false });
-            if (typed.errors) {
-                errors.push('Invalid request body:\n\t' + typed.errors.join('\n\t'));
-            } else {
-                const validationErrors = this.enforcer.errors(schema, typed.value);
-                if (validationErrors) {
-                    errors.push('Invalid request body":\n\t' + validationErrors.join('\n\t'));
+            const paramException = exception.nest('Invalid request body');
+            const typed = serial.deserialize(paramException, schema, req.body);
+            if (!Exception.hasException(paramException)) {
+                const errors = this.enforcer.errors(schema, typed.value);
+                if (errors) {
+                    errors.forEach(error => paramException.push(error));
                 } else {
                     result.body = typed.value;
                 }
@@ -215,7 +218,7 @@ Version.prototype.parseRequestParameters = function(schema, req) {
                 result[at][name] = deserializeValidate(definition, definition.default, at, name);
 
             } else if (definition.required) {
-                errors.push('Missing required ' + at + ' parameter "' + name + '"');
+                exception.push('Missing required ' + at + ' parameter "' + name + '"');
             }
         });
     });
@@ -242,13 +245,13 @@ Version.prototype.parseRequestParameters = function(schema, req) {
             store[name] = deserializeValidate(definition, definition.default, 'query', name);
 
         } else if (definition.required) {
-            errors.push('Missing required query parameter "' + name + '"');
+            exception.push('Missing required query parameter "' + name + '"');
         }
     });
 
-    const hasErrors = errors.length;
+    const hasErrors = Exception.hasException(exception);
     return {
-        errors: hasErrors ? errors : null,
+        errors: hasErrors ? exception : null,
         value: hasErrors ? null : result
     };
 };

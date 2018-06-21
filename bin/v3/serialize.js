@@ -21,23 +21,23 @@ exports.deserialize = deserialize;
 exports.serialize = serialize;
 
 // TODO: add oneOf and anyOf support
-function deserialize(errors, prefix, schema, value) {
+function deserialize(exception, schema, value) {
     if (schema.oneOf) {
 
     } else if (schema.anyOf) {
 
     } else {
-        return serial.deserialize(errors, prefix, schema, value);
+        return serial.deserialize(exception, schema, value);
     }
 }
 
 // TODO: add oneOf and anyOf support
-function serialize(errors, prefix, schema, value) {
+function serialize(exception, schema, value) {
     if (schema.oneOf) {
 
     } else if (schema.anyOf) {
 
     } else {
-        return serial.serialize(errors, prefix, schema, value);
+        return serial.serialize(exception, schema, value);
     }
 }

@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const format        = require('./format');
 const util          = require('./util');
 
 exports.injector = {
@@ -24,44 +23,44 @@ exports.injector = {
     handlebar: buildInjector(() => /{([_$a-z][_$a-z0-9]*)}/ig)
 };
 
-exports.populate = function(v, prefix, schema, object, property) {
+exports.populate = function(v, exception, schema, object, property) {
     const options = v.options;
     const type = util.schemaType(schema);
 
     if (type === 'array') {
         let value = object[property];
         if (value !== undefined && !Array.isArray(object[property])) {
-            v.errors.push(prefix + ': Provided value must be an array. Received: ' + util.smart(value));
+            exception.push('Provided value must be an array. Received: ' + util.smart(value));
             return;
         }
 
-        apply(v, prefix, schema, type, object, property);
+        apply(v, schema, type, object, property);
 
         value = object[property];
         if (value) {
             value.forEach((item, index) => {
-                exports.populate(v, prefix + '/' + index, schema.items, value, index)
+                exports.populate(v, exception.nest('/' + index), schema.items, value, index)
             });
         }
 
     } else if (type === 'object') {
         const value = object[property];
         if (value !== undefined && (!value || typeof value !== 'object')) {
-            v.errors.push(prefix + ': Provided value must be a non-null object. Received: ' + util.smart(value));
+            exception.push('Provided value must be a non-null object. Received: ' + util.smart(value));
             return;
         }
 
         // if allOf then apply each item
         if (schema.allOf) {
-            schema.allOf.forEach(schema => exports.populate(v, prefix, schema, object, property));
+            schema.allOf.forEach((schema, index) => exports.populate(v, exception.nest('/allOf/' + index), schema, object, property));
 
         // populate oneOf as described by the discriminator
         } else if (options.oneOf && schema.oneOf && schema.discriminator) {
             const discriminator = v.version.getDiscriminatorSchema(schema, value);
-            if (discriminator) exports.populate(v, prefix, discriminator, object, property);
+            if (discriminator) exports.populate(v, exception.nest('/oneOf'), discriminator, object, property);
 
         } else {
-            apply(v, prefix, schema, type, object, property);
+            apply(v, schema, type, object, property);
             const value = object[property];
 
             // if not ignoring required then these values may not actually populate
@@ -82,7 +81,7 @@ exports.populate = function(v, prefix, schema, object, property) {
 
                     // populate the property
                     if (!properties.hasOwnProperty(key)) {
-                        exports.populate(v, prefix + '/' + key, additionalProperties, target, key);
+                        exports.populate(v, exception.nest('/' + key), additionalProperties, target, key);
                     }
                 });
             }
@@ -91,7 +90,7 @@ exports.populate = function(v, prefix, schema, object, property) {
             const properties = schema.properties;
             if (properties) {
                 Object.keys(properties).forEach(key => {
-                    exports.populate(v, prefix + '/' + key, properties[key], target, key);
+                    exports.populate(v, exception.nest('/' + key), properties[key], target, key);
                 });
             }
 
@@ -103,14 +102,14 @@ exports.populate = function(v, prefix, schema, object, property) {
 
         }
     } else {
-        apply(v, prefix, schema, type, object, property);
+        apply(v, schema, type, object, property);
     }
 
 
 };
 
 
-function apply(v, prefix, schema, type, object, property) {
+function apply(v, schema, type, object, property) {
     if (object[property] === undefined) {
         const options = v.options;
         const map = v.map;
