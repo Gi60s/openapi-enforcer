@@ -300,14 +300,14 @@ OpenApiEnforcer.prototype.request = function(req, options) {
 
     // normalize input parameter
     if (typeof req === 'string') req = { path: req };
-    if (typeof req !== 'object') throw Error('Invalid request. Must be a string or an object. Received: ' + req);
+    if (typeof req !== 'object') throw Error('Invalid request. Must be a string or an object. Received: ' + util.smart(req));
     req = Object.assign({}, req);
-    if (req.body !== undefined && typeof req.body !== 'object') req.body = String(req.body);
-    if (req.cookies && typeof req.cookies !== 'object') throw Error('Invalid request cookies. Must be an object. Received: ' + req.cookies);
-    if (req.headers && typeof req.headers !== 'object') throw Error('Invalid request headers. Must be an object. Received: ' + req.headers);
-    if (typeof req.path !== 'string') throw Error('Invalid request path. Must be a string. Received: ' + req.path);
+    if (req.body !== undefined && typeof req.body !== 'string' && typeof req.body !== 'object') throw Error('Invalid request body. Must be an object or a string. Received: ' + util.smart(req.body));
+    if (req.cookies && typeof req.cookies !== 'object') throw Error('Invalid request cookies. Must be an object. Received: ' + util.smart(req.cookies));
+    if (req.headers && typeof req.headers !== 'object') throw Error('Invalid request headers. Must be an object. Received: ' + util.smart(req.headers));
+    if (typeof req.path !== 'string') throw Error('Invalid request path. Must be a string. Received: ' + util.smart(req.path));
     if (!req.method) req.method = 'get';
-    if (typeof req.method !== 'string') throw Error('Invalid request method. Must be a string. Received: ' + req.method);
+    if (typeof req.method !== 'string') throw Error('Invalid request method. Must be a string. Received: ' + util.smart(req.method));
 
     // build request path and query
     const pathAndQuery = req.path.split('?');
