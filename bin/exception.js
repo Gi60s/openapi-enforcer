@@ -39,7 +39,9 @@ OpenAPIException.prototype.flatten = function() {
 };
 
 OpenAPIException.prototype.toString = function() {
-    return toString('', this);
+    return OpenAPIException.hasException(this)
+        ? toString('', this)
+        : '';
 };
 
 Object.defineProperty(OpenAPIException.prototype, 'stack', {
@@ -71,13 +73,11 @@ function flatten(errors, prefix, exception) {
 }
 
 function toString(prefix, exception) {
-    if (!OpenAPIException.hasException(exception)) return '';
-
     let result = exception.header + ':';
     exception.children.forEach(child => {
         if (typeof child === 'string') {
             result += '\n  ' + prefix + child;
-        } else {
+        } else if (OpenAPIException.hasException(child)) {
             result += '\n  ' + prefix + toString(prefix + '  ', child);
         }
     });
