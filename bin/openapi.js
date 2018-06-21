@@ -300,14 +300,14 @@ OpenApiEnforcer.prototype.request = function(req, options) {
 
     // normalize input parameter
     if (typeof req === 'string') req = { path: req };
-    if (typeof req !== 'object') throw Error('Invalid request. Must be a string or an object. Received: ' + util.smart(req));
+    if (!req || typeof req !== 'object') throw Error('Invalid request. Must be a string or an object. Received: ' + util.smart(req));
     req = Object.assign({}, req);
-    if (req.body !== undefined && typeof req.body !== 'string' && typeof req.body !== 'object') throw Error('Invalid request body. Must be an object or a string. Received: ' + util.smart(req.body));
-    if (req.cookies && typeof req.cookies !== 'object') throw Error('Invalid request cookies. Must be an object. Received: ' + util.smart(req.cookies));
-    if (req.headers && typeof req.headers !== 'object') throw Error('Invalid request headers. Must be an object. Received: ' + util.smart(req.headers));
-    if (typeof req.path !== 'string') throw Error('Invalid request path. Must be a string. Received: ' + util.smart(req.path));
-    if (!req.method) req.method = 'get';
-    if (typeof req.method !== 'string') throw Error('Invalid request method. Must be a string. Received: ' + util.smart(req.method));
+    if (req.hasOwnProperty('cookies') && (!req.cookies || typeof req.cookies !== 'object')) throw Error('Invalid request cookies. Must be an object. Received: ' + util.smart(req.cookies));
+    if (req.hasOwnProperty('headers') && (!req.headers || typeof req.headers !== 'object')) throw Error('Invalid request headers. Must be an object. Received: ' + util.smart(req.headers));
+    if (req.hasOwnProperty('path') && typeof req.path !== 'string') throw Error('Invalid request path. Must be a string. Received: ' + util.smart(req.path));
+    if (req.hasOwnProperty('method') && typeof req.method !== 'string') throw Error('Invalid request method. Must be a string. Received: ' + util.smart(req.method));
+    if (!req.hasOwnProperty('path')) req.path = '/';
+    if (!req.hasOwnProperty('method')) req.method = 'get';
 
     // build request path and query
     const pathAndQuery = req.path.split('?');
@@ -331,7 +331,7 @@ OpenApiEnforcer.prototype.request = function(req, options) {
     }
 
     // parse and validate request input
-    const result = store.get(this).version.parseRequestParameters(path.schema, exception, {
+    const parsed = store.get(this).version.parseRequestParameters(path.schema, exception, {
         body: req.body,
         cookie: req.cookies || {},
         header: req.headers ? util.lowerCaseProperties(req.headers) : {},
@@ -341,41 +341,22 @@ OpenApiEnforcer.prototype.request = function(req, options) {
     });
 
     // if no errors then generate the return value
-    let returnValue = null;
-    if (!result.exception) {
-        const responses = path.schema[method].responses;
-        const produces = path.schema[method].produces;
-        const value = result.value;
-        returnValue = {
+    let result = null;
+    if (!parsed.exception) {
+        const value = parsed.value;
+        result = {
             path: path.path,
             cookies: value.cookie,
             headers: value.header,
             params: value.path,
             query: value.query,
-            requestx: value
-                ? {
-                    cookies: value.cookie,
-                    headers: value.header,
-                    path: value.path,
-                    query: value.query
-                }
-                : null,
-            response: (config) => {
-                const data = responseData(this, produces, responses, config);
-                return {
-                    data: data,
-                    errors: config => responseErrors(this, responses, data, config),
-                    example: config => responseExample(this, responses, data, config),
-                    populate: config => responsePopulate(this, responses, data, config),
-                    serialize: config => responseSerialize(this, responses, data, config)
-                }
-            },
+            response: config => responseFactory(this, path, method, config),
             schema: path.schema
         };
-        if (value && value.hasOwnProperty('body')) returnValue.body = value.body;
+        if (value && value.hasOwnProperty('body')) result.body = value.body;
     }
 
-    return errorHandler(options.throw, exception, returnValue);
+    return errorHandler(options.throw, exception, result);
 };
 
 /**
@@ -391,16 +372,7 @@ OpenApiEnforcer.prototype.response = function(options) {
     const method = options.method.toLowerCase();
     if (!path.schema[method]) throw Error('Invalid method for request path. The method is not defined in the specification: ' + method.toUpperCase() + ' ' + req.path);
 
-    const responses = path.schema[method].responses;
-    const produces = path.schema[method].produces;
-    const data = responseData(this, produces, responses, options);
-    return {
-        data: data,
-        errors: config => responseErrors(this, responses, data, config),
-        example: config => responseExample(this, responses, data, config),
-        populate: config => responsePopulate(this, responses, data, config),
-        serialize: config => responseSerialize(this, responses, data, config)
-    };
+    return responseFactory(this, path, method, options);
 };
 
 
@@ -474,7 +446,10 @@ OpenApiEnforcer.defaults = util.copy(staticDefaults);
 function errorHandler(useThrow, exception, value) {
     const hasErrors = Exception.hasException(exception);
     if (hasErrors && useThrow) {
-        throw exception;
+        const err = Error(exception);
+        err.code = 'OPEN_API_EXCEPTION';
+        Object.assign(err, exception.meta);
+        throw err;
     } else if (useThrow) {
         return value;
     } else {
@@ -526,6 +501,19 @@ function responseErrors(context, responses, data, config) {
     }
 
     return errors.length > 0 ? errors : null;
+}
+
+function responseFactory(context, path, method, options) {
+    const responses = path.schema[method].responses;
+    const produces = path.schema[method].produces;
+    const data = responseData(context, produces, responses, options);
+    return {
+        data: data,
+        errors: config => responseErrors(context, responses, data, config),
+        example: config => responseExample(context, responses, data, config),
+        populate: config => responsePopulate(context, responses, data, config),
+        serialize: config => responseSerialize(context, responses, data, config)
+    };
 }
 
 function responseExample(context, responses, data, options) {
