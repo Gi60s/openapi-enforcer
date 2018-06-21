@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception         = require('../bin/exception');
 const expect            = require('chai').expect;
 const OpenApiEnforcer   = require('../index');
 
@@ -67,7 +68,7 @@ describe('#serialize', () => {
         });
 
         it('object', () => {
-            expect(() => enforcer.serialize(schema, {})).to.throw(Error);
+            expect(() => enforcer.serialize(schema, {})).to.throw(Exception);
         });
 
     });
@@ -138,7 +139,7 @@ describe('#serialize', () => {
         });
 
         it('invalid type', () => {
-            expect(() => enforcer.serialize(schema, null)).to.throw(Error);
+            expect(() => enforcer.serialize(schema, null)).to.throw(Exception);
         });
 
     });
@@ -170,7 +171,7 @@ describe('#serialize', () => {
         });
 
         it('boolean', () => {
-            expect(() => enforcer.serialize(schema, true)).to.throw(Error);
+            expect(() => enforcer.serialize(schema, true)).to.throw(Exception);
         });
 
     });
@@ -202,7 +203,7 @@ describe('#serialize', () => {
         });
 
         it('boolean', () => {
-            expect(() => enforcer.serialize(schema, true)).to.throw(Error);
+            expect(() => enforcer.serialize(schema, true)).to.throw(Exception);
         });
 
     });

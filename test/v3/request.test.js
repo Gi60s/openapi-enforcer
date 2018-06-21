@@ -128,8 +128,7 @@ describe('v3/request', () => {
                 headers: { 'content-type': 'text/plain' }
             });
             const params = instance.request(req);
-            expect(params.errors).to.be.null;
-            expect(params.request.body).to.equal('this is some text');
+            expect(params.body).to.equal('this is some text');
         });
 
         it('application/json content', () => {
@@ -138,8 +137,7 @@ describe('v3/request', () => {
                 headers: { 'content-type': 'application/json' }
             });
             const params = instance.request(req);
-            expect(params.errors).to.be.null;
-            expect(params.request.body).to.deep.equal({ R: 100, G: 200, B: 150 });
+            expect(params.body).to.deep.equal({ R: 100, G: 200, B: 150 });
         });
 
         it('application/json2 content', () => {
@@ -154,9 +152,8 @@ describe('v3/request', () => {
                 headers: { 'content-type': 'application/json2' }
             });
             const params = instance.request(req);
-            expect(params.errors).to.be.null;
-            expect(+params.request.body.end).to.equal(+end);
-            expect(+params.request.body.start).to.equal(+new Date('2000-01-01'));
+            expect(+params.body.end).to.equal(+end);
+            expect(+params.body.start).to.equal(+new Date('2000-01-01'));
         });
 
         it('wrong content', () => {
@@ -164,17 +161,13 @@ describe('v3/request', () => {
                 body: { R: 100, G: 200, B: 150 },
                 headers: { 'content-type': 'text/plain' }
             });
-            const params = instance.request(req);
-            expect(params.errors.length).not.to.equal(0);
-            expect(params.errors[0]).to.match(/expected a string/i);
+            expect(() => instance.request(req)).to.throw(/expected a string/i);
         });
 
         it('missing required body', () => {
             const schema2 = modSchema(schema, { 'paths./.put.requestBody': { required: true } });
             const instance = new enforcer(schema2, {});
-            const params = instance.request({ path: '/', method: 'put' });
-            expect(params.errors.length).to.equal(1);
-            expect(params.errors[0]).to.match(/missing required request body/i);
+            expect(() => instance.request({ path: '/', method: 'put' })).to.throw(/missing required request body/i);
         });
 
     });
@@ -186,8 +179,7 @@ describe('v3/request', () => {
         it('default style (form)', () => {
             const req = request({ cookies: { user: 'id=12345&sessionStart=' + ds } });
             const params = instance.request(req);
-            expect(params.errors).to.be.null;
-            expect(params.request.cookies.user).to.deep.equal({ id: 12345, sessionStart: new Date(ds) });
+            expect(params.cookies.user).to.deep.equal({ id: 12345, sessionStart: new Date(ds) });
         });
 
         it('cannot use matrix style', () => {
@@ -241,8 +233,7 @@ describe('v3/request', () => {
         it('default style (simple)', () => {
             const req = request(config);
             const params = instance.request(req);
-            expect(params.errors).to.be.null;
-            expect(params.request.headers['x-number']).to.equal(12345);
+            expect(params.headers['x-number']).to.equal(12345);
         });
 
         it('cannot use matrix style', () => {
@@ -295,8 +286,7 @@ describe('v3/request', () => {
         it('default style (simple)', () => {
             const req = request({ path: '/Bob' });
             const params = instance.request(req);
-            expect(params.errors).to.be.null;
-            expect(params.request.path.name).to.equal('Bob');
+            expect(params.params.name).to.equal('Bob');
         });
 
         it('can use matrix style', () => {
@@ -304,7 +294,7 @@ describe('v3/request', () => {
             const req = request({ path: '/;name=Bob'});
             const instance = new enforcer(schema2, {});
             const params = instance.request(req);
-            expect(params.request.path.name).to.equal('Bob');
+            expect(params.params.name).to.equal('Bob');
         });
 
         it('can use label style', () => {
@@ -312,7 +302,7 @@ describe('v3/request', () => {
             const req = request({ path: '/.Bob'});
             const instance = new enforcer(schema2, {});
             const params = instance.request(req);
-            expect(params.request.path.name).to.equal('Bob');
+            expect(params.params.name).to.equal('Bob');
         });
 
         it('cannot use form style', () => {
@@ -355,8 +345,7 @@ describe('v3/request', () => {
                 const instance = new enforcer(schema2, {});
                 const req = request({ path: '/?color=' });
                 const params = instance.request(req);
-                expect(params.errors).to.be.null;
-                expect(params.request.query.color).to.equal('');
+                expect(params.query.color).to.equal('');
             });
 
             it('string', () => {
@@ -364,8 +353,7 @@ describe('v3/request', () => {
                 const instance = new enforcer(schema2, {});
                 const req = request({ path: '/?x=1&color=red&y=2' });
                 const params = instance.request(req);
-                expect(params.errors).to.be.null;
-                expect(params.request.query.color).to.equal('red');
+                expect(params.query.color).to.equal('red');
             });
 
             it('array', () => {
@@ -373,8 +361,7 @@ describe('v3/request', () => {
                 const instance = new enforcer(schema2, {});
                 const req = request({ path: '/?color=orange&color=blue,black,brown' });
                 const params = instance.request(req);
-                expect(params.errors).to.be.null;
-                expect(params.request.query.color).to.deep.equal(['blue', 'black', 'brown']);
+                expect(params.query.color).to.deep.equal(['blue', 'black', 'brown']);
             });
 
             it('array (default exploded)', () => {
@@ -382,8 +369,7 @@ describe('v3/request', () => {
                 const instance = new enforcer(schema2, {});
                 const req = request({ path: '/?color=blue&color=black&x=1&color=brown' });
                 const params = instance.request(req);
-                expect(params.errors).to.be.null;
-                expect(params.request.query.color).to.deep.equal(['blue', 'black', 'brown']);
+                expect(params.query.color).to.deep.equal(['blue', 'black', 'brown']);
             });
 
             it('object (default exploded)', () => {
@@ -391,8 +377,7 @@ describe('v3/request', () => {
                 const encoded = encodeURIComponent('R=100&G=200&B=150');
                 const req = request({ path: '/?color=' + encoded });
                 const params = instance.request(req);
-                expect(params.errors).to.be.null;
-                expect(params.request.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                expect(params.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
             });
 
             it('object', () => {
@@ -400,8 +385,7 @@ describe('v3/request', () => {
                 const instance = new enforcer(schema2, {});
                 const req = request({ path: '/?color=R,100,G,200,B,150' });
                 const params = instance.request(req);
-                expect(params.errors).to.be.null;
-                expect(params.request.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                expect(params.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
             });
 
         });
@@ -413,8 +397,7 @@ describe('v3/request', () => {
                 const instance = new enforcer(schema2, {});
                 const req = request({ path: '/?color=blue%20black%20brown'});
                 const params = instance.request(req);
-                expect(params.errors).to.be.null;
-                expect(params.request.query.color).to.deep.equal(['blue', 'black', 'brown']);
+                expect(params.query.color).to.deep.equal(['blue', 'black', 'brown']);
             });
 
             it('object', () => {
@@ -422,8 +405,7 @@ describe('v3/request', () => {
                 const instance = new enforcer(schema2, {});
                 const req = request({ path: '/?color=R%20100%20G%20200%20B%20150'});
                 const params = instance.request(req);
-                expect(params.errors).to.be.null;
-                expect(params.request.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                expect(params.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
             });
 
         });
@@ -435,8 +417,7 @@ describe('v3/request', () => {
                 const instance = new enforcer(schema2, {});
                 const req = request({ path: '/?color=blue|black|brown'});
                 const params = instance.request(req);
-                expect(params.errors).to.be.null;
-                expect(params.request.query.color).to.deep.equal(['blue', 'black', 'brown']);
+                expect(params.query.color).to.deep.equal(['blue', 'black', 'brown']);
             });
 
             it('object', () => {
@@ -444,8 +425,7 @@ describe('v3/request', () => {
                 const instance = new enforcer(schema2, {});
                 const req = request({ path: '/?color=R|100|G|200|B|150'});
                 const params = instance.request(req);
-                expect(params.errors).to.be.null;
-                expect(params.request.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                expect(params.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
             });
 
         });
@@ -476,8 +456,7 @@ describe('v3/request', () => {
             const instance = new enforcer(schema2, {});
             const req = request({ path: '/?color[R]=100&color[G]=200&color[B]=150'});
             const params = instance.request(req);
-            expect(params.errors).to.be.null;
-            expect(params.request.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+            expect(params.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
         });
 
     });

@@ -206,9 +206,9 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
                 const value = serial.deserialize(exception, schema, req.body);
 
                 if (!Exception.hasException(bodyException)) {
-                    const validationErrors = this.enforcer.errors(schema, value);
-                    if (validationErrors) {
-                        bodyException.forEach(error => bodyException.push(error));
+                    const errors = this.enforcer.errors(schema, value);
+                    if (errors) {
+                        errors.forEach(error => bodyException.push(error));
                     } else {
                         result.body = value;
                     }

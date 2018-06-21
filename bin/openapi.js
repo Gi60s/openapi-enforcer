@@ -266,7 +266,7 @@ OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
 
     // begin population
     const root = { root: value };
-    populate.populate(v, exception, '<root>', schema, root, 'root');
+    populate.populate(v, exception, schema, root, 'root');
 
     // determine how to handle deserialization data
     return errorHandler(options.throw, exception, root.root);
@@ -342,13 +342,17 @@ OpenApiEnforcer.prototype.request = function(req, options) {
 
     // if no errors then generate the return value
     let returnValue = null;
-    if (!result.errors) {
+    if (!result.exception) {
         const responses = path.schema[method].responses;
         const produces = path.schema[method].produces;
         const value = result.value;
         returnValue = {
             path: path.path,
-            request: value
+            cookies: value.cookie,
+            headers: value.header,
+            params: value.path,
+            query: value.query,
+            requestx: value
                 ? {
                     cookies: value.cookie,
                     headers: value.header,
@@ -368,10 +372,10 @@ OpenApiEnforcer.prototype.request = function(req, options) {
             },
             schema: path.schema
         };
-        if (value && value.hasOwnProperty('body')) returnValue.request.body = value.body;
+        if (value && value.hasOwnProperty('body')) returnValue.body = value.body;
     }
 
-    return errorHandler(options.throw, result.errors, returnValue, errMessage, { statusCode: 400 });
+    return errorHandler(options.throw, exception, returnValue);
 };
 
 /**
@@ -409,6 +413,7 @@ OpenApiEnforcer.prototype.response = function(options) {
  * @returns {*}
  */
 OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
+    const exception = new Exception('One or more errors occurred during serialization');
     const data = store.get(this);
     const errors = [];
     const version = data.version;
@@ -417,10 +422,10 @@ OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
     options = Object.assign({}, data.defaults.serialize, options);
 
     // run version specific deserialization
-    const result = version.serial.serialize(errors, '', schema, value);
+    const result = version.serial.serialize(exception, schema, value);
 
     // determine how to handle serialization data
-    return errorHandler(options.throw, errors, result, 'One or more errors occurred during serialization:');
+    return errorHandler(options.throw, exception, result);
 };
 
 /**

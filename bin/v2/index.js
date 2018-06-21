@@ -125,7 +125,7 @@ Version.prototype.getResponseExample = function(options) {
  * @param {string} req.method
  * @param {object<string>} req.path
  * @param {string} req.query
- * @returns {{ errors: Array<string>|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object }}}
+ * @returns {{ exception: OpenAPIException|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object }}}
  */
 Version.prototype.parseRequestParameters = function(schema, exception, req) {
     const mSchema  = schema[req.method];
@@ -176,13 +176,13 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
         } else if (paramMap.body.schema && req.body !== undefined) {
             const schema = paramMap.body.schema;
             const paramException = exception.nest('Invalid request body');
-            const typed = serial.deserialize(paramException, schema, req.body);
+            const value = serial.deserialize(paramException, schema, req.body);
             if (!Exception.hasException(paramException)) {
-                const errors = this.enforcer.errors(schema, typed.value);
+                const errors = this.enforcer.errors(schema, value);
                 if (errors) {
                     errors.forEach(error => paramException.push(error));
                 } else {
-                    result.body = typed.value;
+                    result.body = value;
                 }
             }
         } else if (req.body !== undefined) {
@@ -251,7 +251,7 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
 
     const hasErrors = Exception.hasException(exception);
     return {
-        errors: hasErrors ? exception : null,
+        exception: hasErrors ? exception : null,
         value: hasErrors ? null : result
     };
 };

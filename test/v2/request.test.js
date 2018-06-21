@@ -93,25 +93,20 @@ describe('v2/request', () => {
                 body: { R: 100, G: 200, B: 150 }
             });
             const params = instance.request(req);
-            expect(params.errors).to.be.null;
-            expect(params.request.body).to.deep.equal({ R: 100, G: 200, B: 150 });
+            expect(params.body).to.deep.equal({ R: 100, G: 200, B: 150 });
         });
 
         it('has error', () => {
             const req = request({
                 body: { R: 'red', G: 200, B: 150 }
             });
-            const params = instance.request(req);
-            expect(params.errors.length).not.to.equal(0);
-            expect(params.errors[0]).to.match(/The value must be numeric/i);
+            expect(() => instance.request(req)).to.throw(/the value must be numeric/i);
         });
 
         it('missing required body', () => {
             const schema2 = modSchema(schema, { 'paths./.put.parameters.0': { required: true } });
             const instance = new enforcer(schema2, {});
-            const params = instance.request({ path: '/', method: 'put' });
-            expect(params.errors.length).to.equal(1);
-            expect(params.errors[0]).to.match(/missing required body/i);
+            expect(() => instance.request({ path: '/', method: 'put' })).to.throw(/missing required body/i);
         });
 
     });
@@ -130,15 +125,12 @@ describe('v2/request', () => {
         it('no errors', () => {
             const req = request({ headers: { 'x-number': '12345' } });
             const params = instance.request(req);
-            expect(params.errors).to.be.null;
-            expect(params.request.headers['x-number']).to.equal(12345);
+            expect(params.headers['x-number']).to.equal(12345);
         });
 
         it('error', () => {
             const req = request({ headers: { 'x-number': 'abc' } });
-            const params = instance.request(req);
-            expect(params.errors).to.be.match(/value must be numeric/i);
-            expect(params.request).to.be.null;
+            expect(() => instance.request(req)).to.throw(/value must be numeric/i);
         });
 
         it('uses default', () => {
@@ -146,17 +138,14 @@ describe('v2/request', () => {
             const instance = new enforcer(schema2, {});
             const req = request({});
             const params = instance.request(req);
-            expect(params.errors).to.be.null;
-            expect(params.request.headers['x-number']).to.equal(10);
+            expect(params.headers['x-number']).to.equal(10);
         });
 
         it('missing required', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.2': { required: true } });
             const instance = new enforcer(schema2, {});
             const req = request({});
-            const params = instance.request(req);
-            expect(params.errors[0]).to.match(/missing required header/i);
-            expect(params.request).to.be.null;
+            expect(() => instance.request(req)).to.throw(/missing required header/i);
         });
 
     });
@@ -165,8 +154,7 @@ describe('v2/request', () => {
 
         it('gets path parameter', () => {
             const params = instance.request({ path: '/12345'});
-            expect(params.errors).to.be.null;
-            expect(params.request.path.name).to.equal('12345');
+            expect(params.params.name).to.equal('12345');
         });
 
     });
@@ -175,46 +163,40 @@ describe('v2/request', () => {
 
         it('single item takes last', () => {
             const params = instance.request({ path: '/?number=1&number=2'});
-            expect(params.errors).to.be.null;
-            expect(params.request.query.number).to.equal(2);
+            expect(params.query.number).to.equal(2);
         });
 
         it('csv', () => {
             const params = instance.request({ path: '/?color=red,green,blue'});
-            expect(params.errors).to.be.null;
-            expect(params.request.query.color).to.deep.equal(['red', 'green', 'blue']);
+            expect(params.query.color).to.deep.equal(['red', 'green', 'blue']);
         });
 
         it('ssv', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { collectionFormat: 'ssv' } });
             const instance = new enforcer(schema2, {});
             const params = instance.request({ path: '/?color=red green%20blue'});
-            expect(params.errors).to.be.null;
-            expect(params.request.query.color).to.deep.equal(['red', 'green', 'blue']);
+            expect(params.query.color).to.deep.equal(['red', 'green', 'blue']);
         });
 
         it('tsv', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { collectionFormat: 'tsv' } });
             const instance = new enforcer(schema2, {});
             const params = instance.request({ path: '/?color=red\tgreen%09blue'});
-            expect(params.errors).to.be.null;
-            expect(params.request.query.color).to.deep.equal(['red', 'green', 'blue']);
+            expect(params.query.color).to.deep.equal(['red', 'green', 'blue']);
         });
 
         it('pipes', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { collectionFormat: 'pipes' } });
             const instance = new enforcer(schema2, {});
             const params = instance.request({ path: '/?color=red|green%7Cblue'});
-            expect(params.errors).to.be.null;
-            expect(params.request.query.color).to.deep.equal(['red', 'green', 'blue']);
+            expect(params.query.color).to.deep.equal(['red', 'green', 'blue']);
         });
 
         it('multi', () => {
             const schema2 = modSchema(schema, { 'paths./.parameters.0': { collectionFormat: 'multi' } });
             const instance = new enforcer(schema2, {});
             const params = instance.request({ path: '/?color=red&color=green&color=blue'});
-            expect(params.errors).to.be.null;
-            expect(params.request.query.color).to.deep.equal(['red', 'green', 'blue']);
+            expect(params.query.color).to.deep.equal(['red', 'green', 'blue']);
         });
 
     });
