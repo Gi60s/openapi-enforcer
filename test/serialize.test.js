@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception         = require('../bin/exception');
 const expect            = require('chai').expect;
 const OpenApiEnforcer   = require('../index');
 
@@ -68,7 +67,7 @@ describe('#serialize', () => {
         });
 
         it('object', () => {
-            expect(() => enforcer.serialize(schema, {})).to.throw(Exception);
+            expect(() => enforcer.serialize(schema, {})).to.throw(/errors occurred during serialization/);
         });
 
     });
@@ -139,7 +138,7 @@ describe('#serialize', () => {
         });
 
         it('invalid type', () => {
-            expect(() => enforcer.serialize(schema, null)).to.throw(Exception);
+            expect(() => enforcer.serialize(schema, null)).to.throw(/errors occurred during serialization/);
         });
 
     });
@@ -171,7 +170,7 @@ describe('#serialize', () => {
         });
 
         it('boolean', () => {
-            expect(() => enforcer.serialize(schema, true)).to.throw(Exception);
+            expect(() => enforcer.serialize(schema, true)).to.throw(/errors occurred during serialization/);
         });
 
     });
@@ -203,7 +202,7 @@ describe('#serialize', () => {
         });
 
         it('boolean', () => {
-            expect(() => enforcer.serialize(schema, true)).to.throw(Exception);
+            expect(() => enforcer.serialize(schema, true)).to.throw(/errors occurred during serialization/);
         });
 
     });

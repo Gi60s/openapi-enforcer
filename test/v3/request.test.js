@@ -338,6 +338,10 @@ describe('v3/request', () => {
     describe('query', () => {
         const request = Request({});
 
+        it('undefined parameter produces 400', () => {
+            expect(() => instance.request({ path: '/?nope' })).to.throw(/unexpected query parameter/i);
+        });
+
         describe('default style (form)', () => {
 
             it('empty', () => {

@@ -19,97 +19,164 @@ const expect        = require('chai').expect;
 const Enforcer      = require('../index');
 
 describe('request', () => {
+    let enforcer;
 
-    describe('v2 request parsing', () => {
-        let enforcer;
-
-        before(() => {
-            enforcer = new Enforcer({
-                swagger: '2.0',
-                paths: {
-                    '/hello': {
-                        get: {
-                        },
-                        post: {
-                            parameters: [
-                                {
-                                    name: 'body',
-                                    in: 'body',
-                                    schema: { type: 'string' }
-                                }
-                            ]
-                        },
-                        put: {
-                            parameters: [
-                                {
-                                    name: 'body',
-                                    in: 'body',
-                                    schema: {
-                                        type: 'object',
-                                        properties: {
-                                            x: {type: 'number'}
-                                        }
-                                    }
-                                }
-                            ]
-                        },
+    before(() => {
+        enforcer = new Enforcer({
+            swagger: '2.0',
+            paths: {
+                '/': {
+                    get: {},
+                    post: {
                         parameters: [
-                            { name: 'name', type: 'string', in: 'query' },
-                            { name: 'a', type: 'string', in: 'cookie' }
-                        ]
+                            { name: 'body', in: 'body', schema: { type: 'number' }}
+                        ],
+                        responses: {
+                            '200': {
+                                schema: {
+                                    type: 'number'
+                                }
+                            }
+                        }
                     }
                 }
-            }, { request: { throw: true }});
+            }
         });
+    });
 
-        it('invalid parameter', () => {
-            expect(() => enforcer.request(5)).to.throw(/must be a string or an object/i);
-        });
+    describe('input validation', () => {
 
-        describe('path and query', () => {
+        describe('parameter', () => {
 
-            it('as string path', () => {
-                const result = enforcer.request('/hello');
-                expect(result.path).to.equal('/hello');
+            it('string ok', () => {
+                expect(() => enforcer.request('/')).not.to.throw();
             });
 
-            it('as string path with query parameter', () => {
-                const result = enforcer.request('/hello?name=Bob');
-                expect(result.path).to.equal('/hello');
-                expect(result.query).to.deep.equal({ name: 'Bob' });
+            it('object ok', () => {
+                expect(() => enforcer.request({})).not.to.throw();
+            });
+
+            it('null throws error', () => {
+                expect(() => enforcer.request(null)).to.throw();
+            });
+
+            it('number throws error', () => {
+                expect(() => enforcer.request(5)).to.throw(/must be a string or an object/i);
             });
 
         });
 
-        it('cookie as an object ok', () => {
-            expect(() => enforcer.request({ path: '/hello', cookies: { a: 1 } })).not.to.throw(Error);
-        });
+        describe('body', () => {
 
-        it('cookie as string throws error', () => {
-            expect(() => enforcer.request({ path: '/hello', cookies: 'hello' })).to.throw(/invalid request cookie/i);
-        });
-
-        /*describe('body', () => {
-
-            it('body input string for type string', () => {
-                const result = enforcer.request({
-                    path: '/hello',
-                    method: 'post',
-                    body: 'this is the body'
-                });
-                expect(result.request.body).to.equal('this is the body');
+            it('string ok', () => {
+                expect(() => enforcer.request({ body: '' })).not.to.throw();
             });
 
-            it('body input object for type string', () => {
-                const result = enforcer.request({
-                    path: '/hello',
-                    method: 'post',
-                    body: { x: 1 }
-                });
-                expect(result.request.body).to.equal('{"x":1}');
+            it('object ok', () => {
+                expect(() => enforcer.request({ body: {} })).not.to.throw();
             });
 
-        });*/
+            it('null ok', () => {
+                expect(() => enforcer.request({ body: null })).not.to.throw();
+            });
+
+            it('number ok', () => {
+                expect(() => enforcer.request({ body: 5, method: 'post' })).not.to.throw();
+            });
+
+        });
+
+        describe('cookies', () => {
+
+            it('undefined ok', () => {
+                expect(() => enforcer.request({})).not.to.throw();
+            });
+
+            it('object ok', () => {
+                expect(() => enforcer.request({ cookies: {} })).not.to.throw();
+            });
+
+            it('null throws error', () => {
+                expect(() => enforcer.request({ cookies: null })).to.throw();
+            });
+
+            it('string throws error', () => {
+                expect(() => enforcer.request({ cookies: '' })).to.throw();
+            });
+
+        });
+
+        describe('headers', () => {
+
+            it('undefined ok', () => {
+                expect(() => enforcer.request({})).not.to.throw();
+            });
+
+            it('object ok', () => {
+                expect(() => enforcer.request({ headers: {} })).not.to.throw();
+            });
+
+            it('null throws error', () => {
+                expect(() => enforcer.request({ headers: null })).to.throw();
+            });
+
+            it('string throws error', () => {
+                expect(() => enforcer.request({ headers: '' })).to.throw();
+            });
+
+        });
+
+        describe('path', () => {
+
+            it('undefined ok', () => {
+                expect(() => enforcer.request({})).not.to.throw();
+            });
+
+            it('string ok', () => {
+                expect(() => enforcer.request({ path: '' })).not.to.throw();
+            });
+
+            it('path not defined', () => {
+                expect(() => enforcer.request({ path: '/hello' })).to.throw(/path not found/i);
+            });
+
+            it('null throws error', () => {
+                expect(() => enforcer.request({ path: null })).to.throw();
+            });
+
+            it('object throws error', () => {
+                expect(() => enforcer.request({ path: {} })).to.throw();
+            });
+
+        });
+
+        describe('method', () => {
+
+            it('undefined ok', () => {
+                expect(() => enforcer.request({})).not.to.throw();
+            });
+
+            it('string ok', () => {
+                expect(() => enforcer.request({ method: 'get' })).not.to.throw();
+            });
+
+            it('method not defined', () => {
+                expect(() => enforcer.request({ method: 'delete' })).to.throw(/method not allowed/i);
+            });
+
+            it('null throws error', () => {
+                expect(() => enforcer.request({ method: null })).to.throw();
+            });
+
+            it('object throws error', () => {
+                expect(() => enforcer.request({ method: {} })).to.throw();
+            });
+
+        });
+
+    });
+
+    describe('response', () => {
 
     });
 

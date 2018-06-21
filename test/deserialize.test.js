@@ -131,7 +131,7 @@ describe('deserialize', () => {
     });
 
     it('thrown error', () => {
-        expect(() => enforcer.deserialize({ type: 'integer' }, '2.4')).to.throw(Exception);
+        expect(() => enforcer.deserialize({ type: 'integer' }, '2.4')).to.throw(/errors occurred during deserialization/);
     });
 
     it('reported error', () => {

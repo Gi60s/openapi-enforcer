@@ -16,7 +16,6 @@
  **/
 'use strict';
 const Enforcer      = require('../index');
-const Exception     = require('../bin/exception');
 const expect        = require('chai').expect;
 
 describe('#populate', () => {
@@ -85,7 +84,7 @@ describe('#populate', () => {
 
         it('throw error', () => {
             const enforcer = new Enforcer(definition);
-            expect(() => enforcer.populate({type: 'array'}, {}, {}, { throw: true })).to.throw(Exception);
+            expect(() => enforcer.populate({type: 'array'}, {}, {}, { throw: true })).to.throw(/errors occurred during population/);
         });
 
     });

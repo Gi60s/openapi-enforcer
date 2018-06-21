@@ -199,6 +199,10 @@ describe('v2/request', () => {
             expect(params.query.color).to.deep.equal(['red', 'green', 'blue']);
         });
 
+        it('undefined parameter produces 400', () => {
+            expect(() => instance.request({ path: '/?nope' })).to.throw(/unexpected query parameter/i);
+        });
+
     });
 
 });
