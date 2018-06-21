@@ -21,7 +21,7 @@ module.exports = OpenAPIException;
 function OpenAPIException(header, meta) {
     this.header = header;
     this.children = [];
-    this.meta = meta || {};
+    this.meta = meta;
 }
 
 OpenAPIException.prototype.nest = function(header, meta) {
