@@ -101,7 +101,9 @@ describe('v3/request', () => {
                         name: 'x-number',
                         in: 'header',
                         schema: { type: 'number' }
-                    }
+                    },
+                    { name: 'x', in: 'query', schema: { type: 'number' } },
+                    { name: 'y', in: 'query', schema: { type: 'number' } }
                 ]
             },
             '/{name}': {
