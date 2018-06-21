@@ -7,9 +7,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "mocha test/*.js",
-    "coverage": "nyc --reporter=html mocha test/*.js",
-    "coverage:report": "nyc mocha test/*.js && nyc report --reporter=text-lcov | coveralls",
+    "test": "mocha --recursive test",
+    "coverage": "nyc --reporter=html npm test",
+    "coverage:report": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
     "coverage:watch": "chokidar 'test/**/*' 'bin/**/*' -c 'npm run coverage'"
   },
   "repository": {
