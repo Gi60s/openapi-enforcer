@@ -361,16 +361,18 @@ OpenApiEnforcer.prototype.request = function(req, options) {
 
 /**
  * Validate and serialize a response.
- * @param {{ code: string, contentType: string, path: string, method: string }} options The request object.
+ * @param {string|{ code: string, contentType: string, path: string, method: string }} options The request object.
  * @returns {{data: function, example: function, populate: function, serialize: function}}
  */
 OpenApiEnforcer.prototype.response = function(options) {
+    if (typeof options === 'string') options = { path: options };
+
     const path = this.path(options.path);
-    if (!path) throw Error('Invalid request path. The path is not defined in the specification: ' + req.path);
+    if (!path) throw Error('Invalid request path. The path is not defined in the specification: ' + options.path);
 
     options = Object.assign({}, { method: 'get' }, options);
     const method = options.method.toLowerCase();
-    if (!path.schema[method]) throw Error('Invalid method for request path. The method is not defined in the specification: ' + method.toUpperCase() + ' ' + req.path);
+    if (!path.schema[method]) throw Error('Invalid method for request path. The method is not defined in the specification: ' + method.toUpperCase() + ' ' + options.path);
 
     return responseFactory(this, path, method, options);
 };
