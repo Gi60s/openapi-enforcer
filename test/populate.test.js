@@ -113,6 +113,40 @@ describe('#populate', () => {
 
     });
 
+    describe('date', () => {
+
+        it('x-variable keeps type', () => {
+            const schema = {
+                type: 'string',
+                format: 'date',
+                'x-variable': 'myDate'
+            };
+            const value = enforcer.populate(schema, { myDate: 'hello' });
+            expect(value).to.equal('hello');
+        });
+
+        it('default corrects type', () => {
+            const schema = {
+                type: 'string',
+                format: 'date',
+                default: '2000-01-01'
+            };
+            const value = enforcer.populate(schema, { myDate: 'hello' });
+            expect(value).to.deep.equal(new Date('2000-01-01'));
+        });
+
+        it('x-template corrects type', () => {
+            const schema = {
+                type: 'string',
+                format: 'date',
+                'x-template': '{year}-{month}-01'
+            };
+            const value = enforcer.populate(schema, { year: '2000', month: '01' });
+            expect(value).to.deep.equal(new Date('2000-01-01'));
+        });
+
+    });
+
     describe('array', () => {
 
         it('array of numbers', () => {

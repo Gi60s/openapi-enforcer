@@ -1,18 +1,16 @@
 
 # OpenAPI-Enforcer
 
-**Supports OpenAPI 2.0 (formerly Swagger) and OpenAPI 3.0.0**
+**Supports OpenAPI 2.0 (formerly Swagger) and OpenAPI 3.x**
 
 Features
 
-- Connect middleware*
-- Request parsing and validating*
-- Response building, formatting, and validating*
-- Schema validation
-
-\* *Some features coming soon*
-
-**THIS IS A WORK IN PROGRESS - SUBJECT TO CHANGE**
+- Validate a value against a schema
+- Determine the schema for a provided path (allows path parameters)
+- Serialization and deserialization for interprocess or network communication
+- Request parsing and validating
+- Response building, serializing, and validating
+- Generate random valid values from a schema
 
 # Table of Contents
 
@@ -48,6 +46,11 @@ RefParser.dereference('/path/to/schema/file.json')  // path can also be yaml
 
         // get the schema that defines a user
         const userSchema = schema.components.schemas.user;
+
+        const instance = enforcer.schema(userSchema);
+        const user = instance.populate({ ... });
+        const errors = instance.errors(user);
+        const data = instance.serialize(user);
 
         // create a user object by using the user schema and variable mapping
         const user = enforcer.populate(userSchema, {
@@ -581,7 +584,7 @@ Returns an object with the following properties:
 
 - *serialize* - A function that takes the status code, body, and headers and then validates and then serializes the body and headers to prepare them to send as an HTTP response. If validation fails an error will be thrown.
 
-    Signature: `serialize ( { body, headers } )`
+    Signature: `serialize ( { body, headers, options, skipValidation } )`
     
     Takes a configuration object as it's parameter with the following properties:
 
@@ -589,6 +592,7 @@ Returns an object with the following properties:
     | ---------| ----------- |
     | body | The initial body value. Omit this value if you want the body to be built from scratch. |
     | headers | An initial header object with header names and values as key value pairs. If the headers object does not define the `'content-type'` header then it will be set to the same value as the contentType option. |
+    | options | Options to pass to the [`enforcer.prototype.serialize`](#enforcerprototypeserialize) function. |
     | skipValidation | Skip validation prior to seraialization. This can save processing cycles if you have already used `Enforcer.prototype.response().errors()` to check for errors and have found none. Skipping validation when errors exist may still cause errors to occur. Defaults to `false`. |
 
     Returns an object with `headers` and `body` properties.

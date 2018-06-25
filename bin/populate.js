@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const parse         = require('./parse');
 const util          = require('./util');
 
 exports.injector = {
@@ -34,7 +35,7 @@ exports.populate = function(v, exception, schema, object, property) {
             return;
         }
 
-        apply(v, schema, type, object, property);
+        apply(v, exception, schema, type, object, property);
 
         value = object[property];
         if (value) {
@@ -60,7 +61,7 @@ exports.populate = function(v, exception, schema, object, property) {
             if (discriminator) exports.populate(v, exception.nest('/oneOf'), discriminator, object, property);
 
         } else {
-            apply(v, schema, type, object, property);
+            apply(v, exception, schema, type, object, property);
             const value = object[property];
 
             // if not ignoring required then these values may not actually populate
@@ -102,14 +103,14 @@ exports.populate = function(v, exception, schema, object, property) {
 
         }
     } else {
-        apply(v, schema, type, object, property);
+        apply(v, exception, schema, type, object, property);
     }
 
 
 };
 
 
-function apply(v, schema, type, object, property) {
+function apply(v, exception, schema, type, object, property) {
     if (object[property] === undefined) {
         const options = v.options;
         const map = v.map;
@@ -118,14 +119,16 @@ function apply(v, schema, type, object, property) {
             if (value !== undefined) object[property] = value;
 
         } else if (options.templates && type === 'string' && schema.hasOwnProperty('x-template')) {
-            object[property] = v.injector(schema['x-template'], map);
+            const value = v.injector(schema['x-template'], map);
+            object[property] = parseStringValue(exception, schema, value);
 
         } else if (options.defaults && schema.hasOwnProperty('default')) {
-            const value = schema.default;
-            if (value !== undefined) {
-                object[property] = options.templateDefaults && typeof value === 'string'
-                    ? v.injector(value, map)
-                    : value;
+            const defaultValue = schema.default;
+            if (defaultValue !== undefined) {
+                const value = options.templateDefaults && typeof defaultValue === 'string'
+                    ? v.injector(defaultValue, map)
+                    : defaultValue;
+                object[property] = parseStringValue(exception, schema, value);
             }
         }
     }
@@ -149,4 +152,22 @@ function buildInjector(rxGenerator) {
         }
         return result + value.substr(offset);
     };
+}
+
+function parseStringValue(exception, schema, value) {
+    if (typeof value !== 'string' || util.schemaType(schema) !== 'string') return value;
+
+    let result;
+    switch (util.schemaFormat(schema)) {
+        case 'byte':
+        case 'binary':
+        case 'date':
+        case 'date-time':
+            result = parse[schema.format](value);
+            return result.error
+                ? exception.push(result.error)
+                : result.value;
+        default:
+            return value;
+    }
 }
