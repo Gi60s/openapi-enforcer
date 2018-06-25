@@ -177,6 +177,26 @@ describe('request', () => {
     });
 
     describe('response', () => {
+        const properties = ['data', 'errors', 'example', 'populate', 'serialize'];
+
+        it('via request', () => {
+            const req = enforcer.request('/');
+            const res = req.response();
+            expect(Object.keys(res)).to.deep.equal(properties);
+        });
+
+        it('invalid path', () => {
+            expect(() => enforcer.response('/hello')).to.throw(/invalid request path/i);
+        });
+
+        it('invalid method', () => {
+            expect(() => enforcer.response({ path: '/', method: 'delete' })).to.throw(/invalid method/i);
+        });
+
+        it('has response properties', () => {
+            const res = enforcer.response('/');
+            expect(Object.keys(res)).to.deep.equal(properties);
+        })
 
     });
 
