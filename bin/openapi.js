@@ -340,9 +340,11 @@ OpenApiEnforcer.prototype.request = function(req, options) {
         query: query || ''
     });
 
-    // if no errors then generate the return value
+    // if no errors then generate the return value, otherwise add 400 code
     let result = null;
-    if (!parsed.exception) {
+    if (parsed.exception) {
+        exception.meta = { statusCode: 400 };
+    } else {
         const value = parsed.value;
         result = {
             path: path.path,
@@ -389,7 +391,6 @@ OpenApiEnforcer.prototype.response = function(options) {
 OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
     const exception = new Exception('One or more errors occurred during serialization');
     const data = store.get(this);
-    const errors = [];
     const version = data.version;
 
     // normalize options
@@ -442,6 +443,8 @@ OpenApiEnforcer.prototype.version = function() {
 
 // expose an interface for updating defaults
 OpenApiEnforcer.defaults = util.copy(staticDefaults);
+
+OpenApiEnforcer.Exception = Exception;
 
 
 
