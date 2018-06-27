@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const rxMediaType = /^([\s\S]+?)\/([\s\S]+?)(?:\+([\s\S]+?))?$/;
+const rxMediaType = /^([\s\S]+?)\/(?:([\s\S]+?)\+)?([\s\S]+?)$/;
 
 exports.arrayPushMany = function(target, source) {
     source.forEach(item => target.push(item));
@@ -59,7 +59,7 @@ exports.Error = function(meta, message) {
 };
 
 /**
- * Provide an accept media type string and possible matches and get the match.
+ * Provide an accept media / mime type string and possible matches and get the match.
  * @param {string} input
  * @param {string[]} store
  * @returns {string[]} The media type matches.
@@ -73,10 +73,10 @@ exports.findMediaMatch = function(input, store) {
             const q = /q=(\d(?:\.\d)?)/.exec(set[1]);
             if (!match) return;
             return {
-                extension: match[3] || '*',
+                extension: match[2] || '*',
                 index: index,
                 quality: +((q && q[1]) || 1),
-                subType: match[2],
+                subType: match[3],
                 type: match[1]
             }
         })
@@ -89,8 +89,8 @@ exports.findMediaMatch = function(input, store) {
             const match = rxMediaType.exec(value);
             if (match) {
                 const type = match[1];
-                const subType = match[2];
-                const extension = match[3] || '*';
+                const subType = match[3];
+                const extension = match[2] || '*';
                 const typeMatch = ((accept.type === type || accept.type === '*' || type === '*') &&
                     (accept.subType === subType || accept.subType === '*' || subType === '*') &&
                     (accept.extension === extension || accept.extension === '*' || extension === '*'));
@@ -267,7 +267,7 @@ exports.schemaFormat = function(schema) {
  * @returns {*}
  */
 exports.smart = function(value) {
-    if (typeof value === 'string') return "'" + value.replace(/'/g, "\\'") + "'";
+    if (typeof value === 'string') return '"' + value.replace(/"/g, '\\"') + '"';
     if (value instanceof Date) return value.toISOString();
     return String(value);
 };

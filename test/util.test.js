@@ -116,17 +116,17 @@ describe('util', () => {
         });
 
         it('specified extension match', () => {
-            const accept = 'application/json+abc';
-            const store = ['application/json+xyz', 'application/json', 'application/json+abc'];
+            const accept = 'application/abc+json';
+            const store = ['application/xyz+json', 'application/json', 'application/abc+json'];
             const matches = util.findMediaMatch(accept, store);
-            expect(matches).to.deep.equal(['application/json+abc', 'application/json']);
+            expect(matches).to.deep.equal(['application/abc+json', 'application/json']);
         });
 
         it('non specified extension match', () => {
             const accept = 'application/json';
-            const store = ['application/json+xyz', 'application/json', 'application/json+abc'];
+            const store = ['application/xyz+json', 'application/json', 'application/abc+json'];
             const matches = util.findMediaMatch(accept, store);
-            expect(matches).to.deep.equal(['application/json', 'application/json+xyz', 'application/json+abc']);
+            expect(matches).to.deep.equal(['application/json', 'application/xyz+json', 'application/abc+json']);
         });
 
     });
