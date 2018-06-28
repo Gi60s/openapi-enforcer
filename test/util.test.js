@@ -109,10 +109,10 @@ describe('util', () => {
         });
 
         it('multiple accept', () => {
-            const accept = 'text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8';
-            const store = ['text/plain', 'text/html', 'application/xml', 'application/xhtml'];
+            const accept = 'text/html, application/abc+json, application/xml;q=0.9, */*;q=0.8';
+            const store = ['text/plain', 'text/html', 'application/json', 'application/xml'];
             const matches = util.findMediaMatch(accept, store);
-            expect(matches).to.deep.equal(['text/html', 'application/xhtml', 'application/xml', 'text/plain']);
+            expect(matches).to.deep.equal(['text/html', 'application/json', 'application/xml', 'text/plain']);
         });
 
         it('specified extension match', () => {
