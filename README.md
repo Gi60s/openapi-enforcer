@@ -15,7 +15,6 @@ Features
 # Table of Contents
 
 - [Constructor](#constructor)
-- Prototype Methods
     - [Enforcer.prototype.deserialize](#enforcerprototypedeserialize)
     - [Enforcer.prototype.errors](#enforcerprototypeerrors)
     - [Enforcer.prototype.path](#enforcerprototypepath)
@@ -26,44 +25,39 @@ Features
     - [Enforcer.prototype.schema](#enforcerprototypeschema)
     - [Enforcer.prototype.serialize](#enforcerprototypeserialize)
     - [Enforcer.prototype.validate](#enforcerprototypevalidate)
-- Static Methods
-    - [Enforcer.format](#enforcerformat)
-    - [Enforcer.is](#enforceris)
-    - [Enforcer.parse](#enforcerparse)
+- [Appendix](#appendix)
+    - [About default, x-template, and x-variable](#about-default-x-template-and-x-variable)
+    - [Error Throwing vs Reporting](#error-throwing-vs-reporting)
+    - [Parameter Replacement](#parameter-replacement)
 
 # Example
 
 ```js
-const RefParser = require('json-schema-ref-parser');
-const Enforcer = require('openapi-enforcer');
+const Enforcer = require('openapi-enforcer')
 
-// load, parse, dereference openapi document
-RefParser.dereference('/path/to/schema/file.json')  // path can also be yaml
-    .then(function(schema) {
+// define enforcer instance
+const enforcer = new Enforcer('3.0.0')
 
-        // create an enforcer instance
-        const enforcer = Enforcer(schema);
+// define the user schema
+const userSchema = {
+    type: 'object',
+    properties: {
+        name: {
+            type: 'string',
+            minLength: 1
+        },
+        birthday: {
+            type: 'string',
+            format: 'date',
+        }
+    }
+}
 
-        // get the schema that defines a user
-        const userSchema = schema.components.schemas.user;
-
-        const instance = enforcer.schema(userSchema);
-        const user = instance.populate({ ... });
-        const errors = instance.errors(user);
-        const data = instance.serialize(user);
-
-        // create a user object by using the user schema and variable mapping
-        const user = enforcer.populate(userSchema, {
-            name: 'Bob Smith',
-            birthday: new Date('2000-01-01')
-        });
-
-        // check the user object for any schema errors
-        // (FYI - it wont have errors because it was just populated from the schema)
-        const errors = enforcer.errors(userSchema, user);
-
-        // continue processing
-    });
+// check a value for any schema errors
+const errors = enforcer.errors(userSchema, {
+    name: 'Bob',
+    birthday: new Date('2000-01-01')
+ });
 ```
 
 # Constructor
@@ -74,7 +68,44 @@ Create an OpenAPI enforcer instance.
 
 | Parameter | Description | Type | Default |
 | --------- | ----------- | ---- | ------- |
-| definition | An openapi document or a string representing the version to use. | `string` or `object` | |
+| definition | An openapi document or a string representing the version to use. | `string` or `object` |
+| options | The options to use for all functions within the instance. This options can be overwritten per function called. | `object` |
+| options.deserialize | The default options to apply to deserialize functions |
+| options.populate | The default [options to apply to populate](#populate-options) functions. | |
+| options.request | The default options to apply to request functions | |
+| options.serialize | The default options to apply to serialize functions | |
+
+| Deserialize Option | Description | Default |
+| ------------------ | ----------- | ------- |
+| throw | Whether errors should be [thrown or reported](#error-throwing-vs-reporting). | `true` |
+
+
+
+| options.deserialize.throw | Set to `true` to throw errors
+
+deserialize: {
+        throw: true
+    },
+    errors: {
+        prefix: ''
+    },
+    populate: {
+        copy: false,
+        defaults: true,
+        ignoreMissingRequired: true,
+        oneOf: true,
+        replacement: 'handlebar',
+        templateDefaults: true,
+        templates: true,
+        throw: true,
+        variables: true
+    },
+    request: {
+        throw: true
+    },
+    serialize: {
+        throw: true
+    }
 
 **Returns** an instance of the OpenAPI Enforcer
 
@@ -120,14 +151,15 @@ const enforcer3 = new Enforcer({
 
 When a value is sent over HTTP it is in a serialized state. Calling this function will deserialize a value into its deserialized equivalent.
 
-`Enforcer.prototype.deserialize ( schema, value )`
+`Enforcer.prototype.deserialize ( schema, value [, options ] )`
 
 | Parameter | Description | Type |
 | --------- | ----------- | ---- |
 | schema | The schema to use to convert serialized values. | `object` |
 | value | The value to deserialize. | Any |
+| options | The deserialize options | `object` |
 
-Returns: An object with two properties: `errors` and `value`. If deserialization failed due to an error then the `errors` property will contain an array of strings for each error that was found. If deserialization succeeds then the `errors` property will be `null` and the `value` property will have the deserialized value.
+Returns the deserialized [value or the report](#error-throwing-vs-reporting).
 
 ```js
 const Enforcer = require('openapi-enforcer');
@@ -160,13 +192,32 @@ const serializedValue = {
 
 const deserialized = enforcer.deserialize(schema, serializedValue);
 // {
-//    errors: null,
-//    value: {
-//        integers: [1, 2, 3, 4],
-//        date: <Date Object>
-//    }
+//   integers: [1, 2, 3, 4],
+//   date: <Date Object>
 // }
 ```
+
+### Deserialize Options
+
+The [Enforcer.prototype.deserialize](#enforcerprototypedeserialize) `options` parameter can define these properties:
+
+| Option | Description | Default |
+| ------ | ----------- | ------- |
+| throw | Whether errors should be [thrown or reported](#error-throwing-vs-reporting). | `true` |
+
+### Default Deserialize Options
+
+You can change the global defaults for how the [Enforcer.prototype.deserialize](#enforcerprototypedeserialize) works:
+
+```js
+const Enforcer = require('openapi-enforcer');
+
+Enforcer.defaults.deserialize = {
+    throw: true
+}
+```
+
+
 
 ## Enforcer.prototype.errors
 
@@ -290,9 +341,24 @@ This function takes one parameter (an `object`) with the following properties:
 
 Returns: The populated value.
 
-### Enforcer Populate Options
+### Populate Options
 
-By using the options you can define how the `Enforcer.prototype.populate` builds the value. It is easy to overwrite the default options for all calls the the `Enforcer.prototype.populate` function:
+The [`Enforcer.prototype.populate`](#enforcerprototypepopulate) `options` parameter can define these properties:
+
+| Option | Description | Default |
+| ------ | ----------- | ------- |
+| copy | When executing [`Enforcer.prototype.populate`](#enforcerprototypepopulate) and providing the `value` property, you have the option to either mutate (modify) that value or to create a copy of the value and mutate that. Mutation is faster, but if you do not want to change the passed in `value` then you should set this value to `true`. | `false` |
+| defaults | Allow populated values to be built from a schema's `default` value. | `true` |
+| ignoreMissingRequired | When executing [`Enforcer.prototype.populate`](#enforcerprototypepopulate) there will be times where an object with required properties is missing values for those required properties. If this value is set to `false` then [`Enforcer.prototype.populate`](#enforcerprototypepopulate) will not add the object to the populated value. If set to `true` then partially completed objects will still be added to the populated value. | `true` |
+| replacement | The template [parameter replacement](#parameter-replacement) format to use. This can be one of `"handlebar"`, `"doubleHandlebar"`, or `"colon"`. | `"handlebar"` |
+| templateDefaults | If this is set to `true` and a default is being use to populate a value and the default value is a string then the value will act as an `x-template` value. This can be useful because `default` values generally appear in generated documentation but you may still want to perform an `x-template` transformation on the value. | `true` |
+| templates | Allow populated values to be built from a schema's `x-template` value. [More about default, x-template, and x-variable](#about-default-x-template-and-x-variable). | `true` |
+| throw | Whether errors should be [thrown or reported](#error-throwing-vs-reporting). | `true` |
+| variables | Allow populated values to be built from a schema's `x-variable` value. [More about default, x-template, and x-variable](#about-default-x-template-and-x-variable). | `true` |
+
+### Default Populate Options
+
+You can change the global defaults for how the [`Enforcer.prototype.populate`](#enforcerprototypepopulate) works like this:
 
 ```js
 const Enforcer = require('openapi-enforcer');
@@ -302,128 +368,14 @@ Enforcer.defaults.populate = {
     defaults: true,
     ignoreMissingRequired: true,
     replacement: 'handlebar',
-    serialize: false,
     templateDefaults: true,
     templates: true,
+    throw: true,
     variables: true
 }
 ```
 
-Below is a detailed description of each `Enforcer.prototype.populate` option, what it does, and what its default is.
-
-##### copy
-
-When executing [`Enforcer.prototype.populate`](#enforcerprototypepopulate) and providing the `value` property, you have the option to either mutate (modify) that value or to create a copy of the value and mutate that. Mutation is faster, but if you do not want to change the passed in `value` then you should set this value to `true`.
-
-Default: `false`
-
-##### defaults
-
-Allow populated values to be built from a schema's `default` value.
-
-[More about default, x-template, and x-variable](#about-default-x-template-and-x-variable).
-
-Default: `true`
-
-##### ignoreMissingRequired
-
-When executing [`Enforcer.prototype.populate`](#enforcerprototypepopulate) there will be times where an object with required properties is missing values for those required properties. If this value is set to `false` then [`Enforcer.prototype.populate`](#enforcerprototypepopulate) will not add the object to the populated value. If set to `true` then partially completed objects will still be added to the populated value.
-
-Default: `true`
-
-##### replacement
-
-The template [parameter replacement](#parameter-replacement) format to use. This can be one of `'handlebar'`, `'doubleHandlebar'`, or `'colon'`.
-
-| Format | Example |
-| ------ | ------- |
-| handlebar | `{param}` |
-| doubleHandlebar | `{{param}}` |
-| colon | `:param` |
-
-Default: `'handlebar'`
-
-##### serialize
-
-If set to `true` then values will automatically be [serialized](#enforcerprototypeserialize) while populating. Serialized values are less versatile but are ready to be sent as an HTTP response.
-
-Default: `false`
-
-##### templateDefaults
-
-If this is set to `true` and a default is being use to populate a value and the default value is a string then the value will act as an `x-template` value. This can be useful because `default` values generally appear in generated documentation but you may still want to perform an `x-template` transformation on the value.
-
-##### templates
-
-Allow populated values to be built from a schema's `x-template` value.
-
-[More about default, x-template, and x-variable](#about-default-x-template-and-x-variable).
-
-Default: `true`
-
-##### variables
-
-Allow populated values to be built from a schema's `x-variable` value.
-
-[More about default, x-template, and x-variable](#about-default-x-template-and-x-variable).
-
-Default: `true`
-
-### About default, x-template, and x-variable
-
-The `default` attribute is part of the OpenAPI specification. The type of it's value must be the same as the schema type. For example, if the schema is of type string, default cannot be a number. When `default` is a string [it can behave](#options-populate-templatedefaults) like `x-template` and [substitute parameters](#parameter-replacement) into the string. The advantage of using `default` over `x-template` in this scenario is that the `default` value will often appear in OpenAPI documentation generators.
-
-The `x-template` value must be a string that will have [parameter replacement](#parameter-replacement) occur on it. Parameters in the string may use handlebars, double handlebars, or colons depending on how the Enforcer instance has been [configured](#optionspopulatereplacement).
-
-The `x-variable` will perform value substitution only.
-
-If a conflict arises between the provided value, `default`, `x-template`, or `x-variable` then the following priority is observed:
-
-1. The provided value
-2. `x-variable`
-3. `x-template`
-4. `default`
-
-```js
-const Enforcer = require('openapi-enforcer');
-const enforcer = new Enforcer('3.0.0');
-
-const schema = {
-    type: 'object',
-    properties: {
-        firstName: {
-            type: 'string',
-            'x-variable': 'firstName'
-        },
-        lastName: {
-            type: 'string',
-            'x-variable': 'lastName'
-        },
-        fullName: {
-            type: 'string',
-            'x-template': '{firstName} {lastName}'
-        },
-        profileUrl: {
-            type: 'string',
-            default: 'https://your-domain.com/users/{id}'
-        }
-    }
-};
-
-const params = {
-    id: 12345,
-    firstName: 'Jan',
-    lastName: 'Smith'
-}
-
-const value = enforcer.populate(schema, params);
-// value ==> {
-//   firstName: 'Jan',
-//   lastName: 'Smith',
-//   fullName: 'Jan Smith',
-//   profileUrl: 'https://your-domain.com/users/12345'
-// }
-```
+Alternatively you can specify the same options in the [constructor](#constructor) or when calling the [`Enforcer.prototype.populate`](#enforcerprototypepopulate) function.
 
 ## Enforcer.prototype.random
 
@@ -670,64 +622,6 @@ const value = enforcer.serialize(schema, {
 // }
 ```
 
-### Parameter Replacement
-
-Parameter replacement is when part of a string is populated with parameters. This applies to a schema's `x-template` value and potentially `default` value. There are three types of replacement:
-
-1. handlebar (default)
-
-    ```js
-    const Enforcer = require('openapi-enforcer');
-    const options = {
-        populate: { replacement: 'handlebar' }
-    };
-    const enforcer = new Enforcer('3.0.0', options);
-    
-    const schema = {
-        type: 'string',
-        'x-template': '{name} is {age} years old'
-    };
-    
-    const value = enforcer.populate(schema, { name: 'Bob', age: 25 });
-    // value ===> 'Bob is 25 years old
-    ```
-
-2. doubleHandlebar
-
-    ```js
-    const Enforcer = require('openapi-enforcer');
-    const options = {
-        populate: { replacement: 'doubleHandlebar' }
-    };
-    const enforcer = new Enforcer('3.0.0', options);
-    
-    const schema = {
-        type: 'string',
-        'x-template': '{{name}} is {{age}} years old'
-    };
-    
-    const value = enforcer.populate(schema, { name: 'Bob', age: 25 });
-    // value ===> 'Bob is 25 years old
-    ```
-
-3. colon
-
-    ```js
-    const Enforcer = require('openapi-enforcer');
-    const options = {
-        populate: { replacement: 'colon' }
-    };
-    const enforcer = new Enforcer('3.0.0', options);
-    
-    const schema = {
-        type: 'string',
-        'x-template': ':name is :age years old'
-    };
-    
-    const value = enforcer.populate(schema, { name: 'Bob', age: 25 });
-    // value ===> 'Bob is 25 years old
-    ```
-
 ## Enforcer.prototype.request
 
 Pass in an object that is representative of an HTTP request to have it validated, parsed, and deserialized. The path must match one of the definition paths.
@@ -903,3 +797,136 @@ enforcer.validate(schema, {
 //   /num: Property not allowed
 //     at ...
 ```
+
+## Appendix
+
+### About default, x-template, and x-variable
+
+The `default` attribute is part of the OpenAPI specification. The type of it's value must be the same as the schema type. For example, if the schema is of type string, default cannot be a number. When `default` is a string [it can behave](#options-populate-templatedefaults) like `x-template` and [substitute parameters](#parameter-replacement) into the string. The advantage of using `default` over `x-template` in this scenario is that the `default` value will often appear in OpenAPI documentation generators.
+
+The `x-template` value must be a string that will have [parameter replacement](#parameter-replacement) occur on it. Parameters in the string may use handlebars, double handlebars, or colons depending on how the Enforcer instance has been [configured](#optionspopulatereplacement).
+
+The `x-variable` will perform value substitution only.
+
+If a conflict arises between the provided value, `default`, `x-template`, or `x-variable` then the following priority is observed:
+
+1. The provided value
+2. `x-variable`
+3. `x-template`
+4. `default`
+
+```js
+const Enforcer = require('openapi-enforcer');
+const enforcer = new Enforcer('3.0.0');
+
+const schema = {
+    type: 'object',
+    properties: {
+        firstName: {
+            type: 'string',
+            'x-variable': 'firstName'
+        },
+        lastName: {
+            type: 'string',
+            'x-variable': 'lastName'
+        },
+        fullName: {
+            type: 'string',
+            'x-template': '{firstName} {lastName}'
+        },
+        profileUrl: {
+            type: 'string',
+            default: 'https://your-domain.com/users/{id}'
+        }
+    }
+};
+
+const params = {
+    id: 12345,
+    firstName: 'Jan',
+    lastName: 'Smith'
+}
+
+const value = enforcer.populate(schema, params);
+// value ==> {
+//   firstName: 'Jan',
+//   lastName: 'Smith',
+//   fullName: 'Jan Smith',
+//   profileUrl: 'https://your-domain.com/users/12345'
+// }
+```
+
+### Error Throwing vs Reporting
+
+In some cases it is useful to receive an error in the return value instead of having it thrown. To this end, some of the functions in this library have the ability to either throw an error or return it. The functions that support this functionality will have a `throw` option that defaults to `true`.
+
+If `throw` is set to `true` then an encountered error will be thrown. If no error is encountered then the value will returned normally.
+
+If `throw` is set to `false` then it will return an object with two properties: `error` and `value`. If an error occured then `value` will be `null`, otherwise `error` will be `null`.
+
+```js
+const data = enforcer.deserialize(schema, value, { throw: false })
+if (data.error) {
+    console.error('Error: ' + data.error)
+} else {
+    console.log('Value:' + value)
+}
+```
+
+### Parameter Replacement
+
+Parameter replacement is when part of a string is populated with parameters. This applies to a schema's `x-template` value and potentially `default` value. There are three types of replacement:
+
+1. handlebar (default)
+
+    ```js
+    const Enforcer = require('openapi-enforcer');
+    const options = {
+        populate: { replacement: 'handlebar' }
+    };
+    const enforcer = new Enforcer('3.0.0', options);
+
+    const schema = {
+        type: 'string',
+        'x-template': '{name} is {age} years old'
+    };
+
+    const value = enforcer.populate(schema, { name: 'Bob', age: 25 });
+    // value ===> 'Bob is 25 years old
+    ```
+
+2. doubleHandlebar
+
+    ```js
+    const Enforcer = require('openapi-enforcer');
+    const options = {
+        populate: { replacement: 'doubleHandlebar' }
+    };
+    const enforcer = new Enforcer('3.0.0', options);
+
+    const schema = {
+        type: 'string',
+        'x-template': '{{name}} is {{age}} years old'
+    };
+
+    const value = enforcer.populate(schema, { name: 'Bob', age: 25 });
+    // value ===> 'Bob is 25 years old
+    ```
+
+3. colon
+
+    ```js
+    const Enforcer = require('openapi-enforcer');
+    const options = {
+        populate: { replacement: 'colon' }
+    };
+    const enforcer = new Enforcer('3.0.0', options);
+
+    const schema = {
+        type: 'string',
+        'x-template': ':name is :age years old'
+    };
+
+    const value = enforcer.populate(schema, { name: 'Bob', age: 25 });
+    // value ===> 'Bob is 25 years old
+    ```
