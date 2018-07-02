@@ -394,6 +394,10 @@ Version.prototype.serializeResponseHeader = function(schema, value) {
 
 Version.defaults = {
 
+    populate: {
+        oneOf: true
+    },
+
     validate: {
         depth: Number.MAX_VALUE,    // validate to full depth
 

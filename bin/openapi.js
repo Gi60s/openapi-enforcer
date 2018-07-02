@@ -37,7 +37,6 @@ const staticDefaults = {
         copy: false,
         defaults: true,
         ignoreMissingRequired: true,
-        oneOf: true,
         replacement: 'handlebar',
         templateDefaults: true,
         templates: true,
@@ -248,7 +247,7 @@ OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
     const exception = new Exception('One or more errors occurred during population');
 
     // normalize options
-    options = Object.assign({}, data.defaults.populate, options);
+    options = Object.assign({}, data.defaults.populate, options, data.version.defaults.populate);
 
     // initialize variables
     const version = data.version;
