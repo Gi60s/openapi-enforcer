@@ -29,27 +29,19 @@ const util      = require('./util');
  * @param {*} [config.value]
  * @returns {{ data: object, message: function}}
  */
-exports.traverse = function(config) {
+module.exports = function(config) {
     // validate configuration
     validateConfiguration(config);
     if (!config.hasOwnProperty('schema')) throw Error('Missing required configuration property: schema');
     if (typeof config.schema !== 'object') throw Error('Configuration property "schema" must be an object');
 
-    const message = Message('');
-    traverse(message, config.schema, config.value, {
+    const message = new Message('');
+    return traverse(message, config.schema, config.value, {
         data: config.data || {},
         handler: config.handler,
         options: config.options,
         version: config.version
     });
-    
-    return {
-        data: data,
-        message: content => {
-            message.header = content;
-            return message;
-        }
-    }
 }
 
 /**
@@ -69,7 +61,7 @@ exports.matches = function(config) {
     if (!config.hasOwnProperty('schemas')) throw Error('Missing required configuration property: schemas');
     if (!Array.isArray(config.schemas)) throw Error('Configuration property "schema" must be an array of objects');
 
-    const message = Message('');
+    const message = new Message('');
     matches(message, config.schemas, config.value, {
         data: config.data || {},
         handler: config.handler,
@@ -110,9 +102,11 @@ function matches(message, schemas, value, config) {
     return matches;
 }
 
+// TODO: figure out return values
 function traverse(message, schema, value, config) {
     if (!schema) return true;
 
+    const options = config.options;
     const param = {
         again: () => traverse(message, param.schema, param.value, config),
         message: message,
@@ -125,28 +119,27 @@ function traverse(message, schema, value, config) {
     if (options.anyOf && schema.anyOf) {
         param.discriminate = discriminator(config.version, schema, value);
         param.type = 'anyOf';
-        handler(param);
+        config.handler(param);
 
     // oneOf
     } else if (options.oneOf && schema.oneOf) {
         param.discriminate = discriminator(config.version, schema, value);
         param.type = 'oneOf';
-        handler(param);
+        config.handler(param);
 
     // allOf
     } else if (options.allOf && schema.allOf) {
         param.type = 'allOf';
-        handler(param);
+        config.handler(param);
 
     // not
     } else if (options.not && schema.not) {
         param.type = 'not';
-        handler(param);
+        config.handler(param);
 
     // array
-    } else if (options.array && type === 'array') {
-        param.type = 'array';
-        handler(param);
+    } else if (options.array && param.type === 'array') {
+        config.handler(param);
 
         if (schema.items && Array.isArray(value)) {
             value.forEach((v, i) => {
@@ -155,9 +148,8 @@ function traverse(message, schema, value, config) {
         }
 
     // object
-    } else if (options.object && type === 'object') {
-        param.type = 'object';
-        handler(param);
+    } else if (options.object && param.type === 'object') {
+        config.handler(param);
 
         if (value) {
             Object.keys(value).forEach(key => {
@@ -171,8 +163,10 @@ function traverse(message, schema, value, config) {
     // schema
     } else {
         if (param.type === 'string') param.format = util.schemaFormat(schema);
-        handler(param)
+        config.handler(param)
     }
+
+    return param;
 }
 
 function validateConfiguration(config) {
