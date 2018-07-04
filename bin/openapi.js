@@ -15,9 +15,11 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception          = require('./exception');
+const Exception     = require('./exception');
 const populate      = require('./populate');
 const util          = require('./util');
+const random        = require('./random');
+const traverse      = require('./traverse');
 const validate      = require('./validate');
 
 module.exports = OpenApiEnforcer;
@@ -277,7 +279,45 @@ OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
  * @returns {*}
  */
 OpenApiEnforcer.prototype.random = function(schema) {
-    return store.get(this).version.random(schema);
+    const version = store.get(this).version;
+    const options = {
+        schema: schema,
+        options: version.defaults.traverse,
+        version: version,
+        handler: function(data) {
+            const schema = data.schema;
+            let index;
+            let schemas;
+
+            switch (data.type) {
+                case 'anyOf':
+                    schemas = schema.anyOf;
+                    index = Math.floor(Math.random() * schemas.length);
+                    data.schema = schemas[index];
+                    data.again();
+                    break;
+
+                case 'oneOf':
+                    schemas = schema.oneOf;
+                    index = Math.floor(Math.random() * schemas.length);
+                    data.schema = schemas[index];
+                    data.again();
+                    break;
+
+                case 'allOf':
+                    // TODO: smart merge mins, maxes, etc
+                    break;
+
+                case 'not':
+                    // TODO: figure this out too
+                    break;
+
+                default:
+                    data.value = random.byType(schema);
+            }
+        }
+    };
+    return traverse(options).value;
 };
 
 /**
