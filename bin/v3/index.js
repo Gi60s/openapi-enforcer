@@ -398,6 +398,15 @@ Version.defaults = {
         oneOf: true
     },
 
+    traverse: {
+        allOf: true,
+        anyOf: true,
+        array: true,
+        oneOf: true,
+        not: true,
+        object: true
+    },
+
     validate: {
         depth: Number.MAX_VALUE,    // validate to full depth
 
