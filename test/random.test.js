@@ -6,12 +6,42 @@ const random    = require('../bin/random');
 
 describe('random', () => {
 
-    it('via enforcer', () => {
-        const enforcer = new Enforcer('2.0');
-        const schema = { type: 'integer', minimum: 0, maximum: 5 };
-        const value = enforcer.random(schema);
-        expect(value).to.be.at.most(5);
-        expect(value).to.be.at.least(0);
+    describe('via enforcer', () => {
+
+        it('integer', () => {
+            const enforcer = new Enforcer('2.0');
+            const schema = { type: 'integer', minimum: 0, maximum: 5 };
+            const value = enforcer.random(schema);
+            expect(value).to.be.at.most(5);
+            expect(value).to.be.at.least(0);
+        });
+
+        it.only('oneOf', () => {
+            const enforcer = new Enforcer('3.0.0');
+            const schema = {
+                oneOf: [
+                    {
+                        type: 'integer',
+                        minimum: 0,
+                        maximum: 5
+                    },
+                    {
+                        type: 'string',
+                        maxLength: 5
+                    }
+                ]
+            };
+            const value = enforcer.random(schema);
+
+            if (typeof value === 'string') {
+                expect(value.length).to.be.at.most(5);
+            } else if (typeof value === 'number') {
+                expect(value).to.be.at.most(5);
+            } else {
+                expect.fail(value);
+            }
+        });
+
     });
 
     describe('array', () => {
