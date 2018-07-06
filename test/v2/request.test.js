@@ -73,7 +73,7 @@ describe('v2/request', () => {
             '/{name}': {
                 get: {
                     parameters: [
-                        { name: 'name', in: 'path', required: true, schema: { type: 'string' }}
+                        { name: 'name', in: 'path', required: true, type: 'string'}
                     ]
                 }
             }
