@@ -228,12 +228,8 @@ exports.same = function same(v1, v2) {
  */
 exports.schemaType = function(schema) {
     if (schema.type) return schema.type;
-    if (schema.allOf) return 'allOf';
-    if (schema.anyOf) return 'anyOf';
-    if (schema.oneOf) return 'oneOf';
     if (schema.items) return 'array';
     if (schema.properties || schema.additionalProperties) return 'object';
-    return 'string';
 };
 
 /**
