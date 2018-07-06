@@ -45,6 +45,10 @@ const staticDefaults = {
         throw: true,
         variables: true
     },
+    random: {
+        skipInvalid: false,
+        throw: true
+    },
     request: {
         throw: true
     },
@@ -282,8 +286,8 @@ OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
  * @returns {*}
  */
 OpenApiEnforcer.prototype.random = function(schema, options) {
-    if (!options) options = {};
-    if (!options.hasOwnProperty('skipInvalid')) options.skipInvalid = false;
+    // TODO: implement options
+    options = Object.assign({}, data.defaults.populate, staticDefaults.populate, options);
 
     const version = store.get(this).version;
     const result = traverse({
@@ -401,14 +405,25 @@ OpenApiEnforcer.prototype.request = function(req, options) {
 
 /**
  * Validate and serialize a response.
- * @param {string|{ code: string, contentType: string, path: string, method: string }} options The request object.
+ * @param {string|object} options
+ * @param {string|number} options.code
+ * @param {string} options.contentType
+ * @param {string} options.path
+ * @param {string} options.method
  * @returns {{data: function, example: function, populate: function, serialize: function}}
  */
 OpenApiEnforcer.prototype.response = function(options) {
     if (typeof options === 'string') options = { path: options };
+    if (!options || typeof options !== 'object') throw Error('Invalid options. Must be a string or an object. Received: ' + util.smart(options));
+    options = Object.assign({}, options);
+
+    if (typeof options.code !== 'string' && typeof options.code !== 'number') throw Error('Invalid code. Must be a string or a number. Received: ' + util.smart(options.code));
+    if (typeof options.contentType !== 'string') throw Error('Invalid contentType. Must be a string. Received: ' + util.smart(options.contentType));
+    if (typeof options.path !== 'string') throw Error('Invalid path. Must be a string. Received: ' + util.smart(options.path));
+    if (options.hasOwnProperty('method') && typeof options.method !== 'string') throw Error('Invalid method. Must be a string. Received: ' + util.smart(options.method));
 
     const path = this.path(options.path);
-    if (!path) throw Error('Invalid request path. The path is not defined in the specification: ' + options.path);
+    if (!path) throw Error('Invalid path. The path is not defined in the specification: ' + options.path);
 
     options = Object.assign({}, { method: 'get' }, options);
     const method = options.method.toLowerCase();
