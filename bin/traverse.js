@@ -25,7 +25,7 @@ const util      = require('./util');
  * @param {object} config.schema
  * @param {object} config.version
  * @param {object} [config.data={}]
- * @param {object} [config.options]
+ * @param {object} [config.settings]
  * @param {*} [config.value]
  * @returns {{ data: object, message: function}}
  */
@@ -39,10 +39,10 @@ module.exports = function(config) {
     return traverse(message, config.schema, config.value, {
         data: config.data || {},
         handler: config.handler,
-        options: config.options,
+        settings: config.settings,
         version: config.version
     });
-}
+};
 
 /**
  * Traverse a schema and perform operation on each level in the schema.
@@ -106,9 +106,12 @@ function matches(message, schemas, value, config) {
 function traverse(message, schema, value, config) {
     if (!schema) return true;
 
-    const options = config.options;
+    const settings = config.settings;
     const param = {
-        again: () => traverse(message, param.schema, param.value, config),
+        again: () => {
+            const result = traverse(message, param.schema, param.value, config);
+            Object.assign(param, result);
+        },
         message: message,
         schema: schema,
         type: util.schemaType(schema),
@@ -116,29 +119,29 @@ function traverse(message, schema, value, config) {
     };
 
     // anyOf
-    if (options.anyOf && schema.anyOf) {
+    if (settings.anyOf && schema.anyOf) {
         param.discriminate = discriminator(config.version, schema, value);
-        param.type = 'anyOf';
+        param.modifier = 'anyOf';
         config.handler(param);
 
     // oneOf
-    } else if (options.oneOf && schema.oneOf) {
+    } else if (settings.oneOf && schema.oneOf) {
         param.discriminate = discriminator(config.version, schema, value);
-        param.type = 'oneOf';
+        param.modifier = 'oneOf';
         config.handler(param);
 
     // allOf
-    } else if (options.allOf && schema.allOf) {
-        param.type = 'allOf';
+    } else if (settings.allOf && schema.allOf) {
+        param.modifier = 'allOf';
         config.handler(param);
 
     // not
-    } else if (options.not && schema.not) {
-        param.type = 'not';
+    } else if (settings.not && schema.not) {
+        param.modifier = 'not';
         config.handler(param);
 
     // array
-    } else if (options.array && param.type === 'array') {
+    } else if (settings.array && param.type === 'array') {
         config.handler(param);
 
         if (schema.items && Array.isArray(value)) {
@@ -148,7 +151,7 @@ function traverse(message, schema, value, config) {
         }
 
     // object
-    } else if (options.object && param.type === 'object') {
+    } else if (settings.object && param.type === 'object') {
         config.handler(param);
 
         if (value) {
@@ -176,5 +179,6 @@ function validateConfiguration(config) {
     if (typeof config.handler !== 'function') throw Error('Configuration property "handler" must be a function');
     if (typeof config.version !== 'object') throw Error('Configuration property "version" must be an object');
     if (config.data && typeof config.data !== 'object') throw Error('Configuration property "data" must be an object');
-    if (config.options && typeof config.options !== 'object') throw Error('Configuration property "options" must be an object');
+    config.settings = Object.assign({}, config.settings, config.version.defaults.traverse);
+    if (config.settings && typeof config.settings !== 'object') throw Error('Configuration property "settings" must be an object');
 }
