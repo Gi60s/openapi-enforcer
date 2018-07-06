@@ -246,13 +246,14 @@ OpenApiEnforcer.prototype.path = function(path) {
  */
 OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
     const data = store.get(this);
+    const version = data.version;
+
     const exception = new Exception('One or more errors occurred during population');
 
     // normalize options
-    options = Object.assign({}, data.defaults.populate, options, data.version.defaults.populate);
+    options = Object.assign({}, data.defaults.populate, options, version.defaults.populate);
 
     // initialize variables
-    const version = data.version;
     const v = {
         context: this,
         injector: populate.injector[options.replacement],
@@ -276,48 +277,46 @@ OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
 /**
  * Generate a random value that meets the schema requirements.
  * @param {object} schema
+ * @param {object} [options]
+ * @param {boolean} [options.skipInvalid=false]
  * @returns {*}
  */
-OpenApiEnforcer.prototype.random = function(schema) {
+OpenApiEnforcer.prototype.random = function(schema, options) {
+    if (!options) options = {};
+    if (!options.hasOwnProperty('skipInvalid')) options.skipInvalid = false;
+
     const version = store.get(this).version;
-    const options = {
+    const result = traverse({
         schema: schema,
-        options: version.defaults.traverse,
         version: version,
-        handler: function(data) {
+        handler: data => {
             const schema = data.schema;
             let index;
             let schemas;
 
-            switch (data.type) {
+            switch (data.modifier) {
                 case 'anyOf':
-                    schemas = schema.anyOf;
-                    index = Math.floor(Math.random() * schemas.length);
-                    data.schema = schemas[index];
-                    data.again();
-                    break;
-
                 case 'oneOf':
-                    schemas = schema.oneOf;
+                    schemas = data.modifier === 'anyOf' ? schema.anyOf : schema.oneOf;
                     index = Math.floor(Math.random() * schemas.length);
                     data.schema = schemas[index];
                     data.again();
                     break;
 
                 case 'allOf':
-                    // TODO: smart merge mins, maxes, etc
+                    data.message('Random value generator does not work for "allOf" directive');
                     break;
 
                 case 'not':
-                    // TODO: figure this out too
+                    data.message('Random value generator does not work for "not" directive');
                     break;
 
                 default:
                     data.value = random.byType(schema);
             }
         }
-    };
-    return traverse(options).value;
+    });
+    return result.value;
 };
 
 /**
