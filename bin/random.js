@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const traverse  = require('./traverse');
 const util      = require('./util');
 
 const stringChoices = [
@@ -50,7 +51,7 @@ const stringChoices = [
 ];
 
 // generate random array
-exports.array = function(schema) {
+exports.array = function(exception, schema) {
     return common(schema, () => {
         const config = {};
         config.minimum = schema.hasOwnProperty('minItems') ? schema.minItems : 0;
@@ -60,12 +61,12 @@ exports.array = function(schema) {
         const itemSchema = schema.items;
         let duplicates = 0;
         while (array.length < length) {
-            const value = this.byType(itemSchema || randomSchema());
+            const value = this.byType(exception, itemSchema || randomSchema());
             if (schema.uniqueItems) {
                 const match = array.find(v => util.same(v, value));
                 if (match) {
                     duplicates++;
-                    if (duplicates > 5) throw Error('Cannot generate example due to too narrowly scoped schema constraints: ' + JSON.stringify(schema));
+                    if (duplicates > 5) exception('Cannot generate example due to too narrowly scoped schema constraints: ' + JSON.stringify(schema));
                 } else {
                     duplicates = 0;
                     array.push(value);
@@ -79,19 +80,19 @@ exports.array = function(schema) {
 };
 
 // generate random buffer
-exports.binary = function(schema) {
-    return exports.byte(schema);
+exports.binary = function(exception, schema) {
+    return exports.byte(exception, schema);
 };
 
 // generate random boolean
-exports.boolean = function(schema) {
+exports.boolean = function(exception, schema) {
     return common(schema, () => {
         return chooseOne([false, true]);
     });
 };
 
 // generate random buffer
-exports.byte = function(schema) {
+exports.byte = function(exception, schema) {
     return common(schema, () => {
         const config = {};
         config.mininum = schema.hasOwnProperty('minLength') ? schema.minLength : 0;
@@ -104,34 +105,34 @@ exports.byte = function(schema) {
 };
 
 // generate random value that matches schema type
-exports.byType = function(schema) {
+exports.byType = function(exception, schema) {
     const type = util.schemaType(schema);
     switch (type) {
-        case 'array': return this.array(schema);
-        case 'boolean': return this.boolean(schema);
-        case 'integer': return this.integer(schema);
-        case 'number': return this.number(schema);
-        case 'object': return this.object(schema);
+        // case 'array': return this.array(exception, schema);
+        case 'boolean': return this.boolean(exception, schema);
+        case 'integer': return this.integer(exception, schema);
+        case 'number': return this.number(exception, schema);
+        // case 'object': return this.object(exception, schema);
         case 'string':
             switch (schema.format) {
-                case 'binary': return this.binary(schema);
-                case 'byte': return this.byte(schema);
-                case 'date': return this.date(schema);
-                case 'date-time': return this.dateTime(schema);
+                case 'binary': return this.binary(exception, schema);
+                case 'byte': return this.byte(exception, schema);
+                case 'date': return this.date(exception, schema);
+                case 'date-time': return this.dateTime(exception, schema);
             }
-            return this.string(schema);
+            return this.string(exception, schema);
     }
 };
 
 // generate random date object
-exports.date = function(schema) {
-    const d = exports.dateTime(schema);
+exports.date = function(exception, schema) {
+    const d = exports.dateTime(exception, schema);
     d.setUTCHours(0, 0, 0, 0);
     return d;
 };
 
 // generate random date object
-exports.dateTime = function(schema) {
+exports.dateTime = function(exception, schema) {
     schema = Object.assign({}, schema);
     if (schema.enum) schema.enum = schema.enum.map(v => +(new Date(v)));
     if (schema.maximum) schema.maximum = +(new Date(schema.maximum));
@@ -142,17 +143,17 @@ exports.dateTime = function(schema) {
 exports['date-time'] = exports.dateTime;
 
 // generate random integer
-exports.integer = function(schema) {
+exports.integer = function(exception, schema) {
     return randomNumber(0, 500, true, schema);
 };
 
 // generate random number
-exports.number = function(schema) {
+exports.number = function(exception, schema) {
     return randomNumber(0, 500, false, schema);
 };
 
 // generate random object
-exports.object = function(schema) {
+exports.object = function(exception, schema) {
     const result = {};
     const max = schema.hasOwnProperty('maxProperties') ? schema.maxProperties : Number.MAX_SAFE_INTEGER;
     let remaining = max;
@@ -170,12 +171,12 @@ exports.object = function(schema) {
 
         // check for too many required properties
         if (requiredKeys.length > max) {
-            throw Error('Cannot generate example due to too many required properties: ' + JSON.stringify(schema));
+            exception('Cannot generate example due to too many required properties');
         }
 
         // populate required properties
         requiredKeys.forEach(key => {
-            result[key] = this.byType(schema.properties[key] || randomSchema());
+            result[key] = this.byType(exception, schema.properties[key] || randomSchema());
         });
         remaining -= requiredKeys.length;
 
@@ -186,7 +187,7 @@ exports.object = function(schema) {
             const key = optionalKeys.splice(index, 1)[0];
             length--;
             remaining--;
-            result[key] = this.byType(schema.properties[key] || randomSchema());
+            result[key] = this.byType(exception, schema.properties[key] || randomSchema());
         }
     }
 
@@ -198,7 +199,7 @@ exports.object = function(schema) {
             if (!result.hasOwnProperty(key)) {
                 count++;
                 remaining--;
-                result[key] = this.byType(schema.additionalProperties === true
+                result[key] = this.byType(exception, schema.additionalProperties === true
                     ? randomSchema()
                     : schema.additionalProperties);
             }
@@ -208,11 +209,11 @@ exports.object = function(schema) {
     return result;
 };
 
-exports.string = function(schema) {
+exports.string = function(exception, schema) {
     return common(schema, () => {
         let result = chooseOne(stringChoices);
         if (schema.pattern) {
-            throw Error('Cannot generate example for string due to pattern requirement');
+            exception('Cannot generate example for string due to pattern requirement');
         }
         if (schema.hasOwnProperty('minLength')) {
             while (result.length < schema.minLength) result += ' ' + chooseOne(stringChoices);
@@ -222,6 +223,13 @@ exports.string = function(schema) {
         }
         return result;
     });
+};
+
+exports.util = {
+    chooseOne: chooseOne,
+    randomNumber: randomNumber,
+    randomSchema: randomSchema,
+    traverse: randomTraverse
 };
 
 
@@ -334,4 +342,130 @@ function randomSchema() {
         case 6: return { type: 'string', format: 'date' };
         case 7: return { type: 'string', format: 'date-time' };
     }
+}
+
+function randomTraverse(schema, version, options) {
+    const random = exports;
+    return traverse({
+        exception: 'Unable to generate random value',
+        schema: schema,
+        version: version,
+        handler: data => {
+            const schema = data.schema;
+            let index;
+            let schemas;
+
+            switch (data.modifier) {
+                case 'anyOf':
+                case 'oneOf':
+                    schemas = data.modifier === 'anyOf' ? schema.anyOf : schema.oneOf;
+                    index = Math.floor(Math.random() * schemas.length);
+                    data.schema = schemas[index];
+                    data.again();
+                    return;
+
+                case 'allOf':
+                    if (!options.skipInvalid) {
+                        data.exception('Random value generator does not work for "allOf" directive');
+                    }
+                    return;
+
+                case 'not':
+                    data.data.hasInvalid = true;
+                    data.exception('Random value generator does not work for "not" directive');
+                    return;
+            }
+
+            if (data.type === 'array') {
+                data.stop();    // I'll do manual traversal
+
+                const config = {};
+                config.minimum = schema.hasOwnProperty('minItems') ? schema.minItems : 0;
+                config.maximum = schema.hasOwnProperty('maxItems') ? schema.maxItems : config.minimum + 5;
+                const length = random.util.randomNumber(0, 0, true, config);
+                const array = [];
+                const itemSchema = schema.items;
+                let duplicates = 0;
+                let arrayLength;
+                while ((arrayLength = array.length) < length) {
+                    const itemParams = data.traverse(data.exception.child(arrayLength), itemSchema || random.util.randomSchema());
+                    const value = itemParams.value;
+                    if (schema.uniqueItems) {
+                        const match = array.find(v => util.same(v, value));
+                        if (match) {
+                            duplicates++;
+                            if (duplicates > 5) {
+                                if (!options.skipInvalid) {
+                                    data.exception('Cannot generate example due to too narrowly scoped schema constraints');
+                                }
+                                break;
+                            }
+                        } else {
+                            duplicates = 0;
+                            array.push(value);
+                        }
+                    } else {
+                        array.push(value);
+                    }
+                }
+                data.value = array;
+
+            } else if (data.type === 'object') {
+                const result = {};
+                const max = schema.hasOwnProperty('maxProperties') ? schema.maxProperties : Number.MAX_SAFE_INTEGER;
+                let remaining = max;
+
+                if (schema.properties) {
+
+                    // separate properties by optional or required
+                    const optionalKeys = [];
+                    const requiredKeys = [];
+                    Object.keys(schema.properties).forEach(key => {
+                        schema.properties[key].required ? requiredKeys.push(key) : optionalKeys.push(key);
+                    });
+
+                    // check for too many required properties
+                    if (requiredKeys.length > max) {
+                        data.exception('Cannot generate example due to too many required properties');
+                    }
+
+                    // populate required properties
+                    requiredKeys.forEach(key => {
+                        result[key] = exports.byType(data.exception, schema.properties[key] || randomSchema());
+                    });
+                    remaining -= requiredKeys.length;
+
+                    // populate optional properties until max properties reached
+                    let length = optionalKeys.length;
+                    while (remaining && length) {
+                        const index = Math.floor(Math.random() * length);
+                        const key = optionalKeys.splice(index, 1)[0];
+                        length--;
+                        remaining--;
+                        result[key] = exports.byType(data.exception, schema.properties[key] || randomSchema());
+                    }
+                }
+
+                if (schema.additionalProperties && remaining) {
+                    let count = 0;
+                    let index = 1;
+                    while (count < 3 && remaining) {
+                        const key = 'additionalProperty' + index++;
+                        if (!result.hasOwnProperty(key)) {
+                            count++;
+                            remaining--;
+                            result[key] = exports.byType(data.exception, schema.additionalProperties === true
+                                ? randomSchema()
+                                : schema.additionalProperties);
+                        }
+                    }
+                }
+
+                data.value = result;
+
+            } else {
+                data.value = random.byType(data.exception, schema);
+            }
+        }
+    });
 }
