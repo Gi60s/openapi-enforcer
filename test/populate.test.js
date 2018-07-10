@@ -43,6 +43,36 @@ describe('#populate', () => {
             expect(value).to.equal(5);
         });
 
+        it('x-condition defined and missing with default', () => {
+            const value = enforcer.populate({ type: 'number', default: 5, 'x-condition': 'myCondition' });
+            expect(value).to.be.undefined;
+        });
+
+        it('x-condition defined and true with default', () => {
+            const value = enforcer.populate({ type: 'number', default: 5, 'x-condition': 'myCondition' }, { myCondition: true });
+            expect(value).to.equal(5);
+        });
+
+        it('x-condition defined and false with default', () => {
+            const value = enforcer.populate({ type: 'number', default: 5, 'x-condition': 'myCondition' }, { myCondition: false });
+            expect(value).to.be.undefined;
+        });
+
+        it('x-condition defined and missing with x-variable', () => {
+            const value = enforcer.populate({ type: 'number', 'x-variable': 'myNumber', 'x-condition': 'myCondition'}, { myNumber: 6 })
+            expect(value).to.be.undefined;
+        });
+
+        it('x-condition defined and true with x-variable', () => {
+            const value = enforcer.populate({ type: 'number', 'x-variable': 'myNumber', 'x-condition': 'myCondition'}, { myNumber: 6, myCondition: true })
+            expect(value).to.equal(6);
+        });
+
+        it('x-condition defined and false with x-variable', () => {
+            const value = enforcer.populate({ type: 'number', 'x-variable': 'myNumber', 'x-condition': 'myCondition'}, { myNumber: 6, myCondition: false })
+            expect(value).to.be.undefined;
+        });
+
         it('x-template', () => {
             const value = enforcer.populate({type: 'number', 'x-template': ':myNumber'}, {myNumber: 5});
             expect(value).to.be.undefined; // x-template only works for strings
@@ -218,6 +248,30 @@ describe('#populate', () => {
             };
             const value = enforcer.populate(schema, {}, { a: {} });
             expect(value).to.deep.equal({ a: { x: 5 } });
+        });
+
+        it('properties with x-condition defined and true', () => {
+            const schema = {
+                type: 'object',
+                properties: {
+                    x: { type: 'number', default: 5 },
+                    y: { type: 'string', default: 'hello', 'x-condition': 'myCondition' }
+                }
+            };
+            const value = enforcer.populate(schema, { myCondition: true });
+            expect(value).to.deep.equal({ x: 5, y: 'hello' });
+        });
+
+        it('properties with x-condition defined and false', () => {
+            const schema = {
+                type: 'object',
+                properties: {
+                    x: { type: 'number', default: 5 },
+                    y: { type: 'string', default: 'hello', 'x-condition': 'myCondition' }
+                }
+            };
+            const value = enforcer.populate(schema, { myCondition: false });
+            expect(value).to.deep.equal({ x: 5 });
         });
 
         it('allOf', () => {
