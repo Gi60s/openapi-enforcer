@@ -18,32 +18,41 @@
 
 module.exports = OpenAPIException;
 
+
+
+
+const prototype = {
+    nest: function(header, meta) {
+        const exception = new OpenAPIException(header, meta);
+        this.children.push(exception);
+        return exception;
+    },
+
+    push: function(message) {
+        this.children.push(message);
+    },
+
+    flatten: function() {
+        return flatten([], '', this);
+    },
+
+    toString: function() {
+        return OpenAPIException.hasException(this)
+            ? toString('', this)
+            : '';
+    }
+};
+
 function OpenAPIException(header, meta) {
-    this.header = header;
-    this.children = [];
-    this.meta = meta;
-}
-
-OpenAPIException.prototype.nest = function(header, meta) {
-    const exception = new OpenAPIException(header, meta);
-    this.children.push(exception);
+    const exception = message => exception.push(message);
+    Object.assign(exception, prototype, { header: header, children: [], meta: meta });
+    Object.defineProperty(exception, 'isOpenAPIException', {
+        value: true,
+        writable: false,
+        configurable: false
+    });
     return exception;
-};
-
-OpenAPIException.prototype.push = function(message) {
-    this.children.push(message);
-};
-
-OpenAPIException.prototype.flatten = function() {
-    return flatten([], '', this);
-};
-
-OpenAPIException.prototype.toString = function() {
-    return OpenAPIException.hasException(this)
-        ? toString('', this)
-        : '';
-};
-
+}
 
 OpenAPIException.hasException = function(exception) {
     const children = exception.children;
