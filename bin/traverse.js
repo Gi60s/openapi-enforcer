@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const Message   = require('./message');
+const Exception = require('./exception');
 const util      = require('./util');
 
 /**
@@ -24,10 +24,11 @@ const util      = require('./util');
  * @param {function} config.handler
  * @param {object} config.schema
  * @param {object} config.version
- * @param {object} [config.data={}]
- * @param {object} [config.settings]
+ * @param {object} [config.data={}] This data object will be included with input for every handler.
+ * @param {string} [config.exception=''] Set this to a value to enable exceptions in the handler.
+ * @param {object} [config.settings] These settings control what runs in the handler and is controlled by default from the version traverse options.
  * @param {*} [config.value]
- * @returns {{ data: object, message: function}}
+ * @returns {{ data: object, exception: Exception, schema: object, value: * }}
  */
 module.exports = function(config) {
     // validate configuration
@@ -35,13 +36,20 @@ module.exports = function(config) {
     if (!config.hasOwnProperty('schema')) throw Error('Missing required configuration property: schema');
     if (typeof config.schema !== 'object') throw Error('Configuration property "schema" must be an object');
 
-    const message = new Message('');
-    return traverse(message, config.schema, config.value, {
+    const exception = new Exception(config.exception || '');
+    const data = traverse(exception, config.schema, config.value, {
         data: config.data || {},
         handler: config.handler,
         settings: config.settings,
         version: config.version
     });
+
+    return {
+        data: config.data,
+        exception: data.exception,
+        schema: data.schema,
+        value: data.value
+    }
 };
 
 /**
@@ -103,17 +111,21 @@ function matches(message, schemas, value, config) {
 }
 
 // TODO: figure out return values
-function traverse(message, schema, value, config) {
+function traverse(exception, schema, value, config) {
     if (!schema) return true;
 
     const settings = config.settings;
+    let stop = false;
     const param = {
         again: () => {
-            const result = traverse(message, param.schema, param.value, config);
+            const result = traverse(exception, param.schema, param.value, config);
             Object.assign(param, result);
         },
-        message: message,
+        data: config.data,
+        exception: exception,
+        traverse: (exception, schema, value) => traverse(exception, schema, value, config),
         schema: schema,
+        stop: () => { stop = true; },
         type: util.schemaType(schema),
         value: value
     };
@@ -143,22 +155,24 @@ function traverse(message, schema, value, config) {
     // array
     } else if (settings.array && param.type === 'array') {
         config.handler(param);
+        value = param.value;
 
-        if (schema.items && Array.isArray(value)) {
+        if (!stop && schema.items && Array.isArray(value)) {
             value.forEach((v, i) => {
-                traverse(message.nest(i), schema.items, v, config);
+                traverse(exception.nest(i), schema.items, v, config);
             });
         }
 
     // object
     } else if (settings.object && param.type === 'object') {
         config.handler(param);
+        value = param.value;
 
-        if (value) {
+        if (!stop && value) {
             Object.keys(value).forEach(key => {
                 const s = schema.properties[key] || schema.additionalProperties;
                 if (typeof s === 'object') {
-                    traverse(message.nest(key), s, value[key], config);
+                    traverse(exception.nest(key), s, value[key], config);
                 }
             });
         }
