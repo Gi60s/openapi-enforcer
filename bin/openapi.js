@@ -172,7 +172,7 @@ OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
     const result = version.serial.deserialize(exception, schema, value);
 
     // determine how to handle deserialization data
-    return errorHandler(options.throw, exception, result);
+    return util.errorHandler(options.throw, exception, result);
 };
 
 /**
@@ -275,7 +275,7 @@ OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
     populate.populate(v, exception, schema, root, 'root');
 
     // determine how to handle deserialization data
-    return errorHandler(options.throw, exception, root.root);
+    return util.errorHandler(options.throw, exception, root.root);
 };
 
 /**
@@ -283,44 +283,14 @@ OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
  * @param {object} schema
  * @param {object} [options]
  * @param {boolean} [options.skipInvalid=false]
- * @returns {*}
+ * @param {boolean} [options.throw=true]
+ * @returns {{ exception: OpenAPIException|null, value: *}|*}
  */
 OpenApiEnforcer.prototype.random = function(schema, options) {
-    // TODO: implement options
-    options = Object.assign({}, data.defaults.populate, staticDefaults.populate, options);
-
-    const version = store.get(this).version;
-    const result = traverse({
-        schema: schema,
-        version: version,
-        handler: data => {
-            const schema = data.schema;
-            let index;
-            let schemas;
-
-            switch (data.modifier) {
-                case 'anyOf':
-                case 'oneOf':
-                    schemas = data.modifier === 'anyOf' ? schema.anyOf : schema.oneOf;
-                    index = Math.floor(Math.random() * schemas.length);
-                    data.schema = schemas[index];
-                    data.again();
-                    break;
-
-                case 'allOf':
-                    data.message('Random value generator does not work for "allOf" directive');
-                    break;
-
-                case 'not':
-                    data.message('Random value generator does not work for "not" directive');
-                    break;
-
-                default:
-                    data.value = random.byType(schema);
-            }
-        }
-    });
-    return result.value;
+    const result = random.util.traverse(schema,
+        store.get(this).version, options,
+        Object.assign({}, staticDefaults.random, options));
+    return util.errorHandler(options.throw, result.exception, result.value);
 };
 
 /**
@@ -361,7 +331,7 @@ OpenApiEnforcer.prototype.request = function(req, options) {
     if (!path) {
         exception.push('Path not found');
         exception.meta = { statusCode: 404 };
-        return errorHandler(options.throw, exception);
+        return util.errorHandler(options.throw, exception);
     }
 
     // validate that the path supports the method
@@ -369,7 +339,7 @@ OpenApiEnforcer.prototype.request = function(req, options) {
     if (!path.schema[method]) {
         exception.push('Method not allowed');
         exception.meta = { statusCode: 405 };
-        return errorHandler(options.throw, exception);
+        return util.errorHandler(options.throw, exception);
     }
 
     // parse and validate request input
@@ -400,7 +370,7 @@ OpenApiEnforcer.prototype.request = function(req, options) {
         if (value && value.hasOwnProperty('body')) result.body = value.body;
     }
 
-    return errorHandler(options.throw, exception, result);
+    return util.errorHandler(options.throw, exception, result);
 };
 
 /**
@@ -453,7 +423,7 @@ OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
     const result = version.serial.serialize(exception, schema, value);
 
     // determine how to handle serialization data
-    return errorHandler(options.throw, exception, result);
+    return util.errorHandler(options.throw, exception, result);
 };
 
 /**
@@ -500,23 +470,6 @@ OpenApiEnforcer.defaults = util.copy(staticDefaults);
 OpenApiEnforcer.Exception = Exception;
 
 
-
-function errorHandler(useThrow, exception, value) {
-    const hasErrors = Exception.hasException(exception);
-    if (hasErrors && useThrow) {
-        const err = Error(exception);
-        err.code = 'OPEN_API_EXCEPTION';
-        Object.assign(err, exception.meta);
-        throw err;
-    } else if (useThrow) {
-        return value;
-    } else {
-        return {
-            error: hasErrors ? exception : null,
-            value: hasErrors ? null : value
-        };
-    }
-}
 
 function responseData(context, produces, responses, config) {
     const version = store.get(context).version;
