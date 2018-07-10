@@ -170,7 +170,7 @@ function traverse(exception, schema, value, config) {
 
         if (!stop && value) {
             Object.keys(value).forEach(key => {
-                const s = schema.properties[key] || schema.additionalProperties;
+                const s = (schema.properties && schema.properties[key]) || schema.additionalProperties;
                 if (typeof s === 'object') {
                     traverse(exception.nest(key), s, value[key], config);
                 }
