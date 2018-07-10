@@ -388,7 +388,7 @@ function randomTraverse(schema, version, options) {
                 let duplicates = 0;
                 let arrayLength;
                 while ((arrayLength = array.length) < length) {
-                    const itemParams = data.traverse(data.exception.child(arrayLength), itemSchema || random.util.randomSchema());
+                    const itemParams = data.traverse(data.exception.nest(arrayLength), itemSchema || random.util.randomSchema());
                     const value = itemParams.value;
                     if (schema.uniqueItems) {
                         const match = array.find(v => util.same(v, value));
