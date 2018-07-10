@@ -15,6 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception     = require('./exception');
+
 const rxMediaType = /^([\s\S]+?)\/(?:([\s\S]+?)\+)?([\s\S]+?)$/;
 
 exports.arrayPushMany = function(target, source) {
@@ -56,6 +58,23 @@ exports.Error = function(meta, message) {
     const err = Error(message.replace(/\s+/g, ' '));
     Object.assign(err, meta);
     return err;
+};
+
+exports.errorHandler = function(useThrow, exception, value) {
+    const hasErrors = Exception.hasException(exception);
+    if (hasErrors && useThrow) {
+        const err = Error(exception);
+        err.code = 'OPEN_API_EXCEPTION';
+        Object.assign(err, exception.meta);
+        throw err;
+    } else if (useThrow) {
+        return value;
+    } else {
+        return {
+            error: hasErrors ? exception : null,
+            value: hasErrors ? null : value
+        };
+    }
 };
 
 /**
@@ -171,6 +190,11 @@ exports.queryParamNames = function(value, objValue) {
     return retObject ? names : Object.keys(names);
 };
 
+exports.randomNumber = function(integer, min, max) {
+    if (!min) min = Math.random();
+    if (!max) max = Math.random();
+};
+
 /**
  * Do a deep equal on two values.
  * @param {*} v1
@@ -227,7 +251,7 @@ exports.same = function same(v1, v2) {
  * @returns {string}
  */
 exports.schemaType = function(schema) {
-    if (schema.type) return schema.type;
+    if (schema.type) return schema.type;  // TODO: remove this function - validator will require all types be specified
     if (schema.items) return 'array';
     if (schema.properties || schema.additionalProperties) return 'object';
 };
