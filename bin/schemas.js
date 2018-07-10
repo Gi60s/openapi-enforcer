@@ -16,6 +16,7 @@
  **/
 'use strict';
 const Exception = require('./exception');
+const util      = require('./util');
 
 // define what properties are allowed for which types
 const validations = {};
@@ -60,11 +61,7 @@ module.exports = {
 
         const exception = Exception('Cannot merge schemas');
         const merged = merge(exception, validations[version], schemas, options);
-        const message = exception.toString();
-        if (message && options.throw) throw Error(message);
-        return options.throw
-            ? merged
-            : { error: message ? exception : null, value: message ? null : merged };
+        return util.errorHandler(options.throw, exception, merged);
     },
 
     /**
