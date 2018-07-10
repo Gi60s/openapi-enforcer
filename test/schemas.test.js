@@ -18,7 +18,7 @@
 const expect        = require('chai').expect;
 const schemas       = require('../bin/schemas');
 
-describe.only('schemas', () => {
+describe('schemas', () => {
     
     describe('merge', () => {
 
@@ -63,7 +63,7 @@ describe.only('schemas', () => {
                 expect(data.error).to.be.null;
                 expect(data.value).to.deep.equal({
                     type: 'integer',
-                    minimum: 5,
+                    minimum: 0,
                     maximum: 10
                 })
             });

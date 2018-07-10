@@ -136,7 +136,7 @@ describe('deserialize', () => {
 
     it('reported error', () => {
         const v = enforcer.deserialize({ type: 'integer' }, '2.4', { throw: false });
-        expect(v.error).to.be.instanceOf(Exception);
+        expect(v.error.isOpenAPIException).to.be.true;
         expect(v.value).to.be.null;
     });
 
