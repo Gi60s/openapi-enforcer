@@ -24,6 +24,19 @@ describe('schemas', () => {
 
         const options = { throw: false };
 
+        it('invalid version', () => {
+            expect(() => schemas.merge(1, [])).to.throw(/invalid version/i);
+        });
+
+        it('array of schemas omitted', () => {
+            expect(() => schemas.merge(2)).to.throw(/missing required schemas/i);
+        });
+
+        it('empty schema items ignored', () => {
+            const value = schemas.merge(2, [{ type: 'number' }, undefined])
+            expect(value).to.deep.equal({ type: 'number' })
+        });
+
         describe('numbers', () => {
             const n1 = { type: 'number', minimum: 0 };
             const n2 = { type: 'number', maximum: 10 };
@@ -82,11 +95,48 @@ describe('schemas', () => {
 
             it('incompatible properties', () => {
                 const data = schemas.merge(2, [{ type: 'number', minimum: 10 }, { type: 'number', maximum: 0}], options);
-                expect(data.error).to.match(/merged schema is not valid/i);
+                expect(data.error).to.match(/invalid merged schema/i);
                 expect(data.value).to.be.null;
             });
 
-        })
+            it('incompatible thrown error', () => {
+                expect(() => schemas.merge(2, [n1, { maximum: 10 }])).to.throw(/missing required property: type/i);
+            });
+
+        });
+
+        describe('modifiers', () => {
+
+            it('can do allOf', () => {
+                const array = [
+                    {
+                        type: 'integer',
+                        multipleOf: 5
+                    },
+                    {
+                        allOf: [
+                            { type: 'integer', minimum: 0 },
+                            { type: 'number', maximum: 100 },
+                            { type: 'number', multipleOf: 4 }
+                        ]
+                    }
+                ];
+                const merged = schemas.merge(3, array);
+                expect(merged).to.deep.equal({
+                    type: 'integer',
+                    multipleOf: 20,
+                    minimum: 0,
+                    maximum: 100
+                })
+            });
+
+            it('cannot do anyOf, oneOf, or not', () => {
+                expect(() => schemas.merge(3, [{ anyOf: [] }])).to.throw(/cannot merge the modifiers/i);
+                expect(() => schemas.merge(3, [{ oneOf: [] }])).to.throw(/cannot merge the modifiers/i);
+                expect(() => schemas.merge(3, [{ not: { type: 'boolean'} }])).to.throw(/cannot merge the modifiers/i);
+            })
+
+        });
         
     });
 
