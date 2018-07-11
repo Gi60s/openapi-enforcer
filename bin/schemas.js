@@ -54,13 +54,39 @@ module.exports = {
      * @returns {*}
      */
     merge: (version, schemas, options) => {
+        if (!Array.isArray(schemas)) throw Error('Missing required schemas to merge');
         if (!validations[version]) throw Error('Invalid version specified');
 
         if (!options) options = {};
         if (!options.hasOwnProperty('throw')) options.throw = true;
 
         const exception = Exception('Cannot merge schemas');
-        const merged = merge(exception, validations[version], schemas, options);
+        version = validations[version];
+
+        // validate individual schemas prior to merging
+        const length = schemas.length;
+        for (let index = 0; index < length; index++) {
+            const schema = schemas[index];
+            if (schema) {
+                const child = exception.nest('Invalid schema ' + index);
+                validate(child, version, schema, options);
+            }
+        }
+
+        // if individual schemas are valid then continue
+        let merged;
+        if (!Exception.hasException(exception)) {
+
+            // merge schemas and validate the merged schema
+            merged = merge(exception, version, schemas, options);
+
+            // if still no exceptions then do a final validation on the merged object
+            if (!Exception.hasException(exception)) {
+                validate(exception.nest('Invalid merged schema'), version, merged, options);
+            }
+        }
+
+        // handle result appropriately
         return util.errorHandler(options.throw, exception, merged);
     },
 
@@ -78,6 +104,7 @@ module.exports = {
      */
     validate: (version, schema, options) => {
         if (!validations[version]) throw Error('Invalid version specified');
+        if (!util.isPlainObject(schema)) throw Error('Invalid schema specified');
 
         if (!options) options = {};
         if (!options.hasOwnProperty('defaults')) options.defaults = false;
@@ -93,40 +120,37 @@ module.exports = {
 };
 
 function merge(exception, version, schemas, options) {
+    if (!Array.isArray(schemas)) return;
+
     const length = schemas.length;
     const parent = exception;
     const result = {
         type: schemas[0] && schemas[0].type
     };
-    
-    if (!Array.isArray(schemas)) return;
 
     for (let index = 0; index < length; index++) {
         const schema = schemas[index];
         if (schema) {
-            const exception = parent.nest(index);
-            
-            // individual schema must be valid prior to continuing
-            validate(exception, version, schema, options);
-            if (Exception.hasException(exception)) return;
+            const exception = parent.nest('Problem with schema ' + index);
 
             const keys = Object.keys(schema);
             const modifiers = keys.filter(k => version.modifiers.indexOf(k) !== -1);
 
-            if (modifiers.length > 0) {
+            if (modifiers.length > 1) {
                 exception('Cannot have multiple modifiers: ' + modifiers);
 
             } else if (modifiers.length === 1) {
                 const modifier = modifiers[0];
                 switch (modifier) {
                     case 'allOf':
-                        Object.assign(result, merge(exception.nest('allOf'), version, schema.allOf, options));
+                        schemas[index] = merge(exception.nest('allOf'), version, schema.allOf, options);
+                        index--;
                         break;
                         
                     case 'anyOf':
                     case 'oneOf':
                     case 'not':
-                        exception('Cannot merge modifiers: anyOf, oneOf, not');
+                        exception('Cannot merge the modifiers anyOf, oneOf, or not');
                         break;
                 }
 
@@ -199,22 +223,17 @@ function merge(exception, version, schemas, options) {
         }
     }
 
-    // validate merged result
-    const mergedException = Exception('Merged schema is not valid');
-    validate(mergedException, version, result, options);
-    if (Exception.hasException(mergedException)) exception.push(mergedException);
-
     return result;
 }
 
 // TODO: validate defaults against schema
 function validate(exception, version, schema, options) {
-    if (!schema) return;
+    if (!util.isPlainObject(schema)) return;
 
     const keys = Object.keys(schema);
     const modifiers = keys.filter(k => version.modifiers.indexOf(k) !== -1);
 
-    if (modifiers.length > 0) {
+    if (modifiers.length > 1) {
         exception('Cannot have multiple modifiers: ' + modifiers);
 
     } else if (modifiers.length === 1) {
@@ -226,7 +245,7 @@ function validate(exception, version, schema, options) {
                 if (!Array.isArray(schema[modifier])) {
                     exception('Property ' + modifier + ' must be an array');
                 } else {
-                    schema.allOf.forEach((schema, index) => {
+                    schema[modifier].forEach((schema, index) => {
                         validate(exception.nest(modifier + '/' + index), version, schema, options);
                     });
                 }
