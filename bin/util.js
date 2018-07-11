@@ -152,6 +152,23 @@ exports.isDate = function (value) {
     return value && !isNaN(value) && value instanceof Date;
 };
 
+exports.isPlainObject = function(value) {
+    if (!isObject(value)) return false;
+
+    // check for modified constructor
+    const constructor = value.constructor;
+    if (typeof constructor !== 'function') return false;
+
+    // check for modified prototype
+    const prototype = constructor.prototype;
+    if (!isObject(prototype)) return false;
+
+    // check constructor for Object-specific method
+    if (!prototype.hasOwnProperty('isPrototypeOf')) return false;
+
+    return true;
+};
+
 exports.lowerCaseProperties = function(obj) {
     const result = {};
     Object.keys(obj).forEach(key => {
@@ -337,6 +354,10 @@ function copy(map, value) {
     } else {
         return value;
     }
+}
+
+function isObject(v) {
+    return v && typeof v === 'object' && Object.prototype.toString.call(v) === '[object Object]';
 }
 
 function traverse(map, path, property, parent, value, callback) {
