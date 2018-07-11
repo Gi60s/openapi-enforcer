@@ -164,9 +164,7 @@ exports.isPlainObject = function(value) {
     if (!isObject(prototype)) return false;
 
     // check constructor for Object-specific method
-    if (!prototype.hasOwnProperty('isPrototypeOf')) return false;
-
-    return true;
+    return prototype.hasOwnProperty('isPrototypeOf');
 };
 
 exports.lowerCaseProperties = function(obj) {
