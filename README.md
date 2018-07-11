@@ -328,16 +328,14 @@ const match = enforcer.path('/path/25');
 
 Build a value from a schema. While traversing the schema the final populated value may be derived from the provided value in combination with the schema's `default` value, the `x-template` value, or the `x-variable` value.
 
-`Enforcer.prototype.populate ( { schema, options, params, value } )`
+`Enforcer.prototype.populate ( schema [, params [, value [, options ] ] ] )`
 
-This function takes one parameter (an `object`) with the following properties:
-
-| Property | Description | Type |
+| Parameters | Description | Type |
 | --------- | ----------- | ---- |
-| schema | The schema to build a value from. This property is required. | `object` |
+| schema | The schema to build a value from. This parameter is required. | `object` |
 | params | A map of keys to values. These values are used to help build the final value | `object` |
-| options | The options to apply during the build phase. Any options specified here will overwrite defaults. | `object` |
 | value | An initial value to start with. | Any |
+| options | The [options](#populate-options) to apply during the build phase. Any options specified here will overwrite defaults. | `object` |
 
 Returns: The populated value.
 
