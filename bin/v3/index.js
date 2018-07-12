@@ -17,41 +17,17 @@
 'use strict';
 const Exception     = require('../exception');
 const params        = require('./param-style');
-const Random        = require('../random');
 const serial        = require('./serialize');
 const util          = require('../util');
 
 module.exports = Version;
 
 
-// modify the random object
-const random = (() => {
-    const random = Object.create(Random);
-    random._object = random.object;
-    random.object = function(schema) {
-        if (schema.oneOf) {
-            const index = Math.floor(Math.random() * schema.oneOf.length);
-            return this._object(schema.oneOf[index]);
-
-        } else if (schema.anyOf) {
-            const index = Math.floor(Math.random() * schema.anyOf.length);
-            return this._object(schema.anyOf[index]);
-
-        } else if (schema.not) {
-            throw Error('Cannot generate example object using "not"');
-
-        } else {
-            return this._object(schema);
-        }
-    };
-    return random;
-})();
-
-
 function Version(enforcer, definition) {
     this.enforcer = enforcer;
     this.definition = definition;
     this.serial = serial;
+    this.value = 3;
 }
 
 /**
@@ -359,15 +335,6 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
         exception: hasErrors ? exception : null,
         value: hasErrors ? null : result
     }
-};
-
-/**
- * Generate a random value that matches the schema.
- * @param {object} schema
- * @returns {*}
- */
-Version.prototype.random = function(schema) {
-    return random.byType(schema);
 };
 
 /**

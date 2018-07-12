@@ -16,7 +16,6 @@
  **/
 'use strict';
 const Exception     = require('../exception');
-const random        = require('../random');
 const serial        = require('./serialize');
 const util          = require('../util');
 
@@ -26,6 +25,7 @@ function Version(enforcer, definition) {
     this.enforcer = enforcer;
     this.definition = definition;
     this.serial = serial;
+    this.value = 3;
 }
 
 /**
@@ -261,15 +261,6 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
         exception: hasErrors ? exception : null,
         value: hasErrors ? null : result
     };
-};
-
-/**
- * Generate a random value that matches the schema.
- * @param {object} schema
- * @returns {*}
- */
-Version.prototype.random = function(schema) {
-    return random.byType(schema);
 };
 
 /**
