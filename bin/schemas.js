@@ -74,7 +74,7 @@ module.exports = {
      * @param version
      * @param {object[]} schemas
      * @param {object} [options]
-     * @param {object} [options.ignoreDiscriminators] Set to true to not have discriminators cause exceptions.
+     * @param {boolean} [options.overwriteDiscriminator=false] Set to true to allow conflicting discriminators to overwrite the previous, otherwise causes exceptions.
      * @param {boolean} [options.orPattern=false]
      * @param {boolean} [options.throw]
      * @returns {*}
@@ -149,7 +149,7 @@ module.exports = {
 
 function merge(exception, version, schemas, options) {
     const length = schemas.length;
-    const result = { type: schemas[0].type };
+    const result = { type: (schemas[0] && schemas[0].type) || {} };
 
     // watch for cyclic merging
     const existing = options.map.get(schemas);
@@ -213,7 +213,7 @@ function merge(exception, version, schemas, options) {
 
                 case 'object':
                     if (schema.hasOwnProperty('maxProperties')) result.maxProperties = lowestNumber(schema.maxProperties, result.maxProperties);
-                    if (schema.hasOwnProperty('minProperties')) result.minItems = highestNumber(schema.minProperties, result.minProperties);
+                    if (schema.hasOwnProperty('minProperties')) result.minProperties = highestNumber(schema.minProperties, result.minProperties);
                     if (schema.hasOwnProperty('required')) {
                         if (!result.required) {
                             result.required = schema.required.concat();
@@ -223,19 +223,28 @@ function merge(exception, version, schemas, options) {
                             });
                         }
                     }
-                    if (schema.discriminator && !options.ignoreDiscriminators) {
-                        exception('Cannot merge objects with discriminators');
+                    if (schema.discriminator) {
+                        if (!result.discriminator || options.overwriteDiscriminator) {
+                            result.discriminator = schema.discriminator;
+                        } else {
+                            exception('Cannot merge objects with competing discriminators (unless option.overwriteDiscriminator is set to true)');
+                        }
                     }
                     if (schema.properties) {
                         if (!result.properties) result.properties = {};
                         Object.keys(schema.properties).forEach(key => {
-                            result.properties[key] = merge(exception.nest('Could not merge "properties/' + key + '"'),
+                            result.properties[key] = merge(exception.nest('Could not merge "properties" key: ' + key),
                                 version, [schema.properties[key], result.properties[key]], options);
                         })
                     }
                     if (schema.additionalProperties) {
-                        result.additionalProperties = merge(exception.nest('Could not merge additionalProperties'),
-                            version, schema.additionalProperties, options);
+                        if (!result.additionalProperties || result.additionalProperties === true) {
+                            result.additionalProperties = schema.additionalProperties
+                        } else {
+                            result.additionalProperties = merge(exception.nest('Could not merge additionalProperties'),
+                                version, [result.additionalProperties, schema.additionalProperties], options);
+                        }
+
                     }
                     break;
 
@@ -243,8 +252,13 @@ function merge(exception, version, schemas, options) {
                     if (schema.hasOwnProperty('maxLength')) result.maxLength = lowestNumber(schema.maxLength, result.maxLength);
                     if (schema.hasOwnProperty('minLength')) result.minLength = highestNumber(schema.minLength, result.minLength);
                     if (schema.hasOwnProperty('pattern')) {
-                        if (!result.hasOwnProperty('pattern')) result.pattern = schema.pattern;
-                        if (result.pattern !== schema.pattern) {
+                        if (!result.hasOwnProperty('pattern')) {
+                            result.pattern = schema.pattern;
+                        } else if (result.pattern !== schema.pattern) {
+                            const rPattern = typeof result.pattern === 'string'
+                                ?
+
+
                             if (options.orPattern) {
                                 result.pattern += '|' + schema.pattern;
                             } else {
@@ -407,7 +421,7 @@ function validate(exception, version, schema, options) {
                 exception('Property "required" must be an array of strings');
             } else {
                 const properties = schema.properties || {};
-                const missing = schema.required.filter(key => properties[key]);
+                const missing = schema.required.filter(key => !properties.hasOwnProperty(key));
                 if (missing.length > 0) {
                     exception('Missing one or more required properties: ' + missing.join(', '));
                 }
@@ -416,7 +430,7 @@ function validate(exception, version, schema, options) {
         if (schema.additionalProperties) {
             if (util.isPlainObject(schema.additionalProperties)) {
                 validate(exception.nest('additionalProperties'), version, schema.additionalProperties, options);
-            } else {
+            } else if (schema.additionalProperties !== true) {
                 exception('Property "additionalProperties" must be an object');
             }
         }
@@ -509,6 +523,37 @@ function lowestNumber(n1, n2) {
 function minMaxValid(min, max, exclusiveMin, exclusiveMax) {
     if (min === undefined || max === undefined || min < max) return true;
     return !exclusiveMin && !exclusiveMax && min === max;
+}
+
+function rxStringToRx(value) {
+    if (typeof value === 'string') {
+        const rx = /^\/([\s\S]+?)(?:\/(\w*))?$/;
+        const match = rx.exec(value);
+        if (match) {
+            const args = [match[1]];
+            if (match[2]) args.push(match[2]);
+            return RegExp.apply(null, args);
+        } else {
+            return RegExp(value);
+        }
+    } else if (value instanceof RegExp) {
+        return value;
+    } else {
+        throw Error('Cannot convert value to RegExp instance');
+    }
+}
+
+function rxMerge(rx1, rx2) {
+    rx1 = rxStringToRx(rx1);
+    rx2 = rxStringToRx(rx2);
+
+
+    if (typeof value === 'string') {
+        const rx = /\/(.+)\/(\w*)/;
+        const match = rx.exec(value);
+        if (match)
+    }
+    let result = typeof rx === 'string' ? rx : rx.toString()
 }
 
 function validateDiscriminator(exception, version, schema, options) {
