@@ -178,7 +178,211 @@ describe.only('schemas', () => {
         });
 
         describe('objects', () => {
-            // TODO: working here
+
+            it('compatible additionalProperties', () => {
+                const array = [
+                    {
+                        type: 'object',
+                        additionalProperties: { type: 'number', minimum: 0 }
+                    },
+                    {
+                        type: 'object',
+                        additionalProperties: { type: 'integer', maximum: 10 }
+                    }
+                ];
+                expect(schemas.merge(2, array)).to.deep.equal({
+                    type: 'object',
+                    additionalProperties: {
+                        type: 'integer',
+                        minimum: 0,
+                        maximum: 10
+                    }
+                });
+            });
+
+            it('incompatible additionalProperties', () => {
+                const array = [
+                    {
+                        type: 'object',
+                        additionalProperties: { type: 'number' }
+                    },
+                    {
+                        type: 'object',
+                        additionalProperties: { type: 'string' }
+                    }
+                ];
+                expect(() => schemas.merge(2, array)).to.throw(/incompatible types/i);
+            });
+
+            it('compatible single discriminator', () => {
+                const array = [
+                    {
+                        type: 'object',
+                        discriminator: 'x',
+                        properties: { x: { type: 'number' }},
+                        required: [ 'x' ]
+                    },
+                    {
+                        type: 'object',
+                        properties: { x: { type: 'integer' }}
+                    }
+                ];
+                expect(schemas.merge(2, array)).to.deep.equal({
+                    type: 'object',
+                    properties: { x: { type: 'integer' }},
+                    required: ['x'],
+                    discriminator: 'x'
+                });
+            });
+
+            it('incompatible double discriminator', () => {
+                const array = [
+                    {
+                        type: 'object',
+                        discriminator: 'x',
+                        required: [ 'x' ],
+                        properties: { x: { type: 'number' }}
+                    },
+                    {
+                        type: 'object',
+                        discriminator: 'y',
+                        required: [ 'y' ],
+                        properties: { y: { type: 'number' }}
+                    }
+                ];
+                expect(() => schemas.merge(2, array)).to.throw(/overwriteDiscriminator/);
+            });
+
+            it('compatible double discriminator via overwrites', () => {
+                const array = [
+                    {
+                        type: 'object',
+                        discriminator: 'x',
+                        required: [ 'x' ],
+                        properties: { x: { type: 'number' }}
+                    },
+                    {
+                        type: 'object',
+                        discriminator: 'y',
+                        required: [ 'y' ],
+                        properties: { y: { type: 'number' }}
+                    }
+                ];
+                expect(schemas.merge(2, array, { overwriteDiscriminator: true })).to.deep.equal({
+                    type: 'object',
+                    properties: {
+                        x: { type: 'number' },
+                        y: { type: 'number' }
+                    },
+                    required: ['x', 'y'],
+                    discriminator: 'y'
+                });
+            });
+
+            it('compatible minProperties and maxProperties', () => {
+                const array = [
+                    {
+                        type: 'object',
+                        minProperties: 0,
+                        maxProperties: 5
+                    },
+                    {
+                        type: 'object',
+                        minProperties: 5,
+                        maxProperties: 10
+                    }
+                ];
+                expect(schemas.merge(2, array)).to.deep.equal({
+                    type: 'object',
+                    minProperties: 5,
+                    maxProperties: 5
+                });
+            });
+        });
+
+        describe('string', () => {
+
+            it('compatible minLength and maxLength', () => {
+                const array = [
+                    {
+                        type: 'string',
+                        minLength: 0,
+                        maxLength: 5
+                    },
+                    {
+                        type: 'string',
+                        minLength: 5,
+                        maxLength: 10
+                    }
+                ];
+                expect(schemas.merge(2, array)).to.deep.equal({
+                    type: 'string',
+                    minLength: 5,
+                    maxLength: 5
+                });
+            });
+
+            it('compatible format', () => {
+                const array = [
+                    {
+                        type: 'string',
+                        format: 'password'
+                    },
+                    {
+                        type: 'string',
+                        format: 'password'
+                    }
+                ];
+                expect(schemas.merge(2, array)).to.deep.equal({
+                    type: 'string',
+                    format: 'password'
+                });
+            });
+
+            it('compatible single format', () => {
+                const array = [
+                    {
+                        type: 'string',
+                    },
+                    {
+                        type: 'string',
+                        format: 'date'
+                    }
+                ];
+                expect(schemas.merge(2, array)).to.deep.equal({
+                    type: 'string',
+                    format: 'date'
+                });
+            });
+
+            it('incompatible single format', () => {
+                const array = [
+                    {
+                        type: 'string',
+                        format: 'date-time'
+                    },
+                    {
+                        type: 'string',
+                        format: 'date'
+                    }
+                ];
+                expect(() => schemas.merge(2, array)).to.throw(/incompatible formats/i);
+            });
+
+            it('compatible single pattern', () => {
+                const array = [
+                    {
+                        type: 'string',
+                        format: 'date-time'
+                    },
+                    {
+                        type: 'string',
+                        format: 'date'
+                    }
+                ];
+                expect(() => schemas.merge(2, array)).to.throw(/incompatible formats/i);
+            });
+
         });
         
     });

@@ -60,7 +60,7 @@ describe('random', () => {
                 }
             });
 
-            it.skip('allOf', () => {
+            it('allOf', () => {
                 const schema = {
                     type: 'object',
                     properties: {
@@ -72,11 +72,7 @@ describe('random', () => {
                         }
                     }
                 };
-
-                throw Error('here');
-
-                // TODO: check error message
-                expect(() => enforcer.random(schema)).to.throw(Error);
+                expect(enforcer.random(schema)).to.deep.equal({ x: 5 });
             });
 
         });
