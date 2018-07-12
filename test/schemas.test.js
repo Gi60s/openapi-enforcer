@@ -18,11 +18,9 @@
 const expect        = require('chai').expect;
 const schemas       = require('../bin/schemas');
 
-describe('schemas', () => {
+describe.only('schemas', () => {
     
     describe('merge', () => {
-
-        const options = { throw: false };
 
         it('invalid version', () => {
             expect(() => schemas.merge(1, [])).to.throw(/invalid version/i);
@@ -37,7 +35,48 @@ describe('schemas', () => {
             expect(value).to.deep.equal({ type: 'number' })
         });
 
-        describe('numbers', () => {
+        describe('array', () => {
+
+            it('compatible', () => {
+                const merged = schemas.merge(2, [
+                    { type: 'array', maxItems: 10 },
+                    { type: 'array', minItems: 0, uniqueItems: true }
+                ]);
+                expect(merged).to.deep.equal({ type: 'array', maxItems: 10, minItems: 0, uniqueItems: true });
+            });
+
+            it('compatible competing maxItems', () => {
+                const merged = schemas.merge(2, [
+                    { type: 'array', maxItems: 3 },
+                    { type: 'array', maxItems: 5 }
+                ]);
+                expect(merged).to.deep.equal({ type: 'array', maxItems: 3 });
+            });
+
+            it('compatible competing minItems', () => {
+                const merged = schemas.merge(2, [
+                    { type: 'array', minItems: 3 },
+                    { type: 'array', minItems: 5 }
+                ]);
+                expect(merged).to.deep.equal({ type: 'array', minItems: 5 });
+            });
+
+            it('compatible items', () => {
+                const merged = schemas.merge(2, [
+                    { type: 'array', items: { type: 'string', minLength: 2 } },
+                    { type: 'array', uniqueItems: true, items: { type: 'string', maxLength: 10 } }
+                ]);
+                expect(merged).to.deep.equal({
+                    type: 'array',
+                    uniqueItems: true,
+                    items: { type: 'string', minLength: 2, maxLength: 10 }
+                });
+            });
+
+        });
+
+        describe('integers and numbers', () => {
+            const options = { throw: false };
             const n1 = { type: 'number', minimum: 0 };
             const n2 = { type: 'number', maximum: 10 };
 
@@ -136,6 +175,10 @@ describe('schemas', () => {
                 expect(() => schemas.merge(3, [{ not: { type: 'boolean'} }])).to.throw(/cannot merge the modifiers/i);
             })
 
+        });
+
+        describe('objects', () => {
+            // TODO: working here
         });
         
     });
