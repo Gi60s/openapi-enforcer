@@ -15,6 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception = require('./exception');
+const schemas   = require('./schemas');
 const traverse  = require('./traverse');
 const util      = require('./util');
 
@@ -49,6 +51,15 @@ const stringChoices = [
     'In posuere neque eu neque consequat iaculis.',
     'Donec auctor nisl in felis pharetra tincidunt.'
 ];
+
+module.exports = function(version, schema, options) {
+    let exception = schemas.validate(version, schema, { throw: false });
+    if (!exception) {
+        exception = Exception('Unable to generate random value');
+
+    }
+};
+
 
 // generate random array
 exports.array = function(exception, schema) {
@@ -354,6 +365,7 @@ function randomTraverse(schema, version, options) {
             const schema = data.schema;
             let index;
             let schemas;
+            let results;
 
             switch (data.modifier) {
                 case 'anyOf':
@@ -365,8 +377,12 @@ function randomTraverse(schema, version, options) {
                     return;
 
                 case 'allOf':
-                    if (!options.skipInvalid) {
-                        data.exception('Random value generator does not work for "allOf" directive');
+                    results = Schemas.merge(version.value, schema.allOf, { throw: false });
+                    if (results.error) {
+                        data.exception(results.error);
+                    } else {
+                        data.schema = results.value;
+                        data.again();
                     }
                     return;
 
