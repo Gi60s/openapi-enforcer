@@ -17,6 +17,7 @@
 'use strict';
 const Exception = require('./exception');
 const util      = require('./util');
+const Validate  = require('./validate');
 
 const rxExtension = /^x-.+/;
 
@@ -40,13 +41,13 @@ validations[2] = {
         integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
         number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
         object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
-        string: { format: true, maxLength: true, minLength: true, pattern: true }
+        string: { format: true, maximum: true, minimum: true, maxLength: true, minLength: true, pattern: true }
     },
     value: 2
 };
 validations[3] = {
     common: { default: true, deprecated: true, description: true, enum: true, example: true, externalDocs: true,
-        readOnly: true, title: true, type: true, writeOnly: true, xml: true },
+        nullable: true, readOnly: true, title: true, type: true, writeOnly: true, xml: true },
     formats: {
         array: {},
         boolean: {},
@@ -62,7 +63,7 @@ validations[3] = {
         integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
         number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
         object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
-        string: { format: true, maxLength: true, minLength: true, pattern: true }
+        string: { format: true, maxLength: true, maximum: true, minimum: true, minLength: true, pattern: true }
     },
     value: 2
 };
@@ -70,13 +71,14 @@ validations[3] = {
 module.exports = {
 
     /**
-     * Merge multiple schemas.
+     * Merge multiple schemas and validate the final schema.
      * @param version
      * @param {object[]} schemas
      * @param {object} [options]
      * @param {boolean} [options.overwriteDiscriminator=false] Set to true to allow conflicting discriminators to overwrite the previous, otherwise causes exceptions.
      * @param {boolean} [options.orPattern=false]
      * @param {boolean} [options.throw]
+     * @param {boolean} [options.validateInput=true]
      * @returns {*}
      */
     merge: (version, schemas, options) => {
@@ -85,6 +87,7 @@ module.exports = {
 
         options = Object.assign({}, options);
         if (!options.hasOwnProperty('throw')) options.throw = true;
+        if (!options.hasOwnProperty('validateInput')) options.validateInput = true;
         options.map = new Map();
 
         // only keep schemas that are plain objects
@@ -94,10 +97,12 @@ module.exports = {
         version = validations[version];
 
         // validate individual schemas prior to merging
-        const length = schemas.length;
-        for (let index = 0; index < length; index++) {
-            const child = exception.nest('Invalid schema ' + index);
-            validate(child, version, schemas[index], options);
+        if (options.validateInput) {
+            const length = schemas.length;
+            for (let index = 0; index < length; index++) {
+                const child = exception.nest('Invalid schema ' + index);
+                validate(child, version, schemas[index], options);
+            }
         }
 
         // if individual schemas are valid then continue
@@ -118,13 +123,38 @@ module.exports = {
     },
 
     /**
+     * Parse schema values with minimal validation.
+     * For example, pattern converted to RegExp, date default converted to Date object, etc.
+     * @param {number} version
+     * @param {object} schema
+     * @param {object} [options]
+     */
+    parse: (version, schema, options) => {
+        if (!validations[version]) throw Error('Invalid version specified');
+        if (!util.isPlainObject(schema)) throw Error('Invalid schema specified');
+
+        options = Object.assign({}, options);
+        if (!options.hasOwnProperty('throw')) options.throw = true;
+        options.map = new Map();
+
+        // validate the schema
+        const exception = Exception('Cannot parse schema');
+        version = validations[version];
+        validate(exception, version, schema, options);
+        if (Exception.hasException(exception)) return util.errorHandler(options.throw, exception, null);
+
+        // begin parsing
+        const value = parse(exception, version, schema, options);
+        return util.errorHandler(options.throw, exception, value);
+    },
+
+    /**
      * Validate a schema. The validation is not comprehensive. It only does enough validation
      * to make sure that the schema does not contain logic that will cause the other APIs within
      * this package to crash.
      * @param {number} version
      * @param {object} schema
      * @param {object} [options]
-     * @param {boolean} [options.defaults=false] Whether to validate defaults.
      * @param {boolean} [options.throw=true] If exception occurs then throw.
      * @throws {Error}
      * @returns {Exception|null}
@@ -134,7 +164,6 @@ module.exports = {
         if (!util.isPlainObject(schema)) throw Error('Invalid schema specified');
 
         options = Object.assign({}, options);
-        if (!options.hasOwnProperty('defaults')) options.defaults = false;
         if (!options.hasOwnProperty('throw')) options.throw = true;
         options.map = new Map();
 
@@ -218,9 +247,7 @@ function merge(exception, version, schemas, options) {
                         if (!result.required) {
                             result.required = schema.required.concat();
                         } else {
-                            schema.required.forEach(item => {
-                                if (result.required.indexOf(item) === -1) result.required.push(item);
-                            });
+                            result.required = util.arrayUnique(result.required.concat(schema.required));
                         }
                     }
                     if (schema.discriminator) {
@@ -249,21 +276,14 @@ function merge(exception, version, schemas, options) {
                     break;
 
                 case 'string':
+                    // TODO: date
                     if (schema.hasOwnProperty('maxLength')) result.maxLength = lowestNumber(schema.maxLength, result.maxLength);
                     if (schema.hasOwnProperty('minLength')) result.minLength = highestNumber(schema.minLength, result.minLength);
                     if (schema.hasOwnProperty('pattern')) {
                         if (!result.hasOwnProperty('pattern')) {
-                            result.pattern = schema.pattern;
+                            result.pattern = rxStringToRx(schema.pattern);
                         } else if (result.pattern !== schema.pattern) {
-                            const rPattern = typeof result.pattern === 'string'
-                                ?
-
-
-                            if (options.orPattern) {
-                                result.pattern += '|' + schema.pattern;
-                            } else {
-                                exception('Unable to merge conflicting "pattern" values');
-                            }
+                            result.pattern = rxMerge(result.pattern, schema.pattern);
                         }
                     }
                     break;
@@ -274,6 +294,63 @@ function merge(exception, version, schemas, options) {
     }
 
     return result;
+}
+
+function parse(exception, version, schema, options) {
+    if (!util.isPlainObject(schema)) return;
+
+    // watch for cyclic parsing - only parse each schema once
+    const existing = options.map.get(schema);
+    if (existing) return existing;
+
+    // store new parsed value
+    const result = Object.assign({}, schema);
+    options.map.set(schema, result);
+
+    const type = schema.type;
+    if (schema.allOf) {
+        result.allOf = parse(exception.nest('allOf'), version, schema.allOf, options);
+
+    } else if (schema.anyOf) {
+        result.anyOf = parse(exception.nest('anyOf'), version, schema.anyOf, options);
+
+    } else if (schema.oneOf) {
+        result.oneOf = parse(exception.nest('oneOf'), version, schema.oneOf, options);
+
+    } else if (schema.not) {
+        result.not = parse(exception.nest('not'), version, schema.not, options);
+
+    } else if (type === 'array') {
+        if (result.items) result.items = parse(exception.nest('items'), version, schema.items, options);
+
+    } else if (type === 'boolean') {
+
+    } else if (type === 'integer') {
+
+    } else if (type === 'number') {
+
+    } else if (type === 'object') {
+        if (result.additionalProperties) result.additionalProperties = parse(exception.nest('additionalProperties'), version, schema.additionalProperties, options);
+        if (result.properties) result.properties = parse(exception.nest('properties'), version, schema.properties, options);
+
+    } else if (type === 'string') {
+        switch (schema.format) {
+            case 'binary':
+
+
+            case 'byte':
+                if (schema.hasOwnProperty('default')) schema.default = Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64');
+                break;
+
+            case 'date':
+                break;
+
+            case 'date-time':
+                break;
+        }
+
+        // TODO: enum values
+    }
 }
 
 function validate(exception, version, schema, options) {
@@ -352,13 +429,21 @@ function validate(exception, version, schema, options) {
         if (!minMaxValid(schema.minItems, schema.maxItems)) {
             exception('Property "minItems" must be less than or equal to "maxItems"');
         }
-        if (options.defaults && schema.hasOwnProperty('default') && !Array.isArray(schema.default)) {
-            exception('Invalid default value. Expected an array');
+        if (schema.hasOwnProperty('default')) {
+            if (!Array.isArray(schema.default) && !defaultNullOk(schema)) {
+                exception('Invalid default value. Expected an array');
+            } else {
+                Validate(exception.nest('Invalid default value'), schema, value);
+            }
         }
 
     } else if (type === 'boolean') {
-        if (options.defaults && schema.hasOwnProperty('default') && typeof schema.default !== 'boolean') {
-            exception('Invalid default value. Expected a boolean');
+        if (schema.hasOwnProperty('default')) {
+            if (typeof schema.default !== 'boolean' && !defaultNullOk(schema)) {
+                exception('Invalid default value. Expected a boolean');
+            } else {
+                Validate(exception.nest('Invalid default value'), schema, value);
+            }
         }
 
     } else if (type === 'integer') {
@@ -378,8 +463,12 @@ function validate(exception, version, schema, options) {
         if (schema.hasOwnProperty('multipleOf') && typeof schema.multipleOf !== 'number') {
             exception('Property "multipleOf" must be a number');
         }
-        if (options.defaults && schema.hasOwnProperty('default') && !isInteger(schema.default)) {
-            exception('Invalid default value. Expected an integer');
+        if (schema.hasOwnProperty('default')) {
+            if (!isInteger(schema.default) && !defaultNullOk(schema)) {
+                exception('Invalid default value. Expected an integer');
+            } else {
+                Validate(exception.nest('Invalid default value'), schema, value);
+            }
         }
 
     } else if (type === 'number') {
@@ -399,8 +488,12 @@ function validate(exception, version, schema, options) {
         if (schema.hasOwnProperty('multipleOf') && typeof schema.multipleOf !== 'number') {
             exception('Property "multipleOf" must be a number');
         }
-        if (options.defaults && schema.hasOwnProperty('default') && typeof schema.default !== 'number') {
-            exception('Invalid default value. Expected a number');
+        if (schema.hasOwnProperty('default')) {
+            if (typeof schema.default !== 'number' && !defaultNullOk(schema)) {
+                exception('Invalid default value. Expected a number');
+            } else {
+                Validate(exception.nest('Invalid default value'), schema, value);
+            }
         }
 
     } else if (type === 'object') {
@@ -449,13 +542,36 @@ function validate(exception, version, schema, options) {
                 })
             }
         }
-        if (options.defaults && schema.hasOwnProperty('default') && typeof schema.default !== 'object') {
-            exception('Invalid default value. Expected an object');
+        if (schema.hasOwnProperty('default')) {
+            if (typeof schema.default !== 'object' && !defaultNullOk(schema)) {
+                exception('Invalid default value. Expected an object');
+            } else {
+                Validate(exception.nest('Invalid default value'), schema, value);
+            }
         }
 
     } else if (type === 'string') {
         if (schema.hasOwnProperty('format') && !version.formats.string) {
             exception('Invalid "format" specified. Expected one of: ' + Object.keys(version.formats.string).join(', '));
+        }
+        if (isDateFormat(schema)) {
+            let valid = true;
+            if (schema.hasOwnProperty('maximum')) {
+                valid = valid && Validate(exception.nest('maximum'), { type: 'string', format: schema.format }, schema.maximum);
+            }
+            if (schema.hasOwnProperty('minimum')) {
+                valid = valid && Validate(exception.nest('minimum'), { type: 'string', format: schema.format }, schema.minimum);
+            }
+            if (valid && !minMaxValid(schema.maximum, schema.minimum)) {
+                exception('Property "minimum" must be less than or equal to "maximum"');
+            }
+        } else {
+            if (schema.hasOwnProperty('maximum')) {
+                exception('Property "maximum" not allowed unless format is "date" or "date-time"');
+            }
+            if (schema.hasOwnProperty('minimum')) {
+                exception('Property "minimum" not allowed unless format is "date" or "date-time"');
+            }
         }
         if (schema.hasOwnProperty('maxLength') && !isNonNegativeInteger(schema.maxLength)) {
             exception('Property "maxLength" must be a non-negative integer');
@@ -469,17 +585,23 @@ function validate(exception, version, schema, options) {
         if (schema.hasOwnProperty('pattern') && typeof schema.pattern !== 'string' && !(schema.pattern instanceof RegExp)) {
             exception('Property "pattern" must be a string or a RegExp instance');
         }
-        if (options.defaults && schema.hasOwnProperty('default') && typeof schema.default !== 'string') {
-            exception('Invalid default value. Expected a string');
+        if (schema.hasOwnProperty('default')) {
+            if (typeof schema.default !== 'string' && !defaultNullOk(schema)) {
+                exception('Invalid default value. Expected a string');
+            } else {
+                Validate(exception.nest('Invalid default value'), schema, version.value);
+            }
         }
     }
-
-    // TODO: should I validate default value here?
 }
 
 
 
 
+
+function defaultNullOk(schema) {
+    return schema.nullable && schema.default === null;
+}
 
 function greatestCommonDenominator(x, y) {
     x = Math.abs(x);
@@ -497,6 +619,10 @@ function highestNumber(n1, n2) {
     const t2 = typeof n2 === 'number';
     if (t1 && t2) return n1 < n2 ? n2 : n1;
     return t1 ? n1 : n2;
+}
+
+function isDateFormat(schema) {
+    return schema.format && (schema.format === 'date' || schema.format === 'date-time');
 }
 
 function isInteger(value) {
@@ -527,15 +653,11 @@ function minMaxValid(min, max, exclusiveMin, exclusiveMax) {
 
 function rxStringToRx(value) {
     if (typeof value === 'string') {
-        const rx = /^\/([\s\S]+?)(?:\/(\w*))?$/;
+        const rx = /^\/([\s\S]+?)\/(\w*)?$/;
         const match = rx.exec(value);
-        if (match) {
-            const args = [match[1]];
-            if (match[2]) args.push(match[2]);
-            return RegExp.apply(null, args);
-        } else {
-            return RegExp(value);
-        }
+        return match
+            ? RegExp(match[1], match[2] || '')
+            : RegExp(value);
     } else if (value instanceof RegExp) {
         return value;
     } else {
@@ -546,14 +668,9 @@ function rxStringToRx(value) {
 function rxMerge(rx1, rx2) {
     rx1 = rxStringToRx(rx1);
     rx2 = rxStringToRx(rx2);
-
-
-    if (typeof value === 'string') {
-        const rx = /\/(.+)\/(\w*)/;
-        const match = rx.exec(value);
-        if (match)
-    }
-    let result = typeof rx === 'string' ? rx : rx.toString()
+    const source = rx1.source + '|' + rx2.source;
+    const flags = util.arrayUnique((rx1.flags + rx2.flags).split('')).join('');
+    return RegExp(source, flags);
 }
 
 function validateDiscriminator(exception, version, schema, options) {
