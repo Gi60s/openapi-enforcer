@@ -15,11 +15,64 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception = require('./exception');
 const format    = require('./format');
 const util      = require('./util');
 
 const smart = util.smart;
 const rxPrefixSpaces = /^ */;
+
+/**
+ *
+ * @param exception
+ * @param {object} schema A valid parsed schema.
+ * @param {*} value The value to validate.
+ * @returns {boolean} true if valid, false otherwise
+ */
+module.exports = function(exception, schema, value) {
+    const map = new WeakMap();
+    validate(exception, map, schema, value);
+
+    /**
+     * NOTES:
+     * - Validate is able to do simple parsing, for example: date strings to date objects.
+     * - Complex parsings not allowed, for example: JSON string for object type
+     */
+};
+
+function validate(exception, map, schema, value) {
+    if (!schema) return true;
+
+    // TODO: handle cyclic validation
+
+    if (schema.allOf) {
+        const child = exception.nest('Unable to validate against allOf schemas');
+        const length = schema.allOf.length;
+        let valid = true;
+        for (let i = 0; i < length; i++) {
+            valid = valid && validate(child.nest(i), map, schema.allOf[i], value);
+        }
+        return valid;
+
+    } else if (schema.anyOf) {
+        return anyOf(exception.nest('Unable to validate against anyOf schemas'), map, schema.anyOf, value);
+
+    } else if (schema.oneOf) {
+        return anyOf(exception.nest('Unable to validate against oneOf schemas'), map, schema.oneOf, value);
+
+    } else if (schema.not) {
+        const valid = validate(Exception(''), map, schema, value);
+        if (valid) exception('Must not adhere to schema');
+        return !valid;
+
+    // type validation
+    } else {
+
+    }
+}
+
+
+
 
 module.exports = validate;
 
