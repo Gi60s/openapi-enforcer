@@ -24,6 +24,19 @@ exports.arrayPushMany = function(target, source) {
 };
 
 /**
+ * Make all items in an array unique.
+ * @param {array} array
+ * @returns {array}
+ */
+exports.arrayUnique = function(array) {
+    const result = [];
+    array.forEach(item => {
+        if (result.indexOf(item) === -1) result.push(item);
+    });
+    return result;
+};
+
+/**
  * Copies Dates, Buffers, Arrays, plain Objects, and Primitives
  * @param {*} value
  * @returns {*}
