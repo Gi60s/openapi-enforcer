@@ -46,6 +46,9 @@ const prototype = {
 function OpenAPIException(header, meta) {
     const exception = message => exception.push(message);
     Object.assign(exception, prototype, { header: header, children: [], meta: meta });
+    Object.defineProperty(exception, 'hasException', {
+        get: () => OpenAPIException.hasException(exception)
+    });
     Object.defineProperty(exception, 'isOpenAPIException', {
         value: true,
         writable: false,
