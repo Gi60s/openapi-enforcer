@@ -31,10 +31,8 @@ const rxVersion = /^2.0$|^\d+\.\d+\.\d+$/;
 
 const staticDefaults = {
     deserialize: {
+        skipSchemaValidation: false,
         throw: true
-    },
-    errors: {
-        prefix: ''
     },
     populate: {
         copy: false,
@@ -54,6 +52,11 @@ const staticDefaults = {
         throw: true
     },
     serialize: {
+        throw: true
+    },
+    validate: {
+        deserialize: false,
+        skipSchemaValidation: false,
         throw: true
     }
 };
@@ -158,8 +161,9 @@ function OpenApiEnforcer(definition, options) {
  * @param {object} schema
  * @param {*} value
  * @param {object} options
- * @param {boolean} [options.throw=true] If true then throw errors if found, otherwise return errors array.
- * @returns {*|{ exception: OpenAPIException, value:* }}
+ * @param {boolean} [options.skipSchemaValidation=false]
+ * @param {boolean} [options.throw=true] If true then throw errors if found, otherwise return exception.
+ * @returns {*|{ error: Exception, value:* }}
  */
 OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
     const exception = new Exception('One or more errors occurred during deserialization');
@@ -169,48 +173,17 @@ OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
     // normalize options
     options = Object.assign({}, data.defaults.deserialize, options);
 
+    // validate the schema
+    if (!options.skipSchemaValidation) {
+        const exception = Schemas.validate(version.value, schema, {defaults: false, throw: false});
+        if (exception) util.errorHandler(options.throw, exception, null);
+    }
+
     // run version specific deserialization
     const result = version.serial.deserialize(exception, schema, value);
 
     // determine how to handle deserialization data
     return util.errorHandler(options.throw, exception, result);
-};
-
-/**
- * Check a value against a schema for errors.
- * @param {object} schema
- * @param {*} value
- * @param {object} [options]
- * @param {string} [options.skipSchemaValidation=false]
- * @returns {Exception|null}
- */
-OpenApiEnforcer.prototype.errors = function(schema, value, options) {
-    const data = store.get(this);
-    const version = data.version;
-
-    if (!options) options = {};
-
-    // validate the schema
-    if (!options.skipSchemaValidation) {
-        const exception = Schemas.validate(version.value, schema, {defaults: false, throw: false});
-        if (exception) return exception;
-    }
-
-    const exception = validate(schema, value, options);
-    return Exception.hasException(exception) ? exception : null;
-
-    // TODO: remove this
-    // const v = {
-    //     definition: data.definition,
-    //     error: (prefix, message) => v.errors.push((prefix ? prefix + ': ' : prefix) + message),
-    //     errors: [],
-    //     options: version.defaults.validate,
-    //     version: version
-    // };
-    //
-    // options = Object.assign({}, data.defaults.errors, options);
-    // validate(v, options.prefix, 0, schema, value);
-    // return v.errors.length > 0 ? v.errors : null;
 };
 
 /**
@@ -461,17 +434,52 @@ OpenApiEnforcer.prototype.schema = function(schema, options) {
 };
 
 /**
- * Check a value against a schema for errors and throw any errors encountered.
+ * Check a value against a schema for errors.
  * @param {object} schema
  * @param {*} value
+ * @param {object} [options]
+ * @param {boolean} [options.deserialize=false]
+ * @param {boolean} [options.skipSchemaValidation=false]
+ * @param {boolean} [options.throw=true]
+ * @returns {Exception|null}
  * @throws {Error}
  */
-OpenApiEnforcer.prototype.validate = function(schema, value) {
-    const errors = this.errors(schema, value);
-    if (errors) {
-        if (errors.length === 1) throw Error(errors[0]);
-        throw Error('One or more errors found during schema validation: \n  ' + errors.join('\n  '));
+OpenApiEnforcer.prototype.validate = function(schema, value, options) {
+    const data = store.get(this);
+    const version = data.version;
+
+    // normalize options
+    options = Object.assign({}, data.defaults.validate, options);
+
+    // validate the schema
+    if (!options.skipSchemaValidation) {
+        const exception = Schemas.validate(version.value, schema, {defaults: false, throw: false});
+        if (exception) {
+            if (options.throw) throw Error(exception.toString());
+            return exception;
+        }
     }
+
+    // deserialize the value
+    if (options.deserialize) {
+        const data = this.deserialize(schema, value, {
+            skipSchemaValidation: true,
+            throw: false
+        });
+        if (data.error) {
+            if (options.throw) throw Error(data.error.toString());
+            return data.error;
+        }
+        value = data.value;
+    }
+
+    // validate the value
+    const exception = validate(Exception('One or more errors found during schema validation'), version, schema, value);
+
+    // throw an error or return Exception object
+    const hasException = Exception.hasException(exception);
+    if (hasException && options.throw) throw Error(exception.toString());
+    return hasException ? exception : null;
 };
 
 OpenApiEnforcer.prototype.version = function() {
