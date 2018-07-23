@@ -19,6 +19,7 @@ const Exception     = require('./exception');
 const populate      = require('./populate');
 const util          = require('./util');
 const random        = require('./random');
+const Schemas       = require('./schemas');
 const traverse      = require('./traverse');
 const validate      = require('./validate');
 
@@ -180,23 +181,36 @@ OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
  * @param {object} schema
  * @param {*} value
  * @param {object} [options]
- * @param {string} [options.prefix='']
- * @returns {string[]|undefined}
+ * @param {string} [options.skipSchemaValidation=false]
+ * @returns {Exception|null}
  */
 OpenApiEnforcer.prototype.errors = function(schema, value, options) {
     const data = store.get(this);
     const version = data.version;
-    const v = {
-        definition: data.definition,
-        error: (prefix, message) => v.errors.push((prefix ? prefix + ': ' : prefix) + message),
-        errors: [],
-        options: version.defaults.validate,
-        version: version
-    };
 
-    options = Object.assign({}, data.defaults.errors, options);
-    validate(v, options.prefix, 0, schema, value);
-    return v.errors.length > 0 ? v.errors : null;
+    if (!options) options = {};
+
+    // validate the schema
+    if (!options.skipSchemaValidation) {
+        const exception = Schemas.validate(version.value, schema, {defaults: false, throw: false});
+        if (exception) return exception;
+    }
+
+    const exception = validate(schema, value, options);
+    return Exception.hasException(exception) ? exception : null;
+
+    // TODO: remove this
+    // const v = {
+    //     definition: data.definition,
+    //     error: (prefix, message) => v.errors.push((prefix ? prefix + ': ' : prefix) + message),
+    //     errors: [],
+    //     options: version.defaults.validate,
+    //     version: version
+    // };
+    //
+    // options = Object.assign({}, data.defaults.errors, options);
+    // validate(v, options.prefix, 0, schema, value);
+    // return v.errors.length > 0 ? v.errors : null;
 };
 
 /**
@@ -595,7 +609,7 @@ function responseSerialize(context, responses, data, config) {
         if (errors) throw Error('Unable to serialize response due to one or more errors:\n  ' + errors.join('\n  '));
     }
 
-    if (config.hasOwnProperty('body')) {
+    if (config.hasOwnProperty('body') && data.schema) {
         result.body = context.serialize(data.schema, config.body, config.options);
     }
 
