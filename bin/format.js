@@ -26,7 +26,6 @@ const zeros = '00000000';
  * Convert value into a binary octet string.
  * @param {boolean, number, string, Buffer} value
  * @returns {{ error: string|null, value: string|null}}
- * @throws {Error}
  */
 exports.binary = function(value) {
     const type = typeof value;
