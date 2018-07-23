@@ -17,6 +17,7 @@
 'use strict';
 const Exception = require('./exception');
 const util      = require('./util');
+const Parse     = require('./parse');
 const Validate  = require('./validate');
 
 const rxExtension = /^x-.+/;
@@ -277,6 +278,7 @@ function merge(exception, version, schemas, options) {
 
                 case 'string':
                     // TODO: date
+                    // TODO: should I parse each schema to merge prior to merging?
                     if (schema.hasOwnProperty('maxLength')) result.maxLength = lowestNumber(schema.maxLength, result.maxLength);
                     if (schema.hasOwnProperty('minLength')) result.minLength = highestNumber(schema.minLength, result.minLength);
                     if (schema.hasOwnProperty('pattern')) {
@@ -322,24 +324,48 @@ function parse(exception, version, schema, options) {
 
     } else if (type === 'array') {
         if (result.items) result.items = parse(exception.nest('items'), version, schema.items, options);
+        // TODO: enum values?
 
     } else if (type === 'boolean') {
+        // nothing to parse
 
     } else if (type === 'integer') {
+        // nothing to parse
 
     } else if (type === 'number') {
+        // nothing to parse
 
     } else if (type === 'object') {
         if (result.additionalProperties) result.additionalProperties = parse(exception.nest('additionalProperties'), version, schema.additionalProperties, options);
         if (result.properties) result.properties = parse(exception.nest('properties'), version, schema.properties, options);
+        // TODO: enum values
 
     } else if (type === 'string') {
+        if (schema.pattern) result.pattern = rxStringToRx(schema.pattern);
+
         switch (schema.format) {
             case 'binary':
-
+                if (schema.hasOwnProperty('default')) {
+                    const data = Parse.binary(schema.default);
+                    if (data.error) {
+                        exception.push(data.error);
+                    } else {
+                        result.default = data.value;
+                    }
+                }
+                // TODO: enum
+                break;
 
             case 'byte':
-                if (schema.hasOwnProperty('default')) schema.default = Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64');
+                if (schema.hasOwnProperty('default')) {
+                    const data = Parse.byte(schema.default);
+                    if (data.error) {
+                        exception.push(data.error);
+                    } else {
+                        result.default = data.value;
+                    }
+                }
+                // TODO: enum
                 break;
 
             case 'date':
@@ -429,22 +455,10 @@ function validate(exception, version, schema, options) {
         if (!minMaxValid(schema.minItems, schema.maxItems)) {
             exception('Property "minItems" must be less than or equal to "maxItems"');
         }
-        if (schema.hasOwnProperty('default')) {
-            if (!Array.isArray(schema.default) && !defaultNullOk(schema)) {
-                exception('Invalid default value. Expected an array');
-            } else {
-                Validate(exception.nest('Invalid default value'), schema, value);
-            }
-        }
+        validateSchemaValues(exception, version, schema);
 
     } else if (type === 'boolean') {
-        if (schema.hasOwnProperty('default')) {
-            if (typeof schema.default !== 'boolean' && !defaultNullOk(schema)) {
-                exception('Invalid default value. Expected a boolean');
-            } else {
-                Validate(exception.nest('Invalid default value'), schema, value);
-            }
-        }
+        validateSchemaValues(exception, version, schema);
 
     } else if (type === 'integer') {
         if (schema.hasOwnProperty('format') && !version.formats.integer) {
@@ -463,13 +477,7 @@ function validate(exception, version, schema, options) {
         if (schema.hasOwnProperty('multipleOf') && typeof schema.multipleOf !== 'number') {
             exception('Property "multipleOf" must be a number');
         }
-        if (schema.hasOwnProperty('default')) {
-            if (!isInteger(schema.default) && !defaultNullOk(schema)) {
-                exception('Invalid default value. Expected an integer');
-            } else {
-                Validate(exception.nest('Invalid default value'), schema, value);
-            }
-        }
+        validateSchemaValues(exception, version, schema);
 
     } else if (type === 'number') {
         if (schema.hasOwnProperty('format') && !version.formats.number) {
@@ -488,13 +496,7 @@ function validate(exception, version, schema, options) {
         if (schema.hasOwnProperty('multipleOf') && typeof schema.multipleOf !== 'number') {
             exception('Property "multipleOf" must be a number');
         }
-        if (schema.hasOwnProperty('default')) {
-            if (typeof schema.default !== 'number' && !defaultNullOk(schema)) {
-                exception('Invalid default value. Expected a number');
-            } else {
-                Validate(exception.nest('Invalid default value'), schema, value);
-            }
-        }
+        validateSchemaValues(exception, version, schema);
 
     } else if (type === 'object') {
         if (schema.hasOwnProperty('maxProperties') && !isNonNegativeInteger(schema.maxProperties)) {
@@ -542,13 +544,7 @@ function validate(exception, version, schema, options) {
                 })
             }
         }
-        if (schema.hasOwnProperty('default')) {
-            if (typeof schema.default !== 'object' && !defaultNullOk(schema)) {
-                exception('Invalid default value. Expected an object');
-            } else {
-                Validate(exception.nest('Invalid default value'), schema, value);
-            }
-        }
+        validateSchemaValues(exception, version, schema);
 
     } else if (type === 'string') {
         if (schema.hasOwnProperty('format') && !version.formats.string) {
@@ -557,10 +553,10 @@ function validate(exception, version, schema, options) {
         if (isDateFormat(schema)) {
             let valid = true;
             if (schema.hasOwnProperty('maximum')) {
-                valid = valid && Validate(exception.nest('maximum'), { type: 'string', format: schema.format }, schema.maximum);
+                valid = valid && Validate(exception.nest('maximum'), version, { type: 'string', format: schema.format }, schema.maximum);
             }
             if (schema.hasOwnProperty('minimum')) {
-                valid = valid && Validate(exception.nest('minimum'), { type: 'string', format: schema.format }, schema.minimum);
+                valid = valid && Validate(exception.nest('minimum'), version, { type: 'string', format: schema.format }, schema.minimum);
             }
             if (valid && !minMaxValid(schema.maximum, schema.minimum)) {
                 exception('Property "minimum" must be less than or equal to "maximum"');
@@ -585,23 +581,13 @@ function validate(exception, version, schema, options) {
         if (schema.hasOwnProperty('pattern') && typeof schema.pattern !== 'string' && !(schema.pattern instanceof RegExp)) {
             exception('Property "pattern" must be a string or a RegExp instance');
         }
-        if (schema.hasOwnProperty('default')) {
-            if (typeof schema.default !== 'string' && !defaultNullOk(schema)) {
-                exception('Invalid default value. Expected a string');
-            } else {
-                Validate(exception.nest('Invalid default value'), schema, version.value);
-            }
-        }
+        validateSchemaValues(exception, version, schema);
     }
 }
 
 
 
 
-
-function defaultNullOk(schema) {
-    return schema.nullable && schema.default === null;
-}
 
 function greatestCommonDenominator(x, y) {
     x = Math.abs(x);
@@ -649,6 +635,28 @@ function lowestNumber(n1, n2) {
 function minMaxValid(min, max, exclusiveMin, exclusiveMax) {
     if (min === undefined || max === undefined || min < max) return true;
     return !exclusiveMin && !exclusiveMax && min === max;
+}
+
+function parseSchemaValues(exception, version, schema, result) {
+    if (schema.hasOwnProperty('default')) {
+        const data = Parse.binary(schema.default);
+        if (data.error) {
+            exception.push(data.error);
+        } else {
+            result.default = data.value;
+        }
+    }
+
+    if (schema.enum) {
+        const enums = [];
+
+        const data = Parse.binary(schema.default);
+        if (data.error) {
+            exception.push(data.error);
+        } else {
+            result.default = data.value;
+        }
+    }
 }
 
 function rxStringToRx(value) {
@@ -704,5 +712,21 @@ function validateDiscriminator(exception, version, schema, options) {
         default:
             exception('Discriminators not supported for this version: ' + version.value);
             break;
+    }
+}
+
+function validateSchemaValues(exception, version, schema) {
+    if (schema.hasOwnProperty('default')) {
+        Validate(exception.nest('Invalid default value'), version, schema, value);
+    }
+
+    if (schema.hasOwnProperty('enum')) {
+        if (!Array.isArray(schema.enum)) {
+            exception('Enum definition must be an array of values');
+        } else {
+            schema.enum.forEach((value, index) => {
+                Validate(exception.nest('Invalid enum value at index: ' + index), version, schema, value);
+            });
+        }
     }
 }
