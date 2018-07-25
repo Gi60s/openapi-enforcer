@@ -17,7 +17,7 @@
 'use strict';
 const Buffer    = require('buffer').Buffer;
 const expect    = require('chai').expect;
-const parse     = require('../bin/parse');
+const parse     = require('../bin/parse-value');
 
 describe('parse', () => {
 
