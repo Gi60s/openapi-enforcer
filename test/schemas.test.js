@@ -427,6 +427,56 @@ describe.only('schemas', () => {
         
     });
 
+    describe('parse', () => {
+
+        describe('string', () => {
+
+            describe('date-format', () => {
+
+                it('default converted to date object', () => {
+                    const schema = { type: 'string', format: 'date', default: '2000-01-01' };
+                    expect(schemas.parse(2, schema).default).to.deep.equal(new Date('2000-01-01T00:00:00.000Z'));
+                });
+
+                it.only('enum converted to date object', () => {
+                    const schema = {
+                        type: 'string',
+                        format: 'date',
+                        enum: ['2000-01-01']
+                    };
+                    expect(schemas.parse(2, schema).enum[0]).to.deep.equal(new Date('2000-01-01T00:00:00.000Z'));
+                });
+
+                it('minimum converted to date object', () => {
+                    const schema = {
+                        type: 'string',
+                        format: 'date',
+                        minimum: '2000-01-01'
+                    };
+                    expect(schemas.parse(2, schema).minimum).to.deep.equal(new Date('2000-01-01T00:00:00.000Z'));
+                });
+
+                it('maximum converted to date object', () => {
+                    const schema = {
+                        type: 'object',
+                        properties: {
+                            date: {
+                                type: 'string',
+                                format: 'date',
+                                maximum: '2000-01-01'
+                            }
+                        }
+                    };
+                    expect(schemas.parse(2, schema).properties.date.maximum)
+                        .to.deep.equal(new Date('2000-01-01T00:00:00.000Z'));
+                });
+
+            });
+
+        });
+
+    });
+
     describe('validate', () => {
 
         describe('string', () => {
@@ -450,12 +500,7 @@ describe.only('schemas', () => {
 
                 it('maximum invalid format', () => {
                     const schema = { type: 'string', format: 'date', maximum: '2000-01-01T00:00:00.000Z' };
-                    expect(() => schemas.validate(2, schema)).to.throw(/Property "maximum" is not a valid/);
-                });
-
-                it('maximum invalid value', () => {
-                    const schema = { type: 'string', format: 'date', maximum: '2000-02-30' };
-                    expect(() => schemas.validate(2, schema)).to.throw(/Property "maximum" is not a valid/);
+                    expect(() => schemas.validate(2, schema)).to.throw(/Property "maximum" is not formatted as a date/);
                 });
 
                 it('minimum valid', () => {
@@ -465,12 +510,7 @@ describe.only('schemas', () => {
 
                 it('minimum invalid format', () => {
                     const schema = { type: 'string', format: 'date', minimum: '2000-01-01T00:00:00.000Z' };
-                    expect(() => schemas.validate(2, schema)).to.throw(/Property "minimum" is not a valid/);
-                });
-
-                it('minimum invalid value', () => {
-                    const schema = { type: 'string', format: 'date', minimum: '2000-02-30' };
-                    expect(() => schemas.validate(2, schema)).to.throw(/Property "minimum" is not a valid/);
+                    expect(() => schemas.validate(2, schema)).to.throw(/Property "minimum" is not formatted as a date/);
                 });
 
             });
@@ -484,12 +524,7 @@ describe.only('schemas', () => {
 
                 it('maximum invalid format', () => {
                     const schema = { type: 'string', format: 'date-time', maximum: '2000-01-01' };
-                    expect(() => schemas.validate(2, schema)).to.throw(/Property "maximum" is not a valid/);
-                });
-
-                it('maximum invalid value', () => {
-                    const schema = { type: 'string', format: 'date-time', maximum: '2000-02-30T00:00:00.000Z' };
-                    expect(() => schemas.validate(2, schema)).to.throw(/Property "maximum" is not a valid/);
+                    expect(() => schemas.validate(2, schema)).to.throw(/Property "maximum" is not formatted as a date-time/);
                 });
 
                 it('minimum valid', () => {
@@ -499,12 +534,7 @@ describe.only('schemas', () => {
 
                 it('minimum invalid format', () => {
                     const schema = { type: 'string', format: 'date-time', minimum: '2000-01-01' };
-                    expect(() => schemas.validate(2, schema)).to.throw(/Property "minimum" is not a valid/);
-                });
-
-                it('minimum invalid value', () => {
-                    const schema = { type: 'string', format: 'date-time', minimum: '2000-02-30T00:00:00.000Z' };
-                    expect(() => schemas.validate(2, schema)).to.throw(/Property "minimum" is not a valid/);
+                    expect(() => schemas.validate(2, schema)).to.throw(/Property "minimum" is not formatted as a date-time/);
                 });
 
             });
