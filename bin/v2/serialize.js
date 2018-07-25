@@ -16,7 +16,7 @@
  **/
 'use strict';
 const format    = require('../format');
-const parse     = require('../parse');
+const parse     = require('../parse-value');
 const util      = require('../util');
 
 exports.deserialize = deserialize;

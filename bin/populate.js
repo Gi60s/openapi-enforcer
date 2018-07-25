@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const parse         = require('./parse');
+const parse         = require('./parse-value');
 const traverse      = require('./traverse');
 const util          = require('./util');
 
