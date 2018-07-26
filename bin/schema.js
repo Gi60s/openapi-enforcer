@@ -99,7 +99,7 @@ function Schema(exception, version, schema, options, map) {
     const length = keys.length;
     const modifiers = [];
     let skipDefaultValidations = false;
-    const skipEnumValidationsIndexes = {};
+    const enumErrors = {};
     const type = schema.type;
     const typeProperties = version.types[type] || {};
     for (let i = 0; i < length; i++) {
@@ -218,13 +218,13 @@ function Schema(exception, version, schema, options, map) {
             exception('Property "minProperties" must be less than or equal to "maxProperties"');
         }
         if (this.hasOwnProperty('discriminator')) {
-            const child = exception.nest('One or more errors exist with the discriminator');
-            let discriminator = schema.discriminator;
+            const child = exception.nest('Discriminator has one or more errors');
+            let discriminator = this.discriminator;
             switch (version.value) {
                 case 2:
                     if (typeof discriminator !== 'string') {
                         child('Discriminator must be a string');
-                    } else if (!Array.isArray(schema.required) || schema.required.indexOf(discriminator) === -1) {
+                    } else if (!Array.isArray(this.required) || this.required.indexOf(discriminator) === -1) {
                         child('Property "' + discriminator + '" must be listed as required');
                     }
                     break;
@@ -237,30 +237,30 @@ function Schema(exception, version, schema, options, map) {
                     } else if (typeof discriminator.propertyName !== 'string') {
                         child('Property "propertyName" must be a string');
                     } else {
-                        if (!Array.isArray(schema.required) || schema.required.indexOf(discriminator.propertyName) === -1) {
+                        if (!Array.isArray(this.required) || this.required.indexOf(discriminator.propertyName) === -1) {
                             child('Property "' + discriminator.propertyName + '" must be listed as required');
                         }
-                        if (discriminator.hasOwnProperty('map') && !util.isPlainObject(discriminator.map)) {
-                            child('Property "map" must be an object');
+                        if (discriminator.hasOwnProperty('mapping')) {
+                            if (!util.isPlainObject(discriminator.mapping)) {
+                                child('Property "mapping" must be an object');
+                            } else {
+                                const mapping = discriminator.mapping;
+                                Object.keys(mapping).forEach(key => {
+                                    const schema = mapping[key];
+                                    if (!util.isPlainObject(schema)) {
+                                        child('Mapped value for "' + key + '" must be an object');
+                                    } else {
+                                        mapping[key] = new Schema(exception.nest('Mapping has one or more errors'), version, schema, options, map);
+                                    }
+                                });
+                            }
                         }
                     }
                     break;
-
-                default:
-                    child('Discriminators not supported for this version: ' + version.value);
-                    break;
             }
         }
-        if (this.hasOwnProperty('required')) {
-            if (!Array.isArray(this.required)) {
-                exception('Property "required" must be an array of strings');
-            } else {
-                const properties = this.properties || {};
-                const missing = this.required.filter(key => !properties.hasOwnProperty(key));
-                if (missing.length > 0) {
-                    exception('Missing one or more required properties: ' + missing.join(', '));
-                }
-            }
+        if (this.hasOwnProperty('required') && (!Array.isArray(this.required) || this.required.filter(v => v && typeof v === 'string').length !== this.required.length)) {
+            exception('Property "required" must be an array of non-empty strings');
         }
         if (this.additionalProperties) {
             if (util.isPlainObject(this.additionalProperties)) {
@@ -273,13 +273,13 @@ function Schema(exception, version, schema, options, map) {
             if (!util.isPlainObject(this.properties)) {
                 exception('Property "properties" must be an object');
             } else {
-                const subException = exception.nest('properties');
+                const subException = exception.nest('Property "properties" has one or more errors');
                 Object.keys(this.properties).forEach(key => {
                     const subSchema = this.properties[key];
                     if (util.isPlainObject(subSchema)) {
-                        this.properties[key] = new Schema(subException.nest(key), version, subSchema, options, map);
+                        this.properties[key] = new Schema(subException.nest('Property "' + key + '" has one or more errors'), version, subSchema, options, map);
                     } else {
-                        exception('Property "' + key + '" must be an object');
+                        subException('Property "' + key + '" must be an object');
                     }
                 })
             }
@@ -346,8 +346,8 @@ function Schema(exception, version, schema, options, map) {
         if (!minMaxValid(this.minLength, this.maxLength)) {
             exception('Property "minimum" must be less than or equal to "maximum"');
         }
-        if (this.hasOwnProperty('pattern') && typeof this.pattern !== 'string' && !(this.pattern instanceof RegExp)) {
-            exception('Property "pattern" must be a string or a RegExp instance');
+        if (this.hasOwnProperty('pattern') && typeof this.pattern !== 'string') {
+            exception('Property "pattern" must be a string');
         }
 
         // parse pattern string into a regular expression
@@ -356,23 +356,23 @@ function Schema(exception, version, schema, options, map) {
         // parse default value
         if (this.hasOwnProperty('default')) {
             const data = parseSchemaValue(exception.nest('Unable to parse default value'), this, this.default);
-            if (!data.error) {
-                this.default = data.value;
-            } else {
+            if (data.error) {
                 skipDefaultValidations = true;
+            } else {
+                this.default = data.value;
             }
         }
 
         // parse enum values
-        if (this.hasOwnProperty('enum')) {
+        if (this.hasOwnProperty('enum') && Array.isArray(this.enum)) {
             const length = this.enum.length;
-            const enums = [];
             for (let i = 0; i < length; i++) {
-                const data = parseSchemaValue(exception.nest('Unable to parse enum value at index ' + i), this, this.enum[i]);
-                if (!data.error) {
-                    this.enums.push(data.value);
+                const child = Exception('Unable to parse enum value at index ' + i);
+                const data = parseSchemaValue(child, this, this.enum[i]);
+                if (data.error) {
+                    enumErrors[i] = child;
                 } else {
-                    skipEnumValidationsIndexes[i] = true;
+                    this.enum[i] = data.value;
                 }
             }
         }
@@ -381,15 +381,21 @@ function Schema(exception, version, schema, options, map) {
     if (type) {
         // validate default value
         if (this.hasOwnProperty('default') && !skipDefaultValidations) {
-            validate(exception('Invalid default value'), version.value, this, this.default);
+            validate(exception.nest('Invalid default value'), version.value, this, this.default);
         }
 
         // validate enum values
         if (this.hasOwnProperty('enum')) {
-            const length = this.enum.length;
-            for (let i = 0; i < length; i++) {
-                if (!skipEnumValidationsIndexes[i]) {
-                    validate(exception('Invalid enum value at index ' + i), version.value, this, this.enum[i]);
+            if (!Array.isArray(this.enum)) {
+                exception('Property "enum" must be an array');
+            } else {
+                const length = this.enum.length;
+                for (let i = 0; i < length; i++) {
+                    if (enumErrors[i]) {
+                        exception.push(enumErrors[i]);
+                    } else {
+                        validate(exception.nest('Invalid enum value at index ' + i), version.value, this, this.enum[i]);
+                    }
                 }
             }
         }
@@ -473,7 +479,7 @@ function getValidationsMap() {
             object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
             string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maxLength: true, maximum: true, minimum: true, minLength: true, pattern: true }
         },
-        value: 2
+        value: 3
     };
     return validations;
 }
@@ -530,18 +536,52 @@ function minMaxValid(min, max, exclusiveMin, exclusiveMax) {
 
 function parseSchemaValue(exception, schema, value) {
     const format = schema.format;
-    let data;
     switch (format) {
         case 'binary':
-        case 'byte':
-        case 'date':
-        case 'date-time':
-            data = parseValue[format](value);
-            if (data.error) {
-                exception.push(data.error);
+            if (!rx.binary.test(value)) {
+                exception('Value is not a binary octet string');
                 return { error: true };
             } else {
-                return { value: data.value };
+                const length = value.length;
+                const array = [];
+                for (let i = 0; i < length; i+=8) array.push(parseInt(value.substr(i, 8), 2))
+                return { value: Buffer.from ? Buffer.from(array, 'binary') : new Buffer(array, 'binary') };
+            }
+
+        case 'byte':
+            if (!rx.byte.test(value) && value.length % 4 !== 0) {
+                exception('Value is not a base64 string');
+                return { error: true };
+            } else {
+                return { value: Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64') };
+            }
+
+        case 'date':
+            if (!rx.date.test(value)) {
+                exception('Value is not date string of the format YYYY-MM-DD');
+                return { error: true };
+            } else {
+                const date = getDateFromValidDateString('date', value);
+                if (!date) {
+                    exception('Value is not a valid date');
+                    return { error: true };
+                } else {
+                    return { value: date };
+                }
+            }
+
+        case 'date-time':
+            if (!rx.dateTime.test(value)) {
+                exception('Value is not date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
+                return { error: true };
+            } else {
+                const date = getDateFromValidDateString('date-time', value);
+                if (!date) {
+                    exception('Value is not a valid date-time');
+                    return { error: true };
+                } else {
+                    return { value: date };
+                }
             }
 
         default:
