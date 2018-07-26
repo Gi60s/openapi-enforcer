@@ -16,11 +16,12 @@
  **/
 'use strict';
 const expect        = require('chai').expect;
-const schemas       = require('../bin/schemas');
+const Schema        = require('../bin/schema');
+//const schemas       = require('../bin/schemas');
 
 describe.only('schemas', () => {
     
-    describe('merge', () => {
+    describe.skip('merge', () => {
 
         it('invalid version', () => {
             expect(() => schemas.merge(1, [])).to.throw(/invalid version/i);
@@ -435,16 +436,16 @@ describe.only('schemas', () => {
 
                 it('default converted to date object', () => {
                     const schema = { type: 'string', format: 'date', default: '2000-01-01' };
-                    expect(schemas.parse(2, schema).default).to.deep.equal(new Date('2000-01-01T00:00:00.000Z'));
+                    expect(Schema(2, schema).default).to.deep.equal(new Date('2000-01-01T00:00:00.000Z'));
                 });
 
-                it.only('enum converted to date object', () => {
+                it('enum converted to date object', () => {
                     const schema = {
                         type: 'string',
                         format: 'date',
                         enum: ['2000-01-01']
                     };
-                    expect(schemas.parse(2, schema).enum[0]).to.deep.equal(new Date('2000-01-01T00:00:00.000Z'));
+                    expect(Schema(2, schema).enum[0]).to.deep.equal(new Date('2000-01-01T00:00:00.000Z'));
                 });
 
                 it('minimum converted to date object', () => {
@@ -453,7 +454,7 @@ describe.only('schemas', () => {
                         format: 'date',
                         minimum: '2000-01-01'
                     };
-                    expect(schemas.parse(2, schema).minimum).to.deep.equal(new Date('2000-01-01T00:00:00.000Z'));
+                    expect(Schema(2, schema).minimum).to.deep.equal(new Date('2000-01-01T00:00:00.000Z'));
                 });
 
                 it('maximum converted to date object', () => {
@@ -467,7 +468,7 @@ describe.only('schemas', () => {
                             }
                         }
                     };
-                    expect(schemas.parse(2, schema).properties.date.maximum)
+                    expect(Schema(2, schema).properties.date.maximum)
                         .to.deep.equal(new Date('2000-01-01T00:00:00.000Z'));
                 });
 
@@ -477,40 +478,460 @@ describe.only('schemas', () => {
 
     });
 
-    describe('validate', () => {
+    describe.only('validate', () => {
+
+        it('invalid version', () => {
+            expect(() => Schema(1, {})).to.throw(/Invalid version specified/);
+        });
+
+        it('invalid schema', () => {
+            expect(() => Schema(2, [])).to.throw(/Invalid schema specified/);
+        });
+
+        it('invalid key', () => {
+            const schema = { foo: 0 };
+            expect(() => Schema(2, schema)).to.throw(/Property not allowed: foo/);
+        });
+
+        it('missing type', () => {
+            expect(() => Schema(2, { default: 5 })).to.throw(/Missing required property: type/);
+        });
+
+        it('inalid type', () => {
+            expect(() => Schema(2, { type: 'foo' })).to.throw(/Invalid type specified/);
+        });
+
+        it('cyclic catch', () => {
+            const schema = { type: 'object' };
+            schema.additionalProperties = schema;
+            const s = Schema(2, schema);
+            expect(s).to.be.instanceOf(Schema.Schema);
+            expect(s.additionalProperties).to.equal(s);
+        });
+
+        describe('modifiers', () => {
+
+            it('not allowed modifier', () => {
+                const schema = { oneOf: [] };
+                expect(() => Schema(2, schema)).to.throw(/Property not allowed: oneOf/);
+            });
+
+            it('allowed modifier', () => {
+                const schema = { oneOf: [] };
+                expect(() => Schema(3, schema)).not.to.throw();
+            });
+
+            it('array modifier not array', () => {
+                expect(() => Schema(3, { allOf: {} })).to.throw(/Modifier "allOf" must be an array/);
+                expect(() => Schema(3, { anyOf: {} })).to.throw(/Modifier "anyOf" must be an array/);
+                expect(() => Schema(3, { oneOf: {} })).to.throw(/Modifier "oneOf" must be an array/);
+            });
+
+            it('object modifier not object', () => {
+                expect(() => Schema(3, { not: [] })).to.throw(/Modifier "not" must be an object/);
+            });
+
+            it('too many modifiers', () => {
+                const schema = { oneOf: [], anyOf: [] };
+                expect(() => Schema(3, schema)).to.throw(/Cannot have multiple modifiers/);
+            });
+            
+            it('modifier array converted to instances', () => {
+                const schema = {
+                    oneOf: [
+                        { type: 'string' },
+                        { type: 'number' }
+                    ]
+                };
+                const s = Schema(3, schema);
+                expect(s).to.be.instanceOf(Schema.Schema);
+                expect(Array.isArray(s.oneOf)).to.equal(true);
+                expect(s.oneOf[0]).to.be.instanceOf(Schema.Schema);
+                expect(s.oneOf[1]).to.be.instanceOf(Schema.Schema);
+            });
+
+            it('modifier object converted to instance', () => {
+                const schema = { not: { type: 'string' } };
+                const s = Schema(3, schema);
+                expect(s).to.be.instanceOf(Schema.Schema);
+                expect(s.not).to.be.instanceOf(Schema.Schema);
+            });
+
+        });
+
+        describe('array', () => {
+
+            describe('items', () => {
+
+                it('converts to schema', () => {
+                    const schema = Schema(2, { type: 'array', items: { type: 'string' } });
+                    expect(schema.items).to.be.instanceOf(Schema.Schema);
+                });
+
+                it('must be plain object', () => {
+                    expect(() => Schema(2, { type: 'array', items: 5 })).to.throw(/Property "items" must be an object/);
+                })
+
+            });
+
+            describe('maxItems', () => {
+
+                it('positive integer ok', () => {
+                    expect(() => Schema(2, { type: 'array', maxItems: 5 })).not.to.throw();
+                });
+
+                it('negative integer error', () => {
+                    expect(() => Schema(2, { type: 'array', maxItems: -5 })).to.throw(/Property "maxItems"/);
+                });
+
+                it('non integer error', () => {
+                    expect(() => Schema(2, { type: 'array', maxItems: 5.5 })).to.throw(/Property "maxItems"/);
+                });
+
+            });
+
+            describe('minItems', () => {
+
+                it('positive integer ok', () => {
+                    expect(() => Schema(2, { type: 'array', minItems: 5 })).not.to.throw();
+                });
+
+                it('negative integer error', () => {
+                    expect(() => Schema(2, { type: 'array', minItems: -5 })).to.throw(/Property "minItems"/);
+                });
+
+                it('non integer error', () => {
+                    expect(() => Schema(2, { type: 'array', minItems: 5.5 })).to.throw(/Property "minItems"/);
+                });
+
+            });
+
+            describe('maxItems and minItems', () => {
+
+                it('max above min', () => {
+                    expect(() => Schema(2, { type: 'array', maxItems: 1, minItems: 0 })).not.to.throw();
+                });
+
+                it('max equals min', () => {
+                    expect(() => Schema(2, { type: 'array', maxItems: 0, minItems: 0 })).not.to.throw();
+                });
+
+                it('max below min', () => {
+                    expect(() => Schema(2, { type: 'array', maxItems: 0, minItems: 1 })).to.throw(/Property "minItems" must be less/);
+                });
+
+            });
+
+        });
+
+        describe('boolean', () => {
+
+            it('boolean', () => {
+                expect(() => Schema(2, { type: 'boolean' })).not.to.throw();
+            })
+
+        });
+
+        describe('integer', () => {
+
+            describe('format', () => {
+
+                it('valid format', () => {
+                    expect(() => Schema(2, { type: 'integer', format: 'int32' })).not.to.throw();
+                });
+
+                it('invalid format', () => {
+                    expect(() => Schema(2, { type: 'integer', format: 'float' })).to.throw(/Invalid "format"/);
+                });
+
+            });
+
+            describe('maximum', () => {
+
+                it('valid value', () => {
+                    expect(() => Schema(2, { type: 'integer', maximum: 2 })).not.to.throw();
+                });
+
+                it('invalid decimal value', () => {
+                    expect(() => Schema(2, { type: 'integer', maximum: 2.2 })).to.throw(/must be an integer/);
+                });
+
+                it('invalid string value', () => {
+                    expect(() => Schema(2, { type: 'integer', maximum: "2" })).to.throw(/must be an integer/);
+                });
+
+            });
+
+            describe('minimum', () => {
+
+                it('valid value', () => {
+                    expect(() => Schema(2, { type: 'integer', minimum: 2 })).not.to.throw();
+                });
+
+                it('invalid decimal value', () => {
+                    expect(() => Schema(2, { type: 'integer', minimum: 2.2 })).to.throw(/must be an integer/);
+                });
+
+                it('invalid string value', () => {
+                    expect(() => Schema(2, { type: 'integer', minimum: "2" })).to.throw(/must be an integer/);
+                });
+
+            });
+
+            describe('maximum and minimum', () => {
+
+                it('max above min', () => {
+                    expect(() => Schema(2, { type: 'integer', minimum: -1, maximum: 0 })).not.to.throw();
+                });
+
+                it('max at min', () => {
+                    expect(() => Schema(2, { type: 'integer', minimum: 0, maximum: 0 })).not.to.throw();
+                });
+
+                it('max at min exclusive', () => {
+                    expect(() => Schema(2, { type: 'integer', minimum: 0, maximum: 0, exclusiveMaximum: true })).to.throw(/"minimum" must be less than "maximum"/);
+                });
+
+                it('max below min', () => {
+                    expect(() => Schema(2, { type: 'integer', minimum: 1, maximum: 0 })).to.throw(/"minimum" must be less than or equal to "maximum"/);
+                });
+
+            });
+
+            describe('multipleOf', () => {
+
+                it('integer', () => {
+                    expect(() => Schema(2, { type: 'integer', multipleOf: 2 })).not.to.throw();
+                });
+
+                it('non-positive integer', () => {
+                    expect(() => Schema(2, { type: 'integer', multipleOf: 0 })).to.throw(/Property "multipleOf" must be a positive integer/);
+                });
+
+                it('not integer', () => {
+                    expect(() => Schema(2, { type: 'integer', multipleOf: 1.2 })).to.throw(/Property "multipleOf" must be a positive integer/);
+                });
+
+            });
+
+        });
+
+        describe('number', () => {
+
+            describe('format', () => {
+
+                it('valid format', () => {
+                    expect(() => Schema(2, { type: 'number', format: 'float' })).not.to.throw();
+                });
+
+                it('invalid format', () => {
+                    expect(() => Schema(2, { type: 'number', format: 'int32' })).to.throw(/Invalid "format"/);
+                });
+
+            });
+
+            describe('maximum', () => {
+
+                it('valid value', () => {
+                    expect(() => Schema(2, { type: 'number', maximum: 2.2 })).not.to.throw();
+                });
+
+                it('invalid string value', () => {
+                    expect(() => Schema(2, { type: 'number', maximum: "2" })).to.throw(/must be a number/);
+                });
+
+            });
+
+            describe('minimum', () => {
+
+                it('valid value', () => {
+                    expect(() => Schema(2, { type: 'number', minimum: 2.2 })).not.to.throw();
+                });
+
+                it('invalid string value', () => {
+                    expect(() => Schema(2, { type: 'number', minimum: "2" })).to.throw(/must be a number/);
+                });
+
+            });
+
+            describe('maximum and minimum', () => {
+
+                it('max above min', () => {
+                    expect(() => Schema(2, { type: 'number', minimum: -0.1, maximum: 0.1 })).not.to.throw();
+                });
+
+                it('max at min', () => {
+                    expect(() => Schema(2, { type: 'number', minimum: 0, maximum: 0 })).not.to.throw();
+                });
+
+                it('max at min exclusive', () => {
+                    expect(() => Schema(2, { type: 'number', minimum: 0, maximum: 0, exclusiveMaximum: true })).to.throw(/"minimum" must be less than "maximum"/);
+                });
+
+                it('max below min', () => {
+                    expect(() => Schema(2, { type: 'number', minimum: 1, maximum: 0 })).to.throw(/"minimum" must be less than or equal to "maximum"/);
+                });
+
+            });
+
+            describe('multipleOf', () => {
+
+                it('integer', () => {
+                    expect(() => Schema(2, { type: 'number', multipleOf: 0.5 })).not.to.throw();
+                });
+
+                it('non-positive integer', () => {
+                    expect(() => Schema(2, { type: 'number', multipleOf: 0 })).to.throw(/Property "multipleOf" must be a positive number/);
+                });
+
+            });
+
+        });
+
+        describe('object', () => {
+
+            describe('maxProperties', () => {
+
+                it('non-negative integer', () => {
+                    expect(() => Schema(2, { type: 'object', maxProperties: 1 })).not.to.throw();
+                });
+
+                it('decimal', () => {
+                    expect(() => Schema(2, { type: 'object', maxProperties: 1 })).to.throw(/Property "maxProperties" must be a non-negative integer/);
+                });
+
+                it('negative integer', () => {
+                    expect(() => Schema(2, { type: 'object', maxProperties: -1 })).to.throw(/Property "maxProperties" must be a non-negative integer/);
+                });
+
+            });
+
+            describe('minProperties', () => {
+
+                it('non-negative integer', () => {
+                    expect(() => Schema(2, { type: 'object', minProperties: 1 })).not.to.throw();
+                });
+
+                it('decimal', () => {
+                    expect(() => Schema(2, { type: 'object', minProperties: 1 })).to.throw(/Property "minProperties" must be a non-negative integer/);
+                });
+
+                it('negative integer', () => {
+                    expect(() => Schema(2, { type: 'object', minProperties: -1 })).to.throw(/Property "minProperties" must be a non-negative integer/);
+                });
+
+            });
+
+            describe('maxProperties and minProperties', () => {
+
+                it('max above min', () => {
+                    expect(() => Schema(2, { type: 'object', minProperties: 0, maxProperties: 1 })).not.to.throw();
+                });
+
+                it('max at min', () => {
+                    expect(() => Schema(2, { type: 'object', minProperties: 1, maxProperties: 1 })).not.to.throw();
+                });
+
+                it('max below min', () => {
+                    expect(() => Schema(2, { type: 'object', minProperties: 1, maxProperties: 0 })).to.throw(/Property "minProperties" must be less than or equal to "maxProperties"/);
+                });
+
+            });
+
+            describe('discriminator', () => {
+
+                describe('version 2', () => {
+
+                    it('valid', () => {
+                        const schema = { type: 'object', discriminator: 'x', required: ['x'] };
+                        expect(() => Schema(2, schema)).not.to.throw();
+                    });
+
+                    it('not a string', () => {
+                        const schema = { type: 'object', discriminator: 1 };
+                        expect(() => Schema(2, schema)).to.throw(/Discriminator must be a string/);
+                    });
+
+                    it('missing required', () => {
+                        const schema = { type: 'object', discriminator: 'x' };
+                        expect(() => Schema(2, schema)).to.throw(/Property "x" must be listed as required/);
+                    });
+
+                });
+
+                describe('version 3', () => {
+
+                    it('valid', () => {
+                        const schema = {
+                            type: 'object',
+                            required: ['x'],
+                            discriminator: {
+                                propertyName: 'x'
+                            }
+                        };
+                        expect(() => Schema(3, schema)).not.to.throw();
+                    });
+
+                    it('not a string', () => {
+                        const schema = { type: 'object', discriminator: 1 };
+                        expect(() => Schema(3, schema)).to.throw(/Discriminator must be a string/);
+                    });
+
+                    it('missing required', () => {
+                        const schema = { type: 'object', discriminator: 'x' };
+                        expect(() => Schema(3, schema)).to.throw(/Property "x" must be listed as required/);
+                    });
+
+                });
+
+            });
+
+            describe('required', () => {
+
+            });
+
+            describe('additionalProperties', () => {
+
+            });
+
+            describe('properties', () => {
+
+            });
+
+        });
 
         describe('string', () => {
 
             it('maximum not allowed for non dates', () => {
                 const schema = { type: 'string', maximum: '' };
-                expect(() => schemas.validate(2, schema)).to.throw(/Property "maximum" not allowed/);
+                expect(() => Schema(2, schema, { throw: true })).to.throw(/Property "maximum" not allowed/);
             });
 
             it('minimum not allowed for non dates', () => {
                 const schema = { type: 'string', minimum: '' };
-                expect(() => schemas.validate(2, schema)).to.throw(/Property "minimum" not allowed/);
+                expect(() => Schema(2, schema)).to.throw(/Property "minimum" not allowed/);
             });
 
             describe('date format', () => {
 
                 it('maximum valid', () => {
                     const schema = { type: 'string', format: 'date', maximum: '2000-01-01' };
-                    expect(() => schemas.validate(2, schema)).not.to.throw();
+                    expect(() => Schema(2, schema)).not.to.throw();
                 });
 
                 it('maximum invalid format', () => {
                     const schema = { type: 'string', format: 'date', maximum: '2000-01-01T00:00:00.000Z' };
-                    expect(() => schemas.validate(2, schema)).to.throw(/Property "maximum" is not formatted as a date/);
+                    expect(() => Schema(2, schema)).to.throw(/Property "maximum" is not formatted as a date/);
                 });
 
                 it('minimum valid', () => {
                     const schema = { type: 'string', format: 'date', minimum: '2000-01-01' };
-                    expect(() => schemas.validate(2, schema)).not.to.throw();
+                    expect(() => Schema(2, schema)).not.to.throw();
                 });
 
                 it('minimum invalid format', () => {
                     const schema = { type: 'string', format: 'date', minimum: '2000-01-01T00:00:00.000Z' };
-                    expect(() => schemas.validate(2, schema)).to.throw(/Property "minimum" is not formatted as a date/);
+                    expect(() => Schema(2, schema)).to.throw(/Property "minimum" is not formatted as a date/);
                 });
 
             });
@@ -519,22 +940,61 @@ describe.only('schemas', () => {
 
                 it('maximum valid', () => {
                     const schema = { type: 'string', format: 'date-time', maximum: '2000-01-01T00:00:00.000Z' };
-                    expect(() => schemas.validate(2, schema)).not.to.throw();
+                    expect(() => Schema(2, schema)).not.to.throw();
                 });
 
                 it('maximum invalid format', () => {
                     const schema = { type: 'string', format: 'date-time', maximum: '2000-01-01' };
-                    expect(() => schemas.validate(2, schema)).to.throw(/Property "maximum" is not formatted as a date-time/);
+                    expect(() => Schema(2, schema)).to.throw(/Property "maximum" is not formatted as a date-time/);
+                });
+
+                it('maximum invalid date', () => {
+                    const schema = { type: 'string', format: 'date-time', maximum: '2000-02-30T00:00:00.000Z' };
+                    expect(() => Schema(2, schema)).to.throw(/Property "maximum" is not a valid date-time/);
                 });
 
                 it('minimum valid', () => {
                     const schema = { type: 'string', format: 'date-time', minimum: '2000-01-01T00:00:00.000Z' };
-                    expect(() => schemas.validate(2, schema)).not.to.throw();
+                    expect(() => Schema(2, schema)).not.to.throw();
                 });
 
                 it('minimum invalid format', () => {
                     const schema = { type: 'string', format: 'date-time', minimum: '2000-01-01' };
-                    expect(() => schemas.validate(2, schema)).to.throw(/Property "minimum" is not formatted as a date-time/);
+                    expect(() => Schema(2, schema)).to.throw(/Property "minimum" is not formatted as a date-time/);
+                });
+
+                it('minimum invalid date', () => {
+                    const schema = { type: 'string', format: 'date-time', minimum: '2000-02-30T00:00:00.000Z' };
+                    expect(() => Schema(2, schema)).to.throw(/Property "minimum" is not a valid date-time/);
+                });
+
+                it('maximum above minimum', () => {
+                    const schema = { type: 'string', format: 'date-time',
+                        maximum: '2000-01-02T00:00:00.000Z',
+                        minimum: '2000-01-01T00:00:00.000Z' };
+                    expect(() => Schema(2, schema)).not.to.throw();
+                });
+
+                it('maximum at minimum', () => {
+                    const schema = { type: 'string', format: 'date-time',
+                        maximum: '2000-01-01T00:00:00.000Z',
+                        minimum: '2000-01-01T00:00:00.000Z' };
+                    expect(() => Schema(2, schema)).not.to.throw();
+                });
+
+                it('maximum at minimum exclusive', () => {
+                    const schema = { type: 'string', format: 'date-time',
+                        exclusiveMinimum: true,
+                        maximum: '2000-01-01T00:00:00.000Z',
+                        minimum: '2000-01-01T00:00:00.000Z' };
+                    expect(() => Schema(2, schema)).to.throw(/Property "minimum" must be less than "maximum"/);
+                });
+
+                it('maximum below minimum', () => {
+                    const schema = { type: 'string', format: 'date-time',
+                        maximum: '2000-01-01T00:00:00.000Z',
+                        minimum: '2000-01-02T00:00:00.000Z' };
+                    expect(() => Schema(2, schema)).to.throw(/Property "minimum" must be less than or equal to "maximum"/);
                 });
 
             });
