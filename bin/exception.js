@@ -29,6 +29,7 @@ const prototype = {
     },
 
     push: function(message) {
+        if (this.hasOwnProperty('hasException')) delete this.hasException;
         this.children.push(message);
     },
 
