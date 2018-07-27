@@ -63,6 +63,16 @@ describe('#populate', () => {
             expect(value).to.equal(5);
         });
 
+        it('default and x-variable 3', () => {
+            const value = enforcer.populate({ type: 'number', default: 5, 'x-variable': 'myNumber' }, {});
+            expect(value).to.equal(5);
+        });
+
+        it('default and x-variable 4', () => {
+            const value = enforcer.populate({ type: 'number', default: 5, 'x-variable': 'myNumber' }, { myNumber: undefined });
+            expect(value).to.equal(5);
+        });
+
         it('does not format', () => {
             const enforcer = new Enforcer(definition);
             const date = new Date();
