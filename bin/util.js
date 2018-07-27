@@ -161,6 +161,12 @@ exports.findMediaMatch = function(input, store) {
     return unique;
 };
 
+exports.getVersionApi = function(value) {
+    const version = util.tryRequire('./v' + value + '/index');
+    if (!version) throw Error('The Open API definition version is either invalid or unsupported: ' + value);
+    return version;
+};
+
 exports.isDate = function (value) {
     return value && !isNaN(value) && value instanceof Date;
 };
