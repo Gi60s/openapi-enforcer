@@ -111,9 +111,8 @@ function apply(v, exception, schema, type, object, property) {
     if (object[property] === undefined) {
         const options = v.options;
         const map = v.map;
-        if (options.variables && schema.hasOwnProperty('x-variable') && map.hasOwnProperty(schema['x-variable'])) {
-            const value = map[schema['x-variable']];
-            if (value !== undefined) object[property] = value;
+        if (options.variables && schema.hasOwnProperty('x-variable') && map.hasOwnProperty(schema['x-variable']) && map[schema['x-variable']] !== undefined) {
+            object[property] = map[schema['x-variable']];
 
         } else if (options.templates && type === 'string' && schema.hasOwnProperty('x-template')) {
             const value = v.injector(schema['x-template'], map);
@@ -191,9 +190,8 @@ function populate(version, schema, params, value, options) {
 
             // if there is no value then attempt to populate one
             if (data.value === undefined) {
-                if (options.variables && schema.hasOwnProperty('x-variable') && params.hasOwnProperty(schema['x-variable'])) {
-                    const value = params[schema['x-variable']];
-                    if (value !== undefined) data.value = value;
+                if (options.variables && schema.hasOwnProperty('x-variable') && params.hasOwnProperty(schema['x-variable']) && params[schema['x-variable']] !== undefined) {
+                    data.value = params[schema['x-variable']];
 
                 } else if (options.templates && type === 'string' && schema.hasOwnProperty('x-template')) {
                     const value = injector(schema['x-template'], params);

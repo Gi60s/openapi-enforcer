@@ -17,7 +17,7 @@
 'use strict';
 const Exception = require('./exception');
 const util      = require('./util');
-const Parse     = require('./parse');
+const Parse     = require('./parse-value');
 const Validate  = require('./validate');
 
 const rxExtension = /^x-.+/;
