@@ -106,6 +106,7 @@ function deserialize(exception, version, map, schema, value) {
                 if (!Exception.hasException(child)) {
                     const error = subSchema.validate(v);
                     if (error) {
+                        delete child.hasException;
                         child(error);
                     } else {
                         return result;
@@ -124,15 +125,15 @@ function deserialize(exception, version, map, schema, value) {
             let result = undefined;
             schema.oneOf.forEach((schema, index) => {
                 const child = oneOfException.nest('Unable to deserialize using schema at index ' + index);
-                const v = deserialize(child, version, map, schema, value);
+                result = deserialize(child, version, map, schema, value);
                 if (!Exception.hasException(child)) {
                     const error = schema.validate(v);
                     if (error) {
+                        delete child.hasException;
                         child(error);
                     } else {
                         child('Deserialized against schema at index ' + index);
                         valid++;
-                        result = v;
                     }
                 }
             });
@@ -231,8 +232,9 @@ function serialize(exception, version, map, schema, value) {
                 const child = anyOfException.nest('Unable to serialize using schema at index' + index);
                 const result = deserialize(child, version, map, subSchema, value);
                 if (!Exception.hasException(child)) {
-                    const error = subSchema.validate(v);
+                    const error = subSchema.validate(result);
                     if (error) {
+                        delete child.hasException;
                         child(error);
                     } else {
                         return result;
@@ -251,15 +253,15 @@ function serialize(exception, version, map, schema, value) {
             let result = undefined;
             schema.oneOf.forEach((schema, index) => {
                 const child = oneOfException.nest('Unable to serialize using schema at index ' + index);
-                const v = deserialize(child, version, map, schema, value);
+                const result = deserialize(child, version, map, schema, value);
                 if (!Exception.hasException(child)) {
-                    const error = schema.validate(v);
+                    const error = schema.validate(result);
                     if (error) {
+                        delete child.hasException;
                         child(error);
                     } else {
                         child('Serialized against schema at index ' + index);
                         valid++;
-                        result = v;
                     }
                 }
             });
