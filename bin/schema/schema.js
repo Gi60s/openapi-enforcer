@@ -15,73 +15,17 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception     = require('./exception');
-const rx            = require('./rx');
-const util          = require('./util');
+const Exception     = require('../exception');
+const formatter     = require('./formatter');
+const rx            = require('../rx');
+const serial        = require('./serialize');
+const util          = require('../util');
 const validate      = require('./validate');
 
 const rxExtension = /^x-.+/;
 const store = new WeakMap();
-const validations = getValidationsMap();
 
-module.exports = builder;
-
-function builder(version, schema, options) {
-    // schema may already be a Schema instance
-    if (schema instanceof Schema) return schema;
-
-    // validate input
-    if (!validations[version]) throw Error('Invalid version specified');
-    if (!util.isPlainObject(schema)) throw Error('Invalid schema specified');
-
-    // normalize options
-    options = Object.assign({}, options);
-    if (!options.hasOwnProperty('throw')) options.throw = true;
-
-    // create the exception instance
-    const exception = Exception('Schema has one or more errors');
-
-    // build the schema
-    const instance = new Schema(exception, validations[version], schema, options, new Map());
-
-    // store the schema protected variables
-    const data = {
-        hasException: Exception.hasException(exception),
-        exception: exception,
-        version: version
-    };
-    store.set(instance, data);
-
-    // if there is an error and we're throwing then throw now
-    if (options.throw && data.hasException) throw Error(exception.toString());
-
-    return instance;
-}
-
-builder.getException = function(instance) {
-    const data = store.get(instance);
-    if (!data) throw Error('Expected a Schema instance type');
-    return data.exception;
-};
-
-builder.getVersion = function(instance) {
-    const data = store.get(instance);
-    if (!data) throw Error('Expected a Schema instance type');
-    return data.version;
-};
-
-builder.hasException = function(instance) {
-    const data = store.get(instance);
-    if (!data) throw Error('Expected a Schema instance type');
-    return data.hasException;
-};
-
-builder.merge = function(schemas) {
-
-};
-
-builder.Schema = Schema;
-
+module.exports = Schema;
 
 function Schema(exception, version, schema, options, map) {
 
@@ -97,7 +41,7 @@ function Schema(exception, version, schema, options, map) {
     const common = version.common;
     const keys = Object.keys(schema).filter(k => !rxExtension.test(k));
     const length = keys.length;
-    const modifiers = [];
+    const composites = [];
     let skipDefaultValidations = false;
     const enumErrors = {};
     const type = schema.type;
@@ -106,32 +50,32 @@ function Schema(exception, version, schema, options, map) {
         const key = keys[i];
 
         // validate that the property is allowed
-        if (!(common[key] || typeProperties[key] || version.modifiers[key])) {
+        if (!(common[key] || typeProperties[key] || version.composites[key])) {
             exception('Property not allowed: ' + key);
 
         } else {
             this[key] = schema[key];
 
-            // keep track of modifiers
-            if (version.modifiers[key]) modifiers.push(key);
+            // keep track of composites
+            if (version.composites[key]) composites.push(key);
         }
     }
 
     // cannot have multiple of allOf, oneOf, anyOf, not, etc.
-    if (modifiers.length > 1) {
-        exception('Cannot have multiple modifiers: ' + modifiers.join(', '));
+    if (composites.length > 1) {
+        exception('Cannot have multiple composites: ' + composites.join(', '));
 
-    } else if (modifiers.length === 1) {
-        const modifier = modifiers[0];
-        switch (modifier) {
+    } else if (composites.length === 1) {
+        const composite = composites[0];
+        switch (composite) {
             case 'allOf':
             case 'anyOf':
             case 'oneOf':
-                if (!Array.isArray(this[modifier])) {
-                    exception('Modifier "' + modifier + '" must be an array');
+                if (!Array.isArray(this[composite])) {
+                    exception('Composite "' + composite + '" must be an array');
                 } else {
-                    this[modifier] = this[modifier]
-                        .map((schema, index) => new Schema(exception.nest(modifier + '/' + index), version, schema, options, map));
+                    this[composite] = this[composite]
+                        .map((schema, index) => new Schema(exception.nest(composite + ' has one or more errors at index ' + index), version, schema, options, map));
                 }
                 break;
 
@@ -258,6 +202,7 @@ function Schema(exception, version, schema, options, map) {
                     }
                     break;
             }
+            if (options.freeze) Object.freeze(discriminator);
         }
         if (this.hasOwnProperty('required') && (!Array.isArray(this.required) || this.required.filter(v => v && typeof v === 'string').length !== this.required.length)) {
             exception('Property "required" must be an array of non-empty strings');
@@ -286,10 +231,11 @@ function Schema(exception, version, schema, options, map) {
         }
 
     } else if (type === 'string') {
+        const isDateFormat = this.format && (this.format === 'date' || this.format === 'date-time');
         if (this.hasOwnProperty('format') && !version.formats.string[this.format]) {
             exception('Invalid "format" specified. Expected one of: ' + Object.keys(version.formats.string).join(', '));
         }
-        if (isDateFormat(this)) {
+        if (isDateFormat) {
             let valid = true;
             if (this.hasOwnProperty('maximum')) {
                 if (!rx[this.format].test(this.maximum)) {
@@ -301,6 +247,7 @@ function Schema(exception, version, schema, options, map) {
                         exception('Property "maximum" is not a valid ' + this.format);
                         valid = false;
                     } else {
+                        if (options.freeze) freezeDate(date);
                         this.maximum = date;
                     }
                 }
@@ -315,6 +262,7 @@ function Schema(exception, version, schema, options, map) {
                         exception('Property "minimum" is not a valid ' + this.format);
                         valid = false;
                     } else {
+                        if (options.freeze) freezeDate(date);
                         this.minimum = date;
                     }
                 }
@@ -355,10 +303,11 @@ function Schema(exception, version, schema, options, map) {
 
         // parse default value
         if (this.hasOwnProperty('default')) {
-            const data = parseSchemaValue(exception.nest('Unable to parse default value'), this, this.default);
+            const data = formatter.parse(exception.nest('Unable to parse default value'), this, this.default);
             if (data.error) {
                 skipDefaultValidations = true;
             } else {
+                if (isDateFormat && options.freeze) freezeDate(data.value);
                 this.default = data.value;
             }
         }
@@ -368,10 +317,11 @@ function Schema(exception, version, schema, options, map) {
             const length = this.enum.length;
             for (let i = 0; i < length; i++) {
                 const child = Exception('Unable to parse enum value at index ' + i);
-                const data = parseSchemaValue(child, this, this.enum[i]);
+                const data = formatter.parse(child, this, this.enum[i]);
                 if (data.error) {
                     enumErrors[i] = child;
                 } else {
+                    if (isDateFormat && options.freeze) freezeDate(data.value);
                     this.enum[i] = data.value;
                 }
             }
@@ -381,7 +331,11 @@ function Schema(exception, version, schema, options, map) {
     if (type) {
         // validate default value
         if (this.hasOwnProperty('default') && !skipDefaultValidations) {
-            validate(exception.nest('Invalid default value'), version.value, this, this.default);
+            const childException = this.validate(this.default);
+            if (childException) {
+                childException.header = 'Default value is not valid';
+                exception.push(childException);
+            }
         }
 
         // validate enum values
@@ -394,26 +348,142 @@ function Schema(exception, version, schema, options, map) {
                     if (enumErrors[i]) {
                         exception.push(enumErrors[i]);
                     } else {
-                        validate(exception.nest('Invalid enum value at index ' + i), version.value, this, this.enum[i]);
+                        const childException = this.validate(this.enum[i]);
+                        if (childException) {
+                            childException.header = 'Enum value at index ' + i + ' is not valid';
+                            exception.push(childException);
+                        }
                     }
                 }
             }
         }
     }
 
+    // check for invalid discriminator placement
+    if (version.value === 3 && this.discriminator) {
+        if (type !== 'object' && !this.oneOf && !this.anyOf) {
+            exception('Discriminator only allowed in objects or along with anyOf or oneOf');
+        }
+    }
+
+    if (options.freeze) Object.freeze(this);
+
+    // store protected variables
+    store.set(this, {
+        exception: exception,
+        version: version.value
+    });
 }
 
-Object.defineProperties(Schema.prototype, {
-    exception: {
-        get: function() { return builder.getException(this) }
-    },
-    hasException: {
-        get: function() { return builder.hasException(this) }
+/**
+ * Take a serialized (ready for HTTP transmission) value and deserialize it.
+ * Converts strings of binary, byte, date, and date-time to JavaScript equivalents.
+ * @param {*} value
+ * @returns {*}
+ */
+Schema.prototype.deserialize = function(value) {
+    const data = store.get(this);
+    if (!data) throw Error('Expected a Schema instance type');
+    return serial.deserialize(this, value);
+};
+
+/**
+ * Check if the schema has any exceptions or get the Exception object.
+ * @param {boolean} [force=false] Set to true to get the Exception object even if there is no exception.
+ * @returns {Exception|null}
+ */
+Schema.prototype.exception = function(force) {
+    const data = store.get(this);
+    if (!data) throw Error('Expected a Schema instance type');
+    return force || Exception.hasException(data.exception) ? data.exception : null;
+};
+
+/**
+ * Populate a value from a list of parameters.
+ * @param {object} params
+ * @param {*} [value]
+ * @param {object} [options]
+ * @param {boolean} [options.copy]
+ * @param {boolean} [options.ignoreMissingRequired]
+ * @param {boolean} [options.oneOf]
+ * @param {string} [options.replacement]
+ * @param {boolean} [options.serialize]
+ * @param {boolean} [options.templateDefaults]
+ * @param {boolean} [options.templates]
+ * @param {boolean} [options.throw=true] If true then throw errors if found, otherwise return errors array.
+ * @param {boolean} [options.variables]
+ * @returns {Exception|null}
+ */
+Schema.prototype.populate = function(params, value, options) {
+    const data = store.get(this);
+    if (!data) throw Error('Expected a Schema instance type');
+    // TODO
+};
+
+/**
+ * Produce a random value for the schema.
+ * @param {*} value An initial value to add random values to.
+ * @returns {*}
+ */
+Schema.prototype.random = function(value) {
+    // TODO
+};
+
+/**
+ * Take a deserialized (not ready for HTTP transmission) value and serialize it.
+ * Converts Buffer and Date objects into string equivalent.
+ * @param value
+ * @returns {*}
+ */
+Schema.prototype.serialize = function(value) {
+    const data = store.get(this);
+    if (!data) throw Error('Expected a Schema instance type');
+    return serial.serialize(this, value);
+};
+
+/**
+ * Check to see if the value is valid for this schema.
+ * @param {*} value
+ * @returns {Exception|null}
+ */
+Schema.prototype.validate = function(value) {
+    const data = store.get(this);
+    if (!data) throw Error('Expected a Schema instance type');
+    return validate(this, value);
+};
+
+/**
+ * Get the OpenAPI version used for this schema.
+ */
+Object.defineProperty(Schema.prototype, 'version', {
+    get: function() {
+        const data = store.get(this);
+        if (!data) throw Error('Expected a Schema instance type');
+        return data.version;
     }
 });
 
 
 
+
+function freezeDate(date) {
+    date.setDate = noop;
+    date.setFullYear = noop;
+    date.setHours = noop;
+    date.setMilliseconds = noop;
+    date.setMinutes = noop;
+    date.setMonth = noop;
+    date.setSeconds = noop;
+    date.setTime = noop;
+    date.setUTCDate = noop;
+    date.setUTCFullYear = noop;
+    date.setUTCHours = noop;
+    date.setUTCMilliseconds = noop;
+    date.setUTCMinutes = noop;
+    date.setUTCMonth = noop;
+    date.setUTCSeconds = noop;
+    date.setYear = noop;
+}
 
 function getDateFromValidDateString(format, string) {
     const date = new Date(string);
@@ -434,56 +504,6 @@ function getDateFromValidDateString(format, string) {
         date.getUTCMilliseconds() === millisecond ? date : null;
 }
 
-function getValidationsMap() {
-    // define what properties are allowed for which types
-    const validations = {};
-    validations[2] = {
-        common: { default: true, description: true, enum: true, example: true, externalDocs: true,
-            readOnly: true, title: true, type: true, xml: true },
-        formats: {
-            array: {},
-            boolean: {},
-            integer: { int32: true, int64: true },
-            number: { float: true, double: true },
-            object: {},
-            string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
-        },
-        modifiers: { allOf: true },
-        types: {
-            array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
-            boolean: {},
-            integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-            number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-            object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
-            string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, maxLength: true, minLength: true, pattern: true }
-        },
-        value: 2
-    };
-    validations[3] = {
-        common: { default: true, deprecated: true, description: true, enum: true, example: true, externalDocs: true,
-            nullable: true, readOnly: true, title: true, type: true, writeOnly: true, xml: true },
-        formats: {
-            array: {},
-            boolean: {},
-            integer: { int32: true, int64: true },
-            number: { float: true, double: true },
-            object: {},
-            string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
-        },
-        modifiers: { allOf: true, anyOf: true, oneOf: true, not: true },
-        types: {
-            array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
-            boolean: {},
-            integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-            number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-            object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
-            string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maxLength: true, maximum: true, minimum: true, minLength: true, pattern: true }
-        },
-        value: 3
-    };
-    return validations;
-}
-
 function greatestCommonDenominator(x, y) {
     x = Math.abs(x);
     y = Math.abs(y);
@@ -500,10 +520,6 @@ function highestNumber(n1, n2) {
     const t2 = typeof n2 === 'number';
     if (t1 && t2) return n1 < n2 ? n2 : n1;
     return t1 ? n1 : n2;
-}
-
-function isDateFormat(schema) {
-    return schema.format && (schema.format === 'date' || schema.format === 'date-time');
 }
 
 function isInteger(value) {
@@ -534,60 +550,7 @@ function minMaxValid(min, max, exclusiveMin, exclusiveMax) {
     return min < max || (!exclusiveMin && !exclusiveMax && min === max);
 }
 
-function parseSchemaValue(exception, schema, value) {
-    const format = schema.format;
-    switch (format) {
-        case 'binary':
-            if (!rx.binary.test(value)) {
-                exception('Value is not a binary octet string');
-                return { error: true };
-            } else {
-                const length = value.length;
-                const array = [];
-                for (let i = 0; i < length; i+=8) array.push(parseInt(value.substr(i, 8), 2))
-                return { value: Buffer.from ? Buffer.from(array, 'binary') : new Buffer(array, 'binary') };
-            }
-
-        case 'byte':
-            if (!rx.byte.test(value) && value.length % 4 !== 0) {
-                exception('Value is not a base64 string');
-                return { error: true };
-            } else {
-                return { value: Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64') };
-            }
-
-        case 'date':
-            if (!rx.date.test(value)) {
-                exception('Value is not date string of the format YYYY-MM-DD');
-                return { error: true };
-            } else {
-                const date = getDateFromValidDateString('date', value);
-                if (!date) {
-                    exception('Value is not a valid date');
-                    return { error: true };
-                } else {
-                    return { value: date };
-                }
-            }
-
-        case 'date-time':
-            if (!rx.dateTime.test(value)) {
-                exception('Value is not date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
-                return { error: true };
-            } else {
-                const date = getDateFromValidDateString('date-time', value);
-                if (!date) {
-                    exception('Value is not a valid date-time');
-                    return { error: true };
-                } else {
-                    return { value: date };
-                }
-            }
-
-        default:
-            return { value: value };
-    }
-}
+function noop() {}
 
 function rxStringToRx(value) {
     if (typeof value === 'string') {
