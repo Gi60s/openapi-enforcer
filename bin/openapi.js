@@ -56,7 +56,6 @@ const staticDefaults = {
     },
     validate: {
         deserialize: false,
-        skipSchemaValidation: false,
         throw: true
     }
 };
@@ -439,7 +438,6 @@ OpenApiEnforcer.prototype.schema = function(schema, options) {
  * @param {*} value
  * @param {object} [options]
  * @param {boolean} [options.deserialize=false]
- * @param {boolean} [options.skipSchemaValidation=false]
  * @param {boolean} [options.throw=true]
  * @returns {Exception|null}
  * @throws {Error}
@@ -452,20 +450,15 @@ OpenApiEnforcer.prototype.validate = function(schema, value, options) {
     options = Object.assign({}, data.defaults.validate, options);
 
     // validate the schema
-    if (!options.skipSchemaValidation) {
-        const exception = Schemas.validate(version.value, schema, {defaults: false, throw: false});
-        if (exception) {
-            if (options.throw) throw Error(exception.toString());
-            return exception;
-        }
+    let exception = Schemas.validate(version.value, schema, {defaults: false, throw: false});
+    if (exception) {
+        if (options.throw) throw Error(exception.toString());
+        return exception;
     }
 
     // deserialize the value
     if (options.deserialize) {
-        const data = this.deserialize(schema, value, {
-            skipSchemaValidation: true,
-            throw: false
-        });
+        const data = this.deserialize(schema, value, { throw: false });
         if (data.error) {
             if (options.throw) throw Error(data.error.toString());
             return data.error;
@@ -473,13 +466,12 @@ OpenApiEnforcer.prototype.validate = function(schema, value, options) {
         value = data.value;
     }
 
-    // validate the value
-    const exception = validate(Exception('One or more errors found during schema validation'), version, schema, value);
+    // validate the value (returns null if valid)
+    exception = validate(version, schema, value);
 
     // throw an error or return Exception object
-    const hasException = Exception.hasException(exception);
-    if (hasException && options.throw) throw Error(exception.toString());
-    return hasException ? exception : null;
+    if (exception && options.throw) throw Error(exception.toString());
+    return exception;
 };
 
 OpenApiEnforcer.prototype.version = function() {
