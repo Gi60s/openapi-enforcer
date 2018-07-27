@@ -57,14 +57,19 @@ function OpenAPIException(header, meta) {
     return exception;
 }
 
-OpenAPIException.hasException = function(exception) {
-    const children = exception.children;
-    const length = children.length;
-    for (let i = 0; i < length; i++) {
-        if (typeof children[i] === 'string') return true;
-        if (OpenAPIException.hasException(children[i])) return true;
+OpenAPIException.hasException = function(exception, ignoreCache) {
+    if (ignoreCache || !exception.hasOwnProperty('hasException')) {
+        exception.hasException = false;
+        const children = exception.children;
+        const length = children.length;
+        for (let i = 0; i < length; i++) {
+            if (typeof children[i] === 'string' || OpenAPIException.hasException(children[i])) {
+                exception.hasException = true;
+                break;
+            }
+        }
     }
-    return false;
+    return exception.hasException;
 };
 
 
