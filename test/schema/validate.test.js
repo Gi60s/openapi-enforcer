@@ -18,7 +18,7 @@
 const Enforcer      = require('../../index');
 const expect        = require('chai').expect;
 
-describe.only('schema.validate', () => {
+describe('schema.validate', () => {
 
     const definition = {
         openapi: '3.0.0',
