@@ -39,14 +39,14 @@ function deserialize(exception, schema, value) {
                 if (Array.isArray(value)) return schema.items
                     ? value.map((v,i) => deserialize(exception.nest('/' + i), schema.items, v))
                     : value;
-                exception.push('Expected an array. Received: ' + util.smart(value));
+                exception('Expected an array. Received: ' + util.smart(value));
                 return;
 
             case 'boolean':
             case 'integer':
             case 'number':
                 result = parse[type](value);
-                if (result.error) exception.push(result.error);
+                if (result.error) exception(result.error);
                 return result.value;
 
             case 'string':
@@ -60,7 +60,7 @@ function deserialize(exception, schema, value) {
                     default:
                         result = { value: value };
                 }
-                if (result.error) exception.push(result.error);
+                if (result.error) exception(result.error);
                 return result.value;
 
             case 'object':
@@ -77,11 +77,11 @@ function deserialize(exception, schema, value) {
                     });
                     return result;
                 }
-                exception.push('Expected an object. Received: ' + util.smart(value));
+                exception('Expected an object. Received: ' + util.smart(value));
                 return;
 
             default:
-                exception.push('Unknown schema type');
+                exception('Unknown schema type');
                 return;
         }
     }
@@ -106,14 +106,14 @@ function serialize(exception, schema, value) {
                         ? value.map((v, i) => serialize(exception.nest('/' + i), schema.items || {}, v))
                         : value;
                 }
-                exception.push('Expected an array. Received: ' + util.smart(value));
+                exception('Expected an array. Received: ' + util.smart(value));
                 return;
 
             case 'boolean':
             case 'integer':
             case 'number':
                 result = format[type](value);
-                if (result.error) exception.push(result.error);
+                if (result.error) exception(result.error);
                 return result.value;
 
             case 'string':
@@ -128,7 +128,7 @@ function serialize(exception, schema, value) {
                     default:
                         result = format.string(value);
                 }
-                if (result.error) exception.push(result.error);
+                if (result.error) exception(result.error);
                 return result.value;
 
             case 'object':

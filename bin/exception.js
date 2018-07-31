@@ -18,83 +18,62 @@
 
 module.exports = OpenAPIException;
 
-
-
-
-const prototype = {
-    nest: function(header, meta) {
-        const exception = new OpenAPIException(header, meta);
-        this.children.push(exception);
-        return exception;
-    },
-
-    push: function(message) {
-        if (this.hasOwnProperty('hasException')) delete this.hasException;
-        this.children.push(message);
-    },
-
-    flatten: function() {
-        return flatten([], '', this);
-    },
-
-    toString: function() {
-        return OpenAPIException.hasException(this)
-            ? toString('', this)
-            : '';
-    }
-};
-
 function OpenAPIException(header, meta) {
-    const exception = message => exception.push(message);
-    Object.assign(exception, prototype, { header: header, children: [], meta: meta });
+    const children = [];
+    let cached = false;
+    let hasException;
+
+    function exception(message) {
+        children.push(message);
+        cached = false;
+    }
+
+    exception.header = header;
+    exception.meta = meta;
+
+    exception.nest = function(header, meta) {
+        const exception = OpenAPIException(header, meta);
+        children.push(exception);
+        cached = false;
+        return exception;
+    };
+
+    exception.toString = function(prefix) {
+        if (!this.hasException) return '';
+        if (!prefix) prefix = '';
+        let result = header + ':';
+        children.forEach(child => {
+            if (typeof child === 'string') {
+                result += '\n  ' + prefix + child;
+            } else if (child.hasException) {
+                result += '\n  ' + prefix + child.toString(prefix + '  ');
+            }
+        });
+        return result;
+    };
+
     Object.defineProperty(exception, 'hasException', {
-        get: () => OpenAPIException.hasException(exception)
+        get: () => {
+            if (!cached) {
+                cached = true;
+                hasException = false;
+                const length = children.length;
+                for (let i = 0; i < length; i++) {
+                    if (typeof children[i] === 'string' || children[i].hasException) {
+                        hasException = true;
+                        break;
+                    }
+                }
+            }
+            return hasException;
+        }
     });
+
     Object.defineProperty(exception, 'isOpenAPIException', {
         value: true,
         writable: false,
         configurable: false
     });
+
     return exception;
-}
-
-OpenAPIException.hasException = function(exception, ignoreCache) {
-    if (ignoreCache || !exception.hasOwnProperty('hasException')) {
-        exception.hasException = false;
-        const children = exception.children;
-        const length = children.length;
-        for (let i = 0; i < length; i++) {
-            if (typeof children[i] === 'string' || OpenAPIException.hasException(children[i])) {
-                exception.hasException = true;
-                break;
-            }
-        }
-    }
-    return exception.hasException;
-};
-
-
-function flatten(errors, prefix, exception) {
-    if (!OpenAPIException.hasException(exception)) return errors;
-
-    exception.children.forEach(child => {
-        if (typeof child === 'string') {
-            errors.push(prefix + exception.header + ': ' + child);
-        } else {
-            flatten(errors, prefix + exception.header + ': ', child);
-        }
-    });
-    return errors;
-}
-
-function toString(prefix, exception) {
-    let result = exception.header + ':';
-    exception.children.forEach(child => {
-        if (typeof child === 'string') {
-            result += '\n  ' + prefix + child;
-        } else if (OpenAPIException.hasException(child)) {
-            result += '\n  ' + prefix + toString(prefix + '  ', child);
-        }
-    });
-    return result;
 }

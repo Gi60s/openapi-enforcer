@@ -40,7 +40,7 @@ exports.populate = function(v, exception, schema, object, property) {
     } else if (type === 'array') {
         let value = object[property];
         if (value !== undefined && !Array.isArray(object[property])) {
-            exception.push('Provided value must be an array. Received: ' + util.smart(value));
+            exception('Provided value must be an array. Received: ' + util.smart(value));
             return;
         }
 
@@ -55,7 +55,7 @@ exports.populate = function(v, exception, schema, object, property) {
 
     } else if (type === 'object') {
         if (value !== undefined && (!value || typeof value !== 'object')) {
-            exception.push('Provided value must be a non-null object. Received: ' + util.smart(value));
+            exception('Provided value must be a non-null object. Received: ' + util.smart(value));
             return;
         }
 
@@ -162,7 +162,7 @@ function parseStringValue(exception, schema, value) {
         case 'date-time':
             result = parse[schema.format](value);
             return result.error
-                ? exception.push(result.error)
+                ? exception(result.error)
                 : result.value;
         default:
             return value;
