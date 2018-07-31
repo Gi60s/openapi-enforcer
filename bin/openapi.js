@@ -17,11 +17,8 @@
 'use strict';
 const Exception     = require('./exception');
 const populate      = require('./populate');
+const Schema        = require('./schema');
 const util          = require('./util');
-const random        = require('./random');
-const Schemas       = require('./schemas');
-const traverse      = require('./traverse');
-const validate      = require('./validate');
 
 module.exports = OpenApiEnforcer;
 
@@ -85,10 +82,6 @@ function OpenApiEnforcer(definition, options) {
     // attempt to load the version specific settings and functions
     const match = /^(\d+)\./.exec(v);
     const major = match[1];
-    const Version = util.tryRequire('./v' + major + '/index');
-    if (!Version) throw Error('The Open API definition version is either invalid or unsupported: ' + v);
-    const version = new Version(this, definition);
-    version.defaults = Version.defaults;
 
     // build path parser functions
     const pathParsers = {};
@@ -151,7 +144,12 @@ function OpenApiEnforcer(definition, options) {
         defaults: defaults,
         definition: definition,
         pathParsers: pathParsers,
-        version: version
+        version: (function() {
+            const version = exports.tryRequire(path.resolve(__dirname, 'v' + major));
+            if (!version) throw Error('The Open API definition version is either invalid or unsupported: ' + value);
+            version.definition = definition;
+            return util.deepFreeze(version);
+        })()
     });
 }
 
@@ -165,24 +163,19 @@ function OpenApiEnforcer(definition, options) {
  * @returns {*|{ error: Exception, value:* }}
  */
 OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
-    const exception = new Exception('One or more errors occurred during deserialization');
     const data = store.get(this);
-    const version = data.version;
 
     // normalize options
     options = Object.assign({}, data.defaults.deserialize, options);
 
-    // validate the schema
-    if (!options.skipSchemaValidation) {
-        const exception = Schemas.validate(version.value, schema, {defaults: false, throw: false});
-        if (exception) util.errorHandler(options.throw, exception, null);
-    }
+    // get Schema instance
+    schema = Schema(data.version.value, schema, { throw: false });
+    const exception = schema.exception();
+    if (exception) return util.errorHandler(options.throw, exception, null);
 
-    // run version specific deserialization
-    const result = version.serial.deserialize(exception, schema, value);
-
-    // determine how to handle deserialization data
-    return util.errorHandler(options.throw, exception, result);
+    // deserialize the value
+    const result = schema.deserialize(value, options);
+    return util.errorHandler(options.throw, result.error, result.value);
 };
 
 /**
@@ -236,32 +229,18 @@ OpenApiEnforcer.prototype.path = function(path) {
  */
 OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
     const data = store.get(this);
-    const version = data.version;
-
-    const exception = new Exception('One or more errors occurred during population');
 
     // normalize options
-    options = Object.assign({}, data.defaults.populate, options, version.defaults.populate);
+    options = Object.assign({}, data.defaults.deserialize, options);
 
-    // initialize variables
-    const v = {
-        context: this,
-        injector: populate.injector[options.replacement],
-        map: params || {},
-        options: options,
-        schemas: version.schemas,
-        version: version
-    };
+    // get Schema instance
+    schema = Schema(data.version.value, schema, { throw: false });
+    const exception = schema.exception();
+    if (exception) return util.errorHandler(options.throw, exception, null);
 
-    // produce start value
-    if (v.options.copy) value = util.copy(value);
-
-    // begin population
-    const root = { root: value };
-    populate.populate(v, exception, schema, root, 'root');
-
-    // determine how to handle deserialization data
-    return util.errorHandler(options.throw, exception, root.root);
+    // deserialize the value
+    const result = schema.populate(params, value, options);
+    return util.errorHandler(options.throw, result.error, result.value);
 };
 
 /**
@@ -273,14 +252,22 @@ OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
  * @returns {{ exception: OpenAPIException|null, value: *}|*}
  */
 OpenApiEnforcer.prototype.random = function(schema, options) {
+    return this.schema(schema, { throw: options.throw }).random(options);
+
+    const data = store.get(this);
+
     if (!options) options = {};
     if (!options.hasOwnProperty('skipInvalid')) options.skipInvalid = false;
     if (!options.hasOwnProperty('throw')) options.throw = true;
 
-    const result = random.util.traverse(schema,
-        store.get(this).version, options,
-        Object.assign({}, staticDefaults.random, options));
-    return util.errorHandler(options.throw, result.exception, result.value);
+    // get Schema instance
+    schema = Schema(data.version.value, schema, { throw: false });
+    const exception = schema.exception();
+    if (exception) return util.errorHandler(options.throw, exception, null);
+
+    // generate the value
+    const result = schema.random(options);
+    return util.errorHandler(options.throw, result.error, result.value);
 };
 
 /**
@@ -319,7 +306,7 @@ OpenApiEnforcer.prototype.request = function(req, options) {
     // get the defined open api path or call next middleware
     const path = this.path(req.path);
     if (!path) {
-        exception.push('Path not found');
+        exception('Path not found');
         exception.meta = { statusCode: 404 };
         return util.errorHandler(options.throw, exception);
     }
@@ -327,7 +314,7 @@ OpenApiEnforcer.prototype.request = function(req, options) {
     // validate that the path supports the method
     const method = req.method.toLowerCase();
     if (!path.schema[method]) {
-        exception.push('Method not allowed');
+        exception('Method not allowed');
         exception.meta = { statusCode: 405 };
         return util.errorHandler(options.throw, exception);
     }
@@ -399,18 +386,19 @@ OpenApiEnforcer.prototype.response = function(options) {
  * @returns {*}
  */
 OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
-    const exception = new Exception('One or more errors occurred during serialization');
     const data = store.get(this);
-    const version = data.version;
 
     // normalize options
     options = Object.assign({}, data.defaults.serialize, options);
 
-    // run version specific deserialization
-    const result = version.serial.serialize(exception, schema, value);
+    // get Schema instance
+    schema = Schema(data.version.value, schema, { throw: false });
+    const exception = schema.exception();
+    if (exception) return util.errorHandler(options.throw, exception, null);
 
-    // determine how to handle serialization data
-    return util.errorHandler(options.throw, exception, result);
+    // deserialize the value
+    const result = schema.serialize(value, options);
+    return util.errorHandler(options.throw, result.error, result.value);
 };
 
 /**
@@ -420,16 +408,8 @@ OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
  * @returns {{deserialize: (function(*=): (*|{errors: string[], value: *})), errors: (function(*=): string[]), populate: (function(*=, *=, *=): *), random: (function(): *), serialize: (function(*=, *=): {errors, value}), validate: (function(*=): void)}}
  */
 OpenApiEnforcer.prototype.schema = function(schema, options) {
-    const context = this;
-    if (!options || typeof options !== 'object') options = {};
-    return {
-        deserialize: (value) => context.deserialize(schema, value, options.deserialize),
-        errors: (value) => context.errors(schema, value, options.errors),
-        populate: (params, value) => context.populate(schema, params, value, options.populate),
-        random: () => context.random(schema),
-        serialize: (value) => context.serialize(schema, value, options.serialize),
-        validate: (value) => context.validate(schema, value)
-    }
+    const data = store.get(this);
+    return Schema(data.version, schema, options);
 };
 
 /**
@@ -437,39 +417,26 @@ OpenApiEnforcer.prototype.schema = function(schema, options) {
  * @param {object} schema
  * @param {*} value
  * @param {object} [options]
- * @param {boolean} [options.deserialize=false]
  * @param {boolean} [options.throw=true]
  * @returns {Exception|null}
  * @throws {Error}
  */
 OpenApiEnforcer.prototype.validate = function(schema, value, options) {
     const data = store.get(this);
-    const version = data.version;
 
-    // normalize options
-    options = Object.assign({}, data.defaults.validate, options);
+    options = Object.assign({}, options);
+    if (!options.hasOwnProperty('throw')) options.throw = true;
 
-    // validate the schema
-    let exception = Schemas.validate(version.value, schema, {defaults: false, throw: false});
+    // get the Schema instance
+    schema = new Schema(data.version.value, schema, { throw: false });
+    let exception = schema.exception();
     if (exception) {
         if (options.throw) throw Error(exception.toString());
         return exception;
     }
 
-    // deserialize the value
-    if (options.deserialize) {
-        const data = this.deserialize(schema, value, { throw: false });
-        if (data.error) {
-            if (options.throw) throw Error(data.error.toString());
-            return data.error;
-        }
-        value = data.value;
-    }
-
-    // validate the value (returns null if valid)
-    exception = validate(version, schema, value);
-
-    // throw an error or return Exception object
+    // validate the value against the schema
+    exception = schema.validate(value);
     if (exception && options.throw) throw Error(exception.toString());
     return exception;
 };
