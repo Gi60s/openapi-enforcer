@@ -3,7 +3,6 @@ const Buffer    = require('buffer').Buffer;
 const Enforcer  = require('../index');
 const Exception = require('../bin/exception');
 const expect    = require('chai').expect;
-const random    = require('../bin/random');
 
 describe('random', () => {
     const exception = Exception();
