@@ -279,7 +279,7 @@ exports.serializeResponseHeader = function(schema, value) {
 
 exports.serial = serial;
 
-exports.value = 3;
+exports.value = 2;
 
 
 
