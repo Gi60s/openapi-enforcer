@@ -16,6 +16,8 @@
  **/
 'use strict';
 const Exception     = require('./exception');
+const path          = require('path');
+const rx            = require('./rx');
 
 const rxMediaType = /^([\s\S]+?)\/(?:([\s\S]+?)\+)?([\s\S]+?)$/;
 
@@ -46,6 +48,35 @@ exports.copy = function(value) {
     return copy(map, value);
 };
 
+exports.deepFreeze = function(value) {
+    if (value instanceof Date) {
+        value.setDate = noop;
+        value.setFullYear = noop;
+        value.setHours = noop;
+        value.setMilliseconds = noop;
+        value.setMinutes = noop;
+        value.setMonth = noop;
+        value.setSeconds = noop;
+        value.setTime = noop;
+        value.setUTCDate = noop;
+        value.setUTCFullYear = noop;
+        value.setUTCHours = noop;
+        value.setUTCMilliseconds = noop;
+        value.setUTCMinutes = noop;
+        value.setUTCMonth = noop;
+        value.setUTCSeconds = noop;
+        value.setYear = noop;
+
+    } else if (Array.isArray(value)) {
+        value.forEach(v => this.deepFreeze(v));
+        Object.freeze(value);
+
+    } else if (this.isPlainObject(value)) {
+        Object.keys(value).forEach(k => this.deepFreeze(value[k]));
+        Object.freeze(value);
+    }
+};
+
 /**
  * Decide whether edges of a string should have slashes or not.
  * @param {string} value
@@ -74,7 +105,7 @@ exports.Error = function(meta, message) {
 };
 
 exports.errorHandler = function(useThrow, exception, value) {
-    const hasErrors = Exception.hasException(exception);
+    const hasErrors = exception.hasException;
     if (hasErrors && useThrow) {
         const err = Error(exception);
         err.code = 'OPEN_API_EXCEPTION';
@@ -161,10 +192,23 @@ exports.findMediaMatch = function(input, store) {
     return unique;
 };
 
-exports.getVersionApi = function(value) {
-    const version = util.tryRequire('./v' + value + '/index');
-    if (!version) throw Error('The Open API definition version is either invalid or unsupported: ' + value);
-    return version;
+exports.getDateFromValidDateString = function (format, string) {
+    const date = new Date(string);
+    const match = rx[format].exec(string);
+    const year = +match[1];
+    const month = +match[2] - 1;
+    const day = +match[3];
+    const hour = +match[4] || 0;
+    const minute = +match[5] || 0;
+    const second = +match[6] || 0;
+    const millisecond = +match[7] || 0;
+    return date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month &&
+    date.getUTCDate() === day &&
+    date.getUTCHours() === hour &&
+    date.getUTCMinutes() === minute &&
+    date.getUTCSeconds() === second &&
+    date.getUTCMilliseconds() === millisecond ? date : null;
 };
 
 exports.isDate = function (value) {
