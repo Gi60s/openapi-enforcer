@@ -18,7 +18,7 @@
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
 
-describe('#populate', () => {
+describe('schema.populate', () => {
 
     const definition = {
         openapi: '3.0.0',
@@ -72,19 +72,14 @@ describe('#populate', () => {
 
         it('report data', () => {
             const enforcer = new Enforcer(definition);
-            const data = enforcer.populate({type: 'number', 'x-variable': 'myNumber'}, {myNumber: 1}, undefined, { throw: false });
+            const data = enforcer.populate({type: 'number', 'x-variable': 'myNumber'}, {myNumber: 1}, undefined, { reportErrors: true });
             expect(data.value).to.equal(1);
         });
 
         it('report error', () => {
             const enforcer = new Enforcer(definition);
-            const data = enforcer.populate({type: 'array'}, {}, {}, { throw: false });
-            expect(data.errors).not.to.be.null;
-        });
-
-        it('throw error', () => {
-            const enforcer = new Enforcer(definition);
-            expect(() => enforcer.populate({type: 'array'}, {}, {}, { throw: true })).to.throw(/errors occurred during population/);
+            const data = enforcer.populate({type: 'array'}, {}, {}, { reportErrors: true });
+            expect(data.error).not.to.be.null;
         });
 
     });
@@ -125,7 +120,7 @@ describe('#populate', () => {
             expect(value).to.equal('hello');
         });
 
-        it('default corrects type', () => {
+        it('default', () => {
             const schema = {
                 type: 'string',
                 format: 'date',
@@ -135,14 +130,14 @@ describe('#populate', () => {
             expect(value).to.deep.equal(new Date('2000-01-01'));
         });
 
-        it('x-template corrects type', () => {
+        it('x-template', () => {
             const schema = {
                 type: 'string',
                 format: 'date',
                 'x-template': '{year}-{month}-01'
             };
             const value = enforcer.populate(schema, { year: '2000', month: '01' });
-            expect(value).to.deep.equal(new Date('2000-01-01'));
+            expect(value).to.deep.equal('2000-01-01');
         });
 
     });
@@ -184,6 +179,7 @@ describe('#populate', () => {
 
         it('ignore missing requires', () => {
             const schema = {
+                type: 'object',
                 required: ['name'],
                 properties: {
                     name: { type: 'string' },
@@ -194,21 +190,9 @@ describe('#populate', () => {
             expect(value).to.deep.equal({ age: 5 })
         });
 
-        it('don\'t ignore missing requires', () => {
-            const enforcer = new Enforcer(definition);
-            const schema = {
-                required: ['name'],
-                properties: {
-                    name: { type: 'string' },
-                    age: { type: 'number', default: 5 }
-                }
-            };
-            const value = enforcer.populate(schema, {}, undefined, { ignoreMissingRequired: false });
-            expect(value).to.be.undefined;
-        });
-
         it('additional properties', () => {
             const schema = {
+                type: 'object',
                 additionalProperties: {
                     type: 'object',
                     properties: {
@@ -224,10 +208,12 @@ describe('#populate', () => {
             const schema = {
                 allOf: [
                     {
+                        type: 'object',
                         properties: {
                             a: { type: 'string', default: 'A' }
                         }
                     },{
+                        type: 'object',
                         properties: {
                             b: { type: 'string', default: 'B' }
                         }
@@ -241,25 +227,52 @@ describe('#populate', () => {
         describe('anyOf', () => {
             const schema = {
                 anyOf: [
-                    { properties: { value: { type: 'number', default: 5 } } },
-                    { properties: { value: { type: 'string', default: 'hello' } } }
+                    { type: 'object', properties: { value: { type: 'number', default: 5 } } },
+                    { type: 'object', properties: { value: { type: 'string', default: 'hello' } } }
                 ]
             };
 
-            it('does nothing', () => {
+            it('without discriminator does nothing', () => {
                 const value = enforcer.populate(schema);
                 expect(value).to.be.undefined;
+            });
+
+            it('with discriminator resolves', () => {
+                const s = Object.assign({}, schema);
+                s.discriminator = {
+                    propertyName: 'x',
+                    mapping: {
+                        number: s.anyOf[0],
+                        string: s.anyOf[1]
+                    }
+                };
+                expect(enforcer.populate(s, null, { x: 'number' })).to.deep.equal({ x: 'number', value: 5 });
+                expect(enforcer.populate(s, null, { x: 'string' })).to.deep.equal({ x: 'string', value: 'hello' });
+            });
+
+            it('with unmatched discriminator', () => {
+                const s = Object.assign({}, schema);
+                s.discriminator = {
+                    propertyName: 'x',
+                    mapping: {
+                        number: s.anyOf[0],
+                        string: s.anyOf[1]
+                    }
+                };
+                expect(enforcer.populate(s, null)).to.equal(undefined);
             });
         });
 
         describe('oneOf', () => {
             const one = {
+                type: 'object',
                 properties: {
                     mode: { type: 'string' },
                     value: { type: 'number', default: 5 }
                 }
             };
             const two = {
+                type: 'object',
                 properties: {
                     mode: { type: 'string' },
                     value: { type: 'string', default: 'hello' }

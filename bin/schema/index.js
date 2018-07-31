@@ -18,6 +18,7 @@
 const Exception     = require('../exception');
 const formatter     = require('./formatter');
 const merge         = require('./merge');
+const populate      = require('./populate');
 const random        = require('./random');
 const rx            = require('../rx');
 const serial        = require('./serialize');
@@ -49,7 +50,7 @@ function Schema(exception, version, schema, options, map) {
     // validate that only the allowed properties are specified and copy properties to this
     const validations = version.validationsMap;
     const common = validations.common;
-    const keys = Object.keys(schema).filter(k => !rxExtension.test(k));
+    const keys = Object.keys(schema);
     const length = keys.length;
     const composites = [];
     let skipDefaultValidations = false;
@@ -59,8 +60,11 @@ function Schema(exception, version, schema, options, map) {
     for (let i = 0; i < length; i++) {
         const key = keys[i];
 
+        if (rxExtension.test(key)) {
+            this[key] = schema[key];
+
         // validate that the property is allowed
-        if (!(common[key] || typeProperties[key] || validations.composites[key] || allowProperty(schema, key, version.value))) {
+        } else if (!(common[key] || typeProperties[key] || validations.composites[key] || allowProperty(schema, key, version.value))) {
             exception('Property not allowed: ' + key);
 
         } else {
@@ -110,7 +114,7 @@ function Schema(exception, version, schema, options, map) {
         }
 
     } else if (!type) {
-        exception('Missing required property: type');
+        exception.first('Missing required property: type');
 
     } else if (!validations.types[type]) {
         exception('Invalid type specified. Expected one of: ' + Object.keys(validations.types).join(', '));
@@ -454,20 +458,17 @@ Schema.prototype.merge = function(schema, options) {
  * @param {*} [value]
  * @param {object} [options]
  * @param {boolean} [options.copy]
- * @param {boolean} [options.ignoreMissingRequired]
  * @param {boolean} [options.oneOf]
  * @param {string} [options.replacement]
+ * @param {boolean} [options.reportErrors]
  * @param {boolean} [options.serialize]
  * @param {boolean} [options.templateDefaults]
  * @param {boolean} [options.templates]
- * @param {boolean} [options.throw=true] If true then throw errors if found, otherwise return errors array.
  * @param {boolean} [options.variables]
- * @returns {Exception|null}
+ * @returns {{ error: Exception|null, value: * }}
  */
 Schema.prototype.populate = function(params, value, options) {
-    const data = store.get(this);
-    if (!data) throw Error('Expected a Schema instance type');
-    // TODO
+    return populate.populate(this, params, value, options);
 };
 
 /**
