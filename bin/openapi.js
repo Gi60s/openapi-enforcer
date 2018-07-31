@@ -28,31 +28,38 @@ const rxVersion = /^2.0$|^\d+\.\d+\.\d+$/;
 
 const staticDefaults = {
     deserialize: {
-        skipSchemaValidation: false,
         throw: true
     },
     populate: {
         copy: false,
+        conditions: true,
         defaults: true,
-        ignoreMissingRequired: true,
         replacement: 'handlebar',
+        reportErrors: false,
         templateDefaults: true,
         templates: true,
-        throw: true,
         variables: true
     },
     random: {
-        skipInvalid: false,
-        throw: true
+        arrayVariation: 5,
+        dateVariation: 2592000000,
+        defaultPossibility: 0.15,
+        integerVariation: 500,
+        numberVariation: 500,
+        maximumDepth: Number.MAX_SAFE_INTEGER,
+        reportErrors: false,
     },
     request: {
+        throw: true
+    },
+    schema: {
+        freeze: true,
         throw: true
     },
     serialize: {
         throw: true
     },
     validate: {
-        deserialize: false,
         throw: true
     }
 };
@@ -144,7 +151,7 @@ function OpenApiEnforcer(definition, options) {
         defaults: defaults,
         definition: definition,
         pathParsers: pathParsers,
-        version: version(major, definition)
+        version: version(this, major, definition)
     });
 }
 
@@ -210,58 +217,60 @@ OpenApiEnforcer.prototype.path = function(path) {
  * @param {object} [params={}]
  * @param {*} [value=undefined]
  * @param {object} options
- * @param {boolean} [options.copy]
- * @param {boolean} [options.ignoreMissingRequired]
- * @param {boolean} [options.oneOf]
- * @param {string} [options.replacement]
- * @param {boolean} [options.serialize]
- * @param {boolean} [options.templateDefaults]
- * @param {boolean} [options.templates]
- * @param {boolean} [options.throw=true] If true then throw errors if found, otherwise return errors array.
- * @param {boolean} [options.variables]
+ * @param {boolean} [options.copy=false]
+ * @param {boolean} [options.conditions=true]
+ * @param {boolean} [options.defaults=true]
+ * @param {string} [options.replacement='handlebar']
+ * @param {boolean} [options.reportErrors=false]
+ * @param {boolean} [options.templateDefaults=true]
+ * @param {boolean} [options.templates=true]
+ * @param {boolean} [options.variables=true]
  * @returns {{ exception: OpenAPIException|null, value: *}|*}
  */
 OpenApiEnforcer.prototype.populate = function (schema, params, value, options) {
     const data = store.get(this);
 
     // normalize options
-    options = Object.assign({}, data.defaults.deserialize, options);
+    options = Object.assign({}, data.defaults.populate, options);
 
     // get Schema instance
-    schema = Schema(data.version.value, schema, { throw: false });
+    schema = this.schema(schema, options);
     const exception = schema.exception();
-    if (exception) return util.errorHandler(options.throw, exception, null);
+    if (exception) return options.reportErrors ? { error: exception } : undefined;
 
-    // deserialize the value
+    // populate the value
     const result = schema.populate(params, value, options);
-    return util.errorHandler(options.throw, result.error, result.value);
+    return options.reportErrors ? result : result.value;
 };
 
 /**
  * Generate a random value that meets the schema requirements.
  * @param {object} schema
+ * @param {*} [value]
  * @param {object} [options]
- * @param {boolean} [options.skipInvalid=false]
- * @param {boolean} [options.throw=true]
+ * @param {number} [options.arrayVariation=5] The variation on array size.
+ * @param {number} [options.dateVariation=2592000000] The number of milliseconds in date variation. Default is 30 days.
+ * @param {number} [options.defaultPossibility=.15] Percentage chance that default value will be used.
+ * @param {number} [options.integerVariation=500]
+ * @param {number} [options.numberVariation=500]
+ * @param {number} [options.maximumDepth=Number.MAX_SAFE_INTEGER] The maximum depth for nested array and objects. Use -1 for unlimited.
+ * @param {boolean} [options.reportErrors=false]
  * @returns {{ exception: OpenAPIException|null, value: *}|*}
  */
-OpenApiEnforcer.prototype.random = function(schema, options) {
-    return this.schema(schema, { throw: options.throw }).random(options);
-
+OpenApiEnforcer.prototype.random = function(schema, value, options) {
     const data = store.get(this);
 
-    if (!options) options = {};
-    if (!options.hasOwnProperty('skipInvalid')) options.skipInvalid = false;
-    if (!options.hasOwnProperty('throw')) options.throw = true;
+    // normalize options
+    options = Object.assign({}, data.defaults.random, options);
 
     // get Schema instance
-    schema = Schema(data.version.value, schema, { throw: false });
+    schema = this.schema(schema, options);
     const exception = schema.exception();
-    if (exception) return util.errorHandler(options.throw, exception, null);
+    if (exception) return options.reportErrors ? { error: exception } : undefined;
 
-    // generate the value
-    const result = schema.random(options);
-    return util.errorHandler(options.throw, result.error, result.value);
+    // generate the random value
+    const result = schema.random(value, options);
+    return options.reportErrors ? result : result.value;
 };
 
 /**
@@ -273,7 +282,7 @@ OpenApiEnforcer.prototype.random = function(schema, options) {
  * @param {string} [req.method='get']
  * @param {string} [req.path]
  * @param {object} [options]
- * @param {boolean} [options.throw]
+ * @param {boolean} [options.throw=true]
  * @returns {object}
  */
 OpenApiEnforcer.prototype.request = function(req, options) {
@@ -370,6 +379,38 @@ OpenApiEnforcer.prototype.response = function(options) {
     return responseFactory(this, path, method, options);
 };
 
+/**
+ * Get an object that will allow a simplified execution context for a recurring schema and options.
+ * @param {object} schema
+ * @param {object} [options]
+ * @param {boolean} [options.freeze]
+ * @param {boolean} [options.throw]
+ * @returns {Schema}
+ */
+OpenApiEnforcer.prototype.schema = function(schema, options) {
+    const data = store.get(this);
+    if (!data) throw Error('Invalid calling context');
+
+    // schema may already be a Schema instance
+    if (schema instanceof Schema) return schema;
+
+    // validate input
+    if (!util.isPlainObject(schema)) throw Error('Invalid schema specified');
+
+    // normalize options
+    options = Object.assign({}, data.defaults.schema, options);
+
+    // create the exception instance
+    const exception = Exception('Schema has one or more errors');
+
+    // build the schema
+    const instance = new Schema(exception, data.version, schema, options, new Map());
+
+    // if there is an error and we're throwing then throw now
+    if (options.throw && instance.exception()) throw Error(exception.toString());
+
+    return instance;
+};
 
 /**
  * Serialize a value for sending as a response.
@@ -396,39 +437,6 @@ OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
 };
 
 /**
- * Get an object that will allow a simplified execution context for a recurring schema and options.
- * @param {object} schema
- * @param {object} [options]
- * @returns {Schema}
- */
-OpenApiEnforcer.prototype.schema = function(schema, options) {
-    const data = store.get(this);
-    if (!data) throw Error('Invalid calling context');
-
-    // schema may already be a Schema instance
-    if (schema instanceof Schema) return schema;
-
-    // validate input
-    if (!util.isPlainObject(schema)) throw Error('Invalid schema specified');
-
-    // normalize options
-    options = Object.assign({}, options);
-    if (!options.hasOwnProperty('throw')) options.throw = true;
-    if (!options.hasOwnProperty('freeze')) options.freeze = true;
-
-    // create the exception instance
-    const exception = Exception('Schema has one or more errors');
-
-    // build the schema
-    const instance = new Schema(exception, data.version, schema, options, new Map());
-
-    // if there is an error and we're throwing then throw now
-    if (options.throw && instance.exception()) throw Error(exception.toString());
-
-    return instance;
-};
-
-/**
  * Check a value against a schema for errors.
  * @param {object} schema
  * @param {*} value
@@ -438,8 +446,7 @@ OpenApiEnforcer.prototype.schema = function(schema, options) {
  * @throws {Error}
  */
 OpenApiEnforcer.prototype.validate = function(schema, value, options) {
-    options = Object.assign({}, options);
-    if (!options.hasOwnProperty('throw')) options.throw = true;
+    options = Object.assign({}, data.defaults.validate, options);
 
     schema = this.schema(schema, options);
     const exception = schema.validate(value);
