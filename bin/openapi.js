@@ -153,7 +153,6 @@ function OpenApiEnforcer(definition, options) {
  * @param {object} schema
  * @param {*} value
  * @param {object} options
- * @param {boolean} [options.skipSchemaValidation=false]
  * @param {boolean} [options.throw=true] If true then throw errors if found, otherwise return exception.
  * @returns {*|{ error: Exception, value:* }}
  */
@@ -164,7 +163,7 @@ OpenApiEnforcer.prototype.deserialize = function(schema, value, options) {
     options = Object.assign({}, data.defaults.deserialize, options);
 
     // get Schema instance
-    schema = Schema(data.version.value, schema, { throw: false });
+    schema = this.schema(schema, { throw: false });
     const exception = schema.exception();
     if (exception) return util.errorHandler(options.throw, exception, null);
 
