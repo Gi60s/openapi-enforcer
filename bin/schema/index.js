@@ -15,7 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception     = require('../exception');
 const Schema        = require('./schema');
+const util          = require('../util');
 
 const validations = getValidationsMap();
 
@@ -91,7 +93,7 @@ function getValidationsMap() {
             object: {},
             string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
         },
-        composites: { allOf: true, anyOf: true, oneOf: true, not: true, discriminator: true },
+        composites: { allOf: true, anyOf: true, oneOf: true, not: true },
         types: {
             array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
             boolean: {},

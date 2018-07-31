@@ -31,15 +31,15 @@ module.exports = function(schema, value) {
 
     // check the schema
     if (schema.hasException) {
-        exception.push(schema.exception);
+        exception(schema.exception);
         return exception;
     }
 
     // validate the value
-    validate(exception, util.getVersionApi(schema.version), new Map(), schema, value);
+    validate(exception, schema.version, new Map(), schema, value);
 
     // return the exception if an error occurred
-    return Exception.hasException(exception) ? exception : null;
+    return exception.hasException ? exception : null;
 };
 
 function validate(exception, version, map, schema, value) {
@@ -64,7 +64,7 @@ function validate(exception, version, map, schema, value) {
     if (schema.allOf) {
         const child = exception.nest('Did not validate against allOf schemas');
         schema.allOf.forEach((subSchema, index) => {
-            validate(child.nest('Did not validate against allOf schema at index ' + index), version, map, subSchema, value);
+            validate(child.nest('Did not validate against schema at index ' + index), version, map, subSchema, value);
         });
 
     } else if (schema.anyOf) {
@@ -81,36 +81,36 @@ function validate(exception, version, map, schema, value) {
             const length = schema.anyOf.length;
             let valid = false;
             for (let i = 0; i < length; i++) {
-                const child = anyOfException.nest('Did not validate against schema at index' + index);
+                const child = anyOfException.nest('Did not validate against schema at index ' + i);
                 validate(child, version, map, schema.anyOf[i], value);
-                if (!Exception.hasException(child)) {
+                if (!child.hasException) {
                     valid = true;
                     break;
                 }
             }
-            if (!valid) exception.push(anyOfException);
+            if (!valid) exception(anyOfException);
         }
 
     } else if (schema.oneOf) {
         const oneOfException = Exception('Did not validate against exactly one oneOf schema');
-        const length = schema.anyOf.length;
+        const length = schema.oneOf.length;
         let valid = 0;
         for (let i = 0; i < length; i++) {
-            const child = Exception('Did not validate against schema at index ' + index);
-            validate(child, version, map, schema.anyOf[i], value);
-            if (!Exception.hasException(child)) {
+            const child = Exception('Did not validate against schema at index ' + i);
+            validate(child, version, map, schema.oneOf[i], value);
+            if (!child.hasException) {
                 valid++;
-                oneOfException.push('Validated against schema at index ' + index);
+                oneOfException('Validated against schema at index ' + i);
             } else {
-                oneOfException.push(child);
+                oneOfException(child);
             }
         }
-        if (valid !== 1) exception.push(oneOfException);
+        if (valid !== 1) exception(oneOfException);
 
     } else if (schema.not) {
         const child = Exception('');
         validate(child, version, map, schema, value);
-        if (!Exception.hasException(child)) exception('Value should not validate against schema');
+        if (!child.hasException) exception('Value should not validate against schema');
 
     } else if (type === 'array') {
         if (!Array.isArray(value)) {
@@ -202,7 +202,7 @@ function validate(exception, version, map, schema, value) {
             maxMin(exception, schema, 'object property count', 'maxProperties', 'minProperties', false, keys.length, schema.maxProperties, schema.minProperties);
 
             // if a discriminator is present then validate discriminator mapping
-            if (schema.discriminate) {
+            if (schema.discriminator) {
                 const discriminatorSchema = version.getDiscriminatorSchema(schema, value);
                 if (discriminatorSchema) {
                     validate(exception, version, map, schema, value);

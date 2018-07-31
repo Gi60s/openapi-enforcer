@@ -15,7 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const util  = require('../util');
+const rx        = require('../rx');
+const util      = require('../util');
 
 const zeros = '00000000';
 
@@ -46,7 +47,7 @@ exports.deserialize = function (exception, schema, value) {
                 exception('Value is not date string of the format YYYY-MM-DD');
                 return { error: true };
             } else {
-                const date = getDateFromValidDateString('date', value);
+                const date = util.getDateFromValidDateString('date', value);
                 if (!date) {
                     exception('Value is not a valid date');
                     return { error: true };
@@ -60,7 +61,7 @@ exports.deserialize = function (exception, schema, value) {
                 exception('Value is not date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
                 return { error: true };
             } else {
-                const date = getDateFromValidDateString('date-time', value);
+                const date = util.getDateFromValidDateString('date-time', value);
                 if (!date) {
                     exception('Value is not a valid date-time');
                     return { error: true };

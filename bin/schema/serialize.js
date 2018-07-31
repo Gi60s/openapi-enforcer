@@ -31,15 +31,15 @@ exports.deserialize = function(schema, value) {
 
     // check the schema
     if (schema.hasException) {
-        exception.push(schema.exception);
+        exception(schema.exception);
         return exception;
     }
 
     // deserialize
-    const result = deserialize(exception, util.getVersionApi(schema.version), new Map(), schema, value);
+    const result = deserialize(exception, schema.version, new Map(), schema, value);
 
     // return results
-    const hasException = Exception.hasException(exception);
+    const hasException = exception.hasException;
     return {
         error: hasException ? exception : null,
         value: hasException ? null : result
@@ -51,15 +51,15 @@ exports.serialize = function(schema, value) {
 
     // check the schema
     if (schema.hasException) {
-        exception.push(schema.exception);
+        exception(schema.exception);
         return exception;
     }
 
     // deserialize
-    const result = serialize(exception, util.getVersionApi(schema.version), new Map(), schema, value);
+    const result = serialize(exception, schema.version, new Map(), schema, value);
 
     // return results
-    const hasException = Exception.hasException(exception);
+    const hasException = exception.hasException;
     return {
         error: hasException ? exception : null,
         value: hasException ? null : result
@@ -103,7 +103,7 @@ function deserialize(exception, version, map, schema, value) {
                 const subSchema = schema.allOf[index];
                 const child = anyOfException.nest('Unable to deserialize using schema at index' + index);
                 const result = deserialize(child, version, map, subSchema, value);
-                if (!Exception.hasException(child)) {
+                if (!child.hasException) {
                     const error = subSchema.validate(v);
                     if (error) {
                         child(error);
@@ -125,7 +125,7 @@ function deserialize(exception, version, map, schema, value) {
             schema.oneOf.forEach((schema, index) => {
                 const child = oneOfException.nest('Unable to deserialize using schema at index ' + index);
                 result = deserialize(child, version, map, schema, value);
-                if (!Exception.hasException(child)) {
+                if (!child.hasException) {
                     const error = schema.validate(v);
                     if (error) {
                         child(error);
@@ -136,7 +136,7 @@ function deserialize(exception, version, map, schema, value) {
                 }
             });
             if (valid !== 1) {
-                exception.push(oneOfException);
+                exception(oneOfException);
             } else {
                 return result;
             }
@@ -150,7 +150,7 @@ function deserialize(exception, version, map, schema, value) {
             matches.set(schema, result);
             return result;
         } else {
-            exception.push('Expected an array. Received: ' + util.smart(value));
+            exception('Expected an array. Received: ' + util.smart(value));
         }
 
     } else if (type === 'object') {
@@ -229,7 +229,7 @@ function serialize(exception, version, map, schema, value) {
                 const subSchema = schema.allOf[index];
                 const child = anyOfException.nest('Unable to serialize using schema at index' + index);
                 const result = deserialize(child, version, map, subSchema, value);
-                if (!Exception.hasException(child)) {
+                if (!child.hasException) {
                     const error = subSchema.validate(result);
                     if (error) {
                         child(error);
@@ -251,9 +251,8 @@ function serialize(exception, version, map, schema, value) {
             schema.oneOf.forEach((schema, index) => {
                 const child = oneOfException.nest('Unable to serialize using schema at index ' + index);
                 const result = deserialize(child, version, map, schema, value);
-                if (!Exception.hasException(child)) {
+                if (!child.hasException) {
                     const error = schema.validate(result);
-                    if (error) {
                     if (error) {
                         child(error);
                     } else {
@@ -263,7 +262,7 @@ function serialize(exception, version, map, schema, value) {
                 }
             });
             if (valid !== 1) {
-                exception.push(oneOfException);
+                exception(oneOfException);
             } else {
                 return result;
             }
@@ -277,7 +276,7 @@ function serialize(exception, version, map, schema, value) {
             matches.set(schema, result);
             return result;
         } else {
-            exception.push('Expected an array. Received: ' + util.smart(value));
+            exception('Expected an array. Received: ' + util.smart(value));
         }
 
     } else if (type === 'object') {

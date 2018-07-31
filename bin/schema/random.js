@@ -15,10 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception = require('./exception');
-const schemas   = require('./schemas');
-const traverse  = require('./traverse');
-const util      = require('./util');
+const Exception = require('../exception');
+const util      = require('../util');
 
 const stringChoices = [
     'Donec quis magna a nisl euismod congue.',
@@ -52,197 +50,175 @@ const stringChoices = [
     'Donec auctor nisl in felis pharetra tincidunt.'
 ];
 
-module.exports = function(version, schema, options) {
-    let exception = schemas.validate(version, schema, { throw: false });
-    if (!exception) {
-        exception = Exception('Unable to generate random value');
+/**
+ * Generate a random value.
+ * @param {Schema} schema
+ * @param {*} value A value with some values already populated.
+ * @param {object} options
+ * @param {number} [options.arrayVariation=5] The variation on array size.
+ * @param {number} [options.dateVariation=2592000000] The number of milliseconds in date variation. Default is 30 days.
+ * @param {number} [options.defaultPossibility=.15] Percentage chance that default value will be used.
+ * @param {number} [options.maximimDepth=-1] The maximum depth for nested array and objects. Use -1 for unlimited.
+ * @returns {*}
+ */
+module.exports = function(schema, value, options) {
+    const exception = Exception('Unable to generate random value');
 
+    options = Object.assign({
+        arrayVariation: 5,
+        dateVariation: 2592000000,
+        defaultPossibility: 0.15,
+        maximimDepth: -1
+    }, options);
+
+    // check the schema
+    if (schema.hasException) {
+        exception(schema.exception);
+        return exception;
     }
+
+    return random(exception, schema, value, options, 0);
 };
 
+function random(exception, schema, value, options, depth) {
+    const type = schema.type;
 
-// generate random array
-exports.array = function(exception, schema) {
-    return common(schema, () => {
+    // 15% chance of using default value
+    if (schema.hasOwnProperty('default') && Math.random() < options.defaultPossibility) return schema.default;
+
+    // select an enum value
+    if (schema.enum) return chooseOne(schema.enum);
+
+    if (schema.allOf) {
+
+    } else if (schema.anyOf || schema.oneOf) {
+
+    } else if (schema.not) {
+
+    } else if (type === 'array') {
         const config = {};
         config.minimum = schema.hasOwnProperty('minItems') ? schema.minItems : 0;
         config.maximum = schema.hasOwnProperty('maxItems') ? schema.maxItems : config.minimum + 5;
         const length = randomNumber(0, 0, true, config);
-        const array = [];
-        const itemSchema = schema.items;
+        const array = Array.isArray(value) ? value.concat() : [];
         let duplicates = 0;
-        while (array.length < length) {
-            const value = this.byType(exception, itemSchema || randomSchema());
-            if (schema.uniqueItems) {
-                const match = array.find(v => util.same(v, value));
-                if (match) {
-                    duplicates++;
-                    if (duplicates > 5) exception('Cannot generate example due to too narrowly scoped schema constraints: ' + JSON.stringify(schema));
+        let index;
+        while ((index = array.length) < length) {
+            if (array[index] === undefined) {
+                const value = random(exception, schema.items || randomSchema(), options);
+                if (schema.uniqueItems) {
+                    const match = array.find(v => util.same(v, value));
+                    if (match) {
+                        duplicates++;
+                        if (duplicates > 5) exception('Cannot generate example due to too narrowly scoped schema constraints: ' + JSON.stringify(schema));
+                    } else {
+                        duplicates = 0;
+                        array[index] = value;
+                    }
                 } else {
-                    duplicates = 0;
-                    array.push(value);
+                    array[index] = value;
                 }
-            } else {
-                array.push(value);
             }
         }
         return array;
-    });
-};
 
-// generate random buffer
-exports.binary = function(exception, schema) {
-    return exports.byte(exception, schema);
-};
+    } else if (type === 'boolean') {
+        return value === undefined ? chooseOne([true, false]) : value;
 
-// generate random boolean
-exports.boolean = function(exception, schema) {
-    return common(schema, () => {
-        return chooseOne([false, true]);
-    });
-};
+    } else if (type === 'integer') {
+        return value === undefined ? randomNumber(0, 500, true, schema) : value;
 
-// generate random buffer
-exports.byte = function(exception, schema) {
-    return common(schema, () => {
-        const config = {};
-        config.mininum = schema.hasOwnProperty('minLength') ? schema.minLength : 0;
-        config.maximum = schema.hasOwnProperty('maxLength') ? schema.maxLength : config.mininum + 10;
-        const length = randomNumber(0, 0, true, config);
-        const array = [];
-        for (let i = 0; i < length; i++) array.push(Math.floor(Math.random() * 255));
-        return Buffer.from(array);
-    });
-};
+    } else if (type === 'number') {
+        return value === undefined ? randomNumber(0, 500, false, schema) : value;
 
-// generate random value that matches schema type
-exports.byType = function(exception, schema) {
-    const type = util.schemaType(schema);
-    switch (type) {
-        // case 'array': return this.array(exception, schema);
-        case 'boolean': return this.boolean(exception, schema);
-        case 'integer': return this.integer(exception, schema);
-        case 'number': return this.number(exception, schema);
-        // case 'object': return this.object(exception, schema);
-        case 'string':
-            switch (schema.format) {
-                case 'binary': return this.binary(exception, schema);
-                case 'byte': return this.byte(exception, schema);
-                case 'date': return this.date(exception, schema);
-                case 'date-time': return this.dateTime(exception, schema);
+    } else if (type === 'string') {
+        if (value !== undefined) return value;
+
+        const format = schema.format;
+        if (format === 'binary' || format === 'byte') {
+            const config = {};
+            config.mininum = schema.hasOwnProperty('minLength') ? schema.minLength : 0;
+            config.maximum = schema.hasOwnProperty('maxLength') ? schema.maxLength : config.mininum + 10;
+            const length = randomNumber(0, 0, true, config);
+            const array = [];
+            for (let i = 0; i < length; i++) array.push(Math.floor(Math.random() * 255));
+            return Buffer.from(array);
+
+        } else if (format === 'date' || format === 'date-time') {
+            const config = Object.assign({}, schema);
+            if (config.enum) config.enum = config.enum.map(v => +(new Date(v)));
+            if (config.maximum) config.maximum = +(new Date(config.maximum));
+            if (config.minimum) config.minimum = +(new Date(config.minimum));
+            const value = randomNumber(Date.now(), options.dateVariation, true, config);     // variation = 30 days
+            const date = new Date(value);
+            if (schema.format === 'date') date.setUTCHours(0, 0, 0, 0);
+            return date;
+
+        } else {
+            let result = chooseOne(stringChoices);
+            if (schema.pattern) {
+                exception('Cannot generate example for string due to pattern requirement');
             }
-            return this.string(exception, schema);
-    }
-};
-
-// generate random date object
-exports.date = function(exception, schema) {
-    const d = exports.dateTime(exception, schema);
-    d.setUTCHours(0, 0, 0, 0);
-    return d;
-};
-
-// generate random date object
-exports.dateTime = function(exception, schema) {
-    schema = Object.assign({}, schema);
-    if (schema.enum) schema.enum = schema.enum.map(v => +(new Date(v)));
-    if (schema.maximum) schema.maximum = +(new Date(schema.maximum));
-    if (schema.minimum) schema.minimum = +(new Date(schema.minimum));
-    const value = randomNumber(Date.now(), 2592000000, true, schema);     // variation = 30 days
-    return new Date(value);
-};
-exports['date-time'] = exports.dateTime;
-
-// generate random integer
-exports.integer = function(exception, schema) {
-    return randomNumber(0, 500, true, schema);
-};
-
-// generate random number
-exports.number = function(exception, schema) {
-    return randomNumber(0, 500, false, schema);
-};
-
-// generate random object
-exports.object = function(exception, schema) {
-    const result = {};
-    const max = schema.hasOwnProperty('maxProperties') ? schema.maxProperties : Number.MAX_SAFE_INTEGER;
-    let remaining = max;
-
-    if (schema.allOf) schema = mergeAllOfObjects(schema.allOf);
-
-    if (schema.properties) {
-
-        // separate properties by optional or required
-        const optionalKeys = [];
-        const requiredKeys = [];
-        Object.keys(schema.properties).forEach(key => {
-            schema.properties[key].required ? requiredKeys.push(key) : optionalKeys.push(key);
-        });
-
-        // check for too many required properties
-        if (requiredKeys.length > max) {
-            exception('Cannot generate example due to too many required properties');
+            if (schema.hasOwnProperty('minLength')) {
+                while (result.length < schema.minLength) result += ' ' + chooseOne(stringChoices);
+            }
+            if (schema.hasOwnProperty('maxLength') && result.length > schema.maxLength) {
+                result = result.substr(0, schema.maxLength);
+            }
+            return result;
         }
 
-        // populate required properties
-        requiredKeys.forEach(key => {
-            result[key] = this.byType(exception, schema.properties[key] || randomSchema());
-        });
-        remaining -= requiredKeys.length;
+    } else if (type === 'object') {
+        const result = Object.assign({}, value);
+        const max = schema.hasOwnProperty('maxProperties') ? schema.maxProperties : Number.MAX_SAFE_INTEGER;
+        let remaining = max - Object.keys(result);
+        if (schema.allOf) schema = mergeAllOfObjects(schema.allOf);
+        if (schema.properties) {
 
-        // populate optional properties until max properties reached
-        let length = optionalKeys.length;
-        while (remaining && length) {
-            const index = Math.floor(Math.random() * length);
-            const key = optionalKeys.splice(index, 1)[0];
-            length--;
-            remaining--;
-            result[key] = this.byType(exception, schema.properties[key] || randomSchema());
-        }
-    }
+            // separate properties by optional or required
+            const optionalKeys = [];
+            const requiredKeys = [];
+            Object.keys(schema.properties).forEach(key => {
+                schema.properties[key].required ? requiredKeys.push(key) : optionalKeys.push(key);
+            });
 
-    if (schema.additionalProperties && remaining) {
-        let count = 0;
-        let index = 1;
-        while (count < 3 && remaining) {
-            const key = 'additionalProperty' + index++;
-            if (!result.hasOwnProperty(key)) {
-                count++;
-                remaining--;
-                result[key] = this.byType(exception, schema.additionalProperties === true
-                    ? randomSchema()
-                    : schema.additionalProperties);
+            // populate required properties
+            requiredKeys.forEach(key => {
+                if (result[key] === undefined) {
+                    result[key] = random(exception, schema.properties[key] || randomSchema(), undefined, options, depth + 1);
+                    remaining--;
+                }
+            });
+
+            // populate optional properties until max properties reached
+            let length = optionalKeys.length;
+            while (remaining && length) {
+                const index = Math.floor(Math.random() * length);
+                const key = optionalKeys.splice(index, 1)[0];
+                length--;
+                if (result[key] === undefined) {
+                    remaining--;
+                    result[key] = random(exception, schema.properties[key] || randomSchema(), undefined, options, depth + 1);
+                }
             }
         }
-    }
 
-    return result;
-};
+        if (schema.additionalProperties && remaining) {
+            let count = 0;
+            let index = 1;
+            while (count < 3 && remaining) {
+                const key = 'additionalProperty' + index++;
+                if (!result.hasOwnProperty(key)) {
+                    count++;
+                    remaining--;
+                    result[key] = random(exception, schema.additionalProperties === true ? randomSchema() : schema.additionalProperties, undefined, options, depth + 1);
+                }
+            }
+        }
 
-exports.string = function(exception, schema) {
-    return common(schema, () => {
-        let result = chooseOne(stringChoices);
-        if (schema.pattern) {
-            exception('Cannot generate example for string due to pattern requirement');
-        }
-        if (schema.hasOwnProperty('minLength')) {
-            while (result.length < schema.minLength) result += ' ' + chooseOne(stringChoices);
-        }
-        if (schema.hasOwnProperty('maxLength') && result.length > schema.maxLength) {
-            result = result.substr(0, schema.maxLength);
-        }
         return result;
-    });
-};
-
-exports.util = {
-    chooseOne: chooseOne,
-    randomNumber: randomNumber,
-    randomSchema: randomSchema,
-    traverse: randomTraverse
-};
-
+    }
+}
 
 
 
@@ -302,7 +278,7 @@ function randomNumber(baseline, variation, round, schema) {
         let min;
         let max;
 
-        // select exports value between max and min
+        // select random value between max and min
         if (hasMin && hasMax) {
             min = schema.minimum;
             max = schema.maximum;
@@ -356,7 +332,6 @@ function randomSchema() {
 }
 
 function randomTraverse(schema, version, options) {
-    const random = exports;
     return traverse({
         exception: 'Unable to generate random value',
         schema: schema,
