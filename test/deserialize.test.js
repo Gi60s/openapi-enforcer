@@ -17,7 +17,6 @@
 'use strict';
 const expect    = require('chai').expect;
 const Enforcer  = require('../index');
-const Exception = require('../bin/exception');
 
 describe('deserialize', () => {
     let enforcer;
@@ -32,12 +31,12 @@ describe('deserialize', () => {
     });
 
     it('number', () => {
-        const v = enforcer.deserialize({ type: 'number' }, '2.4');
+        const v = enforcer.deserialize({ type: 'number' }, 2.4);
         expect(v).to.equal(2.4);
     });
 
     it('integer', () => {
-        const v = enforcer.deserialize({ type: 'integer' }, '2');
+        const v = enforcer.deserialize({ type: 'integer' }, 2);
         expect(v).to.equal(2);
     });
 
@@ -55,9 +54,8 @@ describe('deserialize', () => {
     });
 
     it('boolean', () => {
-        expect(enforcer.deserialize({ type: 'boolean' }, '')).to.be.false;
-        expect(enforcer.deserialize({ type: 'boolean' }, 'false')).to.be.false;
-        expect(enforcer.deserialize({ type: 'boolean' }, 'true')).to.be.true;
+        expect(enforcer.deserialize({ type: 'boolean' }, false)).to.be.false;
+        expect(enforcer.deserialize({ type: 'boolean' }, true)).to.be.true;
     });
 
     it('date', () => {
@@ -125,17 +123,17 @@ describe('deserialize', () => {
     });
 
     it('reported data', () => {
-        const v = enforcer.deserialize({ type: 'integer' }, '2', { throw: false });
+        const v = enforcer.deserialize({ type: 'integer' }, 2, { throw: false });
         expect(v.error).to.equal(null);
         expect(v.value).to.equal(2);
     });
 
     it('thrown error', () => {
-        expect(() => enforcer.deserialize({ type: 'integer' }, '2.4')).to.throw(/errors occurred during deserialization/);
+        expect(() => enforcer.deserialize({ type: 'string', format: 'date' }, 'hello')).to.throw(/Unable to deserialize value/);
     });
 
     it('reported error', () => {
-        const v = enforcer.deserialize({ type: 'integer' }, '2.4', { throw: false });
+        const v = enforcer.deserialize({ type: 'string', format: 'date' }, 'hello', { throw: false });
         expect(v.error.isOpenAPIException).to.be.true;
         expect(v.value).to.be.null;
     });
