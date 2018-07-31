@@ -30,7 +30,7 @@ exports.populate = function(schema, params, value, options) {
     // check the schema
     if (schema.hasException) {
         exception(schema.exception());
-        return exception;
+        return { error: exception };
     }
 
     options.injector = exports.injector[options.replacement];
@@ -41,7 +41,6 @@ exports.populate = function(schema, params, value, options) {
     // validate the value
     populate(exception, schema.version, new Map(), schema, params, root, 'root', options);
 
-    // return the exception if an error occurred
     const hasException = exception.hasException;
     return {
         error: hasException ? exception : null,
