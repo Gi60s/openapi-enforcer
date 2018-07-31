@@ -399,7 +399,7 @@ function Schema(exception, version, schema, options, map) {
  * Take a serialized (ready for HTTP transmission) value and deserialize it.
  * Converts strings of binary, byte, date, and date-time to JavaScript equivalents.
  * @param {*} value
- * @returns {*}
+ * @returns {{ error: Exception|null, value: * }}
  */
 Schema.prototype.deserialize = function(value) {
     const data = store.get(this);
