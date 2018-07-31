@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const Constructor   = require('../../bin/schema/schema');
 const expect        = require('chai').expect;
 const Schema        = require('../../bin/schema');
 const util          = require('../../bin/util');

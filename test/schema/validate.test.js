@@ -556,11 +556,11 @@ describe.only('schema.validate', () => {
                 });
 
                 it('undefined discriminator', () => {
-                    expect(() => enforcer.validate(schemas.Pet, { petType: 'Mouse' })).to.throw(/Undefined discriminator schema/);
+                    expect(() => enforcer.validate(schemas.Pet, { petType: 'Mouse' })).to.throw(/Unable to map discriminator schema/);
                 });
 
                 it('valid Cat from Pet', () => {
-                    expect(() => enforcer.validate(schemas.Pet, { animalType: 'Pet', petType: 'Cat', huntingSkill: 'sneak' })).to.be.null;
+                    expect(enforcer.validate(schemas.Pet, { animalType: 'Pet', petType: 'Cat', huntingSkill: 'sneak' })).to.be.null;
                 });
 
                 it('invalid Cat from Pet', () => {
@@ -684,7 +684,7 @@ describe.only('schema.validate', () => {
             });
 
             it('undefined discriminator', () => {
-                expect(() => enforcer.validate(definition.definitions.Pet, { petType: 'Mouse' })).to.throw(/Undefined discriminator schema/);
+                expect(() => enforcer.validate(definition.definitions.Pet, { petType: 'Mouse' })).to.throw(/Unable to map discriminator schema/);
             });
 
             it('valid Cat from Pet', () => {
@@ -711,14 +711,12 @@ function extend(base, extra) {
 function createSchemas(version) {
     const Animal = {
         type: 'object',
-        discriminator: version === 2
-            ? 'animalType'
-            : { propertyName: 'animalType' },
+        discriminator: 'animalType',
+        required: ['animalType'],
         properties: {
-            classification: { type: 'string' },
+            animalType: { type: 'string' },
             hasFur: { type: 'boolean' }
-        },
-        required: ['animalType']
+        }
     };
 
     const Pet = {
@@ -727,45 +725,50 @@ function createSchemas(version) {
             Animal,
             {
                 type: 'object',
-                discriminator: version === 2
-                    ? 'petType'
-                    : { propertyName: 'petType' },
+                discriminator: 'petType',
+                required: ['petType'],
                 properties: {
                     name: { type: 'string' },
                     petType: { type: 'string' }
-                },
-                required: ['petType']
+                }
             }
         ]
     };
 
     const Cat = {
-        type: 'object',
         allOf: [
             Pet,
             {
                 type: 'object',
+                required: ['huntingSkill'],
                 properties: {
                     huntingSkill: { type: 'string' }
-                },
-                required: ['huntingSkill']
+                }
             }
         ]
     };
 
     const Dog = {
-        type: 'object',
         allOf: [
             Pet,
             {
                 type: 'object',
+                required: ['packSize'],
                 properties: {
                     packSize: { type: 'number' }
-                },
-                required: ['packSize']
+                }
             }
         ]
     };
+
+    if (version === 3) {
+        Animal.discriminator = {
+            propertyName: 'animalType'
+        };
+        Pet.allOf[1].discriminator = {
+            propertyName: 'petType'
+        };
+    }
 
     return {
         Animal: Animal,

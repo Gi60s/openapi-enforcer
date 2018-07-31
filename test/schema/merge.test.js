@@ -16,9 +16,8 @@
  **/
 'use strict';
 
-const Constructor   = require('../../bin/schema/schema');
+const Constructor   = require('../../bin/schema');
 const expect        = require('chai').expect;
-const Schema        = require('../../bin/schema');
 const util          = require('../../bin/util');
 
 describe.skip('schema.merge', () => {
