@@ -69,8 +69,12 @@ util.deepFreeze(validationsMap);
 module.exports = function(major, definition) {
     const version = util.tryRequire(path.resolve(__dirname, 'v' + major));
     if (!version) throw Error('The Open API definition version is either invalid or unsupported: ' + value);
-    version.validationsMap = validationsMap[major];
-    version.definition = definition;
-    util.deepFreeze(version);
-    return version;
+
+    const result = Object.assign({}, version, {
+        validationsMap: validationsMap[major],
+        definition: definition
+    });
+    util.deepFreeze(result);
+
+    return result;
 };
