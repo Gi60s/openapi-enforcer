@@ -421,19 +421,4 @@ function isObject(v) {
     return v && typeof v === 'object' && Object.prototype.toString.call(v) === '[object Object]';
 }
 
-function traverse(map, path, property, parent, value, callback) {
-    // avoid endless loop
-    if (map.has(value)) return;
-    map.set(value, true);
-
-    callback(value, parent, property, path);
-
-    if (Array.isArray(value)) {
-        value.forEach((v, i) => traverse(map, path + '/' + i, i, value, v, callback));
-
-    } else if (value && typeof value === 'object') {
-        Object.keys(value).forEach(key => {
-            traverse(map, path + '/' + key, key, value, value[key], callback)
-        });
-    }
-}
+function noop() {}
