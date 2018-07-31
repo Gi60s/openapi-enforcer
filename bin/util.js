@@ -105,7 +105,7 @@ exports.Error = function(meta, message) {
 };
 
 exports.errorHandler = function(useThrow, exception, value) {
-    const hasErrors = exception.hasException;
+    const hasErrors = exception && exception.hasException;
     if (hasErrors && useThrow) {
         const err = Error(exception);
         err.code = 'OPEN_API_EXCEPTION';
