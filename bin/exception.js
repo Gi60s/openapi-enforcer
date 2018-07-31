@@ -31,6 +31,10 @@ function OpenAPIException(header, meta) {
     exception.header = header;
     exception.meta = meta;
 
+    exception.first = function(message) {
+        children.unshift(message);
+    };
+
     exception.nest = function(header, meta) {
         const exception = OpenAPIException(header, meta);
         children.push(exception);
