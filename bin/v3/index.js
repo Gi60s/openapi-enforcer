@@ -28,7 +28,7 @@ const util          = require('../util');
  */
 exports.getDiscriminatorKey = function(schema, value) {
     const discriminator = schema.discriminator;
-    if (discriminator && value.hasOwnProperty(discriminator.propertyName)) return value[discriminator.propertyName];
+    if (discriminator && value && value.hasOwnProperty(discriminator.propertyName)) return value[discriminator.propertyName];
 };
 
 /**
