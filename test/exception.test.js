@@ -27,9 +27,9 @@ describe('OpenAPIException', () => {
 
     it('nested strings', () => {
         const exception = new Exception('header');
-        exception.push('one');
-        exception.push('two');
-        exception.push('three');
+        exception('one');
+        exception('two');
+        exception('three');
         expect(exception.toString()).to.equal('header:\n  one\n  two\n  three');
     });
 
@@ -42,26 +42,12 @@ describe('OpenAPIException', () => {
 
     it('deep nested exceptions', () => {
         const exception = new Exception('header');
-        exception.push('one');
+        exception('one');
         const n2 = exception.nest('two');
         const n3 = n2.nest('a');
-        n3.push('x');
-        exception.push('three');
+        n3('x');
+        exception('three');
         expect('' + exception).to.equal('header:\n  one\n  two:\n    a:\n      x\n  three');
-    });
-
-    it('flattened', () => {
-        const exception = new Exception('header');
-        exception.push('one');
-        const n2 = exception.nest('two');
-        const n3 = n2.nest('a');
-        n3.push('x');
-        exception.push('three');
-        expect(exception.flatten()).to.deep.equal([
-            'header: one',
-            'header: two: a: x',
-            'header: three'
-        ]);
     });
 
 });
