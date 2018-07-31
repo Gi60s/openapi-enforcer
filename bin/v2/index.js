@@ -15,18 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception     = require('../exception');
 const serial        = require('./serialize');
 const util          = require('../util');
-
-module.exports = Version;
-
-function Version(enforcer, definition) {
-    this.enforcer = enforcer;
-    this.definition = definition;
-    this.serial = serial;
-    this.value = 3;
-}
 
 /**
  * Get the discriminator key.
@@ -34,7 +24,7 @@ function Version(enforcer, definition) {
  * @param {object} value
  * @returns {string}
  */
-Version.prototype.getDiscriminatorKey = function(schema, value) {
+exports.getDiscriminatorKey = function(schema, value) {
     const discriminator = schema.discriminator;
     if (discriminator && value.hasOwnProperty(discriminator)) return value[discriminator];
 };
@@ -45,7 +35,7 @@ Version.prototype.getDiscriminatorKey = function(schema, value) {
  * @param {object} value
  * @returns {object}
  */
-Version.prototype.getDiscriminatorSchema = function(schema, value) {
+exports.getDiscriminatorSchema = function(schema, value) {
     const key = this.getDiscriminatorKey(schema, value);
     if (key) return this.definition.definitions[key];
 };
@@ -57,7 +47,7 @@ Version.prototype.getDiscriminatorSchema = function(schema, value) {
  * @param {{ code: string, contentType: string }} options
  * @returns {{ accept?: string, code?: string, contentType?: string, error?: string, headers?: object, schema?: object }}
  */
-Version.prototype.getResponseData = function(produces, responses, options) {
+exports.getResponseData = function(produces, responses, options) {
     if (!responses) return { error: 'No response definitions exists' };
 
     let code = options.hasOwnProperty('code')
@@ -95,7 +85,7 @@ Version.prototype.getResponseData = function(produces, responses, options) {
  * @param {object} options.responseSchema
  * @returns {*}
  */
-Version.prototype.getResponseExample = function(options) {
+exports.getResponseExample = function(options) {
     const examples = options.responseSchema.examples;
     const schema = options.responseSchema.schema;
     let contentType = options.contentType;
@@ -127,7 +117,7 @@ Version.prototype.getResponseExample = function(options) {
  * @param {string} req.query
  * @returns {{ exception: OpenAPIException|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object }}}
  */
-Version.prototype.parseRequestParameters = function(schema, exception, req) {
+exports.parseRequestParameters = function(schema, exception, req) {
     const mSchema  = schema[req.method];
     const result = {
         cookie: {},
@@ -161,9 +151,9 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
     const deserializeValidate = (schema, value, at, name) => {
         const deserializeException = exception.nest('Invalid value for ' + at + ' parameter "' + name + '"');
         const result = serial.deserialize(deserializeException, schema, value);
-        if (!Exception.hasException(deserializeException)) {
+        if (!deserializeException.hasException) {
             const errors = this.enforcer.errors(schema, result);
-            if (errors) errors.forEach(error => deserializeException.push(error))
+            if (errors) errors.forEach(error => deserializeException(error))
         }
         return result;
     };
@@ -171,16 +161,16 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
     // body already parsed, need to deserialize and check for errors
     if (paramMap.body) {
         if (paramMap.body.required && req.body === undefined) {
-            exception.push('Missing required body parameter "' + paramMap.body.name + '"');
+            exception('Missing required body parameter "' + paramMap.body.name + '"');
 
         } else if (paramMap.body.schema && req.body !== undefined) {
             const schema = paramMap.body.schema;
             const paramException = exception.nest('Invalid request body');
             const value = serial.deserialize(paramException, schema, req.body);
-            if (!Exception.hasException(paramException)) {
+            if (!paramException.hasException) {
                 const errors = this.enforcer.errors(schema, value);
                 if (errors) {
-                    errors.forEach(error => paramException.push(error));
+                    errors.forEach(error => paramException(error));
                 } else {
                     result.body = value;
                 }
@@ -218,7 +208,7 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
                 result[at][name] = deserializeValidate(definition, definition.default, at, name);
 
             } else if (definition.required) {
-                exception.push('Missing required ' + at + ' parameter "' + name + '"');
+                exception('Missing required ' + at + ' parameter "' + name + '"');
             }
         });
     });
@@ -245,18 +235,18 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
             store[name] = deserializeValidate(definition, definition.default, 'query', name);
 
         } else if (definition.required) {
-            exception.push('Missing required query parameter "' + name + '"');
+            exception('Missing required query parameter "' + name + '"');
         }
     });
 
     // look for any query parameters that are not allowed
     util.queryParamNames(req.query).forEach(name => {
         if (!paramMap.query.hasOwnProperty(name)) {
-            exception.push('Unexpected query parameter "' + name + '" not permitted');
+            exception('Unexpected query parameter "' + name + '" not permitted');
         }
     });
 
-    const hasErrors = Exception.hasException(exception);
+    const hasErrors = exception.hasException;
     return {
         exception: hasErrors ? exception : null,
         value: hasErrors ? null : result
@@ -269,7 +259,7 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
  * @param {*} value
  * @returns {*}
  */
-Version.prototype.serializeResponseHeader = function(schema, value) {
+exports.serializeResponseHeader = function(schema, value) {
     const type = schema && schema.schema && util.schemaType(schema.schema);
     switch (type) {
         case 'array':
@@ -287,67 +277,11 @@ Version.prototype.serializeResponseHeader = function(schema, value) {
     }
 };
 
-Version.defaults = {
+exports.serial = serial;
 
-    populate: {
-        oneOf: false
-    },
+exports.value = 3;
 
-    traverse: {
-        allOf: true,
-        anyOf: false,
-        array: true,
-        oneOf: false,
-        not: false,
-        object: true
-    },
 
-    validate: {
-        depth: Number.MAX_VALUE,    // validate to full depth
-
-        boolean: true,
-
-        // numbers
-        integer: true,
-        number: true,
-        multipleOf: true,
-        maximum: true,
-        minimum: true,
-
-        // strings
-        binary: true,
-        byte: true,
-        date: true,
-        dateExists: true,
-        dateTime: true,
-        maxLength: true,
-        minLength: true,
-        pattern: true,
-        string: true,
-        timeExists: true,
-
-        // arrays
-        array: true,
-        items: true,
-        maxItems: true,
-        minItems: true,
-        uniqueItems: true,
-
-        // objects
-        additionalProperties: true,
-        allOf: true,
-        discriminator: true,
-        maxProperties: true,
-        minProperties: true,
-        object: true,
-        properties: true,
-        required: true,
-
-        // general
-        enum: true
-    }
-
-};
 
 function collectionFormatSplit(collectionFormat, value) {
     switch (collectionFormat) {

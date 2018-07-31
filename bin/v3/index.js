@@ -20,34 +20,24 @@ const params        = require('./param-style');
 const serial        = require('./serialize');
 const util          = require('../util');
 
-module.exports = Version;
-
-
-function Version(enforcer, definition) {
-    this.enforcer = enforcer;
-    this.definition = definition;
-    this.serial = serial;
-    this.value = 3;
-}
-
 /**
- * Get the discriminator key.
- * @param {object} schema
- * @param {object} value
+ * Get the discriminator value that is used to determine the discriminator schema.
+ * @param {Schema} schema
+ * @param value
  * @returns {string}
  */
-Version.prototype.getDiscriminatorKey = function(schema, value) {
+exports.getDiscriminatorKey = function(schema, value) {
     const discriminator = schema.discriminator;
     if (discriminator && value.hasOwnProperty(discriminator.propertyName)) return value[discriminator.propertyName];
 };
 
 /**
  * Get the discriminator schema.
- * @param {object} schema
+ * @param {Schema} schema
  * @param {object} value
  * @returns {object}
  */
-Version.prototype.getDiscriminatorSchema = function(schema, value) {
+exports.getDiscriminatorSchema = function(schema, value) {
     const key = this.getDiscriminatorKey(schema, value);
     if (key) {
         const discriminator = schema.discriminator;
@@ -66,7 +56,7 @@ Version.prototype.getDiscriminatorSchema = function(schema, value) {
  * @param {{ code: string, contentType: string }} options
  * @returns {{ accept?: string, code?: string, contentType?: string, error?: string, headers?: object, schema?: object }}
  */
-Version.prototype.getResponseData = function(produces, responses, options) {
+exports.getResponseData = function(produces, responses, options) {
     if (!responses) return { error: 'No response definitions exists' };
 
     let code = options.hasOwnProperty('code')
@@ -106,7 +96,7 @@ Version.prototype.getResponseData = function(produces, responses, options) {
  * @param {object} options.responseSchema
  * @returns {*}
  */
-Version.prototype.getResponseExample = function(options) {
+exports.getResponseExample = function(options) {
     const content = options.responseSchema.content;
     const contentType = options.contentType;
     const name = options.name;
@@ -143,7 +133,7 @@ Version.prototype.getResponseExample = function(options) {
  * @param {string} req.query
  * @returns {{ exception: OpenAPIException|null, value: null|{ body: string|object, cookie: object, header: object, path: object, query: object, responses: object }}}
  */
-Version.prototype.parseRequestParameters = function(schema, exception, req) {
+exports.parseRequestParameters = function(schema, exception, req) {
     const mSchema  = schema[req.method];
     const paramTypes = ['cookie', 'header', 'path', 'query'];
     const result = {
@@ -181,10 +171,10 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
                 const bodyException = exception.nest('Invalid request body');
                 const value = serial.deserialize(exception, schema, req.body);
 
-                if (!Exception.hasException(bodyException)) {
+                if (!bodyException.hasException) {
                     const errors = this.enforcer.errors(schema, value);
                     if (errors) {
-                        errors.forEach(error => bodyException.push(error));
+                        errors.forEach(error => bodyException(error));
                     } else {
                         result.body = value;
                     }
@@ -192,7 +182,7 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
             }
 
         } else if (mSchema.requestBody.required && req.body === undefined) {
-            exception.push('Missing required request body');
+            exception('Missing required request body');
         }
     }
 
@@ -301,22 +291,22 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
                     const paramException = exception.nest('Invalid type for ' + at + ' parameter "' + name + '"');
                     const value = serial.deserialize(paramException, schema, parsed.value);
 
-                    if (!Exception.hasException(paramException)) {
+                    if (!paramException.hasException) {
                         const errors = this.enforcer.errors(schema, value);
-                        if (errors) errors.forEach(error => paramException.push(error));
+                        if (errors) errors.forEach(error => paramException(error));
                     }
 
                     // store deserialized value
                     result[paramType][name] = value;
 
                 } else {
-                    exception.push('Expected ' + at + ' parameter "' + name + '" to be formatted in ' +
+                    exception('Expected ' + at + ' parameter "' + name + '" to be formatted in ' +
                         (explode ? 'exploded ' : '') + style + ' style');
                 }
 
             // value not provided - check if required
             } else if (definition.required) {
-                exception.push('Missing required ' + at + ' parameter "' + name + '"');
+                exception('Missing required ' + at + ' parameter "' + name + '"');
             }
         });
     });
@@ -325,12 +315,12 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
     Object.keys(definedQueryParams)
         .forEach(name => {
             if (!definedQueryParams[name]) {
-                exception.push('Unexpected query parameter "' + name + '" not permitted');
+                exception('Unexpected query parameter "' + name + '" not permitted');
             }
         });
 
     // check for errors
-    const hasErrors = Exception.hasException(exception);
+    const hasErrors = exception.hasException;
     return {
         exception: hasErrors ? exception : null,
         value: hasErrors ? null : result
@@ -343,7 +333,7 @@ Version.prototype.parseRequestParameters = function(schema, exception, req) {
  * @param {*} value
  * @returns {*}
  */
-Version.prototype.serializeResponseHeader = function(schema, value) {
+exports.serializeResponseHeader = function(schema, value) {
     const type = schema && schema.schema && util.schemaType(schema.schema);
     switch (type) {
         case 'array':
@@ -359,70 +349,9 @@ Version.prototype.serializeResponseHeader = function(schema, value) {
     }
 };
 
-Version.defaults = {
+exports.serial = serial;
 
-    populate: {
-        oneOf: true
-    },
-
-    traverse: {
-        allOf: true,
-        anyOf: true,
-        array: true,
-        oneOf: true,
-        not: true,
-        object: true
-    },
-
-    validate: {
-        depth: Number.MAX_VALUE,    // validate to full depth
-
-        boolean: true,
-
-        // numbers
-        integer: true,
-        number: true,
-        multipleOf: true,
-        maximum: true,
-        minimum: true,
-
-        // strings
-        binary: true,
-        byte: true,
-        date: true,
-        dateExists: true,
-        dateTime: true,
-        maxLength: true,
-        minLength: true,
-        pattern: true,
-        string: true,
-        timeExists: true,
-
-        // arrays
-        array: true,
-        items: true,
-        maxItems: true,
-        minItems: true,
-        uniqueItems: true,
-
-        // objects
-        additionalProperties: true,
-        allOf: true,
-        anyOf: true,
-        discriminator: true,
-        maxProperties: true,
-        minProperties: true,
-        not: true,
-        object: true,
-        oneOf: true,
-        properties: true,
-        required: true,
-
-        // general
-        enum: true
-    }
-
-};
+exports.value = 3;
 
 function defaultStyle(paramType) {
     switch (paramType) {
