@@ -66,11 +66,12 @@ validationsMap[3] = {
 
 util.deepFreeze(validationsMap);
 
-module.exports = function(major, definition) {
+module.exports = function(enforcer, major, definition) {
     const version = util.tryRequire(path.resolve(__dirname, 'v' + major));
     if (!version) throw Error('The Open API definition version is either invalid or unsupported: ' + value);
 
     const result = Object.assign({}, version, {
+        enforcer: enforcer,
         validationsMap: validationsMap[major],
         definition: definition
     });
