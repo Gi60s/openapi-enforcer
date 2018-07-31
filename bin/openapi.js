@@ -16,9 +16,9 @@
  **/
 'use strict';
 const Exception     = require('./exception');
-const populate      = require('./populate');
 const Schema        = require('./schema');
 const util          = require('./util');
+const version       = require('./version');
 
 module.exports = OpenApiEnforcer;
 
@@ -144,12 +144,7 @@ function OpenApiEnforcer(definition, options) {
         defaults: defaults,
         definition: definition,
         pathParsers: pathParsers,
-        version: (function() {
-            const version = exports.tryRequire(path.resolve(__dirname, 'v' + major));
-            if (!version) throw Error('The Open API definition version is either invalid or unsupported: ' + value);
-            version.definition = definition;
-            return util.deepFreeze(version);
-        })()
+        version: version(major, definition)
     });
 }
 
@@ -405,11 +400,33 @@ OpenApiEnforcer.prototype.serialize = function(schema, value, options) {
  * Get an object that will allow a simplified execution context for a recurring schema and options.
  * @param {object} schema
  * @param {object} [options]
- * @returns {{deserialize: (function(*=): (*|{errors: string[], value: *})), errors: (function(*=): string[]), populate: (function(*=, *=, *=): *), random: (function(): *), serialize: (function(*=, *=): {errors, value}), validate: (function(*=): void)}}
+ * @returns {Schema}
  */
 OpenApiEnforcer.prototype.schema = function(schema, options) {
     const data = store.get(this);
-    return Schema(data.version, schema, options);
+    if (!data) throw Error('Invalid calling context');
+
+    // schema may already be a Schema instance
+    if (schema instanceof Schema) return schema;
+
+    // validate input
+    if (!util.isPlainObject(schema)) throw Error('Invalid schema specified');
+
+    // normalize options
+    options = Object.assign({}, options);
+    if (!options.hasOwnProperty('throw')) options.throw = true;
+    if (!options.hasOwnProperty('freeze')) options.freeze = true;
+
+    // create the exception instance
+    const exception = Exception('Schema has one or more errors');
+
+    // build the schema
+    const instance = new Schema(exception, data.version, schema, options, new Map());
+
+    // if there is an error and we're throwing then throw now
+    if (options.throw && instance.exception()) throw Error(exception.toString());
+
+    return instance;
 };
 
 /**
@@ -422,21 +439,12 @@ OpenApiEnforcer.prototype.schema = function(schema, options) {
  * @throws {Error}
  */
 OpenApiEnforcer.prototype.validate = function(schema, value, options) {
-    const data = store.get(this);
-
     options = Object.assign({}, options);
     if (!options.hasOwnProperty('throw')) options.throw = true;
 
-    // get the Schema instance
-    schema = new Schema(data.version.value, schema, { throw: false });
-    let exception = schema.exception();
-    if (exception) {
-        if (options.throw) throw Error(exception.toString());
-        return exception;
-    }
+    schema = this.schema(schema, options);
+    const exception = schema.validate(value);
 
-    // validate the value against the schema
-    exception = schema.validate(value);
     if (exception && options.throw) throw Error(exception.toString());
     return exception;
 };
