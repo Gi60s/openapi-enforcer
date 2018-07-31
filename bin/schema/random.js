@@ -50,37 +50,25 @@ const stringChoices = [
     'Donec auctor nisl in felis pharetra tincidunt.'
 ];
 
-/**
- * Generate a random value.
- * @param {Schema} schema
- * @param {*} value A value with some values already populated.
- * @param {object} options
- * @param {number} [options.arrayVariation=5] The variation on array size.
- * @param {number} [options.dateVariation=2592000000] The number of milliseconds in date variation. Default is 30 days.
- * @param {number} [options.defaultPossibility=.15] Percentage chance that default value will be used.
- * @param {number} [options.maximimDepth=-1] The maximum depth for nested array and objects. Use -1 for unlimited.
- * @returns {*}
- */
 module.exports = function(schema, value, options) {
     const exception = Exception('Unable to generate random value');
-
-    options = Object.assign({
-        arrayVariation: 5,
-        dateVariation: 2592000000,
-        defaultPossibility: 0.15,
-        maximimDepth: -1
-    }, options);
 
     // check the schema
     if (schema.hasException) {
         exception(schema.exception);
-        return exception;
+        return { error: exception };
     }
 
-    return random(exception, schema, value, options, 0);
+    const result = random(exception, schema.version, schema, value, options, 0);
+
+    const hasException = exception.hasException;
+    return {
+        error: hasException ? exception : null,
+        value: result
+    }
 };
 
-function random(exception, schema, value, options, depth) {
+function random(exception, version, schema, value, options, depth) {
     const type = schema.type;
 
     // 15% chance of using default value
@@ -90,22 +78,29 @@ function random(exception, schema, value, options, depth) {
     if (schema.enum) return chooseOne(schema.enum);
 
     if (schema.allOf) {
+        // TODO: get merge working to implement this
 
     } else if (schema.anyOf || schema.oneOf) {
+        const type = schema.anyOf ? 'anyOf' : 'oneOf';
+        const key = version.getDiscriminatorKey(schema, value);
+        const subSchema = version.getDiscriminatorSchema(schema, value) || chooseOne(schema[type]);
+        const header = key ? 'discriminator[' + key + ']' : type + '[' + key + ']';
+        return random(exception.nest(header), version, subSchema, value, options, depth);
 
     } else if (schema.not) {
+        exception('Cannot create random value for "not" schemas');
 
     } else if (type === 'array') {
         const config = {};
         config.minimum = schema.hasOwnProperty('minItems') ? schema.minItems : 0;
-        config.maximum = schema.hasOwnProperty('maxItems') ? schema.maxItems : config.minimum + 5;
+        config.maximum = schema.hasOwnProperty('maxItems') ? schema.maxItems : config.minimum + options.arrayVariation;
         const length = randomNumber(0, 0, true, config);
         const array = Array.isArray(value) ? value.concat() : [];
         let duplicates = 0;
         let index;
         while ((index = array.length) < length) {
             if (array[index] === undefined) {
-                const value = random(exception, schema.items || randomSchema(), options);
+                const value = random(exception.nest(index), version, schema.items || randomSchema(), array[index], options, depth + 1);
                 if (schema.uniqueItems) {
                     const match = array.find(v => util.same(v, value));
                     if (match) {
@@ -126,10 +121,10 @@ function random(exception, schema, value, options, depth) {
         return value === undefined ? chooseOne([true, false]) : value;
 
     } else if (type === 'integer') {
-        return value === undefined ? randomNumber(0, 500, true, schema) : value;
+        return value === undefined ? randomNumber(0, options.integerVariation, true, schema) : value;
 
     } else if (type === 'number') {
-        return value === undefined ? randomNumber(0, 500, false, schema) : value;
+        return value === undefined ? randomNumber(0, options.integerVariation, false, schema) : value;
 
     } else if (type === 'string') {
         if (value !== undefined) return value;
@@ -185,7 +180,7 @@ function random(exception, schema, value, options, depth) {
             // populate required properties
             requiredKeys.forEach(key => {
                 if (result[key] === undefined) {
-                    result[key] = random(exception, schema.properties[key] || randomSchema(), undefined, options, depth + 1);
+                    result[key] = random(exception, version, schema.properties[key] || randomSchema(), undefined, options, depth + 1);
                     remaining--;
                 }
             });
@@ -198,7 +193,7 @@ function random(exception, schema, value, options, depth) {
                 length--;
                 if (result[key] === undefined) {
                     remaining--;
-                    result[key] = random(exception, schema.properties[key] || randomSchema(), undefined, options, depth + 1);
+                    result[key] = random(exception, version, schema.properties[key] || randomSchema(), undefined, options, depth + 1);
                 }
             }
         }
@@ -211,7 +206,7 @@ function random(exception, schema, value, options, depth) {
                 if (!result.hasOwnProperty(key)) {
                     count++;
                     remaining--;
-                    result[key] = random(exception, schema.additionalProperties === true ? randomSchema() : schema.additionalProperties, undefined, options, depth + 1);
+                    result[key] = random(exception, version, schema.additionalProperties === true ? randomSchema() : schema.additionalProperties, undefined, options, depth + 1);
                 }
             }
         }

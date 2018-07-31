@@ -457,14 +457,14 @@ Schema.prototype.merge = function(schema, options) {
  * @param {object} params
  * @param {*} [value]
  * @param {object} [options]
- * @param {boolean} [options.copy]
- * @param {boolean} [options.oneOf]
- * @param {string} [options.replacement]
- * @param {boolean} [options.reportErrors]
- * @param {boolean} [options.serialize]
- * @param {boolean} [options.templateDefaults]
- * @param {boolean} [options.templates]
- * @param {boolean} [options.variables]
+ * @param {boolean} [options.copy=false]
+ * @param {boolean} [options.conditions=true]
+ * @param {boolean} [options.defaults=true]
+ * @param {string} [options.replacement='handlebar']
+ * @param {boolean} [options.reportErrors=false]
+ * @param {boolean} [options.templateDefaults=true]
+ * @param {boolean} [options.templates=true]
+ * @param {boolean} [options.variables=true]
  * @returns {{ error: Exception|null, value: * }}
  */
 Schema.prototype.populate = function(params, value, options) {
@@ -477,14 +477,10 @@ Schema.prototype.populate = function(params, value, options) {
  * @param {object} [options]
  * @param {boolean} [options.skipInvalid=false]
  * @param {boolean} [options.throw=true]
- * @returns {*}
+ * @returns {{ error: Exception|null, value: * }}
  */
 Schema.prototype.random = function(value, options) {
-    if (!options) options = {};
-    if (!options.hasOwnProperty('skipInvalid')) options.skipInvalid = false;
-    if (!options.hasOwnProperty('throw')) options.throw = true;
-    const data = random(this, value);
-    return util.errorHandler(options.throw, data.error, data.value);
+    return random(this, value, options);
 };
 
 /**
