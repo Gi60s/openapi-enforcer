@@ -31,7 +31,7 @@ module.exports = function(schema, value) {
 
     // check the schema
     if (schema.hasException) {
-        exception(schema.exception);
+        exception(schema.exception());
         return exception;
     }
 
@@ -205,7 +205,7 @@ function validate(exception, version, map, schema, value) {
             if (schema.discriminator) {
                 const discriminatorSchema = version.getDiscriminatorSchema(schema, value);
                 if (discriminatorSchema) {
-                    validate(exception, version, map, schema, value);
+                    validate(exception, version, map, discriminatorSchema, value);
                 } else {
                     exception('Unable to map discriminator schema');
                 }
