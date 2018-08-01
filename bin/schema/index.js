@@ -30,6 +30,54 @@ const store = new WeakMap();
 
 module.exports = Schema;
 
+const validationsMap = {};
+validationsMap[2] = {
+    common: { default: true, description: true, enum: true, example: true, externalDocs: true,
+        readOnly: true, title: true, type: true, xml: true },
+    formats: {
+        array: {},
+        boolean: {},
+        integer: { int32: true, int64: true },
+        number: { float: true, double: true },
+        object: {},
+        string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
+    },
+    composites: { allOf: true },
+    types: {
+        array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
+        boolean: {},
+        integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
+        number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
+        object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
+        string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, maxLength: true, minLength: true, pattern: true }
+    },
+    value: 2
+};
+validationsMap[3] = {
+    common: { default: true, deprecated: true, description: true, enum: true, example: true, externalDocs: true,
+        nullable: true, readOnly: true, title: true, type: true, writeOnly: true, xml: true },
+    formats: {
+        array: {},
+        boolean: {},
+        integer: { int32: true, int64: true },
+        number: { float: true, double: true },
+        object: {},
+        string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
+    },
+    composites: { allOf: true, anyOf: true, oneOf: true, not: true },
+    types: {
+        array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
+        boolean: {},
+        integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
+        number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
+        object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
+        string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maxLength: true, maximum: true, minimum: true, minLength: true, pattern: true }
+    },
+    value: 3
+};
+
+util.deepFreeze(validationsMap);
+
 function Schema(exception, version, schema, options, map) {
 
     // already processed schema instances can be returned now
@@ -48,7 +96,7 @@ function Schema(exception, version, schema, options, map) {
     });
 
     // validate that only the allowed properties are specified and copy properties to this
-    const validations = version.validationsMap;
+    const validations = validationsMap[version.value];
     const common = validations.common;
     const keys = Object.keys(schema);
     const length = keys.length;
@@ -393,6 +441,15 @@ function Schema(exception, version, schema, options, map) {
     if (version.value === 3 && this.discriminator) {
         if (type !== 'object' && !this.oneOf && !this.anyOf) {
             exception('Discriminator only allowed in objects or along with anyOf or oneOf');
+        }
+    }
+
+    // if an example is provided then validate the example
+    if (schema.hasOwnProperty('example')) {
+        const error = this.validate(schema.example);
+        if (error) {
+            error.header = 'Example does not match the schema';
+            exception(error);
         }
     }
 
