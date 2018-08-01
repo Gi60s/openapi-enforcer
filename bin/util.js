@@ -15,8 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception     = require('./exception');
-const path          = require('path');
 const rx            = require('./rx');
 
 const rxMediaType = /^([\s\S]+?)\/(?:([\s\S]+?)\+)?([\s\S]+?)$/;
