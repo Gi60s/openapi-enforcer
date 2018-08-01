@@ -18,52 +18,6 @@
 const path      = require('path');
 const util      = require('./util');
 
-const validationsMap = {};
-validationsMap[2] = {
-    common: { default: true, description: true, enum: true, example: true, externalDocs: true,
-        readOnly: true, title: true, type: true, xml: true },
-    formats: {
-        array: {},
-        boolean: {},
-        integer: { int32: true, int64: true },
-        number: { float: true, double: true },
-        object: {},
-        string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
-    },
-    composites: { allOf: true },
-    types: {
-        array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
-        boolean: {},
-        integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-        number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-        object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
-        string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, maxLength: true, minLength: true, pattern: true }
-    },
-    value: 2
-};
-validationsMap[3] = {
-    common: { default: true, deprecated: true, description: true, enum: true, example: true, externalDocs: true,
-        nullable: true, readOnly: true, title: true, type: true, writeOnly: true, xml: true },
-    formats: {
-        array: {},
-        boolean: {},
-        integer: { int32: true, int64: true },
-        number: { float: true, double: true },
-        object: {},
-        string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
-    },
-    composites: { allOf: true, anyOf: true, oneOf: true, not: true },
-    types: {
-        array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
-        boolean: {},
-        integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-        number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-        object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
-        string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maxLength: true, maximum: true, minimum: true, minLength: true, pattern: true }
-    },
-    value: 3
-};
-
 util.deepFreeze(validationsMap);
 
 module.exports = function(enforcer, major, definition) {
@@ -72,7 +26,6 @@ module.exports = function(enforcer, major, definition) {
 
     const result = Object.assign({}, version, {
         enforcer: enforcer,
-        validationsMap: validationsMap[major],
         definition: definition
     });
     util.deepFreeze(result);
