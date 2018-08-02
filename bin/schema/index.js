@@ -30,50 +30,49 @@ const store = new WeakMap();
 
 module.exports = Schema;
 
-const validationsMap = {};
-validationsMap[2] = {
-    common: { default: true, description: true, enum: true, example: true, externalDocs: true,
-        readOnly: true, title: true, type: true, xml: true },
-    formats: {
-        array: {},
-        boolean: {},
-        integer: { int32: true, int64: true },
-        number: { float: true, double: true },
-        object: {},
-        string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
+const validationsMap = {
+    2: {
+        common: { default: true, description: true, enum: true, example: true, externalDocs: true,
+            readOnly: true, title: true, type: true, xml: true },
+        formats: {
+            array: {},
+            boolean: {},
+            integer: { int32: true, int64: true },
+            number: { float: true, double: true },
+            object: {},
+            string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
+        },
+        composites: { allOf: true },
+        types: {
+            array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
+            boolean: {},
+            integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
+            number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
+            object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
+            string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, maxLength: true, minLength: true, pattern: true }
+        }
     },
-    composites: { allOf: true },
-    types: {
-        array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
-        boolean: {},
-        integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-        number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-        object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
-        string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, maxLength: true, minLength: true, pattern: true }
-    },
-    value: 2
-};
-validationsMap[3] = {
-    common: { default: true, deprecated: true, description: true, enum: true, example: true, externalDocs: true,
-        nullable: true, readOnly: true, title: true, type: true, writeOnly: true, xml: true },
-    formats: {
-        array: {},
-        boolean: {},
-        integer: { int32: true, int64: true },
-        number: { float: true, double: true },
-        object: {},
-        string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
-    },
-    composites: { allOf: true, anyOf: true, oneOf: true, not: true },
-    types: {
-        array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
-        boolean: {},
-        integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-        number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-        object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
-        string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maxLength: true, maximum: true, minimum: true, minLength: true, pattern: true }
-    },
-    value: 3
+    3: {
+        common: { default: true, deprecated: true, description: true, enum: true, example: true, externalDocs: true,
+            nullable: true, readOnly: true, title: true, type: true, writeOnly: true, xml: true },
+        formats: {
+            array: {},
+            boolean: {},
+            integer: { int32: true, int64: true },
+            number: { float: true, double: true },
+            object: {},
+            string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
+        },
+        composites: { allOf: true, anyOf: true, oneOf: true, not: true },
+        types: {
+            array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
+            boolean: {},
+            integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
+            number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
+            object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
+            string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maxLength: true, maximum: true, minimum: true, minLength: true, pattern: true }
+        }
+    }
 };
 
 util.deepFreeze(validationsMap);
@@ -444,7 +443,7 @@ function Schema(exception, version, schema, options, map) {
         }
     }
 
-    // if an example is provided then validate the example
+    // if an example is provided then validate the example and deserialize it
     if (schema.hasOwnProperty('example')) {
         const error = this.validate(schema.example);
         if (error) {
@@ -477,6 +476,17 @@ Schema.prototype.exception = function(force) {
     const data = store.get(this);
     if (!data) throw Error('Expected a Schema instance type');
     return force || data.exception.hasException ? data.exception : null;
+};
+
+Schema.prototype.getDiscriminator = function(value) {
+    const data = store.get(this);
+    if (!data) throw Error('Expected a Schema instance type');
+
+    const discriminator = schema.discriminator;
+    const key = discriminator && value && value.hasOwnProperty(discriminator) ? value[discriminator] : undefined;
+    if (!key) return { key: undefined, schema: undefined };
+
+
 };
 
 /**

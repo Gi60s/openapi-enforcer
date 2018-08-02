@@ -18,41 +18,85 @@
 
 module.exports = OpenAPIException;
 
-function OpenAPIException(header, meta) {
-    const children = [];
+function OpenAPIException(header, isHeader) {
+    const positionals = [];
+    const headers = [];
+    const messages = [];
     let cached = false;
     let hasException;
 
     function exception(message) {
-        children.push(message);
-        cached = false;
+        return this.message(message);
     }
 
     exception.header = header;
-    exception.meta = meta;
+    exception.isHeader = arguments.length === 2 ? isHeader : true;
 
-    exception.first = function(message) {
-        children.unshift(message);
-    };
-
-    exception.nest = function(header, meta) {
-        const exception = OpenAPIException(header, meta);
-        children.push(exception);
+    exception.at = function(at) {
+        const exception = OpenAPIException(at, false);
+        positionals.push(exception);
         cached = false;
         return exception;
     };
 
-    exception.toString = function(prefix) {
+    exception.first = function(message) {
+        if (!message) {
+            return;
+        } else if (typeof message === 'string') {
+            messages.unshift(message);
+        } else if (message.isHeader) {
+            headers.unshift(message);
+        } else {
+            positionals.unshift(message);
+        }
+        cached = false;
+        return exception;
+    };
+
+    exception.message = function(message) {
+        if (!message) {
+            return;
+        } else if (typeof message === 'string') {
+            messages.push(message);
+        } else if (message.isHeader) {
+            headers.push(message);
+        } else {
+            positionals.push(message);
+        }
+        cached = false;
+        return exception;
+    };
+
+    exception.nest = function(header) {
+        const exception = OpenAPIException(header, true);
+        headers.push(exception);
+        cached = false;
+        return exception;
+    };
+
+    exception.toString = function() {
         if (!this.hasException) return '';
-        if (!prefix) prefix = '';
-        let result = header + ':';
-        children.forEach(child => {
-            if (typeof child === 'string') {
-                result += '\n  ' + prefix + child;
-            } else if (child.hasException) {
-                result += '\n  ' + prefix + child.toString(prefix + '  ');
-            }
+        let { prefix, positional, top } = arguments.length === 0 ? { prefix: '', positional: -1, top: true } : arguments[0];
+
+        let result = '';
+        if (!top && positional < 1) result += '\n';
+        if (positional <= 0) result += prefix;
+        if (positional === 0) result += 'at: /';
+        if (positional > 0) result += '/';
+        result += this.header;
+
+        positionals.forEach(pos => {
+            result += pos.toString({ positional: positional + 1, prefix: prefix + '  '});
         });
+
+        headers.forEach(header => {
+            result += header.toString({ positional: -1, prefix: prefix + '  ' });
+        });
+
+        messages.forEach(message => {
+            result += '\n  ' + prefix + message;
+        });
+
         return result;
     };
 
@@ -61,11 +105,23 @@ function OpenAPIException(header, meta) {
             if (!cached) {
                 cached = true;
                 hasException = false;
-                const length = children.length;
-                for (let i = 0; i < length; i++) {
-                    if (typeof children[i] === 'string' || children[i].hasException) {
-                        hasException = true;
-                        break;
+                if (messages.length > 0) {
+                    hasException = true;
+                } else {
+                    let length = positionals.length;
+                    for (let i = 0; i < length; i++) {
+                        if (positionals[i].hasException) {
+                            hasException = true;
+                            break;
+                        }
+                    }
+
+                    length = headers.length;
+                    for (let i = 0; i < length; i++) {
+                        if (positionals[i].hasException) {
+                            hasException = true;
+                            break;
+                        }
                     }
                 }
             }
