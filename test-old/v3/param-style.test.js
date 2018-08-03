@@ -16,7 +16,7 @@
  **/
 'use strict';
 const expect        = require('chai').expect;
-const param         = require('../../bin/v3/param-style');
+const param         = require('../../bin-old/v3/param-style');
 
 describe('v3/param-style', () => {
 

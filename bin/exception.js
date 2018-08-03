@@ -26,7 +26,7 @@ function OpenAPIException(header, isHeader) {
     let hasException;
 
     function exception(message) {
-        return this.message(message);
+        return exception.message(message);
     }
 
     exception.header = header;
@@ -118,7 +118,7 @@ function OpenAPIException(header, isHeader) {
 
                     length = headers.length;
                     for (let i = 0; i < length; i++) {
-                        if (positionals[i].hasException) {
+                        if (headers[i].hasException) {
                             hasException = true;
                             break;
                         }

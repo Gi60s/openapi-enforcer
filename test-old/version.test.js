@@ -49,7 +49,7 @@ describe('v3/version', () => {
 
     describe('as object', () => {
 
-        it('{ swagger: 2.0 }', () => {
+        it('{ components: 2.0 }', () => {
             const enforcer = Enforcer({ swagger: '2.0' });
             expect(enforcer.version()).to.equal('2.0');
         });

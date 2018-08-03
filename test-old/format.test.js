@@ -16,7 +16,7 @@
  **/
 'use strict';
 const expect            = require('chai').expect;
-const format            = require('../bin/format');
+const format            = require('../bin-old/format');
 
 describe('format', () => {
 

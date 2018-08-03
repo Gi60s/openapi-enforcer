@@ -15,11 +15,11 @@
  *    limitations under the License.
  **/
 'use strict';
-const copy      = require('../../bin/util').copy;
+const copy      = require('../../bin-old/util').copy;
 const expect    = require('chai').expect;
 const enforcer  = require('../../index');
 
-describe('v2/request', () => {
+describe('v2/components', () => {
     const schema = {
         swagger: '2.0',
         paths: {

@@ -39,6 +39,13 @@ describe('request', () => {
                             }
                         }
                     }
+                },
+                '/num/{num}': {
+                    get: {
+                        parameters: [
+                            { name: 'num', in: 'path', required: true, type: 'integer' }
+                        ]
+                    }
                 }
             }
         });
@@ -81,6 +88,7 @@ describe('request', () => {
             });
 
             it('number ok', () => {
+                enforcer.request({ body: 5, method: 'post' });
                 expect(() => enforcer.request({ body: 5, method: 'post' })).not.to.throw();
             });
 
@@ -176,11 +184,20 @@ describe('request', () => {
 
     });
 
+    describe('deserialization', () => {
+
+        it('path not defined', () => {
+            const req = enforcer.request({ path: '/num/5' });
+            console.log(req);
+            throw Error('x');
+        });
+    });
+
     describe('response', () => {
         const properties = ['data', 'errors', 'example', 'populate', 'serialize'];
         const config = { code: 200, contentType: 'application/json' };
 
-        it('via request', () => {
+        it('via components', () => {
             const req = enforcer.request('/');
             const res = req.response();
             expect(Object.keys(res)).to.deep.equal(properties);

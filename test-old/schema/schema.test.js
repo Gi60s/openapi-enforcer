@@ -16,8 +16,8 @@
  **/
 'use strict';
 const expect        = require('chai').expect;
-const Schema        = require('../../bin/schema');
-const util          = require('../../bin/util');
+const Schema        = require('../../bin-old/schema');
+const util          = require('../../bin-old/util');
 
 describe('schema constructor', () => {
 

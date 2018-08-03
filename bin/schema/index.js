@@ -77,15 +77,15 @@ const validationsMap = {
 
 function Schema(version, enforcer, exception, definition, map) {
 
-    // if this definition has already been processed then return result
-    const existing = map.get(definition);
-    if (existing) return existing;
-    map.set(definition, this);
-
     if (!util.isPlainObject(definition)) {
         exception('Must be a plain object');
         return;
     }
+
+    // if this definition has already been processed then return result
+    const existing = map.get(definition);
+    if (existing) return existing;
+    map.set(definition, this);
 
     // store protected variables
     store.set(this, {
@@ -226,7 +226,7 @@ function Schema(version, enforcer, exception, definition, map) {
             exception('Property "minProperties" must be less than or equal to "maxProperties"');
         }
         if (this.hasOwnProperty('discriminator')) {
-            const child = exception.nest('Discriminator has one or more errors');
+            const child = exception.at('discriminator');
             let discriminator = this.discriminator;
             switch (version) {
                 case 2:
@@ -258,7 +258,7 @@ function Schema(version, enforcer, exception, definition, map) {
                                     if (!util.isPlainObject(def)) {
                                         child('Mapped value for "' + key + '" must be an object');
                                     } else {
-                                        mapping[key] = new Schema(version, enforcer, child.at('Mapping has one or more errors'), def, map);
+                                        mapping[key] = new Schema(version, enforcer, child.at('mapping'), def, map);
                                     }
                                 });
                             }
@@ -274,16 +274,16 @@ function Schema(version, enforcer, exception, definition, map) {
                 exception('The number or "required" properties exceeds the "maxProperties" value');
             }
         }
-        if (this.additionalProperties) {
+        if (this.hasOwnProperty('additionalProperties') && typeof this.additionalProperties !== 'boolean') {
             this.additionalProperties = new Schema(version, enforcer, exception.at('additionalProperties'), this.additionalProperties, map);
         }
         if (this.properties) {
             if (!util.isPlainObject(this.properties)) {
                 exception('Property "properties" must be an object');
             } else {
-                const subException = exception.nest('Property "properties" has one or more errors');
+                const subException = exception.at('properties');
                 Object.keys(this.properties).forEach(key => {
-                    this.properties[key] = new Schema(version, enforcer, subException.nest('Property "' + key + '" has one or more errors'), this.properties[key], map);
+                    this.properties[key] = new Schema(version, enforcer, subException.at(key), this.properties[key], map);
                 })
             }
         }
@@ -305,7 +305,6 @@ function Schema(version, enforcer, exception, definition, map) {
                         exception('Property "maximum" is not a valid ' + this.format);
                         valid = false;
                     } else {
-                        util.deepFreeze(date);
                         this.maximum = date;
                     }
                 }
@@ -320,7 +319,6 @@ function Schema(version, enforcer, exception, definition, map) {
                         exception('Property "minimum" is not a valid ' + this.format);
                         valid = false;
                     } else {
-                        if (options.freeze) util.deepFreeze(date);
                         this.minimum = date;
                     }
                 }
@@ -426,15 +424,13 @@ function Schema(version, enforcer, exception, definition, map) {
     }
 
     // if an example is provided then validate the example and deserialize it
-    if (schema.hasOwnProperty('example')) {
+    if (definition.hasOwnProperty('example')) {
         const error = this.validate(schema.example);
         if (error) {
             error.header = 'Example does not match the schema';
             exception(error);
         }
     }
-
-    if (options.freeze) Object.freeze(this);
 }
 
 /**

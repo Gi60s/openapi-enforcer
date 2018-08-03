@@ -16,6 +16,7 @@
  **/
 'use strict';
 const Exception     = require('./exception');
+const freeze        = require('./freeze');
 const Paths         = require('./components/paths');
 const Parameter     = require('./components/parameter');
 const Schema        = require('./components/schema');
@@ -25,8 +26,11 @@ const rxSemver = /^(\d+)\.(\d+)\.(\d+)$/;
 
 module.exports = Enforcer;
 
-function Enforcer(definition) {
+function Enforcer(definition, options) {
     const exception = Exception('Error building enforcer instance');
+
+    options = Object.assign({}, options);
+    if (!options.hasOwnProperty('freeze')) options.freeze = true;
 
     const map = new WeakMap();
     if (!util.isPlainObject(definition)) {
@@ -105,6 +109,7 @@ function Enforcer(definition) {
     }
 
     if (exception.hasException) throw new Error(exception.toString());
+    if (options.freeze) freeze.deepFreeze(this);
 }
 
 Enforcer.prototype.request = function(req) {

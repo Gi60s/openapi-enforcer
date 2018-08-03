@@ -43,103 +43,103 @@ const validationsMap = {
 
 function Parameter(version, enforcer, exception, definition, map) {
 
+    if (!util.isPlainObject(definition)) {
+        exception('Must be a plain object');
+        return;
+    }
+
     // if this definition has already been processed then return result
     const existing = map.get(definition);
     if (existing) return existing;
     map.set(definition, this);
 
-    if (!util.isPlainObject(definition)) {
-        exception('Must be a plain object');
+    const validations = validationsMap[version];
+
+    // validate name
+    if (!definition.hasOwnProperty('name')) {
+        exception('Missing required property "name"');
+    } else if (typeof definition.name !== 'string') {
+        exception('Value for property "name" must be a string.');
     } else {
-        const validations = validationsMap[version];
-
-        // validate name
-        if (!definition.hasOwnProperty('name')) {
-            exception('Missing required property "name"');
-        } else if (typeof definition.name !== 'string') {
-            exception('Value for property "name" must be a string.');
-        } else {
-            this.name = definition.name;
-        }
-
-        // validate "in"
-        if (!definition.hasOwnProperty('in')) {
-            exception('Missing required property "in"')
-        } else if (!validations.in.includes(definition.in)) {
-            exception('Invalid value for property "in". Must be one of "' + validations.in.join('", "') + '". Received: ' + definition.in);
-        } else {
-            this.in = definition.in;
-        }
-
-        this.required = definition.hasOwnProperty('required') ? definition.required : this.in === 'path';
-        this.allowEmptyValue = definition.hasOwnProperty('allowEmptyValue') ? definition.allowEmptyValue : false;
-
-        if (version === 2) {
-            const def = {};
-
-            // validate type
-            if (!definition.hasOwnProperty('type')) {
-                exception('Missing required property "type"');
-            } else if (!validations.types.includes(definition.type)) {
-                exception('Invalid value for property "type". Must be one of "' + validations.types.join('", "') + '". Received: ' + definition.type);
-            } else {
-                def.type = definition.type;
-            }
-
-            // set collection format
-            if (definition.type === 'array') {
-                if (!definition.hasOwnProperty('collectionFormat')) {
-                    this.collectionFormat = 'csv';
-                } else if (!validations.collectionFormats.includes(definition.collectionFormat)) {
-                    exception('Invalid value for property "collectionFormat". Must be one of "' + validations.collectionFormats.join('", "') + '". Received: ' + definition.collectionFormat);
-                } else {
-                    this.collectionFormat = definition.collectionFormat;
-                }
-            }
-
-            // add additional parameter schema properties
-            validations.schemaProperties.forEach(key => {
-                if (definition.hasOwnProperty(key)) def[key] = definition[key];
-            });
-
-            this.schema = new Schema(version, enforcer, exception, def, map);
-
-        } else if (version === 3) {
-            if (!definition.hasOwnProperty('style')) {
-                this.style = this.in === 'cookie' || this.in === 'query'
-                    ? 'form'
-                    : 'simple';
-            } else if (!validations.styles[this.in].includes(definition.style)) {
-                exception('Invalid style specified for parameter in "' + this.in + '". Expected on of "' + validations.styles[this.in].join('", "') + '". Received: ' + definition.style);
-            } else {
-                this.style = definition.style;
-            }
-
-            if (!definition.hasOwnProperty('explode')) {
-                this.explode = this.style === 'form';
-            } else {
-                this.explode = definition.explode;
-            }
-
-            if (definition.hasOwnProperty('schema') && definition.hasOwnProperty('content')) {
-                exception('Properties "schema" and "content" are mutually exclusive and cannot both be used on the same parameter object.')
-            } else if (definition.hasOwnProperty('schema')) {
-                schemaAndExamples(this, version, exception, definition, map);
-            } else if (definition.hasOwnProperty('content')) {
-                const child = exception.at('content');
-                const mediaTypes = Object.keys(definition.content);
-                if (mediaTypes.length !== 1) {
-                    child('Must have exactly one media type. Found ' + mediaTypes.join(', '));
-                } else {
-                    const mt = mediaTypes[0];
-                    schemaAndExamples(this, version, exception.at('content/' + mt), definition.content[mt], map);
-                }
-            } else {
-                exception('Missing required property "schema" or "content"');
-            }
-        }
+        this.name = definition.name;
     }
 
+    // validate "in"
+    if (!definition.hasOwnProperty('in')) {
+        exception('Missing required property "in"')
+    } else if (!validations.in.includes(definition.in)) {
+        exception('Invalid value for property "in". Must be one of "' + validations.in.join('", "') + '". Received: ' + definition.in);
+    } else {
+        this.in = definition.in;
+    }
+
+    this.required = definition.hasOwnProperty('required') ? definition.required : this.in === 'path';
+    this.allowEmptyValue = definition.hasOwnProperty('allowEmptyValue') ? definition.allowEmptyValue : false;
+
+    if (version === 2) {
+        const def = {};
+
+        // validate type
+        if (!definition.hasOwnProperty('type')) {
+            exception('Missing required property "type"');
+        } else if (!validations.types.includes(definition.type)) {
+            exception('Invalid value for property "type". Must be one of "' + validations.types.join('", "') + '". Received: ' + definition.type);
+        } else {
+            def.type = definition.type;
+        }
+
+        // set collection format
+        if (definition.type === 'array') {
+            if (!definition.hasOwnProperty('collectionFormat')) {
+                this.collectionFormat = 'csv';
+            } else if (!validations.collectionFormats.includes(definition.collectionFormat)) {
+                exception('Invalid value for property "collectionFormat". Must be one of "' + validations.collectionFormats.join('", "') + '". Received: ' + definition.collectionFormat);
+            } else {
+                this.collectionFormat = definition.collectionFormat;
+            }
+        }
+
+        // add additional parameter schema properties
+        validations.schemaProperties.forEach(key => {
+            if (definition.hasOwnProperty(key)) def[key] = definition[key];
+        });
+
+        this.schema = new Schema(version, enforcer, exception, def, map);
+
+    } else if (version === 3) {
+        if (!definition.hasOwnProperty('style')) {
+            this.style = this.in === 'cookie' || this.in === 'query'
+                ? 'form'
+                : 'simple';
+        } else if (!validations.styles[this.in].includes(definition.style)) {
+            exception('Invalid style specified for parameter in "' + this.in + '". Expected on of "' + validations.styles[this.in].join('", "') + '". Received: ' + definition.style);
+        } else {
+            this.style = definition.style;
+        }
+
+        if (!definition.hasOwnProperty('explode')) {
+            this.explode = this.style === 'form';
+        } else {
+            this.explode = definition.explode;
+        }
+
+        if (definition.hasOwnProperty('schema') && definition.hasOwnProperty('content')) {
+            exception('Properties "schema" and "content" are mutually exclusive and cannot both be used on the same parameter object.')
+        } else if (definition.hasOwnProperty('schema')) {
+            schemaAndExamples(this, version, exception, definition, map);
+        } else if (definition.hasOwnProperty('content')) {
+            const child = exception.at('content');
+            const mediaTypes = Object.keys(definition.content);
+            if (mediaTypes.length !== 1) {
+                child('Must have exactly one media type. Found ' + mediaTypes.join(', '));
+            } else {
+                const mt = mediaTypes[0];
+                schemaAndExamples(this, version, exception.at('content/' + mt), definition.content[mt], map);
+            }
+        } else {
+            exception('Missing required property "schema" or "content"');
+        }
+    }
 }
 
 /**

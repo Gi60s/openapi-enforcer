@@ -19,7 +19,6 @@ const Operation = require('./operation');
 const Parameter = require('./parameter');
 const util      = require('../util');
 
-const store = new WeakMap();
 const validationsMap = {
     2: {
         methods: ['delete', 'get', 'head', 'options', 'patch', 'post', 'put']
@@ -34,60 +33,57 @@ module.exports = Path;
 
 function Path(version, enforcer, exception, definition, map) {
 
+    if (!util.isPlainObject(definition)) {
+        exception('Must be a plain object');
+        return;
+    }
+
     // if this definition has already been processed then return result
     const existing = map.get(definition);
     if (existing) return existing;
     map.set(definition, this);
 
-    if (!util.isPlainObject(definition)) {
-        exception('Must be a plain object');
-    } else {
-        store.set(this, {
-            enforcer
-        });
+    const validations = validationsMap[version];
+    let body;
 
-        const validations = validationsMap[version];
-        let body;
+    // build parameters
+    if (definition.hasOwnProperty('parameters')) {
+        if (!Array.isArray(definition.parameters)) {
+            exception('Property "parameters" must be an array');
+        } else {
+            this.parameters = version === 2
+                ? { header: {}, path: {}, query: {} }
+                : { cookie: {}, header: {}, path: {}, query: {} };
 
-        // build parameters
-        if (definition.hasOwnProperty('parameters')) {
-            if (!Array.isArray(definition.parameters)) {
-                exception('Property "parameters" must be an array');
-            } else {
-                this.parameters = version === 2
-                    ? { header: {}, path: {}, query: {} }
-                    : { cookie: {}, header: {}, path: {}, query: {} };
-
-                definition.parameters.forEach((definition, index) => {
-                    const child = exception.at(index);
-                    const parameter = new Parameter(version, enforcer, child, definition, map);
-                    if (!child.hasException) {
-                        if (version === 2 && (parameter.in === 'body' || parameter.in === 'formData')) {
-                            body = parameter;
-                        } else {
-                            this.parameters[parameter.in][parameter.name] = parameter;
-                        }
-
+            definition.parameters.forEach((definition, index) => {
+                const child = exception.at(index);
+                const parameter = new Parameter(version, enforcer, child, definition, map);
+                if (!child.hasException) {
+                    if (version === 2 && (parameter.in === 'body' || parameter.in === 'formData')) {
+                        body = parameter;
+                    } else {
+                        this.parameters[parameter.in][parameter.name] = parameter;
                     }
-                });
-            }
-        }
 
-        // build body
-        if (version === 2) {
-            if (body) {
-                // TODO
-            }
-        } else if (version === 3) {
+                }
+            });
+        }
+    }
+
+    // build body
+    if (version === 2) {
+        if (body) {
             // TODO
         }
-
-        // build operation objects
-        validations.methods.forEach(method => {
-            if (definition.hasOwnProperty(method)) {
-                this[method] = new Operation(version, enforcer, exception.at(method), definition[method], map);
-            }
-        });
+    } else if (version === 3) {
+        // TODO
     }
+
+    // build operation objects
+    validations.methods.forEach(method => {
+        if (definition.hasOwnProperty(method)) {
+            this[method] = new Operation(version, enforcer, exception.at(method), definition[method], map);
+        }
+    });
 
 }

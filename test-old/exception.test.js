@@ -16,7 +16,7 @@
  **/
 'use strict';
 const expect        = require('chai').expect;
-const Exception     = require('../bin/exception');
+const Exception     = require('../bin-old/exception');
 
 describe('OpenAPIException', () => {
 

@@ -2,7 +2,7 @@
 const Buffer    = require('buffer').Buffer;
 const Enforcer  = require('../index');
 const expect    = require('chai').expect;
-const util      = require('../bin/util');
+const util      = require('../bin-old/util');
 
 describe('random', () => {
     let enforcer;

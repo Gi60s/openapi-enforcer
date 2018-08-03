@@ -15,29 +15,33 @@
  *    limitations under the License.
  **/
 'use strict';
-const util      = require('../util');
+const expect            = require('chai').expect;
+const ParameterObject   = require('../../bin-old/components/parameter-object');
 
-module.exports = Operation;
+describe('components/parameter-object', () => {
 
-const validationsMap = {
-    2: {
-        methods: ['delete', 'get', 'head', 'options', 'patch', 'post', 'put']
-    },
-    3: {
-        methods: ['delete', 'get', 'head', 'options', 'patch', 'post', 'put', 'trace']
-    }
-};
+    describe.only('v2', () => {
 
-function Operation(version, enforcer, exception, definition, map) {
+        it('valid definition', () => {
+            const po = new ParameterObject(2, {
+                name: 'x',
+                in: 'path',
+                required: true,
+                type: 'string'
+            });
+            return po;
+        });
 
-    if (!util.isPlainObject(definition)) {
-        exception('Must be a plain object');
-        return;
-    }
+        describe('in', () => {
 
-    // if this definition has already been processed then return result
-    const existing = map.get(definition);
-    if (existing) return existing;
-    map.set(definition, this);
 
-}
+
+        });
+
+    });
+
+    describe('v2', () => {
+
+    });
+
+});

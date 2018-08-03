@@ -16,7 +16,7 @@
  **/
 'use strict';
 const expect            = require('chai').expect;
-const util              = require('../bin/util');
+const util              = require('../bin-old/util');
 
 describe('util', () => {
 

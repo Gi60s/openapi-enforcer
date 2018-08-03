@@ -15,9 +15,15 @@
  *    limitations under the License.
  **/
 'use strict';
+const rx        = require('./rx');
 
 // TODO: re-evaluate deepFreeze and Object.freeze
 
+
+exports.copy = function(value) {
+    const map = new Map();
+    return copy(map, value);
+};
 
 exports.edgeSlashes = function(value, start, end) {
     value = value.replace(/^\//, '').replace(/\/$/, '');
@@ -25,6 +31,25 @@ exports.edgeSlashes = function(value, start, end) {
     if (start) value = '/' + value;
     if (end) value += '/';
     return value;
+};
+
+exports.getDateFromValidDateString = function (format, string) {
+    const date = new Date(string);
+    const match = rx[format].exec(string);
+    const year = +match[1];
+    const month = +match[2] - 1;
+    const day = +match[3];
+    const hour = +match[4] || 0;
+    const minute = +match[5] || 0;
+    const second = +match[6] || 0;
+    const millisecond = +match[7] || 0;
+    return date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month &&
+    date.getUTCDate() === day &&
+    date.getUTCHours() === hour &&
+    date.getUTCMinutes() === minute &&
+    date.getUTCSeconds() === second &&
+    date.getUTCMilliseconds() === millisecond ? date : null;
 };
 
 exports.isPlainObject = function(value) {
@@ -49,6 +74,38 @@ exports.mapObject = function(object, callback) {
     });
     return result;
 };
+
+
+
+function copy(map, value) {
+    if (value instanceof Date) {
+        return new Date(+value);
+
+    } else if (value instanceof Buffer) {
+        return value.slice(0);
+
+    } else if (Array.isArray(value)) {
+        let result = map.get(value);
+        if (result) return result;
+
+        result = [];
+        map.set(value, result);
+        value.forEach(v => result.push(copy(map, v)));
+        return result;
+
+    } else if (value && typeof value === 'object') {
+        let result = map.get(value);
+        if (result) return result;
+
+        result = {};
+        map.set(value, result);
+        Object.keys(value).forEach(key => result[key] = copy(map, value[key]));
+        return result;
+
+    } else {
+        return value;
+    }
+}
 
 function isObject(v) {
     return v && typeof v === 'object' && Object.prototype.toString.call(v) === '[object Object]';
