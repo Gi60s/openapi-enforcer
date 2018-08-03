@@ -41,7 +41,7 @@ const validationsMap = {
     }
 };
 
-function Parameter(version, exception, definition, map) {
+function Parameter(version, enforcer, exception, definition, map) {
 
     // if this definition has already been processed then return result
     const existing = map.get(definition);
@@ -102,7 +102,7 @@ function Parameter(version, exception, definition, map) {
                 if (definition.hasOwnProperty(key)) def[key] = definition[key];
             });
 
-            this.schema = new Schema(version, exception.nest('Schema has one or more errors'), def, map);
+            this.schema = new Schema(version, enforcer, exception, def, map);
 
         } else if (version === 3) {
             if (!definition.hasOwnProperty('style')) {
@@ -208,12 +208,12 @@ Parameter.prototype.parse = function(value) {
     return new Result(exception, result);
 };
 
-function schemaAndExamples(context, version, exception, definition, map) {
+function schemaAndExamples(context, version, enforcer, exception, definition, map) {
     if (definition.hasOwnProperty('schema')) {
-        context.schema = new Schema(version, exception.at('schema'), definition.schema, map);
+        context.schema = new Schema(version, enforcer, exception.at('schema'), definition.schema, map);
     }
 
-    if (definition.hasOwnProperty('example') && schema.hasOwnProperty('examples')) {
+    if (definition.hasOwnProperty('example') && definition.hasOwnProperty('examples')) {
         exception('Properties "example" and "examples" are mutually exclusive');
     } else if (definition.hasOwnProperty('example')) {
         context.example = definition.example;

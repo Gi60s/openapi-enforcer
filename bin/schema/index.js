@@ -75,47 +75,47 @@ const validationsMap = {
     }
 };
 
-util.deepFreeze(validationsMap);
+function Schema(version, enforcer, exception, definition, map) {
 
-function Schema(exception, version, schema, options, map) {
-
-    // already processed schema instances can be returned now
-    if (schema instanceof Schema) return schema;
-
-    // watch for cyclic building
-    const existing = map.get(schema);
+    // if this definition has already been processed then return result
+    const existing = map.get(definition);
     if (existing) return existing;
-    map.set(schema, this);
+    map.set(definition, this);
+
+    if (!util.isPlainObject(definition)) {
+        exception('Must be a plain object');
+        return;
+    }
 
     // store protected variables
     store.set(this, {
-        exception: exception,
-        options: options,
+        enforcer: enforcer,
+        definition: definition,
         version: version
     });
 
     // validate that only the allowed properties are specified and copy properties to this
-    const validations = validationsMap[version.value];
+    const validations = validationsMap[version];
     const common = validations.common;
-    const keys = Object.keys(schema);
+    const keys = Object.keys(definition);
     const length = keys.length;
     const composites = [];
     let skipDefaultValidations = false;
     const enumErrors = {};
-    const type = schema.type;
+    const type = definition.type;
     const typeProperties = validations.types[type] || {};
     for (let i = 0; i < length; i++) {
         const key = keys[i];
 
         if (rxExtension.test(key)) {
-            this[key] = schema[key];
+            this[key] = definition[key];
 
         // validate that the property is allowed
-        } else if (!(common[key] || typeProperties[key] || validations.composites[key] || allowProperty(schema, key, version.value))) {
+        } else if (!(common[key] || typeProperties[key] || validations.composites[key] || allowProperty(definition, key, version))) {
             exception('Property not allowed: ' + key);
 
         } else {
-            const value = schema[key];
+            const value = definition[key];
             if (value instanceof Date) {
                 this[key] = new Date(+value);
             } else if (value instanceof Buffer) {
@@ -125,7 +125,7 @@ function Schema(exception, version, schema, options, map) {
             } else if (util.isPlainObject(value)) {
                 this[key] = Object.assign({}, value)
             } else {
-                this[key] = schema[key];
+                this[key] = definition[key];
             }
 
             // keep track of composites
@@ -147,16 +147,12 @@ function Schema(exception, version, schema, options, map) {
                     exception('Composite "' + composite + '" must be an array');
                 } else {
                     this[composite] = this[composite]
-                        .map((schema, index) => new Schema(exception.nest(composite + ' has one or more errors at index ' + index), version, schema, options, map));
+                        .map((def, index) => new Schema(version, enforcer, exception.at(composite + '/' + index), def, map));
                 }
                 break;
 
             case 'not':
-                if (!util.isPlainObject(this.not)) {
-                    exception('Composite "not" must be an object');
-                } else {
-                    this.not = new Schema(exception.nest('not'), version, this.not, options, map);
-                }
+                this.not = new Schema(version, enforcer, exception.at('not'), version, this.not, map);
                 break;
         }
 
@@ -168,11 +164,7 @@ function Schema(exception, version, schema, options, map) {
 
     } else if (type === 'array') {
         if (this.items) {
-            if (util.isPlainObject(this.items)) {
-                this.items = new Schema(exception.nest('items'), version, this.items, options, map);
-            } else {
-                exception('Property "items" must be an object');
-            }
+            this.items = new Schema(version, enforcer, exception.at('items'), this.items, map);
         }
         if (this.hasOwnProperty('maxItems') && !isNonNegativeInteger(this.maxItems)) {
             exception('Property "maxItems" must be a non-negative integer');
@@ -236,7 +228,7 @@ function Schema(exception, version, schema, options, map) {
         if (this.hasOwnProperty('discriminator')) {
             const child = exception.nest('Discriminator has one or more errors');
             let discriminator = this.discriminator;
-            switch (version.value) {
+            switch (version) {
                 case 2:
                     if (typeof discriminator !== 'string') {
                         child('Discriminator must be a string');
@@ -262,11 +254,11 @@ function Schema(exception, version, schema, options, map) {
                             } else {
                                 const mapping = discriminator.mapping;
                                 Object.keys(mapping).forEach(key => {
-                                    const schema = mapping[key];
-                                    if (!util.isPlainObject(schema)) {
+                                    const def = mapping[key];
+                                    if (!util.isPlainObject(def)) {
                                         child('Mapped value for "' + key + '" must be an object');
                                     } else {
-                                        mapping[key] = new Schema(exception.nest('Mapping has one or more errors'), version, schema, options, map);
+                                        mapping[key] = new Schema(version, enforcer, child.at('Mapping has one or more errors'), def, map);
                                     }
                                 });
                             }
@@ -274,7 +266,6 @@ function Schema(exception, version, schema, options, map) {
                     }
                     break;
             }
-            if (options.freeze) Object.freeze(discriminator);
         }
         if (this.hasOwnProperty('required')) {
             if (!Array.isArray(this.required) || this.required.filter(v => v && typeof v === 'string').length !== this.required.length) {
@@ -284,11 +275,7 @@ function Schema(exception, version, schema, options, map) {
             }
         }
         if (this.additionalProperties) {
-            if (util.isPlainObject(this.additionalProperties)) {
-                this.additionalProperties = new Schema(exception.nest('additionalProperties'), version, this.additionalProperties, options, map);
-            } else if (this.additionalProperties !== true) {
-                exception('Property "additionalProperties" must be an object');
-            }
+            this.additionalProperties = new Schema(version, enforcer, exception.at('additionalProperties'), this.additionalProperties, map);
         }
         if (this.properties) {
             if (!util.isPlainObject(this.properties)) {
@@ -296,12 +283,7 @@ function Schema(exception, version, schema, options, map) {
             } else {
                 const subException = exception.nest('Property "properties" has one or more errors');
                 Object.keys(this.properties).forEach(key => {
-                    const subSchema = this.properties[key];
-                    if (util.isPlainObject(subSchema)) {
-                        this.properties[key] = new Schema(subException.nest('Property "' + key + '" has one or more errors'), version, subSchema, options, map);
-                    } else {
-                        subException('Property "' + key + '" must be an object');
-                    }
+                    this.properties[key] = new Schema(version, enforcer, subException.nest('Property "' + key + '" has one or more errors'), this.properties[key], map);
                 })
             }
         }
@@ -323,7 +305,7 @@ function Schema(exception, version, schema, options, map) {
                         exception('Property "maximum" is not a valid ' + this.format);
                         valid = false;
                     } else {
-                        if (options.freeze) util.deepFreeze(date);
+                        util.deepFreeze(date);
                         this.maximum = date;
                     }
                 }
@@ -437,7 +419,7 @@ function Schema(exception, version, schema, options, map) {
     }
 
     // check for invalid discriminator placement
-    if (version.value === 3 && this.discriminator) {
+    if (version === 3 && this.discriminator) {
         if (type !== 'object' && !this.oneOf && !this.anyOf) {
             exception('Discriminator only allowed in objects or along with anyOf or oneOf');
         }
@@ -478,15 +460,29 @@ Schema.prototype.exception = function(force) {
     return force || data.exception.hasException ? data.exception : null;
 };
 
+/**
+ * Get discriminator key and schema.
+ * @param {*} value
+ * @returns {{ key: string, schema: Schema }}
+ */
 Schema.prototype.getDiscriminator = function(value) {
-    const data = store.get(this);
-    if (!data) throw Error('Expected a Schema instance type');
+    const { definition, enforcer, version } = store.get(this);
+    if (version === 2) {
+        const discriminator = definition.discriminator;
+        const key = discriminator && value && value.hasOwnProperty(discriminator) ? value[discriminator] : undefined;
+        if (!key) return { key: undefined, schema: undefined };
+        const schema = enforcer.definition && enforcer.definition.definitions && enforcer.definition.definitions[key];
+        return { key, schema };
 
-    const discriminator = schema.discriminator;
-    const key = discriminator && value && value.hasOwnProperty(discriminator) ? value[discriminator] : undefined;
-    if (!key) return { key: undefined, schema: undefined };
+    } else if (version === 3) {
+        const discriminator = definition.discriminator;
+        const key = discriminator && value && value.hasOwnProperty(discriminator.propertyName) ? value[discriminator.propertyName] : undefined;
+        if (!key) return { key: undefined, schema: undefined };
 
-
+        const mapping = discriminator.mapping;
+        const schema = mapping && mapping[key];
+        return { key, schema };
+    }
 };
 
 /**

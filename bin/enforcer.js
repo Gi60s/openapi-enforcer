@@ -16,14 +16,18 @@
  **/
 'use strict';
 const Exception     = require('./exception');
-const PathsObject   = require('./components/paths');
+const Paths         = require('./components/paths');
+const Parameter     = require('./components/parameter');
+const Schema        = require('./components/schema');
 const util          = require('./util');
 
-const rxSemvar = /^(\d+)\.(\d+)\.(\d+)$/;
+const rxSemver = /^(\d+)\.(\d+)\.(\d+)$/;
 
 module.exports = Enforcer;
 
-function Enforcer(exception, definition) {
+function Enforcer(definition) {
+    const exception = Exception('Error building enforcer instance');
+
     const map = new WeakMap();
     if (!util.isPlainObject(definition)) {
         exception('Invalid input. Definition must be a plain object');
@@ -36,30 +40,31 @@ function Enforcer(exception, definition) {
             exception('Property "swagger" must have value "2.0"')
 
         } else {
-            common(this, 2, exception, definition, map);
+            common(2, this, exception, definition, map);
             if (definition.hasOwnProperty('definitions')) {
                 this.definitions = util.mapObject(definition.definitions, (definition, key) => {
-                    return new Schema(2, exception.at('definitions/' + key), definition, map);
+                    return new Schema(2, this, exception.at('definitions/' + key), definition, map);
                 });
             }
             if (definition.hasOwnProperty('parameters')) {
                 this.parameters = util.mapObject(definition.definitions, (definition, key) => {
-                    return new Parameter(2, exception.at('parameters/' + key), definition, map);
+                    return new Parameter(2, this, exception.at('parameters/' + key), definition, map);
                 });
             }
             if (definition.hasOwnProperty('responses')) {
                 this.parameters = util.mapObject(definition.responses, (definition, key) => {
-                    return new Response(2, exception.at('responses/' + key), definition, map);
+                    // TODO
+                    return new Response(2, this, exception.at('responses/' + key), definition, map);
                 });
             }
         }
 
     } else if (definition.hasOwnProperty('openapi')) {
-        const match = rxSemvar.exec(definition.openapi);
+        const match = rxSemver.exec(definition.openapi);
         if (!match || match[1] !== '3') {
             exception('OpenAPI version ' + definition.openapi + ' not supported');
         } else {
-            common(this, 3, exception, definition, map);
+            common(3, this, exception, definition, map);
             if (definition.hasOwnProperty('components')) {
                 if (!util.isPlainObject(definition.components)) {
                     exception('Property "components" must be an object');
@@ -68,27 +73,30 @@ function Enforcer(exception, definition) {
                     this.components = {};
                     if (components.hasOwnProperty('headers')) {
                         this.components.parameters = util.mapObject(components.headers, (definition, key) => {
-                            return new Header(3, exception.at('components/headers/' + key), definition, map);
+                            // TODO
+                            return new Header(3, this, exception.at('components/headers/' + key), definition, map);
                         });
                     }
                     if (components.hasOwnProperty('parameters')) {
                         this.components.parameters = util.mapObject(components.parameters, (definition, key) => {
-                            return new Parameter(3, exception.at('components/parameters/' + key), definition, map);
+                            return new Parameter(3, this, exception.at('components/parameters/' + key), definition, map);
                         });
                     }
                     if (components.hasOwnProperty('responses')) {
                         this.parameters = util.mapObject(definition.responses, (definition, key) => {
-                            return new Response(3, exception.at('components/responses/' + key), definition, map);
+                            // TODO
+                            return new Response(3, this, exception.at('components/responses/' + key), definition, map);
                         });
                     }
                     if (components.hasOwnProperty('requestBodies')) {
                         this.parameters = util.mapObject(definition.responses, (definition, key) => {
-                            return new RequestBody(3, exception.at('components/requestBodies/' + key), definition, map);
+                            // TODO
+                            return new RequestBody(3, this, exception.at('components/requestBodies/' + key), definition, map);
                         });
                     }
                     if (components.hasOwnProperty('schemas')) {
                         this.components.schemas = util.mapObject(components.schemas, (definition, key) => {
-                            return new Schema(3, exception.at('components/schemas/' + key), definition, map);
+                            return new Schema(3, this, exception.at('components/schemas/' + key), definition, map);
                         });
                     }
                 }
@@ -96,6 +104,7 @@ function Enforcer(exception, definition) {
         }
     }
 
+    if (exception.hasException) throw new Error(exception.toString());
 }
 
 Enforcer.prototype.request = function(req) {
@@ -109,10 +118,10 @@ Enforcer.prototype.request = function(req) {
     // TODO: process the request parameters and build a response helper
 };
 
-function common(context, version, exception, definition, map) {
+function common(version, context, exception, definition, map) {
     if (!definition.hasOwnProperty('paths')) {
         exception('Missing required property "paths"');
     } else {
-        context.paths = new PathsObject(version, exception.at('paths'), definition.paths, map);
+        context.paths = new Paths(version, context, exception.at('paths'), definition.paths, map);
     }
 }

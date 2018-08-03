@@ -19,8 +19,7 @@ const Operation = require('./operation');
 const Parameter = require('./parameter');
 const util      = require('../util');
 
-module.exports = Path;
-
+const store = new WeakMap();
 const validationsMap = {
     2: {
         methods: ['delete', 'get', 'head', 'options', 'patch', 'post', 'put']
@@ -30,7 +29,10 @@ const validationsMap = {
     }
 };
 
-function Path(version, exception, definition, map) {
+
+module.exports = Path;
+
+function Path(version, enforcer, exception, definition, map) {
 
     // if this definition has already been processed then return result
     const existing = map.get(definition);
@@ -40,6 +42,10 @@ function Path(version, exception, definition, map) {
     if (!util.isPlainObject(definition)) {
         exception('Must be a plain object');
     } else {
+        store.set(this, {
+            enforcer
+        });
+
         const validations = validationsMap[version];
         let body;
 
@@ -54,7 +60,7 @@ function Path(version, exception, definition, map) {
 
                 definition.parameters.forEach((definition, index) => {
                     const child = exception.at(index);
-                    const parameter = new Parameter(version, child, definition, map);
+                    const parameter = new Parameter(version, enforcer, child, definition, map);
                     if (!child.hasException) {
                         if (version === 2 && (parameter.in === 'body' || parameter.in === 'formData')) {
                             body = parameter;
@@ -79,7 +85,7 @@ function Path(version, exception, definition, map) {
         // build operation objects
         validations.methods.forEach(method => {
             if (definition.hasOwnProperty(method)) {
-                this[method] = new Operation(version, exception.at(method), definition[method], map);
+                this[method] = new Operation(version, enforcer, exception.at(method), definition[method], map);
             }
         });
     }

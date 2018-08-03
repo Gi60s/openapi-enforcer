@@ -24,51 +24,21 @@ const util      = require('../util');
  * Converts Buffer and Date objects into string equivalent.
  * @param {Schema} schema
  * @param {*} value
- * @returns {{ error: Exception, value: *}}
+ * @returns {EnforcerResult}
  */
 exports.deserialize = function(schema, value) {
     const exception = Exception('Unable to deserialize value');
-
-    // check the schema
-    if (schema.hasException) {
-        exception(schema.exception);
-        return exception;
-    }
-
-    // deserialize
-    const result = deserialize(exception, schema.version, new Map(), schema, value);
-
-    // return results
-    const hasException = exception.hasException;
-    return {
-        error: hasException ? exception : null,
-        value: hasException ? null : result
-    }
+    return deserialize(exception, new Map(), schema, value);
 };
 
 exports.serialize = function(schema, value) {
     const exception = Exception('Unable to serialize value');
-
-    // check the schema
-    if (schema.hasException) {
-        exception(schema.exception);
-        return exception;
-    }
-
-    // deserialize
-    const result = serialize(exception, schema.version, new Map(), schema, value);
-
-    // return results
-    const hasException = exception.hasException;
-    return {
-        error: hasException ? exception : null,
-        value: hasException ? null : result
-    }
+    return serialize(exception, new Map(), schema, value);
 };
 
 
 
-function deserialize(exception, version, map, schema, value) {
+function deserialize(exception, map, schema, value) {
     let matches;
 
     // handle cyclic serialization
@@ -88,21 +58,21 @@ function deserialize(exception, version, map, schema, value) {
     if (schema.allOf) {
         const result = {};
         schema.allOf.forEach((schema, index) => {
-            const v = deserialize(exception.nest('Unable to deserialize "allOf" at index ' + index), version, map, schema, value);
+            const v = deserialize(exception.at('Unable to deserialize "allOf" at index ' + index), map, schema, value);
             Object.assign(result, v)
         });
         return result;
 
     } else if (schema.anyOf) {
         if (schema.discriminator) {
-            return runDiscriminator(exception, version, map, schema, value, deserialize);
+            return runDiscriminator(exception, map, schema, value, deserialize);
         } else {
             const anyOfException = Exception('Unable to deserialize using anyOf schemas');
             const length = schema.allOf.length;
             for (let index = 0; index < length; index++) {
                 const subSchema = schema.allOf[index];
                 const child = anyOfException.nest('Unable to deserialize using schema at index' + index);
-                const result = deserialize(child, version, map, subSchema, value);
+                const result = deserialize(child, map, subSchema, value);
                 if (!child.hasException) {
                     const error = subSchema.validate(result);
                     if (error) {
@@ -117,14 +87,14 @@ function deserialize(exception, version, map, schema, value) {
 
     } else if (schema.oneOf) {
         if (schema.discriminator) {
-            return runDiscriminator(exception, version, map, schema, value, deserialize);
+            return runDiscriminator(exception, map, schema, value, deserialize);
         } else {
             const oneOfException = Exception('Did not deserialize against exactly one oneOf schema');
             let valid = 0;
             let result = undefined;
             schema.oneOf.forEach((schema, index) => {
                 const child = oneOfException.nest('Unable to deserialize using schema at index ' + index);
-                result = deserialize(child, version, map, schema, value);
+                result = deserialize(child, map, schema, value);
                 if (!child.hasException) {
                     const error = schema.validate(result);
                     if (error) {
@@ -145,7 +115,7 @@ function deserialize(exception, version, map, schema, value) {
     } else if (type === 'array') {
         if (Array.isArray(value)) {
             const result = schema.items
-                ? value.map((v, i) => deserialize(exception.nest('/' + i), version, map, schema.items, v))
+                ? value.map((v, i) => deserialize(exception.nest('/' + i), map, schema.items, v))
                 : value;
             matches.set(schema, result);
             return result;
@@ -160,9 +130,9 @@ function deserialize(exception, version, map, schema, value) {
             const properties = schema.properties || {};
             Object.keys(value).forEach(key => {
                 if (properties.hasOwnProperty(key)) {
-                    result[key] = deserialize(exception.nest('Unable to deserialize property: ' + key), version, map, properties[key], value[key]);
+                    result[key] = deserialize(exception.nest('Unable to deserialize property: ' + key), map, properties[key], value[key]);
                 } else if (additionalProperties) {
-                    result[key] = deserialize(exception.nest('Unable to deserialize property: ' + key), version, map, additionalProperties, value[key]);
+                    result[key] = deserialize(exception.nest('Unable to deserialize property: ' + key), map, additionalProperties, value[key]);
                 }
             });
             matches.set(schema, result);
@@ -184,17 +154,16 @@ function deserialize(exception, version, map, schema, value) {
     }
 }
 
-function runDiscriminator(exception, version, map, schema, value, next) {
-    const subSchema = version.getDiscriminatorSchema(schema, value);
-    const key = version.getDiscriminatorKey(schema, value);
-    if (!subSchema) {
+function runDiscriminator(exception, map, parentSchema, value, next) {
+    const { key, schema } = parentSchema.getDiscriminatorSchema(value);
+    if (!schema) {
         exception('Discriminator property "' + key + '" as "' + value[key] + '" did not map to a schema');
     } else {
-        return next(exception.nest('Discriminator property "' + key + '" as "' + value[key] + '" has one or more errors'), version, map, subSchema, value);
+        return next(exception.nest('Discriminator property "' + key + '" as "' + value[key] + '" has one or more errors'), map, schema, value);
     }
 }
 
-function serialize(exception, version, map, schema, value) {
+function serialize(exception, map, schema, value) {
     let matches;
 
     // handle cyclic serialization
@@ -214,21 +183,21 @@ function serialize(exception, version, map, schema, value) {
     if (schema.allOf) {
         const result = {};
         schema.allOf.forEach((schema, index) => {
-            const v = serialize(exception.nest('Unable to serialize "allOf" at index ' + index), version, map, schema, value);
+            const v = serialize(exception.nest('Unable to serialize "allOf" at index ' + index), map, schema, value);
             Object.assign(result, v)
         });
         return result;
 
     } else if (schema.anyOf) {
         if (schema.discriminator) {
-            return runDiscriminator(exception, version, map, schema, value, serialize);
+            return runDiscriminator(exception, map, schema, value, serialize);
         } else {
             const anyOfException = Exception('Unable to serialize using anyOf schemas');
             const length = schema.allOf.length;
             for (let index = 0; index < length; index++) {
                 const subSchema = schema.allOf[index];
                 const child = anyOfException.nest('Unable to serialize using schema at index' + index);
-                const result = deserialize(child, version, map, subSchema, value);
+                const result = deserialize(child, map, subSchema, value);
                 if (!child.hasException) {
                     const error = subSchema.validate(result);
                     if (error) {
@@ -243,14 +212,14 @@ function serialize(exception, version, map, schema, value) {
 
     } else if (schema.oneOf) {
         if (schema.discriminator) {
-            return runDiscriminator(exception, version, map, schema, value, serialize);
+            return runDiscriminator(exception, map, schema, value, serialize);
         } else {
             const oneOfException = Exception('Did not serialize against exactly one oneOf schema');
             let valid = 0;
             let result = undefined;
             schema.oneOf.forEach((schema, index) => {
                 const child = oneOfException.nest('Unable to serialize using schema at index ' + index);
-                const result = deserialize(child, version, map, schema, value);
+                const result = deserialize(child, map, schema, value);
                 if (!child.hasException) {
                     const error = schema.validate(result);
                     if (error) {
@@ -271,7 +240,7 @@ function serialize(exception, version, map, schema, value) {
     } else if (type === 'array') {
         if (Array.isArray(value)) {
             const result = schema.items
-                ? value.map((v, i) => serialize(exception.nest('Unable to serialize array item at index ' + i), version, map, schema.items, v))
+                ? value.map((v, i) => serialize(exception.nest('Unable to serialize array item at index ' + i), map, schema.items, v))
                 : value;
             matches.set(schema, result);
             return result;
@@ -286,9 +255,9 @@ function serialize(exception, version, map, schema, value) {
             const properties = schema.properties || {};
             Object.keys(value).forEach(key => {
                 if (properties.hasOwnProperty(key)) {
-                    result[key] = serialize(exception.nest('Unable to serialize property: ' + key), version, map, properties[key], value[key]);
+                    result[key] = serialize(exception.nest('Unable to serialize property: ' + key), map, properties[key], value[key]);
                 } else if (additionalProperties) {
-                    result[key] = serialize(exception.nest('Unable to serialize property: ' + key), version, map, additionalProperties, value[key]);
+                    result[key] = serialize(exception.nest('Unable to serialize property: ' + key), map, additionalProperties, value[key]);
                 }
             });
             return result;

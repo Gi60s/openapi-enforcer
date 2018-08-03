@@ -28,7 +28,7 @@ const validationsMap = {
     }
 };
 
-function Operation(version, exception, definition, map) {
+function Operation(version, enforcer, exception, definition, map) {
 
     // if this definition has already been processed then return result
     const existing = map.get(definition);

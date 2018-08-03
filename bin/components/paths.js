@@ -23,7 +23,7 @@ const rxPathParam = /{([^}]+)}/;
 
 module.exports = Paths;
 
-function Paths(version, exception, definition, map) {
+function Paths(version, enforcer, exception, definition, map) {
 
     // if this definition has already been processed then return result
     const existing = map.get(definition);
@@ -34,13 +34,16 @@ function Paths(version, exception, definition, map) {
         exception('Must be a plain object');
     } else {
         const pathParsers = {};
-        map.set(this, pathParsers);
+        store.set(this, {
+            enforcer,
+            pathParsers
+        });
         Object.keys(definition).forEach(path => {
             const pathLength = path.split('/').length - 1;
             let match;
 
             // build the path object
-            const pathObject = new Path(version, exception.at(path), definition[path], map);
+            const pathObject = new Path(version, enforcer, exception.at(path), definition[path], map);
 
             // figure out path parameter names
             const parameterNames = [];

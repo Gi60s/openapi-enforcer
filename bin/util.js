@@ -16,6 +16,7 @@
  **/
 'use strict';
 
+// TODO: re-evaluate deepFreeze and Object.freeze
 
 
 exports.edgeSlashes = function(value, start, end) {
