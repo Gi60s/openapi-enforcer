@@ -100,7 +100,7 @@ deserialize: {
         throw: true,
         variables: true
     },
-    request: {
+    components: {
         throw: true
     },
     serialize: {
@@ -125,7 +125,7 @@ const enforcer = new Enforcer({ openapi: '3.0.0' });   // create an enforcer for
 
 **Example 3 - Using Discriminators**
 
-If your OpenAPI document is using discriminators then you'll want to either include the entire swagger document as the input parameter or include at least the component schemas (OpenAPI 3.x) or definitions (OpenAPI 2.0).
+If your OpenAPI document is using discriminators then you'll want to either include the entire components document as the input parameter or include at least the component schemas (OpenAPI 3.x) or definitions (OpenAPI 2.0).
 
 ```js
 const Enforcer = require('openapi-enforcer');
@@ -389,9 +389,9 @@ Returns: A random value that adheres to the provided schema.
 
 ## Enforcer.prototype.request
 
-Parse and validate input parameters for a request.
+Parse and validate input parameters for a components.
 
-`Enforcer.prototype.request ( { body, cookies, headers, method = 'get', path } )`
+`Enforcer.prototype.components ( { body, cookies, headers, method = 'get', path } )`
 
 This function takes one parameter, an `object`, with the following properties:
 
@@ -409,7 +409,7 @@ Returns an object with the following properties:
 
 - *path* - The path as defined in the OpenAPI document.
 
-- *request* - The request object, serialized and validated. If an error occurred this value will be `null`.
+- *components* - The components object, serialized and validated. If an error occurred this value will be `null`.
 
 - *response* - The same function as [`enforcer.prototype.response`](#enforcerprototyperesponse) except that the `path` and `method` properties are already specified..
 
@@ -417,7 +417,7 @@ Returns an object with the following properties:
 
 ## Enforcer.prototype.response
 
-Get functions that provide details and functionality that is associated to a request and its response.
+Get functions that provide details and functionality that is associated to a components and its response.
 
 `Enforcer.prototype.response ( { code, contentType, method = 'get', path } )`
 
@@ -622,9 +622,9 @@ const value = enforcer.serialize(schema, {
 
 ## Enforcer.prototype.request
 
-Pass in an object that is representative of an HTTP request to have it validated, parsed, and deserialized. The path must match one of the definition paths.
+Pass in an object that is representative of an HTTP components to have it validated, parsed, and deserialized. The path must match one of the definition paths.
 
-`Enforcer.prototype.request ( req )`
+`Enforcer.prototype.components ( req )`
 
 | Parameter | Description | Type |
 | --------- | ----------- | ---- |
@@ -640,7 +640,7 @@ Pass in an object that is representative of an HTTP request to have it validated
 | method | The HTTP method. | `"get"` | `string` |
 | path | The request path, including query string parameters. | `""` | `string` |
 
-Returns: A parsed, deserialized, and validated request object.
+Returns: A parsed, deserialized, and validated components object.
 
 ```js
 
