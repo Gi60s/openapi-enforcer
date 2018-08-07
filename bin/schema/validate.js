@@ -69,8 +69,9 @@ function validate(exception, version, map, schema, value) {
 
     } else if (schema.anyOf) {
         if (schema.discriminator) {
-            const subSchema = version.getDiscriminatorSchema(schema, value);
-            const key = version.getDiscriminatorKey(schema, value);
+            const data = schema.getDiscriminator(value);
+            const subSchema = data.schema;
+            const key = data.key;
             if (!subSchema) {
                 exception('Discriminator property "' + key + '" as "' + value[key] + '" did not map to a schema');
             } else {
@@ -92,20 +93,31 @@ function validate(exception, version, map, schema, value) {
         }
 
     } else if (schema.oneOf) {
-        const oneOfException = Exception('Did not validate against exactly one oneOf schema');
-        const length = schema.oneOf.length;
-        let valid = 0;
-        for (let i = 0; i < length; i++) {
-            const child = Exception('Did not validate against schema at index ' + i);
-            validate(child, version, map, schema.oneOf[i], value);
-            if (!child.hasException) {
-                valid++;
-                oneOfException('Validated against schema at index ' + i);
+        if (schema.discriminator) {
+            const data = schema.getDiscriminator(value);
+            const subSchema = data.schema;
+            const key = data.key;
+            if (!subSchema) {
+                exception('Discriminator property "' + key + '" as "' + value[key] + '" did not map to a schema');
             } else {
-                oneOfException(child);
+                validate(exception.nest('Discriminator property "' + key + '" as "' + value[key] + '" has one or more errors'), version, map, subSchema, value);
             }
+        } else {
+            const oneOfException = Exception('Did not validate against exactly one oneOf schema');
+            const length = schema.oneOf.length;
+            let valid = 0;
+            for (let i = 0; i < length; i++) {
+                const child = Exception('Did not validate against schema at index ' + i);
+                validate(child, version, map, schema.oneOf[i], value);
+                if (!child.hasException) {
+                    valid++;
+                    oneOfException('Validated against schema at index ' + i);
+                } else {
+                    oneOfException(child);
+                }
+            }
+            if (valid !== 1) exception(oneOfException);
         }
-        if (valid !== 1) exception(oneOfException);
 
     } else if (schema.not) {
         const child = Exception('');
