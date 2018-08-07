@@ -41,6 +41,69 @@ describe('components/schema', () => {
             expect(exception.hasException).to.be.false;
         });
 
+        it('identifies existing Schema instances', () => {
+            const definition = { type: 'object', properties: {} };
+            definition.properties.x = definition;
+            const { exception, schema } = getSchema(2, definition);
+            expect(exception.hasException).to.be.false;
+            expect(schema).to.equal(schema.properties.x);
+        });
+
+        it('allows extension property', () => {
+            const d = new Date();
+            const b = Buffer.from('hello');
+            const { exception, schema } = getSchema(2, { type: 'string', 'x-date': d, 'x-buffer': b });
+            expect(exception.hasException).to.be.false;
+            expect(schema['x-date']).to.deep.equal(d);
+            expect(schema['x-buffer']).to.deep.equal(b);
+        });
+
+        it('does not allow invalid property', () => {
+            const { exception } = getSchema(2, { type: 'string', foo: 'hello' });
+            expect(exception).to.match(/Property not allowed: foo/);
+        });
+
+        it('allows a single composite', () => {
+            const { exception, schema } = getSchema(2, { allOf: [{ type: 'string' }] });
+            expect(exception.hasException).to.be.false;
+            expect(schema.allOf[0]).to.be.instanceof(Schema);
+        });
+
+        it('does not allow multiple composites', () => {
+            const { exception } = getSchema(3, { allOf: [], oneOf: [] });
+            expect(exception).to.match(/Cannot have multiple composites/);
+        });
+
+        it('requires that allOf be an array', () => {
+            const { exception } = getSchema(3, { allOf: {} });
+            expect(exception).to.match(/must be an array/);
+        });
+
+        it('requires that anyOf be an array', () => {
+            const { exception } = getSchema(3, { anyOf: {} });
+            expect(exception).to.match(/must be an array/);
+        });
+
+        it('requires that oneOf be an array', () => {
+            const { exception } = getSchema(3, { oneOf: {} });
+            expect(exception).to.match(/must be an array/);
+        });
+
+        it('requires that not be a plain object', () => {
+            const { exception } = getSchema(3, { not: [] });
+            expect(exception).to.match(/Must be a plain object/);
+        });
+
+        it('requires a "type" property when not using composites', () => {
+            const { exception } = getSchema(3, {});
+            expect(exception).to.match(/Missing required property: type/);
+        });
+
+        it('requires a valid "type" property value', () => {
+            const { exception } = getSchema(3, { type: 'hogwash' });
+            expect(exception).to.match(/Invalid type specified/);
+        });
+
     });
 
     describe('schema types', () => {
@@ -343,6 +406,11 @@ describe('components/schema', () => {
                     const { exception } = getSchema(2, { type: 'object', maxProperties: -1 });
                     expect(exception).to.match(/Property "maxProperties" must be a non-negative integer/);
                 });
+
+                it('should not allow more required properties than max properties', () => {
+                    const { exception } = getSchema(2, { type: 'object', maxProperties: 1, required: ['a', 'b']});
+                    expect(exception).to.match(/The number or "required" properties exceeds the "maxProperties" value/);
+                })
 
             });
 
@@ -757,6 +825,11 @@ describe('components/schema', () => {
             expect(schema.default).to.be.instanceOf(Date);
         });
 
+        it('cannot deserialize a poorly formatted default value', () => {
+            const { exception } = getSchema(2, { type: 'string', format: 'date', default: 'hello' });
+            expect(exception).to.match(/Unable to deserialize default value/);
+        });
+
         it('will validate a default value', () => {
             const { exception } = getSchema(2, { type: 'string', format: 'date', maximum: '2000-01-01', default: '2000-01-02' });
             expect(exception).to.match(/Expected date to be less than or equal to/);
@@ -795,6 +868,47 @@ describe('components/schema', () => {
             const { exception, schema } = getSchema(2, { type: 'string', format: 'date', example: '2000-01-01' });
             expect(exception.hasException).to.be.false;
             expect(schema.example).to.be.instanceOf(Date);
+        });
+
+        it('cannot deserialize a poorly formatted example', () => {
+            const { exception } = getSchema(2, { type: 'string', format: 'date', example: 'hello' });
+            expect(exception).to.match(/Unable to deserialize example/);
+        });
+
+    });
+
+    describe('enum', () => {
+
+        it('allows a valid value', () => {
+            const { exception } = getSchema(2, { type: 'number', enum: [1, 2, 3] });
+            expect(exception.hasException).to.be.false;
+        });
+
+        it('must be an array', () => {
+            const { exception } = getSchema(2, { type: 'number', enum: 1 });
+            expect(exception).to.match(/Property "enum" must be an array/);
+        });
+
+        it('does not allow an invalid enum value', () => {
+            const { exception } = getSchema(2, { type: 'number', enum: [1, '2'] });
+            expect(exception).to.match(/Invalid enum value/);
+        });
+
+        it('will deserialize enum values', () => {
+            const { exception, schema } = getSchema(2, { type: 'string', format: 'date', enum: ['2000-01-01', '2000-01-02'] });
+            expect(exception.hasException).to.be.false;
+            expect(schema.enum[0]).to.be.instanceOf(Date);
+            expect(schema.enum[1]).to.be.instanceOf(Date);
+        });
+
+        it('cannot deserialize a poorly formatted enum value', () => {
+            const { exception } = getSchema(2, { type: 'string', format: 'date', enum: ['hello'] });
+            expect(exception).to.match(/Unable to deserialize enum value/);
+        });
+
+        it('will validate enum values', () => {
+            const { exception } = getSchema(2, { type: 'string', format: 'date', maximum: '2000-01-01', enum: ['2000-01-02'] });
+            expect(exception).to.match(/Value is not valid/);
         });
 
     });
