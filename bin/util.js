@@ -25,6 +25,10 @@ exports.copy = function(value) {
     return copy(map, value);
 };
 
+exports.isDate = function (value) {
+    return value && !isNaN(value) && value instanceof Date;
+};
+
 exports.edgeSlashes = function(value, start, end) {
     value = value.replace(/^\//, '').replace(/\/$/, '');
     if (value.length === 0 && (start || end)) return '/';
@@ -73,6 +77,12 @@ exports.mapObject = function(object, callback) {
         result[key] = callback(object[key], key);
     });
     return result;
+};
+
+exports.smart = function(value) {
+    if (typeof value === 'string') return '"' + value.replace(/"/g, '\\"') + '"';
+    if (value instanceof Date) return value.toISOString();
+    return String(value);
 };
 
 
