@@ -574,22 +574,22 @@ describe('components/schema', () => {
 
             describe('date format', () => {
 
-                it('maximum valid', () => {
+                it('should allow a valid maximum', () => {
                     const { exception } = getSchema(2, { type: 'string', format: 'date', maximum: '2000-01-01' });
                     expect(exception.hasException).to.be.false;
                 });
 
-                it('maximum invalid format', () => {
+                it('should have an exception if maximum is an invalid format', () => {
                     const { exception } = getSchema(2, { type: 'string', format: 'date', maximum: '2000-01-01T00:00:00.000Z' });
                     expect(exception).to.match(/Property "maximum" is not formatted as a date/);
                 });
 
-                it('minimum valid', () => {
+                it('should allow a valid minimum', () => {
                     const { exception } = getSchema(2, { type: 'string', format: 'date', minimum: '2000-01-01' });
                     expect(exception.hasException).to.be.false;
                 });
 
-                it('minimum invalid format', () => {
+                it('should have an exception if minimum is an invalid format', () => {
                     const { exception } = getSchema(2, { type: 'string', format: 'date', minimum: '2000-01-01T00:00:00.000Z' });
                     expect(exception).to.match(/Property "minimum" is not formatted as a date/);
                 });
@@ -734,9 +734,70 @@ describe('components/schema', () => {
 
     });
 
+    describe('defaults', () => {
 
+        it('allows a valid default value', () => {
+            const { exception } = getSchema(2, { type: 'number', default: 2 });
+            expect(exception.hasException).to.be.false;
+        });
 
-    // TODO: test deserialization and validation of defaults and examples
+        it('does not allow an invalid type for default value', () => {
+            const { exception } = getSchema(2, { type: 'number', default: '' });
+            expect(exception).to.match(/Default value is not valid/);
+        });
+
+        it('does not allow an invalid default value', () => {
+            const { exception } = getSchema(2, { type: 'number', maximum: 4, default: 5 });
+            expect(exception).to.match(/Default value is not valid/);
+        });
+
+        it('will deserialize a default value', () => {
+            const { exception, schema } = getSchema(2, { type: 'string', format: 'date', default: '2000-01-01' });
+            expect(exception.hasException).to.be.false;
+            expect(schema.default).to.be.instanceOf(Date);
+        });
+
+        it('will validate a default value', () => {
+            const { exception } = getSchema(2, { type: 'string', format: 'date', maximum: '2000-01-01', default: '2000-01-02' });
+            expect(exception).to.match(/Expected date to be less than or equal to/);
+        });
+
+        it('will deep deserialize a default value', () => {
+            const s = {
+                type: 'object',
+                properties: {
+                    start: { type: 'string', format: 'date' }
+                },
+                default: {
+                    start: '2000-01-02'
+                }
+            };
+            const { exception, schema } = getSchema(2, s);
+            expect(exception.hasException).to.be.false;
+            expect(schema.default.start).to.be.instanceof(Date);
+        });
+
+    });
+
+    describe('examples', () => {
+
+        it('allows a valid example', () => {
+            const { exception } = getSchema(2, { type: 'number', example: 2 });
+            expect(exception.hasException).to.be.false;
+        });
+
+        it('does not allow an invalid example', () => {
+            const { exception } = getSchema(2, { type: 'number', example: '' });
+            expect(exception).to.match(/Example is not valid/);
+        });
+
+        it('will deserialize an example', () => {
+            const { exception, schema } = getSchema(2, { type: 'string', format: 'date', example: '2000-01-01' });
+            expect(exception.hasException).to.be.false;
+            expect(schema.example).to.be.instanceOf(Date);
+        });
+
+    });
 
 });
 
