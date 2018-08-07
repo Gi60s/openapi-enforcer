@@ -101,6 +101,7 @@ function Schema(version, enforcer, exception, definition, map) {
     const length = keys.length;
     const composites = [];
     let skipDefaultValidations = false;
+    let skipExampleValidations = false;
     const enumErrors = {};
     const type = definition.type;
     const typeProperties = validations.types[type] || {};
@@ -356,42 +357,45 @@ function Schema(version, enforcer, exception, definition, map) {
 
         // parse pattern string into a regular expression
         if (this.pattern) this.pattern = rxStringToRx(this.pattern);
+    }
 
-        // parse default value
-        if (this.hasOwnProperty('default')) {
-            const data = formatter.deserialize(exception.nest('Unable to parse default value'), this, this.default);
-            if (data.error) {
-                console.log(exception.toString());
-                skipDefaultValidations = true;
-            } else {
-                this.default = data.value;
-            }
+    // deserialize default value
+    if (this.hasOwnProperty('default')) {
+        const data = formatter.deserialize(exception.nest('Unable to deserialize default value'), this, this.default);
+        if (data.error) {
+            console.log(exception.toString());
+            skipDefaultValidations = true;
+        } else {
+            this.default = data.value;
         }
+    }
 
-        // parse enum values
-        if (this.hasOwnProperty('enum') && Array.isArray(this.enum)) {
-            const length = this.enum.length;
-            for (let i = 0; i < length; i++) {
-                const child = Exception('Unable to parse enum value at index ' + i);
-                const data = formatter.deserialize(child, this, this.enum[i]);
-                if (data.error) {
-                    enumErrors[i] = child;
-                } else {
-                    this.enum[i] = data.value;
-                }
+    // deserialize example
+    if (this.hasOwnProperty('example')) {
+        const data = formatter.deserialize(exception.nest('Unable to deserialize example'), this, this.example);
+        if (data.error) {
+            console.log(exception.toString());
+            skipExampleValidations = true;
+        } else {
+            this.example = data.value;
+        }
+    }
+
+    // deserialize enum values
+    if (this.hasOwnProperty('enum') && Array.isArray(this.enum)) {
+        const length = this.enum.length;
+        for (let i = 0; i < length; i++) {
+            const child = Exception('Unable to deserialize enum value at index ' + i);
+            const data = formatter.deserialize(child, this, this.enum[i]);
+            if (data.error) {
+                enumErrors[i] = child;
+            } else {
+                this.enum[i] = data.value;
             }
         }
     }
 
     if (type) {
-        // validate default value
-        if (this.hasOwnProperty('default') && !skipDefaultValidations) {
-            const childException = this.validate(this.default);
-            if (childException) {
-                childException.header = 'Default value is not valid';
-                exception(childException);
-            }
-        }
 
         // validate enum values
         if (this.hasOwnProperty('enum')) {
@@ -421,12 +425,21 @@ function Schema(version, enforcer, exception, definition, map) {
         }
     }
 
-    // if an example is provided then validate the example and deserialize it
-    if (definition.hasOwnProperty('example')) {
-        const error = this.validate(this.example);
-        if (error) {
-            error.header = 'Example does not match the schema';
-            exception(error);
+    // validate default value
+    if (this.hasOwnProperty('default') && !skipDefaultValidations) {
+        const childException = this.validate(this.default);
+        if (childException) {
+            childException.header = 'Default value is not valid';
+            exception(childException);
+        }
+    }
+
+    // validate example value
+    if (this.hasOwnProperty('example') && !skipExampleValidations) {
+        const childException = this.validate(this.example);
+        if (childException) {
+            childException.header = 'Example is not valid';
+            exception(childException);
         }
     }
 }
