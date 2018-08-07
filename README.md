@@ -100,7 +100,7 @@ deserialize: {
         throw: true,
         variables: true
     },
-    components: {
+    request: {
         throw: true
     },
     serialize: {
@@ -125,7 +125,7 @@ const enforcer = new Enforcer({ openapi: '3.0.0' });   // create an enforcer for
 
 **Example 3 - Using Discriminators**
 
-If your OpenAPI document is using discriminators then you'll want to either include the entire components document as the input parameter or include at least the component schemas (OpenAPI 3.x) or definitions (OpenAPI 2.0).
+If your OpenAPI document is using discriminators then you'll want to either include the entire swagger document as the input parameter or include at least the component schemas (OpenAPI 3.x) or definitions (OpenAPI 2.0).
 
 ```js
 const Enforcer = require('openapi-enforcer');
@@ -328,14 +328,16 @@ const match = enforcer.path('/path/25');
 
 Build a value from a schema. While traversing the schema the final populated value may be derived from the provided value in combination with the schema's `default` value, the `x-template` value, or the `x-variable` value.
 
-`Enforcer.prototype.populate ( schema [, params [, value [, options ] ] ] )`
+`Enforcer.prototype.populate ( { schema, options, params, value } )`
 
-| Parameters | Description | Type |
+This function takes one parameter (an `object`) with the following properties:
+
+| Property | Description | Type |
 | --------- | ----------- | ---- |
-| schema | The schema to build a value from. This parameter is required. | `object` |
+| schema | The schema to build a value from. This property is required. | `object` |
 | params | A map of keys to values. These values are used to help build the final value | `object` |
+| options | The options to apply during the build phase. Any options specified here will overwrite defaults. | `object` |
 | value | An initial value to start with. | Any |
-| options | The [options](#populate-options) to apply during the build phase. Any options specified here will overwrite defaults. | `object` |
 
 Returns: The populated value.
 
@@ -389,9 +391,9 @@ Returns: A random value that adheres to the provided schema.
 
 ## Enforcer.prototype.request
 
-Parse and validate input parameters for a components.
+Parse and validate input parameters for a request.
 
-`Enforcer.prototype.components ( { body, cookies, headers, method = 'get', path } )`
+`Enforcer.prototype.request ( { body, cookies, headers, method = 'get', path } )`
 
 This function takes one parameter, an `object`, with the following properties:
 
@@ -409,7 +411,7 @@ Returns an object with the following properties:
 
 - *path* - The path as defined in the OpenAPI document.
 
-- *components* - The components object, serialized and validated. If an error occurred this value will be `null`.
+- *request* - The request object, serialized and validated. If an error occurred this value will be `null`.
 
 - *response* - The same function as [`enforcer.prototype.response`](#enforcerprototyperesponse) except that the `path` and `method` properties are already specified..
 
@@ -417,7 +419,7 @@ Returns an object with the following properties:
 
 ## Enforcer.prototype.response
 
-Get functions that provide details and functionality that is associated to a components and its response.
+Get functions that provide details and functionality that is associated to a request and its response.
 
 `Enforcer.prototype.response ( { code, contentType, method = 'get', path } )`
 
@@ -622,9 +624,9 @@ const value = enforcer.serialize(schema, {
 
 ## Enforcer.prototype.request
 
-Pass in an object that is representative of an HTTP components to have it validated, parsed, and deserialized. The path must match one of the definition paths.
+Pass in an object that is representative of an HTTP request to have it validated, parsed, and deserialized. The path must match one of the definition paths.
 
-`Enforcer.prototype.components ( req )`
+`Enforcer.prototype.request ( req )`
 
 | Parameter | Description | Type |
 | --------- | ----------- | ---- |
@@ -640,7 +642,7 @@ Pass in an object that is representative of an HTTP components to have it valida
 | method | The HTTP method. | `"get"` | `string` |
 | path | The request path, including query string parameters. | `""` | `string` |
 
-Returns: A parsed, deserialized, and validated components object.
+Returns: A parsed, deserialized, and validated request object.
 
 ```js
 

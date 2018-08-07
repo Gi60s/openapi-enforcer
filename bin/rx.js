@@ -23,5 +23,3 @@ exports.date =      /^(\d{4})-(\d{2})-(\d{2})$/;
 exports.dateTime =  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{3}))?Z$/;
 exports.integer =   /^-?\d+$/;
 exports.number =    /^-?\d+(?:\.\d+)?$/;
-
-exports['date-time'] = exports.dateTime;

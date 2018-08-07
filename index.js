@@ -1,2 +1,2 @@
 'use strict';
-module.exports = require('./bin/enforcer');
+module.exports = require('./bin/openapi');

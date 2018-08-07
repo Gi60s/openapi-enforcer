@@ -1,38 +1,38 @@
 {
-  "name": "openapi-enforcer",
-  "version": "0.10.0",
-  "description": "Library for validating, parsing, and formatting data against open api schemas.",
-  "main": "index.js",
-  "directories": {
-    "test": "tests"
+  "_from": "openapi-enforcer",
+  "_id": "openapi-enforcer@0.10.0",
+  "_inBundle": false,
+  "_integrity": "sha512-RuF9HzkPUAmPEM08npqWicXgYKZJ7sO6LiXBb/L0PInyw+TnqAU0DdWRK2f4oQrAWMZbGKlduSy3s27Wy27rIQ==",
+  "_location": "/openapi-enforcer",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "openapi-enforcer",
+    "name": "openapi-enforcer",
+    "escapedName": "openapi-enforcer",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
   },
-  "types": "index.d.ts",
-  "scripts": {
-    "test": "mocha --recursive test",
-    "coverage": "nyc --reporter=html npm test",
-    "coverage:report": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
-    "coverage:watch": "chokidar 'test/**/*' 'bin/**/*' -c 'npm run coverage'"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/byu-oit/openapi-enforcer.git"
-  },
-  "keywords": [
-    "openapi",
-    "swagger",
-    "response",
-    "build",
-    "compose",
-    "validate",
-    "parse",
-    "format"
+  "_requiredBy": [
+    "#USER",
+    "/"
   ],
-  "author": "James Speirs",
-  "license": "Apache-2.0",
+  "_resolved": "https://registry.npmjs.org/openapi-enforcer/-/openapi-enforcer-0.10.0.tgz",
+  "_shasum": "b22bf90d30e2abdf96944749a7e95786773d6382",
+  "_spec": "openapi-enforcer",
+  "_where": "/home/james/temp",
+  "author": {
+    "name": "James Speirs"
+  },
   "bugs": {
     "url": "https://github.com/byu-oit/openapi-enforcer/issues"
   },
-  "homepage": "https://github.com/byu-oit/openapi-enforcer#readme",
+  "bundleDependencies": false,
+  "dependencies": {},
+  "deprecated": false,
+  "description": "Library for validating, parsing, and formatting data against open api schemas.",
   "devDependencies": {
     "body-parser": "^1.18.3",
     "chai": "^3.5.0",
@@ -52,5 +52,33 @@
     "request-promise-native": "^1.0.5",
     "swagger-parser": "^3.4.2"
   },
-  "dependencies": {}
+  "directories": {
+    "test": "tests"
+  },
+  "homepage": "https://github.com/byu-oit/openapi-enforcer#readme",
+  "keywords": [
+    "openapi",
+    "swagger",
+    "response",
+    "build",
+    "compose",
+    "validate",
+    "parse",
+    "format"
+  ],
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "name": "openapi-enforcer",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/byu-oit/openapi-enforcer.git"
+  },
+  "scripts": {
+    "coverage": "nyc --reporter=html npm test",
+    "coverage:report": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
+    "coverage:watch": "chokidar 'test/**/*' 'bin/**/*' -c 'npm run coverage'",
+    "test": "mocha --recursive test"
+  },
+  "types": "index.d.ts",
+  "version": "0.10.0"
 }
