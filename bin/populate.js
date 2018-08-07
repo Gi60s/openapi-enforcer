@@ -111,7 +111,7 @@ function apply(v, exception, schema, type, object, property) {
     if (object[property] === undefined) {
         const options = v.options;
         const map = v.map;
-        if (options.variables && schema.hasOwnProperty('x-variable') && map.hasOwnProperty(schema['x-variable'])) {
+        if (options.variables && schema.hasOwnProperty('x-variable') && map[schema['x-variable']] !== undefined) {
             const value = map[schema['x-variable']];
             if (value !== undefined) object[property] = value;
 
