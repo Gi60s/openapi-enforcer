@@ -277,17 +277,25 @@ function validate(exception, version, map, schema, value) {
 function maxMin(exception, schema, type, maxProperty, minProperty, exclusives, value, maximum, minimum) {
     if (schema.hasOwnProperty(maxProperty)) {
         if (exclusives && schema.exclusiveMaximum && value >= maximum) {
-           exception('Expected ' + type + ' to be less than ' + schema[maxProperty] + '. Received: ' + smart(value));
+           exception('Expected ' + type + ' to be less than ' +
+               smart(schema.serialize(schema[maxProperty])) + '. Received: ' +
+               smart(schema.serialize(value)));
         } else if (value > maximum) {
-            exception('Expected ' + type + ' to be less than or equal to ' + schema[maxProperty] + '. Received: ' + smart(value));
+            exception('Expected ' + type + ' to be less than or equal to ' +
+                smart(schema.serialize(schema[maxProperty])) + '. Received: ' +
+                smart(schema.serialize(value)));
         }
     }
 
     if (schema.hasOwnProperty(minProperty)) {
         if (exclusives && schema.exclusiveMinimum && value <= minimum) {
-            exception('Expected ' + type + ' to be greater than ' + schema[minProperty] + '. Received: ' + smart(value));
+            exception('Expected ' + type + ' to be greater than ' +
+                smart(schema.serialize(schema[minProperty])) + '. Received: ' +
+                smart(schema.serialize(value)));
         } else if (value < minimum) {
-            exception('Expected ' + type + ' to be greater than or equal to ' + schema[minProperty] + '. Received: ' + smart(value));
+            exception('Expected ' + type + ' to be greater than or equal to ' +
+                smart(schema.serialize(schema[minProperty])) + '. Received: ' +
+                smart(schema.serialize(value)));
         }
     }
 }
