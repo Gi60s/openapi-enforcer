@@ -254,10 +254,10 @@ validate.object = function(v, prefix, depth, schema, value) {
 
 validate.string = function(v, prefix, depth, schema, value) {
     if (!v.options.string) return;
-    const length = value.length;
     if (typeof value !== 'string') {
         v.error(prefix, 'Expected a string. Received: ' + smart(value));
     } else {
+        const length = value.length;
         if (v.options.maxLength && schema.hasOwnProperty('maxLength') && length > schema.maxLength) {
             v.error(prefix, 'String length above maximum length of ' + schema.maxLength + ' with length of ' + length + ': ' + smart(value));
         }
