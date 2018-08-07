@@ -102,7 +102,7 @@ exports.serialize = function (exception, schema, value) {
         case 'date':
         case 'date-time':
             if (util.isDate(value)) {
-                const string = date.toISOString();
+                const string = value.toISOString();
                 return { value: format === 'date' ? string.substr(0, 10) : string };
             } else {
                 exception('Value must be a Date instance');
