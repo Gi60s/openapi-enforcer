@@ -16,24 +16,34 @@
  **/
 'use strict';
 const Exception = require('../exception');
-const formatter = require('./formatter');
+const rx        = require('../rx');
 const util      = require('../util');
+const Result    = require('../result');
+
+const zeros = '00000000';
 
 /**
  * Convert a serialized value to deserialized.
- * Converts Buffer and Date objects into string equivalent.
+ * Converts strings to Buffers and Dates where appropriate.
  * @param {Schema} schema
  * @param {*} value
  * @returns {EnforcerResult}
  */
 exports.deserialize = function(schema, value) {
     const exception = Exception('Unable to deserialize value');
-    return deserialize(exception, new Map(), schema, value);
+    return new Result(exception, deserialize(exception, new Map(), schema, value));
 };
 
+/**
+ * Convert a deserialized value to serialized.
+ * Converts Buffer and Date objects into string equivalent.
+ * @param {Schema} schema
+ * @param {*} value
+ * @returns {EnforcerResult}
+ */
 exports.serialize = function(schema, value) {
     const exception = Exception('Unable to serialize value');
-    return serialize(exception, new Map(), schema, value);
+    return new Result(serialize(exception, new Map(), schema, value));
 };
 
 
@@ -142,11 +152,56 @@ function deserialize(exception, map, schema, value) {
         }
 
     } else if (type === 'string' && typeof value === 'string') {
-        const data = formatter.deserialize(exception, schema, value);
-        if (data.error) {
-            exception(data.error);
-        } else {
-            return data.value;
+        switch (schema.format) {
+            case 'binary':
+                if (!rx.binary.test(value)) {
+                    exception('Value is not a binary octet string');
+                    break;
+                } else {
+                    const length = value.length;
+                    const array = [];
+                    for (let i = 0; i < length; i+=8) array.push(parseInt(value.substr(i, 8), 2))
+                    return Buffer.from ? Buffer.from(array, 'binary') : new Buffer(array, 'binary');
+                }
+
+            case 'byte':
+                if (!rx.byte.test(value) && value.length % 4 !== 0) {
+                    exception('Value is not a base64 string');
+                    break;
+                } else {
+                    return Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64');
+                }
+
+            case 'date':
+                if (!rx.date.test(value)) {
+                    exception('Value is not date string of the format YYYY-MM-DD');
+                    break;
+                } else {
+                    const date = util.getDateFromValidDateString('date', value);
+                    if (!date) {
+                        exception('Value is not a valid date');
+                        break;
+                    } else {
+                        return date;
+                    }
+                }
+
+            case 'date-time':
+                if (!rx.dateTime.test(value)) {
+                    exception('Value is not date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
+                    break;
+                } else {
+                    const date = util.getDateFromValidDateString('date-time', value);
+                    if (!date) {
+                        exception('Value is not a valid date-time');
+                        break;
+                    } else {
+                        return date;
+                    }
+                }
+
+            default:
+                return value;
         }
 
     } else {
@@ -266,11 +321,40 @@ function serialize(exception, map, schema, value) {
         }
 
     } else if (type === 'string' && typeof value !== 'string') {
-        const data = formatter.serialize(exception, schema, value);
-        if (data.error) {
-            exception(data.error);
-        } else {
-            return data.value;
+        switch (schema.format) {
+            case 'binary':
+                if (value instanceof Buffer) {
+                    let binary = '';
+                    for (let i = 0; i < value.length; i++) {
+                        const byte = value[i].toString(2);
+                        binary += zeros.substr(byte.length) + byte;
+                    }
+                    return binary;
+                } else {
+                    exception('Value must be a Buffer instance');
+                    break;
+                }
+
+            case 'byte':
+                if (value instanceof Buffer) {
+                    return value.toString('base64');
+                } else {
+                    exception('Value must be a Buffer instance');
+                    break;
+                }
+
+            case 'date':
+            case 'date-time':
+                if (util.isDate(value)) {
+                    const string = value.toISOString();
+                    return schema.format === 'date' ? string.substr(0, 10) : string;
+                } else {
+                    exception('Value must be a Date instance');
+                    break;
+                }
+
+            default:
+                return value;
         }
 
     } else {

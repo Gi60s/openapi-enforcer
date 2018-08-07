@@ -16,7 +16,6 @@
  **/
 'use strict';
 const Exception     = require('../exception');
-const formatter     = require('./formatter');
 const merge         = require('./merge');
 const populate      = require('./populate');
 const random        = require('./random');
@@ -353,13 +352,22 @@ function Schema(version, enforcer, exception, definition, map) {
         }
 
         // parse pattern string into a regular expression
-        if (this.pattern) this.pattern = rxStringToRx(this.pattern);
+        if (this.hasOwnProperty('pattern')) {
+            if (typeof this.pattern !== 'string') {
+                exception('Property "pattern" must be a string');
+            } else {
+                this.pattern = util.rxStringToRx(this.pattern);
+            }
+        }
     }
 
     // deserialize and validate default value
     if (this.hasOwnProperty('default')) {
-        const data = formatter.deserialize(exception.nest('Unable to deserialize default value'), this, this.default);
-        if (!data.error) {
+        const data = this.deserialize(this.default);
+        if (data.error) {
+            data.error.header = 'Unable to deserialize default value';
+            exception(data.error);
+        } else {
             this.default = data.value;
             const childException = this.validate(this.default);
             if (childException) {
@@ -371,8 +379,11 @@ function Schema(version, enforcer, exception, definition, map) {
 
     // deserialize and validate example
     if (this.hasOwnProperty('example')) {
-        const data = formatter.deserialize(exception.nest('Unable to deserialize example'), this, this.example);
-        if (!data.error) {
+        const data = this.deserialize(this.example);
+        if (data.error) {
+            data.error.header = 'Unable to deserialize example';
+            exception(data.error);
+        } else {
             this.example = data.value;
             const childException = this.validate(this.example);
             if (childException) {
@@ -388,14 +399,18 @@ function Schema(version, enforcer, exception, definition, map) {
             exception('Property "enum" must be an array');
         } else {
             const length = this.enum.length;
-            const child = exception.nest('Unable to deserialize enum value');
-            const child2 = exception.nest('Invalid enum value');
             for (let i = 0; i < length; i++) {
-                const data = formatter.deserialize(child.at(String(i)), this, this.enum[i]);
-                if (!data.error) {
+                const data = this.deserialize(this.enum[i]);
+                if (data.error) {
+                    data.error.header = 'Unable to deserialize enum value at index: ' + i;
+                    exception(data.error);
+                } else {
                     this.enum[i] = data.value;
                     const childException = this.validate(this.enum[i]);
-                    if (childException) child2.at(i)(childException);
+                    if (childException) {
+                        childException.header = 'Invalid enum value at index: ' + i;
+                        exception(childException);
+                    }
                 }
             }
         }
@@ -458,27 +473,27 @@ Schema.prototype.getDiscriminator = function(value) {
  * @param {boolean} [options.orPattern=false]
  * @param {boolean} [options.throw=true]
  */
-Schema.prototype.merge = function(schema, options) {
-    const data = store.get(this);
-    if (!data) throw Error('Expected a Schema instance type');
-
-    options = Object.assign({}, options);
-    if (!options.hasOwnProperty('throw')) options.throw = true;
-
-    // get schemas array
-    const schemas = Array.from(arguments)
-        .map(schema => schema instanceof Schema
-            ? schema
-            : Schema(Exception('Schema has one or more errors'), data.version, schema, data.options));
-
-    // at this schema to the list of schemas
-    args.unshift(this);
-
-    const merged = merge(schemas, options);
-    const exception = merged.exception();
-    if (exception || options.throw) throw Error(exception.toString());
-    return merged;
-};
+// Schema.prototype.merge = function(schema, options) {
+//     const data = store.get(this);
+//     if (!data) throw Error('Expected a Schema instance type');
+//
+//     options = Object.assign({}, options);
+//     if (!options.hasOwnProperty('throw')) options.throw = true;
+//
+//     // get schemas array
+//     const schemas = Array.from(arguments)
+//         .map(schema => schema instanceof Schema
+//             ? schema
+//             : Schema(Exception('Schema has one or more errors'), data.version, schema, data.options));
+//
+//     // at this schema to the list of schemas
+//     args.unshift(this);
+//
+//     const merged = merge(schemas, options);
+//     const exception = merged.exception();
+//     if (exception || options.throw) throw Error(exception.toString());
+//     return merged;
+// };
 
 /**
  * Populate a value from a list of parameters.
@@ -518,7 +533,9 @@ Schema.prototype.random = function(value, options) {
  * @returns {*}
  */
 Schema.prototype.serialize = function(value) {
-    return serial.serialize(this, value);
+    const data = store.get(this);
+    if (!data) throw Error('Expected a Schema instance type');
+    return serial.deserialize(this, value);
 };
 
 /**
@@ -550,24 +567,6 @@ function allowProperty(schema, property, version) {
     return false;
 }
 
-function greatestCommonDenominator(x, y) {
-    x = Math.abs(x);
-    y = Math.abs(y);
-    while(y) {
-        const t = y;
-        y = x % y;
-        x = t;
-    }
-    return x;
-}
-
-function highestNumber(n1, n2) {
-    const t1 = typeof n1 === 'number';
-    const t2 = typeof n2 === 'number';
-    if (t1 && t2) return n1 < n2 ? n2 : n1;
-    return t1 ? n1 : n2;
-}
-
 function isInteger(value) {
     return typeof value === 'number' && Math.round(value) === value;
 }
@@ -576,44 +575,9 @@ function isNonNegativeInteger(value) {
     return isInteger(value) && value >= 0;
 }
 
-function leastCommonMultiple(x, y) {
-    if ((typeof x !== 'number') || (typeof y !== 'number'))
-        return false;
-    return (!x || !y) ? 0 : Math.abs((x * y) / greatestCommonDenominator(x, y));
-}
-
-function lowestNumber(n1, n2) {
-    const t1 = typeof n1 === 'number';
-    const t2 = typeof n2 === 'number';
-    if (t1 && t2) return n1 > n2 ? n2 : n1;
-    return t1 ? n1 : n2;
-}
-
 function minMaxValid(min, max, exclusiveMin, exclusiveMax) {
     if (min === undefined || max === undefined) return true;
     min = +min;
     max = +max;
     return min < max || (!exclusiveMin && !exclusiveMax && min === max);
-}
-
-function rxStringToRx(value) {
-    if (typeof value === 'string') {
-        const rx = /^\/([\s\S]+?)\/(\w*)?$/;
-        const match = rx.exec(value);
-        return match
-            ? RegExp(match[1], match[2] || '')
-            : RegExp(value);
-    } else if (value instanceof RegExp) {
-        return value;
-    } else {
-        throw Error('Cannot convert value to RegExp instance');
-    }
-}
-
-function rxMerge(rx1, rx2) {
-    rx1 = rxStringToRx(rx1);
-    rx2 = rxStringToRx(rx2);
-    const source = rx1.source + '|' + rx2.source;
-    const flags = util.arrayUnique((rx1.flags + rx2.flags).split('')).join('');
-    return RegExp(source, flags);
 }
