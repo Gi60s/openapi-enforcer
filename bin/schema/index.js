@@ -108,11 +108,8 @@ function Schema(version, enforcer, exception, definition, map) {
     for (let i = 0; i < length; i++) {
         const key = keys[i];
 
-        if (rxExtension.test(key)) {
-            this[key] = definition[key];
-
         // validate that the property is allowed
-        } else if (!(common[key] || typeProperties[key] || validations.composites[key] || allowProperty(definition, key, version))) {
+        if (!(common[key] || typeProperties[key] || validations.composites[key] || rxExtension.test(key) || allowProperty(definition, key, version))) {
             exception('Property not allowed: ' + key);
 
         } else {
@@ -359,87 +356,48 @@ function Schema(version, enforcer, exception, definition, map) {
         if (this.pattern) this.pattern = rxStringToRx(this.pattern);
     }
 
-    // deserialize default value
+    // deserialize and validate default value
     if (this.hasOwnProperty('default')) {
         const data = formatter.deserialize(exception.nest('Unable to deserialize default value'), this, this.default);
-        if (data.error) {
-            console.log(exception.toString());
-            skipDefaultValidations = true;
-        } else {
+        if (!data.error) {
             this.default = data.value;
+            const childException = this.validate(this.default);
+            if (childException) {
+                childException.header = 'Default value is not valid';
+                exception(childException);
+            }
         }
     }
 
-    // deserialize example
+    // deserialize and validate example
     if (this.hasOwnProperty('example')) {
         const data = formatter.deserialize(exception.nest('Unable to deserialize example'), this, this.example);
-        if (data.error) {
-            console.log(exception.toString());
-            skipExampleValidations = true;
-        } else {
+        if (!data.error) {
             this.example = data.value;
-        }
-    }
-
-    // deserialize enum values
-    if (this.hasOwnProperty('enum') && Array.isArray(this.enum)) {
-        const length = this.enum.length;
-        for (let i = 0; i < length; i++) {
-            const child = Exception('Unable to deserialize enum value at index ' + i);
-            const data = formatter.deserialize(child, this, this.enum[i]);
-            if (data.error) {
-                enumErrors[i] = child;
-            } else {
-                this.enum[i] = data.value;
+            const childException = this.validate(this.example);
+            if (childException) {
+                childException.header = 'Example is not valid';
+                exception(childException);
             }
         }
     }
 
-    if (type) {
-
-        // validate enum values
-        if (this.hasOwnProperty('enum')) {
-            if (!Array.isArray(this.enum)) {
-                exception('Property "enum" must be an array');
-            } else {
-                const length = this.enum.length;
-                for (let i = 0; i < length; i++) {
-                    if (enumErrors[i]) {
-                        exception(enumErrors[i]);
-                    } else {
-                        const childException = this.validate(this.enum[i]);
-                        if (childException) {
-                            childException.header = 'Enum value at index ' + i + ' is not valid';
-                            exception(childException);
-                        }
-                    }
+    // deserialize and validate enum values
+    if (this.hasOwnProperty('enum')) {
+        if (!Array.isArray(this.enum)) {
+            exception('Property "enum" must be an array');
+        } else {
+            const length = this.enum.length;
+            const child = exception.nest('Unable to deserialize enum value');
+            const child2 = exception.nest('Invalid enum value');
+            for (let i = 0; i < length; i++) {
+                const data = formatter.deserialize(child.at(String(i)), this, this.enum[i]);
+                if (!data.error) {
+                    this.enum[i] = data.value;
+                    const childException = this.validate(this.enum[i]);
+                    if (childException) child2.at(i)(childException);
                 }
             }
-        }
-    }
-
-    // check for invalid discriminator placement
-    if (version === 3 && this.discriminator) {
-        if (type !== 'object' && !this.oneOf && !this.anyOf) {
-            exception('Discriminator only allowed in objects or along with anyOf or oneOf');
-        }
-    }
-
-    // validate default value
-    if (this.hasOwnProperty('default') && !skipDefaultValidations) {
-        const childException = this.validate(this.default);
-        if (childException) {
-            childException.header = 'Default value is not valid';
-            exception(childException);
-        }
-    }
-
-    // validate example value
-    if (this.hasOwnProperty('example') && !skipExampleValidations) {
-        const childException = this.validate(this.example);
-        if (childException) {
-            childException.header = 'Example is not valid';
-            exception(childException);
         }
     }
 }
