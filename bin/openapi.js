@@ -595,7 +595,7 @@ function responseSerialize(context, responses, data, config) {
         if (errors) throw Error('Unable to serialize response due to one or more errors:\n  ' + errors.join('\n  '));
     }
 
-    if (config.hasOwnProperty('body')) {
+    if (config.hasOwnProperty('body') && data.schema) {
         result.body = context.serialize(data.schema, config.body, config.options);
     }
 
