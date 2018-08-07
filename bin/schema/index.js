@@ -364,7 +364,6 @@ function Schema(version, enforcer, exception, definition, map) {
                 console.log(exception.toString());
                 skipDefaultValidations = true;
             } else {
-                if (isDateFormat && options.freeze) util.deepFreeze(data.value);
                 this.default = data.value;
             }
         }
@@ -378,7 +377,6 @@ function Schema(version, enforcer, exception, definition, map) {
                 if (data.error) {
                     enumErrors[i] = child;
                 } else {
-                    if (isDateFormat && options.freeze) util.deepFreeze(data.value);
                     this.enum[i] = data.value;
                 }
             }
@@ -425,7 +423,7 @@ function Schema(version, enforcer, exception, definition, map) {
 
     // if an example is provided then validate the example and deserialize it
     if (definition.hasOwnProperty('example')) {
-        const error = this.validate(schema.example);
+        const error = this.validate(this.example);
         if (error) {
             error.header = 'Example does not match the schema';
             exception(error);
