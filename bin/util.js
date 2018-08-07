@@ -79,6 +79,49 @@ exports.mapObject = function(object, callback) {
     return result;
 };
 
+exports.same = function same(v1, v2) {
+    if (v1 === v2) return true;
+
+    const type = typeof v1;
+    if (type !== typeof v2) return false;
+
+    if (Array.isArray(v1)) {
+        if (!Array.isArray(v2)) return false;
+
+        const length = v1.length;
+        if (length !== v2.length) return false;
+
+        for (let i = 0; i < length; i++) {
+            if (!same(v1[i], v2[i])) return false;
+        }
+
+        return true;
+
+    } else if (Buffer.isBuffer(v1)) {
+        return Buffer.isBuffer(v2) && v1.toString() === v2.toString();
+
+    } else if (exports.isDate(v1)) {
+        return exports.isDate(v2) && +v2 === +v1;
+
+    } else if (v1 && type === 'object') {
+        if (!v2) return false;
+
+        const keys = Object.keys(v1);
+        const length = keys.length;
+        if (length !== Object.keys(v2).length) return false;
+
+        for (let i = 0; i < length; i++) {
+            const key = keys[i];
+            if (!same(v1[key], v2[key])) return false;
+        }
+
+        return true;
+
+    } else {
+        return false;
+    }
+};
+
 exports.smart = function(value) {
     if (typeof value === 'string') return '"' + value.replace(/"/g, '\\"') + '"';
     if (value instanceof Date) return value.toISOString();
