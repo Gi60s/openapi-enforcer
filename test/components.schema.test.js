@@ -908,7 +908,7 @@ describe('components/schema', () => {
 
         it('will validate enum values', () => {
             const { exception } = getSchema(2, { type: 'string', format: 'date', maximum: '2000-01-01', enum: ['2000-01-02'] });
-            expect(exception).to.match(/Value is not valid/);
+            expect(exception).to.match(/Invalid enum value/);
         });
 
     });
