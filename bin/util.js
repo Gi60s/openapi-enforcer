@@ -79,6 +79,20 @@ exports.mapObject = function(object, callback) {
     return result;
 };
 
+exports.rxStringToRx = function(value) {
+    if (typeof value === 'string') {
+        const rx = /^\/([\s\S]+?)\/(\w*)?$/;
+        const match = rx.exec(value);
+        return match
+            ? RegExp(match[1], match[2] || '')
+            : RegExp(value);
+    } else if (value instanceof RegExp) {
+        return value;
+    } else {
+        throw Error('Cannot convert value to RegExp instance');
+    }
+};
+
 exports.same = function same(v1, v2) {
     if (v1 === v2) return true;
 
