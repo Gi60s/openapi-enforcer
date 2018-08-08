@@ -25,6 +25,7 @@ const rxTrue = /^true$/i;
 
 module.exports = Parameter;
 
+const schemaProperties = ['default', 'enum', 'exclusiveMaximum', 'exclusiveMinimum', 'format', 'items', 'maximum', 'minimum', 'maxItems', 'minItems', 'maxLength', 'minLength', 'multipleOf', 'pattern', 'type', 'uniqueItems'];
 const validationsMap = {
     name: {
         required: () => true,
@@ -61,6 +62,7 @@ const validationsMap = {
     },
     type: {
         allowed: (ctx, version) => version === 2 && ctx.in !== 'body',
+        required: () => true,
         enum: () => ['array', 'boolean', 'file', 'integer', 'number', 'string']
     },
     format: {
@@ -188,7 +190,7 @@ const validationsMap = {
         isPlainObject: true,
         errors: ctx => ctx.hasOwnProperty('schema') ? 'Cannot have both "schema" and "content" properties' : ''
     }
-};;
+};
 
 function Parameter(version, enforcer, exception, definition, map) {
 
@@ -204,6 +206,31 @@ function Parameter(version, enforcer, exception, definition, map) {
 
     // validate and normalize the definition
     normalize(this, version, exception, definition, validationsMap);
+
+    if (version === 2) {
+        // build a schema definition from parameter properties
+        const def = {};
+        schemaProperties.forEach(key => {
+            if (definition.hasOwnProperty(key)) def[key] = definition[key];
+        });
+        this.schema = new Schema(version, enforcer, exception, def, map);
+
+    } else if (version === 3) {
+        if (definition.hasOwnProperty('schema')) {
+            schemaAndExamples(this, version, exception, definition, map);
+        } else if (definition.hasOwnProperty('content')) {
+            const child = exception.at('content');
+            const mediaTypes = Object.keys(definition.content);
+            if (mediaTypes.length !== 1) {
+                child('Must have exactly one media type. Found ' + mediaTypes.join(', '));
+            } else {
+                const mt = mediaTypes[0];
+                schemaAndExamples(this, version, exception.at('content/' + mt), definition.content[mt], map);
+            }
+        } else {
+            exception('Missing required property "schema" or "content"');
+        }
+    }
 }
 
 /**
