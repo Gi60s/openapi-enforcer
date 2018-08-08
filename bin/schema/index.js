@@ -99,9 +99,6 @@ function Schema(version, enforcer, exception, definition, map) {
     const keys = Object.keys(definition);
     const length = keys.length;
     const composites = [];
-    let skipDefaultValidations = false;
-    let skipExampleValidations = false;
-    const enumErrors = {};
     const type = definition.type;
     const typeProperties = validations.types[type] || {};
     for (let i = 0; i < length; i++) {
