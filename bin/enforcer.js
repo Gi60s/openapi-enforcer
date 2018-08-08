@@ -19,6 +19,8 @@ const Exception     = require('./exception');
 const freeze        = require('./freeze');
 const Paths         = require('./components/paths');
 const Parameter     = require('./components/parameter');
+const Readable      = require('stream').Readable;
+const Result        = require('./result');
 const Schema        = require('./components/schema');
 const util          = require('./util');
 
@@ -31,6 +33,8 @@ function Enforcer(definition, options) {
 
     options = Object.assign({}, options);
     if (!options.hasOwnProperty('freeze')) options.freeze = true;
+
+    definition = util.copy(definition);
 
     const map = new WeakMap();
     if (!util.isPlainObject(definition)) {
@@ -112,9 +116,63 @@ function Enforcer(definition, options) {
     if (options.freeze) freeze.deepFreeze(this);
 }
 
+/**
+ * Deserialize and validate a request.
+ * @param {object} [req]
+ * @param {Readable|object|string} [req.body]
+ * @param {object} [req.cookies={}]
+ * @param {object} [req.headers={}]
+ * @param {string} [req.method='get']
+ * @param {string} [req.path='/']
+ * @returns {EnforcerResult}
+ */
 Enforcer.prototype.request = function(req) {
-    const data = this.paths.findMatch(req.path);
-    if (!data) return;
+
+    // normalize request parameter
+    req = Object.assign({}, req);
+    if (!req.hasOwnProperty('cookies')) req.cookies = {};
+    if (!req.hasOwnProperty('headers')) req.headers = {};
+    if (!req.hasOwnProperty('method')) req.method = 'get';
+    if (!req.hasOwnProperty('path')) req.path = '/';
+
+    // validate request parameter and properties
+    if (req.hasOwnProperty('body') && !(typeof req.body === 'string' || util.isPlainObject(req.body) || req instanceof Readable)) throw Error('Invalid body provided');
+    if (!isObjectStringMap(req.cookies)) throw Error('Invalid request cookie. Expected an object with string keys and string values');
+    if (!isObjectStringMap(req.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
+    if (typeof req.method !== 'string') throw Error('Invalid request method. Expected a string');
+    if (typeof req.path !== 'string') throw Error('Invalid request path. Expected a string');
+
+    // extract query string off of path
+
+    const exception = Exception('Request has one or more errors');
+    exception.statusCode = 400;
+
+    // find the path that matches the request
+    const pathMatch = this.paths.findMatch(req.path);
+    if (!pathMatch) {
+        exception('Path not found');
+        exception.statusCode = 404;
+        return Result(exception, {
+            body: 'Path not found',
+            headers: {
+                'Content-Type': 'text/plain'
+            }
+        });
+    }
+
+    // check that a valid method was specified
+    const path = pathMatch.path;
+    if (!path.methods.includes(req.path)) {
+        exception('Method not allowed: ' + method.toUpperCase());
+        exception.statusCode = 405;
+        return Result(exception, {
+            body: exception.toString(),
+            headers: {
+                'Content-Type': 'text/plain',
+                Allow: this.methods.join(', ')
+            }
+        });
+    }
 
     const params = {};
     const result = { params: params, res: null };
@@ -129,4 +187,14 @@ function common(version, context, exception, definition, map) {
     } else {
         context.paths = new Paths(version, context, exception.at('paths'), definition.paths, map);
     }
+}
+
+function isObjectStringMap(obj) {
+    if (!util.isPlainObject(obj)) return false;
+    const keys = Object.keys(obj);
+    const length = keys.length;
+    for (let i = 0; i < length; i++) {
+        if (typeof keys[i] !== 'string' || typeof obj[keys[i]] !== 'string') return false;
+    }
+    return true;
 }
