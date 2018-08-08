@@ -16,7 +16,9 @@
  **/
 'use strict';
 const Result    = require('../result');
+const Schema    = require('./schema');
 const util      = require('../util');
+const normalize = require('../map-normalizer');
 
 const rxFalse = /^false/i;
 const rxTrue = /^true$/i;
@@ -24,22 +26,169 @@ const rxTrue = /^true$/i;
 module.exports = Parameter;
 
 const validationsMap = {
-    2: {
-        collectionFormats: ['csv', 'multi', 'pipes', 'ssv', 'tsv'],
-        in: ['body', 'formData', 'header', 'path', 'query'],
-        schemaProperties: ['default', 'enum', 'exclusiveMaximum', 'exclusiveMinimum', 'format', 'items', 'maximum', 'minimum', 'maxItems', 'minItems', 'maxLength', 'minLength', 'multipleOf', 'pattern', 'uniqueItems'],
-        types: ['array', 'boolean', 'file', 'integer', 'number', 'string']
-    },
-    3: {
-        in: ['cookie', 'header', 'path', 'query'],
-        styles: {
-            cookie: ['form'],
-            header: ['simple'],
-            path: ['label', 'matrix', 'simple'],
-            query: ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject']
+    name: {
+        required: () => true,
+        type: () => 'string',
+        ignore: (ctx, version, value) => {
+            if (typeof value === 'string') value = value.toLowerCase();
+            return version === 3 && ctx.in === 'header' && (value === 'accept' || value === 'content-type' || value === 'authorization')
         }
+    },
+    in: {
+        required: () => true,
+        type: () =>'string',
+        enum: (ctx, version) => version === 2
+            ? ['body', 'formData', 'header', 'query', 'path']
+            : ['cookie', 'header', 'path', 'query'],
+    },
+    description: {
+        type: () => 'string'
+    },
+    required: {
+        required: ctx => ctx.in === 'path',
+        type: () => 'boolean',
+        default: () => false,
+        errors: (ctx, version, value) => ctx.in === 'path' && value !== true ? 'Value must be true when property "in" is set to "path"' : ''
+    },
+    deprecated: {
+        allowed: () => version === 3,
+        type: () => 'boolean'
+    },
+    schema: {
+        allowed: (ctx, version) => version === 3 || ctx.in === 'body',
+        isPlainObject: true,
+        errors: (ctx, version) => version === 3 && ctx.hasOwnProperty('content') ? 'Cannot have both "schema" and "content"' : ''
+    },
+    type: {
+        allowed: (ctx, version) => version === 2 && ctx.in !== 'body',
+        enum: () => ['array', 'boolean', 'file', 'integer', 'number', 'string']
+    },
+    format: {
+        allowed: (ctx, version) => version === 2 && (ctx.type === 'integer' || ctx.type === 'number' || ctx.type === 'string'),
+        enum: ctx => {
+            if (ctx.type === 'integer') return ['int32', 'int64'];
+            if (ctx.type === 'number') return ['float', 'double'];
+            return ['binary', 'byte', 'date', 'date-time', 'password'];
+        }
+    },
+    allowEmptyValue: {
+        allowed: ctx => ctx.in === 'query' || ctx.in === 'formData',
+        type: () => 'boolean',
+        default: () => false
+    },
+    items: {
+        allowed: (ctx, version) => version === 2,
+        required: ctx => ctx.type === 'array',
+    },
+    collectionFormat: {
+        allowed: (ctx, version) => version === 2 && ctx.type === 'array',
+        enum: () => ['csv', 'ssv', 'tsv', 'pipes', 'multi'],
+        default: () => 'csv'
+    },
+    default: {
+        allowed: (ctx, version) => version === 2,
+        errors: ctx => ctx.required ? 'Cannot have both "default" and "required"' : ''
+    },
+    maximum: {
+        allowed: (ctx, version) => version === 2 && (ctx.type === 'number' || ctx.type === 'integer' || (ctx.type === 'string' && ctx.format.startsWith('date'))),
+        type: ctx => ctx.type === 'string' && ctx.format.startsWith('date') ? 'string' : 'number'
+    },
+    exclusiveMaximum: {
+        allowed: (ctx, version) => version === 2 && (ctx.type === 'number' || ctx.type === 'integer' || (ctx.type === 'string' && ctx.format.startsWith('date'))),
+        type: () => 'boolean',
+        default: () => false
+    },
+    minimum: {
+        allowed: (ctx, version) => version === 2 && (ctx.type === 'number' || ctx.type === 'integer' || (ctx.type === 'string' && ctx.format.startsWith('date'))),
+        type: ctx => ctx.type === 'string' && ctx.format.startsWith('date') ? 'string' : 'number'
+    },
+    exclusiveMinimum: {
+        allowed: (ctx, version) => version === 2 && (ctx.type === 'number' || ctx.type === 'integer' || (ctx.type === 'string' && ctx.format.startsWith('date'))),
+        type: () => 'boolean',
+        default: () => false
+    },
+    maxLength: {
+        allowed: (ctx, version) => version === 2 && (ctx.type === 'string' || ctx.type === 'file'),
+        type: () => 'number',
+        errors: (ctx, version, value) => value < 0 || Math.round(value) !== value ? 'Property "maxLength" must be a non-negative integer' : ''
+    },
+    minLength: {
+        allowed: (ctx, version) => version === 2 && (ctx.type === 'string' || ctx.type === 'file'),
+        type: () => 'number',
+        errors: (ctx, version, value) => value < 0 || Math.round(value) !== value ? 'Property "maxLength" must be a non-negative integer' : ''
+    },
+    pattern: {
+        allowed: (ctx, version) => version === 2 && ctx.type === 'string',
+        type: () => 'string',
+        errors: (ctx, version, value) => !value ? 'Property "pattern" must be a non-empty string' : ''
+    },
+    maxItems: {
+        allowed: (ctx, version) => version === 2 && ctx.type === 'array',
+        type: () => 'number',
+        errors: (ctx, version, value) => value < 0 || Math.round(value) !== value ? 'Property "maxLength" must be a non-negative integer' : ''
+    },
+    minItems: {
+        allowed: (ctx, version) => version === 2 && ctx.type === 'array',
+        type: () => 'number',
+        errors: (ctx, version, value) => value < 0 || Math.round(value) !== value ? 'Property "maxLength" must be a non-negative integer' : ''
+    },
+    uniqueItems: {
+        allowed: (ctx, version) => version === 2 && ctx.type === 'array',
+        type: () => 'boolean',
+        default: () => false
+    },
+    enum: {
+        allowed: (ctx, version) => version === 2,
+        isArray: true
+    },
+    multipleOf: {
+        allowed: (ctx, version) => version === 2 && (ctx.type === 'number' || ctx.type === 'integer'),
+        type: () => 'number'
+    },
+    style: {
+        allowed: (ctx, version) => version === 3,
+        type: () => 'string',
+        default: ctx => {
+            switch (ctx.in) {
+                case 'cookie': return 'form';
+                case 'header': return 'simple';
+                case 'path': return 'simple';
+                case 'query': return 'form';
+            }
+        },
+        enum: ctx => {
+            switch (ctx.in) {
+                case 'cookie': return ['form'];
+                case 'header': return ['simple'];
+                case 'path': return ['simple', 'label', 'matrix'];
+                case 'query': return ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'];
+            }
+        }
+    },
+    explode: {
+        allowed: (ctx, version) => version === 3,
+        type: () => 'boolean',
+        default: ctx => ctx.style === 'form'
+    },
+    allowReserved: {
+        allowed: (ctx, version) => version === 3 && ctx.in === 'query',
+        type: () => 'boolean',
+        default: ctx => ctx.style === 'form'
+    },
+    example: {
+        allowed: (ctx, version) => version === 3,
+        isPlainObject: true
+    },
+    examples: {
+        allowed: (ctx, version) => version === 3,
+        isPlainObject: true
+    },
+    content: {
+        allowed: (ctx, version) => version === 3,
+        isPlainObject: true,
+        errors: ctx => ctx.hasOwnProperty('schema') ? 'Cannot have both "schema" and "content" properties' : ''
     }
-};
+};;
 
 function Parameter(version, enforcer, exception, definition, map) {
 
@@ -53,97 +202,12 @@ function Parameter(version, enforcer, exception, definition, map) {
     if (existing) return existing;
     map.set(definition, this);
 
-    const validations = validationsMap[version];
-
-    // validate name
-    if (!definition.hasOwnProperty('name')) {
-        exception('Missing required property "name"');
-    } else if (typeof definition.name !== 'string') {
-        exception('Value for property "name" must be a string.');
-    } else {
-        this.name = definition.name;
-    }
-
-    // validate "in"
-    if (!definition.hasOwnProperty('in')) {
-        exception('Missing required property "in"')
-    } else if (!validations.in.includes(definition.in)) {
-        exception('Invalid value for property "in". Must be one of "' + validations.in.join('", "') + '". Received: ' + definition.in);
-    } else {
-        this.in = definition.in;
-    }
-
-    this.required = definition.hasOwnProperty('required') ? definition.required : this.in === 'path';
-    this.allowEmptyValue = definition.hasOwnProperty('allowEmptyValue') ? definition.allowEmptyValue : false;
-
-    if (version === 2) {
-        const def = {};
-
-        // validate type
-        if (!definition.hasOwnProperty('type')) {
-            exception('Missing required property "type"');
-        } else if (!validations.types.includes(definition.type)) {
-            exception('Invalid value for property "type". Must be one of "' + validations.types.join('", "') + '". Received: ' + definition.type);
-        } else {
-            def.type = definition.type;
-        }
-
-        // set collection format
-        if (definition.type === 'array') {
-            if (!definition.hasOwnProperty('collectionFormat')) {
-                this.collectionFormat = 'csv';
-            } else if (!validations.collectionFormats.includes(definition.collectionFormat)) {
-                exception('Invalid value for property "collectionFormat". Must be one of "' + validations.collectionFormats.join('", "') + '". Received: ' + definition.collectionFormat);
-            } else {
-                this.collectionFormat = definition.collectionFormat;
-            }
-        }
-
-        // add additional parameter schema properties
-        validations.schemaProperties.forEach(key => {
-            if (definition.hasOwnProperty(key)) def[key] = definition[key];
-        });
-
-        this.schema = new Schema(version, enforcer, exception, def, map);
-
-    } else if (version === 3) {
-        if (!definition.hasOwnProperty('style')) {
-            this.style = this.in === 'cookie' || this.in === 'query'
-                ? 'form'
-                : 'simple';
-        } else if (!validations.styles[this.in].includes(definition.style)) {
-            exception('Invalid style specified for parameter in "' + this.in + '". Expected on of "' + validations.styles[this.in].join('", "') + '". Received: ' + definition.style);
-        } else {
-            this.style = definition.style;
-        }
-
-        if (!definition.hasOwnProperty('explode')) {
-            this.explode = this.style === 'form';
-        } else {
-            this.explode = definition.explode;
-        }
-
-        if (definition.hasOwnProperty('schema') && definition.hasOwnProperty('content')) {
-            exception('Properties "schema" and "content" are mutually exclusive and cannot both be used on the same parameter object.')
-        } else if (definition.hasOwnProperty('schema')) {
-            schemaAndExamples(this, version, exception, definition, map);
-        } else if (definition.hasOwnProperty('content')) {
-            const child = exception.at('content');
-            const mediaTypes = Object.keys(definition.content);
-            if (mediaTypes.length !== 1) {
-                child('Must have exactly one media type. Found ' + mediaTypes.join(', '));
-            } else {
-                const mt = mediaTypes[0];
-                schemaAndExamples(this, version, exception.at('content/' + mt), definition.content[mt], map);
-            }
-        } else {
-            exception('Missing required property "schema" or "content"');
-        }
-    }
+    // validate and normalize the definition
+    normalize(this, version, exception, definition, validationsMap);
 }
 
 /**
- * Parse a value into it's deserialized equivalent.
+ * Parse a value into it's deserialized equivalent and validate it.
  * @param {string} value
  * @returns {EnforcerResult}
  */
@@ -152,7 +216,7 @@ Parameter.prototype.parse = function(value) {
     let result;
 
     if (this.version === 2) {
-        if (type === 'array') {
+        if (this.type === 'array') {
             let array;
 
             // split the value into an array
@@ -177,7 +241,7 @@ Parameter.prototype.parse = function(value) {
                 return value;
             });
 
-        } else if (type === 'boolean') {
+        } else if (this.type === 'boolean') {
             let result;
             if (rxTrue.test(value)) {
                 result = true;
@@ -189,24 +253,112 @@ Parameter.prototype.parse = function(value) {
             const error = this.schema.validate(result);
             if (error) exception(error);
 
-        } else if (type === 'integer' || type === 'number') {
+        } else if (this.type === 'integer' || this.type === 'number') {
             const result = +value;
             const error = this.schema.validate(result);
             if (error) exception(error);
 
-        } else if (type === 'string') {
+        } else if (this.type === 'string') {
             let [ error, val ] = this.schema.deserialize(value);
             exception(error || this.schema.validate(val));
             result = val;
         }
 
     } else if (this.version === 3) {
+        if (this.in === 'query') {
+
+        } else {
+
+        }
+
+
+
+
+
+        if (this.style === 'deepObject') {
+            const rx = RegExp('(?:^|&)' + this.name + '\\[([^\\]]+)\\](?:=([^&]*))?', 'g');
+            const result = {};
+            let match;
+            let hasValue = false;
+            while (match = rx.exec(value)) {
+                hasValue = true;
+                result[match[1]] = match[2];
+            }
+            return hasValue ? { match: true, value: result } : { match: false };
+
+        } else if (this.style === 'form') {
+
+        } else if (this.style === 'label') {
+
+        } else if (this.style === 'matrix') {
+
+        } else if (this.style === 'pipeDelimited') {
+
+        } else if (this.style === 'simple') {
+
+        } else if (this.style === 'spaceDelimited') {
+
+        }
+
+
         // TODO: not yet implemented
         exception('Version 3 not yet implemented');
     }
 
     return new Result(exception, result);
 };
+
+
+function arrayExploded(setDelimiter, valueDelimiter, name, value) {
+    const ar = value.split(setDelimiter);
+    const length = ar.length;
+    const result = [];
+    for (let i = 0; i < length; i++) {
+        const set = ar[i].split(valueDelimiter);
+        if (set[0] === name) {
+            result.push(set[1]);
+        } else {
+            return false;
+        }
+    }
+    return result;
+}
+
+function delimited(type, delimiter, value) {
+    if (type === 'array') {
+        return { match: true, value: value.split(delimiter) };
+
+    } else if (type === 'object') {
+        const parsed = objectFlattened(delimiter, value);
+        return parsed ? { match: true, value: parsed } : { match: false };
+    }
+}
+
+function objectExploded(setDelimiter, valueDelimiter, value) {
+    const str = 's([^v]+)v([^s]+)?';
+    const rx = RegExp(str.replace(/v/g, valueDelimiter).replace(/s/g, setDelimiter), 'g');
+    const result = {};
+    let match;
+    let offset = 0;
+    while (match = rx.exec(value)) {
+        result[match[1]] = match[2] || '';
+        offset = match.index + match[0].length;
+    }
+    if (offset !== value.length) return false;
+    return result;
+}
+
+function objectFlattened(delimiter, value) {
+    const result = {};
+    const ar = value.split(delimiter);
+    const length = ar.length;
+
+    if (length % 2 !== 0) return false;
+    for (let i = 1; i < length; i += 2) {
+        result[ar[i - 1]] = ar[i];
+    }
+    return result;
+}
 
 function schemaAndExamples(context, version, enforcer, exception, definition, map) {
     if (definition.hasOwnProperty('schema')) {
