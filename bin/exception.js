@@ -18,6 +18,23 @@
 
 module.exports = OpenAPIException;
 
+/**
+ * @typedef {function} Exception
+ * @property {string} header
+ * @property {boolean} isHeader
+ * @property {function} at
+ * @property {function} first
+ * @property {function} message
+ * @property {function} nest
+ * @property {function} toString
+ * @property {boolean} hasException
+ */
+
+/**
+ * @param {string} header
+ * @param {boolean} [isHeader]
+ * @returns {Exception}
+ */
 function OpenAPIException(header, isHeader) {
     const positionals = [];
     const headers = [];
