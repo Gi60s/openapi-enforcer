@@ -15,16 +15,22 @@
  *    limitations under the License.
  **/
 'use strict';
-const Operation = require('./operation');
-const Parameter = require('./parameter');
-const util      = require('../util');
+const Exception     = require('../exception');
+const Operation     = require('./operation');
+const Parameter     = require('./parameter');
+const Result        = require('../result');
+const util          = require('../util');
 
 const validationsMap = {
     2: {
-        methods: ['delete', 'get', 'head', 'options', 'patch', 'post', 'put']
+        bodyOk: { head: true, options: true, patch: true, post: true, put: true },
+        methods: ['delete', 'get', 'head', 'options', 'patch', 'post', 'put'],
+        parametersIn: ['body', 'formData', 'header', 'path', 'query']
     },
     3: {
-        methods: ['delete', 'get', 'head', 'options', 'patch', 'post', 'put', 'trace']
+        bodyOk: { head: true, options: true, patch: true, post: true, put: true, trace: true },
+        methods: ['delete', 'get', 'head', 'options', 'patch', 'post', 'put', 'trace'],
+        parametersIn: ['cookie', 'header', 'path', 'query']
     }
 };
 
@@ -43,46 +49,33 @@ function Path(version, enforcer, exception, definition, map) {
     if (existing) return existing;
     map.set(definition, this);
 
-    const validations = validationsMap[version];
-    let body;
-
-    // build parameters
-    if (definition.hasOwnProperty('parameters')) {
-        if (!Array.isArray(definition.parameters)) {
-            exception('Property "parameters" must be an array');
-        } else {
-            this.parameters = version === 2
-                ? { header: {}, path: {}, query: {} }
-                : { cookie: {}, header: {}, path: {}, query: {} };
-
-            definition.parameters.forEach((definition, index) => {
-                const child = exception.at(index);
-                const parameter = new Parameter(version, enforcer, child, definition, map);
-                if (!child.hasException) {
-                    if (version === 2 && (parameter.in === 'body' || parameter.in === 'formData')) {
-                        body = parameter;
-                    } else {
-                        this.parameters[parameter.in][parameter.name] = parameter;
-                    }
-
-                }
-            });
-        }
-    }
-
-    // build body
-    if (version === 2) {
-        if (body) {
-            // TODO
-        }
-    } else if (version === 3) {
-        // TODO
-    }
+    // validate and build parameters
+    const parameters = Operation.buildParameters(version, enforcer, exception, definition, map);
 
     // build operation objects
+    this.methods = [];
+    const validations = validationsMap[version];
     validations.methods.forEach(method => {
         if (definition.hasOwnProperty(method)) {
-            this[method] = new Operation(version, enforcer, exception.at(method), definition[method], map);
+
+            // create the operation
+            const operation = new Operation(version, enforcer, exception.at(method), definition[method], map);
+
+            // add path wide parameters
+            Object.keys(operation.parameters).forEach(at => {
+                const group = operation.parameters[at];
+                Object.keys(parameters[at]).forEach(name => {
+                    if (!group[name]) group[name] = parameters[at][name];
+                });
+            });
+
+
+            if (operation.requestBody && !validations.bodyOk[method]) {
+                exception('Cannot use request body with method: ' + method);
+            }
+
+            this[method] = operation;
+            this.methods.push(method);
         }
     });
 
