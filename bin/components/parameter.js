@@ -15,10 +15,11 @@
  *    limitations under the License.
  **/
 'use strict';
-const Result    = require('../result');
-const Schema    = require('./schema');
-const util      = require('../util');
-const normalize = require('../map-normalizer');
+const Result        = require('../result');
+const Schema        = require('./schema');
+const util          = require('../util');
+const normalize     = require('../map-normalizer');
+const querystring   = require('querystring');
 
 const rxFalse = /^false/i;
 const rxTrue = /^true$/i;
@@ -204,6 +205,8 @@ function Parameter(version, enforcer, exception, definition, map) {
     if (existing) return existing;
     map.set(definition, this);
 
+    this.version = version;
+
     // validate and normalize the definition
     normalize(this, version, exception, definition, validationsMap);
 
@@ -234,61 +237,42 @@ function Parameter(version, enforcer, exception, definition, map) {
 }
 
 /**
- * Parse a value into it's deserialized equivalent and validate it.
+ * Parse input. Does not validate.
+ * @param {Parameter} parameter
  * @param {string} value
  * @returns {EnforcerResult}
  */
-Parameter.prototype.parse = function(value) {
-    const exception = Exception('Unable to parse parameter value');
+Parameter.prototype.parse = function(parameter, value) {
+    const exception = Exception('Unable to parse value');
     let result;
 
     if (this.version === 2) {
         if (this.type === 'array') {
-            let array;
-
-            // split the value into an array
             switch (this.collectionFormat) {
-                case 'csv':
-                    array = value.split(',');
-                    break;
-                case 'pipes':
-                    array = value.split('|');
-                    break;
-                case 'ssv':
-                    array = value.split(' ');
-                    break;
-                case 'tsv':
-                    array = value.split('\t');
-                    break;
+                case 'csv': return Result(exception, value.split(','));
+                case 'pipes': return Result(exception, value.split('|'));
+                case 'ssv': return Result(exception, value.split(' '));
+                case 'tsv': return Result(exception, value.split('\t'));
+                case 'multi': return Result(exception, value);
             }
-            result = array.map((v, i) => {
-                const child = exception.at(i);
-                let { error, value } = this.schema.deserialize(v);
-                child(error || this.schema.validate(value));
-                return value;
-            });
 
         } else if (this.type === 'boolean') {
-            let result;
-            if (rxTrue.test(value)) {
-                result = true;
-            } else if (rxFalse.test(value)) {
-                result = false;
-            } else {
-                result = value;
-            }
-            const error = this.schema.validate(result);
-            if (error) exception(error);
+            if (rxTrue.test(value)) return Result(exception, true);
+            if (rxFalse.test(value)) return Result(exception, false);
+            return Result(exception('Expected "true" or "false". Received: ' + value));
 
-        } else if (this.type === 'integer' || this.type === 'number') {
-            const result = +value;
-            const error = this.schema.validate(result);
-            if (error) exception(error);
+        } else if (this.type === 'integer') {
+            const num = +value;
+            if (isNaN(num)) exception('Expected an integer. Received: ' + value);
+            return Result(exception, num);
+
+        } else if (this.type === 'number') {
+            const num = +value;
+            if (isNaN(num)) exception('Expected a number. Received: ' + value);
+            return Result(exception, num);
 
         } else if (this.type === 'string') {
-            let [ error, val ] = this.schema.deserialize(value);
-            exception(error || this.schema.validate(val));
-            result = val;
+            return Result(exception, value);
         }
 
     } else if (this.version === 3) {
