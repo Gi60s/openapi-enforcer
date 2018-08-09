@@ -19,10 +19,19 @@ const rx        = require('./rx');
 
 // TODO: re-evaluate deepFreeze and Object.freeze
 
+exports.arrayRemoveItem = function(array, item) {
+    const index = array.indexOf(item);
+    if (index !== -1) array.splice(index, 1);
+    return array;
+};
 
 exports.copy = function(value) {
     const map = new Map();
     return copy(map, value);
+};
+
+exports.ucFirst = function(value) {
+    return value[0].toUpperCase() + value.substr(1);
 };
 
 exports.isDate = function (value) {
