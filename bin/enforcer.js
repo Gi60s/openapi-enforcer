@@ -19,6 +19,7 @@ const Exception     = require('./exception');
 const freeze        = require('./freeze');
 const Paths         = require('./components/paths');
 const Parameter     = require('./components/parameter');
+const queryString   = require('querystring');
 const Readable      = require('stream').Readable;
 const Result        = require('./result');
 const Schema        = require('./components/schema');
@@ -118,31 +119,37 @@ function Enforcer(definition, options) {
 
 /**
  * Deserialize and validate a request.
- * @param {object} [req]
- * @param {Readable|object|string} [req.body]
- * @param {object} [req.cookies={}]
- * @param {object} [req.headers={}]
- * @param {string} [req.method='get']
- * @param {string} [req.path='/']
+ * @param {object} [request]
+ * @param {Readable|object|string} [request.body]
+ * @param {object} [request.cookies={}]
+ * @param {object} [request.headers={}]
+ * @param {string} [request.method='get']
+ * @param {string} [request.path='/']
+ * @param {object} [options]
+ * @param {boolean} [options.allowOtherQueryParameters=false]
  * @returns {EnforcerResult}
  */
-Enforcer.prototype.request = function(req) {
-
-    // normalize request parameter
-    req = Object.assign({}, req);
-    if (!req.hasOwnProperty('cookies')) req.cookies = {};
-    if (!req.hasOwnProperty('headers')) req.headers = {};
-    if (!req.hasOwnProperty('method')) req.method = 'get';
-    if (!req.hasOwnProperty('path')) req.path = '/';
+Enforcer.prototype.request = function(request, options) {
 
     // validate request parameter and properties
-    if (req.hasOwnProperty('body') && !(typeof req.body === 'string' || util.isPlainObject(req.body) || req instanceof Readable)) throw Error('Invalid body provided');
-    if (!isObjectStringMap(req.cookies)) throw Error('Invalid request cookie. Expected an object with string keys and string values');
-    if (!isObjectStringMap(req.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
-    if (typeof req.method !== 'string') throw Error('Invalid request method. Expected a string');
-    if (typeof req.path !== 'string') throw Error('Invalid request path. Expected a string');
+    if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || util.isPlainObject(request.body) || request.body instanceof Readable)) throw Error('Invalid body provided');
+    if (request.hasOwnProperty('cookies') && !isObjectStringMap(request.cookies)) throw Error('Invalid request cookie. Expected an object with string keys and string values');
+    if (request.hasOwnProperty('headers') && !isObjectStringMap(request.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
+    if (request.hasOwnProperty('method') && typeof request.method !== 'string') throw Error('Invalid request method. Expected a string');
+    if (request.hasOwnProperty('path') && typeof request.path !== 'string') throw Error('Invalid request path. Expected a string');
 
-    // extract query string off of path
+    // build internal request object
+    const req = {};
+    const pathQueryArray = request && request.path && request.path.split('?');
+    if (request.hasOwnProperty('body')) req.body = request.body;
+    req.cookie = request.hasOwnProperty('cookies') ? Object.assign({}, request.cookies) : {};
+    req.header = request.hasOwnProperty('headers') ? Object.assign({}, request.headers) : {};
+    req.method = request.hasOwnProperty('method') ? request.method : 'get';
+    req.path = request.hasOwnProperty('path') ? pathQueryArray.shift() : '/';
+    req.query = pathQueryArray.length ? parseQueryString(pathQueryArray.join('?')) : {};
+
+    // normalize options
+    options = Object.assign({ allowOtherQueryParameters: false }, options);
 
     const exception = Exception('Request has one or more errors');
     exception.statusCode = 400;
@@ -152,33 +159,59 @@ Enforcer.prototype.request = function(req) {
     if (!pathMatch) {
         exception('Path not found');
         exception.statusCode = 404;
-        return Result(exception, {
-            body: 'Path not found',
-            headers: {
-                'Content-Type': 'text/plain'
-            }
-        });
+        return Result(exception, null);
     }
 
     // check that a valid method was specified
     const path = pathMatch.path;
-    if (!path.methods.includes(req.path)) {
+    if (!path.methods.includes(req.method)) {
         exception('Method not allowed: ' + method.toUpperCase());
         exception.statusCode = 405;
-        return Result(exception, {
-            body: exception.toString(),
-            headers: {
-                'Content-Type': 'text/plain',
-                Allow: this.methods.join(', ')
-            }
-        });
+        exception.headers = { Allow: this.methods.join(', ') };
+        return Result(exception, null);
     }
 
-    const params = {};
-    const result = { params: params, res: null };
-    params.path = data.params;
+    // process non-body input - 1) parse, 2) deserialize, 3) validate
+    const operation = path[req.method];
+    const parameters = operation.parameters;
+    ['cookie', 'header', 'path', 'query'].forEach(at => {
+        if (parameters[at]) {
+            const input = req[at];
+            const missingRequired = parameters[at].required.concat();
+            const child = exception.nest(util.ucFirst(at) + ' parameter');
+            Object.keys(input).forEach(name => {
+                const parameter = parameters[at].map[name];
+                if (parameter) {
+                    let data = parameter.parse(input[name]);
+                    if (!data.error) data = parameter.schema.deserialize(data.value);
+                    if (!data.error) data.error = parameter.schema.validate(data.value);
+                    if (data.error) {
+                        child.at(name)(data.value);
+                    } else {
+                        input[name] = data.value;
+                    }
+                } else if (at === 'path' || (at === 'query' && !options.allowOtherQueryParameters)) {
+                    child.at(name)('Not allowed');
+                }
+                util.arrayRemoveItem(missingRequired, name);
+            });
+            if (missingRequired.length) {
+                child('Missing required parameter' + (missingRequired.length > 1 ? 's' : '') +
+                    ': ' + missingRequired.join(', '));
+            }
+        }
+    });
 
-    // TODO: process the request parameters and build a response helper
+    // TODO: process body input
+    if (this.version === 2) {
+        if (!parameters.body.empty) {
+
+        } else if (!parameters.formData.empty) {
+
+        }
+    }
+
+    // TODO: return parsed and validated input params as well as the operation responses object
 };
 
 function common(version, context, exception, definition, map) {
@@ -197,4 +230,13 @@ function isObjectStringMap(obj) {
         if (typeof keys[i] !== 'string' || typeof obj[keys[i]] !== 'string') return false;
     }
     return true;
+}
+
+function parseQueryString(str) {
+    const query = queryString.parse(str);
+    Object.keys(query).forEach(key => {
+        const value = query[key];
+        if (!Array.isArray(value)) query[key] = [ value ];
+    });
+    return query;
 }
