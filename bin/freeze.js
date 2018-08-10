@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const util      = require('./util');
 
 /**
  * Freeze a date so it cannot be modified.
@@ -48,11 +49,11 @@ exports.deep = function(value) {
         exports.date(value);
 
     } else if (Array.isArray(value)) {
-        value.forEach(v => exports.deepFreeze(v));
+        value.forEach(v => exports.deep(v));
         Object.freeze(value);
 
-    } else if (this.isPlainObject(value)) {
-        Object.keys(value).forEach(k => exports.deepFreeze(value[k]));
+    } else if (util.isPlainObject(value)) {
+        Object.keys(value).forEach(k => exports.deep(value[k]));
         Object.freeze(value);
     }
 };
@@ -74,7 +75,7 @@ exports.written = function(value) {
             });
         });
 
-    } else if (this.isPlainObject(value)) {
+    } else if (util.isPlainObject(value)) {
         Object.keys(value).forEach(k => {
             exports.written(value[k])
             Object.defineProperty(value, k, {
