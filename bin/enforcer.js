@@ -49,21 +49,11 @@ function Enforcer(definition, options) {
             exception('Property "swagger" must have value "2.0"')
 
         } else {
-            common(2, this, exception, definition, map);
+            this.version = 2;
+
             if (definition.hasOwnProperty('definitions')) {
                 this.definitions = util.mapObject(definition.definitions, (definition, key) => {
-                    return new Schema(2, this, exception.at('definitions/' + key), definition, map);
-                });
-            }
-            if (definition.hasOwnProperty('parameters')) {
-                this.parameters = util.mapObject(definition.definitions, (definition, key) => {
-                    return new Parameter(2, this, exception.at('parameters/' + key), definition, map);
-                });
-            }
-            if (definition.hasOwnProperty('responses')) {
-                this.parameters = util.mapObject(definition.responses, (definition, key) => {
-                    // TODO
-                    return new Response(2, this, exception.at('responses/' + key), definition, map);
+                    return new Schema(this, exception.at('definitions/' + key), definition, map);
                 });
             }
         }
@@ -73,48 +63,20 @@ function Enforcer(definition, options) {
         if (!match || match[1] !== '3') {
             exception('OpenAPI version ' + definition.openapi + ' not supported');
         } else {
-            common(3, this, exception, definition, map);
-            if (definition.hasOwnProperty('components')) {
-                if (!util.isPlainObject(definition.components)) {
-                    exception('Property "components" must be an object');
-                } else {
-                    const components = definition.components;
-                    this.components = {};
-                    if (components.hasOwnProperty('headers')) {
-                        this.components.parameters = util.mapObject(components.headers, (definition, key) => {
-                            // TODO
-                            return new Header(3, this, exception.at('components/headers/' + key), definition, map);
-                        });
-                    }
-                    if (components.hasOwnProperty('parameters')) {
-                        this.components.parameters = util.mapObject(components.parameters, (definition, key) => {
-                            return new Parameter(3, this, exception.at('components/parameters/' + key), definition, map);
-                        });
-                    }
-                    if (components.hasOwnProperty('responses')) {
-                        this.parameters = util.mapObject(definition.responses, (definition, key) => {
-                            // TODO
-                            return new Response(3, this, exception.at('components/responses/' + key), definition, map);
-                        });
-                    }
-                    if (components.hasOwnProperty('requestBodies')) {
-                        this.parameters = util.mapObject(definition.responses, (definition, key) => {
-                            // TODO
-                            return new RequestBody(3, this, exception.at('components/requestBodies/' + key), definition, map);
-                        });
-                    }
-                    if (components.hasOwnProperty('schemas')) {
-                        this.components.schemas = util.mapObject(components.schemas, (definition, key) => {
-                            return new Schema(3, this, exception.at('components/schemas/' + key), definition, map);
-                        });
-                    }
-                }
-            }
+            this.version = 3;
+        }
+    }
+
+    if (!exception.hasException) {
+        if (!definition.hasOwnProperty('paths')) {
+            exception('Missing required property "paths"');
+        } else {
+            this.paths = new Paths(this, exception.at('paths'), definition.paths, map);
         }
     }
 
     if (exception.hasException) throw new Error(exception.toString());
-    if (options.freeze) freeze.deepFreeze(this);
+    if (options.freeze) freeze.deep(this);
 }
 
 /**
@@ -141,11 +103,11 @@ Enforcer.prototype.request = function(request, options) {
     // build internal request object
     const req = {};
     const pathQueryArray = request && request.path && request.path.split('?');
+    const pathString = request.hasOwnProperty('path') ? pathQueryArray.shift() : '/';
     if (request.hasOwnProperty('body')) req.body = request.body;
     req.cookie = request.hasOwnProperty('cookies') ? Object.assign({}, request.cookies) : {};
     req.header = request.hasOwnProperty('headers') ? Object.assign({}, request.headers) : {};
     req.method = request.hasOwnProperty('method') ? request.method : 'get';
-    req.path = request.hasOwnProperty('path') ? pathQueryArray.shift() : '/';
     req.query = pathQueryArray.length ? parseQueryString(pathQueryArray.join('?')) : {};
 
     // normalize options
@@ -155,11 +117,11 @@ Enforcer.prototype.request = function(request, options) {
     exception.statusCode = 400;
 
     // find the path that matches the request
-    const pathMatch = this.paths.findMatch(req.path);
+    const pathMatch = this.paths.findMatch(pathString);
     if (!pathMatch) {
         exception('Path not found');
         exception.statusCode = 404;
-        return Result(exception, null);
+        return new Result(exception, null);
     }
 
     // check that a valid method was specified
@@ -168,12 +130,13 @@ Enforcer.prototype.request = function(request, options) {
         exception('Method not allowed: ' + method.toUpperCase());
         exception.statusCode = 405;
         exception.headers = { Allow: this.methods.join(', ') };
-        return Result(exception, null);
+        return new Result(exception, null);
     }
 
     // process non-body input - 1) parse, 2) deserialize, 3) validate
     const operation = path[req.method];
     const parameters = operation.parameters;
+    req.path = pathMatch.params;
     ['cookie', 'header', 'path', 'query'].forEach(at => {
         if (parameters[at]) {
             const input = req[at];
@@ -212,15 +175,11 @@ Enforcer.prototype.request = function(request, options) {
     }
 
     // TODO: return parsed and validated input params as well as the operation responses object
-};
 
-function common(version, context, exception, definition, map) {
-    if (!definition.hasOwnProperty('paths')) {
-        exception('Missing required property "paths"');
-    } else {
-        context.paths = new Paths(version, context, exception.at('paths'), definition.paths, map);
-    }
-}
+    // return the request
+    req.operation = operation;
+    return new Result(exception, req);
+};
 
 function isObjectStringMap(obj) {
     if (!util.isPlainObject(obj)) return false;
