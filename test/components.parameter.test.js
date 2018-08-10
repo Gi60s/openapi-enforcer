@@ -102,17 +102,11 @@ describe('components/parameter', () => {
 
         });
 
-        describe('v2', () => {
-
-
-
-        });
-
-    });
-
-    describe('v2', () => {
-
-
+        // describe('v2', () => {
+        //
+        //
+        //
+        // });
 
     });
 
@@ -120,6 +114,6 @@ describe('components/parameter', () => {
 
 function getParameter(version, definition) {
     const exception = Exception('');
-    const parameter = new Parameter(version, null, exception, definition, new WeakMap());
-    return { exception: exception.hasException ? exception: false, parameter }
+    const parameter = new Parameter({ version }, exception, definition, new WeakMap());
+    return { exception: exception.hasException ? exception: false, parameter };
 }

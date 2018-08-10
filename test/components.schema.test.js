@@ -917,6 +917,6 @@ describe('components/schema', () => {
 
 function getSchema(version, definition) {
     const exception = Exception('');
-    const schema = new Schema(version, null, exception, definition, new WeakMap())
-    return { exception, schema }
+    const schema = new Schema({ version }, exception, definition, new WeakMap());
+    return { exception, schema };
 }
