@@ -98,12 +98,13 @@ function OpenAPIException(header, isHeader) {
         let result = '';
         if (!top && positional < 1) result += '\n';
         if (positional <= 0) result += prefix;
-        if (positional === 0) result += 'at: /';
-        if (positional > 0) result += '/';
+        if (positional === 0) result += 'at: ';
+        if (positional > 0) result += ' > ';
         result += this.header;
 
         positionals.forEach(pos => {
-            result += pos.toString({ positional: positional + 1, prefix: prefix + '  '});
+            if (messages.length || exceptionInArray(headers)) positional = -1;
+            result += pos.toString({ positional: positional + 1, prefix: prefix + (positional < 0 ? '  ' : '') });
         });
 
         headers.forEach(header => {
@@ -153,4 +154,12 @@ function OpenAPIException(header, isHeader) {
     });
 
     return exception;
+}
+
+function exceptionInArray(exceptions) {
+    const length = exceptions.length;
+    for (let i = 0; i < length; i++) {
+        if (exceptions[i].hasException) return true;
+    }
+    return false;
 }
