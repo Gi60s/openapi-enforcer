@@ -16,7 +16,6 @@
  **/
 'use strict';
 const Exception     = require('../exception');
-const merge         = require('./merge');
 const populate      = require('./populate');
 const random        = require('./random');
 const rx            = require('../rx');
@@ -74,7 +73,7 @@ const validationsMap = {
     }
 };
 
-function Schema(version, enforcer, exception, definition, map) {
+function Schema(enforcer, exception, definition, map) {
 
     if (!util.isPlainObject(definition)) {
         exception('Must be a plain object');
@@ -89,12 +88,11 @@ function Schema(version, enforcer, exception, definition, map) {
     // store protected variables
     store.set(this, {
         enforcer: enforcer,
-        definition: definition,
-        version: version
+        definition: definition
     });
 
     // validate that only the allowed properties are specified and copy properties to this
-    const validations = validationsMap[version];
+    const validations = validationsMap[enforcer.version];
     const common = validations.common;
     const keys = Object.keys(definition);
     const length = keys.length;
@@ -105,7 +103,7 @@ function Schema(version, enforcer, exception, definition, map) {
         const key = keys[i];
 
         // validate that the property is allowed
-        if (!(common[key] || typeProperties[key] || validations.composites[key] || rxExtension.test(key) || allowProperty(definition, key, version))) {
+        if (!(common[key] || typeProperties[key] || validations.composites[key] || rxExtension.test(key) || allowProperty(definition, key, enforcer.version))) {
             exception('Property not allowed: ' + key);
 
         } else {
@@ -141,12 +139,12 @@ function Schema(version, enforcer, exception, definition, map) {
                     exception('Composite "' + composite + '" must be an array');
                 } else {
                     this[composite] = this[composite]
-                        .map((def, index) => new Schema(version, enforcer, exception.at(composite + '/' + index), def, map));
+                        .map((def, index) => new Schema(enforcer, exception.at(composite + '/' + index), def, map));
                 }
                 break;
 
             case 'not':
-                this.not = new Schema(version, enforcer, exception.at('not'), version, this.not, map);
+                this.not = new Schema(enforcer, exception.at('not'), this.not, map);
                 break;
         }
 
@@ -158,7 +156,7 @@ function Schema(version, enforcer, exception, definition, map) {
 
     } else if (type === 'array') {
         if (this.items) {
-            this.items = new Schema(version, enforcer, exception.at('items'), this.items, map);
+            this.items = new Schema(enforcer, exception.at('items'), this.items, map);
         }
         if (this.hasOwnProperty('maxItems') && !isNonNegativeInteger(this.maxItems)) {
             exception('Property "maxItems" must be a non-negative integer');
@@ -222,7 +220,7 @@ function Schema(version, enforcer, exception, definition, map) {
         if (this.hasOwnProperty('discriminator')) {
             const child = exception.at('discriminator');
             let discriminator = this.discriminator;
-            switch (version) {
+            switch (enforcer.version) {
                 case 2:
                     if (typeof discriminator !== 'string') {
                         child('Discriminator must be a string');
@@ -252,7 +250,7 @@ function Schema(version, enforcer, exception, definition, map) {
                                     if (!util.isPlainObject(def)) {
                                         child('Mapped value for "' + key + '" must be an object');
                                     } else {
-                                        mapping[key] = new Schema(version, enforcer, child.at('mapping'), def, map);
+                                        mapping[key] = new Schema(enforcer, child.at('mapping'), def, map);
                                     }
                                 });
                             }
@@ -269,7 +267,7 @@ function Schema(version, enforcer, exception, definition, map) {
             }
         }
         if (this.hasOwnProperty('additionalProperties') && typeof this.additionalProperties !== 'boolean') {
-            this.additionalProperties = new Schema(version, enforcer, exception.at('additionalProperties'), this.additionalProperties, map);
+            this.additionalProperties = new Schema(enforcer, exception.at('additionalProperties'), this.additionalProperties, map);
         }
         if (this.properties) {
             if (!util.isPlainObject(this.properties)) {
@@ -277,7 +275,7 @@ function Schema(version, enforcer, exception, definition, map) {
             } else {
                 const subException = exception.at('properties');
                 Object.keys(this.properties).forEach(key => {
-                    this.properties[key] = new Schema(version, enforcer, subException.at(key), this.properties[key], map);
+                    this.properties[key] = new Schema(enforcer, subException.at(key), this.properties[key], map);
                 })
             }
         }
@@ -443,7 +441,8 @@ Schema.prototype.exception = function(force) {
  * @returns {{ key: string, schema: Schema }}
  */
 Schema.prototype.getDiscriminator = function(value) {
-    const { definition, enforcer, version } = store.get(this);
+    const { definition, enforcer } = store.get(this);
+    const version = enforcer.version;
     if (version === 2) {
         const discriminator = definition.discriminator;
         const key = discriminator && value && value.hasOwnProperty(discriminator) ? value[discriminator] : undefined;
@@ -551,7 +550,7 @@ Object.defineProperty(Schema.prototype, 'version', {
     get: function() {
         const data = store.get(this);
         if (!data) throw Error('Expected a Schema instance type');
-        return data.version;
+        return data.enforcer.version;
     }
 });
 
