@@ -29,7 +29,7 @@ const validationsMap = {
     }
 };
 
-function Operation(version, enforcer, exception, definition, map) {
+function Operation(enforcer, exception, definition, map) {
 
     if (!util.isPlainObject(definition)) {
         exception('Must be a plain object');
@@ -41,15 +41,15 @@ function Operation(version, enforcer, exception, definition, map) {
     if (existing) return existing;
     map.set(definition, this);
 
-    const validations = validationsMap[version];
-
     // build parameters
     if (definition.hasOwnProperty('parameters')) {
-        this.parameters = Operation.buildParameters(version, enforcer, exception, definition, map);
+        this.parameters = Operation.buildParameters(enforcer, exception, definition, map);
     }
 
-    if (version === 3 && definition.hasOwnProperty('requestBody')) {
+    if (enforcer.version === 3) {
+        if (definition.hasOwnProperty('requestBody')) {
 
+        }
     }
 
     if (definition.hasOwnProperty('responses')) {
@@ -58,9 +58,9 @@ function Operation(version, enforcer, exception, definition, map) {
 
 }
 
-Operation.buildParameters = function buildParameters(version, enforcer, exception, definition, map) {
+Operation.buildParameters = function buildParameters(enforcer, exception, definition, map) {
     const result = {};
-    validationsMap[version].parametersIn.forEach(at => result[at] = { empty: true, map: {}, required: [] });
+    validationsMap[enforcer.version].parametersIn.forEach(at => result[at] = { empty: true, map: {}, required: [] });
 
     if (definition.hasOwnProperty('parameters')) {
         if (!Array.isArray(definition.parameters)) {
@@ -69,7 +69,7 @@ Operation.buildParameters = function buildParameters(version, enforcer, exceptio
             const paramException = exception.at('parameters');
             definition.parameters.forEach((definition, index) => {
                 const child = paramException.at(index);
-                const parameter = new Parameter(version, enforcer, child, definition, map);
+                const parameter = new Parameter(enforcer, child, definition, map);
                 if (!child.hasException) {
                     const data = result[parameter.in];
                     data.empty = false;

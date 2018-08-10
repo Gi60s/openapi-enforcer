@@ -15,14 +15,15 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception     = require('../exception');
+const normalize     = require('../map-normalizer');
 const Result        = require('../result');
 const Schema        = require('./schema');
 const util          = require('../util');
-const normalize     = require('../map-normalizer');
-const querystring   = require('querystring');
 
 const rxFalse = /^false/i;
 const rxTrue = /^true$/i;
+const store = new WeakMap();
 
 module.exports = Parameter;
 
@@ -193,7 +194,7 @@ const validationsMap = {
     }
 };
 
-function Parameter(version, enforcer, exception, definition, map) {
+function Parameter(enforcer, exception, definition, map) {
 
     if (!util.isPlainObject(definition)) {
         exception('Must be a plain object');
@@ -205,33 +206,39 @@ function Parameter(version, enforcer, exception, definition, map) {
     if (existing) return existing;
     map.set(definition, this);
 
-    this.version = version;
+    // store protected variables
+    store.set(this, { enforcer });
 
     // validate and normalize the definition
+    const version = enforcer.version;
     normalize(this, version, exception, definition, validationsMap);
 
-    if (version === 2) {
-        // build a schema definition from parameter properties
-        const def = {};
-        schemaProperties.forEach(key => {
-            if (definition.hasOwnProperty(key)) def[key] = definition[key];
-        });
-        this.schema = new Schema(version, enforcer, exception, def, map);
+    if (!exception.hasException) {
+        if (version === 2) {
+            // build a schema definition from parameter properties
+            const def = {};
+            schemaProperties.forEach(key => {
+                if (definition.hasOwnProperty(key)) def[key] = definition[key];
+            });
 
-    } else if (version === 3) {
-        if (definition.hasOwnProperty('schema')) {
-            schemaAndExamples(this, version, exception, definition, map);
-        } else if (definition.hasOwnProperty('content')) {
-            const child = exception.at('content');
-            const mediaTypes = Object.keys(definition.content);
-            if (mediaTypes.length !== 1) {
-                child('Must have exactly one media type. Found ' + mediaTypes.join(', '));
+            // TODO: array items is not a normal schema object - need to address that
+            this.schema = new Schema(enforcer, exception, def, map);
+
+        } else if (version === 3) {
+            if (definition.hasOwnProperty('schema')) {
+                schemaAndExamples(this, enforcer, exception, definition, map);
+            } else if (definition.hasOwnProperty('content')) {
+                const child = exception.at('content');
+                const mediaTypes = Object.keys(definition.content);
+                if (mediaTypes.length !== 1) {
+                    child('Must have exactly one media type. Found ' + mediaTypes.join(', '));
+                } else {
+                    const mt = mediaTypes[0];
+                    schemaAndExamples(this, enforcer, exception.at('content/' + mt), definition.content[mt], map);
+                }
             } else {
-                const mt = mediaTypes[0];
-                schemaAndExamples(this, version, exception.at('content/' + mt), definition.content[mt], map);
+                exception('Missing required property "schema" or "content"');
             }
-        } else {
-            exception('Missing required property "schema" or "content"');
         }
     }
 }
@@ -242,40 +249,42 @@ function Parameter(version, enforcer, exception, definition, map) {
  * @param {string} value
  * @returns {EnforcerResult}
  */
-Parameter.prototype.parse = function(parameter, value) {
+Parameter.prototype.parse = function(value) {
+    const enforcer = store.get(this).enforcer;
+
     const exception = Exception('Unable to parse value');
     let result;
 
-    if (this.version === 2) {
+    if (enforcer.version === 2) {
         if (this.type === 'array') {
             switch (this.collectionFormat) {
-                case 'csv': return Result(exception, value.split(','));
-                case 'pipes': return Result(exception, value.split('|'));
-                case 'ssv': return Result(exception, value.split(' '));
-                case 'tsv': return Result(exception, value.split('\t'));
-                case 'multi': return Result(exception, value);
+                case 'csv': return new Result(exception, value.split(','));
+                case 'pipes': return new Result(exception, value.split('|'));
+                case 'ssv': return new Result(exception, value.split(' '));
+                case 'tsv': return new Result(exception, value.split('\t'));
+                case 'multi': return new Result(exception, value);
             }
 
         } else if (this.type === 'boolean') {
-            if (rxTrue.test(value)) return Result(exception, true);
-            if (rxFalse.test(value)) return Result(exception, false);
-            return Result(exception('Expected "true" or "false". Received: ' + value));
+            if (rxTrue.test(value)) return new Result(exception, true);
+            if (rxFalse.test(value)) return new Result(exception, false);
+            return new Result(exception('Expected "true" or "false". Received: ' + value));
 
         } else if (this.type === 'integer') {
             const num = +value;
             if (isNaN(num)) exception('Expected an integer. Received: ' + value);
-            return Result(exception, num);
+            return new Result(exception, num);
 
         } else if (this.type === 'number') {
             const num = +value;
             if (isNaN(num)) exception('Expected a number. Received: ' + value);
-            return Result(exception, num);
+            return new Result(exception, num);
 
         } else if (this.type === 'string') {
-            return Result(exception, value);
+            return new Result(exception, value);
         }
 
-    } else if (this.version === 3) {
+    } else if (enforcer.version === 3) {
         if (this.in === 'query') {
 
         } else {
@@ -371,9 +380,9 @@ function objectFlattened(delimiter, value) {
     return result;
 }
 
-function schemaAndExamples(context, version, enforcer, exception, definition, map) {
+function schemaAndExamples(context, enforcer, exception, definition, map) {
     if (definition.hasOwnProperty('schema')) {
-        context.schema = new Schema(version, enforcer, exception.at('schema'), definition.schema, map);
+        context.schema = new Schema(enforcer, exception.at('schema'), definition.schema, map);
     }
 
     if (definition.hasOwnProperty('example') && definition.hasOwnProperty('examples')) {

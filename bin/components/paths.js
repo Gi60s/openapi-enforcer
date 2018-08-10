@@ -23,7 +23,7 @@ const rxPathParam = /{([^}]+)}/;
 
 module.exports = Paths;
 
-function Paths(version, enforcer, exception, definition, map) {
+function Paths(enforcer, exception, definition, map) {
 
     if (!util.isPlainObject(definition)) {
         exception('Must be a plain object');
@@ -45,7 +45,8 @@ function Paths(version, enforcer, exception, definition, map) {
         let match;
 
         // build the path object
-        const pathObject = new Path(version, enforcer, exception.at(path), definition[path], map);
+        const atPathException = exception.at(path);
+        const pathObject = new Path(enforcer, atPathException, definition[path], map);
 
         // figure out path parameter names
         const parameterNames = [];
@@ -54,15 +55,37 @@ function Paths(version, enforcer, exception, definition, map) {
             parameterNames.push(match[1]);
         }
 
+        // make sure that the parameters found in the path string are all found in the path object parameters and vice versa
+        const pathParamDeclarationException = atPathException.nest('Path parameter definitions inconsistent')
+        pathObject.methods.forEach(method => {
+            const child = pathParamDeclarationException.at(method);
+            const definitionParameters = Object.keys(pathObject[method].parameters.path.map);
+            const definitionCount = definitionParameters.length;
+            const pathParametersMissing = [];
+            for (let i = 0; i < definitionCount; i++) {
+                const name = definitionParameters[i];
+                if (!parameterNames.includes(name)) pathParametersMissing.push(name);
+            }
+            if (pathParametersMissing.length) child('Path missing defined parameters: ' + pathParametersMissing.join(', '));
+
+            const stringCount = parameterNames.length;
+            const definitionParametersMissing = [];
+            for (let i = 0; i < stringCount; i++) {
+                const name = parameterNames[i];
+                if (!definitionParameters.includes(name)) definitionParametersMissing.push(name);
+            }
+            if (definitionParametersMissing.length) child('Definition missing path parameters: ' + definitionParametersMissing.join(', '));
+        });
+
         // build search regular expression
         const rxFind = /{([^}]+)}/g;
         let rxStr = '';
         let offset = 0;
         while (match = rxFind.exec(path)) {
-            rxStr += path.substring(offset, match.index) + '([\\s\\S]+?)';
+            rxStr += escapeRegExp(path.substring(offset, match.index)) + '([\\s\\S]+?)';
             offset = match.index + match[0].length;
         }
-        rxStr += path.substr(offset);
+        rxStr += escapeRegExp(path.substr(offset));
         const rx = new RegExp('^' + rxStr + '$');
 
         // define parser function
@@ -98,7 +121,7 @@ Paths.prototype.findMatch = function(path) {
 
     // get all parsers that fit the path length
     const pathLength = path.split('/').length - 1;
-    const parsers = store.get(this)[pathLength];
+    const parsers = store.get(this).pathParsers[pathLength];
 
     // if the parser was not found then they have a bad path
     if (!parsers) return;
@@ -111,3 +134,8 @@ Paths.prototype.findMatch = function(path) {
         if (results) return results;
     }
 };
+
+
+function escapeRegExp(text) {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}

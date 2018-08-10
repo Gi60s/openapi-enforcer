@@ -15,10 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception     = require('../exception');
 const Operation     = require('./operation');
-const Parameter     = require('./parameter');
-const Result        = require('../result');
 const util          = require('../util');
 
 const validationsMap = {
@@ -37,7 +34,7 @@ const validationsMap = {
 
 module.exports = Path;
 
-function Path(version, enforcer, exception, definition, map) {
+function Path(enforcer, exception, definition, map) {
 
     if (!util.isPlainObject(definition)) {
         exception('Must be a plain object');
@@ -50,16 +47,16 @@ function Path(version, enforcer, exception, definition, map) {
     map.set(definition, this);
 
     // validate and build parameters
-    const parameters = Operation.buildParameters(version, enforcer, exception, definition, map);
+    const parameters = Operation.buildParameters(enforcer, exception, definition, map);
 
     // build operation objects
     this.methods = [];
-    const validations = validationsMap[version];
+    const validations = validationsMap[enforcer.version];
     validations.methods.forEach(method => {
         if (definition.hasOwnProperty(method)) {
 
             // create the operation
-            const operation = new Operation(version, enforcer, exception.at(method), definition[method], map);
+            const operation = new Operation(enforcer, exception.at(method), definition[method], map);
 
             // add path wide parameters
             Object.keys(operation.parameters).forEach(at => {
