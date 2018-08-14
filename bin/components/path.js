@@ -59,10 +59,15 @@ function Path(enforcer, exception, definition, map) {
             const operation = new Operation(enforcer, exception.at(method), definition[method], map);
 
             // add path wide parameters
-            Object.keys(operation.parameters).forEach(at => {
-                const group = operation.parameters[at];
-                Object.keys(parameters[at]).forEach(name => {
-                    if (!group[name]) group[name] = parameters[at][name];
+            Object.keys(parameters).forEach(at => {
+                Object.keys(parameters[at].map).forEach(name => {
+                    const store = operation.parameters[at];
+                    const wideParam = parameters[at].map[name];
+                    if (!store.map[name]) {
+                        store.map[name] = wideParam;
+                        store.empty = false;
+                        if (wideParam.required) store.required.push(name);
+                    }
                 });
             });
 
