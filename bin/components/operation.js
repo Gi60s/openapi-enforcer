@@ -70,7 +70,7 @@ Operation.buildParameters = function buildParameters(enforcer, exception, defini
             definition.parameters.forEach((definition, index) => {
                 const child = paramException.at(index);
                 const parameter = new Parameter(enforcer, child, definition, map);
-                if (!child.hasException) {
+                if (!child.hasException || (parameter.in && parameter.name)) {
                     const data = result[parameter.in];
                     data.empty = false;
                     data.map[parameter.name] = parameter;
