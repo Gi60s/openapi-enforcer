@@ -31,13 +31,13 @@ module.exports = function(target, version, exception, obj, map) {
         } else if (!map.hasOwnProperty(key) || (m.allowed && !m.allowed(obj, version, value))) {
             exception('Property not allowed: ' + key);
         } else if (m.type && (message = m.type(obj, version, value)) !== typeof value) {
-            exception('Value for property "' + key + '" must be a ' + message);
+            exception('Value for property "' + key + '" must be a ' + message + '. Received: ' + util.smart(value));
         } else if (m.isPlainObject && !util.isPlainObject(value)) {
-            exception('Property "' + key + '" must be a plain object');
+            exception('Value for property "' + key + '" must be a plain object. Received: ' + util.smart(value));
         } else if (m.isArray && !Array.isArray(value)) {
-            exception('Property "' + key + '" must be an array');
+            exception('Value for property "' + key + '" must be an array. Received: ' + util.smart(value));
         } else if (m.enum && (message = m.enum(obj, version, value)).findIndex(v => util.same(v, value)) === -1) {
-            exception('Property "' + key + '" has invalid value. Must be one of: ' + message.join(', '));
+            exception('Property "' + key + '" has invalid value: ' + util.smart(value) +'. Must be one of: ' + message.join(', '));
         } else if (m.errors && (message = m.errors(obj, version, value))) {
             exception('Property "' + key + '" has invalid value. ' + message);
         } else if (!m.ignore || !m.ignore(obj, version, value)) {
@@ -48,7 +48,7 @@ module.exports = function(target, version, exception, obj, map) {
     const missingRequired = [];
     Object.keys(map).forEach(key => {
         const m = map[key];
-        if (!target.hasOwnProperty(key) && !obj.hasOwnProperty(key)) {
+        if (!target.hasOwnProperty(key) && !obj.hasOwnProperty(key) && (!m.allowed || m.allowed(obj, version))) {
             if (m.required && m.required(obj, version)) {
                 missingRequired.push(key);
             } else if (m.default) {
@@ -60,4 +60,6 @@ module.exports = function(target, version, exception, obj, map) {
     missingRequired.forEach(key => {
         exception('Missing required property: ' + key);
     });
+
+    return target;
 };
