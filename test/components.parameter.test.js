@@ -102,11 +102,34 @@ describe('components/parameter', () => {
 
         });
 
-        // describe('v2', () => {
-        //
-        //
-        //
-        // });
+        describe('v2', () => {
+
+            it('will accept array items', () => {
+                const { exception } = getParameter(2, { in: 'query', name: 'x', type: 'array', items: { type: 'string' }, collectionFormat: 'csv' });
+                expect(exception).to.be.false;
+            });
+
+            it('will accept nested array items', () => {
+                const { exception } = getParameter(2, {
+                    in: 'query',
+                    name: 'x',
+                    type: 'array',
+                    items: {
+                        type: 'array',
+                        collectionFormat: 'pipes',
+                        items: {
+                            type: 'array',
+                            collectionFormat: 'tsv',
+                            items: {
+                                type: 'number'
+                            }
+                        }
+                    }
+                });
+                expect(exception).to.be.false;
+            });
+
+        });
 
     });
 
