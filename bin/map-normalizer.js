@@ -20,9 +20,23 @@ const util      = require('./util');
 const rxExtension = /^x-.+/;
 
 module.exports = function(target, version, exception, obj, map) {
-    const keys = Object.keys(obj);
+    obj = Object.assign({}, obj);
 
-    keys.forEach(key => {
+    // check for missing required and set defaults
+    const missingRequired = [];
+    Object.keys(map).forEach(key => {
+        const m = map[key];
+        if (!obj.hasOwnProperty(key) && (!m.allowed || m.allowed(obj, version))) {
+            if (m.required && m.required(obj, version)) {
+                missingRequired.push(key);
+            } else if (m.default) {
+                obj[key] = m.default(obj, version);
+            }
+        }
+    });
+
+    // validate each property and its value
+    Object.keys(obj).forEach(key => {
         const value = obj[key];
         const m = map[key];
         let message;
@@ -45,21 +59,12 @@ module.exports = function(target, version, exception, obj, map) {
         }
     });
 
-    const missingRequired = [];
-    Object.keys(map).forEach(key => {
-        const m = map[key];
-        if (!target.hasOwnProperty(key) && !obj.hasOwnProperty(key) && (!m.allowed || m.allowed(obj, version))) {
-            if (m.required && m.required(obj, version)) {
-                missingRequired.push(key);
-            } else if (m.default) {
-                target[key] = m.default(m, version);
-            }
-        }
-    });
-
-    missingRequired.forEach(key => {
-        exception('Missing required property: ' + key);
-    });
+    // report missing required properties
+    if (missingRequired.length) {
+        exception('Missing required propert' +
+            (missingRequired.length === 1 ? 'y' : 'ies') +
+            ': ' + missingRequired.join(', '));
+    }
 
     return target;
 };
