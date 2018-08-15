@@ -15,9 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const rx        = require('./rx');
-
-// TODO: re-evaluate deepFreeze and Object.freeze
+const queryString   = require('querystring');
+const rx            = require('./rx');
 
 exports.arrayRemoveItem = function(array, item) {
     const index = array.indexOf(item);
@@ -86,6 +85,15 @@ exports.mapObject = function(object, callback) {
         result[key] = callback(object[key], key);
     });
     return result;
+};
+
+exports.parseQueryString = function (str, delimiter) {
+    const query = queryString.parse(str, delimiter);
+    Object.keys(query).forEach(key => {
+        const value = query[key];
+        if (!Array.isArray(value)) query[key] = [ value ];
+    });
+    return query;
 };
 
 exports.rxStringToRx = function(value) {
