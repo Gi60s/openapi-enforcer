@@ -18,8 +18,6 @@
 const Exception     = require('./exception');
 const freeze        = require('./freeze');
 const Paths         = require('./components/paths');
-const Parameter     = require('./components/parameter');
-const queryString   = require('querystring');
 const Readable      = require('stream').Readable;
 const Result        = require('./result');
 const Schema        = require('./components/schema');
@@ -83,7 +81,7 @@ function Enforcer(definition, options) {
  * Deserialize and validate a request.
  * @param {object} [request]
  * @param {Readable|object|string} [request.body]
- * @param {object} [request.cookies={}]
+ * @param {string} [request.cookies='']
  * @param {object} [request.headers={}]
  * @param {string} [request.method='get']
  * @param {string} [request.path='/']
@@ -95,7 +93,7 @@ Enforcer.prototype.request = function(request, options) {
 
     // validate request parameter and properties
     if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || util.isPlainObject(request.body) || request.body instanceof Readable)) throw Error('Invalid body provided');
-    if (request.hasOwnProperty('cookies') && !isObjectStringMap(request.cookies)) throw Error('Invalid request cookie. Expected an object with string keys and string values');
+    if (request.hasOwnProperty('cookies') && typeof request.cookies !== 'string') throw Error('Invalid request cookies. Expected a string.');
     if (request.hasOwnProperty('headers') && !isObjectStringMap(request.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
     if (request.hasOwnProperty('method') && typeof request.method !== 'string') throw Error('Invalid request method. Expected a string');
     if (request.hasOwnProperty('path') && typeof request.path !== 'string') throw Error('Invalid request path. Expected a string');
@@ -104,11 +102,13 @@ Enforcer.prototype.request = function(request, options) {
     const req = {};
     const pathQueryArray = request && request.path && request.path.split('?');
     const pathString = request.hasOwnProperty('path') ? pathQueryArray.shift() : '/';
+    const queryString = pathQueryArray.join('&');
+    const cookieString = request.hasOwnProperty('cookies') ? request.cookies : '';
     if (request.hasOwnProperty('body')) req.body = request.body;
-    req.cookie = request.hasOwnProperty('cookies') ? Object.assign({}, request.cookies) : {};
+    req.cookie = cookieString ? util.parseQueryString(cookieString, '; ') : {};
     req.header = request.hasOwnProperty('headers') ? Object.assign({}, request.headers) : {};
     req.method = request.hasOwnProperty('method') ? request.method : 'get';
-    req.query = pathQueryArray.length ? parseQueryString(pathQueryArray.join('?')) : {};
+    req.query = queryString ? util.parseQueryString(queryString) : {};
 
     // normalize options
     options = Object.assign({ allowOtherQueryParameters: false }, options);
@@ -133,31 +133,78 @@ Enforcer.prototype.request = function(request, options) {
         return new Result(exception, null);
     }
 
+    // make all header properties lowercase
+    const headerNamesMap = {};
+    Object.keys(req.header).forEach(key => {
+        headerNamesMap[key.toLowerCase()] = key;
+    });
+
     // process non-body input - 1) parse, 2) deserialize, 3) validate
     const operation = path[req.method];
     const parameters = operation.parameters;
     req.path = pathMatch.params;
     ['cookie', 'header', 'path', 'query'].forEach(at => {
         if (parameters[at]) {
+            const child = exception.nest('In ' + at + ' parameters');
             const input = req[at];
-            const missingRequired = parameters[at].required.concat();
-            const child = exception.nest(util.ucFirst(at) + ' parameter');
-            Object.keys(input).forEach(name => {
+            const output = {};
+            const missingRequired = [];
+            const unknownParameters = at === 'query' && !options.allowOtherQueryParameters
+                ? Object.keys(input)
+                : [];
+
+            Object.keys(parameters[at].map).forEach(name => {
+                const key = at === 'header' ? headerNamesMap[name] : name;
                 const parameter = parameters[at].map[name];
-                if (parameter) {
-                    let data = parameter.parse(input[name]);
+                const type = parameter.schema && parameter.schema.type;
+                if (input[key]) {
+                    util.arrayRemoveItem(unknownParameters, key);
+                    let data = (at === 'query' || at === 'cookie')
+                        ? parameter.parse(queryString, input)
+                        : parameter.parse(input[key]);
                     if (!data.error) data = parameter.schema.deserialize(data.value);
                     if (!data.error) data.error = parameter.schema.validate(data.value);
                     if (data.error) {
-                        child.at(name)(data.value);
+                        child.at(key)(data.value);
                     } else {
-                        input[name] = data.value;
+                        output[key] = data.value;
                     }
-                } else if (at === 'path' || (at === 'query' && !options.allowOtherQueryParameters)) {
-                    child.at(name)('Not allowed');
+
+                } else if (parameter.in === 'query' && parameter.style === 'form' && parameter.explode && type === 'object') {
+                    const [err, result] = parameter.parse(queryString, input);
+                    if (!err) {
+                        let data = parameter.schema.deserialize(result);
+                        if (!data.error) data.error = parameter.schema.validate(data.value);
+                        if (!data.error) {
+                            Object.keys(data.value).forEach(key => util.arrayRemoveItem(unknownParameters, key));
+                            output[key] = data.value;
+                        }
+                    }
+
+                } else if (parameter.in === 'query' && parameter.style === 'deepObject' && type === 'object') {
+                    const [err, result] = parameter.parse(queryString, input);
+                    if (!err) {
+                        Object.keys(result).forEach(k => util.arrayRemoveItem(unknownParameters, key + '[' + k + ']'));
+                        output[key] = result;
+                    } else {
+                        child.at(key)(err);
+                    }
+
+                } else if (parameter.required) {
+                    missingRequired.push(key);
                 }
-                util.arrayRemoveItem(missingRequired, name);
             });
+
+            req[at] = output;
+
+            // add exception for any unknown query parameters
+            if (unknownParameters.length) {
+                child('Received unexpected parameter' +
+                    (unknownParameters.length === 1 ? '' : 's') + ': ' +
+                    unknownParameters.join(', '));
+            }
+
+            //
             if (missingRequired.length) {
                 child('Missing required parameter' + (missingRequired.length > 1 ? 's' : '') +
                     ': ' + missingRequired.join(', '));
@@ -176,9 +223,17 @@ Enforcer.prototype.request = function(request, options) {
 
     // TODO: return parsed and validated input params as well as the operation responses object
 
+    // build the result object
+    const result = {};
+    result.cookies = req.cookie;
+    result.headers = req.header;
+    result.params = req.params;
+    result.path = req.path;
+    result.query = req.query;
+
     // return the request
     req.operation = operation;
-    return new Result(exception, req);
+    return new Result(exception, result);
 };
 
 function isObjectStringMap(obj) {
@@ -189,13 +244,4 @@ function isObjectStringMap(obj) {
         if (typeof keys[i] !== 'string' || typeof obj[keys[i]] !== 'string') return false;
     }
     return true;
-}
-
-function parseQueryString(str) {
-    const query = queryString.parse(str);
-    Object.keys(query).forEach(key => {
-        const value = query[key];
-        if (!Array.isArray(value)) query[key] = [ value ];
-    });
-    return query;
 }

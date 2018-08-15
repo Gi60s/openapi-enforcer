@@ -23,6 +23,7 @@ const util          = require('../util');
 
 const rxFalse = /^false/i;
 const rxTrue = /^true$/i;
+const rxLabel = /^\./;
 const store = new WeakMap();
 
 module.exports = Parameter;
@@ -146,7 +147,9 @@ const validationsMap = Object.assign({}, v2itemsValidationsMap, {
     },
     collectionFormat: { // overwrite items - can use 'multi'
         allowed: (ctx, version) => version === 2 && ctx.type === 'array',
-        enum: () => ['csv', 'ssv', 'tsv', 'pipes', 'multi'],
+        enum: ctx => ctx.in === 'formData' || ctx.in === 'query'
+            ? ['csv', 'ssv', 'tsv', 'pipes', 'multi']
+            : ['csv', 'ssv', 'tsv', 'pipes'],
         default: () => 'csv'
     },
     schema: {
@@ -171,6 +174,26 @@ const validationsMap = Object.assign({}, v2itemsValidationsMap, {
                 case 'header': return ['simple'];
                 case 'path': return ['simple', 'label', 'matrix'];
                 case 'query': return ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'];
+            }
+        },
+        errors: ctx => {
+            const style = ctx.style;
+            const type = ctx.schema && ctx.schema.type;
+            if (!type || !style) return true;
+            switch (ctx.in) {
+                case 'cookie':
+                    return ctx.explode && (type === 'array' || type === 'object')
+                        ? 'Cookies do not support exploded style "' + style + '" with schema type: ' + type
+                        : false;
+                case 'header':
+                case 'path':
+                    return false;
+                case 'query':
+                    if (style === 'form') return false;
+                    if (style === 'spaceDelimited' && type === 'array') return false;
+                    if (style === 'pipeDelimited' && type === 'array') return false;
+                    if (style === 'deepObject' && type === 'object') return false;
+                    return 'Style "' + style + '" is incompatible with schema type: ' + type;
             }
         }
     },
@@ -218,6 +241,9 @@ function Parameter(enforcer, exception, definition, map) {
     const version = enforcer.version;
     normalize(this, version, exception, definition, validationsMap);
 
+    // if header then make sure the name is lower case
+    if (this.in === 'header') this.name = this.name.toLowerCase();
+
     if (!exception.hasException) {
         if (version === 2) {
             // make sure all nested array items definitions are noramlized and validated
@@ -250,24 +276,42 @@ function Parameter(enforcer, exception, definition, map) {
 /**
  * Parse input. Does not validate.
  * @param {string} value
+ * @param {object} [query={}]
  * @returns {EnforcerResult}
  */
-Parameter.prototype.parse = function(value) {
+Parameter.prototype.parse = function(value, query) {
     const enforcer = store.get(this).enforcer;
+    const version = enforcer.version;
+    const schema = this.schema;
+    const type = schema && schema.type;
 
     const exception = Exception('Unable to parse value');
-    let result;
 
-    if (enforcer.version === 2) {
-        return new Result(exception, v2Parse(this, exception, value))
+    if (version === 2) {
+        if (this.collectionFormat === 'multi') {
+            if (!query) query = util.parseQueryString(value);
+            const values = query[this.name];
+            if (values) {
+                const result = this.items ? values.map((v, i) => v2Parse(this.items, exception.at(i), v)) : values;
+                return new Result(exception, result);
+            } else {
+                return new Result(exception, undefined);
+            }
 
-    } else if (enforcer.version === 3) {
+        } else {
+            return new Result(exception, v2Parse(this, exception, value));
+        }
+
+
+    } else if (version === 3) {
         const explode = this.explode;
-        const schema = this.schema;
-        const type = schema.type;
+        const style = this.style;
         let parsed;
 
-        if (this.style === 'deepObject') {
+        // in case the query string has not been parsed, parse it now
+        if (!query && this.in === 'query') query = util.parseQueryString(value);
+
+        if (style === 'deepObject') {
             const rx = RegExp('(?:^|&)' + this.name + '\\[([^\\]]+)\\](?:=([^&]*))?', 'g');
             const result = {};
             let match;
@@ -276,12 +320,37 @@ Parameter.prototype.parse = function(value) {
                 hasValue = true;
                 result[match[1]] = match[2];
             }
-            return hasValue ? { match: true, value: result } : { match: false };
+            if (hasValue) parsed = result;
 
-        } else if (this.style === 'form') {
+        } else if (style === 'form') {
+            if (explode && type === 'object') {
+                const result = objectExploded('&', '=', '&' + value);
+                if (result) {
+                    parsed = {};
+                    Object.keys(result).forEach(name => {
+                        if (schema.additionalProperties || (schema.properties && schema.properties.hasOwnProperty(name))) {
+                            parsed[name] = result[name];
+                        }
+                    });
+                }
+            } else if (query[this.name]) {
+                const ar = query[this.name];
+                if (type === 'array') {
+                    if (explode) {
+                        parsed = ar;
+                    } else if (ar.length > 0) {
+                        parsed = ar[ar.length - 1].split(',');
+                    }
+                } else if (type === 'object') {
+                    const result = objectFlattened(',', ar[ar.length - 1]);
+                    if (result) parsed = result;
+                } else if (ar.length > 0) {
+                    parsed = ar[ar.length - 1];
+                }
+            }
 
-        } else if (this.style === 'label') {
-            if (/^\./.test(value)) {
+        } else if (style === 'label') {
+            if (rxLabel.test(value)) {
                 if (type === 'array') {
                     parsed = value.substr(1).split(explode ? '.' : ',');
                 } else if (type === 'object') {
@@ -293,35 +362,65 @@ Parameter.prototype.parse = function(value) {
                 }
             }
 
-        } else if (this.style === 'matrix') {
+        } else if (style === 'matrix') {
+            const name = this.name;
+            const rx = RegExp('^;' + name + '(?:=|$)');
+            if (type === 'array') {
+                if (explode) {
+                    const result = arrayExploded(';', '=', name, value.substr(1));
+                    if (result) parsed = result;
+                } else {
+                    parsed = value.substr(name.length + 2).split(',');
+                }
+            } else if (type === 'object') {
+                if (explode || rx.test(value)) {
+                    const result = explode
+                        ? objectExploded(';', '=', value)
+                        : objectFlattened(',', value.substr(name.length + 2));
+                    if (result) parsed = result;
+                }
+            } else if (rx.test(value)) {
+                parsed = value.substr(name.length + 2);
+            }
 
-        } else if (this.style === 'pipeDelimited') {
+        } else if (style === 'pipeDelimited') {
+            const ar = query[this.name];
+            if (ar.length > 0) {
+                parsed = explode
+                    ? ar
+                    : delimited(type, '|', ar[ar.length - 1])
+            }
 
-        } else if (this.style === 'simple') {
+        } else if (style === 'simple') {
             if (type === 'array') {
                 parsed = value.split(',');
             } else if (type === 'object') {
-                const parsed = explode
+                parsed = explode
                     ? objectExploded(',', '=', ',' + value)
                     : objectFlattened(',', value);
             } else {
                 parsed = value;
             }
 
-        } else if (this.style === 'spaceDelimited') {
-
+        } else if (style === 'spaceDelimited') {
+            const ar = query[this.name];
+            if (ar.length > 0) {
+                parsed = explode
+                    ? ar
+                    : delimited(type, ' ', ar[ar.length - 1])
+            }
         }
 
         // parse array items and object properties
         if (parsed) {
             if (type === 'array') {
-                parsed = parsed.map(v => parsePrimitive(schema.items, exception, v));
+                parsed = parsed.map((v, i) => parsePrimitive(schema.items, exception.at(i), v));
             } else if (type === 'object') {
                 Object.keys(parsed).forEach(key => {
                     if (schema.properties && schema.properties[key]) {
-                        parsed[key] = parsePrimitive(schema.properties[key], exception, parsed[key]);
+                        parsed[key] = parsePrimitive(schema.properties[key], exception.at(key), parsed[key]);
                     } else if (typeof schema.additionalProperties === 'object') {
-                        parsed[key] = parsePrimitive(schema.additionalProperties, exception, parsed[key]);
+                        parsed[key] = parsePrimitive(schema.additionalProperties, exception.at(key), parsed[key]);
                     }
                 });
             } else {
@@ -333,8 +432,6 @@ Parameter.prototype.parse = function(value) {
 
         return new Result(exception, parsed);
     }
-
-    return new Result(exception, result);
 };
 
 
@@ -367,16 +464,36 @@ function copySchemaProperties(source) {
 
 function delimited(type, delimiter, value) {
     if (type === 'array') {
-        return { match: true, value: value.split(delimiter) };
-
+        return value.split(delimiter);
     } else if (type === 'object') {
-        const parsed = objectFlattened(delimiter, value);
-        return parsed ? { match: true, value: parsed } : { match: false };
+        return objectFlattened(delimiter, value);
     }
 }
 
-function parseArrayOfPrimitives(context, exception, value) {
+function objectExploded(setDelimiter, valueDelimiter, value) {
+    const str = 's([^v]+)v([^s]+)?';
+    const rx = RegExp(str.replace(/v/g, valueDelimiter).replace(/s/g, setDelimiter), 'g');
+    const result = {};
+    let match;
+    let offset = 0;
+    while (match = rx.exec(value)) {
+        result[match[1]] = match[2] || '';
+        offset = match.index + match[0].length;
+    }
+    if (offset !== value.length) return;
+    return result;
+}
 
+function objectFlattened(delimiter, value) {
+    const result = {};
+    const ar = value.split(delimiter);
+    const length = ar.length;
+
+    if (length % 2 !== 0) return;
+    for (let i = 1; i < length; i += 2) {
+        result[ar[i - 1]] = ar[i];
+    }
+    return result;
 }
 
 function parsePrimitive(context, exception, value) {
@@ -398,32 +515,6 @@ function parsePrimitive(context, exception, value) {
     } else if (context.type === 'string') {
         return value;
     }
-}
-
-function objectExploded(setDelimiter, valueDelimiter, value) {
-    const str = 's([^v]+)v([^s]+)?';
-    const rx = RegExp(str.replace(/v/g, valueDelimiter).replace(/s/g, setDelimiter), 'g');
-    const result = {};
-    let match;
-    let offset = 0;
-    while (match = rx.exec(value)) {
-        result[match[1]] = match[2] || '';
-        offset = match.index + match[0].length;
-    }
-    if (offset !== value.length) return false;
-    return result;
-}
-
-function objectFlattened(delimiter, value) {
-    const result = {};
-    const ar = value.split(delimiter);
-    const length = ar.length;
-
-    if (length % 2 !== 0) return false;
-    for (let i = 1; i < length; i += 2) {
-        result[ar[i - 1]] = ar[i];
-    }
-    return result;
 }
 
 function schemaAndExamples(context, enforcer, exception, definition, map) {
@@ -472,6 +563,6 @@ function v2Parse(context, exception, value) {
         return values.map((value, index) => v2Parse(context.items, exception.at(index), value));
 
     } else {
-        parsePrimitive(context, exception, value);
+        return parsePrimitive(context, exception, value);
     }
 }

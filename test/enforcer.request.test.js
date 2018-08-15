@@ -124,6 +124,21 @@ describe.only('enforcer/request', () => {
 
         describe('v3', () => {
 
+            it('can handle complex path', () => {
+                const def = new Definition(3)
+                    .addParameter('/users{id}', 'get', {
+                        name: 'id',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'array', items: { type: 'number' } },
+                        style: 'matrix',
+                        explode: true
+                    });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/users;id=1;id=2' });
+                expect(req.path.id).to.deep.equal([1,2]);
+            });
+
             describe('style: simple', () => {
 
                 it('primitive', () => {
@@ -230,7 +245,7 @@ describe.only('enforcer/request', () => {
 
             });
 
-            describe.only('style: label', () => {
+            describe('style: label', () => {
 
                 it('primitive', () => {
                     const def = new Definition(3)
@@ -336,6 +351,112 @@ describe.only('enforcer/request', () => {
 
             });
 
+            describe('style: matrix', () => {
+
+                it('primitive', () => {
+                    const def = new Definition(3)
+                        .addParameter('/{value}', 'get', {
+                            name: 'value',
+                            in: 'path',
+                            required: true,
+                            schema: { type: 'number' },
+                            style: 'matrix',
+                            explode: false
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/;value=5' });
+                    expect(req.path.value).to.equal(5);
+                });
+
+                it('primitive explode', () => {
+                    const def = new Definition(3)
+                        .addParameter('/{value}', 'get', {
+                            name: 'value',
+                            in: 'path',
+                            required: true,
+                            schema: { type: 'number' },
+                            style: 'matrix',
+                            explode: true
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/;value=5' });
+                    expect(req.path.value).to.equal(5);
+                });
+
+                it('array', () => {
+                    const def = new Definition(3)
+                        .addParameter('/{value}', 'get', {
+                            name: 'value',
+                            in: 'path',
+                            required: true,
+                            schema: { type: 'array', items: { type: 'number' } },
+                            style: 'matrix',
+                            explode: false
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/;value=3,4,5' });
+                    expect(req.path.value).to.deep.equal([3,4,5]);
+                });
+
+                it('array explode', () => {
+                    const def = new Definition(3)
+                        .addParameter('/{value}', 'get', {
+                            name: 'value',
+                            in: 'path',
+                            required: true,
+                            schema: { type: 'array', items: { type: 'number' } },
+                            style: 'matrix',
+                            explode: true
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/;value=3;value=4;value=5' });
+                    expect(req.path.value).to.deep.equal([3,4,5]);
+                });
+
+                it('object', () => {
+                    const def = new Definition(3)
+                        .addParameter('/{value}', 'get', {
+                            name: 'value',
+                            in: 'path',
+                            required: true,
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'number' },
+                                    b: { type: 'number' }
+                                }
+                            },
+                            style: 'matrix',
+                            explode: false
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/;value=a,1,b,2' });
+                    expect(req.path.value).to.deep.equal({a:1,b:2});
+                });
+
+                it('object explode', () => {
+                    const def = new Definition(3)
+                        .addParameter('/{value}', 'get', {
+                            name: 'value',
+                            in: 'path',
+                            required: true,
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'number' },
+                                    b: { type: 'number' }
+                                }
+                            },
+                            style: 'matrix',
+                            explode: true
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/;a=1;b=2' });
+                    expect(req.path.value).to.deep.equal({a:1,b:2});
+                });
+
+            });
+
         });
 
     });
@@ -356,6 +477,753 @@ describe.only('enforcer/request', () => {
                 const enforcer = new Enforcer(def);
                 const [, req] = enforcer.request({ path: '/?item=1&item=2&item=3' });
                 expect(req.query.item).to.deep.equal([1, 2, 3]);
+            });
+
+            it('can define multi that does not receive input', () => {
+                const def = new Definition(2)
+                    .addParameter('/', 'get', {
+                        name: 'item',
+                        in: 'query',
+                        type: 'array',
+                        collectionFormat: 'multi',
+                        items: { type: 'number' }
+                    });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/' });
+                expect(req.query).not.to.haveOwnProperty('item');
+            });
+
+        });
+
+        describe('v3', () => {
+
+            describe('style: form', () => {
+
+                it('primitive', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'number' },
+                            style: 'form',
+                            explode: false
+                        })
+                        .addPath('/', 'get');
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?value=1&value=2' });
+                    expect(req.query.value).to.equal(2);
+                });
+
+                it('primitive explode', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'number' },
+                            style: 'form',
+                            explode: true
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?value=1&value=2' });
+                    expect(req.query.value).to.equal(2);
+                });
+
+                it('array', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'array', items: { type: 'number' } },
+                            style: 'form',
+                            explode: false
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?value=1,2' });
+                    expect(req.query.value).to.deep.equal([1,2]);
+                });
+
+                it('array explode', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'array', items: { type: 'number' } },
+                            style: 'form',
+                            explode: true
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?value=1&value=2' });
+                    expect(req.query.value).to.deep.equal([1, 2]);
+                });
+
+                it('object', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'number' },
+                                    b: { type: 'number' }
+                                }
+                            },
+                            style: 'form',
+                            explode: false
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?value=a,1,b,2' });
+                    expect(req.query.value).to.deep.equal({a:1,b:2});
+                });
+
+                it('object explode', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get',
+                            {
+                                name: 'x',
+                                in: 'query',
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        a: { type: 'number' },
+                                        b: { type: 'number' }
+                                    }
+                                },
+                                style: 'form',
+                                explode: true
+                            },{
+                                name: 'y',
+                                in: 'query',
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        c: { type: 'number' },
+                                        d: { type: 'number' }
+                                    }
+                                },
+                                style: 'form',
+                                explode: true
+                            });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?a=1&b=2&c=3&d=4' });
+                    expect(req.query).to.deep.equal({
+                        x: { a:1, b:2 },
+                        y: { c:3, d:4 }
+                    });
+                });
+
+                it('object explode with invalid values', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get',
+                            {
+                                name: 'x',
+                                in: 'query',
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        a: { type: 'number' },
+                                        b: { type: 'number' }
+                                    }
+                                },
+                                style: 'form',
+                                explode: true
+                            },{
+                                name: 'y',
+                                in: 'query',
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        c: { type: 'number' },
+                                        d: { type: 'number' }
+                                    }
+                                },
+                                style: 'form',
+                                explode: true
+                            });
+                    const enforcer = new Enforcer(def);
+                    const [err] = enforcer.request({ path: '/?a=bob&b=2&c=3&d=4' });
+                    expect(err).to.match(/Received unexpected parameters: a, b/);
+                });
+
+            });
+
+            describe('style: spaceDelimited', () => {
+
+                it('does not allow primitives', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'number' },
+                            style: 'spaceDelimited',
+                            explode: false
+                        });
+                    expect(() => new Enforcer(def)).to.throw(/Style "spaceDelimited" is incompatible with schema type: number/);
+                });
+
+                it('does not allow exploded primitives', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'number' },
+                            style: 'spaceDelimited',
+                            explode: true
+                        });
+                    expect(() => new Enforcer(def)).to.throw(/Style "spaceDelimited" is incompatible with schema type: number/);
+                });
+
+                it('array', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'array', items: { type: 'number' } },
+                            style: 'spaceDelimited',
+                            explode: false
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?value=1 2' });
+                    expect(req.query.value).to.deep.equal([1,2]);
+                });
+
+                it('array explode', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'array', items: { type: 'number' } },
+                            style: 'spaceDelimited',
+                            explode: true
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?value=1&value=2' });
+                    expect(req.query.value).to.deep.equal([1, 2]);
+                });
+
+                it('does not allow objects', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'number' },
+                                    b: { type: 'number' }
+                                }
+                            },
+                            style: 'spaceDelimited',
+                            explode: false
+                        });
+                    expect(() => new Enforcer(def)).to.throw(/Style "spaceDelimited" is incompatible with schema type: object/);
+                });
+
+                it('does not allow exploded objects', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get',
+                            {
+                                name: 'x',
+                                in: 'query',
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        a: { type: 'number' },
+                                        b: { type: 'number' }
+                                    }
+                                },
+                                style: 'spaceDelimited',
+                                explode: true
+                            },{
+                                name: 'y',
+                                in: 'query',
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        c: { type: 'number' },
+                                        d: { type: 'number' }
+                                    }
+                                },
+                                style: 'spaceDelimited',
+                                explode: true
+                            });
+                    expect(() => new Enforcer(def)).to.throw(/Style "spaceDelimited" is incompatible with schema type: object/);
+                });
+
+            });
+
+            describe('style: pipeDelimited', () => {
+
+                it('does not allow primitives', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'number' },
+                            style: 'pipeDelimited',
+                            explode: false
+                        });
+                    expect(() => new Enforcer(def)).to.throw(/Style "pipeDelimited" is incompatible with schema type: number/);
+                });
+
+                it('does not allow exploded primitives', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'number' },
+                            style: 'pipeDelimited',
+                            explode: true
+                        });
+                    expect(() => new Enforcer(def)).to.throw(/Style "pipeDelimited" is incompatible with schema type: number/);
+                });
+
+                it('array', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'array', items: { type: 'number' } },
+                            style: 'pipeDelimited',
+                            explode: false
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?value=1|2' });
+                    expect(req.query.value).to.deep.equal([1,2]);
+                });
+
+                it('array explode', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'array', items: { type: 'number' } },
+                            style: 'pipeDelimited',
+                            explode: true
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?value=1&value=2' });
+                    expect(req.query.value).to.deep.equal([1, 2]);
+                });
+
+                it('does not allow objects', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'number' },
+                                    b: { type: 'number' }
+                                }
+                            },
+                            style: 'pipeDelimited',
+                            explode: false
+                        });
+                    expect(() => new Enforcer(def)).to.throw(/Style "pipeDelimited" is incompatible with schema type: object/);
+                });
+
+                it('does not allow exploded objects', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get',
+                            {
+                                name: 'x',
+                                in: 'query',
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        a: { type: 'number' },
+                                        b: { type: 'number' }
+                                    }
+                                },
+                                style: 'pipeDelimited',
+                                explode: true
+                            },{
+                                name: 'y',
+                                in: 'query',
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        c: { type: 'number' },
+                                        d: { type: 'number' }
+                                    }
+                                },
+                                style: 'pipeDelimited',
+                                explode: true
+                            });
+                    expect(() => new Enforcer(def)).to.throw(/Style "pipeDelimited" is incompatible with schema type: object/);
+                });
+
+            });
+
+            describe('style: deepObject', () => {
+
+                it('does not allow primitives', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'number' },
+                            style: 'deepObject',
+                            explode: false
+                        });
+                    expect(() => new Enforcer(def)).to.throw(/Style "deepObject" is incompatible with schema type: number/);
+                });
+
+                it('does not allow exploded primitives', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'number' },
+                            style: 'deepObject',
+                            explode: true
+                        });
+                    expect(() => new Enforcer(def)).to.throw(/Style "deepObject" is incompatible with schema type: number/);
+                });
+
+                it('does not allow arrays', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'array', items: { type: 'number' } },
+                            style: 'deepObject',
+                            explode: false
+                        });
+                    expect(() => new Enforcer(def)).to.throw(/Style "deepObject" is incompatible with schema type: array/);
+                });
+
+                it('does not allow exploded arrays', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'array', items: { type: 'number' } },
+                            style: 'deepObject',
+                            explode: true
+                        });
+                    expect(() => new Enforcer(def)).to.throw(/Style "deepObject" is incompatible with schema type: array/);
+                });
+
+                it('object', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'number' },
+                                    b: { type: 'number' }
+                                }
+                            },
+                            style: 'deepObject',
+                            explode: false
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [err, req] = enforcer.request({ path: '/?value[a]=1&value[b]=2' });
+                    expect(req.query.value).to.deep.equal({ a: 1, b: 2 });
+                });
+
+                it('object explode', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get',
+                            {
+                                name: 'x',
+                                in: 'query',
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        a: { type: 'number' },
+                                        b: { type: 'number' }
+                                    }
+                                },
+                                style: 'deepObject',
+                                explode: true
+                            },{
+                                name: 'y',
+                                in: 'query',
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        c: { type: 'number' },
+                                        d: { type: 'number' }
+                                    }
+                                },
+                                style: 'deepObject',
+                                explode: true
+                            });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?x[a]=1&x[b]=2&y[c]=3&y[d]=4' });
+                    expect(req.query).to.deep.equal({ x: { a:1, b:2 }, y: { c:3, d:4 } });
+                });
+
+            });
+
+        });
+
+    });
+
+    describe('header parameters', () => {
+
+        it('has case insensitive header names', () => {
+            const def = new Definition(2)
+                .addParameter('/', 'get', {
+                    name: 'vALUe',
+                    in: 'header',
+                    type: 'string'
+                });
+            const enforcer = new Enforcer(def);
+            const [, req] = enforcer.request({ path: '/', headers: { VAlue: 'abc' } });
+            expect(req.headers.VAlue).to.equal('abc');
+        });
+
+        describe('v2', () => {
+
+            it('will deserialize date value', () => {
+                const def = new Definition(2)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'header',
+                        type: 'string',
+                        format: 'date'
+                    });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/', headers: { value: '2000-01-01' } });
+                expect(req.headers.value).to.deep.equal(new Date('2000-01-01'));
+            });
+
+            it('will deserialize array of numbers', () => {
+                const def = new Definition(2)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'header',
+                        type: 'array',
+                        items: { type: 'number' }
+                    });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
+                expect(req.headers.value).to.deep.equal([1,2,3]);
+            });
+
+            it('will not allow multi collection format', () => {
+                const def = new Definition(2)
+                    .addParameter('/', 'get', {
+                        name: 'item',
+                        in: 'header',
+                        type: 'array',
+                        collectionFormat: 'multi',
+                        items: { type: 'number' }
+                    });
+                expect(() => new Enforcer(def)).to.throw(/Property "collectionFormat" has invalid value/);
+            });
+
+        });
+
+        describe('v3', () => {
+
+            it('primitive', () => {
+                const def = new Definition(3)
+                    .addParameter('/', {
+                        name: 'value',
+                        in: 'header',
+                        schema: { type: 'number' },
+                        explode: false
+                    })
+                    .addPath('/', 'get');
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/', headers: { value: '1' } });
+                expect(req.headers.value).to.equal(1);
+            });
+
+            it('primitive explode', () => {
+                const def = new Definition(3)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'header',
+                        schema: { type: 'number' },
+                        explode: true
+                    });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/', headers: { value: '1' } });
+                expect(req.headers.value).to.equal(1);
+            });
+
+            it('array', () => {
+                const def = new Definition(3)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'header',
+                        schema: { type: 'array', items: { type: 'number' } },
+                        explode: false
+                    });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
+                expect(req.headers.value).to.deep.equal([1,2,3]);
+            });
+
+            it('array explode', () => {
+                const def = new Definition(3)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'header',
+                        schema: { type: 'array', items: { type: 'number' } },
+                        explode: true
+                    });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
+                expect(req.headers.value).to.deep.equal([1,2,3]);
+            });
+
+            it('object', () => {
+                const def = new Definition(3)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'header',
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                a: { type: 'number' },
+                                b: { type: 'number' }
+                            }
+                        },
+                        explode: false
+                    });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/', headers: { value: 'a,1,b,2' } });
+                expect(req.headers.value).to.deep.equal({a:1,b:2});
+            });
+
+            it('object explode', () => {
+                const def = new Definition(3)
+                    .addParameter('/', 'get',
+                        {
+                            name: 'x',
+                            in: 'header',
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'number' },
+                                    b: { type: 'number' }
+                                }
+                            },
+                            explode: true
+                        });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/', headers: { x: 'a=1,b=2' } });
+                expect(req.headers.x).to.deep.equal({ a:1, b:2 });
+            });
+
+        });
+
+    });
+
+    describe('cookie parameters', () => {
+
+        describe('v2', () => {
+
+            it('does not support cookie parameters', () => {
+                const def = new Definition(2)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'cookie',
+                        type: 'string'
+                    });
+                expect(() => new Enforcer(def)).to.throw(/Property "in" has invalid value: "cookie"/);
+            });
+
+        });
+
+        describe('v3', () => {
+
+            it('primitive', () => {
+                const def = new Definition(3)
+                    .addParameter('/', {
+                        name: 'value',
+                        in: 'cookie',
+                        schema: { type: 'number' },
+                        explode: false
+                    })
+                    .addPath('/', 'get');
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/', cookies: 'value=1' });
+                expect(req.cookies.value).to.equal(1);
+            });
+
+            it('primitive explode', () => {
+                const def = new Definition(3)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'cookie',
+                        schema: { type: 'number' },
+                        explode: true
+                    });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/', cookies: 'value=1' });
+                expect(req.cookies.value).to.equal(1);
+            });
+
+            it('array', () => {
+                const def = new Definition(3)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'cookie',
+                        schema: { type: 'array', items: { type: 'number' } },
+                        explode: false
+                    });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/', cookies: 'value=1,2,3' });
+                expect(req.cookies.value).to.deep.equal([1,2,3]);
+            });
+
+            it('array explode', () => {
+                const def = new Definition(3)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'cookie',
+                        schema: { type: 'array', items: { type: 'number' } },
+                        explode: true
+                    });
+                expect(() => new Enforcer(def)).to.throw(/Cookies do not support exploded style "form" with schema type: array/);
+            });
+
+            it('object', () => {
+                const def = new Definition(3)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'cookie',
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                a: { type: 'number' },
+                                b: { type: 'number' }
+                            }
+                        },
+                        explode: false
+                    });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/', cookies: 'value=a,1,b,2' });
+                expect(req.cookies.value).to.deep.equal({a:1,b:2});
+            });
+
+            it('object explode', () => {
+                const def = new Definition(3)
+                    .addParameter('/', 'get',
+                        {
+                            name: 'x',
+                            in: 'cookie',
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'number' },
+                                    b: { type: 'number' }
+                                }
+                            },
+                            explode: true
+                        });
+                expect(() => new Enforcer(def)).to.throw(/Cookies do not support exploded style "form" with schema type: object/);
             });
 
         });
