@@ -252,11 +252,11 @@ function validate(exception, version, map, schema, value) {
                 break;
 
             default:
-                const length = value.length;
                 if (typeof value !== 'string') {
                     exception('Expected a string. Received: ' + smart(value));
 
                 } else {
+                    const length = value.length;
                     if (schema.hasOwnProperty('maxLength') && length > schema.maxLength) {
                         exception('String too long. ' + smart(value) + ' (' + length + ') exceeds maximum length of ' + schema.maxLength);
                     }
