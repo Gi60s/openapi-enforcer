@@ -352,7 +352,7 @@ Parameter.prototype.parse = function(value, query) {
                         }
                     });
                 }
-            } else if (query[this.name]) {
+            } else if (query.hasOwnProperty(this.name)) {
                 const ar = query[this.name];
                 if (type === 'array') {
                     if (explode) {
@@ -431,19 +431,19 @@ Parameter.prototype.parse = function(value, query) {
         }
 
         // parse array items and object properties
-        if (parsed) {
+        if (parsed !== undefined) {
             if (type === 'array') {
-                parsed = parsed.map((v, i) => parsePrimitive(schema.items, exception.at(i), v));
+                parsed = parsed.map((v, i) => parsePrimitive(this, schema.items, exception.at(i), v));
             } else if (type === 'object') {
                 Object.keys(parsed).forEach(key => {
                     if (schema.properties && schema.properties[key]) {
-                        parsed[key] = parsePrimitive(schema.properties[key], exception.at(key), parsed[key]);
+                        parsed[key] = parsePrimitive(this, schema.properties[key], exception.at(key), parsed[key]);
                     } else if (typeof schema.additionalProperties === 'object') {
-                        parsed[key] = parsePrimitive(schema.additionalProperties, exception.at(key), parsed[key]);
+                        parsed[key] = parsePrimitive(this, schema.additionalProperties, exception.at(key), parsed[key]);
                     }
                 });
             } else {
-                parsed = parsePrimitive(schema, exception, parsed)
+                parsed = parsePrimitive(this, schema, exception, parsed)
             }
         } else if (parsed === undefined) {
             exception('The value is not formatted properly');
@@ -515,8 +515,12 @@ function objectFlattened(delimiter, value) {
     return result;
 }
 
-function parsePrimitive(schema, exception, value) {
-    if (schema.type === 'boolean') {
+function parsePrimitive(parameter, schema, exception, value) {
+    if (!value) {
+        if (parameter.allowEmptyValue) return util.EMPTY_VALUE;
+        exception('Empty value not allowed');
+
+    } else if (schema.type === 'boolean') {
         if (rxTrue.test(value)) return true;
         if (rxFalse.test(value)) return false;
         exception('Expected "true" or "false". Received: ' + value)
@@ -580,9 +584,7 @@ function v2Parse(parameter, schema, exception, value) {
             // multi is not a valid collectionFormat for itemsObject: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#itemsObject
         }
         return values.map((value, index) => schema.items ? v2Parse(parameter, schema.items, exception.at(index), value) : value);
-    } else if (!value && parameter.in === 'query') {
-        return util.EMPTY_VALUE;
     } else {
-        return parsePrimitive(schema, exception, value);
+        return parsePrimitive(parameter, schema, exception, value);
     }
 }

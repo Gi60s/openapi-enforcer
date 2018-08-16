@@ -590,7 +590,7 @@ describe('enforcer/request', () => {
                     expect(req.query.value).to.equal(2);
                 });
 
-                it.only('primitive allowEmptyValue', () => {
+                it('primitive allowEmptyValue', () => {
                     const def = new Definition(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -601,8 +601,22 @@ describe('enforcer/request', () => {
                             allowEmptyValue: true
                         });
                     const enforcer = new Enforcer(def);
-                    const [err, req] = enforcer.request({ path: '/?value' });
+                    const [, req] = enforcer.request({ path: '/?value' });
                     expect(req.query.value).to.equal(Enforcer.EMPTY_VALUE);
+                });
+
+                it('primitive do not allowEmptyValue', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'number' },
+                            style: 'form',
+                            explode: false
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [err, req] = enforcer.request({ path: '/?value' });
+                    expect(err).to.match(/Empty value not allowed/);
                 });
 
                 it('array', () => {
@@ -631,6 +645,35 @@ describe('enforcer/request', () => {
                     const enforcer = new Enforcer(def);
                     const [, req] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.deep.equal([1, 2]);
+                });
+
+                it('array allowEmptyValue', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'array', items: { type: 'number' } },
+                            style: 'form',
+                            explode: false,
+                            allowEmptyValue: true
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?value' });
+                    expect(req.query.value).to.deep.equal([Enforcer.EMPTY_VALUE]);
+                });
+
+                it('array do not allowEmptyValue', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'array', items: { type: 'number' } },
+                            style: 'form',
+                            explode: false
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [err] = enforcer.request({ path: '/?value' });
+                    expect(err).to.match(/Empty value not allowed/);
                 });
 
                 it('object', () => {
@@ -720,6 +763,48 @@ describe('enforcer/request', () => {
                     const enforcer = new Enforcer(def);
                     const [err] = enforcer.request({ path: '/?a=bob&b=2&c=3&d=4' });
                     expect(err).to.match(/Received unexpected parameters: a, b/);
+                });
+
+                it('object allowEmptyValue', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'number' },
+                                    b: { type: 'number' }
+                                }
+                            },
+                            style: 'form',
+                            explode: false,
+                            allowEmptyValue: true
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?value=a,,b,2' });
+                    expect(req.query.value).to.deep.equal({ a: Enforcer.EMPTY_VALUE, b: 2 });
+                });
+
+                it('object do not allowEmptyValue', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'number' },
+                                    b: { type: 'number' }
+                                }
+                            },
+                            style: 'form',
+                            explode: false,
+                            allowEmptyValue: false
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [err] = enforcer.request({ path: '/?value=a,,b,2' });
+                    expect(err).to.match(/Empty value not allowed/);
                 });
 
             });
@@ -1068,7 +1153,7 @@ describe('enforcer/request', () => {
             expect(() => new Enforcer(def)).to.throw(/Property not allowed: allowEmptyValue/);
         });
 
-        it('can have empty header string', () => {
+        it('cannot have empty header string', () => {
             const def = new Definition(2)
                 .addParameter('/', 'get', {
                     name: 'value',
@@ -1076,8 +1161,8 @@ describe('enforcer/request', () => {
                     type: 'string'
                 });
             const enforcer = new Enforcer(def);
-            const [, req] = enforcer.request({ path: '/', headers: { value: '' } });
-            expect(req.headers.value).to.equal('');
+            const [err] = enforcer.request({ path: '/', headers: { value: '' } });
+            expect(err).to.match(/Empty value not allowed/);
         });
 
 
