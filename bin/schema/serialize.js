@@ -63,6 +63,9 @@ function deserialize(exception, map, schema, value) {
         }
     }
 
+    // if the value is empty then skip deserialization
+    if (value === util.EMPTY_VALUE) return util.EMPTY_VALUE;
+
     const type = schema.type;
 
     if (schema.allOf) {

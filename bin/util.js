@@ -45,6 +45,8 @@ exports.edgeSlashes = function(value, start, end) {
     return value;
 };
 
+exports.EMPTY_VALUE = Symbol('EMPTY_VALUE');
+
 exports.getDateFromValidDateString = function (format, string) {
     const date = new Date(string);
     const match = rx[format].exec(string);

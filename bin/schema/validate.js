@@ -58,6 +58,9 @@ function validate(exception, version, map, schema, value) {
         schemas.push(schema);
     }
 
+    // don't validate empty values
+    if (value === util.EMPTY_VALUE) return;
+
     // if nullable and null then skip all other validation
     if (schema.nullable && value === null) return;
 

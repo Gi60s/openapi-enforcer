@@ -19,7 +19,7 @@ const Definition    = require('../bin/definition');
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
 
-describe.only('enforcer/request', () => {
+describe('enforcer/request', () => {
 
     describe('path parameters', () => {
 
@@ -465,32 +465,94 @@ describe.only('enforcer/request', () => {
 
         describe('v2', () => {
 
-            it('can parse multi input', () => {
-                const def = new Definition(2)
-                    .addParameter('/', 'get', {
-                        name: 'item',
-                        in: 'query',
-                        type: 'array',
-                        collectionFormat: 'multi',
-                        items: { type: 'number' }
-                    });
-                const enforcer = new Enforcer(def);
-                const [, req] = enforcer.request({ path: '/?item=1&item=2&item=3' });
-                expect(req.query.item).to.deep.equal([1, 2, 3]);
+            describe('collectionFormat multi', () => {
+
+                it('can parse multi input', () => {
+                    const def = new Definition(2)
+                        .addParameter('/', 'get', {
+                            name: 'item',
+                            in: 'query',
+                            type: 'array',
+                            collectionFormat: 'multi',
+                            items: { type: 'number' }
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?item=1&item=2&item=3' });
+                    expect(req.query.item).to.deep.equal([1, 2, 3]);
+                });
+
+                it('can define multi that does not receive input', () => {
+                    const def = new Definition(2)
+                        .addParameter('/', 'get', {
+                            name: 'item',
+                            in: 'query',
+                            type: 'array',
+                            collectionFormat: 'multi',
+                            items: { type: 'number' }
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/' });
+                    expect(req.query).not.to.haveOwnProperty('item');
+                });
+
+                it('can allow empty value', () => {
+                    const def = new Definition(2)
+                        .addParameter('/', 'get', {
+                            name: 'item',
+                            in: 'query',
+                            type: 'array',
+                            collectionFormat: 'multi',
+                            items: { type: 'number' },
+                            allowEmptyValue: true
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [, req] = enforcer.request({ path: '/?item' });
+                    expect(req.query).to.haveOwnProperty('item');
+                    expect(req.query.item).to.deep.equal([Enforcer.EMPTY_VALUE]);
+                });
+
+                it('can produce error with empty value', () => {
+                    const def = new Definition(2)
+                        .addParameter('/', 'get', {
+                            name: 'item',
+                            in: 'query',
+                            type: 'array',
+                            collectionFormat: 'multi',
+                            items: { type: 'number' },
+                            allowEmptyValue: false
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [err] = enforcer.request({ path: '/?item' });
+                    expect(err).to.match(/Empty value not allowed/);
+                });
+
             });
 
-            it('can define multi that does not receive input', () => {
+            it('can have value', () => {
                 const def = new Definition(2)
                     .addParameter('/', 'get', {
-                        name: 'item',
+                        name: 'value',
                         in: 'query',
-                        type: 'array',
-                        collectionFormat: 'multi',
-                        items: { type: 'number' }
+                        type: 'string',
+                        allowEmptyValue: true
                     });
                 const enforcer = new Enforcer(def);
-                const [, req] = enforcer.request({ path: '/' });
-                expect(req.query).not.to.haveOwnProperty('item');
+                const [, req] = enforcer.request({ path: '/?value=yes' });
+                expect(req.query.value).to.equal('yes');
+            });
+
+            it('can have empty value', () => {
+                const def = new Definition(2)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'query',
+                        type: 'string',
+                        allowEmptyValue: true
+                    });
+                const enforcer = new Enforcer(def);
+                const [, req] = enforcer.request({ path: '/?value' });
+                expect(req.query).to.haveOwnProperty('value');
+                expect(req.query.value).to.equal(Enforcer.EMPTY_VALUE);
             });
 
         });
@@ -526,6 +588,21 @@ describe.only('enforcer/request', () => {
                     const enforcer = new Enforcer(def);
                     const [, req] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.equal(2);
+                });
+
+                it.only('primitive allowEmptyValue', () => {
+                    const def = new Definition(3)
+                        .addParameter('/', 'get', {
+                            name: 'value',
+                            in: 'query',
+                            schema: { type: 'number' },
+                            style: 'form',
+                            explode: false,
+                            allowEmptyValue: true
+                        });
+                    const enforcer = new Enforcer(def);
+                    const [err, req] = enforcer.request({ path: '/?value' });
+                    expect(req.query.value).to.equal(Enforcer.EMPTY_VALUE);
                 });
 
                 it('array', () => {
@@ -980,6 +1057,30 @@ describe.only('enforcer/request', () => {
             expect(req.headers.VAlue).to.equal('abc');
         });
 
+        it('cannot have property allowEmptyValue', () => {
+            const def = new Definition(2)
+                .addParameter('/', 'get', {
+                    name: 'value',
+                    in: 'header',
+                    type: 'string',
+                    allowEmptyValue: true
+                });
+            expect(() => new Enforcer(def)).to.throw(/Property not allowed: allowEmptyValue/);
+        });
+
+        it('can have empty header string', () => {
+            const def = new Definition(2)
+                .addParameter('/', 'get', {
+                    name: 'value',
+                    in: 'header',
+                    type: 'string'
+                });
+            const enforcer = new Enforcer(def);
+            const [, req] = enforcer.request({ path: '/', headers: { value: '' } });
+            expect(req.headers.value).to.equal('');
+        });
+
+
         describe('v2', () => {
 
             it('will deserialize date value', () => {
@@ -1225,6 +1326,30 @@ describe.only('enforcer/request', () => {
                         });
                 expect(() => new Enforcer(def)).to.throw(/Cookies do not support exploded style "form" with schema type: object/);
             });
+
+        });
+
+    });
+
+    describe('body', () => {
+
+        describe('v2', () => {
+
+            describe('in body', () => {
+
+                it('', () => {
+                    
+                });
+
+            });
+
+            describe('in formData', () => {
+
+            });
+
+        });
+
+        describe('v3', () => {
 
         });
 

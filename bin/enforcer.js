@@ -80,7 +80,7 @@ function Enforcer(definition, options) {
 /**
  * Deserialize and validate a request.
  * @param {object} [request]
- * @param {Readable|object|string} [request.body]
+ * @param {object|string} [request.body]
  * @param {string} [request.cookies='']
  * @param {object} [request.headers={}]
  * @param {string} [request.method='get']
@@ -92,7 +92,7 @@ function Enforcer(definition, options) {
 Enforcer.prototype.request = function(request, options) {
 
     // validate request parameter and properties
-    if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || util.isPlainObject(request.body) || request.body instanceof Readable)) throw Error('Invalid body provided');
+    if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || util.isPlainObject(request.body))) throw Error('Invalid body provided');
     if (request.hasOwnProperty('cookies') && typeof request.cookies !== 'string') throw Error('Invalid request cookies. Expected a string.');
     if (request.hasOwnProperty('headers') && !isObjectStringMap(request.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
     if (request.hasOwnProperty('method') && typeof request.method !== 'string') throw Error('Invalid request method. Expected a string');
@@ -104,7 +104,6 @@ Enforcer.prototype.request = function(request, options) {
     const pathString = request.hasOwnProperty('path') ? pathQueryArray.shift() : '/';
     const queryString = pathQueryArray.join('&');
     const cookieString = request.hasOwnProperty('cookies') ? request.cookies : '';
-    if (request.hasOwnProperty('body')) req.body = request.body;
     req.cookie = cookieString ? util.parseQueryString(cookieString, '; ') : {};
     req.header = request.hasOwnProperty('headers') ? Object.assign({}, request.headers) : {};
     req.method = request.hasOwnProperty('method') ? request.method : 'get';
@@ -146,7 +145,7 @@ Enforcer.prototype.request = function(request, options) {
     ['cookie', 'header', 'path', 'query'].forEach(at => {
         if (parameters[at]) {
             const child = exception.nest('In ' + at + ' parameters');
-            const input = req[at];
+            const input = Object.assign({}, req[at]);
             const output = {};
             const missingRequired = [];
             const unknownParameters = at === 'query' && !options.allowOtherQueryParameters
@@ -157,38 +156,26 @@ Enforcer.prototype.request = function(request, options) {
                 const key = at === 'header' ? headerNamesMap[name] : name;
                 const parameter = parameters[at].map[name];
                 const type = parameter.schema && parameter.schema.type;
-                if (input[key]) {
+                if (input.hasOwnProperty(key)) {
                     util.arrayRemoveItem(unknownParameters, key);
-                    let data = (at === 'query' || at === 'cookie')
+                    const data = (at === 'query' || at === 'cookie')
                         ? parameter.parse(queryString, input)
                         : parameter.parse(input[key]);
-                    if (!data.error) data = parameter.schema.deserialize(data.value);
-                    if (!data.error) data.error = parameter.schema.validate(data.value);
-                    if (data.error) {
-                        child.at(key)(data.value);
-                    } else {
-                        output[key] = data.value;
-                    }
+                    processInput(child.at(key), parameter, data, v => output[key] = v);
 
                 } else if (parameter.in === 'query' && parameter.style === 'form' && parameter.explode && type === 'object') {
-                    const [err, result] = parameter.parse(queryString, input);
-                    if (!err) {
-                        let data = parameter.schema.deserialize(result);
-                        if (!data.error) data.error = parameter.schema.validate(data.value);
-                        if (!data.error) {
-                            Object.keys(data.value).forEach(key => util.arrayRemoveItem(unknownParameters, key));
-                            output[key] = data.value;
-                        }
-                    }
+                    const data = parameter.parse(queryString, input);
+                    processInput(null, parameter, data, value => {
+                        Object.keys(value).forEach(key => util.arrayRemoveItem(unknownParameters, key));
+                        output[key] = value;
+                    })
 
                 } else if (parameter.in === 'query' && parameter.style === 'deepObject' && type === 'object') {
-                    const [err, result] = parameter.parse(queryString, input);
-                    if (!err) {
-                        Object.keys(result).forEach(k => util.arrayRemoveItem(unknownParameters, key + '[' + k + ']'));
-                        output[key] = result;
-                    } else {
-                        child.at(key)(err);
-                    }
+                    const data = parameter.parse(queryString, input);
+                    processInput(child.at(key), parameter, data, value => {
+                        Object.keys(value).forEach(k => util.arrayRemoveItem(unknownParameters, key + '[' + k + ']'));
+                        output[key] = value;
+                    });
 
                 } else if (parameter.required) {
                     missingRequired.push(key);
@@ -212,6 +199,16 @@ Enforcer.prototype.request = function(request, options) {
         }
     });
 
+    // process the body
+    if (request.hasOwnProperty('body')) {
+        let body;
+        if (util.isPlainObject(request.body)) {
+            body = util.copy(request.body);
+        } else if (typeof request.body === 'string') {
+            body = request.body;
+        }
+    }
+
     // TODO: process body input
     if (this.version === 2) {
         if (!parameters.body.empty) {
@@ -225,6 +222,7 @@ Enforcer.prototype.request = function(request, options) {
 
     // build the result object
     const result = {};
+    if (req.hasOwnProperty('body')) result.body = req.body;
     result.cookies = req.cookie;
     result.headers = req.header;
     result.params = req.params;
@@ -236,6 +234,12 @@ Enforcer.prototype.request = function(request, options) {
     return new Result(exception, result);
 };
 
+Object.defineProperty(Enforcer, 'EMPTY_VALUE', {
+    configurable: false,
+    writable: false,
+    value: util.EMPTY_VALUE
+});
+
 function isObjectStringMap(obj) {
     if (!util.isPlainObject(obj)) return false;
     const keys = Object.keys(obj);
@@ -244,4 +248,14 @@ function isObjectStringMap(obj) {
         if (typeof keys[i] !== 'string' || typeof obj[keys[i]] !== 'string') return false;
     }
     return true;
+}
+
+function processInput(exception, parameter, data, success) {
+    if (!data.error) data = parameter.schema.deserialize(data.value);
+    if (!data.error) data.error = parameter.schema.validate(data.value);
+    if (data.error) {
+        if (exception) exception(data.error);
+    } else {
+        success(data.value);
+    }
 }

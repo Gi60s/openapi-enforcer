@@ -292,14 +292,31 @@ Parameter.prototype.parse = function(value, query) {
             if (!query) query = util.parseQueryString(value);
             const values = query[this.name];
             if (values) {
-                const result = this.items ? values.map((v, i) => v2Parse(this.items, exception.at(i), v)) : values;
+                const result = [];
+                values.forEach((value, index) => {
+                    if (!value && !this.allowEmptyValue) {
+                        exception.at(index)('Empty value not allowed');
+                    } else if (this.items) {
+                        result.push(v2Parse(this, this.items, exception.at(index), value));
+                    } else {
+                        result.push(value);
+                    }
+                });
                 return new Result(exception, result);
             } else {
                 return new Result(exception, undefined);
             }
 
+        } else if (query && query.hasOwnProperty(this.name)) {
+            const ar = query[this.name];
+            if (ar.length) {
+                return new Result(exception, v2Parse(this, this, exception, ar[ar.length - 1]));
+            } else {
+                return new Result(exception, v2Parse(this, this, exception, undefined));
+            }
+
         } else {
-            return new Result(exception, v2Parse(this, exception, value));
+            return new Result(exception, v2Parse(this, this, exception, value));
         }
 
 
@@ -307,6 +324,8 @@ Parameter.prototype.parse = function(value, query) {
         const explode = this.explode;
         const style = this.style;
         let parsed;
+
+        // TODO: get allowEmptyValue working for v3
 
         // in case the query string has not been parsed, parse it now
         if (!query && this.in === 'query') query = util.parseQueryString(value);
@@ -496,23 +515,23 @@ function objectFlattened(delimiter, value) {
     return result;
 }
 
-function parsePrimitive(context, exception, value) {
-    if (context.type === 'boolean') {
+function parsePrimitive(schema, exception, value) {
+    if (schema.type === 'boolean') {
         if (rxTrue.test(value)) return true;
         if (rxFalse.test(value)) return false;
         exception('Expected "true" or "false". Received: ' + value)
 
-    } else if (context.type === 'integer') {
+    } else if (schema.type === 'integer') {
         const num = +value;
         if (isNaN(num)) exception('Expected an integer. Received: ' + value);
         return num;
 
-    } else if (context.type === 'number') {
+    } else if (schema.type === 'number') {
         const num = +value;
         if (isNaN(num)) exception('Expected a number. Received: ' + value);
         return num;
 
-    } else if (context.type === 'string') {
+    } else if (schema.type === 'string') {
         return value;
     }
 }
@@ -542,10 +561,10 @@ function schemaAndExamples(context, enforcer, exception, definition, map) {
     }
 }
 
-function v2Parse(context, exception, value) {
-    if (context.type === 'array') {
+function v2Parse(parameter, schema, exception, value) {
+    if (schema.type === 'array') {
         let values;
-        switch (context.collectionFormat) {
+        switch (schema.collectionFormat) {
             case 'csv':
                 values = value.split(',');
                 break;
@@ -560,9 +579,10 @@ function v2Parse(context, exception, value) {
                 break;
             // multi is not a valid collectionFormat for itemsObject: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#itemsObject
         }
-        return values.map((value, index) => v2Parse(context.items, exception.at(index), value));
-
+        return values.map((value, index) => schema.items ? v2Parse(parameter, schema.items, exception.at(index), value) : value);
+    } else if (!value && parameter.in === 'query') {
+        return util.EMPTY_VALUE;
     } else {
-        return parsePrimitive(context, exception, value);
+        return parsePrimitive(schema, exception, value);
     }
 }
