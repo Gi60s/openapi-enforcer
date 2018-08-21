@@ -24,53 +24,109 @@ const exclusive = {
     type: 'boolean'
 };
 
-const maxOrMin = {
-    allowed: ({ numericish }) => numericish,
-    type: ({dateType}) => dateType ? 'string' : 'number',
-    errors: ({ dateType, definition, exception, value }) => {
-        if (dateType && !rx[definition.format].test(value)) exception('Value not formatted as a ' + definition.format);
+const Schema = {
+    properties: {},
+
+    errors: ({ value, exception, minMaxValid }) => {
+
+        if (!minMaxValid(value.minItems, value.maxItems)) {
+            exception('Property "minItems" must be less than or equal to "maxItems"');
+        }
+
+        if (!minMaxValid(value.minLength, value.maxLength)) {
+            exception('Property "minLength" must be less than or equal to "maxLength"');
+        }
+
+        if (!minMaxValid(value.minProperties, value.maxProperties)) {
+            exception('Property "minProperties" must be less than or equal to "maxProperties"');
+        }
+
+        if (!minMaxValid(value.minimum, value.maximum, value.exclusiveMinimum, value.exclusiveMaximum)) {
+            const msg = value.exclusiveMinimum || value.exclusiveMaximum ? '' : 'or equal to ';
+            exception('Property "minimum" must be less than ' + msg + '"maximum"');
+        }
+
+        if (value.hasOwnProperty('default') && value.enum) {
+            const index = value.enum.findIndex(v => util.same(v, value));
+            if (index === -1) exception('Default value does not meed enum requirements');
+        }
+
     },
-    deserialize: ({ dateType, deserializeDate, exception, value }) => dateType ? deserializeDate(exception, value) : value
-};
 
-const maxOrMinItems = {
-    allowed: ({definition}) => definition.type === 'array',
-    type: 'number',
-    errors: ({ exception, integer, nonNegative }) => {
-        if (!nonNegative || !integer) exception('Value must be a non-negative integer');
+    helpers: {
+
+        maxOrMin: {
+            allowed: ({ numericish }) => numericish,
+            type: ({dateType}) => dateType ? 'string' : 'number',
+            errors: ({ dateType, value, exception }) => {
+                if (dateType && !rx[value.format].test(value)) exception('Value not formatted as a ' + value.format);
+            },
+            deserialize: ({ dateType, deserializeDate, exception, value }) => dateType ? deserializeDate(exception, value) : value
+        },
+
+        maxOrMinItems: {
+            allowed: ({value}) => value.type === 'array',
+            type: 'number',
+            errors: ({ exception, integer, nonNegative }) => {
+                if (!nonNegative || !integer) exception('Value must be a non-negative integer');
+            }
+        },
+
+        maxOrMinLength: {
+            allowed: ({dateType, value}) => value.type === 'string' && !dateType,
+            type: 'number',
+            errors: ({ exception, integer, nonNegative }) => {
+                if (!nonNegative || !integer) exception('Value must be a non-negative integer');
+            }
+        },
+
+        maxOrMinProperties: {
+            allowed: ({value}) => value.type === 'object',
+            type: 'number',
+            errors: ({ exception, integer, nonNegative }) => {
+                if (!nonNegative || !integer) exception('Value must be a non-negative integer');
+            }
+        },
+
+        dateType: function(definition) {
+            return definition.type === 'string' && definition.format && definition.format.startsWith('date')
+        },
+
+        deserializeDate: function (definition, exception, value) {
+            if (definition.type === 'string') {
+                const date = util.getDateFromValidDateString(definition.format, value);
+                if (!date) exception('Value is not a valid ' + definition.format);
+                return date;
+            } else {
+                return value;
+            }
+        },
+
+        minMaxValid: function(minimum, maximum, exclusiveMinimum, exclusiveMaximum) {
+            if (minimum === undefined || maximum === undefined) return true;
+            minimum = +minimum;
+            maximum = +maximum;
+            return minimum < maximum || (!exclusiveMinimum && !exclusiveMaximum && minimum === maximum);
+        },
+
+        numericish: function(definitiion) {
+            return ['number', 'integer'].includes(definitiion.type) || this.dateType(definitiion);
+        }
     }
 };
-
-const maxOrMinLength = {
-    allowed: ({dateType, definition}) => definition.type === 'string' && !dateType,
-    type: 'number',
-    errors: ({ exception, integer, nonNegative }) => {
-        if (!nonNegative || !integer) exception('Value must be a non-negative integer');
-    }
-};
-
-const maxOrMinProperties = {
-    allowed: ({definition}) => definition.type === 'object',
-    type: 'number',
-    errors: ({ exception, integer, nonNegative }) => {
-        if (!nonNegative || !integer) exception('Value must be a non-negative integer');
-    }
-};
-
-const Schema = {};
 module.exports = Schema;
 
-Object.assign(Schema, {
+Object.assign(Schema.properties, {
     type: {
         type: 'string',
         required: true,
         enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
     },
     format: {
-        allowed: ({ definition }) => ['integer', 'number', 'string'].includes(definition.type),
+        allowed: ({ value }) => ['integer', 'number', 'string'].includes(value.type),
         type: 'string',
-        enum: ({ definition }) => {
-            switch (definition.type) {
+        enum: ({ value }) => {
+            switch (value.type) {
                 case 'integer': return ['int32', 'int64'];
                 case 'number': return ['float', 'double'];
                 case 'string': return ['binary', 'byte', 'date', 'date-time', 'password'];
@@ -80,69 +136,69 @@ Object.assign(Schema, {
     title: 'string',
     description: 'string',
     default: {
-        deserialize: ({ dateType, definition, deserializeDate, exception, value }) => {
+        deserialize: ({ dateType, value, deserializeDate, exception, value }) => {
             return dateType ? deserializeDate(exception, value) : value;
         }
     },
     multipleOf: {
-        allowed: ({ definition }) => {
-            return ['integer', 'number'].includes(definition.type)
+        allowed: ({ value }) => {
+            return ['integer', 'number'].includes(value.type)
         },
         type: 'number'
     },
-    maximum: maxOrMin,
-    exclusiveMaximum: exclusive,
-    minimum: maxOrMin,
-    exclusiveMinimum: exclusive,
-    maxLength: maxOrMinLength,
-    minLength: maxOrMinLength,
+    maximum: Schema.helpers.maxOrMin,
+    exclusiveMaximum: Schema.helpers.exclusive,
+    minimum: Schema.helpers.maxOrMin,
+    exclusiveMinimum: Schema.helpers.exclusive,
+    maxLength: Schema.helpers.maxOrMinLength,
+    minLength: Schema.helpers.maxOrMinLength,
     pattern: {
-        allowed: ({ definition }) => definition.type === 'string',
+        allowed: ({ value }) => value.type === 'string',
         type: 'string',
         errors: ({ exception, value }) => {
             if (!value) exception('Value must be a non-empty string');
         },
         deserialize: ({ value }) => util.rxStringToRx(value)
     },
-    maxItems: maxOrMinItems,
-    minItems: maxOrMinItems,
+    maxItems: Schema.helpers.maxOrMinItems,
+    minItems: Schema.helpers.maxOrMinItems,
     uniqueItems: {
-        allowed: ({definition}) => definition.type === 'array',
+        allowed: ({value}) => value.type === 'array',
         type: 'boolean'
     },
-    maxProperties: maxOrMinProperties,
-    minProperties: maxOrMinProperties,
+    maxProperties: Schema.helpers.maxOrMinProperties,
+    minProperties: Schema.helpers.maxOrMinProperties,
     required: {
-        allowed: ({definition}) => definition.type === 'object',
+        allowed: ({value}) => value.type === 'object',
         items: 'string'
     },
     enum: {
         items: {
-            type: ({ definition }) => definition.type
+            type: ({ value }) => value.type
         },
-        errors: ({ dateType, definition, exception, value }) => {
+        errors: ({ dateType, value, exception, value }) => {
             // TODO: what about other types: arrays, numbers, etc
             if (dateType) {
                 value.forEach((v, i) => {
-                    if (!rx[definition.format].test(v)) exception.at(i)('Value not formatted as a ' + definition.format);
+                    if (!rx[value.format].test(v)) exception.at(i)('Value not formatted as a ' + value.format);
                 });
             }
         },
         // TODO: what about other types: arrays, numbers, etc
-        deserialize: ({ dateType, definition, deserializeDate, exception, value }) => dateType
+        deserialize: ({ dateType, value, deserializeDate, exception, value }) => dateType
             ? value.map((v, i) => deserializeDate(exception.at(i), v))
             : value
     },
     items: {
-        allowed: ({definition}) => definition.type === 'array',
+        allowed: ({value}) => value.type === 'array',
         additionalProperties: Schema
     },
     allOf: {
-        allowed: ({definition}) => definition.type === 'object',
+        allowed: ({value}) => value.type === 'object',
         items: Schema
     },
     properties: {
-        allowed: ({definition}) => definition.type === 'object',
+        allowed: ({value}) => value.type === 'object',
         additionalProperties: Schema
     },
     additionalProperties: {
@@ -179,31 +235,5 @@ Object.assign(Schema, {
     externalDocs: ExternalDocumentation,
     example: {
         allowed: true
-    },
-
-    __enforcer_definition_post_validate: ({ definition, exception, minMaxValid }) => {
-
-        if (!minMaxValid(definition.minItems, definition.maxItems)) {
-            exception('Property "minItems" must be less than or equal to "maxItems"');
-        }
-
-        if (!minMaxValid(definition.minLength, definition.maxLength)) {
-            exception('Property "minLength" must be less than or equal to "maxLength"');
-        }
-
-        if (!minMaxValid(definition.minProperties, definition.maxProperties)) {
-            exception('Property "minProperties" must be less than or equal to "maxProperties"');
-        }
-
-        if (!minMaxValid(definition.minimum, definition.maximum, definition.exclusiveMinimum, definition.exclusiveMaximum)) {
-            const msg = definition.exclusiveMinimum || definition.exclusiveMaximum ? '' : 'or equal to ';
-            exception('Property "minimum" must be less than ' + msg + '"maximum"');
-        }
-
-        if (definition.hasOwnProperty('default') && definition.enum) {
-            const index = definition.enum.findIndex(v => util.same(v, value));
-            if (index === -1) exception('Default value does not meed enum requirements');
-        }
-
     }
 });
