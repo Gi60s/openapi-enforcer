@@ -271,7 +271,7 @@ describe.only('definitions/schema', () => {
 
     describe('required', () => {
 
-        it.only('is allowed for type object', () => {
+        it('is allowed for type object', () => {
             const [ err ] = definition(2, Schema, { type: 'object', required: ['hello'] });
             expect(err).to.be.undefined;
         });

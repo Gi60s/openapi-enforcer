@@ -32,22 +32,22 @@ describe('definitions/tag', () => {
     });
 
     it('can have description property', () => {
-        const [, def ] = definition(2, Tag, { name: 'a', description: 'b' });
+        const [ err, def ] = definition(2, Tag, { name: 'a', description: 'b' });
         expect(def).to.deep.equal({ name: 'a', description: 'b' })
     });
 
     it('can have externalDocs property', () => {
-        const [, def ] = definition(2, Tag, { name: 'a', externalDocs: { url: 'b' } });
+        const [ err, def ] = definition(2, Tag, { name: 'a', externalDocs: { url: 'b' } });
         expect(def).to.deep.equal({ name: 'a', externalDocs: { url: 'b' } })
     });
 
-    it('requires nested definition to be validy', () => {
+    it('requires nested definition to be valid', () => {
         const [ err ] = definition(2, Tag, { name: 'a', externalDocs: { a: 'b' } });
         expect(err).to.match(/Missing required property: url/);
     });
 
     it('can have extension property', () => {
-        const [, def ] = definition(2, Tag, { name: 'a', 'x-prop': 'b' });
+        const [ err, def ] = definition(2, Tag, { name: 'a', 'x-prop': 'b' });
         expect(def).to.deep.equal({ name: 'a', 'x-prop': 'b' })
     });
 

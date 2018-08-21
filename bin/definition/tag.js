@@ -18,12 +18,12 @@
 const ExternalDocumentation = require('./external-documentation');
 
 module.exports = {
-    name: {
-        required: true,
-        type: 'string'
-    },
-    description: 'string',
-    externalDocs: {
-        properties: ExternalDocumentation
+    properties: {
+        name: {
+            required: true,
+            type: 'string'
+        },
+        description: 'string',
+        externalDocs: ExternalDocumentation
     }
 };

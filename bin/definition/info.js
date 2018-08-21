@@ -17,30 +17,32 @@
 'use strict';
 
 module.exports = {
-    title: {
-        required: true,
-        type: 'string'
-    },
-    description: 'string',
-    termsOfService: 'string',
-    contact: {
-        properties: {
-            name: 'string',
-            url: 'string',
-            email: 'string'
+    properties: {
+        title: {
+            required: true,
+            type: 'string'
+        },
+        description: 'string',
+        termsOfService: 'string',
+        contact: {
+            properties: {
+                name: 'string',
+                url: 'string',
+                email: 'string'
+            }
+        },
+        license: {
+            properties: {
+                name: {
+                    required: true,
+                    type: 'string'
+                },
+                url: 'string'
+            }
+        },
+        version: {
+            required: true,
+            type: 'string'
         }
-    },
-    license: {
-        properties: {
-            name: {
-                required: true,
-                type: 'string'
-            },
-            url: 'string'
-        }
-    },
-    version: {
-        required: true,
-        type: 'string'
     }
 };

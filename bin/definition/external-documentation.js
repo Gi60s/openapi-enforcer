@@ -17,9 +17,11 @@
 'use strict';
 
 module.exports = {
-    description: 'string',
-    url: {
-        type: 'string',
-        required: true
+    properties: {
+        description: 'string',
+        url: {
+            type: 'string',
+            required: true
+        }
     }
 };

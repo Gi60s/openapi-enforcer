@@ -53,7 +53,7 @@ describe('definitions/info', () => {
 
     it('will validate license property', () => {
         const [ err ] = definition(2, Info, { title: 'a', version: '1.0', contact: { name: true } });
-        expect(err).to.match(/Value for property "name" must be a string./);
+        expect(err).to.match(/Value must be a string./);
     });
 
 });

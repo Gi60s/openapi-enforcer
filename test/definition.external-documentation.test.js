@@ -42,8 +42,13 @@ describe('definitions/external-documentation', () => {
     });
 
     it('cannot have other property', () => {
-        const [ err ] = definition(2, ExternalDoc, { name: 'a', other: 'b' });
+        const [ err ] = definition(2, ExternalDoc, { url: 'a', other: 'b' });
         expect(err).to.match(/Property not allowed: other/);
+    });
+
+    it('cannot have multiple other properties', () => {
+        const [ err ] = definition(2, ExternalDoc, { one: 'a', two: 'b' });
+        expect(err).to.match(/Properties not allowed: one, two/);
     });
 
 });
