@@ -21,7 +21,6 @@ const Swagger   = require('./swagger');
 const util      = require('../util');
 
 const rxExtension = /^x-.+/;
-const reservedProperties = { '__enforcer_definition_post_validate': true };
 
 module.exports = function(definition) {
     const exception = Exception('One or more errors exist in your OpenAPI definition');
@@ -34,7 +33,9 @@ module.exports = function(definition) {
             const major = +match[1];
             const minor = +match[2];
             const patch = +(match[3] || 0);
-            return new Result(exception, normalize(major, minor, patch, exception, util.copy(definition), Swagger, {}));
+            const validator = Swagger;
+            const value = util.copy(definition);
+            return new Result(exception, normalize({ exception, major, minor, parent, patch, validator, value }));
         } else {
             return new Result(exception('Invalid value for property: ' + (hasSwagger ? 'swagger' : 'openapi')), null);
         }
@@ -49,150 +50,171 @@ module.exports.normalize = function(version, validator, definition) {
     const major = +match[1];
     const minor = +match[2];
     const patch = +(match[3] || 0);
-    return new Result(exception, normalize(major, minor, patch, exception, util.copy(definition), validator, {}));
+    const parent = null;
+    const value = util.copy(definition);
+    return new Result(exception, normalize({ exception, major, minor, parent, patch, validator, value }));
 };
 
-function normalize(major, minor, patch, exception, definition, validator, parent) {
-    const _exception = exception;
-    const result = {};
-    const notAllowed = [];
+module.exports.version = function(version) {
+    if (version === 2) version = '2.0';
+    if (version === 3) version = '3.0.0';
+    const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(version);
+    if (!match) return null;
 
-    // check for missing required and set defaults
-    const missingRequired = [];
-    Object.keys(validator).forEach(key => {
-        if (!reservedProperties[key]) {
-            const m = validator[key];
-            const param = {definition, major, minor, patch};
-            if (typeof m === 'object' && !definition.hasOwnProperty(key) && (!m.hasOwnProperty('allowed') || fn(m.allowed, param))) {
-                if (m.required && fn(m.required, param)) {
-                    missingRequired.push(key);
-                } else if (m.default) {
-                    definition[key] = fn(m.default, param);
-                }
-            }
-        }
-    });
+    const major = +match[1];
+    const minor = +match[2];
+    const patch = +(match[3] || 0);
+    return { major, minor, patch };
+};
 
-    // validate each property and its value
-    Object.keys(definition).forEach(key => {
+/**
+ *
+ * @param {object} data
+ * @param {Exception} data.exception
+ * @param {number} data.major
+ * @param {number} data.minor
+ * @param {object} data.parent
+ * @param {number} data.patch
+ * @param {object} data.validator
+ * @param {*} data.value
+ * @returns {*}
+ */
+function normalize(data) {
+    const { exception, major, minor, parent, patch, value } = data;
+    const validator = normalizeValidator(data.validator);
+    let message;
+    let result;
 
-        const exception = _exception.at(key);
-        const value = definition[key];
-        const m = validator.hasOwnProperty(key)
-            ? (typeof validator[key] === 'string' ? { type: validator[key] } : validator[key])
-            : {};
-        const param = {
-            definition,
-            exception,
-            major,
-            minor,
-            parent,
-            patch,
-            value,
-            validator,
-            dateType: dateType(definition),
-            deserializeDate: deserializeDate.bind(undefined, definition),
-            integer: typeof value === 'number' && !isNaN(value) && Math.round(value) === value,
-            nonNegative: typeof value === 'number' && !isNaN(value) && value >= 0,
-            numericish: numericish(definition)
-        };
-        let message;
+    if (validator.type && (message = fn(validator.type, data)) !== getValueType(value)) {
+        if (message === 'array') message = 'n array';
+        if (message === 'object') message = 'plain object';
+        message = message === 'array' ? 'n array' : ' ' + message;
+        exception('Value must be a' + message + '. Received: ' + util.smart(value));
 
-        // extensions always allowed
-        if (rxExtension.test(key)) {
-            result[key] = value;
+    // check if enum matches
+    } else if (validator.enum && (message = fn(validator.enum, data)).findIndex(v => util.same(v, value)) === -1) {
+        message.length === 1
+            ? exception('Value must equal: ' + message[0] + '. Received: ' + util.smart(value))
+            : exception('Value must be one of: ' + message.join(', ') + '. Received: ' + util.smart(value));
 
-        } else if (reservedProperties.hasOwnProperty(key)) {
-            _exception('Property name "' + key + '" is reserved by the enforcer and is therefore not allowed');
+    } else if (validator.type === 'array') {
+        result = value.map((v, i) => {
+            return normalize({
+                exception: exception.at(i),
+                major,
+                minor,
+                parent: data,
+                patch,
+                validator: validator.items,
+                value: v
+            });
+        });
 
-        // check if property allowed
-        } else if (!validator.hasOwnProperty(key) || (m.hasOwnProperty('allowed') && !fn(m.allowed, param))) {
-            notAllowed.push(key);
+    } else if (validator.type === 'object') {
+        result = {};
+        if (validator.additionalProperties) {
+            Object.keys(value).forEach(key => {
+                result[key] = normalize({
+                    exception: exception.at(key),
+                    major,
+                    minor,
+                    parent: data,
+                    patch,
+                    validator: validator.additionalProperties,
+                    value: value[key]
+                });
+            });
 
-        // check if type is correct
-        } else if (m.type && (message = fn(m.type, param)) !== typeof value) {
-            _exception('Value for property "' + key + '" must be a ' + message + '. Received: ' + util.smart(value));
-
-        // check if type should be object
-        } else if ((m.isPlainObject || m.hasOwnProperty('properties') || m.hasOwnProperty('additionalProperties')) && !util.isPlainObject(value)) {
-            _exception('Value for property "' + key + '" must be a plain object. Received: ' + util.smart(value));
-
-        // check if type should be array
-        } else if ((m.isArray || m.hasOwnProperty('items')) && !Array.isArray(value)) {
-            exception('Value for property "' + key + '" must be an array. Received: ' + util.smart(value));
-
-        // check if enum matches
-        } else if (m.enum && (message = fn(m.enum, param)).findIndex(v => util.same(v, value)) === -1) {
-            exception('Property "' + key + '" has invalid value: ' + util.smart(value) +
-                (message.length === 1 ? '. Must equal: ' + message[0] : '. Must be one of: ' + message.join(', ')));
+        } else if (!validator.properties) {
+            Object.keys(value).forEach(key => {
+                result[key] = value[key];
+            });
 
         } else {
+            const allowed = {};
+            const missingRequired = [];
+            const notAllowed = [];
+            const properties = validator.properties;
 
-            // run custom error checker
-            if (m.errors) fn(m.errors, param);
+            // check for missing required and set defaults
+            Object.keys(properties).forEach(key => {
+                const validator = normalizeValidator(properties[key]);
+                const param = { major, minor, parent: data, patch, validator, value };
 
-            // dive into array items definitions
-            if (m.items && Array.isArray(value)) {
-                working here
-                const subValidator = typeof m.items === 'string' ? { type: m.items } : m.items;
+                // check whether this property is allowed
+                allowed[key] = validator.hasOwnProperty('allowed')
+                    ? fn(validator.allowed, param)
+                    : true;
 
-                normalize(major, minor, patch, exception.at('items'), value, m.items, param);
-            }
+                // if it doesn't have the property and it is allowed then check if it is required or has a default
+                if (!value.hasOwnProperty(key) && allowed[key]) {
+                    if (validator.required && fn(validator.required, param)) {
+                        missingRequired.push(key);
+                    } else if (validator.hasOwnProperty('default')) {
+                        value[key] = fn(validator.default, param);
+                    }
+                }
+            });
 
-            // dive into object properties definitions
-            if (m.properties) {
+            // validate each property and copy to the result object
+            Object.keys(value).forEach(key => {
 
-            }
+                // check if the key is an extension property
+                if (rxExtension.test(key)) {
+                    result[key] = value[key];
 
-            // dive into additionalProperties definitions
-            if (m.additionalProperties) {
-                Object.keys(definition).forEach(k => {
-                    normalize(major, minor, patch, exception.at(k), value[k], m.additionalProperties, param);
-                });
-            }
+                // check if property allowed
+                } else if (!allowed[key]) {
+                    notAllowed.push(key);
 
-            if (util.isPlainObject(value)) {
-                if (m.properties) {
-                    normalize(major, minor, patch, exception, value, m.properties, param);
-                } else if (m.additionalProperties) {
-                    Object.keys(value).forEach(k => {
-                        normalize(major, minor, patch, exception.at(k), value[k], m.additionalProperties, param);
+                } else if (!validator.ignore || !fn(validator.ignore, { major, minor, parent: data, patch, validator, value })) {
+                    result[key] = normalize({
+                        exception: exception.at(key),
+                        major,
+                        minor,
+                        parent: data,
+                        patch,
+                        value: value[key],
+                        validator: validator.properties[key]
                     });
                 }
+            });
+
+            // report missing required properties
+            if (missingRequired.length) {
+                missingRequired.sort();
+                exception('Missing required propert' + (missingRequired.length === 1 ? 'y' : 'ies') + ': ' + missingRequired.join(', '));
             }
 
-            // if no exceptions and not ignored then add
-            if (!exception.hasException && (!m.ignore || !m.ignore(param))) {
-                result[key] = m.deserialize ? m.deserialize(param) : value;
+            // report not allowed properties
+            if (notAllowed.length) {
+                exception('Propert' + (notAllowed.length === 1 ? 'y' : 'ies') + ' not allowed: ' + notAllowed.join(', '));
             }
         }
-    });
 
-    // report missing required properties
-    if (missingRequired.length) {
-        missingRequired.sort();
-        _exception('Missing required propert' + (missingRequired.length === 1 ? 'y' : 'ies') + ': ' + missingRequired.join(', '));
+    } else {
+        result = validator.deserialize
+            ? fn(validator.deserialize, {
+                exception,
+                major,
+                minor,
+                parent,
+                patch,
+                validator,
+                value
+            })
+            : value;
     }
 
-    // report not allowed properties
-    if (notAllowed.length) {
-        _exception('Propert' + (notAllowed.length === 1 ? 'y' : 'ies') + ' not allowed: ' + notAllowed.join(', '));
-    }
-
-    // run post validations
-    if (validator['__enforcer_definition_post_validate']) {
-        fn(validator['__enforcer_definition_post_validate'], {
-            definition,
+    if (validator.errors) {
+        fn(validator.errors, {
             exception,
             major,
             minor,
-            patch,
             parent,
+            patch,
             validator,
-            dateType,
-            deserializeDate,
-            numericish,
-            minMaxValid
+            value: result
         });
     }
 
@@ -203,29 +225,23 @@ function dateType(definition) {
     return definition.type === 'string' && definition.format && definition.format.startsWith('date')
 }
 
-function deserializeDate(definition, exception, value) {
-    if (definition.type === 'string') {
-        const date = util.getDateFromValidDateString(definition.format, value);
-        if (!date) exception('Value is not a valid ' + definition.format);
-        return date;
-    } else {
-        return value;
-    }
-}
-
 function fn(value, params) {
     return typeof value === 'function'
         ? value(params)
         : value;
 }
 
-function minMaxValid(minimum, maximum, exclusiveMinimum, exclusiveMaximum) {
-    if (minimum === undefined || maximum === undefined) return true;
-    minimum = +minimum;
-    maximum = +maximum;
-    return minimum < maximum || (!exclusiveMinimum && !exclusiveMaximum && minimum === maximum);
+function normalizeValidator(validator) {
+    if (typeof validator === 'string') validator = { type: validator };
+    validator = Object.assign({}, validator);
+    if (!validator.type && validator.items) validator.type = 'array';
+    if (!validator.type && (validator.additionalProperties || validator.properties)) validator.type = 'object';
+    return validator;
 }
 
-function numericish(definition) {
-    return ['number', 'integer'].includes(definition.type) || dateType(definition);
+function getValueType(value) {
+    if (Array.isArray(value)) return 'array';
+    if (util.isPlainObject(value)) return 'object';
+    const type = typeof value;
+    return type === 'object' ? '' : type;
 }
