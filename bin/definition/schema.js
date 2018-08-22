@@ -195,10 +195,9 @@ Object.assign(Schema.properties, {
             }
         }
     },
-    items: {
-        allowed: ({parent}) => parent.value.type === 'array',
-        additionalProperties: Schema
-    },
+    items: Object.assign({}, Schema, {
+        allowed: ({parent}) => parent.value.type === 'array'
+    }),
     allOf: {
         allowed: ({parent}) => parent.value.type === 'object',
         items: Schema
@@ -209,6 +208,8 @@ Object.assign(Schema.properties, {
     },
     additionalProperties: {
         allowed: ({parent}) => parent.value.type === 'object',
+        type: ['boolean', 'object'],
+        default: false,
         properties: Schema
     },
     discriminator: {
