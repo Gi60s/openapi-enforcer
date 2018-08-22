@@ -372,7 +372,7 @@ describe.only('definitions/schema', () => {
 
     });
 
-    describe.only('items', () => {
+    describe('items', () => {
 
         it('is valid for arrays', () => {
             const [ err, def ] = definition(2, Schema, { type: 'array', items: { type: 'string' } });
@@ -400,6 +400,118 @@ describe.only('definitions/schema', () => {
                 }
             });
             expect(def.items.default).to.deep.equal(new Date('2001-01-01'));
+        });
+
+    });
+
+    describe('allOf', () => {
+
+        it('is valid for objects', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', allOf: [] });
+            expect(err).to.be.undefined;
+        });
+
+        it('is not valid for non-objects', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'array', allOf: [] });
+            expect(err).to.match(/Property not allowed: allOf/);
+        });
+
+        it('is must be an array', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', allOf: 'hello' });
+            expect(err).to.match(/Value must be an array/);
+        });
+
+        it('accepts multiple items', () => {
+            const [ err, def ] = definition(2, Schema, {
+                type: 'object',
+                allOf: [
+                    { type: 'string', minLength: 5 },
+                    { type: 'string', maxLength: 10 }
+                ]
+            });
+            expect(err).to.be.undefined;
+        });
+
+        it('validates items', () => {
+            const [ err, def ] = definition(2, Schema, {
+                type: 'object',
+                allOf: [{ type: 'string', maximum: 5 }]
+            });
+            expect(err).to.match(/Property not allowed: maximum/);
+        });
+
+    });
+
+    describe('properties', () => {
+
+        it('is valid for objects', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', properties: {} });
+            expect(err).to.be.undefined;
+        });
+
+        it('is not valid for non-objects', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'array', properties: {} });
+            expect(err).to.match(/Property not allowed: properties/);
+        });
+
+        it('is must be an object', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', properties: 'hello' });
+            expect(err).to.match(/Value must be a plain object/);
+        });
+
+        it('validates items', () => {
+            const [ err, def ] = definition(2, Schema, {
+                type: 'object',
+                properties: {
+                    x: {
+                        type: 'boolean',
+                        format: 'date',
+                    }
+                }
+            });
+            expect(err).to.match(/Property not allowed: format/);
+        });
+
+    });
+
+    describe('additionalProperties', () => {
+
+        it('is valid for objects', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', additionalProperties: { type: 'string' } });
+            expect(err).to.be.undefined;
+        });
+
+        it('is not valid for non-objects', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'array', additionalProperties: { type: 'string' } });
+            expect(err).to.match(/Property not allowed: additionalProperties/);
+        });
+
+        it('can be a boolean', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', additionalProperties: true });
+            expect(err).to.be.undefined;
+        });
+
+        it('can be an object', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', additionalProperties: { type: 'string' } });
+            expect(err).to.be.undefined;
+        });
+
+        it('it cannot be a string', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', additionalProperties: 'hello' });
+            expect(err).to.match(/Value must be a boolean or a plain object/);
+        });
+
+        it('validates items', () => {
+            const [ err, def ] = definition(2, Schema, {
+                type: 'object',
+                properties: {
+                    x: {
+                        type: 'boolean',
+                        format: 'date',
+                    }
+                }
+            });
+            expect(err).to.match(/Property not allowed: format/);
         });
 
     });
