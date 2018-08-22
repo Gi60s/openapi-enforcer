@@ -186,6 +186,7 @@ Object.assign(Schema.properties, {
     },
     enum: {
         items: {
+            allowed: ({ parent }) => !!(parent && parent.parent),
             type: ({ parent }) => parent.parent.value.type,
             deserialize: ({ exception, parent, value }) => {
                 return Schema.helpers.deserializeDate(parent.parent.value, exception, value);
@@ -213,27 +214,30 @@ Object.assign(Schema.properties, {
         properties: Schema
     },
     discriminator: {
-        allowed: ({ parent }) => parent && parent.validator === Schema && parent.type === 'object',
+        allowed: ({ parent }) => parent && parent.validator === Schema && parent.validator.type === 'object',
         type: 'string',
-        error: ({ exception, major, parent, value }) => {
+        errors: ({ exception, major, parent, value }) => {
             if (major === 2) {
                 if (!parent.value.required || !parent.value.required.includes(value)) {
-                    exception('Value must be found in the parent\'s required properties list.');
+                    exception('Value "' + value + '" must be found in the parent\'s required properties list.');
                 }
                 if (!parent.value.properties || !parent.value.properties.hasOwnProperty(value)) {
-                    exception('Value must be found in the parent\'s properties definition.');
+                    exception('Value "' + value + '" must be found in the parent\'s properties definition.');
                 }
             }
 
         }
     },
     readOnly: {
-        allowed: ({ parent }) => parent && parent.validator === Schema && parent.value.type === 'object',
+        allowed: ({ parent, value }) => {
+            return parent && parent.parent && parent.parent.key === 'properties' &&
+                parent.parent.parent && parent.parent.parent.validator === Schema;
+        },
         type: 'boolean',
         default: false,
-        error: ({ parent, value, warn }) => {
-            if (parent && parent.value.required && parent.required.includes(value)) {
-                warn('Value should not be exist in the parent\'s required properties list.');
+        errors: ({ parent, value, warn }) => {
+            if (parent && parent.parent && parent.parent.parent && parent.parent.parent.value.required && parent.parent.parent.value.required.includes(parent.key)) {
+                parent.warn('Property should not be marked as both read only and required');
             }
         }
     },
