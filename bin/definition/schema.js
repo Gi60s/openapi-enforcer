@@ -27,64 +27,74 @@ const exclusive = {
 const Schema = {
     properties: {},
 
-    errors: ({ value, exception, minMaxValid }) => {
+    errors: ({ value, exception }) => {
 
-        if (!minMaxValid(value.minItems, value.maxItems)) {
+        if (!Schema.helpers.minMaxValid(value.minItems, value.maxItems)) {
             exception('Property "minItems" must be less than or equal to "maxItems"');
         }
 
-        if (!minMaxValid(value.minLength, value.maxLength)) {
+        if (!Schema.helpers.minMaxValid(value.minLength, value.maxLength)) {
             exception('Property "minLength" must be less than or equal to "maxLength"');
         }
 
-        if (!minMaxValid(value.minProperties, value.maxProperties)) {
+        if (!Schema.helpers.minMaxValid(value.minProperties, value.maxProperties)) {
             exception('Property "minProperties" must be less than or equal to "maxProperties"');
         }
 
-        if (!minMaxValid(value.minimum, value.maximum, value.exclusiveMinimum, value.exclusiveMaximum)) {
+        if (!Schema.helpers.minMaxValid(value.minimum, value.maximum, value.exclusiveMinimum, value.exclusiveMaximum)) {
             const msg = value.exclusiveMinimum || value.exclusiveMaximum ? '' : 'or equal to ';
             exception('Property "minimum" must be less than ' + msg + '"maximum"');
         }
 
         if (value.hasOwnProperty('default') && value.enum) {
-            const index = value.enum.findIndex(v => util.same(v, value));
-            if (index === -1) exception('Default value does not meed enum requirements');
+            const index = value.enum.findIndex(v => util.same(v, value.default));
+            if (index === -1) exception('Default value does not meet enum requirements');
         }
 
     },
 
     helpers: {
 
+        exclusive: {
+            type: 'boolean'
+        },
+
         maxOrMin: {
-            allowed: ({ numericish }) => numericish,
-            type: ({dateType}) => dateType ? 'string' : 'number',
-            errors: ({ dateType, value, exception }) => {
-                if (dateType && !rx[value.format].test(value)) exception('Value not formatted as a ' + value.format);
-            },
-            deserialize: ({ dateType, deserializeDate, exception, value }) => dateType ? deserializeDate(exception, value) : value
+            allowed: ({ parent }) => Schema.helpers.numericish(parent.value),
+            type: ({ parent }) => Schema.helpers.dateType(parent.value) ? 'string' : 'number',
+            deserialize: ({ exception, parent, value }) =>
+                Schema.helpers.dateType(parent.value)
+                ? Schema.helpers.deserializeDate(parent.value, exception, value)
+                : value
         },
 
         maxOrMinItems: {
-            allowed: ({value}) => value.type === 'array',
+            allowed: ({ parent }) => parent.value.type === 'array',
             type: 'number',
-            errors: ({ exception, integer, nonNegative }) => {
-                if (!nonNegative || !integer) exception('Value must be a non-negative integer');
+            errors: ({ exception, value }) => {
+                if (!util.isInteger(value) || value < 0) {
+                    exception('Value must be a non-negative integer');
+                }
             }
         },
 
         maxOrMinLength: {
-            allowed: ({dateType, value}) => value.type === 'string' && !dateType,
+            allowed: ({ parent }) => parent.value.type === 'string' && !Schema.helpers.dateType(parent.value),
             type: 'number',
-            errors: ({ exception, integer, nonNegative }) => {
-                if (!nonNegative || !integer) exception('Value must be a non-negative integer');
+            errors: ({ exception, value }) => {
+                if (!util.isInteger(value) || value < 0) {
+                    exception('Value must be a non-negative integer');
+                }
             }
         },
 
         maxOrMinProperties: {
-            allowed: ({value}) => value.type === 'object',
+            allowed: ({ parent }) => parent.value.type === 'object',
             type: 'number',
-            errors: ({ exception, integer, nonNegative }) => {
-                if (!nonNegative || !integer) exception('Value must be a non-negative integer');
+            errors: ({ exception, value }) => {
+                if (!util.isInteger(value) || value < 0) {
+                    exception('Value must be a non-negative integer');
+                }
             }
         },
 
@@ -93,10 +103,15 @@ const Schema = {
         },
 
         deserializeDate: function (definition, exception, value) {
-            if (definition.type === 'string') {
-                const date = util.getDateFromValidDateString(definition.format, value);
-                if (!date) exception('Value is not a valid ' + definition.format);
-                return date;
+            if (Schema.helpers.dateType(definition)) {
+                if (!rx[definition.format].test(value)) {
+                    exception('Value must be formatted as a ' + definition.format);
+                    return value;
+                } else {
+                    const date = util.getDateFromValidDateString(definition.format, value);
+                    if (!date) exception('Value is not a valid ' + definition.format);
+                    return date;
+                }
             } else {
                 return value;
             }
@@ -123,10 +138,10 @@ Object.assign(Schema.properties, {
         enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
     },
     format: {
-        allowed: ({ value }) => ['integer', 'number', 'string'].includes(value.type),
+        allowed: ({ parent }) => ['integer', 'number', 'string'].includes(parent.value.type),
         type: 'string',
-        enum: ({ value }) => {
-            switch (value.type) {
+        enum: ({ parent }) => {
+            switch (parent.value.type) {
                 case 'integer': return ['int32', 'int64'];
                 case 'number': return ['float', 'double'];
                 case 'string': return ['binary', 'byte', 'date', 'date-time', 'password'];
@@ -136,14 +151,11 @@ Object.assign(Schema.properties, {
     title: 'string',
     description: 'string',
     default: {
-        deserialize: ({ dateType, value, deserializeDate, exception, value }) => {
-            return dateType ? deserializeDate(exception, value) : value;
-        }
+        deserialize: ({ exception, parent, value }) =>
+            Schema.helpers.deserializeDate(parent.value, exception, value)
     },
     multipleOf: {
-        allowed: ({ value }) => {
-            return ['integer', 'number'].includes(value.type)
-        },
+        allowed: ({ parent }) => ['integer', 'number'].includes(parent.value.type),
         type: 'number'
     },
     maximum: Schema.helpers.maxOrMin,
@@ -153,7 +165,7 @@ Object.assign(Schema.properties, {
     maxLength: Schema.helpers.maxOrMinLength,
     minLength: Schema.helpers.maxOrMinLength,
     pattern: {
-        allowed: ({ value }) => value.type === 'string',
+        allowed: ({ parent }) => parent.value.type === 'string',
         type: 'string',
         errors: ({ exception, value }) => {
             if (!value) exception('Value must be a non-empty string');
@@ -163,63 +175,64 @@ Object.assign(Schema.properties, {
     maxItems: Schema.helpers.maxOrMinItems,
     minItems: Schema.helpers.maxOrMinItems,
     uniqueItems: {
-        allowed: ({value}) => value.type === 'array',
+        allowed: ({parent}) => parent.value.type === 'array',
         type: 'boolean'
     },
     maxProperties: Schema.helpers.maxOrMinProperties,
     minProperties: Schema.helpers.maxOrMinProperties,
     required: {
-        allowed: ({value}) => value.type === 'object',
+        allowed: ({parent}) => parent.value.type === 'object',
         items: 'string'
     },
     enum: {
         items: {
-            type: ({ value }) => value.type
-        },
-        errors: ({ dateType, value, exception, value }) => {
-            // TODO: what about other types: arrays, numbers, etc
-            if (dateType) {
-                value.forEach((v, i) => {
-                    if (!rx[value.format].test(v)) exception.at(i)('Value not formatted as a ' + value.format);
-                });
+            type: ({ parent }) => parent.parent.value.type,
+            deserialize: ({ exception, parent, value }) => {
+                return Schema.helpers.deserializeDate(parent.parent.value, exception, value);
+            },
+            errors: ({ exception, parent, value }) => {
+                // TODO: check for max, min, etc
             }
-        },
-        // TODO: what about other types: arrays, numbers, etc
-        deserialize: ({ dateType, value, deserializeDate, exception, value }) => dateType
-            ? value.map((v, i) => deserializeDate(exception.at(i), v))
-            : value
+        }
     },
     items: {
-        allowed: ({value}) => value.type === 'array',
+        allowed: ({parent}) => parent.value.type === 'array',
         additionalProperties: Schema
     },
     allOf: {
-        allowed: ({value}) => value.type === 'object',
+        allowed: ({parent}) => parent.value.type === 'object',
         items: Schema
     },
     properties: {
-        allowed: ({value}) => value.type === 'object',
+        allowed: ({parent}) => parent.value.type === 'object',
         additionalProperties: Schema
     },
     additionalProperties: {
+        allowed: ({parent}) => parent.value.type === 'object',
         properties: Schema
     },
     discriminator: {
         allowed: ({ parent }) => parent && parent.validator === Schema && parent.type === 'object',
         type: 'string',
         error: ({ exception, major, parent, value }) => {
-            if (major === 2 && (!parent.required || !parent.required.includes(value))) {
-                exception('Value must be found in the parent\'s required properties list.');
+            if (major === 2) {
+                if (!parent.value.required || !parent.value.required.includes(value)) {
+                    exception('Value must be found in the parent\'s required properties list.');
+                }
+                if (!parent.value.properties || !parent.value.properties.hasOwnProperty(value)) {
+                    exception('Value must be found in the parent\'s properties definition.');
+                }
             }
+
         }
     },
     readOnly: {
-        allowed: ({ parent }) => parent && parent.validator === Schema && parent.type === 'object',
+        allowed: ({ parent }) => parent && parent.validator === Schema && parent.value.type === 'object',
         type: 'boolean',
         default: false,
-        error: ({ exception, parent, value }) => {
-            if (parent && parent.required && parent.required.includes(value)) {
-                exception('Value should not be exist in the parent\'s required properties list.');
+        error: ({ parent, value, warn }) => {
+            if (parent && parent.value.required && parent.required.includes(value)) {
+                warn('Value should not be exist in the parent\'s required properties list.');
             }
         }
     },

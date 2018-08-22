@@ -23,7 +23,8 @@ const util      = require('../util');
 const rxExtension = /^x-.+/;
 
 module.exports = function(definition) {
-    const exception = Exception('One or more errors exist in your OpenAPI definition');
+    const exception = Exception('One or more errors exist in the OpenAPI definition');
+    const warn = Exception('One or more warnings exist in the OpenAPI definition');
     const hasSwagger = definition.hasOwnProperty('swagger');
     if (!hasSwagger && !definition.hasOwnProperty('openapi')) {
         return new Result(exception('Missing required "openapi" or "swagger" property'), null);
@@ -35,7 +36,7 @@ module.exports = function(definition) {
             const patch = +(match[3] || 0);
             const validator = Swagger;
             const value = util.copy(definition);
-            return new Result(exception, normalize({ exception, major, minor, parent, patch, validator, value }));
+            return new Result(exception, normalize({ exception, major, minor, parent, patch, validator, value, warn }));
         } else {
             return new Result(exception('Invalid value for property: ' + (hasSwagger ? 'swagger' : 'openapi')), null);
         }
@@ -45,27 +46,28 @@ module.exports = function(definition) {
 module.exports.normalize = function(version, validator, definition) {
     if (version === 2) version = '2.0';
     if (version === 3) version = '3.0.0';
-    const exception = Exception('One or more errors found in definition');
+    const exception = Exception('One or more errors exist in the definition');
+    const warn = Exception('One or more warnings exist in the definition');
     const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(version);
     const major = +match[1];
     const minor = +match[2];
     const patch = +(match[3] || 0);
     const parent = null;
     const value = util.copy(definition);
-    return new Result(exception, normalize({ exception, major, minor, parent, patch, validator, value }));
+    return new Result(exception, normalize({ exception, major, minor, parent, patch, validator, value, warn }));
 };
 
-module.exports.version = function(version) {
-    if (version === 2) version = '2.0';
-    if (version === 3) version = '3.0.0';
-    const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(version);
-    if (!match) return null;
-
-    const major = +match[1];
-    const minor = +match[2];
-    const patch = +(match[3] || 0);
-    return { major, minor, patch };
-};
+// module.exports.version = function(version) {
+//     if (version === 2) version = '2.0';
+//     if (version === 3) version = '3.0.0';
+//     const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(version);
+//     if (!match) return null;
+//
+//     const major = +match[1];
+//     const minor = +match[2];
+//     const patch = +(match[3] || 0);
+//     return { major, minor, patch };
+// };
 
 /**
  *
@@ -77,22 +79,23 @@ module.exports.version = function(version) {
  * @param {number} data.patch
  * @param {object} data.validator
  * @param {*} data.value
+ * @param {Exception} data.warn
  * @returns {*}
  */
 function normalize(data) {
-    const { exception, major, minor, parent, patch, value } = data;
+    const { exception, major, minor, parent, patch, value, warn } = data;
     const validator = normalizeValidator(data.validator);
     let message;
     let result;
 
     if (validator.type && (message = fn(validator.type, data)) !== getValueType(value)) {
-        if (message === 'array') message = 'n array';
+        if (message === 'array') message = 'array';
         if (message === 'object') message = 'plain object';
         message = message === 'array' ? 'n array' : ' ' + message;
         exception('Value must be a' + message + '. Received: ' + util.smart(value));
 
     // check if enum matches
-    } else if (validator.enum && (message = fn(validator.enum, data)).findIndex(v => util.same(v, value)) === -1) {
+    } else if (validator.enum && (message = checkEnum(data))) {
         message.length === 1
             ? exception('Value must equal: ' + message[0] + '. Received: ' + util.smart(value))
             : exception('Value must be one of: ' + message.join(', ') + '. Received: ' + util.smart(value));
@@ -106,23 +109,23 @@ function normalize(data) {
                 parent: data,
                 patch,
                 validator: validator.items,
-                value: v
+                value: v,
+                warn: warn.at(i)
             });
         });
 
     } else if (validator.type === 'object') {
         result = {};
         if (validator.additionalProperties) {
-            Object.keys(value).forEach(key => {
-                result[key] = normalize({
-                    exception: exception.at(key),
-                    major,
-                    minor,
-                    parent: data,
-                    patch,
-                    validator: validator.additionalProperties,
-                    value: value[key]
-                });
+            result = normalize({
+                exception,
+                major,
+                minor,
+                parent,
+                patch,
+                validator: validator.additionalProperties,
+                value: value,
+                warn: warn
             });
 
         } else if (!validator.properties) {
@@ -139,7 +142,16 @@ function normalize(data) {
             // check for missing required and set defaults
             Object.keys(properties).forEach(key => {
                 const validator = normalizeValidator(properties[key]);
-                const param = { major, minor, parent: data, patch, validator, value };
+                const param = {
+                    exception: exception.at(key),
+                    major,
+                    minor,
+                    parent: data,
+                    patch,
+                    validator: properties[key],
+                    value: value[key],
+                    warn: warn.at(key)
+                };
 
                 // check whether this property is allowed
                 allowed[key] = validator.hasOwnProperty('allowed')
@@ -167,7 +179,7 @@ function normalize(data) {
                 } else if (!allowed[key]) {
                     notAllowed.push(key);
 
-                } else if (!validator.ignore || !fn(validator.ignore, { major, minor, parent: data, patch, validator, value })) {
+                } else if (!validator.ignore || !fn(validator.ignore, { exception, major, minor, parent: data, patch, validator, value, warn })) {
                     result[key] = normalize({
                         exception: exception.at(key),
                         major,
@@ -175,7 +187,8 @@ function normalize(data) {
                         parent: data,
                         patch,
                         value: value[key],
-                        validator: validator.properties[key]
+                        validator: validator.properties[key],
+                        warn: warn.at(key)
                     });
                 }
             });
@@ -201,12 +214,13 @@ function normalize(data) {
                 parent,
                 patch,
                 validator,
-                value
+                value,
+                warn
             })
             : value;
     }
 
-    if (validator.errors) {
+    if (result !== undefined && validator.errors) {
         fn(validator.errors, {
             exception,
             major,
@@ -214,15 +228,12 @@ function normalize(data) {
             parent,
             patch,
             validator,
-            value: result
+            value: result,
+            warn
         });
     }
 
     return result;
-}
-
-function dateType(definition) {
-    return definition.type === 'string' && definition.format && definition.format.startsWith('date')
 }
 
 function fn(value, params) {
@@ -233,7 +244,6 @@ function fn(value, params) {
 
 function normalizeValidator(validator) {
     if (typeof validator === 'string') validator = { type: validator };
-    validator = Object.assign({}, validator);
     if (!validator.type && validator.items) validator.type = 'array';
     if (!validator.type && (validator.additionalProperties || validator.properties)) validator.type = 'object';
     return validator;
@@ -244,4 +254,13 @@ function getValueType(value) {
     if (util.isPlainObject(value)) return 'object';
     const type = typeof value;
     return type === 'object' ? '' : type;
+}
+
+function checkEnum(params) {
+    const { validator, value } = params;
+    if (!validator.enum) return false;
+    const matches = fn(validator.enum, params);
+    return matches.indexOf(value) !== -1
+        ? false
+        : matches;
 }
