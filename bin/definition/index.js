@@ -36,7 +36,10 @@ module.exports = function(definition) {
             const patch = +(match[3] || 0);
             const validator = Swagger;
             const value = util.copy(definition);
-            return new Result(exception, normalize({ exception, major, minor, parent, patch, validator, value, warn }));
+            const key = undefined;
+
+            const result = normalize({ exception, key, major, minor, parent, patch, validator, value, warn });
+            return new Result(exception, result, warn);
         } else {
             return new Result(exception('Invalid value for property: ' + (hasSwagger ? 'swagger' : 'openapi')), null);
         }
@@ -54,7 +57,10 @@ module.exports.normalize = function(version, validator, definition) {
     const patch = +(match[3] || 0);
     const parent = null;
     const value = util.copy(definition);
-    return new Result(exception, normalize({ exception, major, minor, parent, patch, validator, value, warn }));
+    const key = undefined;
+
+    const result = normalize({ exception, key, major, minor, parent, patch, validator, value, warn });
+    return new Result(exception, result, warn);
 };
 
 // module.exports.version = function(version) {
@@ -73,6 +79,7 @@ module.exports.normalize = function(version, validator, definition) {
  *
  * @param {object} data
  * @param {Exception} data.exception
+ * @param {string|number} data.key
  * @param {number} data.major
  * @param {number} data.minor
  * @param {object} data.parent
@@ -101,6 +108,7 @@ function normalize(data) {
         result = value.map((v, i) => {
             return normalize({
                 exception: exception.at(i),
+                key: i,
                 major,
                 minor,
                 parent: data,
@@ -117,6 +125,7 @@ function normalize(data) {
             Object.keys(value).forEach(key => {
                 result[key] = normalize({
                     exception: exception.at(key),
+                    key,
                     major,
                     minor,
                     parent: data,
@@ -143,6 +152,7 @@ function normalize(data) {
                 const validator = normalizeValidator(properties[key]);
                 const param = {
                     exception: exception.at(key),
+                    key,
                     major,
                     minor,
                     parent: data,
@@ -178,9 +188,10 @@ function normalize(data) {
                 } else if (!allowed[key]) {
                     notAllowed.push(key);
 
-                } else if (!validator.ignore || !fn(validator.ignore, { exception, major, minor, parent: data, patch, validator, value, warn })) {
+                } else if (!validator.ignore || !fn(validator.ignore, { exception, key, major, minor, parent: data, patch, validator, value, warn })) {
                     result[key] = normalize({
                         exception: exception.at(key),
+                        key,
                         major,
                         minor,
                         parent: data,
@@ -208,6 +219,7 @@ function normalize(data) {
         result = validator.deserialize
             ? fn(validator.deserialize, {
                 exception,
+                key: undefined,
                 major,
                 minor,
                 parent,
@@ -222,6 +234,7 @@ function normalize(data) {
     if (result !== undefined && validator.errors) {
         fn(validator.errors, {
             exception,
+            key: undefined,
             major,
             minor,
             parent,
