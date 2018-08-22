@@ -18,7 +18,6 @@
 const Exception     = require('./exception');
 const freeze        = require('./freeze');
 const Paths         = require('./components/paths');
-const Readable      = require('stream').Readable;
 const Result        = require('./result');
 const Schema        = require('./components/schema');
 const util          = require('./util');
