@@ -16,6 +16,7 @@
  **/
 'use strict';
 const Exception         = require('../exception');
+const Schema            = require('./index');
 const util              = require('../util');
 
 /**
@@ -27,22 +28,32 @@ const util              = require('../util');
  */
 module.exports = (schemas, options) => {
     const exception = Exception('Unable to merge schemas');
+    const exceptions = [];
+    let merged;
 
-    options = Object.assign({}, options);
+    if (!Array.isArray(schemas)) {
+        exception('Expected an array of valid Schema objects. Received: ' + util.smart(schemas));
 
-    // check that each schema is valid
-    let valid = true;
-    schemas.forEach((schema, index) => {
-        const error = schema.exception();
-        if (error) {
-            valid = false;
-            const child = exception.nest('One or more errors with schema at index ' + index);
-            child(error);
-        }
-    });
-    if (!value) return { error: exception, value: null };
+    } else {
+        let hasInvalidSchema = false;
+        schemas.forEach((schema, index) => {
+            const child = exception.at(index);
+            exceptions.push(child);
+            if (!(schema instanceof Schema)) {
+                child('Must be a Schema instance');
+                hasInvalidSchema = true;
+            } else {
+                const error = schema.exception();
+                if (error) {
+                    child(error);
+                    hasInvalidSchema = true;
+                }
+            }
+        });
 
-    const merged = merge(exception, version, schemas, options, new Map());
+        if (!hasInvalidSchema) merged = merge(exceptions, version, schemas, options, new Map());
+    }
+
     const hasException = exception.hasException;
     return {
         error: hasException ? exception : null,
@@ -50,14 +61,19 @@ module.exports = (schemas, options) => {
     }
 };
 
-function merge(exception, version, schemas, options, map) {
+function merge(exceptions, version, schemas, options, map) {
     const length = schemas.length;
-    const result = { type: (schemas[0] && schemas[0].type) || {} };
+    const result = {};
 
     // watch for cyclic merging
     const existing = map.get(schemas);
     if (existing) return existing;
     map.set(schemas, result);
+
+    schemas.forEach((schema, index) => {
+        const exception = exceptions[index];
+
+    });
 
     for (let index = 0; index < length; index++) {
         const schema = schemas[index];
@@ -158,7 +174,7 @@ function merge(exception, version, schemas, options, map) {
                     if (schema.hasOwnProperty('minLength')) result.minLength = highestNumber(schema.minLength, result.minLength);
                     if (schema.hasOwnProperty('pattern')) {
                         if (!result.hasOwnProperty('pattern')) {
-                            result.pattern = rxStringToRx(schema.pattern);
+                            result.pattern = util.rxStringToRx(schema.pattern);
                         } else if (result.pattern !== schema.pattern) {
                             result.pattern = rxMerge(result.pattern, schema.pattern);
                         }
@@ -174,6 +190,43 @@ function merge(exception, version, schemas, options, map) {
 }
 
 
+function greatestCommonDenominator(x, y) {
+    x = Math.abs(x);
+    y = Math.abs(y);
+    while(y) {
+        const t = y;
+        y = x % y;
+        x = t;
+    }
+    return x;
+}
 
+function leastCommonMultiple(x, y) {
+    if ((typeof x !== 'number') || (typeof y !== 'number'))
+        return false;
+    return (!x || !y) ? 0 : Math.abs((x * y) / greatestCommonDenominator(x, y));
+}
+
+function lowestNumber(n1, n2) {
+    const t1 = typeof n1 === 'number';
+    const t2 = typeof n2 === 'number';
+    if (t1 && t2) return n1 > n2 ? n2 : n1;
+    return t1 ? n1 : n2;
+}
+
+function highestNumber(n1, n2) {
+    const t1 = typeof n1 === 'number';
+    const t2 = typeof n2 === 'number';
+    if (t1 && t2) return n1 < n2 ? n2 : n1;
+    return t1 ? n1 : n2;
+}
+
+function rxMerge(rx1, rx2) {
+    rx1 = util.rxStringToRx(rx1);
+    rx2 = util.rxStringToRx(rx2);
+    const source = rx1.source + '|' + rx2.source;
+    const flags = util.arrayUnique((rx1.flags + rx2.flags).split('')).join('');
+    return RegExp(source, flags);
+}
 
 
