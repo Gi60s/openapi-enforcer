@@ -516,4 +516,105 @@ describe.only('definitions/schema', () => {
 
     });
 
+    describe('discriminator', () => {
+
+        describe('v2', () => {
+
+            it('can be valid', () => {
+                const [ err, def ] = definition(2, Schema, {
+                    type: 'object',
+                    discriminator: 'a',
+                    required: ['a'],
+                    properties: { a: { type: 'string' } }
+                });
+                expect(err).to.be.undefined;
+            });
+
+            it('must be a string', () => {
+                const [ err, def ] = definition(2, Schema, {
+                    type: 'object',
+                    discriminator: 1,
+                    required: ['a'],
+                    properties: { a: { type: 'string' } }
+                });
+                expect(err).to.match(/Value must be a string/);
+            });
+
+            it('must require property', () => {
+                const [ err, def ] = definition(2, Schema, {
+                    type: 'object',
+                    discriminator: 'a',
+                    properties: { a: { type: 'string' } }
+                });
+                expect(err).to.match(/Value "a" must be found in the parent's required properties list/);
+            });
+
+            it('must be listed as a property', () => {
+                const [ err, def ] = definition(2, Schema, {
+                    type: 'object',
+                    discriminator: 'a',
+                    required: ['a']
+                });
+                expect(err).to.match(/Value "a" must be found in the parent's properties definition/);
+            });
+
+        });
+
+        describe.skip('v3', () => {
+
+        });
+
+    });
+
+    describe('readOnly', () => {
+
+        it('is valid on properties within a schema', () => {
+            const [ err, def ] = definition(2, Schema, {
+                type: 'object',
+                properties: {
+                    a: {
+                        type: 'string',
+                        readOnly: true
+                    }
+                }
+            });
+            expect(err).to.be.undefined;
+        });
+
+        it('is not valid on a schema', () => {
+            const [ err, def ] = definition(2, Schema, {
+                type: 'object',
+                readOnly: true
+            });
+            expect(err).to.match(/Property not allowed: readOnly/);
+        });
+
+        it('should not be required', () => {
+            const { warning } = definition(2, Schema, {
+                type: 'object',
+                required: ['a'],
+                properties: {
+                    a: {
+                        type: 'string',
+                        readOnly: true
+                    }
+                }
+            });
+            expect(warning).to.match(/Property should not be marked as both read only and required/);
+        });
+
+    });
+
+    describe('example', () => {
+
+        it('can be a string', () => {
+            const [ err ] = definition(2, Schema, {
+                type: 'string',
+                example: 'hello'
+            });
+            expect(err).to.be.undefined;
+        });
+
+    });
+
 });
