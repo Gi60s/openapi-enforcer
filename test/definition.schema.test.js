@@ -35,7 +35,7 @@ describe.only('definitions/schema', () => {
 
         it('requires a valid type', () => {
             const [ err ] = definition(2, Schema, { type: 'foo' });
-            expect(err).to.match(/Property "type" has invalid value/);
+            expect(err).to.match(/Value must be one of:/);
         });
 
     });
@@ -49,7 +49,7 @@ describe.only('definitions/schema', () => {
 
         it('does not allow invalid format', () => {
             const [ err ] = definition(2, Schema, { type: 'string', format: 'foo' });
-            expect(err).to.match(/Property "format" has invalid value/);
+            expect(err).to.match(/Value must be one of:/);
         });
 
     });
@@ -278,12 +278,128 @@ describe.only('definitions/schema', () => {
 
         it('must be an array', () => {
             const [ err, def ] = definition(2, Schema, { type: 'object', required: 'hello' });
-            expect(err).to.match(/Value for property "required" must be an array/);
+            expect(err).to.match(/Value must be an array/);
         });
 
         it('is not allowed for type boolean', () => {
             const [ err ] = definition(2, Schema, { type: 'boolean', required: ['hello'] });
             expect(err).to.match(/Property not allowed: required/);
+        });
+
+    });
+
+    describe('enum', () => {
+
+        it('must be an array', () => {
+            const [ err ] = definition(2, Schema, { type: 'string', enum: 1 });
+            expect(err).to.match(/Value must be an array/);
+        });
+
+        describe('strings', () => {
+
+            it('allows enum value with matching types', () => {
+                const [ err ] = definition(2, Schema, { type: 'string', enum: ['a', 'b', 'c'] });
+                expect(err).to.be.undefined;
+            });
+
+            it('does not allow enum value with mismatched type', () => {
+                const [ err ] = definition(2, Schema, { type: 'string', enum: [1] });
+                expect(err).to.match(/Value must be a string/);
+            });
+
+        });
+
+        describe('numbers', () => {
+
+            it('allows enum value with matching types', () => {
+                const [ err ] = definition(2, Schema, { type: 'number', enum: [1] });
+                expect(err).to.be.undefined;
+            });
+
+            it('does not allow enum value with mismatched type', () => {
+                const [ err ] = definition(2, Schema, { type: 'number', enum: ['a'] });
+                expect(err).to.match(/Value must be a number/);
+            });
+
+        });
+
+        describe('dates', () => {
+
+            it('allows enum value with matching types', () => {
+                const [ err, def ] = definition(2, Schema, { type: 'string', format: 'date', enum: ['2001-01-01'] });
+                expect(err).to.be.undefined;
+            });
+
+            it('parses enum values', () => {
+                const [ err, def ] = definition(2, Schema, { type: 'string', format: 'date', enum: ['2001-01-01'] });
+                expect(def.enum[0]).to.deep.equal(new Date('2001-01-01'));
+            });
+
+            it('does not allow enum value with mismatched type', () => {
+                const [ err ] = definition(2, Schema, { type: 'string', format: 'date', enum: ['a'] });
+                expect(err).to.match(/Value must be formatted as a date/);
+            });
+        });
+
+        describe('object', () => {
+
+            it('allows enum value with matching types', () => {
+                const [ err, def ] = definition(2, Schema, {
+                    type: 'object',
+                    properties: {
+                        a: { type: 'string' }
+                    },
+                    enum: [
+                        { a: 'a' },
+                        { a: 'b' }
+                    ]
+                });
+                expect(err).to.be.undefined;
+            });
+
+            it('does not allow enum value with mismatched type', () => {
+                const [ err, def ] = definition(2, Schema, {
+                    type: 'object',
+                    properties: {
+                        a: { type: 'string' }
+                    },
+                    enum: [ 1 ]
+                });
+                expect(err).to.match(/Value must be a plain object/);
+            });
+
+        });
+
+    });
+
+    describe.only('items', () => {
+
+        it('is valid for arrays', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'array', items: { type: 'string' } });
+            expect(err).to.be.undefined;
+        });
+
+        it('is not valid for non-arrays', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'number', items: { type: 'string' } });
+            expect(err).to.match(/Property not allowed: items/);
+        });
+
+        it('cannot be a non object', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'array', items: 'string' });
+            expect(err).to.match(/Value must be a plain object/);
+        });
+
+        it('traverses sub objects', () => {
+            const [ err, def ] = definition(2, Schema, {
+                type: 'array',
+                items: {
+                    type: 'string',
+                    format: 'date',
+                    default: '2001-01-01',
+                    enum: ['2001-01-01', '2001-01-02']
+                }
+            });
+            expect(def.items.default).to.deep.equal(new Date('2001-01-01'));
         });
 
     });
