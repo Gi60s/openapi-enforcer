@@ -37,6 +37,10 @@ exports.isDate = function (value) {
     return value && !isNaN(value) && value instanceof Date;
 };
 
+exports.isInteger = function(value) {
+    return !isNaN(value) && typeof value === 'number' && value === Math.round(value);
+};
+
 exports.edgeSlashes = function(value, start, end) {
     value = value.replace(/^\//, '').replace(/\/$/, '');
     if (value.length === 0 && (start || end)) return '/';
