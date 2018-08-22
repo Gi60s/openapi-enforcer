@@ -88,11 +88,8 @@ function normalize(data) {
     let message;
     let result;
 
-    if (validator.type && (message = fn(validator.type, data)) !== getValueType(value)) {
-        if (message === 'array') message = 'array';
-        if (message === 'object') message = 'plain object';
-        message = message === 'array' ? 'n array' : ' ' + message;
-        exception('Value must be a' + message + '. Received: ' + util.smart(value));
+    if (validator.type && (message = checkType(data))) {
+        exception('Value must be ' + message + '. Received: ' + util.smart(value));
 
     // check if enum matches
     } else if (validator.enum && (message = checkEnum(data))) {
@@ -117,15 +114,17 @@ function normalize(data) {
     } else if (validator.type === 'object') {
         result = {};
         if (validator.additionalProperties) {
-            result = normalize({
-                exception,
-                major,
-                minor,
-                parent,
-                patch,
-                validator: validator.additionalProperties,
-                value: value,
-                warn: warn
+            Object.keys(value).forEach(key => {
+                result[key] = normalize({
+                    exception: exception.at(key),
+                    major,
+                    minor,
+                    parent: data,
+                    patch,
+                    validator: validator.additionalProperties,
+                    value: value[key],
+                    warn: warn.at(key)
+                });
             });
 
         } else if (!validator.properties) {
@@ -249,11 +248,43 @@ function normalizeValidator(validator) {
     return validator;
 }
 
-function getValueType(value) {
-    if (Array.isArray(value)) return 'array';
-    if (util.isPlainObject(value)) return 'object';
-    const type = typeof value;
-    return type === 'object' ? '' : type;
+function checkType(params) {
+    const { validator, value } = params;
+    if (!validator.type) return;
+
+    // get the value type
+    let type = typeof value;
+    if (Array.isArray(value)) type = 'array';
+    if (type === 'object' && !util.isPlainObject(value)) type = undefined;
+
+    // get valid types
+    let matches = fn(validator.type, params);
+    if (!Array.isArray(matches)) matches = [ matches ];
+
+    // check if types match
+    let valid = false;
+    const length = matches.length;
+    for (let i = 0; i < length; i++) {
+        if (matches[i] === type) {
+            valid = true;
+            break;
+        }
+    }
+
+    if (!valid) {
+        const suffixes = matches.map(type => {
+            let suffix = 'a ' + type;
+            if (type === 'array') suffix = 'an array';
+            if (type === 'object') suffix = 'a plain object';
+            return suffix;
+        });
+
+        if (suffixes.length === 1) return suffixes[0];
+        if (suffixes.length === 2) return suffixes[0] + ' or ' + suffixes[1];
+
+        const last = suffixes.pop();
+        return suffixes.join(', ') + ', or ' + last;
+    }
 }
 
 function checkEnum(params) {
