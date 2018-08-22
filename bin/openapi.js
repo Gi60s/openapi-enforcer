@@ -238,6 +238,7 @@ OpenApiEnforcer.prototype.path = function(path) {
  * @param {*} [value=undefined]
  * @param {object} options
  * @param {boolean} [options.copy]
+ * @param {boolean} [options.defaults]
  * @param {boolean} [options.ignoreMissingRequired]
  * @param {boolean} [options.oneOf]
  * @param {string} [options.replacement]
