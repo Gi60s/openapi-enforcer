@@ -20,14 +20,16 @@ const store = new WeakMap();
 
 module.exports = EnforcerResult;
 
-function EnforcerResult(exception, value) {
+function EnforcerResult(exception, value, warn) {
     if (!exception || !exception.hasException) exception = undefined;
     if (exception) value = undefined;
+    if (!warn || !warn.hasException) warn = undefined;
 
     this.error = exception;
     this.value = value;
+    this.warning = warn;
 
-    store.set(this, { remaining: 2 });
+    store.set(this, [ exception, value, warn ]);
 }
 
 EnforcerResult.prototype[Symbol.iterator] = function() {
@@ -36,12 +38,9 @@ EnforcerResult.prototype[Symbol.iterator] = function() {
 
 EnforcerResult.prototype.next = function() {
     const data = store.get(this);
-    if (data.remaining === 0) {
-        return { done: false };
+    if (data.length === 0) {
+        return { done: true }
     } else {
-        data.remaining--;
-        return data.remaining === 1
-            ? { done: false, value: this.error }
-            : { done: false, value: this.value }
+        return { done: false, value: data.shift() };
     }
 };
