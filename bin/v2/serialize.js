@@ -139,8 +139,10 @@ function serialize(exception, schema, value) {
                     Object.keys(value).forEach(key => {
                         if (properties.hasOwnProperty(key)) {
                             result[key] = serialize(exception.nest('/' + key), properties[key], value[key]);
-                        } else if (additionalProperties) {
+                        } else if (typeof additionalProperties === 'object') {
                             result[key] = serialize(exception.nest('/' + key), additionalProperties, value[key]);
+                        } else if (additionalProperties) {
+                            result[key] = value[key];
                         }
                     });
                     return result;
