@@ -16,7 +16,7 @@
  **/
 'use strict';
 const Exception     = require('../exception');
-const normalize     = require('../map-normalizer');
+const normalize     = null; //require('../map-normalizer');
 const Result        = require('../result');
 const Schema        = require('./schema');
 const util          = require('../util');
@@ -34,7 +34,7 @@ const v2itemsValidationsMap = {
     type: {
         allowed: (ctx, version) => version === 2 && ctx.in !== 'body',
         required: () => true,
-        enum: () => ['array', 'boolean', 'file', 'integer', 'number', 'string']
+        enum: () => ['array', 'boolean', 'integer', 'number', 'string']
     },
     format: {
         allowed: (ctx, version) => version === 2 && (ctx.type === 'integer' || ctx.type === 'number' || ctx.type === 'string'),
@@ -126,6 +126,12 @@ const validationsMap = Object.assign({}, v2itemsValidationsMap, {
         enum: (ctx, version) => version === 2
             ? ['body', 'formData', 'header', 'query', 'path']
             : ['cookie', 'header', 'path', 'query'],
+    },
+    type: {
+        allowed: (ctx, version) => version === 2 && ctx.in !== 'body',
+        required: () => true,
+        enum: () => ['array', 'boolean', 'file', 'integer', 'number', 'string'],
+        errors: (ctx, version, value) => value !== 'file' || ctx.in === 'formData' ? false : 'Type "file" must be in "formData"'
     },
     description: {
         type: () => 'string'
@@ -252,7 +258,11 @@ function Parameter(enforcer, exception, definition, map) {
                 normalize(context, version, exception.at('items'), context, v2itemsValidationsMap);
             }
 
-            this.schema = new Schema(enforcer, exception, copySchemaProperties(this), map);
+            if (this.type !== 'file') {
+                const copy = Object.assign({}, this);
+                copy.type = 'string'
+                this.schema = new Schema(enforcer, exception, copySchemaProperties(this), map);
+            }
 
         } else if (version === 3) {
             if (definition.hasOwnProperty('schema')) {
@@ -324,8 +334,6 @@ Parameter.prototype.parse = function(value, query) {
         const explode = this.explode;
         const style = this.style;
         let parsed;
-
-        // TODO: get allowEmptyValue working for v3
 
         // in case the query string has not been parsed, parse it now
         if (!query && this.in === 'query') query = util.parseQueryString(value);
