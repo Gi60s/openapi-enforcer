@@ -70,10 +70,13 @@ describe.only('definitions/schema', () => {
         it('validates items', () => {
             const [ err, def ] = definition(2, Schema, {
                 type: 'object',
-                properties: {
-                    x: {
-                        type: 'boolean',
-                        format: 'date',
+                additionalProperties: {
+                    type: 'object',
+                    properties: {
+                        x: {
+                            type: 'boolean',
+                            format: 'date',
+                        }
                     }
                 }
             });
@@ -653,8 +656,13 @@ describe.only('definitions/schema', () => {
                 type: 'object',
                 properties: {
                     x: {
-                        type: 'boolean',
-                        format: 'date',
+                        type: 'object',
+                        properties: {
+                            y: {
+                                type: 'boolean',
+                                format: 'date'
+                            }
+                        }
                     }
                 }
             });
