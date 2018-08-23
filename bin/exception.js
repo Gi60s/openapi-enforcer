@@ -39,6 +39,7 @@ function OpenAPIException(header, isHeader) {
     const positionals = [];
     const headers = [];
     const messages = [];
+    const atMap = {};
     let cached = false;
     let hasException;
 
@@ -50,7 +51,9 @@ function OpenAPIException(header, isHeader) {
     exception.isHeader = arguments.length === 2 ? isHeader : true;
 
     exception.at = function(at) {
+        if (atMap[at]) return atMap[at];
         const exception = OpenAPIException(at, false);
+        atMap[at] = exception;
         positionals.push(exception);
         cached = false;
         return exception;
