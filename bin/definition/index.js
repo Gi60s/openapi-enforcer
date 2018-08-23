@@ -96,7 +96,8 @@ function normalize(data) {
     let result;
 
     try {
-
+        // working on figuring out ambiguous type
+        const type = getValueType(value);
         if (validator.type && (message = checkType(data))) {
             exception('Value must be ' + message + '. Received: ' + util.smart(value));
 
@@ -106,7 +107,7 @@ function normalize(data) {
                 ? exception('Value must equal: ' + message[0] + '. Received: ' + util.smart(value))
                 : exception('Value must be one of: ' + message.join(', ') + '. Received: ' + util.smart(value));
 
-        } else if (validator.type === 'array') {
+        } else if (type === 'array') {
             result = value.map((v, i) => {
                 return normalize({
                     exception: exception.at(i),
@@ -121,7 +122,7 @@ function normalize(data) {
                 });
             });
 
-        } else if (validator.type === 'object') {
+        } else if (type === 'object') {
             result = {};
             if (validator.additionalProperties) {
                 Object.keys(value).forEach(key => {
@@ -288,9 +289,7 @@ function checkType(params) {
     if (!validator.type) return;
 
     // get the value type
-    let type = typeof value;
-    if (Array.isArray(value)) type = 'array';
-    if (type === 'object' && !util.isPlainObject(value)) type = undefined;
+    const type = getValueType(value);
 
     // get valid types
     let matches = fn(validator.type, params);
@@ -329,4 +328,11 @@ function checkEnum(params) {
     return matches.indexOf(value) !== -1
         ? false
         : matches;
+}
+
+function getValueType(value) {
+    let type = typeof value;
+    if (Array.isArray(value)) type = 'array';
+    if (type === 'object' && !util.isPlainObject(value)) type = undefined;
+    return type;
 }
