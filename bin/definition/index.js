@@ -91,104 +91,40 @@ module.exports.normalize = function(version, validator, definition) {
  */
 function normalize(data) {
     const { exception, major, minor, parent, patch, value, warn } = data;
-    const validator = normalizeValidator(data.validator);
+    const validator = data.validator = normalizeValidator(data.validator);
     let message;
     let result;
 
-    if (validator.type && (message = checkType(data))) {
-        exception('Value must be ' + message + '. Received: ' + util.smart(value));
+    try {
 
-    // check if enum matches
-    } else if (validator.enum && (message = checkEnum(data))) {
-        message.length === 1
-            ? exception('Value must equal: ' + message[0] + '. Received: ' + util.smart(value))
-            : exception('Value must be one of: ' + message.join(', ') + '. Received: ' + util.smart(value));
+        if (validator.type && (message = checkType(data))) {
+            exception('Value must be ' + message + '. Received: ' + util.smart(value));
 
-    } else if (validator.type === 'array') {
-        result = value.map((v, i) => {
-            return normalize({
-                exception: exception.at(i),
-                key: i,
-                major,
-                minor,
-                parent: data,
-                patch,
-                validator: validator.items,
-                value: v,
-                warn: warn.at(i)
-            });
-        });
+            // check if enum matches
+        } else if (validator.enum && (message = checkEnum(data))) {
+            message.length === 1
+                ? exception('Value must equal: ' + message[0] + '. Received: ' + util.smart(value))
+                : exception('Value must be one of: ' + message.join(', ') + '. Received: ' + util.smart(value));
 
-    } else if (validator.type === 'object') {
-        result = {};
-        if (validator.additionalProperties) {
-            Object.keys(value).forEach(key => {
-                result[key] = normalize({
-                    exception: exception.at(key),
-                    key,
+        } else if (validator.type === 'array') {
+            result = value.map((v, i) => {
+                return normalize({
+                    exception: exception.at(i),
+                    key: i,
                     major,
                     minor,
                     parent: data,
                     patch,
-                    validator: validator.additionalProperties,
-                    value: value[key],
-                    warn: warn.at(key)
+                    validator: validator.items,
+                    value: v,
+                    warn: warn.at(i)
                 });
             });
 
-        } else if (!validator.properties) {
-            Object.keys(value).forEach(key => {
-                result[key] = value[key];
-            });
-
-        } else {
-            const allowed = {};
-            const missingRequired = [];
-            const notAllowed = [];
-            const properties = validator.properties;
-
-            // check for missing required and set defaults
-            Object.keys(properties).forEach(key => {
-                const validator = normalizeValidator(properties[key]);
-                const param = {
-                    exception: exception.at(key),
-                    key,
-                    major,
-                    minor,
-                    parent: data,
-                    patch,
-                    validator: properties[key],
-                    value: value[key],
-                    warn: warn.at(key)
-                };
-
-                // check whether this property is allowed
-                allowed[key] = validator.hasOwnProperty('allowed')
-                    ? fn(validator.allowed, param)
-                    : true;
-
-                // if it doesn't have the property and it is allowed then check if it is required or has a default
-                if (!value.hasOwnProperty(key) && allowed[key]) {
-                    if (validator.required && fn(validator.required, param)) {
-                        missingRequired.push(key);
-                    } else if (validator.hasOwnProperty('default')) {
-                        value[key] = fn(validator.default, param);
-                    }
-                }
-            });
-
-            // validate each property and copy to the result object
-            Object.keys(value).forEach(key => {
-
-                // check if the key is an extension property
-                if (rxExtension.test(key)) {
-                    result[key] = value[key];
-
-                // check if property allowed
-                } else if (!allowed[key]) {
-                    notAllowed.push(key);
-
-                } else if (!validator.ignore || !fn(validator.ignore, { exception, key, major, minor, parent: data, patch, validator, value, warn })) {
+        } else if (validator.type === 'object') {
+            result = {};
+            if (validator.additionalProperties) {
+                Object.keys(value).forEach(key => {
                     result[key] = normalize({
                         exception: exception.at(key),
                         key,
@@ -196,28 +132,119 @@ function normalize(data) {
                         minor,
                         parent: data,
                         patch,
+                        validator: validator.additionalProperties,
                         value: value[key],
-                        validator: validator.properties[key],
                         warn: warn.at(key)
                     });
+                });
+
+            } else if (!validator.properties) {
+                Object.keys(value).forEach(key => {
+                    result[key] = value[key];
+                });
+
+            } else {
+                const allowed = {};
+                const missingRequired = [];
+                const notAllowed = [];
+                const properties = validator.properties;
+
+                // check for missing required and set defaults
+                Object.keys(properties).forEach(key => {
+                    const validator = normalizeValidator(properties[key]);
+                    const param = {
+                        exception: exception.at(key),
+                        key,
+                        major,
+                        minor,
+                        parent: data,
+                        patch,
+                        validator: properties[key],
+                        value: value[key],
+                        warn: warn.at(key)
+                    };
+
+                    // check whether this property is allowed
+                    allowed[key] = validator.hasOwnProperty('allowed')
+                        ? fn(validator.allowed, param)
+                        : true;
+
+                    // if it doesn't have the property and it is allowed then check if it is required or has a default
+                    if (!value.hasOwnProperty(key) && allowed[key]) {
+                        if (validator.required && fn(validator.required, param)) {
+                            missingRequired.push(key);
+                        } else if (validator.hasOwnProperty('default')) {
+                            value[key] = fn(validator.default, param);
+                        }
+                    }
+                });
+
+                // validate each property and copy to the result object
+                Object.keys(value).forEach(key => {
+
+                    // check if the key is an extension property
+                    if (rxExtension.test(key)) {
+                        result[key] = value[key];
+
+                        // check if property allowed
+                    } else if (!allowed[key]) {
+                        notAllowed.push(key);
+
+                    } else if (!validator.ignore || !fn(validator.ignore, {
+                        exception,
+                        key,
+                        major,
+                        minor,
+                        parent: data,
+                        patch,
+                        validator,
+                        value,
+                        warn
+                    })) {
+                        result[key] = normalize({
+                            exception: exception.at(key),
+                            key,
+                            major,
+                            minor,
+                            parent: data,
+                            patch,
+                            value: value[key],
+                            validator: validator.properties[key],
+                            warn: warn.at(key)
+                        });
+                    }
+                });
+
+                // report missing required properties
+                if (missingRequired.length) {
+                    missingRequired.sort();
+                    exception('Missing required propert' + (missingRequired.length === 1 ? 'y' : 'ies') + ': ' + missingRequired.join(', '));
                 }
-            });
 
-            // report missing required properties
-            if (missingRequired.length) {
-                missingRequired.sort();
-                exception('Missing required propert' + (missingRequired.length === 1 ? 'y' : 'ies') + ': ' + missingRequired.join(', '));
+                // report not allowed properties
+                if (notAllowed.length) {
+                    exception('Propert' + (notAllowed.length === 1 ? 'y' : 'ies') + ' not allowed: ' + notAllowed.join(', '));
+                }
             }
 
-            // report not allowed properties
-            if (notAllowed.length) {
-                exception('Propert' + (notAllowed.length === 1 ? 'y' : 'ies') + ' not allowed: ' + notAllowed.join(', '));
-            }
+        } else {
+            result = validator.deserialize
+                ? fn(validator.deserialize, {
+                    exception,
+                    key: undefined,
+                    major,
+                    minor,
+                    parent,
+                    patch,
+                    validator,
+                    value,
+                    warn
+                })
+                : value;
         }
 
-    } else {
-        result = validator.deserialize
-            ? fn(validator.deserialize, {
+        if (result !== undefined && validator.errors) {
+            fn(validator.errors, {
                 exception,
                 key: undefined,
                 major,
@@ -225,33 +252,28 @@ function normalize(data) {
                 parent,
                 patch,
                 validator,
-                value,
+                value: result,
                 warn
-            })
-            : value;
-    }
+            });
+        }
 
-    if (result !== undefined && validator.errors) {
-        fn(validator.errors, {
-            exception,
-            key: undefined,
-            major,
-            minor,
-            parent,
-            patch,
-            validator,
-            value: result,
-            warn
-        });
-    }
+        return result;
 
-    return result;
+    } catch (err) {
+        exception('Unexpected error encountered, likely due to malformed definition: ' + err.stack);
+    }
 }
 
 function fn(value, params) {
-    return typeof value === 'function'
-        ? value(params)
-        : value;
+    if (typeof value === 'function') {
+        try {
+            return value(params);
+        } catch (err) {
+            params.exception('Unexpected error encountered, likely due to malformed definition: ' + err.stack);
+        }
+    } else {
+        return value;
+    }
 }
 
 function normalizeValidator(validator) {
