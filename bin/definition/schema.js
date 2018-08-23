@@ -150,17 +150,13 @@ Object.assign(Schema.properties, {
         },
         enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
     },
-    additionalProperties: {
+    additionalProperties: Object.assign({}, Schema, {
         allowed: ({parent}) => parent.value.type === 'object',
         type: ['boolean', 'object'],
-        default: true,
-        properties: Schema
-    },
+        default: true
+    }),
     allOf: {
-        items: Schema,
-        error: () => {
-            // TODO: merge all schemas to check for conflict
-        }
+        items: Schema
     },
     anyOf: {
         allowed: ({major}) => major === 3,
