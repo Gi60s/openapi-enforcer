@@ -137,84 +137,22 @@ Object.assign(Schema.properties, {
         required: true,
         enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
     },
-    format: {
-        allowed: ({ parent }) => ['integer', 'number', 'string'].includes(parent.value.type),
-        type: 'string',
-        enum: ({ parent }) => {
-            switch (parent.value.type) {
-                case 'integer': return ['int32', 'int64'];
-                case 'number': return ['float', 'double'];
-                case 'string': return ['binary', 'byte', 'date', 'date-time', 'password'];
-            }
-        }
-    },
-    title: 'string',
-    description: 'string',
-    default: {
-        type: ({ parent }) => parent.value.type,
-        deserialize: ({ exception, parent, value }) =>
-            Schema.helpers.deserializeDate(parent.value, exception, value)
-    },
-    multipleOf: {
-        allowed: ({ parent }) => ['integer', 'number'].includes(parent.value.type),
-        type: 'number'
-    },
-    maximum: Schema.helpers.maxOrMin,
-    exclusiveMaximum: Schema.helpers.exclusive,
-    minimum: Schema.helpers.maxOrMin,
-    exclusiveMinimum: Schema.helpers.exclusive,
-    maxLength: Schema.helpers.maxOrMinLength,
-    minLength: Schema.helpers.maxOrMinLength,
-    pattern: {
-        allowed: ({ parent }) => parent.value.type === 'string',
-        type: 'string',
-        errors: ({ exception, value }) => {
-            if (!value) exception('Value must be a non-empty string');
-        },
-        deserialize: ({ value }) => util.rxStringToRx(value)
-    },
-    maxItems: Schema.helpers.maxOrMinItems,
-    minItems: Schema.helpers.maxOrMinItems,
-    uniqueItems: {
-        allowed: ({parent}) => parent.value.type === 'array',
-        type: 'boolean'
-    },
-    maxProperties: Schema.helpers.maxOrMinProperties,
-    minProperties: Schema.helpers.maxOrMinProperties,
-    required: {
-        allowed: ({parent}) => parent.value.type === 'object',
-        items: 'string'
-    },
-    enum: {
-        items: {
-            allowed: ({ parent }) => !!(parent && parent.parent),
-            type: ({ parent }) => parent.parent.value.type,
-            deserialize: ({ exception, parent, value }) => {
-                return Schema.helpers.deserializeDate(parent.parent.value, exception, value);
-            },
-            errors: ({ exception, parent, value }) => {
-                // TODO: check for max, min, etc
-            }
-        }
-    },
-    items: Object.assign({}, Schema, {
-        allowed: ({parent}) => parent.value.type === 'array',
-        required: ({ parent }) => parent.value.type === 'array'
-    }),
-    allOf: {
-        allowed: ({parent}) => parent.value.type === 'object',
-        items: Schema
-    },
-    properties: {
-        allowed: ({parent}) => parent.value.type === 'object',
-        additionalProperties: Schema
-    },
     additionalProperties: {
         allowed: ({parent}) => parent.value.type === 'object',
         type: ['boolean', 'object'],
         default: true,
         properties: Schema
     },
+    allOf: {
+        allowed: ({parent}) => parent.value.type === 'object',
+        items: Schema
+    },
+    default: {
+        type: ({ parent }) => parent.value.type,
+        deserialize: ({ exception, parent, value }) =>
+            Schema.helpers.deserializeDate(parent.value, exception, value)
+    },
+    description: 'string',
     discriminator: {
         allowed: ({ parent }) => parent && parent.validator === Schema && parent.validator.type === 'object',
         type: 'string',
@@ -230,6 +168,63 @@ Object.assign(Schema.properties, {
 
         }
     },
+    enum: {
+        items: {
+            allowed: ({ parent }) => !!(parent && parent.parent),
+            type: ({ parent }) => parent.parent.value.type,
+            deserialize: ({ exception, parent, value }) => {
+                return Schema.helpers.deserializeDate(parent.parent.value, exception, value);
+            },
+            errors: ({ exception, parent, value }) => {
+                // TODO: check for max, min, etc
+            }
+        }
+    },
+    example: {
+        allowed: true
+    },
+    exclusiveMaximum: Schema.helpers.exclusive,
+    exclusiveMinimum: Schema.helpers.exclusive,
+    externalDocs: ExternalDocumentation,
+    format: {
+        allowed: ({ parent }) => ['integer', 'number', 'string'].includes(parent.value.type),
+        type: 'string',
+        enum: ({ parent }) => {
+            switch (parent.value.type) {
+                case 'integer': return ['int32', 'int64'];
+                case 'number': return ['float', 'double'];
+                case 'string': return ['binary', 'byte', 'date', 'date-time', 'password'];
+            }
+        }
+    },
+    items: Object.assign({}, Schema, {
+        allowed: ({parent}) => parent.value.type === 'array',
+        required: ({ parent }) => parent.value.type === 'array'
+    }),
+    maximum: Schema.helpers.maxOrMin,
+    maxItems: Schema.helpers.maxOrMinItems,
+    maxLength: Schema.helpers.maxOrMinLength,
+    maxProperties: Schema.helpers.maxOrMinProperties,
+    minimum: Schema.helpers.maxOrMin,
+    minItems: Schema.helpers.maxOrMinItems,
+    minLength: Schema.helpers.maxOrMinLength,
+    minProperties: Schema.helpers.maxOrMinProperties,
+    multipleOf: {
+        allowed: ({ parent }) => ['integer', 'number'].includes(parent.value.type),
+        type: 'number'
+    },
+    pattern: {
+        allowed: ({ parent }) => parent.value.type === 'string',
+        type: 'string',
+        errors: ({ exception, value }) => {
+            if (!value) exception('Value must be a non-empty string');
+        },
+        deserialize: ({ value }) => util.rxStringToRx(value)
+    },
+    properties: {
+        allowed: ({parent}) => parent.value.type === 'object',
+        additionalProperties: Schema
+    },
     readOnly: {
         allowed: ({ parent, value }) => {
             return parent && parent.parent && parent.parent.key === 'properties' &&
@@ -243,6 +238,15 @@ Object.assign(Schema.properties, {
             }
         }
     },
+    required: {
+        allowed: ({parent}) => parent.value.type === 'object',
+        items: 'string'
+    },
+    title: 'string',
+    uniqueItems: {
+        allowed: ({parent}) => parent.value.type === 'array',
+        type: 'boolean'
+    },
     xml: {
         properties: {
             name: 'string',
@@ -251,9 +255,5 @@ Object.assign(Schema.properties, {
             attribute: 'boolean',
             wrapped: 'boolean'
         }
-    },
-    externalDocs: ExternalDocumentation,
-    example: {
-        allowed: true
     }
 });
