@@ -151,6 +151,7 @@ Object.assign(Schema.properties, {
     title: 'string',
     description: 'string',
     default: {
+        type: ({ parent }) => parent.value.type,
         deserialize: ({ exception, parent, value }) =>
             Schema.helpers.deserializeDate(parent.value, exception, value)
     },
@@ -197,7 +198,8 @@ Object.assign(Schema.properties, {
         }
     },
     items: Object.assign({}, Schema, {
-        allowed: ({parent}) => parent.value.type === 'array'
+        allowed: ({parent}) => parent.value.type === 'array',
+        required: ({ parent }) => parent.value.type === 'array'
     }),
     allOf: {
         allowed: ({parent}) => parent.value.type === 'object',
@@ -210,7 +212,7 @@ Object.assign(Schema.properties, {
     additionalProperties: {
         allowed: ({parent}) => parent.value.type === 'object',
         type: ['boolean', 'object'],
-        default: false,
+        default: true,
         properties: Schema
     },
     discriminator: {

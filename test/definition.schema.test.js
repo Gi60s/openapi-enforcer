@@ -68,6 +68,11 @@ describe.only('definitions/schema', () => {
             expect(def.default).to.deep.equal(new Date('2000-01-01'));
         });
 
+        it('must must be the same type as type specified', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'number', default: 'hello' });
+            expect(err).to.match(/Value must be a number/)
+        });
+
     });
 
     describe('multipleOf', () => {
@@ -132,27 +137,27 @@ describe.only('definitions/schema', () => {
     describe('maxItems and minItems', () => {
 
         it('allows maxItems for array', () => {
-            const [ err  ] = definition(2, Schema, { type: 'array', maxItems: 5 });
+            const [ err  ] = definition(2, Schema, { type: 'array', items: { type: 'string' }, maxItems: 5 });
             expect(err).to.be.undefined;
         });
 
         it('allows minItems for array', () => {
-            const [ err  ] = definition(2, Schema, { type: 'array', minItems: 5 });
+            const [ err  ] = definition(2, Schema, { type: 'array', items: { type: 'string' }, minItems: 5 });
             expect(err).to.be.undefined;
         });
 
         it('allows minItems below maxItems', () => {
-            const [ err  ] = definition(2, Schema, { type: 'array', minItems: 0, maxItems: 5 });
+            const [ err  ] = definition(2, Schema, { type: 'array', items: { type: 'string' }, minItems: 0, maxItems: 5 });
             expect(err).to.be.undefined;
         });
 
         it('allows minItems at maxItems', () => {
-            const [ err  ] = definition(2, Schema, { type: 'array', minItems: 5, maxItems: 5 });
+            const [ err  ] = definition(2, Schema, { type: 'array', items: { type: 'string' }, minItems: 5, maxItems: 5 });
             expect(err).to.be.undefined;
         });
 
         it('does not allow minItems above maxItems', () => {
-            const [ err  ] = definition(2, Schema, { type: 'array', minItems: 6, maxItems: 5 });
+            const [ err  ] = definition(2, Schema, { type: 'array', items: { type: 'string' }, minItems: 6, maxItems: 5 });
             expect(err).to.match(/Property "minItems" must be less than or equal to "maxItems"/);
         });
 
@@ -234,12 +239,12 @@ describe.only('definitions/schema', () => {
     describe('uniqueItems', () => {
 
         it('is allowed if array', () => {
-            const [ err  ] = definition(2, Schema, { type: 'array', uniqueItems: true });
+            const [ err  ] = definition(2, Schema, { type: 'array', items: { type: 'string' }, uniqueItems: true });
             expect(err).to.be.undefined;
         });
 
         it('must be a boolean', () => {
-            const [ err  ] = definition(2, Schema, { type: 'array', uniqueItems: 'true' });
+            const [ err  ] = definition(2, Schema, { type: 'array', items: { type: 'string' }, uniqueItems: 'true' });
             expect(err).to.match(/must be a boolean/);
         });
 
@@ -379,6 +384,11 @@ describe.only('definitions/schema', () => {
             expect(err).to.be.undefined;
         });
 
+        it('is required for arrays', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'array' });
+            expect(err).to.match(/Missing required property: items/);
+        });
+
         it('is not valid for non-arrays', () => {
             const [ err, def ] = definition(2, Schema, { type: 'number', items: { type: 'string' } });
             expect(err).to.match(/Property not allowed: items/);
@@ -416,7 +426,7 @@ describe.only('definitions/schema', () => {
             expect(err).to.match(/Property not allowed: allOf/);
         });
 
-        it('is must be an array', () => {
+        it('must be an array', () => {
             const [ err, def ] = definition(2, Schema, { type: 'object', allOf: 'hello' });
             expect(err).to.match(/Value must be an array/);
         });
