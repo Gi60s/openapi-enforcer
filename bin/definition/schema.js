@@ -46,6 +46,15 @@ const Schema = {
             exception('Property "minimum" must be less than ' + msg + '"maximum"');
         }
 
+        if (value.hasOwnProperty('properties')) {
+            Object.keys(value.properties).forEach(key => {
+                const v = value.properties[key];
+                if (v.readOnly && v.writeOnly) {
+                    exception.at('properties').at(key)('Cannot be marked as both readOnly and writeOnly');
+                }
+            });
+        }
+
         if (value.hasOwnProperty('default') && value.enum) {
             const index = value.enum.findIndex(v => util.same(v, value.default));
             if (index === -1) exception('Default value does not meet enum requirements');
@@ -134,7 +143,11 @@ module.exports = Schema;
 Object.assign(Schema.properties, {
     type: {
         type: 'string',
-        required: true,
+        required: ({ parent }) => {
+            const v = parent.value;
+            return !v.hasOwnProperty('allOf') && !v.hasOwnProperty('anyOf') &&
+                !v.hasOwnProperty('not') && !v.hasOwnProperty('oneOf');
+        },
         enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
     },
     additionalProperties: {
@@ -144,7 +157,13 @@ Object.assign(Schema.properties, {
         properties: Schema
     },
     allOf: {
-        allowed: ({parent}) => parent.value.type === 'object',
+        items: Schema,
+        error: () => {
+            // TODO: merge all schemas to check for conflict
+        }
+    },
+    anyOf: {
+        allowed: ({major}) => major === 3,
         items: Schema
     },
     default: {
@@ -152,10 +171,26 @@ Object.assign(Schema.properties, {
         deserialize: ({ exception, parent, value }) =>
             Schema.helpers.deserializeDate(parent.value, exception, value)
     },
+    deprecated: {
+        allowed: ({major}) => major === 3,
+        type: 'boolean',
+        default: false
+    },
     description: 'string',
     discriminator: {
         allowed: ({ parent }) => parent && parent.validator === Schema && parent.validator.type === 'object',
-        type: 'string',
+        type: ({ major }) => major === 2 ? 'string' : 'object',
+        properties: {
+            propertyName: {
+                type: 'string',
+                required: true
+            },
+            mapping: {
+                additionalProperties: {
+                    type: 'string'
+                }
+            }
+        },
         errors: ({ exception, major, parent, value }) => {
             if (major === 2) {
                 if (!parent.value.required || !parent.value.required.includes(value)) {
@@ -164,8 +199,15 @@ Object.assign(Schema.properties, {
                 if (!parent.value.properties || !parent.value.properties.hasOwnProperty(value)) {
                     exception('Value "' + value + '" must be found in the parent\'s properties definition.');
                 }
-            }
 
+            } else if (major === 3) {
+                if (!parent.value.required || !parent.value.required.includes(value.propertyName)) {
+                    exception('Value "' + value.propertyName + '" must be found in the parent\'s required properties list.');
+                }
+                if (!parent.value.properties || !parent.value.properties.hasOwnProperty(value.propertyName)) {
+                    exception('Value "' + value.propertyName + '" must be found in the parent\'s properties definition.');
+                }
+            }
         }
     },
     enum: {
@@ -174,9 +216,6 @@ Object.assign(Schema.properties, {
             type: ({ parent }) => parent.parent.value.type,
             deserialize: ({ exception, parent, value }) => {
                 return Schema.helpers.deserializeDate(parent.parent.value, exception, value);
-            },
-            errors: ({ exception, parent, value }) => {
-                // TODO: check for max, min, etc
             }
         }
     },
@@ -213,6 +252,18 @@ Object.assign(Schema.properties, {
         allowed: ({ parent }) => ['integer', 'number'].includes(parent.value.type),
         type: 'number'
     },
+    not: Object.assign({}, Schema, {
+        allowed: ({major}) => major === 3
+    }),
+    nullable: {
+        allowed: ({major}) => major === 3,
+        type: 'boolean',
+        default: false
+    },
+    oneOf: {
+        allowed: ({major}) => major === 3,
+        items: Schema
+    },
     pattern: {
         allowed: ({ parent }) => parent.value.type === 'string',
         type: 'string',
@@ -226,14 +277,11 @@ Object.assign(Schema.properties, {
         additionalProperties: Schema
     },
     readOnly: {
-        allowed: ({ parent, value }) => {
-            return parent && parent.parent && parent.parent.key === 'properties' &&
-                parent.parent.parent && parent.parent.parent.validator === Schema;
-        },
+        allowed: isSchemaProperty,
         type: 'boolean',
         default: false,
-        errors: ({ parent, value, warn }) => {
-            if (parent && parent.parent && parent.parent.parent && parent.parent.parent.value.required && parent.parent.parent.value.required.includes(parent.key)) {
+        errors: ({ major, parent }) => {
+            if (major === 2 && parent && parent.parent && parent.parent.parent && parent.parent.parent.value.required && parent.parent.parent.value.required.includes(parent.key)) {
                 parent.warn('Property should not be marked as both read only and required');
             }
         }
@@ -247,6 +295,11 @@ Object.assign(Schema.properties, {
         allowed: ({parent}) => parent.value.type === 'array',
         type: 'boolean'
     },
+    writeOnly: {
+        allowed: (data) => data.major === 3 && isSchemaProperty(data),
+        type: 'boolean',
+        default: false
+    },
     xml: {
         properties: {
             name: 'string',
@@ -257,3 +310,8 @@ Object.assign(Schema.properties, {
         }
     }
 });
+
+function isSchemaProperty({ parent }) {
+    return parent && parent.parent && parent.parent.key === 'properties' &&
+        parent.parent.parent && parent.parent.parent.validator === Schema;
+}

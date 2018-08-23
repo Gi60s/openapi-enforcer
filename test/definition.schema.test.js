@@ -40,16 +40,103 @@ describe.only('definitions/schema', () => {
 
     });
 
-    describe('format', () => {
+    describe('additionalProperties', () => {
 
-        it('allows valid format', () => {
-            const [ err ] = definition(2, Schema, { type: 'string', format: 'date' });
+        it('is valid for objects', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', additionalProperties: { type: 'string' } });
             expect(err).to.be.undefined;
         });
 
-        it('does not allow invalid format', () => {
-            const [ err ] = definition(2, Schema, { type: 'string', format: 'foo' });
-            expect(err).to.match(/Value must be one of:/);
+        it('is not valid for non-objects', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'array', additionalProperties: { type: 'string' } });
+            expect(err).to.match(/Property not allowed: additionalProperties/);
+        });
+
+        it('can be a boolean', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', additionalProperties: true });
+            expect(err).to.be.undefined;
+        });
+
+        it('can be an object', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', additionalProperties: { type: 'string' } });
+            expect(err).to.be.undefined;
+        });
+
+        it('it cannot be a string', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', additionalProperties: 'hello' });
+            expect(err).to.match(/Value must be a boolean or a plain object/);
+        });
+
+        it('validates items', () => {
+            const [ err, def ] = definition(2, Schema, {
+                type: 'object',
+                properties: {
+                    x: {
+                        type: 'boolean',
+                        format: 'date',
+                    }
+                }
+            });
+            expect(err).to.match(/Property not allowed: format/);
+        });
+
+    });
+
+    describe('allOf', () => {
+
+        it('it does not need a type specified', () => {
+            const [ err, def ] = definition(2, Schema, { allOf: [] });
+            expect(err).to.be.undefined;
+        });
+
+        it('must be an array', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', allOf: 'hello' });
+            expect(err).to.match(/Value must be an array/);
+        });
+
+        it('accepts multiple items', () => {
+            const [ err, def ] = definition(2, Schema, {
+                allOf: [
+                    { type: 'string', minLength: 5 },
+                    { type: 'string', maxLength: 10 }
+                ]
+            });
+            expect(err).to.be.undefined;
+        });
+
+        it('validates items', () => {
+            const [ err, def ] = definition(2, Schema, {
+                allOf: [{ type: 'string', maximum: 5 }]
+            });
+            expect(err).to.match(/Property not allowed: maximum/);
+        });
+
+    });
+
+    describe('anyOf', () => {
+
+        it('is not allowed for v2', () => {
+            const [ err, def ] = definition(2, Schema, { anyOf: [] });
+            expect(err).to.match(/Property not allowed: anyOf/);
+        });
+
+        it('is allowed for v3', () => {
+            const [ err, def ] = definition(3, Schema, { anyOf: [] });
+            expect(err).to.be.undefined;
+        });
+
+        it('must be an array', () => {
+            const [ err, def ] = definition(3, Schema, { anyOf: {} });
+            expect(err).to.match(/Value must be an array/);
+        });
+
+        it('validates items', () => {
+            const [ err, def ] = definition(3, Schema, {
+                anyOf: [
+                    { type: 'string', default: 1 }
+                ]
+            });
+            expect(err).to.match(/Value must be a string/);
         });
 
     });
@@ -75,16 +162,242 @@ describe.only('definitions/schema', () => {
 
     });
 
-    describe('multipleOf', () => {
+    describe('deprecated', () => {
 
-        it('allows multipleOf for number', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'number', multipleOf: 2 });
+        it('is not allowed for v2', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'string', deprecated: true });
+            expect(err).to.match(/Property not allowed: deprecated/);
+        });
+
+        it('is allowed for v3', () => {
+            const [ err, def ] = definition(3, Schema, { type: 'string', deprecated: true });
             expect(err).to.be.undefined;
         });
 
-        it('does not allow multipleOf for string', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'string', multipleOf: 2 });
-            expect(err).to.match(/Property not allowed: multipleOf/);
+        it('must be a boolean', () => {
+            const [ err, def ] = definition(3, Schema, { type: 'string', deprecated: 'hello' });
+            expect(err).to.match(/Value must be a boolean/);
+        });
+
+        it('defaults to false', () => {
+            const [ err, def ] = definition(3, Schema, { type: 'string' });
+            expect(def.deprecated).to.equal(false);
+        });
+
+        it('does not have default for v2', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'string' });
+            expect(def).not.to.haveOwnProperty('deprecated');
+        });
+
+    });
+
+    describe('description', () => {
+
+        it('can be a string', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'string', description: 'hello' });
+            expect(err).to.be.undefined;
+        });
+
+        it('cannot be a number', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'string', description: 1 });
+            expect(err).to.match(/Value must be a string/);
+        });
+
+    });
+
+    describe('discriminator', () => {
+
+        describe('v2', () => {
+
+            it('can be valid', () => {
+                const [ err, def ] = definition(2, Schema, {
+                    type: 'object',
+                    discriminator: 'a',
+                    required: ['a'],
+                    properties: { a: { type: 'string' } }
+                });
+                expect(err).to.be.undefined;
+            });
+
+            it('must be a string', () => {
+                const [ err, def ] = definition(2, Schema, {
+                    type: 'object',
+                    discriminator: 1,
+                    required: ['a'],
+                    properties: { a: { type: 'string' } }
+                });
+                expect(err).to.match(/Value must be a string/);
+            });
+
+            it('must require property', () => {
+                const [ err, def ] = definition(2, Schema, {
+                    type: 'object',
+                    discriminator: 'a',
+                    properties: { a: { type: 'string' } }
+                });
+                expect(err).to.match(/Value "a" must be found in the parent's required properties list/);
+            });
+
+            it('must be listed as a property', () => {
+                const [ err, def ] = definition(2, Schema, {
+                    type: 'object',
+                    discriminator: 'a',
+                    required: ['a']
+                });
+                expect(err).to.match(/Value "a" must be found in the parent's properties definition/);
+            });
+
+        });
+
+        describe.skip('v3', () => {
+
+        });
+
+    });
+
+    describe('enum', () => {
+
+        it('must be an array', () => {
+            const [ err ] = definition(2, Schema, { type: 'string', enum: 1 });
+            expect(err).to.match(/Value must be an array/);
+        });
+
+        describe('strings', () => {
+
+            it('allows enum value with matching types', () => {
+                const [ err ] = definition(2, Schema, { type: 'string', enum: ['a', 'b', 'c'] });
+                expect(err).to.be.undefined;
+            });
+
+            it('does not allow enum value with mismatched type', () => {
+                const [ err ] = definition(2, Schema, { type: 'string', enum: [1] });
+                expect(err).to.match(/Value must be a string/);
+            });
+
+        });
+
+        describe('numbers', () => {
+
+            it('allows enum value with matching types', () => {
+                const [ err ] = definition(2, Schema, { type: 'number', enum: [1] });
+                expect(err).to.be.undefined;
+            });
+
+            it('does not allow enum value with mismatched type', () => {
+                const [ err ] = definition(2, Schema, { type: 'number', enum: ['a'] });
+                expect(err).to.match(/Value must be a number/);
+            });
+
+        });
+
+        describe('dates', () => {
+
+            it('allows enum value with matching types', () => {
+                const [ err, def ] = definition(2, Schema, { type: 'string', format: 'date', enum: ['2001-01-01'] });
+                expect(err).to.be.undefined;
+            });
+
+            it('parses enum values', () => {
+                const [ err, def ] = definition(2, Schema, { type: 'string', format: 'date', enum: ['2001-01-01'] });
+                expect(def.enum[0]).to.deep.equal(new Date('2001-01-01'));
+            });
+
+            it('does not allow enum value with mismatched type', () => {
+                const [ err ] = definition(2, Schema, { type: 'string', format: 'date', enum: ['a'] });
+                expect(err).to.match(/Value must be formatted as a date/);
+            });
+        });
+
+        describe('object', () => {
+
+            it('allows enum value with matching types', () => {
+                const [ err, def ] = definition(2, Schema, {
+                    type: 'object',
+                    properties: {
+                        a: { type: 'string' }
+                    },
+                    enum: [
+                        { a: 'a' },
+                        { a: 'b' }
+                    ]
+                });
+                expect(err).to.be.undefined;
+            });
+
+            it('does not allow enum value with mismatched type', () => {
+                const [ err, def ] = definition(2, Schema, {
+                    type: 'object',
+                    properties: {
+                        a: { type: 'string' }
+                    },
+                    enum: [ 1 ]
+                });
+                expect(err).to.match(/Value must be a plain object/);
+            });
+
+        });
+
+    });
+
+    describe('example', () => {
+
+        it('can be a string', () => {
+            const [ err ] = definition(2, Schema, {
+                type: 'string',
+                example: 'hello'
+            });
+            expect(err).to.be.undefined;
+        });
+
+    });
+
+    describe('format', () => {
+
+        it('allows valid format', () => {
+            const [ err ] = definition(2, Schema, { type: 'string', format: 'date' });
+            expect(err).to.be.undefined;
+        });
+
+        it('does not allow invalid format', () => {
+            const [ err ] = definition(2, Schema, { type: 'string', format: 'foo' });
+            expect(err).to.match(/Value must be one of:/);
+        });
+
+    });
+
+    describe('items', () => {
+
+        it('is valid for arrays', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'array', items: { type: 'string' } });
+            expect(err).to.be.undefined;
+        });
+
+        it('is required for arrays', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'array' });
+            expect(err).to.match(/Missing required property: items/);
+        });
+
+        it('is not valid for non-arrays', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'number', items: { type: 'string' } });
+            expect(err).to.match(/Property not allowed: items/);
+        });
+
+        it('cannot be a non object', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'array', items: 'string' });
+            expect(err).to.match(/Value must be a plain object/);
+        });
+
+        it('traverses sub objects', () => {
+            const [ err, def ] = definition(2, Schema, {
+                type: 'array',
+                items: {
+                    type: 'string',
+                    format: 'date',
+                    default: '2001-01-01',
+                    enum: ['2001-01-01', '2001-01-02']
+                }
+            });
+            expect(def.items.default).to.deep.equal(new Date('2001-01-01'));
         });
 
     });
@@ -236,21 +549,65 @@ describe.only('definitions/schema', () => {
 
     });
 
-    describe('uniqueItems', () => {
+    describe('multipleOf', () => {
 
-        it('is allowed if array', () => {
-            const [ err  ] = definition(2, Schema, { type: 'array', items: { type: 'string' }, uniqueItems: true });
+        it('allows multipleOf for number', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'number', multipleOf: 2 });
             expect(err).to.be.undefined;
         });
 
-        it('must be a boolean', () => {
-            const [ err  ] = definition(2, Schema, { type: 'array', items: { type: 'string' }, uniqueItems: 'true' });
-            expect(err).to.match(/must be a boolean/);
+        it('does not allow multipleOf for string', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'string', multipleOf: 2 });
+            expect(err).to.match(/Property not allowed: multipleOf/);
         });
 
-        it('is not allowed if number', () => {
-            const [ err  ] = definition(2, Schema, { type: 'number', uniqueItems: false });
-            expect(err).to.match(/Property not allowed: uniqueItems/);
+    });
+
+    describe('not', () => {
+
+        it('is not allowed for v2', () => {
+            const [ err, def ] = definition(2, Schema, { not: { type: 'string' } });
+            expect(err).to.match(/Property not allowed: not/);
+        });
+
+        it('is allowed for v3', () => {
+            const [ err, def ] = definition(3, Schema, { not: { type: 'string' } });
+            expect(err).to.be.undefined;
+        });
+
+        it('validates sub schema', () => {
+            const [ err, def ] = definition(3, Schema, {
+                not: { type: 'string', default: 1 }
+            });
+            expect(err).to.match(/Value must be a string/);
+        });
+
+    });
+
+    describe('oneOf', () => {
+
+        it('is not allowed for v2', () => {
+            const [ err, def ] = definition(2, Schema, { oneOf: [] });
+            expect(err).to.match(/Property not allowed: oneOf/);
+        });
+
+        it('is allowed for v3', () => {
+            const [ err, def ] = definition(3, Schema, { oneOf: [] });
+            expect(err).to.be.undefined;
+        });
+
+        it('must be an array', () => {
+            const [ err, def ] = definition(3, Schema, { oneOf: {} });
+            expect(err).to.match(/Value must be an array/);
+        });
+
+        it('validates items', () => {
+            const [ err, def ] = definition(3, Schema, {
+                oneOf: [
+                    { type: 'string', default: 1 }
+                ]
+            });
+            expect(err).to.match(/Value must be a string/);
         });
 
     });
@@ -270,184 +627,6 @@ describe.only('definitions/schema', () => {
         it('is not allowed for type boolean', () => {
             const [ err ] = definition(2, Schema, { type: 'boolean', pattern: 'hello' });
             expect(err).to.match(/Property not allowed: pattern/);
-        });
-
-    });
-
-    describe('required', () => {
-
-        it('is allowed for type object', () => {
-            const [ err ] = definition(2, Schema, { type: 'object', required: ['hello'] });
-            expect(err).to.be.undefined;
-        });
-
-        it('must be an array', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'object', required: 'hello' });
-            expect(err).to.match(/Value must be an array/);
-        });
-
-        it('is not allowed for type boolean', () => {
-            const [ err ] = definition(2, Schema, { type: 'boolean', required: ['hello'] });
-            expect(err).to.match(/Property not allowed: required/);
-        });
-
-    });
-
-    describe('enum', () => {
-
-        it('must be an array', () => {
-            const [ err ] = definition(2, Schema, { type: 'string', enum: 1 });
-            expect(err).to.match(/Value must be an array/);
-        });
-
-        describe('strings', () => {
-
-            it('allows enum value with matching types', () => {
-                const [ err ] = definition(2, Schema, { type: 'string', enum: ['a', 'b', 'c'] });
-                expect(err).to.be.undefined;
-            });
-
-            it('does not allow enum value with mismatched type', () => {
-                const [ err ] = definition(2, Schema, { type: 'string', enum: [1] });
-                expect(err).to.match(/Value must be a string/);
-            });
-
-        });
-
-        describe('numbers', () => {
-
-            it('allows enum value with matching types', () => {
-                const [ err ] = definition(2, Schema, { type: 'number', enum: [1] });
-                expect(err).to.be.undefined;
-            });
-
-            it('does not allow enum value with mismatched type', () => {
-                const [ err ] = definition(2, Schema, { type: 'number', enum: ['a'] });
-                expect(err).to.match(/Value must be a number/);
-            });
-
-        });
-
-        describe('dates', () => {
-
-            it('allows enum value with matching types', () => {
-                const [ err, def ] = definition(2, Schema, { type: 'string', format: 'date', enum: ['2001-01-01'] });
-                expect(err).to.be.undefined;
-            });
-
-            it('parses enum values', () => {
-                const [ err, def ] = definition(2, Schema, { type: 'string', format: 'date', enum: ['2001-01-01'] });
-                expect(def.enum[0]).to.deep.equal(new Date('2001-01-01'));
-            });
-
-            it('does not allow enum value with mismatched type', () => {
-                const [ err ] = definition(2, Schema, { type: 'string', format: 'date', enum: ['a'] });
-                expect(err).to.match(/Value must be formatted as a date/);
-            });
-        });
-
-        describe('object', () => {
-
-            it('allows enum value with matching types', () => {
-                const [ err, def ] = definition(2, Schema, {
-                    type: 'object',
-                    properties: {
-                        a: { type: 'string' }
-                    },
-                    enum: [
-                        { a: 'a' },
-                        { a: 'b' }
-                    ]
-                });
-                expect(err).to.be.undefined;
-            });
-
-            it('does not allow enum value with mismatched type', () => {
-                const [ err, def ] = definition(2, Schema, {
-                    type: 'object',
-                    properties: {
-                        a: { type: 'string' }
-                    },
-                    enum: [ 1 ]
-                });
-                expect(err).to.match(/Value must be a plain object/);
-            });
-
-        });
-
-    });
-
-    describe('items', () => {
-
-        it('is valid for arrays', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'array', items: { type: 'string' } });
-            expect(err).to.be.undefined;
-        });
-
-        it('is required for arrays', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'array' });
-            expect(err).to.match(/Missing required property: items/);
-        });
-
-        it('is not valid for non-arrays', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'number', items: { type: 'string' } });
-            expect(err).to.match(/Property not allowed: items/);
-        });
-
-        it('cannot be a non object', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'array', items: 'string' });
-            expect(err).to.match(/Value must be a plain object/);
-        });
-
-        it('traverses sub objects', () => {
-            const [ err, def ] = definition(2, Schema, {
-                type: 'array',
-                items: {
-                    type: 'string',
-                    format: 'date',
-                    default: '2001-01-01',
-                    enum: ['2001-01-01', '2001-01-02']
-                }
-            });
-            expect(def.items.default).to.deep.equal(new Date('2001-01-01'));
-        });
-
-    });
-
-    describe('allOf', () => {
-
-        it('is valid for objects', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'object', allOf: [] });
-            expect(err).to.be.undefined;
-        });
-
-        it('is not valid for non-objects', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'array', allOf: [] });
-            expect(err).to.match(/Property not allowed: allOf/);
-        });
-
-        it('must be an array', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'object', allOf: 'hello' });
-            expect(err).to.match(/Value must be an array/);
-        });
-
-        it('accepts multiple items', () => {
-            const [ err, def ] = definition(2, Schema, {
-                type: 'object',
-                allOf: [
-                    { type: 'string', minLength: 5 },
-                    { type: 'string', maxLength: 10 }
-                ]
-            });
-            expect(err).to.be.undefined;
-        });
-
-        it('validates items', () => {
-            const [ err, def ] = definition(2, Schema, {
-                type: 'object',
-                allOf: [{ type: 'string', maximum: 5 }]
-            });
-            expect(err).to.match(/Property not allowed: maximum/);
         });
 
     });
@@ -480,98 +659,6 @@ describe.only('definitions/schema', () => {
                 }
             });
             expect(err).to.match(/Property not allowed: format/);
-        });
-
-    });
-
-    describe('additionalProperties', () => {
-
-        it('is valid for objects', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'object', additionalProperties: { type: 'string' } });
-            expect(err).to.be.undefined;
-        });
-
-        it('is not valid for non-objects', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'array', additionalProperties: { type: 'string' } });
-            expect(err).to.match(/Property not allowed: additionalProperties/);
-        });
-
-        it('can be a boolean', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'object', additionalProperties: true });
-            expect(err).to.be.undefined;
-        });
-
-        it('can be an object', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'object', additionalProperties: { type: 'string' } });
-            expect(err).to.be.undefined;
-        });
-
-        it('it cannot be a string', () => {
-            const [ err, def ] = definition(2, Schema, { type: 'object', additionalProperties: 'hello' });
-            expect(err).to.match(/Value must be a boolean or a plain object/);
-        });
-
-        it('validates items', () => {
-            const [ err, def ] = definition(2, Schema, {
-                type: 'object',
-                properties: {
-                    x: {
-                        type: 'boolean',
-                        format: 'date',
-                    }
-                }
-            });
-            expect(err).to.match(/Property not allowed: format/);
-        });
-
-    });
-
-    describe('discriminator', () => {
-
-        describe('v2', () => {
-
-            it('can be valid', () => {
-                const [ err, def ] = definition(2, Schema, {
-                    type: 'object',
-                    discriminator: 'a',
-                    required: ['a'],
-                    properties: { a: { type: 'string' } }
-                });
-                expect(err).to.be.undefined;
-            });
-
-            it('must be a string', () => {
-                const [ err, def ] = definition(2, Schema, {
-                    type: 'object',
-                    discriminator: 1,
-                    required: ['a'],
-                    properties: { a: { type: 'string' } }
-                });
-                expect(err).to.match(/Value must be a string/);
-            });
-
-            it('must require property', () => {
-                const [ err, def ] = definition(2, Schema, {
-                    type: 'object',
-                    discriminator: 'a',
-                    properties: { a: { type: 'string' } }
-                });
-                expect(err).to.match(/Value "a" must be found in the parent's required properties list/);
-            });
-
-            it('must be listed as a property', () => {
-                const [ err, def ] = definition(2, Schema, {
-                    type: 'object',
-                    discriminator: 'a',
-                    required: ['a']
-                });
-                expect(err).to.match(/Value "a" must be found in the parent's properties definition/);
-            });
-
-        });
-
-        describe.skip('v3', () => {
-
         });
 
     });
@@ -615,14 +702,93 @@ describe.only('definitions/schema', () => {
 
     });
 
-    describe('example', () => {
+    describe('required', () => {
 
-        it('can be a string', () => {
-            const [ err ] = definition(2, Schema, {
-                type: 'string',
-                example: 'hello'
+        it('is allowed for type object', () => {
+            const [ err ] = definition(2, Schema, { type: 'object', required: ['hello'] });
+            expect(err).to.be.undefined;
+        });
+
+        it('must be an array', () => {
+            const [ err, def ] = definition(2, Schema, { type: 'object', required: 'hello' });
+            expect(err).to.match(/Value must be an array/);
+        });
+
+        it('is not allowed for type boolean', () => {
+            const [ err ] = definition(2, Schema, { type: 'boolean', required: ['hello'] });
+            expect(err).to.match(/Property not allowed: required/);
+        });
+
+    });
+
+    describe('uniqueItems', () => {
+
+        it('is allowed if array', () => {
+            const [ err  ] = definition(2, Schema, { type: 'array', items: { type: 'string' }, uniqueItems: true });
+            expect(err).to.be.undefined;
+        });
+
+        it('must be a boolean', () => {
+            const [ err  ] = definition(2, Schema, { type: 'array', items: { type: 'string' }, uniqueItems: 'true' });
+            expect(err).to.match(/must be a boolean/);
+        });
+
+        it('is not allowed if number', () => {
+            const [ err  ] = definition(2, Schema, { type: 'number', uniqueItems: false });
+            expect(err).to.match(/Property not allowed: uniqueItems/);
+        });
+
+    });
+
+    describe('writeOnly', () => {
+
+        it('is not allowed in v2', () => {
+            const [ err, def ] = definition(2, Schema, {
+                type: 'object',
+                properties: {
+                    a: {
+                        type: 'string',
+                        writeOnly: true
+                    }
+                }
+            });
+            expect(err).to.match(/Property not allowed: writeOnly/)
+        });
+
+        it('is valid on properties within a schema', () => {
+            const [ err, def ] = definition(3, Schema, {
+                type: 'object',
+                properties: {
+                    a: {
+                        type: 'string',
+                        writeOnly: true
+                    }
+                }
             });
             expect(err).to.be.undefined;
+        });
+
+        it('is not valid on a schema', () => {
+            const [ err, def ] = definition(3, Schema, {
+                type: 'object',
+                writeOnly: true
+            });
+            expect(err).to.match(/Property not allowed: writeOnly/);
+        });
+
+        it('should not readOnly and writeOnly', () => {
+            const [ err ]= definition(3, Schema, {
+                type: 'object',
+                required: ['a'],
+                properties: {
+                    a: {
+                        type: 'string',
+                        readOnly: true,
+                        writeOnly: true
+                    }
+                }
+            });
+            expect(err).to.match(/Cannot be marked as both readOnly and writeOnly/);
         });
 
     });
