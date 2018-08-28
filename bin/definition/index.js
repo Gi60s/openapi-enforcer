@@ -101,10 +101,10 @@ function normalize(data) {
         if (validator.type && (message = checkType(data))) {
             exception('Value must be ' + message + '. Received: ' + util.smart(value));
 
-            // check if enum matches
+        // check if enum matches
         } else if (validator.enum && (message = checkEnum(data))) {
             message.length === 1
-                ? exception('Value must equal: ' + message[0] + '. Received: ' + util.smart(value))
+                ? exception('Value must be ' + util.smart(message[0]) + '. Received: ' + util.smart(value))
                 : exception('Value must be one of: ' + message.join(', ') + '. Received: ' + util.smart(value));
 
         } else if (type === 'array') {
@@ -126,7 +126,7 @@ function normalize(data) {
             result = {};
             if (validator.additionalProperties) {
                 Object.keys(value).forEach(key => {
-                    result[key] = normalize({
+                    const param = {
                         exception: exception.at(key),
                         key,
                         major,
@@ -136,7 +136,19 @@ function normalize(data) {
                         validator: validator.additionalProperties,
                         value: value[key],
                         warn: warn.at(key)
-                    });
+                    };
+
+                    const allowed = validator.additionalProperties.hasOwnProperty('allowed')
+                        ? fn(validator.additionalProperties.allowed, param)
+                        : true;
+
+                    if (allowed === true) {
+                        result[key] = normalize(param);
+                    } else {
+                        let message = 'Property not allowed: ' + key;
+                        if (typeof allowed[key] === 'string') message += '. ' + allowed[key];
+                        exception(message)
+                    }
                 });
 
             } else if (!validator.properties) {
@@ -147,7 +159,6 @@ function normalize(data) {
             } else {
                 const allowed = {};
                 const missingRequired = [];
-                const notAllowed = [];
                 const properties = validator.properties;
 
                 // check for missing required and set defaults
@@ -175,7 +186,8 @@ function normalize(data) {
                         if (validator.required && fn(validator.required, param)) {
                             missingRequired.push(key);
                         } else if (validator.hasOwnProperty('default')) {
-                            value[key] = fn(validator.default, param);
+                            const defaultValue = fn(validator.default, param);
+                            if (defaultValue !== undefined) value[key] = defaultValue;
                         }
                     }
                 });
@@ -188,8 +200,10 @@ function normalize(data) {
                         result[key] = value[key];
 
                         // check if property allowed
-                    } else if (!allowed[key]) {
-                        notAllowed.push(key);
+                    } else if (allowed[key] !== true) {
+                        let message = 'Property not allowed: ' + key;
+                        if (typeof allowed[key] === 'string') message += '. ' + allowed[key];
+                        exception(message)
 
                     } else if (!validator.ignore || !fn(validator.ignore, {
                         exception,
@@ -220,11 +234,6 @@ function normalize(data) {
                 if (missingRequired.length) {
                     missingRequired.sort();
                     exception('Missing required propert' + (missingRequired.length === 1 ? 'y' : 'ies') + ': ' + missingRequired.join(', '));
-                }
-
-                // report not allowed properties
-                if (notAllowed.length) {
-                    exception('Propert' + (notAllowed.length === 1 ? 'y' : 'ies') + ' not allowed: ' + notAllowed.join(', '));
                 }
             }
 
