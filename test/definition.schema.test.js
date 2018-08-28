@@ -19,7 +19,7 @@ const definition    = require('../bin/definition/index').normalize;
 const expect        = require('chai').expect;
 const Schema        = require('../bin/definition/schema');
 
-describe.only('definitions/schema', () => {
+describe('definitions/schema', () => {
 
     it('allows a valid schema object', () => {
         const [ err ] = definition(2, Schema, { type: 'string' });
