@@ -160,8 +160,13 @@ exports.same = function same(v1, v2) {
 };
 
 exports.smart = function(value) {
-    if (typeof value === 'string') return '"' + value.replace(/"/g, '\\"') + '"';
+    const type = typeof value;
+    if (type === 'string') return '"' + value.replace(/"/g, '\\"') + '"';
     if (value instanceof Date) return value.toISOString();
+    if (value && type === 'object') {
+        const name = value.constructor.name;
+        return '[object' + (name ? ' ' + name : '') + ']';
+    }
     return String(value);
 };
 
