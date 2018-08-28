@@ -15,120 +15,173 @@
  *    limitations under the License.
  **/
 'use strict';
+const Example   = require('./example');
 const Items     = require('./items');
 const Schema    = require('./schema');
 
-module.exports = Object.assign({}, Items, {
+const parameter = {
+    properties: {
+        style: {
+            allowed: ({ major }) => major === 3,
+            type: 'string',
+            default: ({ parent }) => {
+                switch (parent.value.in) {
+                    case 'cookie': return 'form';
+                    case 'header': return 'simple';
+                    case 'path': return 'simple';
+                    case 'query': return 'form';
+                }
+            },
+            enum: ({ parent }) => {
+                switch (parent.value.in) {
+                    case 'cookie': return ['form'];
+                    case 'header': return ['simple'];
+                    case 'path': return ['simple', 'label', 'matrix'];
+                    case 'query': return ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'];
+                }
+            },
+            errors: ({ exception, parent }) => {
+                const style = parent.value.style;
+                const type = parent.value.schema && parent.value.schema.type;
+                if (!type || !style) return true;
+                if (parent.value.in === 'query') {
+                    if ((style !== 'form') &&
+                        !(style === 'spaceDelimited' && type === 'array') &&
+                        !(style === 'pipeDelimited' && type === 'array') &&
+                        !(style === 'deepObject' && type === 'object')) {
+                        exception('Style "' + style + '" is incompatible with schema type: ' + type);
+                    }
+                }
+            }
+        }
+    },
+
+    errors: ({ exception, major, value }) => {
+        if (value.hasOwnProperty('default') && value.required) {
+            exception('Cannot have a "default" and set "required" to true');
+        }
+
+        if (major === 3) {
+            if (value.hasOwnProperty('content') && value.hasOwnProperty('schema')) {
+                exception('Cannot have both "content" and "schema" properties');
+            } else if (!value.hasOwnProperty('content') && !value.hasOwnProperty('schema')) {
+                exception('Missing required property "content" or "schema"');
+            }
+
+            if (value.hasOwnProperty('example') && value.hasOwnProperty('examples')) {
+                exception('Cannot have both "example" and "examples" properties');
+            }
+        }
+    }
+};
+
+module.exports = parameter;
+
+Object.assign(parameter.properties, {
     name: {
         required: true,
-        type: 'string',
-        ignore: ({ definition, value, major }) => {
-            if (typeof value === 'string') value = value.toLowerCase();
-            return major === 3 && definition.in === 'header' && (value === 'accept' || value === 'content-type' || value === 'authorization')
-        }
+        type: 'string'
     },
     in: {
         required: true,
         type: 'string',
-        enum: ({ definition, major }) => major === 2
+        enum: ({ major }) => major === 2
             ? ['body', 'formData', 'header', 'query', 'path']
             : ['cookie', 'header', 'path', 'query'],
     },
     type: {
-        allowed: ({ definition, major }) => major === 2 && definition.in !== 'body',
+        allowed: ({ major, parent }) => major === 2 && parent.value.in !== 'body',
         required: true,
-        enum: ['array', 'boolean', 'file', 'integer', 'number', 'string'],
-        errors: ({ definition, value }) => value !== 'file' || definition.in === 'formData' ? false : 'Type "file" must be in "formData"'
-    },
-    description: 'string',
-    required: {
-        required: ({ definition }) => definition.in === 'path',
-        type: 'boolean',
-        default: false,
-        enum: ({ definition }) => definition.in === 'path' ? [ true ] : [ true, false ]
-    },
-    deprecated: {
-        allowed: ({ major }) => major === 3,
-        type: 'boolean'
+        enum: ({ parent }) => parent.value.in === 'formData'
+                ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
+                : ['array', 'boolean', 'integer', 'number', 'string']
     },
     allowEmptyValue: {
-        allowed: ({ definition }) => definition.in === 'query' || definition.in === 'formData',
+        allowed: ({ parent }) => ['query', 'formData'].includes(parent.value.in),
         type: 'boolean',
         default: false
     },
-    collectionFormat: { // overwrite items - can use 'multi'
-        allowed: ({ definition, major }) => major === 2 && definition.type === 'array',
-        enum: ({ definition }) => definition.in === 'formData' || definition.in === 'query'
+    allowReserved: {
+        allowed: ({ parent, major }) => major === 3 && parent.value.in === 'query',
+        type: 'boolean',
+        default: ({ parent }) => parent.value.style === 'form'
+    },
+    collectionFormat: {
+        allowed: ({ major, parent }) => major === 2 && parent.value.type === 'array',
+        enum: ({ parent }) => ['query', 'formData'].includes(parent.value.in)
             ? ['csv', 'ssv', 'tsv', 'pipes', 'multi']
             : ['csv', 'ssv', 'tsv', 'pipes'],
         default: 'csv'
     },
-    schema: {
-        allowed: ({ definition, major }) => major === 3 || definition.in === 'body',
-        properties: Schema,
-        errors: ({ definition, major }) => major === 3 && definition.hasOwnProperty('content') ? 'Cannot have both "schema" and "content"' : ''
-    },
-    style: {
+    content: {
         allowed: ({ major }) => major === 3,
-        type: 'string',
-        default: ({ definition }) => {
-            switch (definition.in) {
-                case 'cookie': return 'form';
-                case 'header': return 'simple';
-                case 'path': return 'simple';
-                case 'query': return 'form';
-            }
-        },
-        enum: ({ definition }) => {
-            switch (definition.in) {
-                case 'cookie': return ['form'];
-                case 'header': return ['simple'];
-                case 'path': return ['simple', 'label', 'matrix'];
-                case 'query': return ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'];
-            }
-        },
-        errors: ({ definition }) => {
-            const style = definition.style;
-            const type = definition.schema && definition.schema.type;
-            if (!type || !style) return true;
-            switch (definition.in) {
-                case 'cookie':
-                    return definition.explode && (type === 'array' || type === 'object')
-                        ? 'Cookies do not support exploded style "' + style + '" with schema type: ' + type
-                        : false;
-                case 'header':
-                case 'path':
-                    return false;
-                case 'query':
-                    if (style === 'form') return false;
-                    if (style === 'spaceDelimited' && type === 'array') return false;
-                    if (style === 'pipeDelimited' && type === 'array') return false;
-                    if (style === 'deepObject' && type === 'object') return false;
-                    return 'Style "' + style + '" is incompatible with schema type: ' + type;
+        additionalProperties: require('./media-type'),
+        errors: ({ exception, value }) => {
+            const keys = Object.keys(value);
+            if (keys.length !== 1) {
+                exception('Value must have exactly one key. Received: ' + keys.join(', '));
             }
         }
     },
-    explode: {
+    default: v2Property(Items.properties.default),
+    deprecated: {
         allowed: ({ major }) => major === 3,
-        type: 'boolean',
-        default: ({ definition }) => definition.style === 'form'
+        type: 'boolean'
     },
-    allowReserved: {
-        allowed: ({ definition, major }) => major === 3 && definition.in === 'query',
-        type: 'boolean',
-        default: ({ definition }) => definition.style === 'form'
-    },
+    description: 'string',
+    enum: v2Property(Items.properties.enum),
     example: {
-        allowed: ({ major }) => major === 3,
-        isPlainObject: true
+        allowed: ({ major }) => major === 3
     },
     examples: {
         allowed: ({ major }) => major === 3,
-        isPlainObject: true
+        additionalProperties: Example
     },
-    content: {
+    exclusiveMaximum: v2Property(Items.properties.exclusiveMaximum),
+    exclusiveMinimum: v2Property(Items.properties.exclusiveMinimum),
+    explode: {
         allowed: ({ major }) => major === 3,
-        isPlainObject: true,
-        errors: ({ definition }) => definition.hasOwnProperty('schema') ? 'Cannot have both "schema" and "content" properties' : ''
-    }
+        type: 'boolean',
+        default: ({ parent }) => parent.value.style === 'form',
+        errors: ({ exception, parent }) => {
+            const type = parent.value.schema && parent.value.schema.type;
+            if (parent.value.explode && (type === 'array' || type === 'object')) {
+                exception('Cookies do not support exploded values for non-primitive schemas');
+            }
+        }
+    },
+    format: v2Property(Items.properties.format),
+    items: Object.assign({}, Items, {
+        allowed: ({ major, parent }) => major === 2 && parent.value.type === 'array'
+    }),
+    maximum: v2Property(Items.properties.maximum),
+    maxItems: v2Property(Items.properties.maxItems),
+    maxLength: v2Property(Items.properties.maxLength),
+    minimum: v2Property(Items.properties.minimum),
+    minItems: v2Property(Items.properties.minItems),
+    minLength: v2Property(Items.properties.minLength),
+    multipleOf: v2Property(Items.properties.multipleOf),
+    pattern: v2Property(Items.properties.pattern),
+    required: {
+        required: ({ parent }) => parent.value.in === 'path',
+        type: 'boolean',
+        default: ({ parent }) => parent.value.in === 'path',
+        enum: ({ parent }) => parent.value.in === 'path' ? [ true ] : [ true, false ]
+    },
+    schema: Object.assign({}, Schema, {
+        allowed: ({ major, parent }) => major === 3 || parent.value.in === 'body'
+    }),
+    uniqueItems: v2Property(Items.properties.uniqueItems)
 });
+
+function v2Property(property) {
+    const result = Object.assign({}, property);
+    const allowed = property.hasOwnProperty('allowed')
+        ? (typeof property.allowed === 'function' ? property.allowed : (data) => property.allowed(data))
+        : () => true;
+    result.allowed = data => {
+        if (data.major !== 2) return false;
+        return allowed(data);
+    };
+    return result;
+}
