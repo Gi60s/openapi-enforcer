@@ -72,7 +72,7 @@ describe('definitions/parameter', () => {
     describe('collectionFormat', () => {
 
         it('can be set', () => {
-            const [ err ] = definition(2, Parameter, { name: 'hi', in: 'query', type: 'array', collectionFormat: 'multi' });
+            const [ err ] = definition(2, Parameter, { name: 'hi', in: 'query', type: 'array', items: { type: 'string' }, collectionFormat: 'multi' });
             expect(err).to.be.undefined;
         });
 
@@ -87,7 +87,7 @@ describe('definitions/parameter', () => {
         });
 
         it('defaults to csv', () => {
-            const [ err, def ] = definition(2, Parameter, { name: 'hi', in: 'query', type: 'array' });
+            const [ err, def ] = definition(2, Parameter, { name: 'hi', in: 'query', type: 'array', items: { type: 'string' } });
             expect(def.collectionFormat).to.equal('csv');
         });
 
