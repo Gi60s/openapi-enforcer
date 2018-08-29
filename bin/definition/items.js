@@ -15,38 +15,39 @@
  *    limitations under the License.
  **/
 'use strict';
-const Schema   = require('./schema');
+const Schema    = require('./schema');
+const v2Prop    = require('./_parameter-like').properties;
 
 // https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#itemsObject
 module.exports = {
+    allowed: ({ major, parent }) => major === 2 && parent.value.type === 'array',
+    required: ({ parent }) => parent.value.type === 'array',
     properties: {
         type: {
+            allowed: ({ major }) => major === 2,
             required: true,
             enum: ['array', 'boolean', 'integer', 'number', 'string']
         },
         collectionFormat: {
-            allowed: ({ parent }) => parent.value.type === 'array',
+            allowed: ({ major, parent }) => major === 2 && parent.value.type === 'array',
             enum: ['csv', 'ssv', 'tsv', 'pipes'],
             default: 'csv'
         },
-        default: Schema.properties.default,
-        enum: Schema.properties.enum,
-        exclusiveMaximum: Schema.properties.exclusiveMaximum,
-        exclusiveMinimum: Schema.properties.exclusiveMinimum,
-        format: Schema.properties.format,
-        items: Object.assign({}, module.exports, {
-            allowed: ({parent}) => parent.value.type === 'array',
-            required: ({ parent }) => parent.value.type === 'array'
-        }),
-        maximum: Schema.properties.maximum,
-        maxItems: Schema.properties.maxItems,
-        maxLength: Schema.properties.maxLength,
-        minimum: Schema.properties.minimum,
-        minItems: Schema.properties.minItems,
-        minLength: Schema.properties.minLength,
-        multipleOf: Schema.properties.multipleOf,
-        pattern: Schema.properties.pattern,
-        uniqueItems: Schema.properties.uniqueItems
+        default: v2Prop.default,
+        enum: v2Prop.enum,
+        exclusiveMaximum: v2Prop.exclusiveMaximum,
+        exclusiveMinimum: v2Prop.exclusiveMinimum,
+        format: v2Prop.format,
+        items: module.exports,
+        maximum: v2Prop.maximum,
+        maxItems: v2Prop.maxItems,
+        maxLength: v2Prop.maxLength,
+        minimum: v2Prop.minimum,
+        minItems: v2Prop.minItems,
+        minLength: v2Prop.minLength,
+        multipleOf: v2Prop.multipleOf,
+        pattern: v2Prop.pattern,
+        uniqueItems: v2Prop.uniqueItems
     },
 
     errors: Schema.errors

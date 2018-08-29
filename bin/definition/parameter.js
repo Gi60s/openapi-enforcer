@@ -18,9 +18,28 @@
 const Example   = require('./example');
 const Items     = require('./items');
 const Schema    = require('./schema');
+const v2Prop    = require('./_parameter-like').properties;
 
-const parameter = {
+module.exports = {
     properties: {
+        name: {
+            required: true,
+            type: 'string'
+        },
+        in: {
+            required: true,
+            type: 'string',
+            enum: ({major}) => major === 2
+                ? ['body', 'formData', 'header', 'query', 'path']
+                : ['cookie', 'header', 'path', 'query'],
+        },
+        type: {
+            allowed: ({major, parent}) => major === 2 && parent.value.in !== 'body',
+            required: true,
+            enum: ({parent}) => parent.value.in === 'formData'
+                ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
+                : ['array', 'boolean', 'integer', 'number', 'string']
+        },
         style: {
             allowed: ({ major }) => major === 3,
             type: 'string',
@@ -43,7 +62,7 @@ const parameter = {
             errors: ({ exception, parent }) => {
                 const style = parent.value.style;
                 const type = parent.value.schema && parent.value.schema.type;
-                if (!type || !style) return true;
+                if (!type || !style) return false;
                 if (parent.value.in === 'query') {
                     if ((style !== 'form') &&
                         !(style === 'spaceDelimited' && type === 'array') &&
@@ -53,7 +72,81 @@ const parameter = {
                     }
                 }
             }
-        }
+        },
+        allowEmptyValue: {
+            allowed: ({parent}) => ['query', 'formData'].includes(parent.value.in),
+            type: 'boolean',
+            default: false
+        },
+        allowReserved: {
+            allowed: ({parent, major}) => major === 3 && parent.value.in === 'query',
+            type: 'boolean',
+            default: ({parent}) => parent.value.style === 'form'
+        },
+        collectionFormat: {
+            allowed: ({major, parent}) => major === 2 && parent.value.type === 'array',
+            enum: ({parent}) => ['query', 'formData'].includes(parent.value.in)
+                ? ['csv', 'ssv', 'tsv', 'pipes', 'multi']
+                : ['csv', 'ssv', 'tsv', 'pipes'],
+            default: 'csv'
+        },
+        content: {
+            allowed: ({major}) => major === 3,
+            additionalProperties: require('./media-type'),
+            errors: ({exception, value}) => {
+                const keys = Object.keys(value);
+                if (keys.length !== 1) {
+                    exception('Value must have exactly one key. Received: ' + keys.join(', '));
+                }
+            }
+        },
+        default: v2Prop.default,
+        deprecated: {
+            allowed: ({major}) => major === 3,
+            type: 'boolean'
+        },
+        description: 'string',
+        enum: v2Prop.enum,
+        example: {
+            allowed: ({major}) => major === 3
+        },
+        examples: {
+            allowed: ({major}) => major === 3,
+            additionalProperties: Example
+        },
+        exclusiveMaximum: v2Prop.exclusiveMaximum,
+        exclusiveMinimum: v2Prop.exclusiveMinimum,
+        explode: {
+            allowed: ({major}) => major === 3,
+            type: 'boolean',
+            default: ({parent}) => parent.value.style === 'form',
+            errors: ({exception, parent}) => {
+                const type = parent.value.schema && parent.value.schema.type;
+                if (parent.value.explode && (type === 'array' || type === 'object')) {
+                    exception('Cookies do not support exploded values for non-primitive schemas');
+                }
+            }
+        },
+        format: v2Prop.format,
+        items: Items,
+        maximum: v2Prop.maximum,
+        maxItems: v2Prop.maxItems,
+        maxLength: v2Prop.maxLength,
+        minimum: v2Prop.minimum,
+        minItems: v2Prop.minItems,
+        minLength: v2Prop.minLength,
+        multipleOf: v2Prop.multipleOf,
+        pattern: v2Prop.pattern,
+        required: {
+            required: ({parent}) => parent.value.in === 'path',
+            type: 'boolean',
+            default: ({parent}) => parent.value.in === 'path',
+            enum: ({parent}) => parent.value.in === 'path' ? [true] : [true, false]
+        },
+        schema: Object.assign({}, Schema, {
+            allowed: ({major, parent}) => major === 3 || parent.value.in === 'body'
+        }),
+        uniqueItems: v2Prop.uniqueItems
     },
 
     errors: ({ exception, major, value }) => {
@@ -74,105 +167,6 @@ const parameter = {
         }
     }
 };
-
-module.exports = parameter;
-
-Object.assign(parameter.properties, {
-    name: {
-        required: true,
-        type: 'string'
-    },
-    in: {
-        required: true,
-        type: 'string',
-        enum: ({ major }) => major === 2
-            ? ['body', 'formData', 'header', 'query', 'path']
-            : ['cookie', 'header', 'path', 'query'],
-    },
-    type: {
-        allowed: ({ major, parent }) => major === 2 && parent.value.in !== 'body',
-        required: true,
-        enum: ({ parent }) => parent.value.in === 'formData'
-                ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
-                : ['array', 'boolean', 'integer', 'number', 'string']
-    },
-    allowEmptyValue: {
-        allowed: ({ parent }) => ['query', 'formData'].includes(parent.value.in),
-        type: 'boolean',
-        default: false
-    },
-    allowReserved: {
-        allowed: ({ parent, major }) => major === 3 && parent.value.in === 'query',
-        type: 'boolean',
-        default: ({ parent }) => parent.value.style === 'form'
-    },
-    collectionFormat: {
-        allowed: ({ major, parent }) => major === 2 && parent.value.type === 'array',
-        enum: ({ parent }) => ['query', 'formData'].includes(parent.value.in)
-            ? ['csv', 'ssv', 'tsv', 'pipes', 'multi']
-            : ['csv', 'ssv', 'tsv', 'pipes'],
-        default: 'csv'
-    },
-    content: {
-        allowed: ({ major }) => major === 3,
-        additionalProperties: require('./media-type'),
-        errors: ({ exception, value }) => {
-            const keys = Object.keys(value);
-            if (keys.length !== 1) {
-                exception('Value must have exactly one key. Received: ' + keys.join(', '));
-            }
-        }
-    },
-    default: v2Property(Items.properties.default),
-    deprecated: {
-        allowed: ({ major }) => major === 3,
-        type: 'boolean'
-    },
-    description: 'string',
-    enum: v2Property(Items.properties.enum),
-    example: {
-        allowed: ({ major }) => major === 3
-    },
-    examples: {
-        allowed: ({ major }) => major === 3,
-        additionalProperties: Example
-    },
-    exclusiveMaximum: v2Property(Items.properties.exclusiveMaximum),
-    exclusiveMinimum: v2Property(Items.properties.exclusiveMinimum),
-    explode: {
-        allowed: ({ major }) => major === 3,
-        type: 'boolean',
-        default: ({ parent }) => parent.value.style === 'form',
-        errors: ({ exception, parent }) => {
-            const type = parent.value.schema && parent.value.schema.type;
-            if (parent.value.explode && (type === 'array' || type === 'object')) {
-                exception('Cookies do not support exploded values for non-primitive schemas');
-            }
-        }
-    },
-    format: v2Property(Items.properties.format),
-    items: Object.assign({}, Items, {
-        allowed: ({ major, parent }) => major === 2 && parent.value.type === 'array'
-    }),
-    maximum: v2Property(Items.properties.maximum),
-    maxItems: v2Property(Items.properties.maxItems),
-    maxLength: v2Property(Items.properties.maxLength),
-    minimum: v2Property(Items.properties.minimum),
-    minItems: v2Property(Items.properties.minItems),
-    minLength: v2Property(Items.properties.minLength),
-    multipleOf: v2Property(Items.properties.multipleOf),
-    pattern: v2Property(Items.properties.pattern),
-    required: {
-        required: ({ parent }) => parent.value.in === 'path',
-        type: 'boolean',
-        default: ({ parent }) => parent.value.in === 'path',
-        enum: ({ parent }) => parent.value.in === 'path' ? [ true ] : [ true, false ]
-    },
-    schema: Object.assign({}, Schema, {
-        allowed: ({ major, parent }) => major === 3 || parent.value.in === 'body'
-    }),
-    uniqueItems: v2Property(Items.properties.uniqueItems)
-});
 
 function v2Property(property) {
     const result = Object.assign({}, property);
