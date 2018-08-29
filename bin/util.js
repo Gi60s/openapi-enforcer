@@ -29,10 +29,6 @@ exports.copy = function(value) {
     return copy(map, value);
 };
 
-exports.ucFirst = function(value) {
-    return value[0].toUpperCase() + value.substr(1);
-};
-
 exports.isDate = function (value) {
     return value && !isNaN(value) && value instanceof Date;
 };
@@ -170,6 +166,9 @@ exports.smart = function(value) {
     return String(value);
 };
 
+exports.ucFirst = function(value) {
+    return value[0].toUpperCase() + value.substr(1);
+};
 
 
 function copy(map, value) {
