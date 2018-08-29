@@ -19,7 +19,7 @@ const definition    = require('../bin/definition/index').normalize;
 const expect        = require('chai').expect;
 const RequestBody   = require('../bin/definition/request-body');
 
-describe.only('definitions/request-body', () => {
+describe('definitions/request-body', () => {
 
     it('allows a valid definition', () => {
         const [ err ] = definition(3, RequestBody, {
@@ -124,7 +124,7 @@ describe.only('definitions/request-body', () => {
             it('defaults to false', () => {
                 const [ err, def ] = definition(3, RequestBody, {
                     content: {
-                        'multipart/mixed': {
+                        'application/x-www-form-urlencoded': {
                             schema: {
                                 type: 'object',
                                 properties: {
@@ -139,13 +139,13 @@ describe.only('definitions/request-body', () => {
                         }
                     }
                 });
-                expect(def.content['multipart/mixed'].encoding.a.allowReserved).to.equal(false);
+                expect(def.content['application/x-www-form-urlencoded'].encoding.a.allowReserved).to.equal(false);
             });
 
-            it.only('is ignored for application/x-www-form-urlencoded mimetype', () => {
+            it('is ignored when not application/x-www-form-urlencoded mimetype', () => {
                 const [ err, def ] = definition(3, RequestBody, {
                     content: {
-                        'application/x-www-form-urlencoded': {
+                        'multipart/mixed': {
                             schema: {
                                 type: 'object',
                                 properties: {
@@ -161,7 +161,171 @@ describe.only('definitions/request-body', () => {
                         }
                     }
                 });
-                expect(def.content['application/x-www-form-urlencoded'].encoding.a).to.deep.equal({ contentType: 'text/plain' });
+                expect(def.content['multipart/mixed'].encoding.a).to.deep.equal({ contentType: 'text/plain' });
+            });
+
+        });
+
+        describe('contentType', () => {
+
+            it('defaults to application/octet-stream for binary format', () => {
+                const [ err, def ] = definition(3, RequestBody, {
+                    content: {
+                        'multipart/mixed': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'string', format: 'binary' }
+                                }
+                            },
+                            encoding: {
+                                a: {}
+                            }
+                        }
+                    }
+                });
+                expect(def.content['multipart/mixed'].encoding.a.contentType).to.equal('application/octet-stream');
+            });
+
+            it('defaults to text/plain for primitives', () => {
+                const [ err, def ] = definition(3, RequestBody, {
+                    content: {
+                        'multipart/mixed': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'number' }
+                                }
+                            },
+                            encoding: {
+                                a: {}
+                            }
+                        }
+                    }
+                });
+                expect(def.content['multipart/mixed'].encoding.a.contentType).to.equal('text/plain');
+            });
+
+            it('defaults to application/json for objects', () => {
+                const [ err, def ] = definition(3, RequestBody, {
+                    content: {
+                        'multipart/mixed': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'object' }
+                                }
+                            },
+                            encoding: {
+                                a: {}
+                            }
+                        }
+                    }
+                });
+                expect(def.content['multipart/mixed'].encoding.a.contentType).to.equal('application/json');
+            });
+
+            it('defaults to application/json for array with objects', () => {
+                const [ err, def ] = definition(3, RequestBody, {
+                    content: {
+                        'multipart/mixed': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'array', items: { type: 'object' } }
+                                }
+                            },
+                            encoding: {
+                                a: {}
+                            }
+                        }
+                    }
+                });
+                expect(def.content['multipart/mixed'].encoding.a.contentType).to.equal('application/json');
+            });
+
+            it('defaults to application/octet-stream for array with binary', () => {
+                const [ err, def ] = definition(3, RequestBody, {
+                    content: {
+                        'multipart/mixed': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'array', items: { type: 'string', format: 'binary' } }
+                                }
+                            },
+                            encoding: {
+                                a: {}
+                            }
+                        }
+                    }
+                });
+                expect(def.content['multipart/mixed'].encoding.a.contentType).to.equal('application/octet-stream');
+            });
+
+        });
+
+        describe('explode', () => {
+
+            it('is ignored is not application/x-www-form-urlencoded mime type', () => {
+                const [ err, def ] = definition(3, RequestBody, {
+                    content: {
+                        'multipart/mixed': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'array', items: { type: 'string' } }
+                                }
+                            },
+                            encoding: {
+                                a: {
+                                    explode: true
+                                }
+                            }
+                        }
+                    }
+                });
+                expect(def.content['multipart/mixed'].encoding.a).not.to.haveOwnProperty('explode');
+            });
+
+            it('defaults to true if style is form', () => {
+                const [ err, def ] = definition(3, RequestBody, {
+                    content: {
+                        'application/x-www-form-urlencoded': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'array', items: { type: 'string' } }
+                                }
+                            },
+                            encoding: {
+                                a: {
+                                    style: 'form'
+                                }
+                            }
+                        }
+                    }
+                });
+                expect(def.content['application/x-www-form-urlencoded'].encoding.a.explode).to.equal(true);
+            });
+
+            it('defaults to true if style is omitted', () => {
+                const [ err, def ] = definition(3, RequestBody, {
+                    content: {
+                        'application/x-www-form-urlencoded': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'array', items: { type: 'string' } }
+                                }
+                            },
+                            encoding: {
+                                a: {}
+                            }
+                        }
+                    }
+                });
+                expect(def.content['application/x-www-form-urlencoded'].encoding.a.explode).to.equal(true);
             });
 
         });
