@@ -19,7 +19,7 @@ const Definition    = require('../bin/definition');
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
 
-describe('enforcer/request', () => {
+describe.skip('enforcer/request', () => {
 
     describe('path parameters', () => {
 
