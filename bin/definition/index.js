@@ -141,9 +141,10 @@ function normalize(data) {
                     const allowed = validator.additionalProperties.hasOwnProperty('allowed')
                         ? fn(validator.additionalProperties.allowed, param)
                         : true;
+                    const ignore = validator.ignore && fn(validator.ignore, param);
 
                     if (allowed === true) {
-                        result[key] = normalize(param);
+                        if (!ignore) result[key] = normalize(param);
                     } else {
                         let message = 'Property not allowed: ' + key;
                         if (typeof allowed[key] === 'string') message += '. ' + allowed[key];
@@ -158,6 +159,7 @@ function normalize(data) {
 
             } else {
                 const allowed = {};
+                const ignores = {};
                 const missingRequired = [];
                 const properties = validator.properties;
 
@@ -181,11 +183,14 @@ function normalize(data) {
                         ? fn(validator.allowed, param)
                         : true;
 
+                    // check if this property is ignored
+                    ignores[key] = validator.ignore && fn(validator.ignore, param);
+
                     // if it doesn't have the property and it is allowed then check if it is required or has a default
                     if (!value.hasOwnProperty(key) && allowed[key]) {
                         if (validator.required && fn(validator.required, param)) {
                             missingRequired.push(key);
-                        } else if (validator.hasOwnProperty('default')) {
+                        } else if (validator.hasOwnProperty('default') && !ignores[key]) {
                             const defaultValue = fn(validator.default, param);
                             if (defaultValue !== undefined) value[key] = defaultValue;
                         }
@@ -199,23 +204,13 @@ function normalize(data) {
                     if (rxExtension.test(key)) {
                         result[key] = value[key];
 
-                        // check if property allowed
+                    // check if property allowed
                     } else if (allowed[key] !== true) {
                         let message = 'Property not allowed: ' + key;
                         if (typeof allowed[key] === 'string') message += '. ' + allowed[key];
                         exception(message)
 
-                    } else if (!validator.ignore || !fn(validator.ignore, {
-                        exception,
-                        key,
-                        major,
-                        minor,
-                        parent: data,
-                        patch,
-                        validator,
-                        value,
-                        warn
-                    })) {
+                    } else if (!ignores[key]) {
                         result[key] = normalize({
                             exception: exception.at(key),
                             key,
