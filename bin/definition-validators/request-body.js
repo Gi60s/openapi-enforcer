@@ -15,17 +15,21 @@
  *    limitations under the License.
  **/
 'use strict';
+const MediaType     = require('./media-type');
 
-module.exports = {
-    properties: {
-        summary: 'string',
-        description: 'string',
-        value: { allowed: true },
-        externalValue: 'string'
-    },
-    errors: ({ exception, value }) => {
-        if (value.hasOwnProperty('value') && value.hasOwnProperty('externalValue')) {
-            exception('Cannot have both "externalValue" and "value" properties');
+module.exports = () => {
+    return {
+        type: 'object',
+        properties: {
+            description: 'string',
+            content: {
+                type: 'object',
+                additionalProperties: MediaType
+            },
+            required: {
+                type: 'boolean',
+                default: false
+            }
         }
-    }
+    };
 };

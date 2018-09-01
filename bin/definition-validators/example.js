@@ -16,12 +16,19 @@
  **/
 'use strict';
 
-module.exports = {
-    properties: {
-        description: 'string',
-        url: {
-            type: 'string',
-            required: true
+module.exports = () => {
+    return {
+        type: 'object',
+        properties: {
+            summary: { type: 'string' },
+            description: { type: 'string' },
+            value: { allowed: true },
+            externalValue: { type: 'string' }
+        },
+        errors: ({ exception, value }) => {
+            if (value.hasOwnProperty('value') && value.hasOwnProperty('externalValue')) {
+                exception('Cannot have both "externalValue" and "value" properties');
+            }
         }
-    }
+    };
 };

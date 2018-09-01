@@ -15,9 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
-const definition    = require('../bin/definition/index').normalize;
+const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
-const Schema        = require('../bin/definition/schema');
+const Schema        = require('../bin/definition-validators/schema');
 
 describe('definitions/schema', () => {
 

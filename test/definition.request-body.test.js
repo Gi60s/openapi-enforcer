@@ -15,11 +15,11 @@
  *    limitations under the License.
  **/
 'use strict';
-const definition    = require('../bin/definition/index').normalize;
+const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
-const RequestBody   = require('../bin/definition/request-body');
+const RequestBody   = require('../bin/definition-validators/request-body');
 
-describe('definitions/request-body', () => {
+describe.only('definitions/request-body', () => {
 
     it('allows a valid definition', () => {
         const [ err ] = definition(3, RequestBody, {
@@ -34,7 +34,7 @@ describe('definitions/request-body', () => {
 
     describe('encoding', () => {
 
-        it('is allowed with multipart mimetype', () => {
+        it.only('is allowed with multipart mimetype', () => {
             const [ err ] = definition(3, RequestBody, {
                 content: {
                     'multipart/mixed': {
@@ -326,6 +326,59 @@ describe('definitions/request-body', () => {
                     }
                 });
                 expect(def.content['application/x-www-form-urlencoded'].encoding.a.explode).to.equal(true);
+            });
+
+        });
+
+        describe('headers', () => {
+
+            it('ignores headers if not multipart', () => {
+                const [ err, def ] = definition(3, RequestBody, {
+                    content: {
+                        'application/x-www-form-urlencoded': {
+                            encoding: {
+                                a: {
+                                    headers: {
+                                        'x-header1': { schema: { type: 'string' } },
+                                        'x-header2': { schema: { type: 'string' } }
+                                    }
+                                }
+                            },
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'array', items: { type: 'string' } }
+                                }
+                            }
+                        }
+                    }
+                });
+                expect(def.content['application/x-www-form-urlencoded'].encoding.a).not.to.haveOwnProperty('headers')
+            });
+
+            it('ignores content type header', () => {
+                const [ err, def ] = definition(3, RequestBody, {
+                    content: {
+                        'multipart/mixed': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    a: { type: 'array', items: { type: 'string' } }
+                                }
+                            },
+                            encoding: {
+                                a: {
+                                    headers: {
+                                        'Content-type': { schema: { type: 'string' } },
+                                        'x-header1': { schema: { type: 'string' } }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log(String(err));
+                expect(def.content['multipart/mixed'].encoding.a.headers).to.deep.equal({ 'x-header1': { schema: { type: 'string' } } });
             });
 
         });

@@ -16,8 +16,12 @@
  **/
 'use strict';
 
-module.exports = {
-    additionalProperties: {
-        items: 'string'
-    }
+module.exports = () => {
+    return {
+        type: 'object',
+        additionalProperties: {
+            type: 'array',
+            items: 'string'
+        }
+    };
 };

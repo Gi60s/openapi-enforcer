@@ -15,10 +15,10 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception = require('../exception');
-const Result    = require('../result');
-const Swagger   = require('./swagger');
-const util      = require('../util');
+const Exception = require('./exception');
+const Result    = require('./result');
+const Swagger   = require('./definition-validators/swagger');
+const util      = require('./util');
 
 const rxExtension = /^x-.+/;
 
@@ -63,18 +63,6 @@ module.exports.normalize = function(version, validator, definition) {
     return new Result(exception, result, warn);
 };
 
-// module.exports.version = function(version) {
-//     if (version === 2) version = '2.0';
-//     if (version === 3) version = '3.0.0';
-//     const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(version);
-//     if (!match) return null;
-//
-//     const major = +match[1];
-//     const minor = +match[2];
-//     const patch = +(match[3] || 0);
-//     return { major, minor, patch };
-// };
-
 /**
  *
  * @param {object} data
@@ -90,13 +78,13 @@ module.exports.normalize = function(version, validator, definition) {
  * @returns {*}
  */
 function normalize(data) {
-    const { exception, major, minor, parent, patch, value, warn } = data;
-    const validator = data.validator = normalizeValidator(data.validator);
+    const { exception, major, minor, parent, patch, value, warn } = data = Object.assign({}, data);
+    const validator = getValidator(data);
     let message;
     let result;
 
     try {
-        // working on figuring out ambiguous type
+        // check that type matches
         const type = getValueType(value);
         if (validator.type && (message = checkType(data))) {
             exception('Value must be ' + message + '. Received: ' + util.smart(value));
@@ -137,11 +125,12 @@ function normalize(data) {
                         value: value[key],
                         warn: warn.at(key)
                     };
+                    getValidator(param);
 
                     const allowed = validator.additionalProperties.hasOwnProperty('allowed')
                         ? fn(validator.additionalProperties.allowed, param)
                         : true;
-                    const ignore = validator.ignore && fn(validator.ignore, param);
+                    const ignore = validator.additionalProperties.ignore && fn(validator.additionalProperties.ignore, param);
 
                     if (allowed === true) {
                         if (!ignore) result[key] = normalize(param);
@@ -165,7 +154,6 @@ function normalize(data) {
 
                 // check for missing required and set defaults
                 Object.keys(properties).forEach(key => {
-                    const validator = normalizeValidator(properties[key]);
                     const param = {
                         exception: exception.at(key),
                         key,
@@ -177,6 +165,7 @@ function normalize(data) {
                         value: value[key],
                         warn: warn.at(key)
                     };
+                    const validator = getValidator(param);
 
                     // check whether this property is allowed
                     allowed[key] = validator.hasOwnProperty('allowed')
@@ -204,7 +193,7 @@ function normalize(data) {
                     if (rxExtension.test(key)) {
                         result[key] = value[key];
 
-                    // check if property allowed
+                        // check if property allowed
                     } else if (allowed[key] !== true) {
                         let message = 'Property not allowed: ' + key;
                         if (typeof allowed[key] === 'string') message += '. ' + allowed[key];
@@ -281,13 +270,6 @@ function fn(value, params) {
     }
 }
 
-function normalizeValidator(validator) {
-    if (typeof validator === 'string') validator = { type: validator };
-    if (!validator.type && validator.items) validator.type = 'array';
-    if (!validator.type && (validator.additionalProperties || validator.properties)) validator.type = 'object';
-    return validator;
-}
-
 function checkType(params) {
     const { validator, value } = params;
     if (!validator.type) return;
@@ -332,6 +314,13 @@ function checkEnum(params) {
     return matches.indexOf(value) !== -1
         ? false
         : matches;
+}
+
+function getValidator(data) {
+    data.validator = typeof data.validator === 'function'
+        ? data.validator(data)
+        : data.validator;
+    return data.validator;
 }
 
 function getValueType(value) {

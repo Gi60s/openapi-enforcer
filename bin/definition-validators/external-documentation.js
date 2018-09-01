@@ -16,6 +16,15 @@
  **/
 'use strict';
 
-module.exports = {
-
+module.exports = () => {
+    return {
+        type: 'object',
+        properties: {
+            description: 'string',
+            url: {
+                type: 'string',
+                required: true
+            }
+        }
+    };
 };

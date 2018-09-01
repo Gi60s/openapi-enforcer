@@ -15,9 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
-const definition    = require('../bin/definition/index').normalize;
+const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
-const Parameter     = require('../bin/definition/parameter');
+const Parameter     = require('../bin/definition-validators/parameter');
 
 describe('definitions/parameter', () => {
     const schema = { type: 'string' };
@@ -29,6 +29,7 @@ describe('definitions/parameter', () => {
             type: 'string',
             required: true
         });
+        expect(err).to.be.undefined;
     });
 
     describe('allowEmptyValue', () => {
@@ -49,6 +50,7 @@ describe('definitions/parameter', () => {
 
         it('can be set', () => {
             const [ err ] = definition(3, Parameter, { name: 'hi', in: 'query', schema, allowReserved: true });
+            console.log('' + err);
             expect(err).to.be.undefined;
         });
 

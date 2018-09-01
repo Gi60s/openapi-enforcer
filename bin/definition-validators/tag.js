@@ -17,13 +17,16 @@
 'use strict';
 const ExternalDocumentation = require('./external-documentation');
 
-module.exports = {
-    properties: {
-        name: {
-            required: true,
-            type: 'string'
-        },
-        description: 'string',
-        externalDocs: ExternalDocumentation
-    }
+module.exports = () => {
+    return {
+        type: 'object',
+        properties: {
+            name: {
+                required: true,
+                    type: 'string'
+            },
+            description: 'string',
+                externalDocs: ExternalDocumentation
+        }
+    };
 };

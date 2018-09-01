@@ -16,15 +16,6 @@
  **/
 'use strict';
 
-module.exports = {
-    properties: {
-        description: 'string',
-        content: {
-            additionalProperties: require('./media-type')
-        },
-        required: {
-            type: 'boolean',
-            default: false
-        }
-    }
+module.exports = data => {
+    return {};
 };
