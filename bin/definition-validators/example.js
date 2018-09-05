@@ -16,8 +16,10 @@
  **/
 'use strict';
 
-module.exports = () => {
-    return {
+module.exports = ExampleObject;
+
+function ExampleObject() {
+    Object.assign(this, {
         type: 'object',
         properties: {
             summary: { type: 'string' },
@@ -30,5 +32,5 @@ module.exports = () => {
                 exception('Cannot have both "externalValue" and "value" properties');
             }
         }
-    };
-};
+    });
+}

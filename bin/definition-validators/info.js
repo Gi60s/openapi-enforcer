@@ -16,8 +16,10 @@
  **/
 'use strict';
 
-module.exports = () => {
-    return {
+module.exports = InfoObject;
+
+function InfoObject () {
+    Object.assign(this, {
         type: 'object',
         properties: {
             title: {
@@ -61,5 +63,5 @@ module.exports = () => {
                 type: 'string'
             }
         }
-    };
+    });
 }

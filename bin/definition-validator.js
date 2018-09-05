@@ -17,7 +17,7 @@
 'use strict';
 const Exception = require('./exception');
 const Result    = require('./result');
-const Swagger   = require('./definition-validators/swagger');
+const Swagger   = require('./definition-validators/open-api');
 const util      = require('./util');
 
 const rxExtension = /^x-.+/;
@@ -113,6 +113,7 @@ function normalize(data) {
         } else if (type === 'object') {
             result = {};
             if (validator.additionalProperties) {
+                const additionalPropertiesValidator = validator.additionalProperties;
                 Object.keys(value).forEach(key => {
                     const param = {
                         exception: exception.at(key),
@@ -121,16 +122,16 @@ function normalize(data) {
                         minor,
                         parent: data,
                         patch,
-                        validator: validator.additionalProperties,
+                        validator: additionalPropertiesValidator,
                         value: value[key],
                         warn: warn.at(key)
                     };
-                    getValidator(param);
+                    const validator = getValidator(param);
 
-                    const allowed = validator.additionalProperties.hasOwnProperty('allowed')
-                        ? fn(validator.additionalProperties.allowed, param)
+                    const allowed = validator.hasOwnProperty('allowed')
+                        ? fn(validator.allowed, param)
                         : true;
-                    const ignore = validator.additionalProperties.ignore && fn(validator.additionalProperties.ignore, param);
+                    const ignore = validator.ignore && fn(validator.ignore, param);
 
                     if (allowed === true) {
                         if (!ignore) result[key] = normalize(param);
@@ -317,9 +318,12 @@ function checkEnum(params) {
 }
 
 function getValidator(data) {
-    data.validator = typeof data.validator === 'function'
-        ? data.validator(data)
-        : data.validator;
+    const type = typeof data.validator;
+    if (type === 'function') {
+        data.validator = new data.validator(data);
+    } else if (type === 'string') {
+        data.validator = { type: data.validator };
+    }
     return data.validator;
 }
 

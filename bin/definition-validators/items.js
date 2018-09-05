@@ -15,10 +15,12 @@
  *    limitations under the License.
  **/
 'use strict';
-const Base      = require('./_parameter-base');
 
 // https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#itemsObject
-module.exports = data => {
+module.exports = ItemsObject;
+
+function ItemsObject(data) {
+    const Base = require('./_parameter-base');
     const base = Base(data);
-    return base.properties.items;
-};
+    Object.assign(this, base.properties.items);
+}

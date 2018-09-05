@@ -16,8 +16,10 @@
  **/
 'use strict';
 
-module.exports = () => {
-    return {
+module.exports = ExternalDocumentObject;
+
+function ExternalDocumentObject() {
+    Object.assign(this, {
         type: 'object',
         properties: {
             description: 'string',
@@ -26,5 +28,5 @@ module.exports = () => {
                 required: true
             }
         }
-    };
-};
+    });
+}

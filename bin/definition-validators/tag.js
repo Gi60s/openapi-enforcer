@@ -15,10 +15,13 @@
  *    limitations under the License.
  **/
 'use strict';
-const ExternalDocumentation = require('./external-documentation');
 
-module.exports = () => {
-    return {
+module.exports = TagObject;
+
+function TagObject() {
+    const ExternalDocumentation = require('./external-documentation');
+
+    Object.assign(this, {
         type: 'object',
         properties: {
             name: {
@@ -26,7 +29,7 @@ module.exports = () => {
                     type: 'string'
             },
             description: 'string',
-                externalDocs: ExternalDocumentation
+            externalDocs: ExternalDocumentation
         }
-    };
-};
+    });
+}

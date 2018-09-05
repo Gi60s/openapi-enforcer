@@ -15,13 +15,16 @@
  *    limitations under the License.
  **/
 'use strict';
-const Base      = require('./_parameter-base');
-const Schema    = require('./schema');
 
-module.exports = data => {
+module.exports = ParameterObject;
+
+function ParameterObject(data) {
+    const Base      = require('./_parameter-base');
+    const Schema    = require('./schema');
+
     const { major } = data;
     const base = Base(data);
-    const result = {
+    Object.assign(this, {
         type: 'object',
         properties: Object.assign({}, base.properties, {
             name: {
@@ -42,10 +45,10 @@ module.exports = data => {
                 enum: ({parent}) => parent.value.in === 'path' ? [true] : [true, false]
             },
         })
-    };
+    });
 
     if (major === 2) {
-        Object.assign(result.properties, {
+        Object.assign(this.properties, {
             type: {
                 allowed: ({major, parent}) => major === 2 && parent.value.in !== 'body',
                 required: true,
@@ -65,14 +68,14 @@ module.exports = data => {
                     : ['csv', 'ssv', 'tsv', 'pipes'],
                 default: 'csv'
             },
-            schema: () => {
-                const schema = Schema(data);
+            schema: function() {
+                const schema = new Schema(data);
                 schema.allowed = ({major, parent}) => major === 3 || parent.value.in === 'body';
                 return schema;
             }
         });
 
-        result.errors = data => {
+        this.errors = data => {
             const { exception, value } = data;
             if (value.hasOwnProperty('default') && value.required) {
                 exception('Cannot have a "default" and set "required" to true');
@@ -81,7 +84,7 @@ module.exports = data => {
         }
 
     } else if (major === 3) {
-        Object.assign(result.properties, {
+        Object.assign(this.properties, {
             style: {
                 type: 'string',
                 default: ({ parent }) => {
@@ -121,15 +124,13 @@ module.exports = data => {
             }
         });
 
-        result.properties.explode.errors = ({exception, parent}) => {
+        this.properties.explode.errors = ({exception, parent}) => {
             const type = parent.value.schema && parent.value.schema.type;
             if (parent.value.in === 'cookie' && parent.value.explode && (type === 'array' || type === 'object')) {
                 exception('Cookies do not support exploded values for non-primitive schemas');
             }
         };
 
-        result.errors = base.errors;
+        this.errors = base.errors;
     }
-
-    return result;
 };

@@ -15,12 +15,15 @@
  *    limitations under the License.
  **/
 'use strict';
-const Header    = require('./header');
 
 const rxContentType = /^([a-z-]+)\/(\*|[a-z-]+)(?:\+([a-z-]+))?/;
 
-module.exports = data => {
-    return {
+module.exports = EncodingObject;
+
+function EncodingObject(data) {
+    const Header    = require('./header');
+
+    Object.assign(this, {
         type: 'object',
         allowed: ({ exception, key, parent }) => {
             const schema = parent && parent.parent && parent.parent.value && parent.parent.value.schema;
@@ -55,8 +58,8 @@ module.exports = data => {
             headers: {
                 ignore: ({ parent }) => !parent.parent.parent.key.startsWith('multipart/'),
                 type: 'object',
-                additionalProperties: () => {
-                    const header = Header(data);
+                additionalProperties: function() {
+                    const header = new Header(data);
                     header.ignore = ({ key }) => key.toLowerCase() === 'content-type';
                     return header;
                 }
@@ -85,5 +88,5 @@ module.exports = data => {
                 default: ({ parent }) => parent.value.style === 'form'
             }
         }
-    };
-};
+    });
+}

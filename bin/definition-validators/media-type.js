@@ -15,14 +15,17 @@
  *    limitations under the License.
  **/
 'use strict';
-const Encoding      = require('./encoding');
-const Example       = require('./example');
-const Schema        = require('./schema');
-
 const rxContentTypeMime = /(?:^multipart\/)|(?:^application\/x-www-form-urlencoded$)/;
 
-module.exports = data => {
-    return {
+module.exports = MediaTypeObject;
+
+function MediaTypeObject() {
+    const Encoding      = require('./encoding');
+    const Example       = require('./example');
+    const RequestBody   = require('./request-body');
+    const Schema        = require('./schema');
+
+    Object.assign(this, {
         type: 'object',
 
         properties: {
@@ -37,7 +40,7 @@ module.exports = data => {
                 allowed: ({ key, parent }) => {
                     if (!rxContentTypeMime.test(parent.key)) {
                         return 'Mime type must be multipart/* or application/x-www-form-urlencoded. Found: ' + parent.key
-                    } else if (parent.parent.parent.validator !== require('./request-body')) {
+                    } else if (!(parent.parent.parent.validator instanceof RequestBody)) {
                         return 'The encoding validator is only allowed for requestBody objects';
                     } else {
                         return true;
@@ -46,5 +49,5 @@ module.exports = data => {
                 additionalProperties: Encoding
             }
         }
-    };
-};
+    });
+}

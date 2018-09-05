@@ -16,8 +16,10 @@
  **/
 'use strict';
 
-module.exports = () => {
-    return {
+module.exports = SecuritySchemeObject;
+
+function SecuritySchemeObject() {
+    Object.assign(this, {
         type: 'object',
         properties: {
             type: {
@@ -55,8 +57,10 @@ module.exports = () => {
                 allowed: ({ definition }) => definition.type === 'oauth2',
                 type: 'object',
                 required: true,
-                additionalProperties: 'string'
+                additionalProperties: {
+                    type: 'string'
+                }
             }
         }
-    }
-};
+    });
+}

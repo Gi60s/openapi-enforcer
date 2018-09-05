@@ -15,14 +15,18 @@
  *    limitations under the License.
  **/
 'use strict';
-const ExternalDocumentation = require('./external-documentation');
-const util                  = require('../util');
+const rx        = require('../rx');
+const util      = require('../util');
 
-module.exports = () => {
+module.exports = SchemaObject;
+
+function SchemaObject() {
+    const ExternalDocumentation = require('./external-documentation');
+
+    const Schema = this;
     const additionalProperties = {};
     const items = {};
     const not = {};
-    const Schema = {};
 
     const exclusive = {
         type: 'boolean'
@@ -30,8 +34,8 @@ module.exports = () => {
 
     const maxOrMin = {
         allowed: ({ parent }) => numericish(parent.value),
-            type: ({ parent }) => dateType(parent.value) ? 'string' : 'number',
-            deserialize: ({ exception, parent, value }) =>
+        type: ({ parent }) => dateType(parent.value) ? 'string' : 'number',
+        deserialize: ({ exception, parent, value }) =>
             dateType(parent.value)
                 ? deserializeDate(parent.value, exception, value)
                 : value
@@ -39,8 +43,8 @@ module.exports = () => {
 
     const maxOrMinItems = {
         allowed: ({ parent }) => parent.value.type === 'array',
-            type: 'number',
-            errors: ({ exception, value }) => {
+        type: 'number',
+        errors: ({ exception, value }) => {
             if (!util.isInteger(value) || value < 0) {
                 exception('Value must be a non-negative integer');
             }
@@ -49,8 +53,8 @@ module.exports = () => {
 
     const maxOrMinLength = {
         allowed: ({ parent }) => parent.value.type === 'string' && !dateType(parent.value),
-            type: 'number',
-            errors: ({ exception, value }) => {
+        type: 'number',
+        errors: ({ exception, value }) => {
             if (!util.isInteger(value) || value < 0) {
                 exception('Value must be a non-negative integer');
             }
@@ -59,8 +63,8 @@ module.exports = () => {
 
     const maxOrMinProperties = {
         allowed: ({ parent }) => parent.value.type === 'object',
-            type: 'number',
-            errors: ({ exception, value }) => {
+        type: 'number',
+        errors: ({ exception, value }) => {
             if (!util.isInteger(value) || value < 0) {
                 exception('Value must be a non-negative integer');
             }
@@ -222,7 +226,7 @@ module.exports = () => {
                 type: 'boolean'
             },
             writeOnly: {
-                allowed: (data) => data.major === 3 && isSchemaProperty(data),
+                allowed: (data) => data.major === 3 && !!isSchemaProperty(data),
                 type: 'boolean',
                 default: false
             },
@@ -288,9 +292,7 @@ module.exports = () => {
     Object.assign(not, Schema, {
         allowed: ({major}) => major === 3
     });
-
-    return Schema;
-};
+}
 
 function dateType(definition) {
     return definition.type === 'string' && definition.format && definition.format.startsWith('date')
@@ -313,7 +315,7 @@ function deserializeDate(definition, exception, value) {
 
 function isSchemaProperty({ parent }) {
     return parent && parent.parent && parent.parent.key === 'properties' &&
-        parent.parent.parent && parent.parent.parent.validator === Schema;
+        parent.parent.parent && parent.parent.parent.validator instanceof SchemaObject;
 }
 
 function minMaxValid(minimum, maximum, exclusiveMinimum, exclusiveMaximum) {

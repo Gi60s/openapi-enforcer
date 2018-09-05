@@ -16,6 +16,41 @@
  **/
 'use strict';
 
-module.exports = data => {
-    return {};
-};
+module.exports = PathObject;
+
+function PathObject(data) {
+    const Operation = require('./operation');
+    const Parameter = require('./parameter');
+    const Server = require('./server');
+    const { major } = data;
+
+    Object.assign(this, {
+        summary: {
+            type: 'string'
+        },
+        description: {
+            type: 'string'
+        },
+        get: Operation,
+        put: Operation,
+        post: Operation,
+        delete: Operation,
+        options: Operation,
+        head: Operation,
+        patch: Operation,
+        trace: function(data) {
+            const operation = new Operation(data);
+            operation.allowed = major === 3;
+            return operation;
+        },
+        servers: {
+            allowed: major === 3,
+            type: 'array',
+            items: Server
+        },
+        parameters: {
+            type: 'array',
+            items: Parameter
+        }
+    });
+}

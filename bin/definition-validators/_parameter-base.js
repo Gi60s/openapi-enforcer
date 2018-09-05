@@ -15,16 +15,17 @@
  *    limitations under the License.
  **/
 'use strict';
-const Example   = require('./example');
-const MediaType = require('./media-type');
-const Schema    = require('./schema');
 
 module.exports = data => {
+    const Example   = require('./example');
+    const MediaType = require('./media-type');
+    const Schema    = require('./schema');
+
     const { major } = data;
     const result = {
         type: 'object'
     };
-    const schema = Schema(data);
+    const schema = new Schema(data);
 
     if (major === 2) {
         result.properties = {};

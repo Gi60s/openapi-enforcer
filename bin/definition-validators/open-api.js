@@ -15,18 +15,21 @@
  *    limitations under the License.
  **/
 'use strict';
-const ExternalDocumentation = require('./external-documentation');
-const Info                  = require('./info');
-const Parameter             = require('./parameter');
-const Path                  = require('./path');
-const Response              = null;
-const Schema                = require('./schema');
-const SecurityRequirement   = require('./security-requirement');
-const SecurityScheme        = require('./security-scheme');
-const Tag                   = require('./tag');
 
-module.exports = () => {
-    return {
+module.exports = OpenAPIObject;
+
+function OpenAPIObject() {
+    const ExternalDocumentation = require('./external-documentation');
+    const Info                  = require('./info');
+    const Parameter             = require('./parameter');
+    const Path                  = require('./path');
+    const Response              = null;
+    const Schema                = require('./schema');
+    const SecurityRequirement   = require('./security-requirement');
+    const SecurityScheme        = require('./security-scheme');
+    const Tag                   = require('./tag');
+
+    Object.assign(this, {
         type: 'object',
         properties: {
             swagger: {
@@ -92,5 +95,5 @@ module.exports = () => {
             },
             externalDocs: ExternalDocumentation
         }
-    }
+    });
 };

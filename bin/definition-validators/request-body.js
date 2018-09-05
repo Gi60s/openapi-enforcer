@@ -15,13 +15,18 @@
  *    limitations under the License.
  **/
 'use strict';
-const MediaType     = require('./media-type');
 
-module.exports = () => {
-    return {
+module.exports = RequestBody;
+
+function RequestBody() {
+    const MediaType     = require('./media-type');
+
+    Object.assign(this, {
         type: 'object',
         properties: {
-            description: 'string',
+            description: {
+                type: 'string'
+            },
             content: {
                 type: 'object',
                 additionalProperties: MediaType
@@ -31,5 +36,5 @@ module.exports = () => {
                 default: false
             }
         }
-    };
-};
+    });
+}

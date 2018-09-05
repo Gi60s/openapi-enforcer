@@ -15,14 +15,16 @@
  *    limitations under the License.
  **/
 'use strict';
-const Base  = require('./_parameter-base');
 
 // https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#headerObject
 // https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#headerObject
-module.exports = data => {
+module.exports = HeaderObject;
+
+function HeaderObject(data) {
+    const Base = require('./_parameter-base');
     const base = Base(data);
     const { major } = data;
-    return {
+    Object.assign(this, {
         type: 'object',
         properties: Object.assign({}, base.properties, {
             required: {
@@ -37,5 +39,5 @@ module.exports = data => {
             }
         }),
         errors: base.errors
-    };
-};
+    });
+}

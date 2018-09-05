@@ -16,12 +16,14 @@
  **/
 'use strict';
 
-module.exports = () => {
-    return {
+module.exports = SecurityRequirementObject;
+
+function SecurityRequirementObject() {
+    Object.assign(this, {
         type: 'object',
         additionalProperties: {
             type: 'array',
             items: 'string'
         }
-    };
-};
+    });
+}
