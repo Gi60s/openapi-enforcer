@@ -19,7 +19,7 @@ const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
 const RequestBody   = require('../bin/definition-validators/request-body');
 
-describe.only('definitions/request-body', () => {
+describe('definitions/request-body', () => {
 
     it('allows a valid definition', () => {
         const [ err ] = definition(3, RequestBody, {
@@ -34,7 +34,7 @@ describe.only('definitions/request-body', () => {
 
     describe('encoding', () => {
 
-        it.only('is allowed with multipart mimetype', () => {
+        it('is allowed with multipart mimetype', () => {
             const [ err ] = definition(3, RequestBody, {
                 content: {
                     'multipart/mixed': {
@@ -377,8 +377,8 @@ describe.only('definitions/request-body', () => {
                         }
                     }
                 });
-                console.log(String(err));
-                expect(def.content['multipart/mixed'].encoding.a.headers).to.deep.equal({ 'x-header1': { schema: { type: 'string' } } });
+                const keys = Object.keys(def.content['multipart/mixed'].encoding.a.headers).map(v => v.toLowerCase());
+                expect(keys.includes('content-type')).to.be.false;
             });
 
         });
