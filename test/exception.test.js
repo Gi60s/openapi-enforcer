@@ -103,6 +103,13 @@ describe('exception', () => {
             expect(exception.toString()).to.equal('title\n  at: a > b\n    at: c\n      one\n    nest\n      two');
         });
 
+        it('will link two at with same name', () => {
+            const exception = Exception('title');
+            exception.at('a')('one');
+            exception.at('a')('two');;
+            expect(exception.toString()).to.equal('title\n  at: a\n    one\n    two');
+        });
+
     });
 
 });
