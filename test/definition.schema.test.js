@@ -674,7 +674,7 @@ describe('definitions/schema', () => {
     describe('readOnly', () => {
 
         it('is valid on properties within a schema', () => {
-            const [ err, def ] = definition(2, Schema, {
+            const [ err ] = definition(2, Schema, {
                 type: 'object',
                 properties: {
                     a: {
@@ -784,7 +784,7 @@ describe('definitions/schema', () => {
             expect(err).to.match(/Property not allowed: writeOnly/);
         });
 
-        it('should not readOnly and writeOnly', () => {
+        it('should not allow readOnly and writeOnly', () => {
             const [ err ]= definition(3, Schema, {
                 type: 'object',
                 required: ['a'],
