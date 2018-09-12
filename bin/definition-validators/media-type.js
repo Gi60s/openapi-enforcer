@@ -51,3 +51,7 @@ function MediaTypeObject() {
         }
     });
 }
+
+MediaTypeObject.rx = {
+    mediaType: /^(application|audio|example|font|image|message|model|multipart|text|video)\/(?:([a-z.\-]+)\+)?([a-z.\-]+)(?:; (.+))?$/
+};
