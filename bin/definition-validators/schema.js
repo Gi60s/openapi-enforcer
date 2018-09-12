@@ -15,8 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
-const rx        = require('../rx');
-const util      = require('../util');
+const SchemaComponent   = require('../schema');
+const rx                = require('../rx');
+const util              = require('../util');
 
 module.exports = SchemaObject;
 
@@ -209,8 +210,8 @@ function SchemaObject() {
                 allowed: isSchemaProperty,
                 type: 'boolean',
                 default: false,
-                errors: ({ major, parent }) => {
-                    if (major === 2 && parent && parent.parent && parent.parent.parent && parent.parent.parent.value.required && parent.parent.parent.value.required.includes(parent.key)) {
+                errors: ({ major, parent, value }) => {
+                    if (major === 2 && value && parent && parent.parent && parent.parent.parent && parent.parent.parent.value.required && parent.parent.parent.value.required.includes(parent.key)) {
                         parent.warn('Property should not be marked as both read only and required');
                     }
                 }
@@ -242,7 +243,8 @@ function SchemaObject() {
             }
         },
 
-        errors: ({ value, exception }) => {
+        errors: (data) => {
+            const { exception, major, minor, parent, patch, root, value, warn } = data;
 
             if (!minMaxValid(value.minItems, value.maxItems)) {
                 exception('Property "minItems" must be less than or equal to "maxItems"');
@@ -284,7 +286,34 @@ function SchemaObject() {
                 exception('Cannot have multiple composites: ' + composites.join(', '));
             }
 
-        }
+            // validate default, enums, and example against the schema
+            if (!exception.hasException) {
+                const schema = new SchemaComponent({
+                    definition: value,
+                    hierarchy: { parent, root },
+                    version: { major, minor, patch }
+                });
+
+                if (value.hasOwnProperty('default')) {
+                    const err = schema.validate(value.default);
+                    if (err) exception.at('default')(err);
+                }
+
+                if (value.enum) {
+                    value.enum.forEach((v, i) => {
+                        const err = schema.validate(v);
+                        if (err) exception.at('enum').at(i)(err);
+                    })
+                }
+
+                if (value.hasOwnProperty('example')) {
+                    const err = schema.validate(value.example);
+                    if (err) warn.at('example')(err);
+                }
+            }
+        },
+
+        component: SchemaComponent
     });
 
     Object.assign(additionalProperties, Schema, {
