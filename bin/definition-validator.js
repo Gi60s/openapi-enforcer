@@ -38,7 +38,9 @@ module.exports = function(definition) {
             const value = util.copy(definition);
             const key = undefined;
 
-            const result = normalize({ exception, key, major, minor, parent, patch, validator, value, warn });
+            const root = { exception, key, major, minor, parent, patch, validator, value, warn };
+            root.root = root;
+            const result = normalize(root);
             return new Result(exception, result, warn);
         } else {
             return new Result(exception('Invalid value for property: ' + (hasSwagger ? 'swagger' : 'openapi')), null);
@@ -59,7 +61,9 @@ module.exports.normalize = function(version, validator, definition) {
     const value = util.copy(definition);
     const key = undefined;
 
-    const result = normalize({ exception, key, major, minor, parent, patch, validator, value, warn });
+    const root = { exception, key, major, minor, parent, patch, validator, value, warn };
+    root.root = root;
+    const result = normalize(root);
     return new Result(exception, result, warn);
 };
 
@@ -72,13 +76,14 @@ module.exports.normalize = function(version, validator, definition) {
  * @param {number} data.minor
  * @param {object} data.parent
  * @param {number} data.patch
+ * @param {*} data.root
  * @param {object} data.validator
  * @param {*} data.value
  * @param {Exception} data.warn
  * @returns {*}
  */
 function normalize(data) {
-    const { exception, major, minor, parent, patch, value, warn } = data = Object.assign({}, data);
+    const { exception, major, minor, parent, patch, root, value, warn } = data = Object.assign({}, data);
     const validator = getValidator(data);
     let message;
     let result;
@@ -104,6 +109,7 @@ function normalize(data) {
                     minor,
                     parent: data,
                     patch,
+                    root,
                     validator: validator.items,
                     value: v,
                     warn: warn.at(i)
@@ -122,6 +128,7 @@ function normalize(data) {
                         minor,
                         parent: data,
                         patch,
+                        root,
                         validator: additionalPropertiesValidator,
                         value: value[key],
                         warn: warn.at(key)
@@ -137,7 +144,7 @@ function normalize(data) {
                         if (!ignore) result[key] = normalize(param);
                     } else {
                         let message = 'Property not allowed: ' + key;
-                        if (typeof allowed[key] === 'string') message += '. ' + allowed[key];
+                        if (typeof allowed === 'string') message += '. ' + allowed;
                         exception(message)
                     }
                 });
@@ -162,6 +169,7 @@ function normalize(data) {
                         minor,
                         parent: data,
                         patch,
+                        root,
                         validator: properties[key],
                         value: value[key],
                         warn: warn.at(key)
@@ -208,6 +216,7 @@ function normalize(data) {
                             minor,
                             parent: data,
                             patch,
+                            root,
                             value: value[key],
                             validator: validator.properties[key],
                             warn: warn.at(key)
@@ -231,6 +240,7 @@ function normalize(data) {
                     minor,
                     parent,
                     patch,
+                    root,
                     validator,
                     value,
                     warn
@@ -246,6 +256,7 @@ function normalize(data) {
                 minor,
                 parent,
                 patch,
+                root,
                 validator,
                 value: result,
                 warn
