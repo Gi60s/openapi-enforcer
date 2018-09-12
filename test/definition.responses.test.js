@@ -19,7 +19,7 @@ const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
 const Responses     = require('../bin/definition-validators/responses');
 
-describe.only('definitions/responses', () => {
+describe('definitions/responses', () => {
 
     it('allows a valid definition', () => {
         const [ err ] = definition(2, Responses, {
