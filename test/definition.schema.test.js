@@ -149,7 +149,6 @@ describe('definitions/schema', () => {
         it('allows default', () => {
             const [ err, def ] = definition(2, Schema, { type: 'string', default: 'hello' });
             expect(err).to.be.undefined;
-            expect(def).to.deep.equal({ type: 'string', default: 'hello' });
         });
 
         it('deserializes default', () => {
@@ -162,6 +161,15 @@ describe('definitions/schema', () => {
             const [ err, def ] = definition(2, Schema, { type: 'number', default: 'hello' });
             expect(err).to.match(/Value must be a number/)
         });
+
+        it('must match schema', () => {
+            const [ err, def ] = definition(2, Schema, {
+                type: 'number',
+                maximum: 5,
+                default: 10
+            });
+            expect(err).to.match(/Expected number to be less than or equal to 5/)
+        })
 
     });
 
@@ -265,6 +273,11 @@ describe('definitions/schema', () => {
             expect(err).to.match(/Value must be an array/);
         });
 
+        it('must validate against the schema', () => {
+            const [ err ] = definition(2, Schema, { type: 'number', maximum: 5, enum: [ 10 ] });
+            expect(err).to.match(/Expected number to be less than or equal to 5/);
+        });
+
         describe('strings', () => {
 
             it('allows enum value with matching types', () => {
@@ -350,6 +363,22 @@ describe('definitions/schema', () => {
                 example: 'hello'
             });
             expect(err).to.be.undefined;
+        });
+
+        it('warns of invalid value', () => {
+            const [ err, def, warning ] = definition(2, Schema, {
+                type: 'object',
+                properties: {
+                    a: { type: 'number' },
+                    b: { type: 'string' }
+                },
+                required: ['a', 'b'],
+                example: {
+                    a: 'hello'
+                }
+            });
+            expect(warning).to.match(/Expected a number/);
+            expect(warning).to.match(/One or more required properties missing: b/);
         });
 
     });
