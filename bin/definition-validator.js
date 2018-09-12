@@ -31,17 +31,19 @@ module.exports = function(definition) {
     } else {
         const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
         if (match) {
+            const map = new Map();
             const major = +match[1];
             const minor = +match[2];
             const patch = +(match[3] || 0);
+            const result = {};
             const validator = Swagger;
             const value = util.copy(definition);
             const key = undefined;
 
-            const root = { exception, key, major, minor, parent, patch, validator, value, warn };
+            const root = { exception, key, major, map, minor, parent, patch, validator, value, warn };
             root.root = root;
-            const result = normalize(root);
-            return new Result(exception, result, warn);
+            normalize(root);
+            return new Result(exception, result.value, warn);
         } else {
             return new Result(exception('Invalid value for property: ' + (hasSwagger ? 'swagger' : 'openapi')), null);
         }
@@ -54,17 +56,19 @@ module.exports.normalize = function(version, validator, definition) {
     const exception = Exception('One or more errors exist in the definition');
     const warn = Exception('One or more warnings exist in the definition');
     const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(version);
+    const map = new Map();
     const major = +match[1];
     const minor = +match[2];
     const patch = +(match[3] || 0);
     const parent = null;
+    const result = {};
     const value = util.copy(definition);
     const key = undefined;
 
-    const root = { exception, key, major, minor, parent, patch, validator, value, warn };
+    const root = { exception, key, major, map, minor, parent, patch, result, validator, value, warn };
     root.root = root;
-    const result = normalize(root);
-    return new Result(exception, result, warn);
+    normalize(root);
+    return new Result(exception, result.value, warn);
 };
 
 /**
@@ -73,6 +77,7 @@ module.exports.normalize = function(version, validator, definition) {
  * @param {Exception} data.exception
  * @param {string|number} data.key
  * @param {number} data.major
+ * @param {Map} data.map
  * @param {number} data.minor
  * @param {object} data.parent
  * @param {number} data.patch
@@ -83,10 +88,17 @@ module.exports.normalize = function(version, validator, definition) {
  * @returns {*}
  */
 function normalize(data) {
-    const { exception, major, minor, parent, patch, root, value, warn } = data = Object.assign({}, data);
+    const { exception, major, map, minor, parent, patch, result, root, value, warn } = data = Object.assign({}, data);
+
+    // if this definition has already been processed then return result
+    if (value && typeof value === 'object') {
+        const existing = map.get(value);
+        if (existing) return existing;
+        map.set(value, result);
+    }
+
     const validator = getValidator(data);
     let message;
-    let result;
 
     try {
         // check that type matches
@@ -101,33 +113,40 @@ function normalize(data) {
                 : exception('Value must be one of: ' + message.join(', ') + '. Received: ' + util.smart(value));
 
         } else if (type === 'array') {
-            result = value.map((v, i) => {
-                return normalize({
+            result.value = value.map((v, i) => {
+                const r = {};
+                normalize({
                     exception: exception.at(i),
                     key: i,
                     major,
+                    map,
                     minor,
                     parent: data,
                     patch,
+                    result: r,
                     root,
                     validator: validator.items,
                     value: v,
                     warn: warn.at(i)
                 });
+                return r.value;
             });
 
         } else if (type === 'object') {
-            result = {};
+            result.value = {};
             if (validator.additionalProperties) {
                 const additionalPropertiesValidator = validator.additionalProperties;
                 Object.keys(value).forEach(key => {
+                    const r = {};
                     const param = {
                         exception: exception.at(key),
                         key,
                         major,
+                        map,
                         minor,
                         parent: data,
                         patch,
+                        result: r,
                         root,
                         validator: additionalPropertiesValidator,
                         value: value[key],
@@ -141,7 +160,10 @@ function normalize(data) {
                     const ignore = validator.ignore && fn(validator.ignore, param);
 
                     if (allowed === true) {
-                        if (!ignore) result[key] = normalize(param);
+                        if (!ignore) {
+                            normalize(param);
+                            result.value[key] = r.value;
+                        }
                     } else {
                         let message = 'Property not allowed: ' + key;
                         if (typeof allowed === 'string') message += '. ' + allowed;
@@ -151,7 +173,7 @@ function normalize(data) {
 
             } else if (!validator.properties) {
                 Object.keys(value).forEach(key => {
-                    result[key] = value[key];
+                    result.value[key] = value[key];
                 });
 
             } else {
@@ -200,7 +222,7 @@ function normalize(data) {
 
                     // check if the key is an extension property
                     if (rxExtension.test(key)) {
-                        result[key] = value[key];
+                        result.value[key] = value[key];
 
                         // check if property allowed
                     } else if (allowed[key] !== true) {
@@ -209,18 +231,22 @@ function normalize(data) {
                         exception(message)
 
                     } else if (!ignores[key]) {
-                        result[key] = normalize({
+                        const r = {};
+                        normalize({
                             exception: exception.at(key),
                             key,
                             major,
+                            map,
                             minor,
                             parent: data,
                             patch,
+                            result: r,
                             root,
                             value: value[key],
                             validator: validator.properties[key],
                             warn: warn.at(key)
                         });
+                        result.value[key] = r.value;
                     }
                 });
 
@@ -232,7 +258,7 @@ function normalize(data) {
             }
 
         } else {
-            result = validator.deserialize
+            result.value = validator.deserialize
                 ? fn(validator.deserialize, {
                     exception,
                     key: undefined,
@@ -248,22 +274,31 @@ function normalize(data) {
                 : value;
         }
 
-        if (result !== undefined && validator.errors) {
-            fn(validator.errors, {
-                exception,
-                key: undefined,
-                major,
-                minor,
-                parent,
-                patch,
-                root,
-                validator,
-                value: result,
-                warn
-            });
-        }
+        if (result.value !== undefined) {
 
-        return result;
+            if (validator.errors) {
+                fn(validator.errors, {
+                    exception,
+                    key: undefined,
+                    major,
+                    minor,
+                    parent,
+                    patch,
+                    root,
+                    validator,
+                    value: result.value,
+                    warn
+                });
+            }
+
+            if (validator.component && !exception.hasException) {
+                result.value = new validator.component({
+                    definition: result.value,
+                    hierarchy: { parent, root },
+                    version: { major, minor, patch }
+                });
+            }
+        }
 
     } catch (err) {
         exception('Unexpected error encountered, likely due to malformed definition: ' + err.stack);
@@ -338,6 +373,10 @@ function getValidator(data) {
     return data.validator;
 }
 
+/**
+ * @param value
+ * @returns {string|undefined}
+ */
 function getValueType(value) {
     let type = typeof value;
     if (Array.isArray(value)) type = 'array';
