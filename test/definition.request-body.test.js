@@ -32,6 +32,27 @@ describe('definitions/request-body', () => {
         expect(err).to.be.undefined;
     });
 
+    it('is not allowed for GET method', () => {
+        const Path = require('../bin/definition-validators/path');
+        const [ err ] = definition(3, Path, {
+            get: {
+                requestBody: {
+                    content: {
+                        'application/json': {
+
+                        }
+                    }
+                },
+                responses: {
+                    default: {
+                        description: ''
+                    }
+                }
+            }
+        });
+        expect(err).to.match(/Property not allowed: requestBody/);
+    });
+
     describe('encoding', () => {
 
         it('is allowed with multipart mimetype', () => {
