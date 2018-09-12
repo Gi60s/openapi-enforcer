@@ -29,12 +29,6 @@ const smart = util.smart;
 module.exports = function(schema, value) {
     const exception = Exception('Value is not valid');
 
-    // check the schema
-    if (schema.hasException) {
-        exception(schema.exception());
-        return exception;
-    }
-
     // validate the value
     validate(exception, schema.version, new Map(), schema, value);
 
