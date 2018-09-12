@@ -33,9 +33,10 @@ module.exports = OpenAPIException;
 /**
  * @param {string} header
  * @param {boolean} [isHeader]
+ * @param {Exception} [parent]
  * @returns {Exception}
  */
-function OpenAPIException(header, isHeader) {
+function OpenAPIException(header, isHeader, parent) {
     const positionals = [];
     const headers = [];
     const messages = [];
@@ -46,17 +47,26 @@ function OpenAPIException(header, isHeader) {
     function exception(message) {
         return exception.message(message);
     }
+    const self = exception;
 
     exception.header = header;
     exception.isHeader = arguments.length === 2 ? isHeader : true;
+    exception.parent = parent;
 
     exception.at = function(at) {
-        if (atMap[at]) return atMap[at];
-        const exception = OpenAPIException(at, false);
-        atMap[at] = exception;
-        positionals.push(exception);
-        cached = false;
+        let exception = atMap[at];
+        if (!exception) {
+            exception = OpenAPIException(at, false, self);
+            atMap[at] = exception;
+            positionals.push(exception);
+        }
+        exception.clearCache();
         return exception;
+    };
+
+    exception.clearCache = function() {
+        cached = false;
+        if (exception.parent) exception.parent.clearCache();
     };
 
     exception.first = function(message) {
@@ -69,7 +79,7 @@ function OpenAPIException(header, isHeader) {
         } else {
             positionals.unshift(message);
         }
-        cached = false;
+        exception.clearCache();
         return exception;
     };
 
@@ -79,18 +89,19 @@ function OpenAPIException(header, isHeader) {
         } else if (typeof message === 'string') {
             messages.push(message);
         } else if (message.isHeader) {
+            message.parent = self;
             headers.push(message);
         } else {
             positionals.push(message);
         }
-        cached = false;
+        exception.clearCache();
         return exception;
     };
 
     exception.nest = function(header) {
-        const exception = OpenAPIException(header, true);
+        const exception = OpenAPIException(header, true, self);
         headers.push(exception);
-        cached = false;
+        exception.clearCache();
         return exception;
     };
 
