@@ -275,6 +275,15 @@ function SchemaObject() {
                 if (index === -1) exception('Default value does not meet enum requirements');
             }
 
+            // validate that zero or one composite has been defined
+            const composites = [];
+            ['allOf', 'anyOf', 'oneOf', 'not'].forEach(composite => {
+                if (value.hasOwnProperty(composite)) composites.push(composite);
+            });
+            if (composites.length > 1) {
+                exception('Cannot have multiple composites: ' + composites.join(', '));
+            }
+
         }
     });
 
