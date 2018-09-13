@@ -17,7 +17,7 @@
 'use strict';
 const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
-const Responses     = require('../bin/definition-validators/responses');
+const Responses     = require('../bin/definition-validators/response');
 
 describe('definitions/responses', () => {
 
@@ -37,44 +37,7 @@ describe('definitions/responses', () => {
         expect(err).to.match(/Missing required property: description/);
     });
 
-    describe('codes', () => {
 
-        it('default ok', () => {
-            const [ err ] = definition(2, Responses, {
-                default: { description: '' }
-            });
-            expect(err).to.be.undefined
-        });
-
-        it('200 ok', () => {
-            const [ err ] = definition(2, Responses, {
-                200: { description: '' }
-            });
-            expect(err).to.be.undefined
-        });
-
-        it('2XX not ok for v2', () => {
-            const [ err ] = definition(2, Responses, {
-                '2XX': { description: '' }
-            });
-            expect(err).to.match(/Property not allowed: 2XX/);
-        });
-
-        it('2XX ok for v3', () => {
-            const [ err ] = definition(3, Responses, {
-                '2XX': { description: '' }
-            });
-            expect(err).to.be.undefined
-        });
-
-        it('600 not ok', () => {
-            const [ err ] = definition(2, Responses, {
-                600: { description: '' }
-            });
-            expect(err).to.match(/Property not allowed: 600/);
-        });
-
-    });
 
     describe('content', () => {
 

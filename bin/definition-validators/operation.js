@@ -19,13 +19,15 @@
 module.exports = OperationObject;
 
 const map = new WeakMap();
+const rxCode = /^[1-5]\d{2}$/;
+const rxRange = /^[1-5](?:\d|X){2}$/;
 
 function OperationObject(data) {
     const Callback = require('./callback');
     const ExternalDocumentation = require('./external-documentation');
     const Parameter = require('./parameter');
     const RequestBody = require('./request-body');
-    const Responses = require('./responses');
+    const Response = require('./response');
     const SecurityRequirement = require('./security-requirement');
     const Server = require('./server');
 
@@ -69,7 +71,31 @@ function OperationObject(data) {
             },
             parameters: {
                 type: 'array',
-                items: Parameter
+                items: Parameter,
+                errors: ({ exception, value }) => {
+                    const length = value.length;
+                    const duplicates = [];
+                    let bodiesCount = 0;
+                    for (let i = 0; i < length; i++) {
+                        const p1 = value[i];
+                        if (p1.in === 'body') bodiesCount++;
+                        for (let j = 0; j < length; j++) {
+                            const p2 = value[j];
+                            if (p1 !== p2 && p1.name === p2.name && p1.in === p2.in) {
+                                const description = p1.name + ' in ' + p1.in;
+                                if (!duplicates.includes(description)) duplicates.push(description);
+                            }
+                        }
+                    }
+
+                    if (bodiesCount > 1) {
+                        exception('Only one body parameter allowed');
+                    }
+
+                    if (duplicates.length) {
+                        exception('Parameter name must be unique per location. Duplicates found: ' + duplicates.join(', '));
+                    }
+                }
             },
             produces: {
                 allowed: major === 2,
@@ -79,7 +105,23 @@ function OperationObject(data) {
                 }
             },
             requestBody: RequestBody,
-            responses: Responses,
+            responses: {
+                required: true,
+                type: 'object',
+                additionalProperties: function (data) {
+                    const response = new Response(data);
+                    const { key } = data;
+                    response.allowed = key === 'default' || rxCode.test(key) || (major === 3 && rxRange.test(key))
+                        ? true
+                        : 'Invalid response code.';
+                    return response;
+                },
+                errors: ({ exception, value }) => {
+                    if (Object.keys(value).length === 0) {
+                        exception('Response object cannot be empty');
+                    }
+                }
+            },
             schemes: {
                 allowed: major === 2,
                 type: 'array',
@@ -98,7 +140,12 @@ function OperationObject(data) {
                 items: Server
             },
             summary: {
-                type: 'string'
+                type: 'string',
+                errors: ({ value, warn }) => {
+                    if (value.length >= 120) {
+                        warn('Value should be less than 120 characters');
+                    }
+                }
             },
             tags: {
                 type: 'array',
