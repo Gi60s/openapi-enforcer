@@ -517,15 +517,27 @@ describe.only('definitions/operation', () => {
     describe('tags', () => {
 
         it('allows an array of strings', () => {
-
+            const [ err ] = definition(2, Operation, {
+                tags: ['a', 'b'],
+                responses
+            });
+            expect(err).to.be.undefined;
         });
 
         it('must be an array', () => {
-
+            const [ err ] = definition(2, Operation, {
+                tags: 1,
+                responses
+            });
+            expect(err).to.match(/Value must be an array/);
         });
 
         it('must be an array of strings', () => {
-
+            const [ err ] = definition(2, Operation, {
+                tags: [1],
+                responses
+            });
+            expect(err).to.match(/Value must be a string/);
         });
 
     });
