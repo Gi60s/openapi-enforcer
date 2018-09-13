@@ -24,7 +24,8 @@ function RequestBody() {
     const MediaType     = require('./media-type');
 
     Object.assign(this, {
-        allowed: ({ major, parent }) => major === 3 && (!parent || allowedMethods.includes(parent.key)),
+        allowed: ({ major, parent }) =>
+            major === 3 && (!parent || parent.key === undefined || allowedMethods.includes(parent.key)),
         type: 'object',
         properties: {
             description: {
