@@ -18,10 +18,58 @@
 
 module.exports = SecurityRequirementObject;
 
-function SecurityRequirementObject() {
+function SecurityRequirementObject(data) {
+    const { major, root } = data;
     Object.assign(this, {
         type: 'object',
         additionalProperties: {
+            errors: ({ exception, key, value }) => {
+                // TODO: to validate this I need a OAS document with a valid root
+                if (root.value) {
+                    let security;
+                    if (major === 2) {
+                        security = root.value && root.value.securityDefinitions &&
+                            root.value.securityDefinitions.hasOwnProperty(key);
+                        if (!security) {
+                            exception('Security requirement name must be defined at the document root under the securityDefinitions');
+                        }
+                    } else if (major === 3) {
+                        security = root.value && root.value.components &&
+                            root.value.components.securitySchemes &&
+                            root.value.components.securitySchemes.hasOwnProperty(key);
+                        if (!security) {
+                            exception('Security requirement name must be defined at the document root under the components/securitySchemes');
+                        }
+                    }
+
+                    // for oauth2 check that all scopes requested are defined
+                    if (security) {
+                        if (security.type === 'oauth2') {
+                            let scopes;
+                            if (major === 2) {
+                                scopes = (security.scopes && Object.keys(security.scopes)) || [];
+                            } else if (major === 3) {
+                                scopes = [];
+                                Object.keys(security.flows || {}).forEach(key => {
+                                    const flow = security.flows[key];
+                                    if (flow.scopes) scopes.push(...Object.keys(flow.scopes));
+                                })
+                            }
+
+                            value.forEach(scope => {
+                                if (scopes.includes(scope)) {
+                                    const name = major === 2 ? 'securityDefinitions' : 'securitySchemes';
+                                    exception('Oauth2 scope not defined in ' + name);
+                                }
+                            });
+                        } else {
+                            if (value.length > 0) {
+                                exception('Security requirement for ' + security.type + ' value must be an empty array');
+                            }
+                        }
+                    }
+                }
+            },
             type: 'array',
             items: 'string'
         }
