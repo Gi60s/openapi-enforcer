@@ -20,7 +20,7 @@ const expect        = require('chai').expect;
 const Operation     = require('../bin/definition-validators/operation');
 const Path          = require('../bin/definition-validators/path');
 
-describe.only('definitions/operation', () => {
+describe('definitions/operation', () => {
     const responses = { default: { description: '' } };
 
     describe('callbacks', () => {
