@@ -19,6 +19,7 @@
 module.exports = OperationObject;
 
 const map = new WeakMap();
+const requestBodyAllowedMethods = { post: true, put: true, options: true, head: true, patch: true };
 const rxCode = /^[1-5]\d{2}$/;
 const rxRange = /^[1-5](?:\d|X){2}$/;
 
@@ -104,7 +105,10 @@ function OperationObject(data) {
                     type: 'string'
                 }
             },
-            requestBody: RequestBody,
+            requestBody: function(data) {
+                const requestBody = new RequestBody(data);
+                requestBody.allowed = !!requestBodyAllowedMethods[data.parent.key]
+            },
             responses: {
                 required: true,
                 type: 'object',

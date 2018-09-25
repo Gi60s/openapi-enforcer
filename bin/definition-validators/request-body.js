@@ -18,14 +18,11 @@
 
 module.exports = RequestBody;
 
-const allowedMethods = ['post', 'put', 'options', 'head', 'patch'];
-
-function RequestBody() {
+function RequestBody({ major }) {
     const MediaType     = require('./media-type');
 
     Object.assign(this, {
-        allowed: ({ major, parent }) =>
-            major === 3 && (!parent || parent.key === undefined || allowedMethods.includes(parent.key)),
+        allowed: major === 3,
         type: 'object',
         properties: {
             description: {
@@ -33,6 +30,7 @@ function RequestBody() {
             },
             content: {
                 type: 'object',
+                required: true,
                 additionalProperties: MediaType
             },
             required: {
