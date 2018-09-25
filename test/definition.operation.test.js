@@ -298,7 +298,7 @@ describe('definitions/operation', () => {
             });
             expect(err).to.match(/Property not allowed: requestBody/);
         });
-        
+
         it('can be a valid request body object for v3', () => {
             const [ err ] = definition(3, Operation, {
                 requestBody: {
@@ -431,34 +431,6 @@ describe('definitions/operation', () => {
                 responses
             });
             expect(err).to.match(/Value must be an array/);
-        });
-
-        it('must have a corresponding securityDefinition in v2', () => {
-            throw Error('TODO');
-        });
-
-        it('must have a corresponding securityScheme in v3', () => {
-            throw Error('TODO');
-        });
-
-        it('must be an empty array if not OAuth2', () => {
-            throw Error('TODO');
-        });
-
-        it('must have array values for OAuth2 that are defined in the securityDefinition scope for v2', () => {
-            throw Error('TODO');
-        });
-
-        it('must have array values for OAuth2 that are defined in the securityScheme scope for v3', () => {
-            throw Error('TODO');
-        });
-
-        it('can have valid values for OAuth2 for v2', () => {
-            throw Error('TODO');
-        });
-
-        it('can have valid values for OAuth2 for v3', () => {
-            throw Error('TODO');
         });
 
     });
