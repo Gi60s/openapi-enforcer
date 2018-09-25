@@ -18,49 +18,120 @@
 
 module.exports = SecuritySchemeObject;
 
-function SecuritySchemeObject() {
+function SecuritySchemeObject({ major }) {
     Object.assign(this, {
         type: 'object',
         properties: {
-            type: {
-                type: 'string',
-                enum: ['basic', 'apiKey', 'oauth2']
-            },
-            description: 'string',
-            name: {
-                allowed: ({ definition }) => definition.type === 'apiKey',
-                required: true,
+            authorizationUrl: {
+                allowed: ({ parent }) => major === 2 && parent.value.type === 'oauth2',
+                required: ({ parent }) => ['implicit', 'accessCode'].includes(parent.value.flow),
                 type: 'string'
             },
-            in: {
-                allowed: ({ definition }) => definition.type === 'apiKey',
-                required: true,
-                type: 'string',
-                enum: ['query', 'header']
+            bearerFormat: {
+                allowed: ({ parent }) => major === 3 && parent.value.type === 'http',
+                type: 'string'
             },
+            description: 'string',
             flow: {
-                allowed: ({ definition }) => definition.type === 'oauth2',
+                allowed: ({ parent }) => major === 2 && parent.value.type === 'oauth2',
                 required: true,
                 type: 'string',
                 enum: ['implicit', 'password', 'application', 'accessCode']
             },
-            authorizationUrl: {
-                allowed: ({ definition }) => definition.type === 'oauth2',
-                required: ({ definition }) => ['implicit', 'accessCode'].includes(definition.flow),
+            flows: {
+                allowed: ({ parent }) => major === 3 && parent.value.type === 'oauth2',
+                type: 'object',
+                properties: {
+                    implicit: OAuthFlow({
+                        authorizationUrl: {
+                            required: true,
+                            type: 'string'
+                        }
+                    }),
+                    password: OAuthFlow({
+                        tokenUrl: {
+                            required: true,
+                            type: 'string'
+                        }
+                    }),
+                    clientCredentials: OAuthFlow({
+                        tokenUrl: {
+                            required: true,
+                            type: 'string'
+                        }
+                    }),
+                    authorizationCode: OAuthFlow({
+                        authorizationUrl: {
+                            required: true,
+                            type: 'string'
+                        },
+                        tokenUrl: {
+                            required: true,
+                            type: 'string'
+                        }
+                    })
+                }
+            },
+            in: {
+                allowed: ({ parent }) => parent.value.type === 'apiKey',
+                required: true,
+                type: 'string',
+                enum: major === 2
+                    ? ['query', 'header']
+                    : ['query', 'header', 'cookie']
+            },
+            name: {
+                allowed: ({ parent }) => parent.value.type === 'apiKey',
+                required: true,
                 type: 'string'
             },
-            tokenUrl: {
-                allowed: ({ definition }) => definition.type === 'oauth2',
-                required: ({ definition }) => ['password', 'application', 'accessCode'].includes(definition.flow),
+            openIdConnectUrl: {
+                allowed: major === 3,
+                required: ({ parent }) => parent.value.type === 'openIdConnect',
+                type: 'string'
+            },
+            scheme: {
+                allowed: ({ parent }) => major === 3 && parent.value.type === 'http',
+                required: true,
+                type: 'string'
             },
             scopes: {
-                allowed: ({ definition }) => definition.type === 'oauth2',
+                allowed: ({ parent }) => major === 2 && parent.value.type === 'oauth2',
                 type: 'object',
                 required: true,
                 additionalProperties: {
                     type: 'string'
                 }
+            },
+            tokenUrl: {
+                allowed: ({ parent }) => major === 2 && parent.value.type === 'oauth2',
+                required: ({ parent }) => ['password', 'application', 'accessCode'].includes(parent.value.flow),
+            },
+            type: {
+                required: true,
+                type: 'string',
+                enum: major === 2
+                    ? ['basic', 'apiKey', 'oauth2']
+                    : ['apiKey', 'http', 'oauth2', 'openIdConnect']
             }
         }
     });
+}
+
+function OAuthFlow(def) {
+    return Object.assign({}, {
+        type: 'object',
+        properties: {
+            refreshUrl: {
+                type: 'string'
+            },
+            scopes: {
+                required: true,
+                type: 'object',
+                additionalProperties: {
+                    type: 'string'
+                }
+            }
+        }
+    }, def);
 }
