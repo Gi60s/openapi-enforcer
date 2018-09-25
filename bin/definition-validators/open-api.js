@@ -18,77 +18,157 @@
 
 module.exports = OpenAPIObject;
 
-function OpenAPIObject() {
+const rxHostParts = /^((?:https?|wss?):\/\/)?(.+?)(\/.+)?$/;
+const rxSemanticVersion = /^\d+\.\d+\.\d+$/;
+
+function OpenAPIObject({ major }) {
+    const Callback              = require('./callback');
+    const Example               = require('./example');
     const ExternalDocumentation = require('./external-documentation');
+    const Header                = require('./header');
     const Info                  = require('./info');
+    const Link                  = require('./link');
     const Parameter             = require('./parameter');
     const Path                  = require('./path');
-    const Response              = null;
+    const RequestBody           = require('./request-body');
+    const Response              = require('./response');
     const Schema                = require('./schema');
     const SecurityRequirement   = require('./security-requirement');
     const SecurityScheme        = require('./security-scheme');
+    const Server                = require('./server');
     const Tag                   = require('./tag');
 
     Object.assign(this, {
         type: 'object',
         properties: {
-            swagger: {
-                allowed: ({ version }) => version === 2,
-                required: true,
-                type: 'string',
-                enum: ['2.0']
-            },
-            info: {
-                required: true,
-                type: 'object',
-                properties: Info
-            },
-            host: {
-                type: 'string'
-            },
             basePath: {
-                type: 'string'
+                allowed: major === 2,
+                type: 'string',
+                errors: ({ exception, value }) => {
+                    if (value[0] !== '/') exception('Value must start with a forward slash');
+                }
             },
-            schemes: {
-                allowed: ({ version }) => version === 2,
-                type: 'array',
-                items: {
-                    type: 'string',
-                    enum: ['http', 'https', 'ws', 'wss']
+            components: {
+                allowed: major === 3,
+                type: 'object',
+                properties: {
+                    callbacks: Callback,
+                    examples: {
+                        type: 'object',
+                        additionalProperties: Example
+                    },
+                    headers: {
+                        type: 'object',
+                        additionalProperties: Header
+                    },
+                    links: {
+                        type: 'object',
+                        additionalProperties: Link
+                    },
+                    parameters: {
+                        type: 'object',
+                        additionalProperties: Parameter
+                    },
+                    requestBodies: {
+                        type: 'object',
+                        additionalProperties: RequestBody
+                    },
+                    responses: {
+                        type: 'object',
+                        additionalProperties: Response
+                    },
+                    schemas: {
+                        type: 'object',
+                        additionalProperties: Schema
+                    },
+                    securitySchemes: {
+                        type: 'object',
+                        additionalProperties: SecurityScheme
+                    },
                 }
             },
             consumes: {
-                allowed: ({ version }) => version === 2,
+                allowed: major === 2,
                 type: 'array',
                 items: 'string'
             },
-            produces: {
-                allowed: ({ version }) => version === 2,
-                type: 'array',
-                items: 'string'
+            definitions: {
+                allowed: major === 2,
+                type: 'object',
+                additionalProperties: Schema
+            },
+            host: {
+                type: 'string',
+                allowed: major === 2,
+                errors: ({ exception, value }) => {
+                    const match = rxHostParts.exec(value);
+                    if (match) {
+                        if (match[1]) exception('Value must not include the scheme: ' + match[1]);
+                        if (match[3]) exception('Value must not include sub path: ' + match[3]);
+                    }
+                }
+            },
+            info: function (data) {
+                const result = new Info(data);
+                result.required = true;
+                return result;
+            },
+            openapi: {
+                allowed: major === 3,
+                required: true,
+                type: 'string',
+                errors: ({ exception, value }) => {
+                    if (!rxSemanticVersion.test(value)) exception('Value must be a semantic version number');
+                }
+            },
+            parameters: {
+                allowed: major === 2,
+                type: 'object',
+                additionalProperties: Parameter
             },
             paths: {
                 required: true,
                 type: 'object',
                 additionalProperties: Path
             },
-            definitions: {
-                type: 'object',
-                additionalProperties: Schema
-            },
-            parameters: {
-                type: 'object',
-                additionalProperties: Parameter
+            produces: {
+                allowed: major === 2,
+                type: 'array',
+                items: 'string'
             },
             responses: {
+                allowed: major === 2,
                 type: 'object',
                 additionalProperties: Response
             },
+            schemes: {
+                allowed: major === 2,
+                type: 'array',
+                items: {
+                    type: 'string',
+                    enum: ['http', 'https', 'ws', 'wss']
+                }
+            },
+            security: {
+                type: 'array',
+                items: SecurityRequirement
+            },
             securityDefinitions: {
+                allowed: major === 2,
                 type: 'object',
                 additionalProperties: SecurityScheme
             },
-            security: SecurityRequirement,
+            servers: {
+                allowed: major === 3,
+                type: 'array',
+                items: Server
+            },
+            swagger: {
+                allowed: major === 2,
+                required: true,
+                type: 'string',
+                enum: ['2.0']
+            },
             tags: {
                 type: 'array',
                 items: Tag
