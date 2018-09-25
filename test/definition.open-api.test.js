@@ -19,7 +19,7 @@ const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
 const OpenAPI       = require('../bin/definition-validators/open-api');
 
-describe.only('definitions/open-api', () => {
+describe('definitions/open-api', () => {
 
     describe('basePath', () => {
 
