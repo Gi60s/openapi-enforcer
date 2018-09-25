@@ -107,7 +107,9 @@ function OperationObject(data) {
             },
             requestBody: function(data) {
                 const requestBody = new RequestBody(data);
-                requestBody.allowed = !!requestBodyAllowedMethods[data.parent.key]
+                const key = data.parent.key || 'post';  // for easy unit testing default key to post if there is no parent key
+                requestBody.allowed = major === 3 && !!requestBodyAllowedMethods[key];
+                return requestBody;
             },
             responses: {
                 required: true,
