@@ -132,10 +132,7 @@ Enforcer.prototype.request = function(request, options) {
     }
 
     // make all header properties lowercase
-    const headerNamesMap = {};
-    Object.keys(req.header).forEach(key => {
-        headerNamesMap[key.toLowerCase()] = key;
-    });
+    const headerNamesMap = util.lowerCaseObjectProperties(req.header);
 
     // process non-body input - 1) parse, 2) deserialize, 3) validate
     const operation = path[req.method];
