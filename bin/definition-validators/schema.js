@@ -244,7 +244,7 @@ function SchemaObject() {
         },
 
         errors: (data) => {
-            const { exception, major, minor, parent, patch, root, value, warn } = data;
+            const { exception, value } = data;
 
             if (!minMaxValid(value.minItems, value.maxItems)) {
                 exception('Property "minItems" must be less than or equal to "maxItems"');
@@ -284,32 +284,6 @@ function SchemaObject() {
             });
             if (composites.length > 1) {
                 exception('Cannot have multiple composites: ' + composites.join(', '));
-            }
-
-            // validate default, enums, and example against the schema
-            if (!exception.hasException) {
-                const schema = new SchemaComponent({
-                    definition: value,
-                    hierarchy: { parent, root },
-                    version: { major, minor, patch }
-                });
-
-                if (value.hasOwnProperty('default')) {
-                    const err = schema.validate(value.default);
-                    if (err) exception.at('default')(err);
-                }
-
-                if (value.enum) {
-                    value.enum.forEach((v, i) => {
-                        const err = schema.validate(v);
-                        if (err) exception.at('enum').at(i)(err);
-                    })
-                }
-
-                if (value.hasOwnProperty('example')) {
-                    const err = schema.validate(value.example);
-                    if (err) warn.at('example')(err);
-                }
             }
         },
 
