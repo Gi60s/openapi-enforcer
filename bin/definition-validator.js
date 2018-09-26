@@ -50,16 +50,38 @@ module.exports = function(definition) {
     }
 };
 
-module.exports.component = function(Component, { definition, hierarchy, version }) {
-    const component = new Component({
-        definition,
-        hierarchy,
-        version
+module.exports.component = function(Constructor, data) {
+    const definition = data.result.value;
+    const { exception, warn } = data;
+
+    const hierarchy = {};
+    Object.defineProperties(hierarchy, {
+        parent: { get: () => data.parent.result.value },
+        root: { get: () => data.root.result.value }
     });
-    Object.assign(component, definition, component);
-    component.hierarchy = hierarchy;
-    component.version = version;
-    return component;
+
+    const version = {
+        major: data.major,
+        minor: data.minor,
+        patch: data.patch
+    };
+
+    const Component = function EnforcerComponent(data) {
+        Object.assign(this, definition);
+        if (Constructor) Constructor.call(this, data)
+    };
+    Component.prototype = Object.create(Constructor.prototype);
+    Object.defineProperties(Component.prototype, {
+        enforcerComponent: {
+            value: {
+                data,
+                hierarchy,
+                version
+            }
+        }
+    });
+
+    return new Component({ exception, definition, hierarchy, version, warn });
 };
 
 module.exports.normalize = function(version, validator, definition) {
@@ -303,17 +325,13 @@ function normalize(data) {
                 });
             }
 
-            if (validator.component && !exception.hasException) {
-                result.value = module.exports.component(validator.component, {
-                    definition: result.value,
-                    hierarchy: { parent, root },
-                    version: { major, minor, patch }
-                });
+            if (!exception.hasException && validator.component) {
+                result.value = module.exports.component(validator.component, data);
             }
         }
 
     } catch (err) {
-        exception('Unexpected error encountered, likely due to malformed definition: ' + err.stack);
+        exception('Unexpected error encountered: ' + err.stack);
     }
 }
 
