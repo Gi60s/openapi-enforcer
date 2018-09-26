@@ -18,62 +18,35 @@
 const Exception     = require('../exception');
 const populate      = require('./populate');
 const random        = require('./random');
-const rx            = require('../rx');
 const serial        = require('./serialize');
-const util          = require('../util');
 const validate      = require('./validate');
 
-const rxExtension = /^x-.+/;
 const store = new WeakMap();
 
 module.exports = Schema;
 
-const validationsMap = {
-    2: {
-        common: { default: true, description: true, enum: true, example: true, externalDocs: true,
-            readOnly: true, title: true, type: true, xml: true },
-        formats: {
-            array: {},
-            boolean: {},
-            integer: { int32: true, int64: true },
-            number: { float: true, double: true },
-            object: {},
-            string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
-        },
-        composites: { allOf: true },
-        types: {
-            array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
-            boolean: {},
-            integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-            number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-            object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
-            string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, maxLength: true, minLength: true, pattern: true }
-        }
-    },
-    3: {
-        common: { default: true, deprecated: true, description: true, enum: true, example: true, externalDocs: true,
-            nullable: true, readOnly: true, title: true, type: true, writeOnly: true, xml: true },
-        formats: {
-            array: {},
-            boolean: {},
-            integer: { int32: true, int64: true },
-            number: { float: true, double: true },
-            object: {},
-            string: { binary: true, byte: true, date: true, 'date-time': true, password: true }
-        },
-        composites: { allOf: true, anyOf: true, oneOf: true, not: true },
-        types: {
-            array: { items: true, maxItems: true, minItems: true, uniqueItems: true },
-            boolean: {},
-            integer: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-            number: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maximum: true, minimum: true, multipleOf: true },
-            object: { additionalProperties: true, discriminator: true, maxProperties: true, minProperties: true, properties: true, required: true },
-            string: { exclusiveMaximum: true, exclusiveMinimum: true, format: true, maxLength: true, maximum: true, minimum: true, minLength: true, pattern: true }
-        }
-    }
-};
+function Schema({ exception, definition, warn }) {
 
-function Schema() {}
+    // validate the default value
+    if (definition.hasOwnProperty('default')) {
+        const error = this.validate(definition.default);
+        if (error) exception.at('default')(error);
+    }
+
+    // validate enum values
+    if (definition.hasOwnProperty('enum')) {
+        definition.enum.forEach((value, index) => {
+            const error = this.validate(value);
+            if (error) exception.at('enum').at(index)(error);
+        })
+    }
+
+    // validate the example
+    if (definition.hasOwnProperty('example')) {
+        const error = this.validate(definition.example);
+        if (error) warn.at('example')(error);
+    }
+}
 
 /**
  * Take a serialized (ready for HTTP transmission) value and deserialize it.
@@ -110,36 +83,6 @@ Schema.prototype.getDiscriminator = function(value) {
         return { key, schema };
     }
 };
-
-/**
- * Merge two or more schemas.
- * @param {...Schema|object} schema
- * @param {object} [options]
- * @param {boolean} [options.overwriteDiscriminator=false] Set to true to allow conflicting discriminators to overwrite the previous, otherwise causes exceptions.
- * @param {boolean} [options.orPattern=false]
- * @param {boolean} [options.throw=true]
- */
-// Schema.prototype.merge = function(schema, options) {
-//     const data = store.get(this);
-//     if (!data) throw Error('Expected a Schema instance type');
-//
-//     options = Object.assign({}, options);
-//     if (!options.hasOwnProperty('throw')) options.throw = true;
-//
-//     // get schemas array
-//     const schemas = Array.from(arguments)
-//         .map(schema => schema instanceof Schema
-//             ? schema
-//             : Schema(Exception('Schema has one or more errors'), data.version, schema, data.options));
-//
-//     // at this schema to the list of schemas
-//     args.unshift(this);
-//
-//     const merged = merge(schemas, options);
-//     const exception = merged.exception();
-//     if (exception || options.throw) throw Error(exception.toString());
-//     return merged;
-// };
 
 /**
  * Populate a value from a list of parameters.
@@ -190,27 +133,3 @@ Schema.prototype.serialize = function(value) {
 Schema.prototype.validate = function(value) {
     return validate(this, value);
 };
-
-
-
-
-// put custom property checks here
-function allowProperty(schema, property, version) {
-    if (property === 'discriminator') return true;
-    return false;
-}
-
-function isInteger(value) {
-    return typeof value === 'number' && Math.round(value) === value;
-}
-
-function isNonNegativeInteger(value) {
-    return isInteger(value) && value >= 0;
-}
-
-function minMaxValid(min, max, exclusiveMin, exclusiveMax) {
-    if (min === undefined || max === undefined) return true;
-    min = +min;
-    max = +max;
-    return min < max || (!exclusiveMin && !exclusiveMax && min === max);
-}
