@@ -162,3 +162,13 @@ function OperationObject(data) {
         }
     });
 }
+
+/**
+ * Take the input parameters and deserialize and validate them.
+ * @param {object} req
+ * @param {}
+ */
+OperationObject.prototype.parseRequest = function(req) {
+    // TODO
+    throw Error('TODO')
+};
