@@ -73,24 +73,7 @@ const validationsMap = {
     }
 };
 
-/**
- *
- * @param {object} data
- * @param {object} data.definition
- * @param {object} data.hierarchy
- * @param {object} data.hierarchy.parent
- * @param {object} data.hierarchy.root
- * @param {object} data.version
- * @param {number} data.version.major
- * @param {number} data.version.minor
- * @param {number} data.version.patch
- * @constructor
- */
-function Schema(data) {
-    Object.assign(this, data.definition);
-    this.hierarchy = data.hierarchy;
-    this.version = data.version;
-}
+function Schema() {}
 
 /**
  * Take a serialized (ready for HTTP transmission) value and deserialize it.
