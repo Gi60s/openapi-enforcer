@@ -169,7 +169,7 @@ describe('definitions/schema', () => {
                 default: 10
             });
             expect(err).to.match(/Expected number to be less than or equal to 5/)
-        })
+        });
 
     });
 
