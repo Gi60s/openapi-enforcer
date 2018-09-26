@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const Parameter     = require('../components/parameter');
 
 module.exports = ParameterObject;
 
@@ -133,4 +134,6 @@ function ParameterObject(data) {
 
         this.errors = base.errors;
     }
-};
+
+    this.component = Parameter;
+}
