@@ -50,6 +50,18 @@ module.exports = function(definition) {
     }
 };
 
+module.exports.component = function(Component, { definition, hierarchy, version }) {
+    const component = new Component({
+        definition,
+        hierarchy,
+        version
+    });
+    Object.assign(component, definition, component);
+    component.hierarchy = hierarchy;
+    component.version = version;
+    return component;
+};
+
 module.exports.normalize = function(version, validator, definition) {
     if (version === 2) version = '2.0';
     if (version === 3) version = '3.0.0';
@@ -292,7 +304,7 @@ function normalize(data) {
             }
 
             if (validator.component && !exception.hasException) {
-                result.value = new validator.component({
+                result.value = module.exports.component(validator.component, {
                     definition: result.value,
                     hierarchy: { parent, root },
                     version: { major, minor, patch }
