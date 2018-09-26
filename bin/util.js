@@ -81,6 +81,26 @@ exports.isPlainObject = function(value) {
     return prototype.hasOwnProperty('isPrototypeOf');
 };
 
+// check to see if its an object with properties as strings
+exports.isObjectStringMap = function(obj) {
+    if (!util.isPlainObject(obj)) return false;
+    const keys = Object.keys(obj);
+    const length = keys.length;
+    for (let i = 0; i < length; i++) {
+        if (typeof keys[i] !== 'string' || typeof obj[keys[i]] !== 'string') return false;
+    }
+    return true;
+};
+
+// create shallow copy of the object but make all property names lower case
+exports.lowerCaseObjectProperties = function(obj) {
+    const result = {};
+    Object.keys(obj).forEach(key => {
+        result[key.toLowerCase()] = obj[key];
+    });
+    return result;
+};
+
 exports.mapObject = function(object, callback) {
     const result = {};
     Object.keys(object).forEach(key => {
