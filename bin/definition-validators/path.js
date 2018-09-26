@@ -33,6 +33,10 @@ function PathObject(data) {
             description: {
                 type: 'string'
             },
+            parameters: {
+                type: 'array',
+                items: Parameter
+            },
             get: Operation,
             put: Operation,
             post: Operation,
@@ -49,10 +53,6 @@ function PathObject(data) {
                 allowed: major === 3,
                 type: 'array',
                 items: Server
-            },
-            parameters: {
-                type: 'array',
-                items: Parameter
             }
         }
     });
