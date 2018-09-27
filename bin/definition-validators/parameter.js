@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const Parameter     = require('../components/parameter');
+const Parameter     = require('../enforcers/parameter');
 
 module.exports = ParameterObject;
 

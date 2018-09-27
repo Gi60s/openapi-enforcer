@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const OperationComponent    = require('../components/operation');
+const OperationEnforcer     = require('../enforcers/operation');
 
 module.exports = OperationObject;
 
@@ -39,7 +39,7 @@ function OperationObject(data) {
     const operationIds = map.get(root);
 
     Object.assign(this, {
-        component: OperationComponent,
+        component: OperationEnforcer,
         type: 'object',
         properties: {
             callbacks: {

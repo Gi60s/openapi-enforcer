@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const OpenAPIEnforcer   = require('../enforcers/open-api');
 
 module.exports = OpenAPIObject;
 
@@ -39,6 +40,7 @@ function OpenAPIObject({ major }) {
     const Tag                   = require('./tag');
 
     Object.assign(this, {
+        component: OpenAPIEnforcer,
         type: 'object',
         properties: {
             basePath: {
