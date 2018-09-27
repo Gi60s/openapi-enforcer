@@ -53,20 +53,16 @@ module.exports = function(definition) {
 module.exports.component = function(Constructor, data) {
     const definition = data.result.value;
 
-    const hierarchy = {};
-    Object.defineProperties(hierarchy, {
-        parent: { get: () => data.parent.result.value },
-        root: { get: () => data.root.result.value }
-    });
-
     const enforcerData = {
+        data: data,
         exception: data.exception,
         key: data.key,
         definition,
-        hierarchy,
+        get parent() { return data.parent && data.parent.result.value },
         major: data.major,
         minor: data.minor,
         patch: data.patch,
+        get root() { return data.root.result.value },
         warn: data.warn
     };
 
