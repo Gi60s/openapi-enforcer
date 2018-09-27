@@ -19,7 +19,7 @@ const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
 const Parameter     = require('../bin/definition-validators/parameter');
 
-describe.only('components/parameter', () => {
+describe('components/parameter', () => {
 
     describe('constructor', () => {
 
@@ -44,14 +44,6 @@ describe.only('components/parameter', () => {
             });
             expect(def.schema.type).to.equal('string');
         })
-
-    });
-
-    describe('parse', () => {
-
-        it('todo', () => {
-            throw Error('todo')
-        });
 
     });
 
