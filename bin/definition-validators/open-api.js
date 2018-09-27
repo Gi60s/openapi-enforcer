@@ -129,7 +129,14 @@ function OpenAPIObject({ major }) {
             paths: {
                 required: true,
                 type: 'object',
-                additionalProperties: Path
+                additionalProperties: Path,
+                errors: ({ exception, value }) => {
+                    Object.keys(value).forEach(key => {
+                        if (key[0] !== '/' || key[1] === '/') {
+                            exception.at(key)('Path must begin with a single forward slash')
+                        }
+                    })
+                }
             },
             produces: {
                 allowed: major === 2,

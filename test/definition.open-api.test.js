@@ -510,42 +510,6 @@ describe('definitions/open-api', () => {
 
     });
 
-    describe('paths', () => {
-
-        it('is required', () => {
-            const [ err ] = definition(2, OpenAPI, {
-                swagger: '2.0',
-                info: { title: '', version: '' }
-            });
-            expect(err).to.match(/Missing required property: paths/);
-        });
-
-        it('must be an object', () => {
-            const [ err ] = oas(2, {
-                paths: []
-            });
-            expect(err).to.match(/Value must be a plain object/);
-        });
-
-        it('can be used to define valid path item objects', () => {
-            const [ err ] = oas(2, {
-                paths: {
-                    '/': {
-                        get: {
-                            responses: {
-                                default: {
-                                    description: ''
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-            expect(err).to.be.undefined;
-        });
-
-    });
-
     describe('openapi', () => {
 
         it('is not allowed for v2', () => {
@@ -610,6 +574,61 @@ describe('definitions/open-api', () => {
                 }
             });
             expect(err).to.match(/Missing required property: in/);
+        });
+
+    });
+
+    describe('paths', () => {
+        const validPathObject = {
+            get: {
+                responses: {
+                    default: {
+                        description: ''
+                    }
+                }
+            }
+        };
+
+        it('is required', () => {
+            const [ err ] = definition(2, OpenAPI, {
+                swagger: '2.0',
+                info: { title: '', version: '' }
+            });
+            expect(err).to.match(/Missing required property: paths/);
+        });
+
+        it('must be an object', () => {
+            const [ err ] = oas(2, {
+                paths: []
+            });
+            expect(err).to.match(/Value must be a plain object/);
+        });
+
+        it('can be used to define valid path item objects', () => {
+            const [ err ] = oas(2, {
+                paths: {
+                    '/': validPathObject
+                }
+            });
+            expect(err).to.be.undefined;
+        });
+
+        it('requires that each path start with a slash', () => {
+            const [ err ] = oas(2, {
+                paths: {
+                    'abc': validPathObject
+                }
+            });
+            expect(err).to.match(/Path must begin with a single forward slash/);
+        });
+
+        it('requires that each path start with a single slash', () => {
+            const [ err ] = oas(2, {
+                paths: {
+                    '//abc': validPathObject
+                }
+            });
+            expect(err).to.match(/Path must begin with a single forward slash/);
         });
 
     });
