@@ -26,6 +26,7 @@ function ParameterObject(data) {
     const { major } = data;
     const base = Base(data);
     Object.assign(this, {
+        component: Parameter,
         type: 'object',
         properties: Object.assign({}, base.properties, {
             name: {
@@ -134,6 +135,4 @@ function ParameterObject(data) {
 
         this.errors = base.errors;
     }
-
-    this.component = Parameter;
 }
