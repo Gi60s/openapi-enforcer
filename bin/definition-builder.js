@@ -16,14 +16,19 @@
  **/
 'use strict';
 
-module.exports = Definition;
+module.exports = DefinitionBuilder;
 
-function Definition(version) {
+function DefinitionBuilder(version) {
     if (version === 2) {
         this.swagger = '2.0';
     } else if (version === 3) {
         this.openapi = '3.0.0';
     }
+
+    this.info = {
+        title: '',
+        version: '1.0'
+    };
 
     this.paths = {};
 }
@@ -32,11 +37,11 @@ function Definition(version) {
  * Define a path.
  * @param {string} path
  * @param {string} [method]
- * @returns {Definition}
+ * @returns {DefinitionBuilder}
  */
-Definition.prototype.addPath = function(path, method) {
+DefinitionBuilder.prototype.addPath = function(path, method) {
     if (!this.paths[path]) this.paths[path] = new Path(this);
-    if (method && typeof method === 'string') this.paths[path].addMethod(method);
+    if (method && typeof method === 'string') this.paths[path].addResponse(method, 'default', { description: '' });
     return this;
 };
 
@@ -45,9 +50,9 @@ Definition.prototype.addPath = function(path, method) {
  * @param {string} path
  * @param {string} [method]
  * @param {...object} parameter
- * @returns {Definition}
+ * @returns {DefinitionBuilder}
  */
-Definition.prototype.addParameter = function(path, method, parameter) {
+DefinitionBuilder.prototype.addParameter = function(path, method, parameter) {
     let start;
     let store;
     if (typeof method === 'string') {
@@ -72,24 +77,24 @@ Definition.prototype.addParameter = function(path, method, parameter) {
  * @param {string} method
  * @param {string|number} code
  * @param {object} response
- * @returns {Definition}
+ * @returns {DefinitionBuilder}
  */
-Definition.prototype.addResponse = function(path, method, code, response) {
+DefinitionBuilder.prototype.addResponse = function(path, method, code, response) {
     this.addPath(path, method);
     this.paths[path][method].addResponse(code, response);
     return this;
 };
 
-Definition.prototype.build = function() {
+DefinitionBuilder.prototype.build = function() {
     return JSON.parse(JSON.stringify(this));
 };
 
-Definition.prototype.log = function() {
+DefinitionBuilder.prototype.log = function() {
     console.log(JSON.stringify(this, null, 2));
     return this;
 };
 
-Definition.prototype.toJSON = function(key) {
+DefinitionBuilder.prototype.toJSON = function(key) {
     return key === 'root' ? undefined : this;
 };
 
