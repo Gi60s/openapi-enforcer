@@ -52,7 +52,6 @@ module.exports = function(definition) {
 
 module.exports.component = function(Constructor, data) {
     const definition = data.result.value;
-    const { exception, warn } = data;
 
     const hierarchy = {};
     Object.defineProperties(hierarchy, {
@@ -60,28 +59,29 @@ module.exports.component = function(Constructor, data) {
         root: { get: () => data.root.result.value }
     });
 
-    const version = {
+    const enforcerData = {
+        exception: data.exception,
+        key: data.key,
+        definition,
+        hierarchy,
         major: data.major,
         minor: data.minor,
-        patch: data.patch
+        patch: data.patch,
+        warn: data.warn
     };
 
-    const Component = function EnforcerComponent(data) {
+    const Component = function EnforcerComponent() {
         Object.assign(this, definition);
-        if (Constructor) Constructor.call(this, data)
+        if (Constructor) Constructor.call(this, enforcerData)
     };
     Component.prototype = Object.create(Constructor.prototype);
     Object.defineProperties(Component.prototype, {
-        enforcerComponent: {
-            value: {
-                data,
-                hierarchy,
-                version
-            }
+        enforcerData: {
+            value: enforcerData
         }
     });
 
-    return new Component({ exception, definition, hierarchy, version, warn });
+    return new Component();
 };
 
 module.exports.normalize = function(version, validator, definition) {
