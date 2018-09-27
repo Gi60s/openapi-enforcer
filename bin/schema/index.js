@@ -26,6 +26,7 @@ const store = new WeakMap();
 module.exports = Schema;
 
 function Schema({ exception, definition, warn }) {
+    Object.assign(this, definition);
 
     // validate the default value
     if (definition.hasOwnProperty('default')) {
