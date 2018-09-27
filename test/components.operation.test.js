@@ -19,7 +19,7 @@ const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
 const Path          = require('../bin/definition-validators/path');
 
-describe.only('components/operation', () => {
+describe('components/operation', () => {
 
     describe('constructor', () => {
         let def;
