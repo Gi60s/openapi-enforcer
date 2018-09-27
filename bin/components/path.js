@@ -15,8 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const Operation     = require('./operation');
-const util          = require('../util');
 
 const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
 
