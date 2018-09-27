@@ -35,7 +35,8 @@ function PathObject(data) {
             },
             parameters: {
                 type: 'array',
-                items: Parameter
+                items: Parameter,
+                errors: Operation.parametersValidation
             },
             get: Operation,
             put: Operation,
