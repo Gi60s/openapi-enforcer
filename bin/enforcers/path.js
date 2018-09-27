@@ -18,9 +18,10 @@
 
 const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
 
-module.exports = Path;
+module.exports = PathEnforcer;
 
-function Path() {
+function PathEnforcer(data) {
+    Object.assign(this, data.definition);
 
     Object.defineProperties(this, {
         // an array of all methods used by this path

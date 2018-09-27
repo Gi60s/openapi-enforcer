@@ -15,51 +15,34 @@
  *    limitations under the License.
  **/
 'use strict';
-const Path      = require('./path');
-const util      = require('../util');
+const util          = require('../util');
 
 const store = new WeakMap();
 const rxPathParam = /{([^}]+)}/;
 
 module.exports = Paths;
 
-function Paths(enforcer, exception, definition, map) {
-
-    if (!util.isPlainObject(definition)) {
-        exception('Must be a plain object');
-        return;
-    }
-
-    // if this definition has already been processed then return result
-    const existing = map.get(definition);
-    if (existing) return existing;
-    map.set(definition, this);
+function Paths({ exception, definition }) {
+    Object.assign(this, definition);
 
     const pathParsers = {};
-    store.set(this, {
-        enforcer,
-        pathParsers
-    });
-    Object.keys(definition).forEach(path => {
-        const pathLength = path.split('/').length - 1;
-        let match;
+    Object.keys(definition.paths).forEach(pathKey => {
+        const path = definition.paths[pathKey];
+        const pathLength = pathKey.split('/').length - 1;
 
-        // build the path object
-        const atPathException = exception.at(path);
-        const pathObject = new Path(enforcer, atPathException, definition[path], map);
-
-        // figure out path parameter names
+        // figure out path parameter names from the path key
         const parameterNames = [];
         const rxParamNames = new RegExp(rxPathParam, 'g');
+        let match;
         while (match = rxParamNames.exec(path)) {
             parameterNames.push(match[1]);
         }
 
         // make sure that the parameters found in the path string are all found in the path object parameters and vice versa
-        const pathParamDeclarationException = atPathException.nest('Path parameter definitions inconsistent')
-        pathObject.methods.forEach(method => {
+        const pathParamDeclarationException = exception.at(pathKey).nest('Path parameter definitions inconsistent');
+        path.methods.forEach(method => {
             const child = pathParamDeclarationException.at(method);
-            const definitionParameters = Object.keys(pathObject[method].parameters.path.map);
+            const definitionParameters = Object.keys(path[method].parametersMap.path || {});
             const definitionCount = definitionParameters.length;
             const pathParametersMissing = [];
             for (let i = 0; i < definitionCount; i++) {
@@ -89,10 +72,10 @@ function Paths(enforcer, exception, definition, map) {
         const rx = new RegExp('^' + rxStr + '$');
 
         // define parser function
-        const parser = path => {
+        const parser = pathString => {
 
             // check if this path is a match
-            const match = rx.exec(path);
+            const match = rx.exec(pathString);
             if (!match) return undefined;
 
             // get path parameter strings
@@ -101,27 +84,31 @@ function Paths(enforcer, exception, definition, map) {
 
             return {
                 params: pathParams,
-                path: pathObject
+                path
             };
         };
 
         if (!pathParsers[pathLength]) pathParsers[pathLength] = [];
         pathParsers[pathLength].push(parser);
     });
+
+    store.set(this, { pathParsers });
 }
 
 /**
  * Find the Path object for the provided path.
- * @param {string} path
+ * @param {string} pathString
  * @returns {{ params: object, path: Path }|undefined}
  */
-Paths.prototype.findMatch = function(path) {
+Paths.prototype.findMatch = function(pathString) {
+    const { pathParsers } = store.get(this);
+
     // normalize the path
-    path = util.edgeSlashes(path.split('?')[0], true, false);
+    pathString = util.edgeSlashes(path.split('?')[0], true, false);
 
     // get all parsers that fit the path length
-    const pathLength = path.split('/').length - 1;
-    const parsers = store.get(this).pathParsers[pathLength];
+    const pathLength = pathString.split('/').length - 1;
+    const parsers = pathParsers[pathLength];
 
     // if the parser was not found then they have a bad path
     if (!parsers) return;
@@ -130,7 +117,7 @@ Paths.prototype.findMatch = function(path) {
     const length = parsers.length;
     for (let i = 0; i < length; i++) {
         const parser = parsers[i];
-        const results = parser(path);
+        const results = parser(pathString);
         if (results) return results;
     }
 };

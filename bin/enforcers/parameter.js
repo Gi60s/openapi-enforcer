@@ -27,12 +27,13 @@ const schemaProperties = ['default', 'enum', 'exclusiveMaximum', 'exclusiveMinim
     'maximum', 'maxItems', 'maxLength', 'minimum', 'minItems', 'minLength', 'multipleOf',
     'pattern', 'type', 'uniqueItems'];
 
-module.exports = Parameter;
+module.exports = ParameterEnforcer;
 
-function Parameter({ definition, hierarchy, version }) {
+function ParameterEnforcer({ definition, major, raw }) {
+    Object.assign(this, definition);
 
     // v2 - set schema for non-body parameters from schema-like attributes
-    if (version.major === 2 && definition.in !== 'body') {
+    if (major === 2 && definition.in !== 'body') {
 
         // TODO: type might be file which is not really supported in Schema - shouldn't be a problem but I need to test it
         const def = {};
@@ -40,10 +41,10 @@ function Parameter({ definition, hierarchy, version }) {
             if (definition.hasOwnProperty(key)) def[key] = definition[key]
         });
 
-        this.schema = Component(Schema, this.enforcerComponent.data);
+        this.schema = Component(Schema, raw);
 
     // v3 - set schema from content schema
-    } else if (version.major === 3 && definition.content) {
+    } else if (major === 3 && definition.content) {
         const key = Object.keys(definition.content)[0];
         if (definition.content[key].schema) this.schema = definition.content[key].schema;
     }
@@ -56,7 +57,7 @@ function Parameter({ definition, hierarchy, version }) {
  * @param {object} [query={}]
  * @returns {EnforcerResult}
  */
-Parameter.prototype.parse = function(value, query) {
+ParameterEnforcer.prototype.parse = function(value, query) {
     const enforcer = store.get(this).enforcer;
     const version = enforcer.version;
     const schema = this.schema;

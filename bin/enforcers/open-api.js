@@ -15,80 +15,53 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception     = require('./exception');
-const freeze        = require('./freeze');
-const Paths         = require('./components/paths');
-const Result        = require('./result');
-const Schema        = require('./components/schema');
-const util          = require('./util');
 
-const rxSemver = /^(\d+)\.(\d+)\.(\d+)$/;
+module.exports = OpenAPIEnforcer;
 
-module.exports = Enforcer;
-
-function Enforcer(definition, options) {
-    const exception = Exception('Error building enforcer instance');
-
-    options = Object.assign({}, options);
-    if (!options.hasOwnProperty('freeze')) options.freeze = true;
-
-    definition = util.copy(definition);
-
-    const map = new WeakMap();
-    if (!util.isPlainObject(definition)) {
-        exception('Invalid input. Definition must be a plain object');
-
-    } else if (!definition.hasOwnProperty('swagger') && !definition.hasOwnProperty('openapi')) {
-        exception('Missing required property "swagger" or "openapi"');
-
-    } else if (definition.hasOwnProperty('swagger')) {
-        if (definition.swagger !== '2.0') {
-            exception('Property "swagger" must have value "2.0"')
-
-        } else {
-            this.version = 2;
-
-            if (definition.hasOwnProperty('definitions')) {
-                this.definitions = util.mapObject(definition.definitions, (definition, key) => {
-                    return new Schema(this, exception.at('definitions/' + key), definition, map);
-                });
-            }
-        }
-
-    } else if (definition.hasOwnProperty('openapi')) {
-        const match = rxSemver.exec(definition.openapi);
-        if (!match || match[1] !== '3') {
-            exception('OpenAPI version ' + definition.openapi + ' not supported');
-        } else {
-            this.version = 3;
-        }
-    }
-
-    if (!exception.hasException) {
-        if (!definition.hasOwnProperty('paths')) {
-            exception('Missing required property "paths"');
-        } else {
-            this.paths = new Paths(this, exception.at('paths'), definition.paths, map);
-        }
-    }
-
-    if (exception.hasException) throw new Error(exception.toString());
-    if (options.freeze) freeze.deep(this);
+function OpenAPIEnforcer(data) {
+    Object.assign(this, data.definition);
 }
 
 /**
  * Deserialize and validate a request.
  * @param {object} [request]
  * @param {object|string} [request.body]
- * @param {string} [request.cookies='']
- * @param {object} [request.headers={}]
  * @param {string} [request.method='get']
  * @param {string} [request.path='/']
  * @param {object} [options]
  * @param {boolean} [options.allowOtherQueryParameters=false]
+ * @param {boolean} [options.allowOtherCookieParameters=true]
  * @returns {EnforcerResult}
  */
-Enforcer.prototype.request = function(request, options) {
+OpenAPIEnforcer.prototype.request = function(request, options) {
+    // validate input parameters
+    if (!util.isPlainObject(request)) throw Error('Invalid request. Expected a plain object. Received: ' + request);
+    if (request.hasOwnProperty('method') && typeof request.method !== 'string') throw Error('Invalid request method. Expected a string');
+    if (request.hasOwnProperty('path') && typeof request.path !== 'string') throw Error('Invalid request path. Expected a string');
+
+    const method = request.hasOwnProperty('method') ? request.method.toLowerCase() : 'get';
+    const pathString = util.edgeSlashes(request.hasOwnProperty('path') ? request.path.split('?')[0] : '/', true, false);
+
+    // find the path that matches the request
+    const pathMatch = this.paths.findMatch(pathString);
+    if (!pathMatch) {
+        exception('Path not found');
+        exception.statusCode = 404;
+        return new Result(exception, null);
+    }
+
+    // check that a valid method was specified
+    const path = pathMatch.path;
+    if (!path.methods.includes(req.method)) {
+        exception('Method not allowed: ' + method.toUpperCase());
+        exception.statusCode = 405;
+        exception.headers = { Allow: this.methods.join(', ') };
+        return new Result(exception, null);
+    }
+
+};
+
+OpenAPIEnforcer.prototype.requestOld = function(request, options) {
 
     // validate request parameter and properties
     if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || util.isPlainObject(request.body))) throw Error('Invalid body provided');
@@ -229,12 +202,6 @@ Enforcer.prototype.request = function(request, options) {
     req.operation = operation;
     return new Result(exception, result);
 };
-
-Object.defineProperty(Enforcer, 'EMPTY_VALUE', {
-    configurable: false,
-    writable: false,
-    value: util.EMPTY_VALUE
-});
 
 function isObjectStringMap(obj) {
     if (!util.isPlainObject(obj)) return false;
