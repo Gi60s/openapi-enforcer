@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const OperationComponent    = require('../components/operation');
 
 module.exports = OperationObject;
 
@@ -38,6 +39,7 @@ function OperationObject(data) {
     const operationIds = map.get(root);
 
     Object.assign(this, {
+        component: OperationComponent,
         type: 'object',
         properties: {
             callbacks: {
@@ -73,30 +75,7 @@ function OperationObject(data) {
             parameters: {
                 type: 'array',
                 items: Parameter,
-                errors: ({ exception, value }) => {
-                    const length = value.length;
-                    const duplicates = [];
-                    let bodiesCount = 0;
-                    for (let i = 0; i < length; i++) {
-                        const p1 = value[i];
-                        if (p1.in === 'body') bodiesCount++;
-                        for (let j = 0; j < length; j++) {
-                            const p2 = value[j];
-                            if (p1 !== p2 && p1.name === p2.name && p1.in === p2.in) {
-                                const description = p1.name + ' in ' + p1.in;
-                                if (!duplicates.includes(description)) duplicates.push(description);
-                            }
-                        }
-                    }
-
-                    if (bodiesCount > 1) {
-                        exception('Only one body parameter allowed');
-                    }
-
-                    if (duplicates.length) {
-                        exception('Parameter name must be unique per location. Duplicates found: ' + duplicates.join(', '));
-                    }
-                }
+                errors: OperationObject.parametersValidation
             },
             produces: {
                 allowed: major === 2,
@@ -162,3 +141,28 @@ function OperationObject(data) {
         }
     });
 }
+
+OperationObject.parametersValidation = ({ exception, value }) => {
+    const length = value.length;
+    const duplicates = [];
+    let bodiesCount = 0;
+    for (let i = 0; i < length; i++) {
+        const p1 = value[i];
+        if (p1.in === 'body') bodiesCount++;
+        for (let j = 0; j < length; j++) {
+            const p2 = value[j];
+            if (p1 !== p2 && p1.name === p2.name && p1.in === p2.in) {
+                const description = p1.name + ' in ' + p1.in;
+                if (!duplicates.includes(description)) duplicates.push(description);
+            }
+        }
+    }
+
+    if (bodiesCount > 1) {
+        exception('Only one body parameter allowed');
+    }
+
+    if (duplicates.length) {
+        exception('Parameter name must be unique per location. Duplicates found: ' + duplicates.join(', '));
+    }
+};
