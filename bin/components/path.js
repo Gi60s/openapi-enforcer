@@ -18,66 +18,16 @@
 const Operation     = require('./operation');
 const util          = require('../util');
 
-const validationsMap = {
-    2: {
-        bodyOk: { head: true, options: true, patch: true, post: true, put: true },
-        methods: ['delete', 'get', 'head', 'options', 'patch', 'post', 'put'],
-        parametersIn: ['body', 'formData', 'header', 'path', 'query']
-    },
-    3: {
-        bodyOk: { head: true, options: true, patch: true, post: true, put: true, trace: true },
-        methods: ['delete', 'get', 'head', 'options', 'patch', 'post', 'put', 'trace'],
-        parametersIn: ['cookie', 'header', 'path', 'query']
-    }
-};
-
+const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
 
 module.exports = Path;
 
-function Path(enforcer, exception, definition, map) {
+function Path() {
 
-    if (!util.isPlainObject(definition)) {
-        exception('Must be a plain object');
-        return;
-    }
-
-    // if this definition has already been processed then return result
-    const existing = map.get(definition);
-    if (existing) return existing;
-    map.set(definition, this);
-
-    // validate and build parameters
-    const parameters = Operation.buildParameters(enforcer, exception, definition, map);
-
-    // build operation objects
-    this.methods = [];
-    const validations = validationsMap[enforcer.version];
-    validations.methods.forEach(method => {
-        if (definition.hasOwnProperty(method)) {
-
-            // create the operation
-            const operation = new Operation(enforcer, exception.at(method), definition[method], map);
-
-            // add path wide parameters
-            Object.keys(parameters).forEach(at => {
-                Object.keys(parameters[at].map).forEach(name => {
-                    const store = operation.parameters[at];
-                    const wideParam = parameters[at].map[name];
-                    if (!store.map[name]) {
-                        store.map[name] = wideParam;
-                        store.empty = false;
-                        if (wideParam.required) store.required.push(name);
-                    }
-                });
-            });
-
-
-            if (operation.requestBody && !validations.bodyOk[method]) {
-                exception('Cannot use request body with method: ' + method);
-            }
-
-            this[method] = operation;
-            this.methods.push(method);
+    Object.defineProperties(this, {
+        // an array of all methods used by this path
+        methods: {
+            value: methods.filter(method => !!this[method])
         }
     });
 
