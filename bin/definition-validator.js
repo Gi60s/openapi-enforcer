@@ -17,12 +17,12 @@
 'use strict';
 const Exception = require('./exception');
 const Result    = require('./result');
-const Swagger   = require('./definition-validators/open-api');
+const OpenAPI   = require('./definition-validators/open-api');
 const util      = require('./util');
 
 const rxExtension = /^x-.+/;
 
-module.exports = function(definition) {
+exports.openapi = function(definition) {
     const exception = Exception('One or more errors exist in the OpenAPI definition');
     const warn = Exception('One or more warnings exist in the OpenAPI definition');
     const hasSwagger = definition.hasOwnProperty('swagger');
@@ -35,12 +35,13 @@ module.exports = function(definition) {
             const major = +match[1];
             const minor = +match[2];
             const patch = +(match[3] || 0);
+            const parent = null;
             const result = {};
-            const validator = Swagger;
+            const validator = OpenAPI;
             const value = util.copy(definition);
             const key = undefined;
 
-            const root = { exception, key, major, map, minor, parent, patch, validator, value, warn };
+            const root = { exception, key, major, map, minor, parent, patch, result, validator, value, warn };
             root.root = root;
             normalize(root);
             return new Result(exception, result.value, warn);
@@ -50,11 +51,10 @@ module.exports = function(definition) {
     }
 };
 
-module.exports.component = function(Constructor, data) {
+exports.component = function(Constructor, data) {
     const definition = data.result.value;
 
     const enforcerData = {
-        data: data,
         exception: data.exception,
         key: data.key,
         definition,
@@ -62,25 +62,15 @@ module.exports.component = function(Constructor, data) {
         major: data.major,
         minor: data.minor,
         patch: data.patch,
+        raw: data,
         get root() { return data.root.result.value },
         warn: data.warn
     };
 
-    const Component = function EnforcerComponent() {
-        Object.assign(this, definition);
-        if (Constructor) Constructor.call(this, enforcerData)
-    };
-    Component.prototype = Object.create(Constructor.prototype);
-    Object.defineProperties(Component.prototype, {
-        enforcerData: {
-            value: enforcerData
-        }
-    });
-
-    return new Component();
+    return new Constructor(enforcerData);
 };
 
-module.exports.normalize = function(version, validator, definition) {
+exports.normalize = function(version, validator, definition) {
     if (version === 2) version = '2.0';
     if (version === 3) version = '3.0.0';
     const exception = Exception('One or more errors exist in the definition');
