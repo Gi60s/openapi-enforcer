@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const PathEnforcer     = require('../enforcers/path');
 
 module.exports = PathObject;
 
@@ -25,6 +26,7 @@ function PathObject(data) {
     const { major } = data;
 
     Object.assign(this, {
+        component: PathEnforcer,
         type: 'object',
         properties: {
             summary: {
