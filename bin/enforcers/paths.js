@@ -26,6 +26,7 @@ function Paths({ exception, definition }) {
     Object.assign(this, definition);
 
     const pathParsers = {};
+    const pathEquivalencies = {};
     Object.keys(definition).forEach(pathKey => {
         const path = definition[pathKey];
         const pathLength = pathKey.split('/').length - 1;
@@ -62,14 +63,24 @@ function Paths({ exception, definition }) {
 
         // build search regular expression
         const rxFind = /{([^}]+)}/g;
+        let subStr;
         let rxStr = '';
         let offset = 0;
+        let equivalencyKey = '';
         while (match = rxFind.exec(pathKey)) {
-            rxStr += escapeRegExp(pathKey.substring(offset, match.index)) + '([\\s\\S]+?)';
+            subStr = pathKey.substring(offset, match.index);
+            equivalencyKey += '0'.repeat(subStr.split('/').length) + '1';
+            rxStr += escapeRegExp(subStr + '([\\s\\S]+?)');
             offset = match.index + match[0].length;
         }
-        rxStr += escapeRegExp(pathKey.substr(offset));
+        subStr = pathKey.substr(offset);
+        if (subStr) equivalencyKey += '0'.repeat(subStr.split('/').length);
+        rxStr += escapeRegExp(subStr);
         const rx = new RegExp('^' + rxStr + '$');
+
+        // store equivalency information
+        if (!pathEquivalencies[equivalencyKey]) pathEquivalencies[equivalencyKey] = [];
+        pathEquivalencies[equivalencyKey].push(pathKey);
 
         // define parser function
         const parser = pathString => {
@@ -92,6 +103,15 @@ function Paths({ exception, definition }) {
         pathParsers[pathLength].push(parser);
     });
 
+    const equivalencyException = exception.nest('Equivalent paths are not allowed');
+    Object.keys(pathEquivalencies).forEach(key => {
+        const array = pathEquivalencies[key];
+        if (array.length > 1) {
+            const conflicts = equivalencyException.nest('Equivalent paths:');
+            array.forEach(conflicts);
+        }
+    });
+
     store.set(this, { pathParsers });
 }
 
@@ -104,7 +124,7 @@ Paths.prototype.findMatch = function(pathString) {
     const { pathParsers } = store.get(this);
 
     // normalize the path
-    pathString = util.edgeSlashes(path.split('?')[0], true, false);
+    pathString = util.edgeSlashes(pathString.split('?')[0], true, false);
 
     // get all parsers that fit the path length
     const pathLength = pathString.split('/').length - 1;
