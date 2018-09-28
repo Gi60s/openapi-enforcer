@@ -26,15 +26,15 @@ function Paths({ exception, definition }) {
     Object.assign(this, definition);
 
     const pathParsers = {};
-    Object.keys(definition.paths).forEach(pathKey => {
-        const path = definition.paths[pathKey];
+    Object.keys(definition).forEach(pathKey => {
+        const path = definition[pathKey];
         const pathLength = pathKey.split('/').length - 1;
 
         // figure out path parameter names from the path key
         const parameterNames = [];
         const rxParamNames = new RegExp(rxPathParam, 'g');
         let match;
-        while (match = rxParamNames.exec(path)) {
+        while (match = rxParamNames.exec(pathKey)) {
             parameterNames.push(match[1]);
         }
 
@@ -64,11 +64,11 @@ function Paths({ exception, definition }) {
         const rxFind = /{([^}]+)}/g;
         let rxStr = '';
         let offset = 0;
-        while (match = rxFind.exec(path)) {
-            rxStr += escapeRegExp(path.substring(offset, match.index)) + '([\\s\\S]+?)';
+        while (match = rxFind.exec(pathKey)) {
+            rxStr += escapeRegExp(pathKey.substring(offset, match.index)) + '([\\s\\S]+?)';
             offset = match.index + match[0].length;
         }
-        rxStr += escapeRegExp(path.substr(offset));
+        rxStr += escapeRegExp(pathKey.substr(offset));
         const rx = new RegExp('^' + rxStr + '$');
 
         // define parser function
