@@ -15,6 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception = require('../exception');
+const Result    = require('../result');
+const util      = require('../util');
 
 module.exports = OpenAPIEnforcer;
 
@@ -26,24 +29,31 @@ function OpenAPIEnforcer(data) {
  * Deserialize and validate a request.
  * @param {object} [request]
  * @param {object|string} [request.body]
+ * @param {Object<string,string>} [request.headers={}] The request headers
  * @param {string} [request.method='get']
  * @param {string} [request.path='/']
  * @param {object} [options]
  * @param {boolean} [options.allowOtherQueryParameters=false]
  * @param {boolean} [options.allowOtherCookieParameters=true]
+ * @param {boolean} [options.bodyDeserializer] A function to call to deserialize the body into it's expected type.
  * @returns {EnforcerResult}
  */
 OpenAPIEnforcer.prototype.request = function(request, options) {
     // validate input parameters
     if (!util.isPlainObject(request)) throw Error('Invalid request. Expected a plain object. Received: ' + request);
+    if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || typeof request.body === 'object')) throw Error('Invalid body provided');
+    if (request.hasOwnProperty('headers') && !util.isObjectStringMap(request.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
     if (request.hasOwnProperty('method') && typeof request.method !== 'string') throw Error('Invalid request method. Expected a string');
     if (request.hasOwnProperty('path') && typeof request.path !== 'string') throw Error('Invalid request path. Expected a string');
 
+    const exception = Exception('Request has one or more errors');
     const method = request.hasOwnProperty('method') ? request.method.toLowerCase() : 'get';
-    const pathString = util.edgeSlashes(request.hasOwnProperty('path') ? request.path.split('?')[0] : '/', true, false);
+    let [ path, query ] = request.hasOwnProperty('path') ? request.path.split('?') : ['/'];
+    path = util.edgeSlashes(path, true, false);
+    req.query = query || '';
 
     // find the path that matches the request
-    const pathMatch = this.paths.findMatch(pathString);
+    const pathMatch = this.paths.findMatch(path);
     if (!pathMatch) {
         exception('Path not found');
         exception.statusCode = 404;
@@ -51,14 +61,25 @@ OpenAPIEnforcer.prototype.request = function(request, options) {
     }
 
     // check that a valid method was specified
-    const path = pathMatch.path;
-    if (!path.methods.includes(req.method)) {
+    const pathEnforcer = pathMatch.path;
+    if (!pathEnforcer.methods.includes(method)) {
         exception('Method not allowed: ' + method.toUpperCase());
         exception.statusCode = 405;
         exception.headers = { Allow: this.methods.join(', ') };
         return new Result(exception, null);
     }
 
+    // TODO: working here - prepare to send to operation for parameter parsing
+    const operation = pathEnforcer[method];
+    const req = {
+        header: request.hasOwnProperty('headers') ? Object.assign({}, request.headers) : {}
+        path,
+        query
+    };
+    req.cookie = req.header.cookies || '';
+    delete req.header.cookies;
+
+    return path[method].request(request);
 };
 
 OpenAPIEnforcer.prototype.requestOld = function(request, options) {

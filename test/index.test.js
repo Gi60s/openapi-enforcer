@@ -19,7 +19,7 @@ const DefinitionBuilder    = require('../bin/definition-builder');
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
 
-describe('enforcer/request', () => {
+describe.skip('enforcer/request', () => {
 
     describe('path parameters', () => {
 
@@ -30,8 +30,7 @@ describe('enforcer/request', () => {
                     .addParameter('/{name}', 'get', { name: 'name', in: 'path', required: true, type: 'string' })
                     .build();
                 const enforcer = Enforcer(def);
-                const x = enforcer;
-                // const [, req] = enforcer.request({ path: '/bob' });
+                const [, req] = enforcer.request({ path: '/bob' });
                 // expect(req.path).to.deep.equal({ name: 'bob' })
             });
 

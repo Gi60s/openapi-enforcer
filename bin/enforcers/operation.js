@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception     = require('../exception');
 const Parameter     = require('./parameter');
 const util          = require('../util');
 
@@ -68,12 +69,13 @@ function OperationEnforcer({ definition, parent }) {
  * @param {Object<string,string>} [request.headers={}] The request headers
  * @param {string} [request.path='/'] The path and query string
  * @param {object} [options]
- * @param {boolean} [options.allowOtherQueryParameters=false]
- * @param {boolean} [options.allowOtherCookieParameters=true]
+ * @param {boolean} [options.allowOtherQueryParameters=false] Allow query parameters that are not specified in the OAS document
+ * @param {boolean} [options.allowOtherCookieParameters=true] Allow cookies that are not specified in the OAS document
+ * @param {boolean} [options.bodyDeserializer] A function to call to deserialize the body into it's expected type.
  */
 OperationEnforcer.prototype.request = function(request, options) {
     // validate request parameter and properties
-    if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || util.isPlainObject(request.body))) throw Error('Invalid body provided');
+    if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || typeof request.body === 'object')) throw Error('Invalid body provided');
     if (request.hasOwnProperty('cookies') && typeof request.cookies !== 'string') throw Error('Invalid request cookies. Expected a string.');
     if (request.hasOwnProperty('headers') && !util.isObjectStringMap(request.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
     if (request.hasOwnProperty('path') && typeof request.path !== 'string') throw Error('Invalid request path. Expected a string');
@@ -92,10 +94,12 @@ OperationEnforcer.prototype.request = function(request, options) {
     exception.statusCode = 400;
 
     const parameters = this.parametersMap;
+
+
     ['cookie', 'header', 'path', 'query'].forEach(at => {
         if (parameters[at]) {
             const child = exception.nest('In ' + at + ' parameters');
-            const input = Object.assign({}, req[at]);
+            const input = req[at];
             const output = {};
             const missingRequired = [];
 
@@ -151,31 +155,6 @@ OperationEnforcer.prototype.request = function(request, options) {
             }
         }
     })
-};
-
-OperationEnforcer.buildParameters = function buildParameters(enforcer, exception, definition, map) {
-    const result = {};
-    parametersIn[enforcer.version].forEach(at => result[at] = { empty: true, map: {}, required: [] });
-
-    if (definition.hasOwnProperty('parameters')) {
-        if (!Array.isArray(definition.parameters)) {
-            exception('Property "parameters" must be an array');
-        } else {
-            const paramException = exception.at('parameters');
-            definition.parameters.forEach((definition, index) => {
-                const child = paramException.at(index);
-                const parameter = new Parameter(enforcer, child, definition, map);
-                if (!child.hasException || (parameter.in && parameter.name)) {
-                    const data = result[parameter.in];
-                    data.empty = false;
-                    data.map[parameter.name] = parameter;
-                    if (parameter.required) data.required.push(parameter.name);
-                }
-            });
-        }
-    }
-
-    return result;
 };
 
 function buildParametersMap(map, parameters) {
