@@ -16,6 +16,7 @@
  **/
 'use strict';
 const OpenAPIEnforcer   = require('../enforcers/open-api');
+const PathsEnforcer     = require('../enforcers/paths');
 
 module.exports = OpenAPIObject;
 
@@ -129,6 +130,7 @@ function OpenAPIObject({ major }) {
                 additionalProperties: Parameter
             },
             paths: {
+                component: PathsEnforcer,
                 required: true,
                 type: 'object',
                 additionalProperties: Path,
