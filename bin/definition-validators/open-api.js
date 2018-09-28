@@ -31,7 +31,7 @@ function OpenAPIObject({ major }) {
     const Info                  = require('./info');
     const Link                  = require('./link');
     const Parameter             = require('./parameter');
-    const Path                  = require('./path');
+    const Paths                 = require('./paths');
     const RequestBody           = require('./request-body');
     const Response              = require('./response');
     const Schema                = require('./schema');
@@ -129,19 +129,7 @@ function OpenAPIObject({ major }) {
                 type: 'object',
                 additionalProperties: Parameter
             },
-            paths: {
-                component: PathsEnforcer,
-                required: true,
-                type: 'object',
-                additionalProperties: Path,
-                errors: ({ exception, value }) => {
-                    Object.keys(value).forEach(key => {
-                        if (key[0] !== '/' || key[1] === '/') {
-                            exception.at(key)('Path must begin with a single forward slash')
-                        }
-                    })
-                }
-            },
+            paths: Paths,
             produces: {
                 allowed: major === 2,
                 type: 'array',
