@@ -19,6 +19,7 @@ const Component     = require('../definition-validator').component;
 const Exception     = require('../exception');
 const Result        = require('../result');
 const Schema        = require('./schema');
+const util          = require('../util');
 
 const rxFalse = /^false/i;
 const rxTrue = /^true$/i;
@@ -26,10 +27,13 @@ const rxLabel = /^\./;
 const schemaProperties = ['default', 'enum', 'exclusiveMaximum', 'exclusiveMinimum', 'format', 'items',
     'maximum', 'maxItems', 'maxLength', 'minimum', 'minItems', 'minLength', 'multipleOf',
     'pattern', 'type', 'uniqueItems'];
+const store = new WeakMap();
 
 module.exports = ParameterEnforcer;
 
-function ParameterEnforcer({ definition, major, raw }) {
+function ParameterEnforcer(data) {
+    store.set(this, data);
+    const { definition, major, raw } = data;
     Object.assign(this, definition);
 
     // v2 - set schema for non-body parameters from schema-like attributes
@@ -58,14 +62,13 @@ function ParameterEnforcer({ definition, major, raw }) {
  * @returns {EnforcerResult}
  */
 ParameterEnforcer.prototype.parse = function(value, query) {
-    const enforcer = store.get(this).enforcer;
-    const version = enforcer.version;
+    const { major } = store.get(this);
     const schema = this.schema;
     const type = schema && schema.type;
 
     const exception = Exception('Unable to parse value');
 
-    if (version === 2) {
+    if (major === 2) {
         if (this.collectionFormat === 'multi') {
             if (!query) query = util.parseQueryString(value);
             const values = query[this.name];
@@ -74,8 +77,8 @@ ParameterEnforcer.prototype.parse = function(value, query) {
                 values.forEach((value, index) => {
                     if (!value && !this.allowEmptyValue) {
                         exception.at(index)('Empty value not allowed');
-                    } else if (this.items) {
-                        result.push(v2Parse(this, this.items, exception.at(index), value));
+                    } else if (this.schema.items) {
+                        result.push(v2Parse(this, this.schema.items, exception.at(index), value));
                     } else {
                         result.push(value);
                     }
@@ -88,17 +91,17 @@ ParameterEnforcer.prototype.parse = function(value, query) {
         } else if (query && query.hasOwnProperty(this.name)) {
             const ar = query[this.name];
             if (ar.length) {
-                return new Result(exception, v2Parse(this, this, exception, ar[ar.length - 1]));
+                return new Result(exception, v2Parse(this, this.schema, exception, ar[ar.length - 1]));
             } else {
-                return new Result(exception, v2Parse(this, this, exception, undefined));
+                return new Result(exception, v2Parse(this, this.schema, exception, undefined));
             }
 
         } else {
-            return new Result(exception, v2Parse(this, this, exception, value));
+            return new Result(exception, v2Parse(this, this.schema, exception, value));
         }
 
 
-    } else if (version === 3) {
+    } else if (major === 3) {
         const explode = this.explode;
         const style = this.style;
         let parsed;
@@ -306,7 +309,7 @@ function parsePrimitive(parameter, schema, exception, value) {
 function v2Parse(parameter, schema, exception, value) {
     if (schema.type === 'array') {
         let values;
-        switch (schema.collectionFormat) {
+        switch (parameter.collectionFormat) {
             case 'csv':
                 values = value.split(',');
                 break;
