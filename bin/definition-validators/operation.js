@@ -146,9 +146,17 @@ OperationObject.parametersValidation = ({ exception, value }) => {
     const length = value.length;
     const duplicates = [];
     let bodiesCount = 0;
+    let hasBody = false;
+    let hasFormData = false;
     for (let i = 0; i < length; i++) {
         const p1 = value[i];
-        if (p1.in === 'body') bodiesCount++;
+        if (p1.in === 'body') {
+            bodiesCount++;
+            hasBody = true;
+        }
+        if (p1.in === 'formData') {
+            hasFormData = true;
+        }
         for (let j = 0; j < length; j++) {
             const p2 = value[j];
             if (p1 !== p2 && p1.name === p2.name && p1.in === p2.in) {
@@ -160,6 +168,10 @@ OperationObject.parametersValidation = ({ exception, value }) => {
 
     if (bodiesCount > 1) {
         exception('Only one body parameter allowed');
+    }
+
+    if (hasBody && hasFormData) {
+        exception('Cannot have parameters in "body" and "formData" simultaneously');
     }
 
     if (duplicates.length) {
