@@ -73,8 +73,9 @@ function SchemaObject() {
     };
 
     Object.assign(Schema, {
+        useComponent: ({ value }) => value && typeof value === 'object',
+        component: SchemaComponent,
         type: 'object',
-
         properties: {
             type: {
                 type: 'string',
@@ -285,9 +286,7 @@ function SchemaObject() {
             if (composites.length > 1) {
                 exception('Cannot have multiple composites: ' + composites.join(', '));
             }
-        },
-
-        component: SchemaComponent
+        }
     });
 
     Object.assign(additionalProperties, Schema, {

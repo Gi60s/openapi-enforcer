@@ -52,22 +52,26 @@ exports.openapi = function(definition) {
 };
 
 exports.component = function(Constructor, data) {
-    const definition = data.result.value;
+    if (data.validator.hasOwnProperty('useComponent') && !fn(data.validator.useComponent, data)) {
+        return data.value;
+    } else {
+        const definition = data.result.value;
 
-    const enforcerData = {
-        exception: data.exception,
-        key: data.key,
-        definition,
-        get parent() { return data.parent && data.parent.result.value },
-        major: data.major,
-        minor: data.minor,
-        patch: data.patch,
-        raw: data,
-        get root() { return data.root.result.value },
-        warn: data.warn
-    };
+        const enforcerData = {
+            exception: data.exception,
+            key: data.key,
+            definition,
+            get parent() { return data.parent && data.parent.result.value },
+            major: data.major,
+            minor: data.minor,
+            patch: data.patch,
+            raw: data,
+            get root() { return data.root.result.value },
+            warn: data.warn
+        };
 
-    return new Constructor(enforcerData);
+        return new Constructor(enforcerData);
+    }
 };
 
 exports.normalize = function(version, validator, definition) {
@@ -326,7 +330,7 @@ function fn(value, params) {
         try {
             return value(params);
         } catch (err) {
-            params.exception('Unexpected error encountered, likely due to malformed definition: ' + err.stack);
+            params.exception('Unexpected error encountered: ' + err.stack);
         }
     } else {
         return value;
