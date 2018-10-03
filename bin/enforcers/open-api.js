@@ -29,34 +29,32 @@ function OpenAPIEnforcer(data) {
  * Deserialize and validate a request.
  * @param {object} [request]
  * @param {object|string} [request.body]
- * @param {Object<string,string>} [request.headers={}] The request headers
+ * @param {Object<string,string>} [request.header={}] The request headers
  * @param {string} [request.method='get']
  * @param {string} [request.path='/']
  * @param {object} [options]
- * @param {boolean} [options.allowOtherFormDataParameters=false] Allow form data that is not specified in the OAS document
- * @param {boolean} [options.allowOtherQueryParameters=false]
- * @param {boolean} [options.allowOtherCookieParameters=true]
+ * @param {boolean} [options.allowOtherQueryParameters=false] Allow query parameter data that is not specified in the OAS document
  * @param {boolean} [options.bodyDeserializer] A function to call to deserialize the body into it's expected type.
- * @returns {Promise<{ body:*, headers:object, method:string, path:object, query:object }>}
+ * @returns {Promise<{ body:*, header:object, method:string, path:object, query:object }>}
  */
 OpenAPIEnforcer.prototype.request = async function (request, options) {
     // validate input parameters
     if (!request || typeof request !== 'object') throw Error('Invalid request. Expected a non-null object. Received: ' + request);
     if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || typeof request.body === 'object')) throw Error('Invalid body provided');
-    if (request.hasOwnProperty('headers') && !util.isObjectStringMap(request.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
+    if (request.hasOwnProperty('header') && !util.isObjectStringMap(request.header)) throw Error('Invalid request header. Expected an object with string keys and string values');
     if (request.hasOwnProperty('method') && typeof request.method !== 'string') throw Error('Invalid request method. Expected a string');
     if (!request.hasOwnProperty('path')) throw Error('Missing required request path');
     if (typeof request.path !== 'string') throw Error('Invalid request path. Expected a string');
 
     if (!options) options = {};
     if (typeof options !== 'object') throw Error('Invalid options. Expected an object. Received: ' + options);
-    if (!options.hasOwnProperty('allowOtherFormDataParameters')) options.allowOtherFormDataParameters = false;
+    options = Object.assign({}, options);
     if (!options.hasOwnProperty('allowOtherQueryParameters')) options.allowOtherQueryParameters = false;
-    if (!options.hasOwnProperty('allowOtherCookieParameters')) options.allowOtherCookieParameters = true;
 
     const exception = Exception('Request has one or more errors');
     const method = request.hasOwnProperty('method') ? request.method.toLowerCase() : 'get';
-    const path = util.edgeSlashes(request.path.split('?')[0], true, false);
+    const [ pathString, query ] = request.path.split('?');
+    const path = util.edgeSlashes(pathString, true, false);
 
     // find the path that matches the request
     const pathMatch = this.paths.findMatch(path);
@@ -71,14 +69,21 @@ OpenAPIEnforcer.prototype.request = async function (request, options) {
     if (!pathEnforcer.methods.includes(method)) {
         exception('Method not allowed: ' + method.toUpperCase());
         exception.statusCode = 405;
-        exception.headers = { Allow: this.methods.map(v => v.toUpperCase()).join(', ') };
+        exception.header = { Allow: this.methods.map(v => v.toUpperCase()).join(', ') };
         throw Error(exception);
     }
 
-    const opts = Object.assign({}, options, { pathParametersValueMap: pathMatch.params });
-    const [ err, req ] = await path[method].request(request, opts);
+    // set up request input
+    const req = {
+        header: request.header || {},
+        path: pathMatch.params,
+        query: query || ''
+    };
+    if (request.hasOwnProperty('body')) req.body = request.body;
+
+    const [ err, result ] = await path[method].request(req, options);
     if (err) throw Error(err);
-    return req;
+    return result;
 };
 
 OpenAPIEnforcer.prototype.requestOld = function(request, options) {
