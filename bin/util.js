@@ -24,17 +24,25 @@ exports.arrayRemoveItem = function(array, item) {
     return array;
 };
 
+exports.convertEmptyValues = function(source, value) {
+    if (Array.isArray(source)) {
+        return source.map(v => exports.convertEmptyValues(v, value));
+    } else if (exports.isPlainObject(source)) {
+        const result = {};
+        Object.keys(source).forEach(key => {
+            result[key] = exports.convertEmptyValues(source[key], value);
+        });
+        return result;
+    } else if (source === exports.EMPTY_VALUE) {
+        return value;
+    } else {
+        return source;
+    }
+};
+
 exports.copy = function(value) {
     const map = new Map();
     return copy(map, value);
-};
-
-exports.isDate = function (value) {
-    return value && !isNaN(value) && value instanceof Date;
-};
-
-exports.isInteger = function(value) {
-    return !isNaN(value) && typeof value === 'number' && value === Math.round(value);
 };
 
 exports.edgeSlashes = function(value, start, end) {
@@ -64,6 +72,14 @@ exports.getDateFromValidDateString = function (format, string) {
     date.getUTCMinutes() === minute &&
     date.getUTCSeconds() === second &&
     date.getUTCMilliseconds() === millisecond ? date : null;
+};
+
+exports.isDate = function (value) {
+    return value && !isNaN(value) && value instanceof Date;
+};
+
+exports.isInteger = function(value) {
+    return !isNaN(value) && typeof value === 'number' && value === Math.round(value);
 };
 
 exports.isPlainObject = function(value) {
@@ -115,7 +131,11 @@ exports.parseQueryString = function (str, delimiter) {
         const value = query[key];
         if (!Array.isArray(value)) query[key] = [ value ];
     });
-    return query;
+    return Object.assign({}, query);
+};
+
+exports.reject = function(message) {
+    return Promise.reject(typeof message === 'string' ? Error(message) : Error(message.toString()));
 };
 
 exports.rxStringToRx = function(value) {
