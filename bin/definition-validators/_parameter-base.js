@@ -86,10 +86,6 @@ module.exports = data => {
                 type: 'object',
                 additionalProperties: Example
             },
-            explode: {
-                type: 'boolean',
-                default: ({parent}) => parent.value.style === 'form'
-            },
             schema: Schema
         };
 

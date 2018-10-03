@@ -46,6 +46,11 @@ function ParameterObject(data) {
                 default: ({parent}) => parent.value.in === 'path',
                 enum: ({parent}) => parent.value.in === 'path' ? [true] : [true, false]
             },
+            allowEmptyValue: {
+                allowed: ({parent}) => ['query', 'formData'].includes(parent.value.in),
+                type: 'boolean',
+                default: false
+            },
         })
     });
 
@@ -57,11 +62,6 @@ function ParameterObject(data) {
                 enum: ({parent}) => parent.value.in === 'formData'
                     ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
                     : ['array', 'boolean', 'integer', 'number', 'string']
-            },
-            allowEmptyValue: {
-                allowed: ({parent}) => ['query', 'formData'].includes(parent.value.in),
-                type: 'boolean',
-                default: false
             },
             collectionFormat: {
                 allowed: ({major, parent}) => major === 2 && parent.value.type === 'array',
@@ -119,19 +119,22 @@ function ParameterObject(data) {
                     }
                 }
             },
+            explode: {
+                type: 'boolean',
+                default: ({parent}) => parent.value.style === 'form',
+                errors: ({exception, parent}) => {
+                    const type = parent.value.schema && parent.value.schema.type;
+                    if (parent.value.in === 'cookie' && parent.value.explode && (type === 'array' || type === 'object')) {
+                        exception('Cookies do not support exploded values for non-primitive schemas');
+                    }
+                }
+            },
             allowReserved: {
                 allowed: ({ parent }) => parent.value.in === 'query',
                 type: 'boolean',
                 default: false
             }
         });
-
-        this.properties.explode.errors = ({exception, parent}) => {
-            const type = parent.value.schema && parent.value.schema.type;
-            if (parent.value.in === 'cookie' && parent.value.explode && (type === 'array' || type === 'object')) {
-                exception('Cookies do not support exploded values for non-primitive schemas');
-            }
-        };
 
         this.errors = base.errors;
     }
