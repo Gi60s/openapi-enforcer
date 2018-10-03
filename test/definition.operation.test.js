@@ -243,13 +243,25 @@ describe('definitions/operation', () => {
         it('can only have one body parameter for v2', () => {
             const [ err ] = definition(2, Operation, {
                 parameters: [
-                    { name: 'x', in: 'body', required: true, type: 'string' },
-                    { name: 'x', in: 'body', required: true, type: 'string' }
+                    { name: 'x', in: 'body', type: 'string' },
+                    { name: 'y', in: 'body', type: 'string' }
                 ],
                 responses
             });
             expect(err).to.match(/Only one body parameter allowed/);
         });
+
+        it('cannot have both formData and body', () => {
+            const [ err ] = definition(2, Operation, {
+                parameters: [
+                    { name: 'x', in: 'body', type: 'string' },
+                    { name: 'y', in: 'formData', type: 'string' }
+                ],
+                responses
+            });
+            expect(err).to.match(/Cannot have parameters in "body" and "formData" simultaneously/);
+
+        })
 
     });
 
