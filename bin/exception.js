@@ -105,6 +105,11 @@ function OpenAPIException(header, isHeader, parent) {
         return exception;
     };
 
+    exception.toError = function() {
+        if (!this.hasException) return null;
+        return Error(exception.toString());
+    };
+
     exception.toString = function() {
         if (!this.hasException) return '';
         let { prefix, positional, top } = arguments.length === 0 ? { prefix: '', positional: -1, top: true } : arguments[0];
