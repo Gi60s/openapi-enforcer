@@ -99,7 +99,7 @@ exports.isPlainObject = function(value) {
 
 // check to see if its an object with properties as strings
 exports.isObjectStringMap = function(obj) {
-    if (!util.isPlainObject(obj)) return false;
+    if (!exports.isPlainObject(obj)) return false;
     const keys = Object.keys(obj);
     const length = keys.length;
     for (let i = 0; i < length; i++) {
@@ -121,6 +121,16 @@ exports.mapObject = function(object, callback) {
     const result = {};
     Object.keys(object).forEach(key => {
         result[key] = callback(object[key], key);
+    });
+    return result;
+};
+
+exports.parseCookieString = function(str) {
+    const result = {};
+    str.split(/; */).forEach(pair => {
+        const [key, value] = pair.split('=');
+        if (!result[key]) result[key] = [];
+        result[key].push(value || '');
     });
     return result;
 };
