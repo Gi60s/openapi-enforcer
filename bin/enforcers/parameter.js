@@ -107,7 +107,13 @@ ParameterEnforcer.prototype.parse = function(value, query) {
         let parsed;
 
         // in case the query string has not been parsed, parse it now
-        if (!query && this.in === 'query') query = util.parseQueryString(value);
+        if (!query) {
+            if (this.in === 'query') {
+                query = util.parseQueryString(value);
+            } else if (this.in === 'cookie') {
+                query = util.parseCookieString(value);
+            }
+        }
 
         if (style === 'deepObject') {
             const rx = RegExp('(?:^|&)' + this.name + '\\[([^\\]]+)\\](?:=([^&]*))?', 'g');
