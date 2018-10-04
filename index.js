@@ -36,13 +36,13 @@ function enforcer(definition, options) {
         exception('Invalid input. Definition must be a plain object');
     } else {
         definition = util.copy(definition);
-        const [ error, value, warning ] = definitionValidator(definition)
+        const [ error, value, warning ] = definitionValidator(definition);
         if (error) exception(error);
         if (warning && !options.hideWarnings) console.log(warning.toString());
         result = value;
     }
 
-    if (exception.hasException) throw new Error(exception.toString());
+    if (exception.hasException) throw Error(exception.toString());
     if (options.freeze) freeze.deep(result);
     return result;
 }
