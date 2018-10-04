@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const Ignored       = require('../ignored');
 const queryString   = require('querystring');
 const rx            = require('./rx');
 
@@ -22,22 +23,6 @@ exports.arrayRemoveItem = function(array, item) {
     const index = array.indexOf(item);
     if (index !== -1) array.splice(index, 1);
     return array;
-};
-
-exports.convertEmptyValues = function(source, value) {
-    if (Array.isArray(source)) {
-        return source.map(v => exports.convertEmptyValues(v, value));
-    } else if (exports.isPlainObject(source)) {
-        const result = {};
-        Object.keys(source).forEach(key => {
-            result[key] = exports.convertEmptyValues(source[key], value);
-        });
-        return result;
-    } else if (source === exports.EMPTY_VALUE) {
-        return value;
-    } else {
-        return source;
-    }
 };
 
 exports.copy = function(value) {
@@ -52,8 +37,6 @@ exports.edgeSlashes = function(value, start, end) {
     if (end) value += '/';
     return value;
 };
-
-exports.EMPTY_VALUE = Symbol('EMPTY_VALUE');
 
 exports.getDateFromValidDateString = function (format, string) {
     const date = new Date(string);
@@ -218,6 +201,22 @@ exports.smart = function(value) {
 
 exports.ucFirst = function(value) {
     return value[0].toUpperCase() + value.substr(1);
+};
+
+exports.unIgnoreValues = function(source, value) {
+    if (Array.isArray(source)) {
+        return source.map(v => exports.unIgnoreValues(v, value));
+    } else if (exports.isPlainObject(source)) {
+        const result = {};
+        Object.keys(source).forEach(key => {
+            result[key] = exports.unIgnoreValues(source[key], value);
+        });
+        return result;
+    } else if (Ignored.isIgnoredValue(source)) {
+        return source.value;
+    } else {
+        return source;
+    }
 };
 
 

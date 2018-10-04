@@ -16,6 +16,7 @@
  **/
 'use strict';
 const Exception = require('../exception');
+const Ignored   = require('../../ignored');
 const util      = require('../util');
 
 const smart = util.smart;
@@ -53,7 +54,7 @@ function validate(exception, version, map, schema, value) {
     }
 
     // don't validate empty values
-    if (value === util.EMPTY_VALUE) return;
+    if (Ignored.isIgnoredValue(value)) return;
 
     // if nullable and null then skip all other validation
     if (schema.nullable && value === null) return;
