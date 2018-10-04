@@ -16,16 +16,12 @@
  **/
 'use strict';
 const Exception     = require('../exception');
-const Parameter     = require('./parameter');
 const Result        = require('../result');
 const util          = require('../util');
-
-const store = new WeakMap();
 
 module.exports = OperationEnforcer;
 
 function OperationEnforcer(data) {
-    store.set(this, data);
     const { definition, parent } = data;
     Object.assign(this, definition);
 
@@ -70,43 +66,42 @@ function OperationEnforcer(data) {
 /**
  * Take the input parameters and deserialize and validate them.
  * @param {object} request
- * @param {string|object} request.body The request body
- * @param {Object<string,string>} [request.headers={}] The request headers
- * @param {string} request.path The path and query string
+ * @param {string|object} [request.body] The request body
+ * @param {Object<string,string>} [request.header={}] The request headers
+ * @param {object} [request.path={}] The path and query string
+ * @param {string} [request.query=''] The request query string.
  * @param {object} [options]
- * @param {boolean} [options.allowOtherFormDataParameters=false] Allow form data that is not specified in the OAS document
- * @param {boolean} [options.allowOtherQueryParameters=false] Allow query parameters that are not specified in the OAS document
- * @param {boolean} [options.allowOtherCookieParameters=true] Allow cookies that are not specified in the OAS document
+ * @param {boolean} [options.allowOtherQueryParameters=false] Allow query parameter data that is not specified in the OAS document
  * @param {boolean} [options.bodyDeserializer] A function to call to deserialize the body into it's expected type.
  * @param {Object<string,string>} [options.pathParametersValueMap] A map of the already parsed out path parameters.
  */
-OperationEnforcer.prototype.request = async function (request, options) {
-    const { major } = store.get(this);
+OperationEnforcer.prototype.request = function (request, options) {
 
     // validate input parameters
     if (!request || typeof request !== 'object') throw Error('Invalid request. Expected a non-null object. Received: ' + request);
-    if (typeof request.path !== 'string') throw Error('Invalid request path. Expected a string. Received: ' + request.path);
+    request = Object.assign({}, request);
+    if (!request.hasOwnProperty('header')) request.header = {};
+    if (!request.hasOwnProperty('path')) request.path = {};
+    if (!request.hasOwnProperty('query')) request.query = '';
     if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || typeof request.body === 'object')) throw Error('Invalid body provided');
-    if (request.hasOwnProperty('headers') && !util.isObjectStringMap(request.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
-    if (request.hasOwnProperty('path') && typeof request.path !== 'string') throw Error('Invalid request path. Expected a string');
+    if (!util.isObjectStringMap(request.header)) throw Error('Invalid request headers. Expected an object with string keys and string values');
+    if (!util.isObjectStringMap(request.path)) throw Error('Invalid request path. Expected an object with string keys and string values');
+    if (typeof request.query !== 'string') throw Error('Invalid request query. Expected a string');
 
     if (!options) options = {};
-    if (typeof options !== 'object') throw Error('Invalid options. Expected an object. Received: ' + options);
-    if (!options.hasOwnProperty('allowOtherFormDataParameters')) options.allowOtherFormDataParameters = false;
+    if (options && typeof options !== 'object') throw Error('Invalid options. Expected an object. Received: ' + options);
+    options = Object.assign({}, options);
     if (!options.hasOwnProperty('allowOtherQueryParameters')) options.allowOtherQueryParameters = false;
-    if (!options.hasOwnProperty('allowOtherCookieParameters')) options.allowOtherCookieParameters = true;
 
     // build request objects
-    const pathParts = request.path.split('?');
-    const path = pathParts[0];
-    const query = pathParts[1] ? decodeURIComponent(pathParts[1]) : '';
     const req = {
-        header: request.headers ? util.lowerCaseObjectProperties(request.headers) : {},
-        path: util.edgeSlashes(path, true, false),
-        query: query ? util.parseQueryString(query) : {}
+        header: util.lowerCaseObjectProperties(request.header),
+        path: request.path,
+        query: util.parseQueryString(decodeURIComponent(request.query))
     };
-    req.cookie = req.header.cookies || '';
-    delete req.header.cookies;
+    const cookie = req.header.cookie || '';
+    req.cookie = cookie ? util.parseCookieString(cookie) : {};
+    delete req.header.cookie;
 
     const exception = Exception('Request has one or more errors');
     exception.statusCode = 400;
@@ -120,14 +115,11 @@ OperationEnforcer.prototype.request = async function (request, options) {
         query: {}
     };
     ['cookie', 'header', 'path', 'query'].forEach(at => {
-        const allowUnknownParameters = options['allowOther' + util.ucFirst(at) + 'Parameters'] || false;
+        const allowUnknownParameters = at === 'cookie' || at === 'header' || (at === 'query' && options.allowOtherQueryParameters);
         const child = exception.nest('In ' + at + ' parameters');
         const input = req[at];
         const missingRequired = [];
-
-        const unknownParameters = allowUnknownParameters || at === 'path'
-            ? []
-            : Object.keys(input);
+        const unknownParameters = allowUnknownParameters ? [] : Object.keys(input);
 
         if (parameters[at]) {
             const output = {};
@@ -137,9 +129,11 @@ OperationEnforcer.prototype.request = async function (request, options) {
                 const type = parameter.schema && parameter.schema.type;
                 if (input.hasOwnProperty(key)) {
                     util.arrayRemoveItem(unknownParameters, key);
-                    const data = (at === 'query' || at === 'cookie')
+                    const data = at === 'query'
                         ? parameter.parse(query, input)
-                        : parameter.parse(input[key]);
+                        : at === 'cookie'
+                            ? parameter.parse(cookie, input)
+                            : parameter.parse(input[key]);
                     deserializeAndValidate(child.at(key), parameter, data, v => output[key] = v);
 
                 } else if (parameter.in === 'query' && parameter.style === 'form' && parameter.explode && type === 'object') {
