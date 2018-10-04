@@ -66,6 +66,17 @@ describe('components/operation', () => {
     });
 
     describe.only('request', () => {
+        const arrSchema = { type: 'array', items: { type: 'number' } };
+        const arrStrSchema = { type: 'array', items: { type: 'string' } };
+        const numSchema = { type: 'number' };
+        const objSchema = {
+            type: 'object',
+            properties: {
+                R: { type: 'number' },
+                G: { type: 'number' },
+                B: { type: 'number' }
+            }
+        };
 
         describe('in body', () => {
 
@@ -77,18 +88,14 @@ describe('components/operation', () => {
 
                 it('is allowed', () => {
                     const [ , operation ] = definition(2, Operation, def);
-                    return operation.request({ path: '/', body: 'hello' })
-                        .then(req => {
-                            expect(req.body).to.equal('hello');
-                        });
+                    const [ , req ] = operation.request({ body: 'hello' });
+                    expect(req.body).to.equal('hello');
                 });
 
                 it('is validated', () => {
                     const [ , operation ] = definition(2, Operation, def);
-                    return operation.request({ body: 'hello' })
-                        .then(shouldHaveRejected, err => {
-                            expect(err.code).to.equal(400);
-                        });
+                    const [ err, req ] = operation.request({ body: 'hello' });
+                    expect(err.code).to.equal(400);
                 });
 
             });
@@ -121,6 +128,52 @@ describe('components/operation', () => {
 
         describe('in cookie', () => {
 
+            describe('v3', () => {
+                let def;
+
+                beforeEach(() => {
+                    def = {
+                        parameters: [{ name: 'user', in: 'cookie' }],
+                        responses: { 200: { description: '' } }
+                    };
+                });
+
+                describe('default style (form)', () => {
+
+                    it('can deserialize exploded primitive', () => {
+                        def.parameters[0].schema = numSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ header: { cookie: 'user=12345' } });
+                        expect(req.cookie.user).to.equal(12345);
+                    });
+
+                    it('can deserialize primitive', () => {
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = numSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ header: { cookie: 'user=12345' } });
+                        expect(req.cookie.user).to.equal(12345);
+                    });
+
+                    it('can deserialize array', () => {
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = arrSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ header: { cookie: 'user=1,2,3' } });
+                        expect(req.cookie.user).to.deep.equal([1, 2, 3]);
+                    });
+
+                    it('can deserialize object', () => {
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = objSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ header: { cookie: 'user=R,50,G,100,B,150' } });
+                        expect(req.cookie.user).to.deep.equal({ R: 50, G: 100, B: 150 });
+                    });
+
+                });
+            });
+
         });
 
         describe('in formData', () => {
@@ -129,13 +182,306 @@ describe('components/operation', () => {
 
         describe('in header', () => {
 
+            it('ignores parameter without definition', () => {
+                const def = {
+                    parameters: [],
+                    responses: { 200: { description: '' } }
+                };
+                const [ , operation ] = definition(2, Operation, def);
+                const [ , req ] = operation.request({ header: { 'x-value': '1' } });
+                expect(req.header).not.to.haveOwnProperty('x-value');
+            });
+
+            describe('v2', () => {
+
+                it('can deserialize date string', () => {
+                    const def = {
+                        parameters: [{ name: 'x-date', in: 'header', type: 'string', format: 'date' }],
+                        responses: { 200: { description: '' } }
+                    };
+                    const [ , operation ] = definition(2, Operation, def);
+                    const [ , req ] = operation.request({ header: { 'x-date': '2000-01-01' } });
+                    expect(+req.header['x-date']).to.equal(+new Date('2000-01-01'));
+                });
+
+            });
+
+            describe('v3', () => {
+
+                describe('simple', () => {
+                    let def;
+
+                    beforeEach(() => {
+                        def = {
+                            parameters: [{ name: 'x-value', in: 'header' }],
+                            responses: { 200: { description: '' } }
+                        };
+                    });
+
+                    it('allows other headers', () => {
+                        def.parameters[0].schema = numSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ err ] = operation.request({ header: { 'x-value': '1', 'x-str': 'str' } });
+                        expect(err).to.be.undefined;
+                    });
+
+                    it('can deserialize exploded primitive', () => {
+                        def.parameters[0].explode = true;
+                        def.parameters[0].schema = numSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ header: { 'x-value': '1' } });
+                        expect(req.header['x-value']).to.equal(1);
+                    });
+
+                    it('can deserialize primitive', () => {
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = numSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ header: { 'x-value': '1' } });
+                        expect(req.header['x-value']).to.equal(1);
+                    });
+
+                    it('can deserialize exploded array', () => {
+                        def.parameters[0].explode = true;
+                        def.parameters[0].schema = arrSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ header: { 'x-value': '1,2,3' } });
+                        expect(req.header['x-value']).to.deep.equal([1, 2, 3]);
+                    });
+
+                    it('can deserialize array', () => {
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = arrSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ header: { 'x-value': '1,2,3' } });
+                        expect(req.header['x-value']).to.deep.equal([1, 2, 3]);
+                    });
+
+                    it('can deserialize exploded object', () => {
+                        def.parameters[0].explode = true;
+                        def.parameters[0].schema = objSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ header: { 'x-value': 'R=50,G=100,B=200' } });
+                        expect(req.header['x-value']).to.deep.equal({ R: 50, G: 100, B: 200 });
+                    });
+
+                    it('can deserialize object', () => {
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = objSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ header: { 'x-value': 'R,50,G,100,B,200' } });
+                        expect(req.header['x-value']).to.deep.equal({ R: 50, G: 100, B: 200 });
+                    });
+
+                });
+
+            });
+
         });
 
         describe('in path', () => {
+            let def;
+
+            beforeEach(() => {
+                def = {
+                    parameters: [{ name: 'x', in: 'path', required: true }],
+                    responses: { 200: { description: '' } }
+                }
+            });
+
+            it('cannot supply parameter without definition', () => {
+                def.parameters[0].type = 'number';
+                const [ , operation ] = definition(2, Operation, def);
+                const [ err, ] = operation.request({ path: { y: '1' } });
+                expect(err).to.match(/Received unexpected parameter: y/);
+            });
+
+            describe('v2', () => {
+
+                it('can deserialize path value', () => {
+                    def.parameters[0].type = 'number';
+                    const [ , operation ] = definition(2, Operation, def);
+                    const [ , req ] = operation.request({ path: { x: '1' } });
+                    expect(req.path.x).to.equal(1);
+                });
+
+            });
+
+            describe('v3', () => {
+
+                describe('simple (default)', () => {
+
+                    it('can deserialize exploded primitive', () => {
+                        def.parameters[0].explode = true;
+                        def.parameters[0].schema = numSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: '1' } });
+                        expect(req.path.x).to.equal(1);
+                    });
+
+                    it('can deserialize primitive', () => {
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = numSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: '1' } });
+                        expect(req.path.x).to.equal(1);
+                    });
+
+                    it('can deserialize exploded array', () => {
+                        def.parameters[0].explode = true;
+                        def.parameters[0].schema = arrSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: '1,2,3' } });
+                        expect(req.path.x).to.deep.equal([1, 2, 3]);
+                    });
+
+                    it('can deserialize array', () => {
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = arrSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: '1,2,3' } });
+                        expect(req.path.x).to.deep.equal([1, 2, 3]);
+                    });
+
+                    it('can deserialize exploded object', () => {
+                        def.parameters[0].explode = true;
+                        def.parameters[0].schema = objSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: 'R=50,G=100,B=150' } });
+                        expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
+                    });
+
+                    it('can deserialize object', () => {
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = objSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: 'R,50,G,100,B,150' } });
+                        expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
+                    });
+
+                });
+
+                describe('label', () => {
+
+                    it('can deserialize exploded primitive', () => {
+                        def.parameters[0].style = 'label';
+                        def.parameters[0].explode = true;
+                        def.parameters[0].schema = numSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: '.1' } });
+                        expect(req.path.x).to.equal(1);
+                    });
+
+                    it('can deserialize primitive', () => {
+                        def.parameters[0].style = 'label';
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = numSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: '.1' } });
+                        expect(req.path.x).to.equal(1);
+                    });
+
+                    it('can deserialize exploded array', () => {
+                        def.parameters[0].style = 'label';
+                        def.parameters[0].explode = true;
+                        def.parameters[0].schema = arrSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: '.1.2.3' } });
+                        expect(req.path.x).to.deep.equal([1, 2, 3]);
+                    });
+
+                    it('can deserialize array', () => {
+                        def.parameters[0].style = 'label';
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = arrSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: '.1,2,3' } });
+                        expect(req.path.x).to.deep.equal([1, 2, 3]);
+                    });
+
+                    it('can deserialize exploded object', () => {
+                        def.parameters[0].style = 'label';
+                        def.parameters[0].explode = true;
+                        def.parameters[0].schema = objSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: '.R=50.G=100.B=150' } });
+                        expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
+                    });
+
+                    it('can deserialize object', () => {
+                        def.parameters[0].style = 'label';
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = objSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: '.R,50,G,100,B,150' } });
+                        expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
+                    });
+
+                });
+
+                describe('matrix', () => {
+
+                    it('can deserialize exploded primitive', () => {
+                        def.parameters[0].style = 'matrix';
+                        def.parameters[0].explode = true;
+                        def.parameters[0].schema = numSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: ';x=1' } });
+                        expect(req.path.x).to.equal(1);
+                    });
+
+                    it('can deserialize primitive', () => {
+                        def.parameters[0].style = 'matrix';
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = numSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: ';x=1' } });
+                        expect(req.path.x).to.equal(1);
+                    });
+
+                    it('can deserialize exploded array', () => {
+                        def.parameters[0].style = 'matrix';
+                        def.parameters[0].explode = true;
+                        def.parameters[0].schema = arrSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: ';x=1;x=2;x=3' } });
+                        expect(req.path.x).to.deep.equal([1, 2, 3]);
+                    });
+
+                    it('can deserialize array', () => {
+                        def.parameters[0].style = 'matrix';
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = arrSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: ';x=1,2,3' } });
+                        expect(req.path.x).to.deep.equal([1, 2, 3]);
+                    });
+
+                    it('can deserialize exploded object', () => {
+                        def.parameters[0].style = 'matrix';
+                        def.parameters[0].explode = true;
+                        def.parameters[0].schema = objSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: ';R=50;G=100;B=150' } });
+                        expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
+                    });
+
+                    it('can deserialize object', () => {
+                        def.parameters[0].style = 'matrix';
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = objSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ path: { x: ';x=R,50,G,100,B,150' } });
+                        expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
+                    });
+
+                });
+
+            });
 
         });
 
-        describe.only('in query', () => {
+        describe('in query', () => {
 
             it('overwrites duplicate parameters for non-collection', () => {
                 const def = {
@@ -143,10 +489,8 @@ describe('components/operation', () => {
                     responses: { 200: { description: '' } }
                 };
                 const [ , operation ] = definition(2, Operation, def);
-                return operation.request({ path: '/?x=1&x=2' })
-                    .then(([ err, req ]) => {
-                        expect(req.query.x).to.equal(2);
-                    });
+                const [ , req ] = operation.request({ query: 'x=1&x=2' });
+                expect(req.query.x).to.equal(2);
             });
 
             it('does allow non defined parameter w/ allowOtherQueryParameters', () => {
@@ -155,10 +499,8 @@ describe('components/operation', () => {
                     responses: { 200: { description: '' } }
                 };
                 const [ , operation ] = definition(2, Operation, def);
-                return operation.request({ path: '/?x=1' }, { allowOtherQueryParameters: true })
-                    .then(([ , req ]) => {
-                        expect(req.query).to.deep.equal({});
-                    });
+                const [ , req ] = operation.request({ query: 'x=1' }, { allowOtherQueryParameters: true });
+                expect(req.query).to.deep.equal({});
             });
 
             it('does not allow non defined parameter w/o allowOtherQueryParameters', () => {
@@ -167,13 +509,22 @@ describe('components/operation', () => {
                     responses: { 200: { description: '' } }
                 };
                 const [ , operation ] = definition(2, Operation, def);
-                return operation.request({ path: '/?x=1' }, { allowOtherQueryParameters: false })
-                    .then(([ err ]) => {
-                        expect(err).to.match(/Received unexpected parameter: x/);
-                    });
+                const [ err ] = operation.request({ query: 'x=1' }, { allowOtherQueryParameters: false });
+                expect(err).to.match(/Received unexpected parameter: x/);
             });
 
-            describe('v2 array', () => {
+            it('allows empty value if specified', () => {
+                const def = {
+                    parameters: [{ name: 'color', in: 'query', type: 'string', allowEmptyValue: true }],
+                    responses: { 200: { description: '' } }
+                };
+                const [ , operation ] = definition(2, Operation, def);
+                const [ , req ] = operation.request({ query: 'color=' });
+                expect(req.query).to.haveOwnProperty('color');
+                expect(req.query.color).to.equal(undefined);
+            });
+
+            describe('v2', () => {
                 let def;
 
                 beforeEach(() => {
@@ -186,205 +537,121 @@ describe('components/operation', () => {
                 it('can deserialize a csv collection', () => {
                     def.parameters[0].collectionFormat = 'csv';
                     const [ , operation ] = definition(2, Operation, def);
-                    return operation.request({ path: '/?x=1,2,3' })
-                        .then(([ , req ]) => {
-                            expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
-                        });
+                    const [ , req ] = operation.request({ query: 'x=1,2,3' });
+                    expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
                 });
 
                 it('can deserialize an ssv collection', () => {
                     def.parameters[0].collectionFormat = 'ssv';
                     const [ , operation ] = definition(2, Operation, def);
-                    return operation.request({ path: '/?x=1%202%203' })
-                        .then(([ , req ]) => {
-                            expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
-                        });
+                    const [ , req ] = operation.request({ query: 'x=1%202%203' });
+                    expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
                 });
 
                 it('can deserialize a tsv collection', () => {
                     def.parameters[0].collectionFormat = 'tsv';
                     const [ , operation ] = definition(2, Operation, def);
-                    return operation.request({ path: '/?x=1%092%093' })
-                        .then(([ , req ]) => {
-                            expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
-                        });
+                    const [ , req ] = operation.request({ query: 'x=1%092%093' });
+                    expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
                 });
 
                 it('can deserialize a pipes collection', () => {
                     def.parameters[0].collectionFormat = 'pipes';
                     const [ , operation ] = definition(2, Operation, def);
-                    return operation.request({ path: '/?x=1|2|3' })
-                        .then(([ , req ]) => {
-                            expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
-                        });
+                    const [ , req ] = operation.request({ query: 'x=1|2|3' });
+                    expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
                 });
 
                 it('can deserialize a multi collection', () => {
                     def.parameters[0].collectionFormat = 'multi';
                     const [ , operation ] = definition(2, Operation, def);
-                    return operation.request({ path: '/?x=1&x=2&x=3' })
-                        .then(([ , req ]) => {
-                            expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
-                        });
+                    const [ , req ] = operation.request({ query: 'x=1&x=2&x=3' });
+                    expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
                 });
 
             });
 
-            describe('v3 array', () => {
+            describe('v3', () => {
                 let def;
 
                 beforeEach(() => {
                     def = {
-                        parameters: [
-                            { name: 'color', in: 'query' }
-                        ],
+                        parameters: [{ name: 'color', in: 'query' }],
                         responses: { 200: { description: '' } }
                     };
                 });
 
                 describe('default style (form)', () => {
 
-                    it('empty', () => {
-                        def.parameters[0].allowEmptyValue = true;
+                    it('can deserialize string', () => {
                         def.parameters[0].schema = { type: 'string' };
                         const [ , operation ] = definition(3, Operation, def);
-                        return operation.request({ path: '/?color=' })
-                            .then(([ err, req ]) => {
-                                expect(req.query).to.haveOwnProperty('color');
-                                expect(req.query.color).to.equal(undefined);
-                            });
+                        const [ , req ] = operation.request({ query: 'x=1&color=red&y=2' }, { allowOtherQueryParameters: true });
+                        expect(req.query.color).to.equal('red');
                     });
 
-                    it('string', () => {
-                        def.parameters[0].schema = { type: 'string' };
-                        const [ err, operation ] = definition(3, Operation, def);
-                        return operation.request({ path: '/?x=1&color=red&y=2' }, { allowOtherQueryParameters: true })
-                            .then(([ err, req ]) => {
-                                expect(req.query.color).to.equal('red');
-                            });
-                    });
-
-                    it('array', () => {
+                    it('can deserialize array', () => {
                         def.parameters[0].explode = false;
-                        def.parameters[0].schema = { type: 'array', items: { type: 'string' } };
-                        const [ err, operation ] = definition(3, Operation, def);
-                        return operation.request({ path: '/?color=orange&color=blue,black,brown' })
-                            .then(([ err, req ]) => {
-                                expect(req.query.color).to.deep.equal(['blue', 'black', 'brown']);
-                            });
-                    });
-
-                    it('array (default exploded)', () => {
-                        def.parameters[0].schema = { type: 'array', items: { type: 'string' } };
-                        const [ err, operation ] = definition(3, Operation, def);
-                        return operation.request({ path: '/?color=blue&color=black&x=1&color=brown' }, { allowOtherQueryParameters: true })
-                            .then(([ err, req ]) => {
-                                expect(req.query.color).to.deep.equal(['blue', 'black', 'brown']);
-                            });
-                    });
-
-                    it('object (default exploded)', () => {
-                        def.parameters[0].schema = {
-                            type: 'object',
-                            properties: {
-                                R: { type: 'number' },
-                                G: { type: 'number' },
-                                B: { type: 'number' }
-                            }
-                        };
-                        const [ err, operation ] = definition(3, Operation, def);
-                        return operation.request({ path: '/?' + encodeURIComponent('R=100&G=200&B=150') })
-                            .then(([ err, req ]) => {
-                                expect(req.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
-                            });
-                    });
-
-                    it('object', () => {
-                        def.parameters[0].explode = false;
-                        def.parameters[0].schema = {
-                            type: 'object',
-                            properties: {
-                                R: { type: 'number' },
-                                G: { type: 'number' },
-                                B: { type: 'number' }
-                            }
-                        };
+                        def.parameters[0].schema = arrStrSchema;
                         const [ , operation ] = definition(3, Operation, def);
-                        return operation.request({ path: '/?color=R,100,G,200,B,150' })
-                            .then(([ err, req ]) => {
-                                expect(req.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
-                            });
+                        const [ , req ] = operation.request({ query: 'color=orange&color=blue,black,brown' });
+                        expect(req.query.color).to.deep.equal(['blue', 'black', 'brown']);
+                    });
+
+                    it('can deserialize array (default exploded)', () => {
+                        def.parameters[0].schema = arrStrSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ query: 'color=blue&color=black&x=1&color=brown' }, { allowOtherQueryParameters: true });
+                        expect(req.query.color).to.deep.equal(['blue', 'black', 'brown']);
+                    });
+
+                    it('can deserialize object (default exploded)', () => {
+                        def.parameters[0].schema = objSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ query: '' + encodeURIComponent('R=100&G=200&B=150') });
+                        expect(req.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                    });
+
+                    it('can deserialize object (not exploded)', () => {
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = objSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ query: 'color=R,100,G,200,B,150' });
+                        expect(req.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
                     });
 
                 });
 
                 describe('spaceDelimited', () => {
 
-                    it('array', () => {
-                        const schema2 = modSchema(schema, { 'paths./.parameters.1': { style: 'spaceDelimited', schema: { type: 'array' }}});
-                        const instance = new enforcer(schema2, {});
-                        const req = request({ path: '/?color=blue%20black%20brown'});
-                        const params = instance.request(req);
-                        expect(params.query.color).to.deep.equal(['blue', 'black', 'brown']);
-                    });
-
-                    it('object', () => {
-                        const schema2 = modSchema(schema, { 'paths./.parameters.1': { style: 'spaceDelimited' }});
-                        const instance = new enforcer(schema2, {});
-                        const req = request({ path: '/?color=R%20100%20G%20200%20B%20150'});
-                        const params = instance.request(req);
-                        expect(params.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                    it('can deserialize array', () => {
+                        def.parameters[0].style = 'spaceDelimited';
+                        def.parameters[0].schema = arrStrSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ query: 'color=blue%20black%20brown' });
+                        expect(req.query.color).to.deep.equal(['blue', 'black', 'brown']);
                     });
 
                 });
 
                 describe('pipeDelimited\t', () => {
 
-                    it('array', () => {
-                        const schema2 = modSchema(schema, { 'paths./.parameters.1': { style: 'pipeDelimited', schema: { type: 'array' }}});
-                        const instance = new enforcer(schema2, {});
-                        const req = request({ path: '/?color=blue|black|brown'});
-                        const params = instance.request(req);
-                        expect(params.query.color).to.deep.equal(['blue', 'black', 'brown']);
-                    });
-
-                    it('object', () => {
-                        const schema2 = modSchema(schema, { 'paths./.parameters.1': { style: 'pipeDelimited' }});
-                        const instance = new enforcer(schema2, {});
-                        const req = request({ path: '/?color=R|100|G|200|B|150'});
-                        const params = instance.request(req);
-                        expect(params.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                    it('can deserialize array', () => {
+                        def.parameters[0].style = 'pipeDelimited';
+                        def.parameters[0].schema = arrStrSchema;
+                        const [ , operation ] = definition(3, Operation, def);
+                        const [ , req ] = operation.request({ query: 'color=blue|black|brown' });
+                        expect(req.query.color).to.deep.equal(['blue', 'black', 'brown']);
                     });
 
                 });
 
-                it('cannot use matrix style', () => {
-                    const schema2 = modSchema(schema, { 'paths./.parameters.1': { style: 'matrix' } });
-                    const req = request({ path: '/?color=' });
-                    const instance = new enforcer(schema2, {});
-                    expect(() => instance.request(req)).to.throw(/matrix style/);
-                });
-
-                it('cannot use label style', () => {
-                    const schema2 = modSchema(schema, { 'paths./.parameters.1': { style: 'label' } });
-                    const req = request({ path: '/?color=' });
-                    const instance = new enforcer(schema2, {});
-                    expect(() => instance.request(req)).to.throw(/label style/);
-                });
-
-                it('cannot use simple style', () => {
-                    const schema2 = modSchema(schema, { 'paths./.parameters.1': { style: 'simple' } });
-                    const req = request({ path: '/?color=' });
-                    const instance = new enforcer(schema2, {});
-                    expect(() => instance.request(req)).to.throw(/simple style/);
-                });
-
-                it('can use deepObject style', () => {
-                    const schema2 = modSchema(schema, { 'paths./.parameters.1': { style: 'deepObject' } });
-                    const instance = new enforcer(schema2, {});
-                    const req = request({ path: '/?color[R]=100&color[G]=200&color[B]=150'});
-                    const params = instance.request(req);
-                    expect(params.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                it('can deserialize deepObject style', () => {
+                    def.parameters[0].style = 'deepObject';
+                    def.parameters[0].schema = objSchema;
+                    const [ , operation ] = definition(3, Operation, def);
+                    const [ , req ] = operation.request({ query: 'color[R]=100&color[G]=200&color[B]=150' });
+                    expect(req.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
                 });
 
             });
@@ -394,20 +661,6 @@ describe('components/operation', () => {
     });
 
 });
-
-function modSchema(source, mods) {
-    const definition = copy(source);
-    Object.keys(mods).forEach(path => {
-        const paths = path.split('.');
-        let obj = definition;
-        while (paths.length > 0) {
-            const p = paths.shift();
-            if (p.length) obj = obj[p];
-        }
-        Object.assign(obj, mods[path]);
-    });
-    return definition;
-}
 
 function shouldHaveRejected() {
     throw Error('Should have been rejected');
