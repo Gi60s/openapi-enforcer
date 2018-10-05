@@ -163,11 +163,16 @@ function SchemaObject() {
             format: {
                 allowed: ({ parent }) => ['integer', 'number', 'string'].includes(parent.value.type),
                 type: 'string',
-                enum: ({ parent }) => {
-                    switch (parent.value.type) {
-                        case 'integer': return ['int32', 'int64'];
-                        case 'number': return ['float', 'double'];
-                        case 'string': return ['binary', 'byte', 'date', 'date-time', 'password'];
+                errors: ({ exception, parent, warn }) => {
+                    const format = parent.value.format;
+                    if (format) {
+                        const enums = [];
+                        switch (parent.value.type) {
+                            case 'integer': enums.push('int32', 'int64'); break;
+                            case 'number': enums.push('float', 'double'); break;
+                            case 'string': enums.push('binary', 'byte', 'date', 'date-time', 'password');
+                        }
+                        if (!enums.includes(format)) warn('Non standard format used: ' + format);
                     }
                 }
             },

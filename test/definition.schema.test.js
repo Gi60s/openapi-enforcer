@@ -386,13 +386,15 @@ describe('definitions/schema', () => {
     describe('format', () => {
 
         it('allows valid format', () => {
-            const [ err ] = definition(2, Schema, { type: 'string', format: 'date' });
+            const [ err, , warning ] = definition(2, Schema, { type: 'string', format: 'date' });
             expect(err).to.be.undefined;
+            expect(warning).to.be.undefined;
         });
 
-        it('does not allow invalid format', () => {
-            const [ err ] = definition(2, Schema, { type: 'string', format: 'foo' });
-            expect(err).to.match(/Value must be one of:/);
+        it('warns for unknown format', () => {
+            const [ err, , warning ] = definition(2, Schema, { type: 'string', format: 'foo' });
+            expect(err).to.be.undefined;
+            expect(warning).to.match(/Non standard format used: foo/);
         });
 
     });
