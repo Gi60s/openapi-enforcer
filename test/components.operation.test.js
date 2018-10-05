@@ -65,7 +65,7 @@ describe('components/operation', () => {
 
     });
 
-    describe.only('request', () => {
+    describe('request', () => {
         const arrSchema = { type: 'array', items: { type: 'number' } };
         const arrStrSchema = { type: 'array', items: { type: 'string' } };
         const numSchema = { type: 'number' };
@@ -79,49 +79,69 @@ describe('components/operation', () => {
         };
 
         describe('in body', () => {
+            let def;
 
-            describe('string', () => {
-                const def = {
-                    parameters: [{ name: 'body', in: 'body', schema: { type: 'string' }}],
+            beforeEach(() => {
+                def = {
+                    parameters: [{ name: 'body', in: 'body' }],
                     responses: { 200: { description: '' } }
                 };
-
-                it('is allowed', () => {
-                    const [ , operation ] = definition(2, Operation, def);
-                    const [ , req ] = operation.request({ body: 'hello' });
-                    expect(req.body).to.equal('hello');
-                });
-
-                it('is validated', () => {
-                    const [ , operation ] = definition(2, Operation, def);
-                    const [ err, req ] = operation.request({ body: 'hello' });
-                    expect(err.code).to.equal(400);
-                });
-
             });
 
-            describe('datetime', () => {
-
-                it('is allowed', () => {
-
-                });
-
-                it('is validated', () => {
-
-                });
-
+            it('deserializes primitive string', () => {
+                def.parameters[0].schema = numSchema;
+                const [ , operation ] = definition(2, Operation, def);
+                const [ , req ] = operation.request({ body: '1' });
+                expect(req.body).to.equal(1);
             });
 
-            describe('number', () => {
+            it('deserializes array elements', () => {
+                def.parameters[0].schema = arrSchema;
+                const [ , operation ] = definition(2, Operation, def);
+                const [ , req ] = operation.request({ body: ['1', '2', '3'] });
+                expect(req.body).to.deep.equal([1,2,3]);
+            });
 
-                it('is allowed', () => {
+            it('deserializes object elements', () => {
+                def.parameters[0].schema = objSchema;
+                const [ , operation ] = definition(2, Operation, def);
+                const [ , req ] = operation.request({ body: { R: '50', G: '100', B: '150' } });
+                expect(req.body).to.deep.equal({ R: 50, G: 100, B: 150 });
+            });
 
-                });
+            it('validates primitive', () => {
+                def.parameters[0].schema = { type: 'number', maximum: 1 };
+                const [ , operation ] = definition(2, Operation, def);
+                const [ err ] = operation.request({ body: '2' });
+                expect(err).to.match(/Expected number to be less than or equal to 1/);
+                expect(err.statusCode).to.equal(400);
+            });
 
-                it('is validated', () => {
+            it('validates array elements', () => {
+                def.parameters[0].schema = {
+                    type: 'array',
+                    items: {
+                        type: 'number',
+                        minimum: 2
+                    }
+                };
+                const [ , operation ] = definition(2, Operation, def);
+                const [ err ] = operation.request({ body: ['1', '2', '3'] });
+                expect(err).to.match(/Expected number to be greater than or equal to 2/);
+            });
 
-                });
-
+            it('validates object elements', () => {
+                def.parameters[0].schema = {
+                    type: 'object',
+                    additionalProperties: false,
+                    properties: {
+                        R: { type: 'number' },
+                        G: { type: 'number' }
+                    }
+                };
+                const [ , operation ] = definition(2, Operation, def);
+                const [ err ] = operation.request({ body: { R: '50', G: '100', B: '150' } });
+                expect(err).to.match(/Property not allowed: B/);
             });
 
         });
@@ -177,6 +197,35 @@ describe('components/operation', () => {
         });
 
         describe('in formData', () => {
+            let def;
+
+            beforeEach(() => {
+                def = {
+                    parameters: [
+                        { name: 'user', in: 'formData', type: 'string' },
+                        { name: 'age', in: 'formData', type: 'number', minimum: 0 }
+                    ],
+                    responses: { 200: { description: '' } }
+                };
+            });
+
+            it('creates req.body property from form data elements', () => {
+                const [ , operation ] = definition(2, Operation, def);
+                const [ , req ] = operation.request({ body: { user: 'Bob', age: '15' } });
+                expect(req.body).to.deep.equal({ user: 'Bob', age: 15 });
+            });
+
+            it('allows already deserialized values', () => {
+                const [ , operation ] = definition(2, Operation, def);
+                const [ , req ] = operation.request({ body: { user: 'Bob', age: 15 } });
+                expect(req.body).to.deep.equal({ user: 'Bob', age: 15 });
+            });
+
+            it('validates values', () => {
+                const [ , operation ] = definition(2, Operation, def);
+                const [ err ] = operation.request({ body: { user: 'Bob', age: -1 } });
+                expect(err).to.match(/Expected number to be greater than or equal to 0/)
+            });
 
         });
 
@@ -513,7 +562,7 @@ describe('components/operation', () => {
                 expect(err).to.match(/Received unexpected parameter: x/);
             });
 
-            it('allows empty value if specified', () => {
+            it('allows empty value if specified to allow in document', () => {
                 const def = {
                     parameters: [{ name: 'color', in: 'query', type: 'string', allowEmptyValue: true }],
                     responses: { 200: { description: '' } }
@@ -521,7 +570,7 @@ describe('components/operation', () => {
                 const [ , operation ] = definition(2, Operation, def);
                 const [ , req ] = operation.request({ query: 'color=' });
                 expect(req.query).to.haveOwnProperty('color');
-                expect(req.query.color).to.equal(undefined);
+                expect(req.query.color).to.equal('');
             });
 
             describe('v2', () => {
@@ -608,7 +657,7 @@ describe('components/operation', () => {
                     it('can deserialize object (default exploded)', () => {
                         def.parameters[0].schema = objSchema;
                         const [ , operation ] = definition(3, Operation, def);
-                        const [ , req ] = operation.request({ query: '' + encodeURIComponent('R=100&G=200&B=150') });
+                        const [ , req ] = operation.request({ query: 'R=100&G=200&B=150' });
                         expect(req.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
                     });
 
@@ -661,7 +710,3 @@ describe('components/operation', () => {
     });
 
 });
-
-function shouldHaveRejected() {
-    throw Error('Should have been rejected');
-}
