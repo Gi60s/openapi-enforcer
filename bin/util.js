@@ -19,6 +19,8 @@ const Ignored       = require('../ignored');
 const queryString   = require('querystring');
 const rx            = require('./rx');
 
+const rxMediaType = /^([\s\S]+?)\/(?:([\s\S]+?)\+)?([\s\S]+?)$/;
+
 exports.arrayRemoveItem = function(array, item) {
     const index = array.indexOf(item);
     if (index !== -1) array.splice(index, 1);
@@ -36,6 +38,77 @@ exports.edgeSlashes = function(value, start, end) {
     if (start) value = '/' + value;
     if (end) value += '/';
     return value;
+};
+
+/**
+ * Provide an accept media / mime type string and possible matches and get the match.
+ * @param {string} input The allowed media type string. Example: text/html, application/xhtml+xml, application/xml;q=0.9, text/*;q=0.8
+ * @param {string[]} store An array of media types to search through (no quality number)
+ * @returns {string[]} The media type matches in order of best match first.
+ */
+exports.findMediaMatch = function(input, store) {
+    const accepts = input
+        .split(/, */)
+        .map((value, index) => {
+            const set = value.split(';');
+            const match = rxMediaType.exec(set[0]);
+            const q = /q=(\d(?:\.\d)?)/.exec(set[1]);
+            if (!match) return;
+            return {
+                extension: match[2] || '*',
+                index: index,
+                quality: +((q && q[1]) || 1),
+                subType: match[3],
+                type: match[1]
+            }
+        })
+        .filter(v => !!v);
+
+    // populate matches
+    const results = [];
+    accepts.forEach(accept => {
+        store.forEach(value => {
+            const match = rxMediaType.exec(value);
+            if (match) {
+                const type = match[1];
+                const subType = match[3];
+                const extension = match[2] || '*';
+                const typeMatch = ((accept.type === type || accept.type === '*' || type === '*') &&
+                    (accept.subType === subType || accept.subType === '*' || subType === '*') &&
+                    (accept.extension === extension || accept.extension === '*' || extension === '*'));
+                if (typeMatch) {
+                    results.push({
+                        index: accept.index,
+                        quality: accept.quality,
+                        score: (accept.type === type ? 1 : 0) + (accept.subType === subType ? 1 : 0) + (accept.extension === extension ? 1 : 0),
+                        value
+                    });
+                }
+            }
+        })
+    });
+
+    // sort results
+    results.sort((a, b) => {
+        if (a.quality < b.quality) return 1;
+        if (a.quality > b.quality) return -1;
+        if (a.score < b.score) return 1;
+        if (a.score > b.score) return -1;
+        return a.index < b.index ? 1 : -1;
+    });
+
+    // make results unique
+    const map = {};
+    const unique = [];
+    results.forEach(item => {
+        const value = item.value;
+        if (!map[value]) {
+            map[value] = item;
+            unique.push(item.value);
+        }
+    });
+
+    return unique;
 };
 
 exports.getDateFromValidDateString = function (format, string) {
