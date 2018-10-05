@@ -50,10 +50,11 @@ exports.serialize = function(schema, value) {
 
 
 function deserialize(exception, map, schema, value) {
+    const valueType = typeof value;
     let matches;
 
     // handle cyclic serialization
-    if (value && typeof value === 'object') {
+    if (value && valueType === 'object') {
         matches = map.get(value);
         if (matches) {
             const existing = matches.get(schema);
@@ -155,7 +156,7 @@ function deserialize(exception, map, schema, value) {
             exception('Expected an object. Received: ' + util.smart(value));
         }
 
-    } else if (type === 'string' && typeof value === 'string') {
+    } else if (type === 'string' && valueType === 'string') {
         switch (schema.format) {
             case 'binary':
                 if (!rx.binary.test(value)) {
@@ -164,7 +165,7 @@ function deserialize(exception, map, schema, value) {
                 } else {
                     const length = value.length;
                     const array = [];
-                    for (let i = 0; i < length; i+=8) array.push(parseInt(value.substr(i, 8), 2))
+                    for (let i = 0; i < length; i += 8) array.push(parseInt(value.substr(i, 8), 2))
                     return Buffer.from ? Buffer.from(array, 'binary') : new Buffer(array, 'binary');
                 }
 
@@ -207,6 +208,12 @@ function deserialize(exception, map, schema, value) {
             default:
                 return value;
         }
+
+    } else if (valueType === 'string' && (type === 'number' || type === 'integer')) {
+        return isNaN(value) ? value : +value;
+
+    } else if (valueType === 'string' && type === 'boolean') {
+        return !(!value || value.toLowerCase === 'false');
 
     } else {
         return value;
