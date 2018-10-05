@@ -24,11 +24,6 @@ module.exports = SchemaObject;
 function SchemaObject() {
     const ExternalDocumentation = require('./external-documentation');
 
-    const Schema = this;
-    const additionalProperties = {};
-    const items = {};
-    const not = {};
-
     const exclusive = {
         type: 'boolean'
     };
@@ -72,7 +67,7 @@ function SchemaObject() {
         }
     };
 
-    Object.assign(Schema, {
+    Object.assign(this, {
         useComponent: ({ value }) => value && typeof value === 'object',
         component: SchemaComponent,
         type: 'object',
@@ -86,15 +81,21 @@ function SchemaObject() {
                 },
                 enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
             },
-            additionalProperties,
+            additionalProperties: function (data) {
+                const schema = new SchemaObject(data);
+                schema.allowed = ({parent}) => parent.value.type === 'object';
+                schema.type = ['boolean', 'object'];
+                schema.default = true;
+                return schema;
+            },
             allOf: {
                 type: 'array',
-                items: Schema
+                items: SchemaObject
             },
             anyOf: {
                 allowed: ({major}) => major === 3,
                 type: 'array',
-                items: Schema
+                items: SchemaObject
             },
             default: {
                 type: ({ parent }) => parent.value.type,
@@ -110,7 +111,7 @@ function SchemaObject() {
                 type: 'string'
             },
             discriminator: {
-                allowed: ({ parent }) => parent && parent.validator === Schema && parent.validator.type === 'object',
+                allowed: ({ parent }) => parent && parent.validator instanceof SchemaObject && parent.validator.type === 'object',
                 type: ({ major }) => major === 2 ? 'string' : 'object',
                 properties: {
                     propertyName: {
@@ -170,7 +171,12 @@ function SchemaObject() {
                     }
                 }
             },
-            items,
+            items: function (data) {
+                const schema = new SchemaObject(data);
+                schema.allowed = ({parent}) => parent.value.type === 'array';
+                schema.required = ({ parent }) => parent.value.type === 'array';
+                return schema;
+            },
             maximum: maxOrMin,
             maxItems: maxOrMinItems,
             maxLength: maxOrMinLength,
@@ -183,7 +189,11 @@ function SchemaObject() {
                 allowed: ({ parent }) => ['integer', 'number'].includes(parent.value.type),
                 type: 'number'
             },
-            not,
+            not: function (data) {
+                const schema = new SchemaObject(data);
+                schema.allowed = ({major}) => major === 3;
+                return schema;
+            },
             nullable: {
                 allowed: ({major}) => major === 3,
                 type: 'boolean',
@@ -192,7 +202,7 @@ function SchemaObject() {
             oneOf: {
                 allowed: ({major}) => major === 3,
                 type: 'array',
-                items: Schema
+                items: SchemaObject
             },
             pattern: {
                 allowed: ({ parent }) => parent.value.type === 'string',
@@ -205,7 +215,7 @@ function SchemaObject() {
             properties: {
                 allowed: ({parent}) => parent.value.type === 'object',
                 type: 'object',
-                additionalProperties: Schema
+                additionalProperties: SchemaObject
             },
             readOnly: {
                 allowed: isSchemaProperty,
@@ -287,21 +297,6 @@ function SchemaObject() {
                 exception('Cannot have multiple composites: ' + composites.join(', '));
             }
         }
-    });
-
-    Object.assign(additionalProperties, Schema, {
-        allowed: ({parent}) => parent.value.type === 'object',
-        type: ['boolean', 'object'],
-        default: true
-    });
-
-    Object.assign(items, Schema, {
-        allowed: ({parent}) => parent.value.type === 'array',
-        required: ({ parent }) => parent.value.type === 'array'
-    });
-
-    Object.assign(not, Schema, {
-        allowed: ({major}) => major === 3
     });
 }
 
