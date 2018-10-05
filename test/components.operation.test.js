@@ -109,6 +109,14 @@ describe('components/operation', () => {
                 expect(req.body).to.deep.equal({ R: 50, G: 100, B: 150 });
             });
 
+            it('validates missing required body', () => {
+                def.parameters[0].required = true;
+                def.parameters[0].schema = numSchema;
+                const [ , operation ] = definition(2, Operation, def);
+                const [ err ] = operation.request({ });
+                expect(err).to.match(/Missing required parameter: body/);
+            });
+
             it('validates primitive', () => {
                 def.parameters[0].schema = { type: 'number', maximum: 1 };
                 const [ , operation ] = definition(2, Operation, def);
@@ -225,6 +233,13 @@ describe('components/operation', () => {
                 const [ , operation ] = definition(2, Operation, def);
                 const [ err ] = operation.request({ body: { user: 'Bob', age: -1 } });
                 expect(err).to.match(/Expected number to be greater than or equal to 0/)
+            });
+
+            it('validates that required values are set', () => {
+                def.parameters[0].required = true;
+                const [ , operation ] = definition(2, Operation, def);
+                const [ err ] = operation.request({ body: { } });
+                expect(err).to.match(/Missing required parameter: user/);
             });
 
         });
@@ -703,6 +718,69 @@ describe('components/operation', () => {
                     expect(req.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
                 });
 
+            });
+
+        });
+
+        describe.only('requestBody', () => {
+            let def;
+            let appJson;
+            let appStar;
+            let appXml;
+            let starStar;
+            let textPlain;
+
+            beforeEach(() => {
+                appJson = { schema: { type: 'object', additionalProperties: false, properties: { json: { type: 'number' } } } };
+                appXml = { schema: { type: 'object', additionalProperties: false, properties: { xml: { type: 'number' } } } };
+                textPlain = { schema: { type: 'object', additionalProperties: false, properties: { text: { type: 'number' } } } };
+                appStar = { schema: { type: 'object', additionalProperties: false, properties: { star: { type: 'number' } } } };
+                starStar = { schema: { type: 'object', additionalProperties: false, properties: { star2: { type: 'number' } } } };
+                def = {
+                    requestBody: {
+                        content: {
+                            'application/json': appJson,
+                            'application/xml': appXml,
+                            'application/*': appStar,
+                            'text/plain': textPlain,
+                            '*/*': starStar,
+                        }
+                    },
+                    responses: { 200: { description: '' } }
+                }
+            });
+
+            it.only('deserializes primitive string', () => {
+                appJson.schema = numSchema;
+                const [ err, operation ] = definition(3, Operation, def);
+                console.log('' + err);
+                const [ , req ] = operation.request({ body: '1', header: { 'content-type': 'application/json' } });
+                expect(req.body).to.equal(1);
+            });
+
+            it('deserializes array elements', () => {
+                appJson.schema = arrSchema;
+                const [ , operation ] = definition(3, Operation, def);
+                const [ , req ] = operation.request({ body: ['1', '2', '3'], header: { 'content-type': 'application/json' } });
+                expect(req.body).to.deep.equal([1,2,3]);
+            });
+
+            it('deserializes object elements', () => {
+                appJson.schema = objSchema;
+                const [ , operation ] = definition(3, Operation, def);
+                const [ , req ] = operation.request({ body: { R: '50', G: '100', B: '150' }, header: { 'content-type': 'application/json' } });
+                expect(req.body).to.deep.equal({ R: 50, G: 100, B: 150 });
+            });
+
+            it('validates missing required request body', () => {
+                def.requestBody.required = true;
+                const [ , operation ] = definition(3, Operation, def);
+                const [ err ] = operation.request({});
+                expect(err).to.match(/Missing required request body/);
+            });
+
+            it('matches correct media type', () => {
+                throw Error('TODO');
             });
 
         });
