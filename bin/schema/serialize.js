@@ -148,6 +148,8 @@ function deserialize(exception, map, schema, value) {
                     result[key] = deserialize(exception.nest('Unable to deserialize property: ' + key), map, properties[key], value[key]);
                 } else if (additionalProperties) {
                     result[key] = deserialize(exception.nest('Unable to deserialize property: ' + key), map, additionalProperties, value[key]);
+                } else {
+                    result[key] = value[key];   // not deserialized, just left alone
                 }
             });
             matches.set(schema, result);
