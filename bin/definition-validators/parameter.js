@@ -70,9 +70,9 @@ function ParameterObject(data) {
                     : ['csv', 'ssv', 'tsv', 'pipes'],
                 default: 'csv'
             },
-            schema: function() {
+            schema: function(data) {
                 const schema = new Schema(data);
-                schema.allowed = ({major, parent}) => major === 3 || parent.value.in === 'body';
+                schema.allowed = ({ parent}) => parent.value.in === 'body';
                 return schema;
             }
         });
