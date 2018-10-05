@@ -97,9 +97,11 @@ OperationEnforcer.prototype.request = function (request, options) {
     const req = {
         header: util.lowerCaseObjectProperties(request.header),
         path: request.path,
-        query: util.parseQueryString(decodeURIComponent(request.query))
+        query: util.parseQueryString(request.query)
     };
+    if (request.hasOwnProperty('body')) req.body = request.body;
     const cookie = req.header.cookie || '';
+    const query = request.query;
     req.cookie = cookie ? util.parseCookieString(cookie) : {};
     delete req.header.cookie;
 
@@ -107,17 +109,25 @@ OperationEnforcer.prototype.request = function (request, options) {
     exception.statusCode = 400;
 
     const parameters = this.parametersMap;
-
     const result = {
         cookie: {},
         header: {},
         path: {},
         query: {}
     };
-    ['cookie', 'header', 'path', 'query'].forEach(at => {
+
+    // if formData is expected for the body then make sure that the body is a non-null object
+    if (parameters.formData && (!request.body || typeof request.body !== 'object')) throw Error('Parameters in "formData" require that the provided body be a non-null object');
+
+    // begin processing parameters
+    const inArray = ['cookie', 'header', 'path', 'query'];
+    if (parameters.formData) inArray.push('formData');
+    inArray.forEach(at => {
+        const isFormData = at === 'formData';
         const allowUnknownParameters = at === 'cookie' || at === 'header' || (at === 'query' && options.allowOtherQueryParameters);
-        const child = exception.nest('In ' + at + ' parameters');
-        const input = req[at];
+        const child = isFormData ? exception.nest('In body') : exception.nest('In ' + at + ' parameters');
+        const reqKey = isFormData ? 'body' : at;
+        const input = req[reqKey] || {};
         const missingRequired = [];
         const unknownParameters = allowUnknownParameters ? [] : Object.keys(input);
 
@@ -134,18 +144,18 @@ OperationEnforcer.prototype.request = function (request, options) {
                         : at === 'cookie'
                             ? parameter.parse(cookie, input)
                             : parameter.parse(input[key]);
-                    deserializeAndValidate(child.at(key), parameter, data, v => output[key] = v);
+                    deserializeAndValidate(child.at(key), parameter.schema, data, v => output[key] = v);
 
                 } else if (parameter.in === 'query' && parameter.style === 'form' && parameter.explode && type === 'object') {
                     const data = parameter.parse(query, input);
-                    deserializeAndValidate(null, parameter, data, value => {
+                    deserializeAndValidate(null, parameter.schema, data, value => {
                         Object.keys(value).forEach(key => util.arrayRemoveItem(unknownParameters, key));
                         output[key] = value;
                     })
 
                 } else if (parameter.in === 'query' && parameter.style === 'deepObject' && type === 'object') {
                     const data = parameter.parse(query, input);
-                    deserializeAndValidate(child.at(key), parameter, data, value => {
+                    deserializeAndValidate(child.at(key), parameter.schema, data, value => {
                         Object.keys(value).forEach(k => util.arrayRemoveItem(unknownParameters, key + '[' + k + ']'));
                         output[key] = value;
                     });
@@ -155,7 +165,7 @@ OperationEnforcer.prototype.request = function (request, options) {
                 }
             });
 
-            result[at] = output;
+            result[reqKey] = output;
         }
 
         // add exception for any unknown query parameters
@@ -172,6 +182,32 @@ OperationEnforcer.prototype.request = function (request, options) {
         }
     });
 
+    if (req.hasOwnProperty('body')) {
+        const value = req.body;
+
+        // v2 parameter in body
+        if (parameters.body) {
+            const parameter = getBodyParameter(parameters);
+            deserializeAndValidate(exception.at('body'), parameter.schema, { value }, value => {
+                result.body = value;
+            });
+
+        // v3 requestBody
+        } else if (this.requestBody) {
+            const mediaTypes = Object.keys(this.requestBody.content);
+            const matches = util.findMediaMatch(req.header['content-type'] || '*/*', mediaTypes);
+
+            throw Error('TODO'); // TODO
+
+        } else if (!parameters.formData) {
+            exception('Body is not allowed');
+        }
+    } else if (parameters.body && getBodyParameter(parameters).required) {
+        exception('Missing required parameter: body');
+    } else if (this.requestBody && this.requestBody.required) {
+        exception('Missing required request body');
+    }
+
     return new Result(exception, result);
 };
 
@@ -184,12 +220,17 @@ function buildParametersMap(map, parameters) {
     }
 }
 
-function deserializeAndValidate(exception, parameter, data, success) {
-    if (!data.error) data = parameter.schema.deserialize(data.value);
-    if (!data.error) data.error = parameter.schema.validate(data.value);
+function getBodyParameter(parameters) {
+    const key = Object.keys(parameters.body)[0];
+    return parameters.body[key];
+}
+
+function deserializeAndValidate(exception, schema, data, success) {
+    if (!data.error) data = schema.deserialize(data.value);
+    if (!data.error) data.error = schema.validate(data.value);
     if (data.error) {
         if (exception) exception(data.error);
     } else {
-        success(util.convertEmptyValues(data.value));
+        success(util.unIgnoreValues(data.value));
     }
 }
