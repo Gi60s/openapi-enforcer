@@ -78,7 +78,7 @@ function validate(v, prefix, depth, schema, value) {
 
 validate.array = function(v, prefix, depth, schema, value) {
     if (!v.options.array) return;
-    if (value === null && schema['x-allow-null'] === true) return;
+    if (value === null && schema['x-nullable'] === true) return;
     if (!Array.isArray(value)) {
         v.error(prefix, 'Expected an array. Received: ' + smart(value));
     } else {
@@ -116,7 +116,7 @@ validate.array = function(v, prefix, depth, schema, value) {
 
 validate.binary = function(v, prefix, depth, schema, value) {
     if (!v.options.binary) return;
-    if (value === null && schema['x-allow-null'] === true) return;
+    if (value === null && schema['x-nullable'] === true) return;
     if (!Buffer.isBuffer(value)) {
         v.error(prefix, 'Expected value to be a buffer. Received: ' + smart(value));
     } else {
@@ -134,7 +134,7 @@ validate.binary = function(v, prefix, depth, schema, value) {
 
 validate.boolean = function(v, prefix, depth, schema, value) {
     if (!v.options.boolean) return;
-    if (value === null && schema['x-allow-null'] === true) return;
+    if (value === null && schema['x-nullable'] === true) return;
     if (typeof value !== 'boolean') {
         v.error(prefix, 'Expected a boolean. Received: ' + smart(value));
     } else {
@@ -144,7 +144,7 @@ validate.boolean = function(v, prefix, depth, schema, value) {
 
 validate.byte = function(v, prefix, depth, schema, value) {
     if (!v.options.byte) return;
-    if (value === null && schema['x-allow-null'] === true) return;
+    if (value === null && schema['x-nullable'] === true) return;
     if (!Buffer.isBuffer(value)) {
         v.error(prefix, 'Expected value to be a buffer. Received: ' + smart(value));
     } else {
@@ -162,7 +162,7 @@ validate.byte = function(v, prefix, depth, schema, value) {
 
 validate.date = function(v, prefix, depth, schema, value) {
     if (!v.options.date) return;
-    if (value === null && schema['x-allow-null'] === true) return;
+    if (value === null && schema['x-nullable'] === true) return;
     if (!util.isDate(value)) {
         v.error(prefix, 'Expected a valid date object. Received: ' + smart(value));
     } else {
@@ -180,7 +180,7 @@ validate.date = function(v, prefix, depth, schema, value) {
 
 validate.dateTime = function(v, prefix, depth, schema, value) {
     if (!v.options.date) return;
-    if (value === null && schema['x-allow-null'] === true) return;
+    if (value === null && schema['x-nullable'] === true) return;
     if (!util.isDate(value)) {
         v.error(prefix, 'Expected a valid date object. Received: ' + smart(value));
     } else {
@@ -199,7 +199,7 @@ validate['date-time'] = validate.dateTime;
 
 validate.integer = function(v, prefix, depth, schema, value) {
     if (!v.options.integer) return;
-    if (value === null && schema['x-allow-null'] === true) return;
+    if (value === null && schema['x-nullable'] === true) return;
     if (isNaN(value) || Math.round(value) !== value || typeof value !== 'number') {
         v.error(prefix, 'Expected an integer. Received: ' + smart(value));
     } else {
@@ -209,7 +209,7 @@ validate.integer = function(v, prefix, depth, schema, value) {
 
 validate.number = function(v, prefix, depth, schema, value) {
     if (!v.options.number) return;
-    if (value === null && schema['x-allow-null'] === true) return;
+    if (value === null && schema['x-nullable'] === true) return;
     if (isNaN(value) || typeof value !== 'number') {
         v.error(prefix, 'Expected a number. Received: ' + smart(value));
     } else {
@@ -219,7 +219,7 @@ validate.number = function(v, prefix, depth, schema, value) {
 
 validate.object = function(v, prefix, depth, schema, value) {
     if (!v.options.object) return;
-    if (value === null && schema['x-allow-null'] === true) return;
+    if (value === null && schema['x-nullable'] === true) return;
     if (!value || typeof value !== 'object') {
         v.error(prefix, 'Expected a non-null object. Received: ' + smart(value));
     } else {
@@ -263,7 +263,7 @@ validate.object = function(v, prefix, depth, schema, value) {
 
 validate.string = function(v, prefix, depth, schema, value) {
     if (!v.options.string) return;
-    if (value === null && schema['x-allow-null'] === true) return;
+    if (value === null && schema['x-nullable'] === true) return;
     if (typeof value !== 'string') {
         v.error(prefix, 'Expected a string. Received: ' + smart(value));
     } else {

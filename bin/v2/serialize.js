@@ -23,7 +23,7 @@ exports.deserialize = deserialize;
 exports.serialize = serialize;
 
 function deserialize(exception, schema, value) {
-    if (value === null && schema['x-allow-null'] === true) return null;
+    if (value === null && schema['x-nullable'] === true) return null;
     if (schema.allOf) {
         const result = {};
         schema.allOf.forEach((schema, index) => {
@@ -89,7 +89,7 @@ function deserialize(exception, schema, value) {
 }
 
 function serialize(exception, schema, value) {
-    if (value === null && schema['x-allow-null'] === true) return null;
+    if (value === null && schema['x-nullable'] === true) return null;
     if (schema.allOf) {
         const result = {};
         schema.allOf.forEach((schema, index) => {
