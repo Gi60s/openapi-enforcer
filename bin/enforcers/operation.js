@@ -188,16 +188,44 @@ OperationEnforcer.prototype.request = function (request, options) {
         // v2 parameter in body
         if (parameters.body) {
             const parameter = getBodyParameter(parameters);
-            deserializeAndValidate(exception.at('body'), parameter.schema, { value }, value => {
+            deserializeAndValidate(exception.nest('In body'), parameter.schema, { value }, value => {
                 result.body = value;
             });
 
         // v3 requestBody
         } else if (this.requestBody) {
-            const mediaTypes = Object.keys(this.requestBody.content);
-            const matches = util.findMediaMatch(req.header['content-type'] || '*/*', mediaTypes);
+            const contentType = req.header['content-type'] || '*/*';
+            const content = this.requestBody.content;
+            const mediaTypes = Object.keys(content);
+            const matches = util.findMediaMatch(contentType, mediaTypes);
+            const length = matches.length;
 
-            throw Error('TODO'); // TODO
+            // one or more potential matches
+            if (length) {
+                const child = new Exception('In body');
+
+                // find the first media type that matches the request body
+                let passed = false;
+                for (let i = 0; i < length; i++) {
+                    const mediaType = matches[i];
+                    const media = content[mediaType];
+                    if (media.schema) {
+                        deserializeAndValidate(child.nest('For Content-Type ' + mediaType), media.schema, { value }, value => {
+                            result.body = value;
+                            passed = true;
+                        });
+                    }
+
+                    // if the media type was an exact match or if the schema passed then stop executing
+                    if (contentType === mediaType || passed) break;
+                }
+
+                // if nothing passed then add all exceptions
+                if (!passed) exception(child);
+
+            } else {
+                exception('Content-Type not accepted');
+            }
 
         } else if (!parameters.formData) {
             exception('Body is not allowed');
