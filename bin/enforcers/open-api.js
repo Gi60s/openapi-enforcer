@@ -81,7 +81,7 @@ OpenAPIEnforcer.prototype.request = async function (request, options) {
     };
     if (request.hasOwnProperty('body')) req.body = request.body;
 
-    const [ err, result ] = await path[method].request(req, options);
+    const [ err, result ] = await pathEnforcer[method].request(req, options);
     if (err) throw Error(err);
     return result;
 };

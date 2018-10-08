@@ -25,7 +25,7 @@ describe.only('enforcer/request', () => {
 
         describe('variations', () => {
 
-            it('/{name}', () => {
+            it.only('/{name}', () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/{name}', 'get', { name: 'name', in: 'path', required: true, type: 'string' })
                     .build();
