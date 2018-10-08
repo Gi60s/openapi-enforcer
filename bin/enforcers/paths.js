@@ -70,7 +70,7 @@ function Paths({ exception, definition }) {
         while (match = rxFind.exec(pathKey)) {
             subStr = pathKey.substring(offset, match.index);
             equivalencyKey += '0'.repeat(subStr.split('/').length) + '1';
-            rxStr += escapeRegExp(subStr + '([\\s\\S]+?)');
+            rxStr += escapeRegExp(subStr) + '([\\s\\S]+?)';
             offset = match.index + match[0].length;
         }
         subStr = pathKey.substr(offset);
