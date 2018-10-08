@@ -722,7 +722,7 @@ describe('components/operation', () => {
 
         });
 
-        describe.only('requestBody', () => {
+        describe('requestBody', () => {
             let def;
             let appJson;
             let appStar;
@@ -750,10 +750,9 @@ describe('components/operation', () => {
                 }
             });
 
-            it.only('deserializes primitive string', () => {
+            it('deserializes primitive string', () => {
                 appJson.schema = numSchema;
-                const [ err, operation ] = definition(3, Operation, def);
-                console.log('' + err);
+                const [ , operation ] = definition(3, Operation, def);
                 const [ , req ] = operation.request({ body: '1', header: { 'content-type': 'application/json' } });
                 expect(req.body).to.equal(1);
             });
@@ -780,7 +779,28 @@ describe('components/operation', () => {
             });
 
             it('matches correct media type', () => {
-                throw Error('TODO');
+                const [ , operation ] = definition(3, Operation, def);
+                const [ , req ] = operation.request({ body: { json: '50' }, header: { 'content-type': 'application/json' } });
+                expect(req.body).to.deep.equal({ json: 50 });
+            });
+
+            it('matches correct media type with custom subtype', () => {
+                const [ , operation ] = definition(3, Operation, def);
+                const [ , req ] = operation.request({ body: { star: '50' }, header: { 'content-type': 'application/custom' } });
+                expect(req.body).to.deep.equal({ star: 50 });
+            });
+
+            it('limits validations if exact match media type found', () => {
+                const [ , operation ] = definition(3, Operation, def);
+                const [ err ] = operation.request({ body: { star: '50' }, header: { 'content-type': 'application/json' } });
+                expect(err).to.match(/Property not allowed: star/);
+            });
+
+            it('matches multiple media types but actual content fails for each media type', () => {
+                const [ , operation ] = definition(3, Operation, def);
+                const [ err ] = operation.request({ body: { number: '50' }, header: { 'content-type': 'application/custom' } });
+                expect(err).to.match(/For Content-Type application\/\*/);
+                expect(err).to.match(/For Content-Type \*\/\*/);
             });
 
         });
