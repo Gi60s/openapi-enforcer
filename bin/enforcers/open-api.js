@@ -104,7 +104,12 @@ OpenAPIEnforcer.prototype.request = function (request, options) {
     };
     if (request.hasOwnProperty('body')) req.body = request.body;
 
-    return operation.request(req, options);
+    const result = operation.request(req, options);
+    if (result.value) {
+        result.value.operation = operation;
+        result.value.response = code => this.response(operation, code);
+    }
+    return result;
 };
 
 OpenAPIEnforcer.prototype.response = function (operation, code) {
