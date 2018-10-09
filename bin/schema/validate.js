@@ -198,7 +198,7 @@ function validate(exception, version, map, schema, value) {
                     if (schema.additionalProperties === false) {
                         exception('Property not allowed: ' + key);
                     } else if (typeof schema.additionalProperties === 'object') {
-                        validate(exception('Error with additional property: ' + key), version, map, schema.additionalProperties, value[key]);
+                        validate(exception.nest('Error with additional property: ' + key), version, map, schema.additionalProperties, value[key]);
                     }
                 }
             });
