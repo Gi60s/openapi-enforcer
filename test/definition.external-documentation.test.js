@@ -22,27 +22,27 @@ const ExternalDoc   = require('../bin/definition-validators/external-documentati
 describe('definitions/external-documentation', () => {
 
     it('allows a valid external-documentation object', () => {
-        const [ err ] = definition(2, ExternalDoc, { url: 'hi' });
+        const [ , err ] = definition(2, ExternalDoc, { url: 'hi' });
         expect(err).to.be.undefined;
     });
 
     it('requires the "url" property', () => {
-        const [ err ] = definition(2, ExternalDoc, {});
+        const [ , err ] = definition(2, ExternalDoc, {});
         expect(err).to.match(/Missing required property: url/);
     });
 
     it('can have description property', () => {
-        const [, def ] = definition(2, ExternalDoc, { url: 'a', description: 'b' });
+        const [ def ] = definition(2, ExternalDoc, { url: 'a', description: 'b' });
         expect(def).to.deep.equal({ url: 'a', description: 'b' })
     });
 
     it('can have extension property', () => {
-        const [, def ] = definition(2, ExternalDoc, { url: 'a', 'x-prop': 'b' });
+        const [ def ] = definition(2, ExternalDoc, { url: 'a', 'x-prop': 'b' });
         expect(def).to.deep.equal({ url: 'a', 'x-prop': 'b' })
     });
 
     it('cannot have other property', () => {
-        const [ err ] = definition(2, ExternalDoc, { url: 'a', other: 'b' });
+        const [ , err ] = definition(2, ExternalDoc, { url: 'a', other: 'b' });
         expect(err).to.match(/Property not allowed: other/);
     });
 

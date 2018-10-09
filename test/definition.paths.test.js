@@ -36,33 +36,33 @@ describe('definitions/paths', () => {
     }
 
     it('must be an object', () => {
-        const [ err ] = definition(2, Paths, []);
+        const [ , err ] = definition(2, Paths, []);
         expect(err).to.match(/Value must be a plain object/);
     });
 
     it('can be used to define valid path item objects', () => {
-        const [ err ] = definition(2, Paths, {
+        const [ , err ] = definition(2, Paths, {
             '/': validPathObject()
         });
         expect(err).to.be.undefined;
     });
 
     it('requires that each path start with a slash', () => {
-        const [ err ] = definition(2, Paths, {
+        const [ , err ] = definition(2, Paths, {
             'abc': validPathObject()
         });
         expect(err).to.match(/Path must begin with a single forward slash/);
     });
 
     it('requires that each path start with a single slash', () => {
-        const [ err ] = definition(2, Paths, {
+        const [ , err ] = definition(2, Paths, {
             '//abc': validPathObject()
         });
         expect(err).to.match(/Path must begin with a single forward slash/);
     });
 
     it('will identify variable path duplications', () => {
-        const [ err ] = definition(2, Paths, {
+        const [ , err ] = definition(2, Paths, {
             '/a/b/{c}/d/{e}': validPathObject([
                 { name: 'c', in: 'path', required: true, type: 'string' },
                 { name: 'e', in: 'path', required: true, type: 'string' }

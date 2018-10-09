@@ -24,7 +24,7 @@ describe('components/parameter', () => {
     describe('constructor', () => {
 
         it('defines schema for v2', () => {
-            const [ , def ] = definition(2, Parameter, {
+            const [ def ] = definition(2, Parameter, {
                 name: 'hi',
                 in: 'query',
                 type: 'string'
@@ -33,7 +33,7 @@ describe('components/parameter', () => {
         });
 
         it('defines schema for v3 with content', () => {
-            const [ , def ] = definition(3, Parameter, {
+            const [ def ] = definition(3, Parameter, {
                 name: 'hi',
                 in: 'query',
                 content: {

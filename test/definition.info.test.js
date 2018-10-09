@@ -22,37 +22,37 @@ const Info          = require('../bin/definition-validators/info');
 describe('definitions/info', () => {
 
     it('allows a valid tag info', () => {
-        const [ err ] = definition(2, Info, { title: 'hi', version: '1.0' });
+        const [ , err ] = definition(2, Info, { title: 'hi', version: '1.0' });
         expect(err).to.be.undefined;
     });
 
     it('requires the "title" property', () => {
-        const [ err ] = definition(2, Info, {});
+        const [ , err ] = definition(2, Info, {});
         expect(err).to.match(/Missing required properties: title, version/);
     });
 
     it('can have description property', () => {
-        const [, def ] = definition(2, Info, { title: 'a', version: '1.0', description: 'b' });
+        const [ def ] = definition(2, Info, { title: 'a', version: '1.0', description: 'b' });
         expect(def).to.deep.equal({ title: 'a', description: 'b', version: '1.0' })
     });
 
     it('can have contact property', () => {
-        const [, def ] = definition(2, Info, { title: 'a', version: '1.0', contact: { name: 'Bob', url: 'b' } });
+        const [ def ] = definition(2, Info, { title: 'a', version: '1.0', contact: { name: 'Bob', url: 'b' } });
         expect(def).to.deep.equal({ title: 'a', version: '1.0', contact: { name: 'Bob', url: 'b' } })
     });
 
     it('will validate contact property', () => {
-        const [ err ] = definition(2, Info, { title: 'a', contact: { name: 'Bob', url: 'b', zmail: 'fake@fake.com' } });
+        const [ , err ] = definition(2, Info, { title: 'a', contact: { name: 'Bob', url: 'b', zmail: 'fake@fake.com' } });
         expect(err).to.match(/Property not allowed: zmail/);
     });
 
     it('can have license property', () => {
-        const [, def ] = definition(2, Info, { title: 'a', version: '1.0', license: { name: 'Bob', url: 'b' } });
+        const [ def ] = definition(2, Info, { title: 'a', version: '1.0', license: { name: 'Bob', url: 'b' } });
         expect(def).to.deep.equal({ title: 'a', version: '1.0', license: { name: 'Bob', url: 'b' } })
     });
 
     it('will validate license property', () => {
-        const [ err ] = definition(2, Info, { title: 'a', version: '1.0', contact: { name: true } });
+        const [ , err ] = definition(2, Info, { title: 'a', version: '1.0', contact: { name: true } });
         expect(err).to.match(/Value must be a string./);
     });
 

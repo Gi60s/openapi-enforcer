@@ -32,7 +32,7 @@ const zeros = '00000000';
  */
 exports.deserialize = function(schema, value) {
     const exception = Exception('Unable to deserialize value');
-    return new Result(exception, deserialize(exception, new Map(), schema, value));
+    return new Result(deserialize(exception, new Map(), schema, value), exception);
 };
 
 /**

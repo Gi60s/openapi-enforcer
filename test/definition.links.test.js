@@ -24,14 +24,14 @@ describe('definitions/link', () => {
     describe('description', () => {
 
         it('can be a string', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 description: ''
             });
             expect(err).to.be.undefined;
         });
 
         it('must be a string', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 description: 1
             });
             expect(err).to.match(/Value must be a string/);
@@ -42,21 +42,21 @@ describe('definitions/link', () => {
     describe('operationId', () => {
 
         it('can be a string', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 operationId: 'a'
             });
             expect(err).to.be.undefined;
         });
 
         it('must be a string', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 operationId: 1
             });
             expect(err).to.match(/Value must be a string/);
         });
 
         it('is mutually exclusive of operationRef', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 operationId: '',
                 operationRef: ''
             });
@@ -68,21 +68,21 @@ describe('definitions/link', () => {
     describe('operationRef', () => {
 
         it('can be a string', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 operationRef: 'a'
             });
             expect(err).to.be.undefined;
         });
 
         it('must be a string', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 operationRef: 1
             });
             expect(err).to.match(/Value must be a string/);
         });
 
         it('is mutually exclusive of operationRef', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 operationId: '',
                 operationRef: ''
             });
@@ -94,21 +94,21 @@ describe('definitions/link', () => {
     describe('parameters', () => {
 
         it('can be an object', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 parameters: {}
             });
             expect(err).to.be.undefined;
         });
 
         it('must be an object', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 parameters: []
             });
             expect(err).to.match(/Value must be a plain object/);
         });
 
         it('can have any type of value', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 parameters: {
                     a: 1,
                     b: '2',
@@ -125,21 +125,21 @@ describe('definitions/link', () => {
     describe('requestBody', () => {
 
         it('can be a string', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 requestBody: 'a'
             });
             expect(err).to.be.undefined;
         });
 
         it('can be a number', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 requestBody: 1
             });
             expect(err).to.be.undefined;
         });
 
         it('can be an object', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 requestBody: {}
             });
             expect(err).to.be.undefined;
@@ -150,7 +150,7 @@ describe('definitions/link', () => {
     describe('server', () => {
 
         it('can be a server definition', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 server: {
                     url: 'a'
                 }
@@ -159,7 +159,7 @@ describe('definitions/link', () => {
         });
 
         it('must be a server definition', () => {
-            const [ err ] = definition(3, Link, {
+            const [ , err ] = definition(3, Link, {
                 server: {}
             });
             expect(err).to.match(/Missing required property: url/);

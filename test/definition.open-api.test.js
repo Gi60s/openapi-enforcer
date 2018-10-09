@@ -24,28 +24,28 @@ describe('definitions/open-api', () => {
     describe('basePath', () => {
 
         it('is not allowed in v3', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 basePath: '/'
             });
             expect(err).to.match(/Property not allowed: basePath/);
         });
 
         it('can be a string', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 basePath: '/'
             });
             expect(err).to.be.undefined;
         });
 
         it('must be a string', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 basePath: 1
             });
             expect(err).to.match(/Value must be a string/);
         });
 
         it('must start with a leading slash (/)', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 basePath: 'some/place'
             });
             expect(err).to.match(/Value must start with a forward slash/);
@@ -56,21 +56,21 @@ describe('definitions/open-api', () => {
     describe('components', () => {
 
         it('is not allowed for v2', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 components: {}
             });
             expect(err).to.match(/Property not allowed: components/);
         });
 
         it('can be an object', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 components: {}
             });
             expect(err).to.be.undefined;
         });
 
         it('must be an object', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 components: 1
             });
             expect(err).to.match(/Value must be a plain object/);
@@ -79,7 +79,7 @@ describe('definitions/open-api', () => {
         describe('callbacks', () => {
 
             it('can be an object of callbacks', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         callbacks: {
                             abc: {
@@ -98,7 +98,7 @@ describe('definitions/open-api', () => {
             });
 
             it('must be an object of callbacks', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         callbacks: {
                             abc: {
@@ -115,7 +115,7 @@ describe('definitions/open-api', () => {
         describe('examples', () => {
 
             it('can be an object of examples', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         examples: {
                             myExample: {
@@ -129,7 +129,7 @@ describe('definitions/open-api', () => {
             });
 
             it('must be an object of examples', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         examples: {
                             myExample: {
@@ -146,7 +146,7 @@ describe('definitions/open-api', () => {
         describe('links', () => {
 
             it('can be an object of links', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         links: {
                             linkA: {
@@ -159,7 +159,7 @@ describe('definitions/open-api', () => {
             });
 
             it('must be an object of links', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         links: {
                             linkA: {
@@ -176,7 +176,7 @@ describe('definitions/open-api', () => {
         describe('headers', () => {
 
             it('can be an object of headers', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         headers: {
                             'x-header': {
@@ -189,7 +189,7 @@ describe('definitions/open-api', () => {
             });
 
             it('must be an object of headers', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         headers: {
                             'x-header': {
@@ -206,7 +206,7 @@ describe('definitions/open-api', () => {
         describe('parameters', () => {
 
             it('can be an object of parameters', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         parameters: {
                             paramA: {
@@ -221,7 +221,7 @@ describe('definitions/open-api', () => {
             });
 
             it('must be an object of parameters', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         parameters: {
                             paramA: {
@@ -239,7 +239,7 @@ describe('definitions/open-api', () => {
         describe('requestBodies', () => {
 
             it('can be an object of requestBodies', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         requestBodies: {
                             bodyA: {
@@ -252,7 +252,7 @@ describe('definitions/open-api', () => {
             });
 
             it('must be an object of requestBodies', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         requestBodies: {
                             bodyA: {}
@@ -267,7 +267,7 @@ describe('definitions/open-api', () => {
         describe('responses', () => {
 
             it('can be an object of responses', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         responses: {
                             responseA: {
@@ -280,7 +280,7 @@ describe('definitions/open-api', () => {
             });
 
             it('must be an object of responses', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         responses: {
                             responseA: {}
@@ -295,7 +295,7 @@ describe('definitions/open-api', () => {
         describe('schemas', () => {
 
             it('can be an object of schemas', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         schemas: {
                             schemaA: {
@@ -308,7 +308,7 @@ describe('definitions/open-api', () => {
             });
 
             it('must be an object of schemas', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         schemas: {
                             schemaA: {}
@@ -323,7 +323,7 @@ describe('definitions/open-api', () => {
         describe('securitySchemes', () => {
 
             it('can be an object of securitySchemes', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         securitySchemes: {
                             schemeA: { type: 'apiKey', name: 'x-header', in: 'header' }
@@ -334,7 +334,7 @@ describe('definitions/open-api', () => {
             });
 
             it('must be an object of securitySchemes', () => {
-                const [ err ] = oas(3, {
+                const [ , err ] = oas(3, {
                     components: {
                         securitySchemes: {
                             schemeA: { type: 'apiKey' }
@@ -351,28 +351,28 @@ describe('definitions/open-api', () => {
     describe('consumes', () => {
 
         it('is not valid for v3', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 consumes: []
             });
             expect(err).to.match(/Property not allowed: consumes/);
         });
 
         it('can be an array of strings for v2', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 consumes: ['application/json']
             });
             expect(err).to.be.undefined;
         });
 
         it('must be an array', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 consumes: {}
             });
             expect(err).to.match(/Value must be an array/);
         });
 
         it('must be an array of strings', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 consumes: [1]
             });
             expect(err).to.match(/Value must be a string/);
@@ -383,14 +383,14 @@ describe('definitions/open-api', () => {
     describe('definitions', () => {
 
         it('is not allowed for v3', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 definitions: {}
             });
             expect(err).to.match(/Property not allowed: definitions/);
         });
 
         it('can be an object', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 definitions: {
                     def1: {
                         type: 'string'
@@ -401,14 +401,14 @@ describe('definitions/open-api', () => {
         });
 
         it('must be an object', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 definitions: []
             });
             expect(err).to.match(/Value must be a plain object/);
         });
 
         it('must have valid schemas per key', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 definitions: {
                     def1: {}
                 }
@@ -421,7 +421,7 @@ describe('definitions/open-api', () => {
     describe('externalDocs', () => {
 
         it('can be a valid external document', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 externalDocs: {
                     url: ''
                 }
@@ -430,7 +430,7 @@ describe('definitions/open-api', () => {
         });
 
         it('must be a valid external document', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 externalDocs: {}
             });
             expect(err).to.match(/Missing required property: url/);
@@ -441,42 +441,42 @@ describe('definitions/open-api', () => {
     describe('host', () => {
 
         it('is not allowed in v3', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 host: 'app.myserver.com'
             });
             expect(err).to.match(/Property not allowed: host/);
         });
 
         it('can be a string', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 host: 'app.myserver.com'
             });
             expect(err).to.be.undefined;
         });
 
         it('must be a string', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 host: 1
             });
             expect(err).to.match(/Value must be a string/);
         });
 
         it('must not include scheme', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 host: 'https://app.myserver.com'
             });
             expect(err).to.match(/Value must not include the scheme: https:\/\//);
         });
 
         it('must not include sub paths', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 host: 'app.myserver.com/abc'
             });
             expect(err).to.match(/Value must not include sub path: \/abc/);
         });
 
         it('can include the port', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 host: 'app.myserver.com:3000'
             });
             expect(err).to.be.undefined;
@@ -487,7 +487,7 @@ describe('definitions/open-api', () => {
     describe('info', () => {
 
         it('is required', () => {
-            const [ err ] = definition(2, OpenAPI, {
+            const [ , err ] = definition(2, OpenAPI, {
                 swagger: '2.0',
                 paths: {}
             });
@@ -495,14 +495,14 @@ describe('definitions/open-api', () => {
         });
 
         it('can have a valid info object', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 info: { title: '', version: '' }
             });
             expect(err).to.be.undefined;
         });
 
         it('must have a valid info object', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 info: { title: '' }
             });
             expect(err).to.match(/Missing required property: version/);
@@ -513,28 +513,28 @@ describe('definitions/open-api', () => {
     describe('openapi', () => {
 
         it('is not allowed for v2', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 openapi: '3.0.0'
             });
             expect(err).to.match(/Property not allowed: openapi/);
         });
 
         it('can be a semantic version number string', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 openapi: '3.0.0'
             });
             expect(err).to.be.undefined;
         });
 
         it('must be a string', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 openapi: 1
             });
             expect(err).to.match(/Value must be a string/);
         });
 
         it('must be a semantic version number string', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 openapi: '3.0'
             });
             expect(err).to.match(/Value must be a semantic version number/);
@@ -545,14 +545,14 @@ describe('definitions/open-api', () => {
     describe('parameters', () => {
 
         it('is not valid for v3', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 parameters: {}
             });
             expect(err).to.match(/Property not allowed: parameters/);
         });
 
         it('can be an object of parameter definitions', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 parameters: {
                     x: { name: 'x', in: 'query', type: 'string' }
                 }
@@ -561,14 +561,14 @@ describe('definitions/open-api', () => {
         });
 
         it('must be an object', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 parameters: []
             });
             expect(err).to.match(/Value must be a plain object/);
         });
 
         it('must be a parameter definition per key', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 parameters: {
                     x: { name: 'x', type: 'string' }
                 }
@@ -590,7 +590,7 @@ describe('definitions/open-api', () => {
         };
 
         it('is required', () => {
-            const [ err ] = definition(2, OpenAPI, {
+            const [ , err ] = definition(2, OpenAPI, {
                 swagger: '2.0',
                 info: { title: '', version: '' }
             });
@@ -598,7 +598,7 @@ describe('definitions/open-api', () => {
         });
 
         it('can be used to define valid path item objects', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 paths: {
                     '/': validPathObject
                 }
@@ -611,28 +611,28 @@ describe('definitions/open-api', () => {
     describe('produces', () => {
 
         it('is not valid for v3', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 produces: []
             });
             expect(err).to.match(/Property not allowed: produces/);
         });
 
         it('can be an array of strings for v2', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 produces: ['application/json']
             });
             expect(err).to.be.undefined;
         });
 
         it('must be an array', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 produces: {}
             });
             expect(err).to.match(/Value must be an array/);
         });
 
         it('must be an array of strings', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 produces: [1]
             });
             expect(err).to.match(/Value must be a string/);
@@ -643,14 +643,14 @@ describe('definitions/open-api', () => {
     describe('responses', () => {
 
         it('is not valid for v3', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 responses: {}
             });
             expect(err).to.match(/Property not allowed: responses/);
         });
 
         it('can be an object of response definitions', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 responses: {
                     x: {
                         description: ''
@@ -661,14 +661,14 @@ describe('definitions/open-api', () => {
         });
 
         it('must be an object', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 responses: []
             });
             expect(err).to.match(/Value must be a plain object/);
         });
 
         it('must be a response definition per key', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 responses: {
                     x: {}
                 }
@@ -681,35 +681,35 @@ describe('definitions/open-api', () => {
     describe('schemes', () => {
 
         it('is not allowed on v3', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 schemes: []
             });
             expect(err).to.match(/Property not allowed: schemes/);
         });
 
         it('can be an array of strings', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 schemes: ['http', 'https']
             });
             expect(err).to.be.undefined;
         });
 
         it('must be an array', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 schemes: {}
             });
             expect(err).to.match(/Value must be an array/);
         });
 
         it('must be an array of strings', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 schemes: [1]
             });
             expect(err).to.match(/Value must be a string/);
         });
 
         it('must have items from enum values', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 schemes: ['bob']
             });
             expect(err).to.match(/Value must be one of: http, https, ws, wss/);
@@ -720,7 +720,7 @@ describe('definitions/open-api', () => {
     describe('security', () => {
 
         it('can be an array of strings', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 security: [{ abc: [] }],
                 securityDefinitions: {
                     abc: { type: 'basic' }
@@ -730,21 +730,21 @@ describe('definitions/open-api', () => {
         });
 
         it('must be an array', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 security: {}
             });
             expect(err).to.match(/Value must be an array/);
         });
 
         it('must have an object for each item', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 security: [1]
             });
             expect(err).to.match(/Value must be a plain object/);
         });
 
         it('must have an array for each object property value', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 security: [{ abc: {} }],
                 securityDefinitions: {
                     abc: { type: 'basic' }
@@ -754,14 +754,14 @@ describe('definitions/open-api', () => {
         });
 
         it('must be defined in securityDefinitions for v2', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 security: [{ abc: [] }],
             });
             expect(err).to.match(/Security requirement name must be defined at the document root under the securityDefinitions/);
         });
 
         it('can be defined in components/securitySchemes for v3', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 security: [{ abc: [] }],
                 components: {
                     securitySchemes: {
@@ -777,7 +777,7 @@ describe('definitions/open-api', () => {
         });
 
         it('must be defined in components/securitySchemes for v3', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 security: [{ abc: [] }],
             });
             expect(err).to.match(/Security requirement name must be defined at the document root under the components\/securitySchemes/);
@@ -788,14 +788,14 @@ describe('definitions/open-api', () => {
     describe('securityDefinitions', () => {
 
         it('is not valid for v3', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 securityDefinitions: {}
             });
             expect(err).to.match(/Property not allowed: securityDefinitions/);
         });
 
         it('can be an object of securityDefinitions definitions', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 securityDefinitions: {
                     abc: { type: 'basic' }
                 }
@@ -804,14 +804,14 @@ describe('definitions/open-api', () => {
         });
 
         it('must be an object', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 securityDefinitions: []
             });
             expect(err).to.match(/Value must be a plain object/);
         });
 
         it('must be a securityDefinitions definition per key', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 securityDefinitions: {
                     abc: {}
                 }
@@ -824,28 +824,28 @@ describe('definitions/open-api', () => {
     describe('servers', () => {
 
         it('is not allowed in v2', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 servers: []
             });
             expect(err).to.match(/Property not allowed: servers/);
         });
 
         it('can be an array or server objects', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 servers: [{ url: '' }]
             });
             expect(err).to.be.undefined;
         });
 
         it('must be an array', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 servers: {}
             });
             expect(err).to.match(/Value must be an array/);
         });
 
         it('must contain valid server definitions', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 servers: [{}]
             });
             expect(err).to.match(/Missing required property: url/);
@@ -856,21 +856,21 @@ describe('definitions/open-api', () => {
     describe('swagger', () => {
 
         it('is not allowed in v3', () => {
-            const [ err ] = oas(3, {
+            const [ , err ] = oas(3, {
                 swagger: '2.0'
             });
             expect(err).to.match(/Property not allowed/);
         });
 
         it('can be 2.0', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 swagger: '2.0'
             });
             expect(err).to.be.undefined;
         });
 
         it('must be 2.0', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 swagger: '3.0'
             });
             expect(err).to.match(/Value must be "2.0"/);
@@ -881,21 +881,21 @@ describe('definitions/open-api', () => {
     describe('tags', () => {
 
         it('can be an array of tag objects', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 tags: [{ name: 'a' }]
             });
             expect(err).to.be.undefined;
         });
 
         it('must be an array', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 tags: {}
             });
             expect(err).to.match(/Value must be an array/);
         });
 
         it('must have a tag object for each item', () => {
-            const [ err ] = oas(2, {
+            const [ , err ] = oas(2, {
                 tags: [{}]
             });
             expect(err).to.match(/Missing required property: name/);

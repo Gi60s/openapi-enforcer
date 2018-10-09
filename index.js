@@ -18,37 +18,64 @@
 const definitionValidator   = require('./bin/definition-validator').openapi;
 const Exception             = require('./bin/exception');
 const freeze                = require('./bin/freeze');
+const Ignored               = require('./ignored');
 const util                  = require('./bin/util');
 
 module.exports = enforcer;
 
+/**
+ * Create an enforcer instance.
+ * @param {object} definition
+ * @param {object} [options]
+ * @param {boolean} [options.freeze=true] Whether to freeze the result object to prevent modification.
+ * @param {boolean} [options.hideWarnings=false] Set to true to hide warnings from the console.
+ * @returns {*}
+ */
 function enforcer(definition, options) {
-    const exception = Exception('Error building enforcer instance');
-    let result;
-
     // normalize options
     options = Object.assign({}, options);
     if (!options.hasOwnProperty('freeze')) options.freeze = true;
     if (!options.hasOwnProperty('hideWarnings')) options.hideWarnings = false;
 
     // validate definition and build enforcer
-    if (!util.isPlainObject(definition)) {
-        exception('Invalid input. Definition must be a plain object');
-    } else {
-        definition = util.copy(definition);
-        const [ error, value, warning ] = definitionValidator(definition);
-        if (error) exception(error);
-        if (warning && !options.hideWarnings) console.log(warning.toString());
-        result = value;
-    }
+    const [ openapi, exception, warnings ] = enforcer.evaluate(definition);
 
-    if (exception.hasException) throw Error(exception.toString());
-    if (options.freeze) freeze.deep(result);
-    return result;
+    if (!options.hideWarnings && warnings) console.warn(warnings.toString());
+    if (exception && exception.hasException) throw Error(exception.toString());
+    if (options.freeze) freeze.deep(openapi);
+    return openapi;
 }
 
-Object.defineProperty(enforcer, 'EMPTY_VALUE', {
-    configurable: false,
-    writable: false,
-    value: util.EMPTY_VALUE
-});
+enforcer.ignored = Ignored;
+
+enforcer.compile = enforcer;
+
+/**
+ * Check the definition for errors.
+ * @param {object} definition
+ * @throws {Error} if definition is not a plain object
+ * @returns {string}
+ */
+enforcer.errors = function (definition) {
+    if (!util.isPlainObject(definition)) {
+        throw Error('Invalid input. Definition must be a plain object');
+    } else {
+        const [ , exception ] = definitionValidator(definition);
+        return exception ? exception.toString() : '';
+    }
+};
+
+/**
+ * Evaluate a definition and get back errors, warnings, and the enforcer instance as appropriate.
+ * @param {object} definition
+ * @throws {Error} if definition is not a plain object
+ * @returns {EnforcerResult<OpenAPIEnforcer>}
+ */
+enforcer.evaluate = function (definition) {
+    if (!util.isPlainObject(definition)) {
+        throw Error('Invalid input. Definition must be a plain object');
+    } else {
+        definition = util.copy(definition);
+        return definitionValidator(definition);
+    }
+};

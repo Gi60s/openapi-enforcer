@@ -27,7 +27,7 @@ exports.openapi = function(definition) {
     const warn = Exception('One or more warnings exist in the OpenAPI definition');
     const hasSwagger = definition.hasOwnProperty('swagger');
     if (!hasSwagger && !definition.hasOwnProperty('openapi')) {
-        return new Result(exception('Missing required "openapi" or "swagger" property'), null);
+        return new Result(null, exception('Missing required "openapi" or "swagger" property'));
     } else {
         const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
         if (match) {
@@ -44,9 +44,9 @@ exports.openapi = function(definition) {
             const root = { exception, key, major, map, minor, parent, patch, result, validator, value, warn };
             root.root = root;
             normalize(root);
-            return new Result(exception, result.value, warn);
+            return new Result(result.value, exception, warn);
         } else {
-            return new Result(exception('Invalid value for property: ' + (hasSwagger ? 'swagger' : 'openapi')), null);
+            return new Result(null, exception('Invalid value for property: ' + (hasSwagger ? 'swagger' : 'openapi')));
         }
     }
 };
@@ -92,7 +92,7 @@ exports.normalize = function(version, validator, definition) {
     const root = { exception, key, major, map, minor, parent, patch, result, validator, value, warn };
     root.root = root;
     normalize(root);
-    return new Result(exception, result.value, warn);
+    return new Result(result.value, exception, warn);
 };
 
 /**

@@ -20,16 +20,23 @@ const store = new WeakMap();
 
 module.exports = EnforcerResult;
 
-function EnforcerResult(exception, value, warn) {
+/**
+ * Produce an EnforcerResult
+ * @param {*} value
+ * @param {Exception} [exception]
+ * @param {Exception} [warn]
+ * @constructor
+ */
+function EnforcerResult(value, exception, warn) {
     if (!exception || !exception.hasException) exception = undefined;
-    if (exception) value = undefined;
     if (!warn || !warn.hasException) warn = undefined;
+    if (exception) value = undefined;
 
     this.error = exception;
     this.value = value;
     this.warning = warn;
 
-    store.set(this, [ exception, value, warn ]);
+    store.set(this, [ value, exception, warn ]);
 }
 
 EnforcerResult.prototype[Symbol.iterator] = function() {

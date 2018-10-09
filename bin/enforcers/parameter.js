@@ -84,21 +84,21 @@ ParameterEnforcer.prototype.parse = function(value, query) {
                         result.push(value);
                     }
                 });
-                return new Result(exception, result);
+                return new Result(result, exception);
             } else {
-                return new Result(exception, undefined);
+                return new Result(null, exception);
             }
 
         } else if (query && query.hasOwnProperty(this.name)) {
             const ar = query[this.name];
             if (ar.length) {
-                return new Result(exception, v2Parse(this, this.schema, exception, ar[ar.length - 1]));
+                return new Result(v2Parse(this, this.schema, exception, ar[ar.length - 1]), exception);
             } else {
-                return new Result(exception, v2Parse(this, this.schema, exception, undefined));
+                return new Result(v2Parse(this, this.schema, exception, undefined), exception);
             }
 
         } else {
-            return new Result(exception, v2Parse(this, this.schema, exception, value));
+            return new Result(v2Parse(this, this.schema, exception, value), exception);
         }
 
 
@@ -235,7 +235,7 @@ ParameterEnforcer.prototype.parse = function(value, query) {
             exception('The value is not formatted properly');
         }
 
-        return new Result(exception, parsed);
+        return new Result(parsed, exception);
     }
 };
 

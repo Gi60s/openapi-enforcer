@@ -39,7 +39,7 @@ describe('definition-validator', () => {
             }
         };
 
-        const [ err ] = definition(2, validator, def);
+        const [ , err ] = definition(2, validator, def);
         expect(err).to.match(/Value must be a number. Received: "x"/);
     });
 
@@ -57,7 +57,7 @@ describe('definition-validator', () => {
         };
         def.b = def;
 
-        const [ err ] = definition(2, validator, def);
+        const [ , err ] = definition(2, validator, def);
         expect(err).to.be.undefined;
     });
 

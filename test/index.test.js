@@ -25,14 +25,13 @@ describe.only('enforcer/request', () => {
 
         describe('variations', () => {
 
-            it.only('/{name}', () => {
+            it('/{name}', () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/{name}', 'get', { name: 'name', in: 'path', required: true, type: 'string' })
                     .build();
                 const enforcer = Enforcer(def);
-                const [ err, req ] = enforcer.request({ path: '/bob' });
-                throw err;
-                // expect(req.path).to.deep.equal({ name: 'bob' })
+                const [ req ] = enforcer.request({ path: '/bob' });
+                expect(req.path).to.deep.equal({ name: 'bob' })
             });
 
             it('/{a},{b}.{c}-{d}', () => {
@@ -44,7 +43,7 @@ describe.only('enforcer/request', () => {
                         { name: 'd', in: 'path', required: true, type: 'string' })
                     .build();
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/paths,have.parameters-sometimes' });
+                const [ req] = enforcer.request({ path: '/paths,have.parameters-sometimes' });
                 expect(req.path).to.deep.equal({ a: 'paths', b: 'have', c: 'parameters', d: 'sometimes' })
             });
 
@@ -56,7 +55,7 @@ describe.only('enforcer/request', () => {
                         { name: 'd', in: 'path', required: true, type: 'string' })
                     .build();
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/a/b/c/d/e' });
+                const [ req] = enforcer.request({ path: '/a/b/c/d/e' });
                 expect(req.path).to.deep.equal({ a: 'a', c: 'c', d: 'd' })
             });
 
@@ -73,9 +72,10 @@ describe.only('enforcer/request', () => {
                         { name: 'date', in: 'path', required: true, type: 'string', format: 'date' },
                         { name: 'dateTime', in: 'path', required: true, type: 'string', format: 'date-time' },
                         { name: 'binary', in: 'path', required: true, type: 'string', format: 'binary' },
-                        { name: 'byte', in: 'path', required: true, type: 'string', format: 'byte' });
+                        { name: 'byte', in: 'path', required: true, type: 'string', format: 'byte' })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '1,2,3/123/false/2000-01-01/2000-01-01T01:02:03.456Z/00000010/aGVsbG8=' });
+                const [ req ] = enforcer.request({ path: '1,2,3/123/false/2000-01-01/2000-01-01T01:02:03.456Z/00000010/aGVsbG8=' });
                 expect(req.path).to.deep.equal({
                     array: [1,2,3],
                     num: 123,
@@ -87,7 +87,7 @@ describe.only('enforcer/request', () => {
                 })
             });
 
-            it('will serialize nested arrays', () => {
+            it.only('will serialize nested arrays', () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/{array}', 'get', {
                         name: 'array',
@@ -104,9 +104,10 @@ describe.only('enforcer/request', () => {
                                 }
                             }
                         }
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/1 2 3,4 5|6,7 8' });
+                const [ req, err ] = enforcer.request({ path: '/1 2 3,4 5|6,7 8' });
                 expect(req.path).to.deep.equal({
                     array: [
                         [
@@ -136,7 +137,7 @@ describe.only('enforcer/request', () => {
                         explode: true
                     });
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/users;id=1;id=2' });
+                const [ req ] = enforcer.request({ path: '/users;id=1;id=2' });
                 expect(req.path.id).to.deep.equal([1,2]);
             });
 
@@ -153,7 +154,7 @@ describe.only('enforcer/request', () => {
                             explode: false
                         });
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/5' });
+                    const [ req ] = enforcer.request({ path: '/5' });
                     expect(req.path.value).to.equal(5);
                 });
 

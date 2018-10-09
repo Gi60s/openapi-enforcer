@@ -22,14 +22,14 @@ const Response      = require('../bin/definition-validators/response');
 describe('definitions/response', () => {
 
     it('allows a valid definition', () => {
-        const [ err ] = definition(2, Response, {
+        const [ , err ] = definition(2, Response, {
             description: 'hello'
         });
         expect(err).to.be.undefined;
     });
 
     it('requires a description', () => {
-        const [ err ] = definition(2, Response, {
+        const [ , err ] = definition(2, Response, {
         });
         expect(err).to.match(/Missing required property: description/);
     });
@@ -37,7 +37,7 @@ describe('definitions/response', () => {
     describe('content', () => {
 
         it('is not allowed in v2', () => {
-            const [ err ] = definition(2, Response, {
+            const [ , err ] = definition(2, Response, {
                 description: '',
                 content: {
                     'text/plain': {}
@@ -47,7 +47,7 @@ describe('definitions/response', () => {
         });
 
         it('is allowed in v3', () => {
-            const [ err ] = definition(3, Response, {
+            const [ , err ] = definition(3, Response, {
                 description: '',
                 content: {
                     'text/plain': {}
@@ -71,29 +71,27 @@ describe('definitions/response', () => {
     describe('examples', () => {
 
         it('accepts string', () => {
-            const [ err, def ] = definition(2, Response, {
+            const [ def ] = definition(2, Response, {
                 description: '',
                 examples: {
                     'text/plain': 'hello'
                 }
             });
-            expect(err).to.be.undefined;
             expect(def.examples['text/plain']).to.equal('hello')
         });
 
         it('accepts object', () => {
-            const [ err, def ] = definition(2, Response, {
+            const [ def ] = definition(2, Response, {
                 description: '',
                 examples: {
                     'application/json': { x: 'hello' }
                 }
             });
-            expect(err).to.be.undefined;
             expect(def.examples['application/json']).to.deep.equal({ x: 'hello' })
         });
 
         it('is not allowed for v3', () => {
-            const [ err ] = definition(3, Response, {
+            const [ , err ] = definition(3, Response, {
                 description: 'hello',
                 examples: {}
             });
@@ -105,7 +103,7 @@ describe('definitions/response', () => {
     describe('headers', () => {
 
         it('accepts a header', () => {
-            const [ err ] = definition(3, Response, {
+            const [ , err ] = definition(3, Response, {
                 description: '',
                 headers: {
                     'x-header': {
@@ -119,7 +117,7 @@ describe('definitions/response', () => {
         });
 
         it('has style limited to "simple"', () => {
-            const [ err ] = definition(3, Response, {
+            const [ , err ] = definition(3, Response, {
                 description: '',
                 headers: {
                     'x-header': {
@@ -141,7 +139,7 @@ describe('definitions/response', () => {
     describe('links', () => {
 
         it('is not allowed for v2', () => {
-            const [ err ] = definition(2, Response, {
+            const [ , err ] = definition(2, Response, {
                 description: '',
                 links: {}
             });
@@ -149,7 +147,7 @@ describe('definitions/response', () => {
         });
 
         it('is allowed for v3', () => {
-            const [ err ] = definition(3, Response, {
+            const [ , err ] = definition(3, Response, {
                 description: '',
                 links: {
                     abc: {}
@@ -159,7 +157,7 @@ describe('definitions/response', () => {
         });
 
         it('must meet naming conventions', () => {
-            const [ err ] = definition(3, Response, {
+            const [ , err ] = definition(3, Response, {
                 description: '',
                 links: {
                     '$hi': {}
@@ -173,7 +171,7 @@ describe('definitions/response', () => {
     describe('schema', () => {
 
         it('is allowed for v2', () => {
-            const [ err ] = definition(2, Response, {
+            const [ , err ] = definition(2, Response, {
                 description: '',
                 schema: {
                     type: 'string'
@@ -183,7 +181,7 @@ describe('definitions/response', () => {
         });
 
         it('is not allowed for v3', () => {
-            const [ err ] = definition(3, Response, {
+            const [ , err ] = definition(3, Response, {
                 description: '',
                 schema: {
                     type: 'string'

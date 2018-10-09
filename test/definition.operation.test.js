@@ -26,7 +26,7 @@ describe('definitions/operation', () => {
     describe('callbacks', () => {
 
         it('is not allowed for v2', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 callbacks: {},
                 responses
             });
@@ -34,7 +34,7 @@ describe('definitions/operation', () => {
         });
 
         it('can be an object map of valid callback objects', () => {
-            const [ err ] = definition(3, Operation, {
+            const [ , err ] = definition(3, Operation, {
                 callbacks: {
                     eventX: {
                         expression: {
@@ -54,7 +54,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be an object map of valid callback objects', () => {
-            const [ err ] = definition(3, Operation, {
+            const [ , err ] = definition(3, Operation, {
                 callbacks: {
                     eventX: {
                         expression: {
@@ -73,7 +73,7 @@ describe('definitions/operation', () => {
     describe('consumes', () => {
 
         it('is not valid for v3', () => {
-            const [ err ] = definition(3, Operation, {
+            const [ , err ] = definition(3, Operation, {
                 consumes: [],
                 responses
             });
@@ -81,7 +81,7 @@ describe('definitions/operation', () => {
         });
 
         it('can be an array of strings for v2', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 consumes: ['application/json'],
                 responses
             });
@@ -89,7 +89,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be an array', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 consumes: {},
                 responses
             });
@@ -97,7 +97,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be an array of strings', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 consumes: [1],
                 responses
             });
@@ -109,7 +109,7 @@ describe('definitions/operation', () => {
     describe('deprecated', () => {
 
         it('can be a boolean', () => {
-            const [ err, def ] = definition(2, Operation, {
+            const [ def ] = definition(2, Operation, {
                 deprecated: true,
                 responses
             });
@@ -117,7 +117,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be a boolean', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 deprecated: 1,
                 responses
             });
@@ -125,7 +125,7 @@ describe('definitions/operation', () => {
         });
 
         it('defaults to false', () => {
-            const [ err, def ] = definition(2, Operation, {
+            const [ def ] = definition(2, Operation, {
                 responses
             });
             expect(def.deprecated).to.equal(false);
@@ -136,7 +136,7 @@ describe('definitions/operation', () => {
     describe('description', () => {
 
         it('can be a string', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 description: '',
                 responses
             });
@@ -144,7 +144,7 @@ describe('definitions/operation', () => {
         });
 
         it('cannot be a number', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 description: 1,
                 responses
             });
@@ -156,7 +156,7 @@ describe('definitions/operation', () => {
     describe('externalDocs', () => {
 
         it('can be a valid external documentation object', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 externalDocs: {
                     url: ''
                 },
@@ -166,7 +166,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be a valid external documentation object', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 externalDocs: {},
                 responses
             });
@@ -178,7 +178,7 @@ describe('definitions/operation', () => {
     describe('operationId', () => {
 
         it('can be a string', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 operationId: 'a',
                 responses
             });
@@ -186,7 +186,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be a string', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 operationId: 1,
                 responses
             });
@@ -194,7 +194,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be unique among all operations', () => {
-            const [ err ] = definition(2, Path, {
+            const [ , err ] = definition(2, Path, {
                 get: {
                     operationId: 'a',
                     responses
@@ -212,7 +212,7 @@ describe('definitions/operation', () => {
     describe('parameters', () => {
 
         it('can be an array of parameter objects', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 parameters: [
                     { name: 'x', in: 'path', required: true, type: 'string' }
                 ],
@@ -222,7 +222,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be an array of parameter objects', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 parameters: [{}],
                 responses
             });
@@ -230,7 +230,7 @@ describe('definitions/operation', () => {
         });
 
         it('cannot have duplicate parameters', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 parameters: [
                     { name: 'x', in: 'path', required: true, type: 'string' },
                     { name: 'x', in: 'path', required: true, type: 'string' }
@@ -241,7 +241,7 @@ describe('definitions/operation', () => {
         });
 
         it('can only have one body parameter for v2', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 parameters: [
                     { name: 'x', in: 'body', type: 'string' },
                     { name: 'y', in: 'body', type: 'string' }
@@ -252,7 +252,7 @@ describe('definitions/operation', () => {
         });
 
         it('cannot have both formData and body', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 parameters: [
                     { name: 'x', in: 'body', type: 'string' },
                     { name: 'y', in: 'formData', type: 'string' }
@@ -268,7 +268,7 @@ describe('definitions/operation', () => {
     describe('produces', () => {
 
         it('is not valid for v3', () => {
-            const [ err ] = definition(3, Operation, {
+            const [ , err ] = definition(3, Operation, {
                 produces: [],
                 responses
             });
@@ -276,7 +276,7 @@ describe('definitions/operation', () => {
         });
 
         it('can be an array of strings for v2', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 produces: ['application/json'],
                 responses
             });
@@ -284,7 +284,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be an array', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 produces: {},
                 responses
             });
@@ -292,7 +292,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be an array of strings', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 produces: [1],
                 responses
             });
@@ -304,7 +304,7 @@ describe('definitions/operation', () => {
     describe('requestBody', () => {
 
         it('is not valid for v2', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 requestBody: {},
                 responses
             });
@@ -312,7 +312,7 @@ describe('definitions/operation', () => {
         });
 
         it('can be a valid request body object for v3', () => {
-            const [ err ] = definition(3, Operation, {
+            const [ , err ] = definition(3, Operation, {
                 requestBody: {
                     content: {
                         'application/json': {
@@ -329,12 +329,12 @@ describe('definitions/operation', () => {
     describe('responses', () => {
 
         it('is required', () => {
-            const [ err ] = definition(3, Operation, {});
+            const [ , err ] = definition(3, Operation, {});
             expect(err).to.match(/Missing required property: responses/);
         });
 
         it('can be a valid response object', () => {
-            const [ err ] = definition(3, Operation, {
+            const [ , err ] = definition(3, Operation, {
                 responses
             });
             expect(err).to.be.undefined;
@@ -343,7 +343,7 @@ describe('definitions/operation', () => {
         describe('codes', () => {
 
             it('default ok', () => {
-                const [ err ] = definition(2, Operation, {
+                const [ , err ] = definition(2, Operation, {
                     responses: {
                         default: { description: '' }
                     }
@@ -352,7 +352,7 @@ describe('definitions/operation', () => {
             });
 
             it('200 ok', () => {
-                const [ err ] = definition(2, Operation, {
+                const [ , err ] = definition(2, Operation, {
                     responses: {
                         200: { description: '' }
                     }
@@ -361,7 +361,7 @@ describe('definitions/operation', () => {
             });
 
             it('2XX not ok for v2', () => {
-                const [ err ] = definition(2, Operation, {
+                const [ , err ] = definition(2, Operation, {
                     responses: {
                         '2XX': { description: '' }
                     }
@@ -370,7 +370,7 @@ describe('definitions/operation', () => {
             });
 
             it('2XX ok for v3', () => {
-                const [ err ] = definition(3, Operation, {
+                const [ , err ] = definition(3, Operation, {
                     responses: {
                         '2XX': { description: '' }
                     }
@@ -379,7 +379,7 @@ describe('definitions/operation', () => {
             });
 
             it('600 not ok', () => {
-                const [ err ] = definition(2, Operation, {
+                const [ , err ] = definition(2, Operation, {
                     responses: {
                         '600': { description: '' }
                     }
@@ -394,7 +394,7 @@ describe('definitions/operation', () => {
     describe('schemes', () => {
 
         it('is not allowed for v3', () => {
-            const [ err ] = definition(3, Operation, {
+            const [ , err ] = definition(3, Operation, {
                 schemes: [],
                 responses
             });
@@ -402,7 +402,7 @@ describe('definitions/operation', () => {
         });
 
         it('can be an array of valid strings', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 schemes: ['http'],
                 responses
             });
@@ -410,7 +410,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be an array of strings', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 schemes: [1],
                 responses
             });
@@ -418,7 +418,7 @@ describe('definitions/operation', () => {
         });
 
         it('must match enum values', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 schemes: ['bob'],
                 responses
             });
@@ -430,7 +430,7 @@ describe('definitions/operation', () => {
     describe('security', () => {
 
         it('can be an array', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 security: [],
                 responses
             });
@@ -438,7 +438,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be an array', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 security: {},
                 responses
             });
@@ -450,7 +450,7 @@ describe('definitions/operation', () => {
     describe('servers', () => {
 
         it('is not allowed in v2', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 servers: [],
                 responses
             });
@@ -458,7 +458,7 @@ describe('definitions/operation', () => {
         });
 
         it('can be an array of valid server objects', () => {
-            const [ err ] = definition(3, Operation, {
+            const [ , err ] = definition(3, Operation, {
                 servers: [{
                     url: ''
                 }],
@@ -468,7 +468,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be an array of valid server objects', () => {
-            const [ err ] = definition(3, Operation, {
+            const [ , err ] = definition(3, Operation, {
                 servers: [{}],
                 responses
             });
@@ -480,7 +480,7 @@ describe('definitions/operation', () => {
     describe('summary', () => {
 
         it('must be a string', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 summary: 1,
                 responses
             });
@@ -488,7 +488,7 @@ describe('definitions/operation', () => {
         });
 
         it('should be less than 120 characters', () => {
-            const [ err, , warning ] = definition(2, Operation, {
+            const [ , err, warning ] = definition(2, Operation, {
                 summary: '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 ',
                 responses
             });
@@ -501,7 +501,7 @@ describe('definitions/operation', () => {
     describe('tags', () => {
 
         it('allows an array of strings', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 tags: ['a', 'b'],
                 responses
             });
@@ -509,7 +509,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be an array', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 tags: 1,
                 responses
             });
@@ -517,7 +517,7 @@ describe('definitions/operation', () => {
         });
 
         it('must be an array of strings', () => {
-            const [ err ] = definition(2, Operation, {
+            const [ , err ] = definition(2, Operation, {
                 tags: [1],
                 responses
             });

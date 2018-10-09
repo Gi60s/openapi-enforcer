@@ -236,7 +236,7 @@ OperationEnforcer.prototype.request = function (request, options) {
         exception('Missing required request body');
     }
 
-    return new Result(exception, result);
+    return new Result(result, exception);
 };
 
 function buildParametersMap(map, parameters) {
