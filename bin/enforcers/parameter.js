@@ -300,17 +300,19 @@ function parsePrimitive(parameter, schema, exception, value) {
 
     } else if (schema.type === 'integer') {
         const num = +value;
-        if (isNaN(num)) exception('Expected an integer. Received: ' + value);
-        return num;
+        if (!isNaN(num)) return num;
+        exception('Expected an integer. Received: ' + value);
 
     } else if (schema.type === 'number') {
         const num = +value;
-        if (isNaN(num)) exception('Expected a number. Received: ' + value);
-        return num;
+        if (!isNaN(num)) return num;
+        exception('Expected a number. Received: ' + value);
 
     } else if (schema.type === 'string') {
         return value;
     }
+
+    return value;
 }
 
 function v2Parse(parameter, schema, exception, value) {
