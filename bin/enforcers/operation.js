@@ -130,6 +130,7 @@ OperationEnforcer.prototype.request = function (request, options) {
         const input = req[reqKey] || {};
         const missingRequired = [];
         const unknownParameters = allowUnknownParameters ? [] : Object.keys(input);
+        const potentialCausesForUnknownParameters = [];
 
         if (parameters[at]) {
             const output = {};
@@ -148,17 +149,29 @@ OperationEnforcer.prototype.request = function (request, options) {
 
                 } else if (parameter.in === 'query' && parameter.style === 'form' && parameter.explode && type === 'object') {
                     const data = parameter.parse(query, input);
-                    deserializeAndValidate(null, parameter.schema, data, value => {
-                        Object.keys(value).forEach(key => util.arrayRemoveItem(unknownParameters, key));
-                        output[key] = value;
-                    })
+                    if (data.error) {
+                        const exception = new Exception('In ' + at + ' parameter "' + key + '"');
+                        exception(data.error);
+                        potentialCausesForUnknownParameters.push(exception);
+                    } else {
+                        deserializeAndValidate(child.at(key), parameter.schema, data, value => {
+                            Object.keys(value).forEach(key => util.arrayRemoveItem(unknownParameters, key));
+                            output[key] = value;
+                        })
+                    }
 
                 } else if (parameter.in === 'query' && parameter.style === 'deepObject' && type === 'object') {
                     const data = parameter.parse(query, input);
-                    deserializeAndValidate(child.at(key), parameter.schema, data, value => {
-                        Object.keys(value).forEach(k => util.arrayRemoveItem(unknownParameters, key + '[' + k + ']'));
-                        output[key] = value;
-                    });
+                    if (data.error) {
+                        const exception = new Exception('In ' + at + ' parameter "' + key + '"');
+                        exception(data.error);
+                        potentialCausesForUnknownParameters.push(exception);
+                    } else {
+                        deserializeAndValidate(child.at(key), parameter.schema, data, value => {
+                            Object.keys(value).forEach(k => util.arrayRemoveItem(unknownParameters, key + '[' + k + ']'));
+                            output[key] = value;
+                        });
+                    }
 
                 } else if (parameter.required) {
                     missingRequired.push(key);
@@ -170,9 +183,15 @@ OperationEnforcer.prototype.request = function (request, options) {
 
         // add exception for any unknown query parameters
         if (unknownParameters.length) {
-            child('Received unexpected parameter' +
+            const message = 'Received unexpected parameter' +
                 (unknownParameters.length === 1 ? '' : 's') + ': ' +
-                unknownParameters.join(', '));
+                unknownParameters.join(', ');
+            if (potentialCausesForUnknownParameters.length) {
+                const subChild = child.nest(message).nest('Possible causes');
+                potentialCausesForUnknownParameters.forEach(err => subChild(err));
+            } else {
+                child(message);
+            }
         }
 
         //
