@@ -261,8 +261,10 @@ OperationEnforcer.prototype.request = function (request, options) {
 function buildParametersMap(map, parameters) {
     if (parameters) {
         parameters.forEach(parameter => {
-            if (!map.hasOwnProperty(parameter.in)) map[parameter.in] = {};
-            map[parameter.in][parameter.name] = parameter;
+            const at = parameter.in;
+            const name = at === 'header' ? parameter.name.toLowerCase() : parameter.name;
+            if (!map.hasOwnProperty(at)) map[at] = {};
+            map[at][name] = parameter;
         })
     }
 }
