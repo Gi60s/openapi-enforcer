@@ -34,8 +34,12 @@ module.exports = ParameterEnforcer;
 
 function ParameterEnforcer(data) {
     store.set(this, data);
-    const { definition, major, raw } = data;
+    const { definition, major, raw, warn } = data;
     Object.assign(this, definition);
+
+    if (definition.in === 'header' && definition.name !== definition.name.toLowerCase()) {
+        warn('Header names are case insensitive and their lower case equivalent will be used');
+    }
 
     // v2 - set schema for non-body parameters from schema-like attributes
     if (major === 2 && definition.in !== 'body') {
