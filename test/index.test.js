@@ -87,7 +87,7 @@ describe.only('enforcer/request', () => {
                 })
             });
 
-            it.only('will serialize nested arrays', () => {
+            it('will serialize nested arrays', () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/{array}', 'get', {
                         name: 'array',
@@ -107,7 +107,7 @@ describe.only('enforcer/request', () => {
                     })
                     .build();
                 const enforcer = Enforcer(def);
-                const [ req, err ] = enforcer.request({ path: '/1 2 3,4 5|6,7 8' });
+                const [ req ] = enforcer.request({ path: '/1 2 3,4 5|6,7 8' });
                 expect(req.path).to.deep.equal({
                     array: [
                         [
@@ -135,7 +135,8 @@ describe.only('enforcer/request', () => {
                         schema: { type: 'array', items: { type: 'number' } },
                         style: 'matrix',
                         explode: true
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/users;id=1;id=2' });
                 expect(req.path.id).to.deep.equal([1,2]);
@@ -152,7 +153,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'simple',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/5' });
                     expect(req.path.value).to.equal(5);
@@ -167,9 +169,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'simple',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/5' });
+                    const [ req ] = enforcer.request({ path: '/5' });
                     expect(req.path.value).to.equal(5);
                 });
 
@@ -182,9 +185,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'simple',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/3,4,5' });
+                    const [ req ] = enforcer.request({ path: '/3,4,5' });
                     expect(req.path.value).to.deep.equal([3,4,5]);
                 });
 
@@ -197,9 +201,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'simple',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/3,4,5' });
+                    const [ req ] = enforcer.request({ path: '/3,4,5' });
                     expect(req.path.value).to.deep.equal([3,4,5]);
                 });
 
@@ -218,9 +223,10 @@ describe.only('enforcer/request', () => {
                             },
                             style: 'simple',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/a,1,b,2' });
+                    const [ req ] = enforcer.request({ path: '/a,1,b,2' });
                     expect(req.path.value).to.deep.equal({a:1,b:2});
                 });
 
@@ -239,9 +245,10 @@ describe.only('enforcer/request', () => {
                             },
                             style: 'simple',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/a=1,b=2' });
+                    const [ req ] = enforcer.request({ path: '/a=1,b=2' });
                     expect(req.path.value).to.deep.equal({a:1,b:2});
                 });
 
@@ -258,9 +265,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'label',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/.5' });
+                    const [ req ] = enforcer.request({ path: '/.5' });
                     expect(req.path.value).to.equal(5);
                 });
 
@@ -273,9 +281,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'label',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/.5' });
+                    const [ req ] = enforcer.request({ path: '/.5' });
                     expect(req.path.value).to.equal(5);
                 });
 
@@ -288,9 +297,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'label',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/.3,4,5' });
+                    const [ req ] = enforcer.request({ path: '/.3,4,5' });
                     expect(req.path.value).to.deep.equal([3,4,5]);
                 });
 
@@ -303,9 +313,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'label',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/.3.4.5' });
+                    const [ req ] = enforcer.request({ path: '/.3.4.5' });
                     expect(req.path.value).to.deep.equal([3,4,5]);
                 });
 
@@ -324,9 +335,10 @@ describe.only('enforcer/request', () => {
                             },
                             style: 'label',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/.a,1,b,2' });
+                    const [ req ] = enforcer.request({ path: '/.a,1,b,2' });
                     expect(req.path.value).to.deep.equal({a:1,b:2});
                 });
 
@@ -345,9 +357,10 @@ describe.only('enforcer/request', () => {
                             },
                             style: 'label',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/.a=1.b=2' });
+                    const [ req ] = enforcer.request({ path: '/.a=1.b=2' });
                     expect(req.path.value).to.deep.equal({a:1,b:2});
                 });
 
@@ -364,9 +377,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'matrix',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/;value=5' });
+                    const [ req ] = enforcer.request({ path: '/;value=5' });
                     expect(req.path.value).to.equal(5);
                 });
 
@@ -379,9 +393,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'matrix',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/;value=5' });
+                    const [ req ] = enforcer.request({ path: '/;value=5' });
                     expect(req.path.value).to.equal(5);
                 });
 
@@ -394,9 +409,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'matrix',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/;value=3,4,5' });
+                    const [ req ] = enforcer.request({ path: '/;value=3,4,5' });
                     expect(req.path.value).to.deep.equal([3,4,5]);
                 });
 
@@ -409,9 +425,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'matrix',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/;value=3;value=4;value=5' });
+                    const [ req ] = enforcer.request({ path: '/;value=3;value=4;value=5' });
                     expect(req.path.value).to.deep.equal([3,4,5]);
                 });
 
@@ -430,9 +447,10 @@ describe.only('enforcer/request', () => {
                             },
                             style: 'matrix',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/;value=a,1,b,2' });
+                    const [ req ] = enforcer.request({ path: '/;value=a,1,b,2' });
                     expect(req.path.value).to.deep.equal({a:1,b:2});
                 });
 
@@ -451,9 +469,10 @@ describe.only('enforcer/request', () => {
                             },
                             style: 'matrix',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/;a=1;b=2' });
+                    const [ req ] = enforcer.request({ path: '/;a=1;b=2' });
                     expect(req.path.value).to.deep.equal({a:1,b:2});
                 });
 
@@ -477,9 +496,10 @@ describe.only('enforcer/request', () => {
                             type: 'array',
                             collectionFormat: 'multi',
                             items: { type: 'number' }
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?item=1&item=2&item=3' });
+                    const [ req ] = enforcer.request({ path: '/?item=1&item=2&item=3' });
                     expect(req.query.item).to.deep.equal([1, 2, 3]);
                 });
 
@@ -491,9 +511,10 @@ describe.only('enforcer/request', () => {
                             type: 'array',
                             collectionFormat: 'multi',
                             items: { type: 'number' }
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/' });
+                    const [ req ] = enforcer.request({ path: '/' });
                     expect(req.query).not.to.haveOwnProperty('item');
                 });
 
@@ -506,11 +527,12 @@ describe.only('enforcer/request', () => {
                             collectionFormat: 'multi',
                             items: { type: 'number' },
                             allowEmptyValue: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?item' });
+                    const [ req ] = enforcer.request({ path: '/?item' });
                     expect(req.query).to.haveOwnProperty('item');
-                    expect(req.query.item).to.deep.equal([Enforcer.EMPTY_VALUE]);
+                    expect(req.query.item).to.deep.equal(['']);
                 });
 
                 it('can produce error with empty value', () => {
@@ -522,9 +544,10 @@ describe.only('enforcer/request', () => {
                             collectionFormat: 'multi',
                             items: { type: 'number' },
                             allowEmptyValue: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [err] = enforcer.request({ path: '/?item' });
+                    const [ , err ] = enforcer.request({ path: '/?item' });
                     expect(err).to.match(/Empty value not allowed/);
                 });
 
@@ -537,9 +560,10 @@ describe.only('enforcer/request', () => {
                         in: 'query',
                         type: 'string',
                         allowEmptyValue: true
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/?value=yes' });
+                const [ req ] = enforcer.request({ path: '/?value=yes' });
                 expect(req.query.value).to.equal('yes');
             });
 
@@ -550,11 +574,12 @@ describe.only('enforcer/request', () => {
                         in: 'query',
                         type: 'string',
                         allowEmptyValue: true
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/?value' });
+                const [ req ] = enforcer.request({ path: '/?value' });
                 expect(req.query).to.haveOwnProperty('value');
-                expect(req.query.value).to.equal(Enforcer.EMPTY_VALUE);
+                expect(req.query.value).to.equal('');
             });
 
         });
@@ -572,9 +597,10 @@ describe.only('enforcer/request', () => {
                             style: 'form',
                             explode: false
                         })
-                        .addPath('/', 'get');
+                        .addPath('/', 'get')
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?value=1&value=2' });
+                    const [ req ] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.equal(2);
                 });
 
@@ -586,9 +612,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'form',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?value=1&value=2' });
+                    const [ req ] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.equal(2);
                 });
 
@@ -601,10 +628,11 @@ describe.only('enforcer/request', () => {
                             style: 'form',
                             explode: false,
                             allowEmptyValue: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?value' });
-                    expect(req.query.value).to.equal(Enforcer.EMPTY_VALUE);
+                    const [ req ] = enforcer.request({ path: '/?value' });
+                    expect(req.query.value).to.equal('');
                 });
 
                 it('primitive do not allowEmptyValue', () => {
@@ -615,9 +643,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'form',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [err, req] = enforcer.request({ path: '/?value' });
+                    const [ , err ] = enforcer.request({ path: '/?value' });
                     expect(err).to.match(/Empty value not allowed/);
                 });
 
@@ -629,9 +658,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'form',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?value=1,2' });
+                    const [ req ] = enforcer.request({ path: '/?value=1,2' });
                     expect(req.query.value).to.deep.equal([1,2]);
                 });
 
@@ -643,9 +673,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'form',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?value=1&value=2' });
+                    const [ req ] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.deep.equal([1, 2]);
                 });
 
@@ -658,10 +689,11 @@ describe.only('enforcer/request', () => {
                             style: 'form',
                             explode: false,
                             allowEmptyValue: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?value' });
-                    expect(req.query.value).to.deep.equal([Enforcer.EMPTY_VALUE]);
+                    const [ req ] = enforcer.request({ path: '/?value' });
+                    expect(req.query.value).to.deep.equal(['']);
                 });
 
                 it('array do not allowEmptyValue', () => {
@@ -672,9 +704,10 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'form',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [err] = enforcer.request({ path: '/?value' });
+                    const [ , err ] = enforcer.request({ path: '/?value' });
                     expect(err).to.match(/Empty value not allowed/);
                 });
 
@@ -692,9 +725,10 @@ describe.only('enforcer/request', () => {
                             },
                             style: 'form',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?value=a,1,b,2' });
+                    const [ req ] = enforcer.request({ path: '/?value=a,1,b,2' });
                     expect(req.query.value).to.deep.equal({a:1,b:2});
                 });
 
@@ -706,6 +740,7 @@ describe.only('enforcer/request', () => {
                                 in: 'query',
                                 schema: {
                                     type: 'object',
+                                    additionalProperties: false,
                                     properties: {
                                         a: { type: 'number' },
                                         b: { type: 'number' }
@@ -719,18 +754,20 @@ describe.only('enforcer/request', () => {
                                 schema: {
                                     type: 'object',
                                     properties: {
-                                        c: { type: 'number' },
-                                        d: { type: 'number' }
+                                        c: { type: 'string' },
+                                        d: { type: 'string' }
                                     }
                                 },
                                 style: 'form',
                                 explode: true
-                            });
+                            })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?a=1&b=2&c=3&d=4' });
+                    const [ req, err ] = enforcer.request({ path: '/?a=1&b=2&c=3&d=4' });
+                    console.log(''+err);
                     expect(req.query).to.deep.equal({
                         x: { a:1, b:2 },
-                        y: { c:3, d:4 }
+                        y: { a:'1', b: '2', c:'3', d:'4' }
                     });
                 });
 
@@ -754,6 +791,7 @@ describe.only('enforcer/request', () => {
                                 in: 'query',
                                 schema: {
                                     type: 'object',
+                                    additionalProperties: false,
                                     properties: {
                                         c: { type: 'number' },
                                         d: { type: 'number' }
@@ -761,9 +799,10 @@ describe.only('enforcer/request', () => {
                                 },
                                 style: 'form',
                                 explode: true
-                            });
+                            })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [err] = enforcer.request({ path: '/?a=bob&b=2&c=3&d=4' });
+                    const [ , err ] = enforcer.request({ path: '/?a=bob&b=2&c=3&d=4' });
                     expect(err).to.match(/Received unexpected parameters: a, b/);
                 });
 
@@ -782,10 +821,11 @@ describe.only('enforcer/request', () => {
                             style: 'form',
                             explode: false,
                             allowEmptyValue: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?value=a,,b,2' });
-                    expect(req.query.value).to.deep.equal({ a: Enforcer.EMPTY_VALUE, b: 2 });
+                    const [ req ] = enforcer.request({ path: '/?value=a,,b,2' });
+                    expect(req.query.value).to.deep.equal({ a: '', b: 2 });
                 });
 
                 it('object do not allowEmptyValue', () => {
@@ -803,9 +843,10 @@ describe.only('enforcer/request', () => {
                             style: 'form',
                             explode: false,
                             allowEmptyValue: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [err] = enforcer.request({ path: '/?value=a,,b,2' });
+                    const [ , err ] = enforcer.request({ path: '/?value=a,,b,2' });
                     expect(err).to.match(/Empty value not allowed/);
                 });
 
@@ -821,7 +862,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'spaceDelimited',
                             explode: false
-                        });
+                        })
+                        .build();
                     expect(() => Enforcer(def)).to.throw(/Style "spaceDelimited" is incompatible with schema type: number/);
                 });
 
@@ -847,7 +889,7 @@ describe.only('enforcer/request', () => {
                             explode: false
                         });
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?value=1 2' });
+                    const [ req ] = enforcer.request({ path: '/?value=1 2' });
                     expect(req.query.value).to.deep.equal([1,2]);
                 });
 
@@ -861,7 +903,7 @@ describe.only('enforcer/request', () => {
                             explode: true
                         });
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?value=1&value=2' });
+                    const [ req ] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.deep.equal([1, 2]);
                 });
 
@@ -952,7 +994,7 @@ describe.only('enforcer/request', () => {
                             explode: false
                         });
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?value=1|2' });
+                    const [ req ] = enforcer.request({ path: '/?value=1|2' });
                     expect(req.query.value).to.deep.equal([1,2]);
                 });
 
@@ -966,7 +1008,7 @@ describe.only('enforcer/request', () => {
                             explode: true
                         });
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?value=1&value=2' });
+                    const [ req ] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.deep.equal([1, 2]);
                 });
 
@@ -1120,7 +1162,7 @@ describe.only('enforcer/request', () => {
                                 explode: true
                             });
                     const enforcer = Enforcer(def);
-                    const [, req] = enforcer.request({ path: '/?x[a]=1&x[b]=2&y[c]=3&y[d]=4' });
+                    const [ req ] = enforcer.request({ path: '/?x[a]=1&x[b]=2&y[c]=3&y[d]=4' });
                     expect(req.query).to.deep.equal({ x: { a:1, b:2 }, y: { c:3, d:4 } });
                 });
 
@@ -1140,7 +1182,7 @@ describe.only('enforcer/request', () => {
                     type: 'string'
                 });
             const enforcer = Enforcer(def);
-            const [, req] = enforcer.request({ path: '/', headers: { VAlue: 'abc' } });
+            const [ req ] = enforcer.request({ path: '/', headers: { VAlue: 'abc' } });
             expect(req.headers.VAlue).to.equal('abc');
         });
 
@@ -1163,7 +1205,7 @@ describe.only('enforcer/request', () => {
                     type: 'string'
                 });
             const enforcer = Enforcer(def);
-            const [err] = enforcer.request({ path: '/', headers: { value: '' } });
+            const [ , err ] = enforcer.request({ path: '/', headers: { value: '' } });
             expect(err).to.match(/Empty value not allowed/);
         });
 
@@ -1179,7 +1221,7 @@ describe.only('enforcer/request', () => {
                         format: 'date'
                     });
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/', headers: { value: '2000-01-01' } });
+                const [ req ] = enforcer.request({ path: '/', headers: { value: '2000-01-01' } });
                 expect(req.headers.value).to.deep.equal(new Date('2000-01-01'));
             });
 
@@ -1192,7 +1234,7 @@ describe.only('enforcer/request', () => {
                         items: { type: 'number' }
                     });
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
+                const [ req ] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
                 expect(req.headers.value).to.deep.equal([1,2,3]);
             });
 
@@ -1222,7 +1264,7 @@ describe.only('enforcer/request', () => {
                     })
                     .addPath('/', 'get');
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/', headers: { value: '1' } });
+                const [ req ] = enforcer.request({ path: '/', headers: { value: '1' } });
                 expect(req.headers.value).to.equal(1);
             });
 
@@ -1235,7 +1277,7 @@ describe.only('enforcer/request', () => {
                         explode: true
                     });
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/', headers: { value: '1' } });
+                const [ req ] = enforcer.request({ path: '/', headers: { value: '1' } });
                 expect(req.headers.value).to.equal(1);
             });
 
@@ -1248,7 +1290,7 @@ describe.only('enforcer/request', () => {
                         explode: false
                     });
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
+                const [ req ] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
                 expect(req.headers.value).to.deep.equal([1,2,3]);
             });
 
@@ -1261,7 +1303,7 @@ describe.only('enforcer/request', () => {
                         explode: true
                     });
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
+                const [ req ] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
                 expect(req.headers.value).to.deep.equal([1,2,3]);
             });
 
@@ -1280,7 +1322,7 @@ describe.only('enforcer/request', () => {
                         explode: false
                     });
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/', headers: { value: 'a,1,b,2' } });
+                const [ req ] = enforcer.request({ path: '/', headers: { value: 'a,1,b,2' } });
                 expect(req.headers.value).to.deep.equal({a:1,b:2});
             });
 
@@ -1300,7 +1342,7 @@ describe.only('enforcer/request', () => {
                             explode: true
                         });
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/', headers: { x: 'a=1,b=2' } });
+                const [ req ] = enforcer.request({ path: '/', headers: { x: 'a=1,b=2' } });
                 expect(req.headers.x).to.deep.equal({ a:1, b:2 });
             });
 
@@ -1336,7 +1378,7 @@ describe.only('enforcer/request', () => {
                     })
                     .addPath('/', 'get');
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/', cookies: 'value=1' });
+                const [ req ] = enforcer.request({ path: '/', cookies: 'value=1' });
                 expect(req.cookies.value).to.equal(1);
             });
 
@@ -1349,7 +1391,7 @@ describe.only('enforcer/request', () => {
                         explode: true
                     });
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/', cookies: 'value=1' });
+                const [ req ] = enforcer.request({ path: '/', cookies: 'value=1' });
                 expect(req.cookies.value).to.equal(1);
             });
 
@@ -1362,7 +1404,7 @@ describe.only('enforcer/request', () => {
                         explode: false
                     });
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/', cookies: 'value=1,2,3' });
+                const [ req ] = enforcer.request({ path: '/', cookies: 'value=1,2,3' });
                 expect(req.cookies.value).to.deep.equal([1,2,3]);
             });
 
@@ -1392,7 +1434,7 @@ describe.only('enforcer/request', () => {
                         explode: false
                     });
                 const enforcer = Enforcer(def);
-                const [, req] = enforcer.request({ path: '/', cookies: 'value=a,1,b,2' });
+                const [ req ] = enforcer.request({ path: '/', cookies: 'value=a,1,b,2' });
                 expect(req.cookies.value).to.deep.equal({a:1,b:2});
             });
 
