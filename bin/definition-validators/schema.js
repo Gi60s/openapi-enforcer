@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const SchemaComponent   = require('../schema');
+const SchemaComponent   = require('../enforcers/schema');
 const rx                = require('../rx');
 const util              = require('../util');
 
