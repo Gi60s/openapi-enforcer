@@ -15,11 +15,13 @@
  *    limitations under the License.
  **/
 'use strict';
+const ExampleEnforcer   = require('../enforcers/example');
 
 module.exports = ExampleObject;
 
 function ExampleObject() {
     Object.assign(this, {
+        component: ExampleEnforcer,
         type: 'object',
         properties: {
             summary: { type: 'string' },

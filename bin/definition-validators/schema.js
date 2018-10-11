@@ -15,9 +15,11 @@
  *    limitations under the License.
  **/
 'use strict';
-const SchemaComponent   = require('../enforcers/schema');
-const rx                = require('../rx');
-const util              = require('../util');
+const DiscriminatorEnforcer = require('../enforcers/discriminator');
+const SchemaEnforcer        = require('../enforcers/schema');
+const rx                    = require('../rx');
+const util                  = require('../util');
+const XmlEnforcer           = require('../enforcers/xml');
 
 module.exports = SchemaObject;
 
@@ -69,7 +71,7 @@ function SchemaObject() {
 
     Object.assign(this, {
         useComponent: ({ value }) => value && typeof value === 'object',
-        component: SchemaComponent,
+        component: SchemaEnforcer,
         type: 'object',
         properties: {
             type: {
@@ -111,6 +113,7 @@ function SchemaObject() {
                 type: 'string'
             },
             discriminator: {
+                component: DiscriminatorEnforcer,
                 allowed: ({ parent }) => parent && parent.validator instanceof SchemaObject && parent.validator.type === 'object',
                 type: ({ major }) => major === 2 ? 'string' : 'object',
                 properties: {
@@ -248,6 +251,7 @@ function SchemaObject() {
                 default: false
             },
             xml: {
+                component: XmlEnforcer,
                 type: 'object',
                 properties: {
                     name: 'string',

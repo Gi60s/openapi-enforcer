@@ -15,11 +15,15 @@
  *    limitations under the License.
  **/
 'use strict';
+const ContactEnforcer   = require('../enforcers/contact');
+const LicenseEnforcer   = require('../enforcers/license');
+const InfoEnforcer      = require('../enforcers/info');
 
 module.exports = InfoObject;
 
 function InfoObject () {
     Object.assign(this, {
+        component: InfoEnforcer,
         type: 'object',
         properties: {
             title: {
@@ -33,6 +37,7 @@ function InfoObject () {
                 type: 'string'
             },
             contact: {
+                component: ContactEnforcer,
                 type: 'object',
                 properties: {
                     name: {
@@ -47,6 +52,7 @@ function InfoObject () {
                 }
             },
             license: {
+                component: LicenseEnforcer,
                 type: 'object',
                 properties: {
                     name: {

@@ -15,11 +15,13 @@
  *    limitations under the License.
  **/
 'use strict';
+const ServerEnforcer        = require('../enforcers/server');
 
 module.exports = ServerObject;
 
 function ServerObject() {
     Object.assign(this, {
+        component: ServerEnforcer,
         type: 'object',
         properties: {
             description: {

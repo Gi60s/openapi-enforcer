@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const ResponseEnforcer  = require('../enforcers/response');
 
 module.exports = ResponseObject;
 
@@ -28,6 +29,7 @@ function ResponseObject(data) {
     const Schema = require('./schema');
     const { major } = data;
     Object.assign(this, {
+        component: ResponseEnforcer,
         type: 'object',
         properties: {
             description: {

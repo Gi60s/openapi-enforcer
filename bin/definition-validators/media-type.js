@@ -15,6 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
+const EncodingEnforcer  = require('../enforcers/encoding');
+const MediaTypeEnforcer = require('../enforcers/media-type');
+
 const rxContentTypeMime = /(?:^multipart\/)|(?:^application\/x-www-form-urlencoded$)/;
 
 module.exports = MediaTypeObject;
@@ -26,10 +29,11 @@ function MediaTypeObject() {
     const Schema        = require('./schema');
 
     Object.assign(this, {
+        components: MediaTypeEnforcer,
         type: 'object',
-
         properties: {
             encoding: {
+                component: EncodingEnforcer,
                 type: 'object',
                 allowed: ({ key, parent }) => {
                     if (!rxContentTypeMime.test(parent.key)) {

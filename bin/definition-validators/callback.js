@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const CallbackEnforcer = require('../enforcers/callback');
 
 module.exports = CallbackObject;
 
@@ -22,6 +23,7 @@ function CallbackObject() {
     const Path = require('./path');
 
     Object.assign(this, {
+        component: CallbackEnforcer,
         type: 'object',
         additionalProperties: Path
     });

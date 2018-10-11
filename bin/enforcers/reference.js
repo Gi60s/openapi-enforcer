@@ -15,20 +15,10 @@
  *    limitations under the License.
  **/
 'use strict';
-const ExternalDocumentationEnforcer  = require('../enforcers/external-documentation');
+const Super     = require('./super');
 
-module.exports = ExternalDocumentObject;
+module.exports = Super(ReferenceEnforcer);
 
-function ExternalDocumentObject() {
-    Object.assign(this, {
-        component: ExternalDocumentationEnforcer,
-        type: 'object',
-        properties: {
-            description: 'string',
-            url: {
-                type: 'string',
-                required: true
-            }
-        }
-    });
+function ReferenceEnforcer (data) {
+
 }

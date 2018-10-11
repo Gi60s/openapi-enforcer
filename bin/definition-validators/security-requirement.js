@@ -15,12 +15,14 @@
  *    limitations under the License.
  **/
 'use strict';
+const SecurityRequirementEnforcer   = require('../enforcers/security-requirement');
 
 module.exports = SecurityRequirementObject;
 
 function SecurityRequirementObject(data) {
     const { major, root } = data;
     Object.assign(this, {
+        component: SecurityRequirementEnforcer,
         type: 'object',
         additionalProperties: {
             type: 'array',

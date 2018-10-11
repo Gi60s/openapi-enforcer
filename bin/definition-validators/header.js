@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const HeaderEnforcer    = require('../enforcers/header');
 
 // https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#headerObject
 // https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#headerObject
@@ -25,6 +26,7 @@ function HeaderObject(data) {
     const base = Base(data);
     const { major } = data;
     Object.assign(this, {
+        component: HeaderEnforcer,
         type: 'object',
         properties: Object.assign({}, base.properties, {
             required: {

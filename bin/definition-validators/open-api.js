@@ -15,7 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const OpenAPIEnforcer   = require('../enforcers/open-api');
+const ComponentsEnforcer    = require('../enforcers/components');
+const OpenAPIEnforcer       = require('../enforcers/open-api');
 
 module.exports = OpenAPIObject;
 
@@ -51,6 +52,7 @@ function OpenAPIObject({ major }) {
                 }
             },
             components: {
+                component: ComponentsEnforcer,
                 allowed: major === 3,
                 type: 'object',
                 properties: {
@@ -174,4 +176,4 @@ function OpenAPIObject({ major }) {
             externalDocs: ExternalDocumentation
         }
     });
-};
+}

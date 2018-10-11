@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const EncodingEnforcer = require('../enforcers/encoding');
 
 const rxContentType = /^([a-z-]+)\/(\*|[a-z-]+)(?:\+([a-z-]+))?/;
 
@@ -24,6 +25,7 @@ function EncodingObject(data) {
     const Header    = require('./header');
 
     Object.assign(this, {
+        component: EncodingEnforcer,
         type: 'object',
         allowed: ({ exception, key, parent }) => {
             const schema = parent && parent.parent && parent.parent.value && parent.parent.value.schema;

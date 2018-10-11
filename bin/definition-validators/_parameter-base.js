@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const ItemsEnforcer     = require('../enforcers/items');
 
 module.exports = data => {
     const Example   = require('./example');
@@ -46,6 +47,7 @@ module.exports = data => {
             exclusiveMinimum: schema.properties.exclusiveMinimum,
             format: schema.properties.format,
             items: {
+                component: ItemsEnforcer,
                 type: 'object',
                 allowed: ({ parent }) => parent.value.type === 'array',
                 required: ({ parent }) => parent.value.type === 'array',

@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const TagEnforcer   = require('../enforcers/tag');
 
 module.exports = TagObject;
 
@@ -22,6 +23,7 @@ function TagObject() {
     const ExternalDocumentation = require('./external-documentation');
 
     Object.assign(this, {
+        component: TagEnforcer,
         type: 'object',
         properties: {
             name: {

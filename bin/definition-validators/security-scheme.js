@@ -15,11 +15,13 @@
  *    limitations under the License.
  **/
 'use strict';
+const SecuritySchemeEnforcer    = require('../enforcers/security-scheme');
 
 module.exports = SecuritySchemeObject;
 
 function SecuritySchemeObject({ major }) {
     Object.assign(this, {
+        component: SecuritySchemeEnforcer,
         type: 'object',
         properties: {
             authorizationUrl: {

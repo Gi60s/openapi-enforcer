@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const RequestBodyEnforcer     = require('../enforcers/request-body');
 
 module.exports = RequestBody;
 
@@ -22,6 +23,7 @@ function RequestBody({ major }) {
     const MediaType     = require('./media-type');
 
     Object.assign(this, {
+        component: RequestBodyEnforcer,
         allowed: major === 3,
         type: 'object',
         properties: {

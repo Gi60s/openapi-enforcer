@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const LinkEnforcer      = require('../enforcers/link');
 
 module.exports = LinkObject;
 
@@ -22,6 +23,7 @@ function LinkObject() {
     const Server = require('./server');
 
     Object.assign(this, {
+        component: LinkEnforcer,
         type: 'object',
         properties: {
             description: {

@@ -15,5 +15,10 @@
  *    limitations under the License.
  **/
 'use strict';
+const Super     = require('./super');
 
-module.exports = require('../schema');
+module.exports = Super(InfoEnforcer);
+
+function InfoEnforcer (data) {
+
+}
