@@ -34,6 +34,11 @@ function ParameterObject(data) {
                 type: 'boolean',
                 default: false
             },
+            allowReserved: {
+                allowed: ({ parent }) => major === 3 && parent.value.in === 'query',
+                type: 'boolean',
+                default: false
+            },
             collectionFormat: {
                 allowed: ({major, parent}) => major === 2 && parent.value.type === 'array',
                 enum: ({parent}) => ['query', 'formData'].includes(parent.value.in)
@@ -74,7 +79,7 @@ function ParameterObject(data) {
             },
             schema: function(data) {
                 const schema = new Schema(data);
-                schema.allowed = ({ parent}) => major === 2 && parent.value.in === 'body';
+                schema.allowed = ({ parent}) => major === 3 || parent.value.in === 'body';
                 return schema;
             },
             style: {
