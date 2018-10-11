@@ -29,12 +29,6 @@ function MediaTypeObject() {
         type: 'object',
 
         properties: {
-            schema: Schema,
-            example: { allowed: true },
-            examples: {
-                type: 'object',
-                additionalProperties: Example
-            },
             encoding: {
                 type: 'object',
                 allowed: ({ key, parent }) => {
@@ -47,7 +41,13 @@ function MediaTypeObject() {
                     }
                 },
                 additionalProperties: Encoding
-            }
+            },
+            example: { allowed: true },
+            examples: {
+                type: 'object',
+                additionalProperties: Example
+            },
+            schema: Schema
         }
     });
 }

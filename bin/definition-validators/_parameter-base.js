@@ -31,6 +31,7 @@ module.exports = data => {
         result.properties = {};
         Object.assign(result.properties, {
             type: {
+                weight: -15,
                 required: true,
                 enum: ['array', 'boolean', 'integer', 'number', 'string']
             },

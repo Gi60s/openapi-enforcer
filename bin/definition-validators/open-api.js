@@ -16,7 +16,6 @@
  **/
 'use strict';
 const OpenAPIEnforcer   = require('../enforcers/open-api');
-const PathsEnforcer     = require('../enforcers/paths');
 
 module.exports = OpenAPIObject;
 

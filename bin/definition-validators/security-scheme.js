@@ -42,13 +42,11 @@ function SecuritySchemeObject({ major }) {
                 allowed: ({ parent }) => major === 3 && parent.value.type === 'oauth2',
                 type: 'object',
                 properties: {
-                    implicit: OAuthFlow({
+                    authorizationCode: OAuthFlow({
                         authorizationUrl: {
                             required: true,
                             type: 'string'
-                        }
-                    }),
-                    password: OAuthFlow({
+                        },
                         tokenUrl: {
                             required: true,
                             type: 'string'
@@ -60,11 +58,13 @@ function SecuritySchemeObject({ major }) {
                             type: 'string'
                         }
                     }),
-                    authorizationCode: OAuthFlow({
+                    implicit: OAuthFlow({
                         authorizationUrl: {
                             required: true,
                             type: 'string'
-                        },
+                        }
+                    }),
+                    password: OAuthFlow({
                         tokenUrl: {
                             required: true,
                             type: 'string'
@@ -108,6 +108,7 @@ function SecuritySchemeObject({ major }) {
                 required: ({ parent }) => ['password', 'application', 'accessCode'].includes(parent.value.flow),
             },
             type: {
+                weight: -10,
                 required: true,
                 type: 'string',
                 enum: major === 2

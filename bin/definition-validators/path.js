@@ -29,25 +29,22 @@ function PathObject(data) {
         component: PathEnforcer,
         type: 'object',
         properties: {
-            summary: {
-                type: 'string'
-            },
+            delete: Operation,
             description: {
                 type: 'string'
             },
+            get: Operation,
+            head: Operation,
+            options: Operation,
             parameters: {
                 weight: -1,
                 type: 'array',
                 items: Parameter,
                 errors: Operation.parametersValidation
             },
-            get: Operation,
-            put: Operation,
-            post: Operation,
-            delete: Operation,
-            options: Operation,
-            head: Operation,
             patch: Operation,
+            post: Operation,
+            put: Operation,
             trace: function(data) {
                 const operation = new Operation(data);
                 operation.allowed = major === 3;
@@ -57,7 +54,10 @@ function PathObject(data) {
                 allowed: major === 3,
                 type: 'array',
                 items: Server
-            }
+            },
+            summary: {
+                type: 'string'
+            },
         }
     });
 }

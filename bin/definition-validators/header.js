@@ -32,6 +32,7 @@ function HeaderObject(data) {
                 default: false
             },
             style: {
+                weight: -5,
                 allowed: major === 3,
                 type: 'string',
                 default: 'simple',

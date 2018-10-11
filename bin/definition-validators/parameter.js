@@ -29,9 +29,30 @@ function ParameterObject(data) {
         component: Parameter,
         type: 'object',
         properties: Object.assign({}, base.properties, {
-            name: {
-                required: true,
-                type: 'string'
+            allowEmptyValue: {
+                allowed: ({parent}) => ['query', 'formData'].includes(parent.value.in),
+                type: 'boolean',
+                default: false
+            },
+            collectionFormat: {
+                allowed: ({major, parent}) => major === 2 && parent.value.type === 'array',
+                enum: ({parent}) => ['query', 'formData'].includes(parent.value.in)
+                    ? ['csv', 'ssv', 'tsv', 'pipes', 'multi']
+                    : ['csv', 'ssv', 'tsv', 'pipes'],
+                default: 'csv'
+            },
+            explode: {
+                type: 'boolean',
+                allowed: major === 3,
+                default: ({parent}) => {
+                    return parent.value.style === 'form';
+                },
+                errors: ({exception, parent}) => {
+                    const type = parent.value.schema && parent.value.schema.type;
+                    if (parent.value.in === 'cookie' && parent.value.explode && (type === 'array' || type === 'object')) {
+                        exception('Cookies do not support exploded values for non-primitive schemas');
+                    }
+                }
             },
             in: {
                 weight: -10,
@@ -41,55 +62,24 @@ function ParameterObject(data) {
                     ? ['body', 'formData', 'header', 'query', 'path']
                     : ['cookie', 'header', 'path', 'query'],
             },
+            name: {
+                required: true,
+                type: 'string'
+            },
             required: {
                 required: ({parent}) => parent.value.in === 'path',
                 type: 'boolean',
                 default: ({parent}) => parent.value.in === 'path',
                 enum: ({parent}) => parent.value.in === 'path' ? [true] : [true, false]
             },
-            allowEmptyValue: {
-                allowed: ({parent}) => ['query', 'formData'].includes(parent.value.in),
-                type: 'boolean',
-                default: false
-            },
-        })
-    });
-
-    if (major === 2) {
-        Object.assign(this.properties, {
-            type: {
-                allowed: ({major, parent}) => major === 2 && parent.value.in !== 'body',
-                required: true,
-                enum: ({parent}) => parent.value.in === 'formData'
-                    ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
-                    : ['array', 'boolean', 'integer', 'number', 'string']
-            },
-            collectionFormat: {
-                allowed: ({major, parent}) => major === 2 && parent.value.type === 'array',
-                enum: ({parent}) => ['query', 'formData'].includes(parent.value.in)
-                    ? ['csv', 'ssv', 'tsv', 'pipes', 'multi']
-                    : ['csv', 'ssv', 'tsv', 'pipes'],
-                default: 'csv'
-            },
             schema: function(data) {
                 const schema = new Schema(data);
-                schema.allowed = ({ parent}) => parent.value.in === 'body';
+                schema.allowed = ({ parent}) => major === 2 && parent.value.in === 'body';
                 return schema;
-            }
-        });
-
-        this.errors = data => {
-            const { exception, value } = data;
-            if (value.hasOwnProperty('default') && value.required) {
-                exception('Cannot have a "default" and set "required" to true');
-            }
-            base.errors(data);
-        }
-
-    } else if (major === 3) {
-        Object.assign(this.properties, {
+            },
             style: {
                 weight: -5,
+                allowed: major === 3,
                 type: 'string',
                 default: ({ parent }) => {
                     switch (parent.value.in) {
@@ -121,25 +111,27 @@ function ParameterObject(data) {
                     }
                 }
             },
-            explode: {
-                type: 'boolean',
-                default: ({parent}) => {
-                    return parent.value.style === 'form';
-                },
-                errors: ({exception, parent}) => {
-                    const type = parent.value.schema && parent.value.schema.type;
-                    if (parent.value.in === 'cookie' && parent.value.explode && (type === 'array' || type === 'object')) {
-                        exception('Cookies do not support exploded values for non-primitive schemas');
-                    }
-                }
+            type: {
+                weight: -5,
+                allowed: ({major, parent}) => major === 2 && parent.value.in !== 'body',
+                required: true,
+                enum: ({parent}) => parent.value.in === 'formData'
+                    ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
+                    : ['array', 'boolean', 'integer', 'number', 'string']
             },
-            allowReserved: {
-                allowed: ({ parent }) => parent.value.in === 'query',
-                type: 'boolean',
-                default: false
-            }
-        });
 
+        })
+    });
+
+    if (major === 2) {
+        this.errors = data => {
+            const { exception, value } = data;
+            if (value.hasOwnProperty('default') && value.required) {
+                exception('Cannot have a "default" and set "required" to true');
+            }
+            base.errors(data);
+        }
+    } else if (major === 3) {
         this.errors = base.errors;
     }
 }

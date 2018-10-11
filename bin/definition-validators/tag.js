@@ -26,7 +26,7 @@ function TagObject() {
         properties: {
             name: {
                 required: true,
-                    type: 'string'
+                type: 'string'
             },
             description: 'string',
             externalDocs: ExternalDocumentation

@@ -65,6 +65,7 @@ function EncodingObject(data) {
                 }
             },
             style: {
+                weight: -5,
                 type: 'string',
                 ignore: ({ parent }) => parent.parent.parent.key !== 'application/x-www-form-urlencoded',
                 default: 'form',
