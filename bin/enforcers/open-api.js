@@ -16,18 +16,16 @@
  **/
 'use strict';
 const Exception = require('../exception');
-const util      = require('../util');
 const Result    = require('../result');
 const Schema    = require('../definition-validators/schema');
+const Super     = require('./super');
+const util      = require('../util');
 const validator = require('../definition-validator');
 
-const map = new WeakMap();
-
-module.exports = OpenAPIEnforcer;
+module.exports = Super(OpenAPIEnforcer);
 
 function OpenAPIEnforcer(data) {
-    map.set(this, data);
-    Object.assign(this, data.definition);
+
 }
 
 /**
@@ -122,6 +120,5 @@ OpenAPIEnforcer.prototype.response = function (operation, code) {
  * @returns {EnforcerResult}
  */
 OpenAPIEnforcer.prototype.schema = function (definition) {
-    const data = map.get(this);
-    return validator.normalize(data.major, Schema, definition);
+    return validator.normalize(this.enforcerData.major, Schema, definition);
 };

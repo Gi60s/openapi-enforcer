@@ -15,12 +15,12 @@
  *    limitations under the License.
  **/
 'use strict';
+const Super         = require('./super');
 const util          = require('../util');
 
-const store = new WeakMap();
 const rxPathParam = /{([^}]+)}/;
 
-module.exports = Paths;
+module.exports = Super(Paths);
 
 function Paths({ exception, definition }) {
     Object.assign(this, definition);
@@ -112,7 +112,7 @@ function Paths({ exception, definition }) {
         }
     });
 
-    store.set(this, { pathParsers });
+    this.enforcerData.pathParsers = pathParsers;
 }
 
 /**
@@ -121,7 +121,7 @@ function Paths({ exception, definition }) {
  * @returns {{ params: object, path: Path }|undefined}
  */
 Paths.prototype.findMatch = function(pathString) {
-    const { pathParsers } = store.get(this);
+    const { pathParsers } = this.enforcerData;
 
     // normalize the path
     pathString = util.edgeSlashes(pathString.split('?')[0], true, false);

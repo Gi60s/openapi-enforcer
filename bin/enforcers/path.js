@@ -15,10 +15,11 @@
  *    limitations under the License.
  **/
 'use strict';
+const Super         = require('./super');
 
 const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
 
-module.exports = PathEnforcer;
+module.exports = Super(PathEnforcer);
 
 function PathEnforcer(data) {
     Object.assign(this, data.definition);

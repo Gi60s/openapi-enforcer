@@ -17,48 +17,29 @@
 'use strict';
 const Exception     = require('../exception');
 const Result        = require('../result');
+const Super         = require('./super');
 const util          = require('../util');
 
-module.exports = OperationEnforcer;
+module.exports = Super(OperationEnforcer);
+
+OperationEnforcer.extend(function (data) {
+    const { definition, parent } = data;
+
+    // build the parameters map
+    if (parent) buildParametersMap(this.parametersMap, parent.parameters);
+    buildParametersMap(this.parametersMap, definition.parameters);
+
+    // overwrite the parameters array
+    Object.keys(this.parametersMap).forEach(at => {
+        Object.keys(this.parametersMap[at]).forEach(name => {
+            this.parameters.push(this.parametersMap[at][name]);
+        })
+    });
+});
 
 function OperationEnforcer(data) {
-    const { definition, parent } = data;
-    Object.assign(this, definition);
-
-    const parameters = [];
-    const parametersMap = {};
-    let parametersProcessed = false;
-
-    Object.defineProperties(this, {
-        parameters: {
-            get: function() {
-                let o;
-                if (!parametersProcessed) o = this.parametersMap;
-                return parameters;
-            }
-        },
-        parametersMap: {
-            get: function() {
-                if (!parametersProcessed) {
-
-                    // build the parameters map
-                    if (parent) buildParametersMap(parametersMap, parent.parameters);
-                    buildParametersMap(parametersMap, definition.parameters);
-
-                    // overwrite the parameters array
-                    Object.keys(parametersMap).forEach(at => {
-                        Object.keys(parametersMap[at]).forEach(name => {
-                            parameters.push(parametersMap[at][name]);
-                        })
-                    });
-
-                    parametersProcessed = true;
-                }
-                return parametersMap;
-            }
-        }
-    });
-
+    this.parameters = [];
+    this.parametersMap = {};
 }
 
 

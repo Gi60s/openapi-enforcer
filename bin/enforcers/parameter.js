@@ -20,6 +20,7 @@ const Exception     = require('../exception');
 const Ignored       = require('../../ignored');
 const Result        = require('../result');
 const Schema        = require('./schema');
+const Super         = require('./super');
 const util          = require('../util');
 
 const rxFalse = /^false/i;
@@ -28,14 +29,11 @@ const rxLabel = /^\./;
 const schemaProperties = ['default', 'enum', 'exclusiveMaximum', 'exclusiveMinimum', 'format', 'items',
     'maximum', 'maxItems', 'maxLength', 'minimum', 'minItems', 'minLength', 'multipleOf',
     'pattern', 'type', 'uniqueItems'];
-const store = new WeakMap();
 
-module.exports = ParameterEnforcer;
+module.exports = Super(ParameterEnforcer);
 
 function ParameterEnforcer(data) {
-    store.set(this, data);
     const { definition, major, raw, warn } = data;
-    Object.assign(this, definition);
 
     if (definition.in === 'header' && definition.name !== definition.name.toLowerCase()) {
         warn('Header names are case insensitive and their lower case equivalent will be used');
@@ -67,7 +65,7 @@ function ParameterEnforcer(data) {
  * @returns {EnforcerResult}
  */
 ParameterEnforcer.prototype.parse = function(value, query) {
-    const { major } = store.get(this);
+    const { major } = this.enforcerData;
     const schema = this.schema;
     const type = schema && schema.type;
 
