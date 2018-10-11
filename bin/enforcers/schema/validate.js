@@ -15,9 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception = require('../exception');
-const Ignored   = require('../../ignored');
-const util      = require('../util');
+const Exception = require('../../exception');
+const Ignored   = require('../../../ignored');
+const util      = require('../../util');
 
 const smart = util.smart;
 

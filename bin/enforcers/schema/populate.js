@@ -15,8 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception     = require('../exception');
-const util          = require('../util');
+const Exception     = require('../../exception');
+const util          = require('../../util');
 
 exports.injector = {
     colon: buildInjector(() => /:([_$a-z][_$a-z0-9]*)/ig),
@@ -52,7 +52,6 @@ function populate(exception, version, map, schema, params, object, property, opt
     if (!schema) return;
     const type = schema.type;
     const value = object[property];
-    let result;
 
     // if condition is not met then exit
     if (schema.hasOwnProperty('x-condition') && !params[schema['x-condition']]) return;

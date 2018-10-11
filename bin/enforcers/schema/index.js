@@ -15,18 +15,18 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception     = require('../exception');
+const Exception     = require('../../exception');
 const populate      = require('./populate');
 const random        = require('./random');
 const serial        = require('./serialize');
+const Super         = require('../super');
 const validate      = require('./validate');
 
 const store = new WeakMap();
 
-module.exports = Schema;
+module.exports = Super(Schema);
 
 function Schema({ exception, definition, warn }) {
-    Object.assign(this, definition);
 
     // validate the default value
     if (definition.hasOwnProperty('default')) {

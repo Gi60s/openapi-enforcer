@@ -15,9 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception         = require('../exception');
+const Exception         = require('../../exception');
 const Schema            = require('./index');
-const util              = require('../util');
+const util              = require('../../util');
 
 /**
  * Merge multiple schemas and validate the final schema.

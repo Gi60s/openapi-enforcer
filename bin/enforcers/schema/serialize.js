@@ -15,11 +15,11 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception = require('../exception');
-const Ignored   = require('../../ignored');
-const rx        = require('../rx');
-const util      = require('../util');
-const Result    = require('../result');
+const Exception = require('../../exception');
+const Ignored   = require('../../../ignored');
+const rx        = require('../../rx');
+const util      = require('../../util');
+const Result    = require('../../result');
 
 const zeros = '00000000';
 
