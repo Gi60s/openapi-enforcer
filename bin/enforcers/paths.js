@@ -23,8 +23,6 @@ const rxPathParam = /{([^}]+)}/;
 module.exports = Super(Paths);
 
 function Paths({ exception, definition }) {
-    Object.assign(this, definition);
-
     const pathParsers = {};
     const pathEquivalencies = {};
     Object.keys(definition).forEach(pathKey => {
