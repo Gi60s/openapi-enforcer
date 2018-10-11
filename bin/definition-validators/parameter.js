@@ -34,6 +34,7 @@ function ParameterObject(data) {
                 type: 'string'
             },
             in: {
+                weight: -10,
                 required: true,
                 type: 'string',
                 enum: ({major}) => major === 2
@@ -88,6 +89,7 @@ function ParameterObject(data) {
     } else if (major === 3) {
         Object.assign(this.properties, {
             style: {
+                weight: -5,
                 type: 'string',
                 default: ({ parent }) => {
                     switch (parent.value.in) {
@@ -121,7 +123,9 @@ function ParameterObject(data) {
             },
             explode: {
                 type: 'boolean',
-                default: ({parent}) => parent.value.style === 'form',
+                default: ({parent}) => {
+                    return parent.value.style === 'form';
+                },
                 errors: ({exception, parent}) => {
                     const type = parent.value.schema && parent.value.schema.type;
                     if (parent.value.in === 'cookie' && parent.value.explode && (type === 'array' || type === 'object')) {
