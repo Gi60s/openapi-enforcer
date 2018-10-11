@@ -36,14 +36,16 @@ exports.openapi = function(definition) {
             const minor = +match[2];
             const patch = +(match[3] || 0);
             const parent = null;
+            const plugins = [];
             const result = {};
             const validator = OpenAPI;
             const value = util.copy(definition);
             const key = undefined;
 
-            const root = { exception, key, major, map, minor, parent, patch, result, validator, value, warn };
+            const root = { exception, key, major, map, minor, parent, patch, plugins, result, validator, value, warn };
             root.root = root;
             normalize(root);
+            plugins.forEach(plugin => plugin());
             return new Result(result.value, exception, warn);
         } else {
             return new Result(null, exception('Invalid value for property: ' + (hasSwagger ? 'swagger' : 'openapi')));
@@ -65,12 +67,13 @@ exports.component = function(Constructor, data) {
             major: data.major,
             minor: data.minor,
             patch: data.patch,
+            plugins: data.plugins,
             raw: data,
             get root() { return data.root.result.value },
             warn: data.warn
         };
 
-        return new Constructor(enforcerData);
+        return Constructor(enforcerData);
     }
 };
 
@@ -85,13 +88,15 @@ exports.normalize = function(version, validator, definition) {
     const minor = +match[2];
     const patch = +(match[3] || 0);
     const parent = null;
+    const plugins = [];
     const result = {};
     const value = util.copy(definition);
     const key = undefined;
 
-    const root = { exception, key, major, map, minor, parent, patch, result, validator, value, warn };
+    const root = { exception, key, major, map, minor, parent, patch, plugins, result, validator, value, warn };
     root.root = root;
     normalize(root);
+    plugins.forEach(plugin => plugin());
     return new Result(result.value, exception, warn);
 };
 
@@ -105,6 +110,7 @@ exports.normalize = function(version, validator, definition) {
  * @param {number} data.minor
  * @param {object} data.parent
  * @param {number} data.patch
+ * @param {Array<function>} data.plugins
  * @param {*} data.root
  * @param {object} data.validator
  * @param {*} data.value
@@ -112,7 +118,7 @@ exports.normalize = function(version, validator, definition) {
  * @returns {*}
  */
 function normalize(data) {
-    const { exception, major, map, minor, parent, patch, result, root, value, warn } = data = Object.assign({}, data);
+    const { exception, major, map, minor, parent, patch, plugins, result, root, value, warn } = data = Object.assign({}, data);
 
     // if this definition has already been processed then return result
     if (value && typeof value === 'object') {
@@ -147,6 +153,7 @@ function normalize(data) {
                     minor,
                     parent: data,
                     patch,
+                    plugins,
                     result: r,
                     root,
                     validator: validator.items,
@@ -170,6 +177,7 @@ function normalize(data) {
                         minor,
                         parent: data,
                         patch,
+                        plugins,
                         result: r,
                         root,
                         validator: additionalPropertiesValidator,
@@ -204,10 +212,17 @@ function normalize(data) {
                 const allowed = {};
                 const ignores = {};
                 const missingRequired = [];
-                const properties = validator.properties;
+
+                const properties = Object.keys(validator.properties)
+                    .map(key => {
+                        const value = validator.properties[key];
+                        return { key: key, validator: value, weight: value.weight || 0 }
+                    });
+                properties.sort((a, b) => a.weight < b.weight ? -1 : 1);
 
                 // check for missing required and set defaults
-                Object.keys(properties).forEach(key => {
+                properties.forEach(prop => {
+                    const key = prop.key;
                     const param = {
                         exception: exception.at(key),
                         key,
@@ -215,8 +230,9 @@ function normalize(data) {
                         minor,
                         parent: data,
                         patch,
+                        plugins,
                         root,
-                        validator: properties[key],
+                        validator: prop.validator,
                         value: value[key],
                         warn: warn.at(key)
                     };
@@ -264,6 +280,7 @@ function normalize(data) {
                             minor,
                             parent: data,
                             patch,
+                            plugins,
                             result: r,
                             root,
                             value: value[key],
@@ -290,6 +307,7 @@ function normalize(data) {
                     minor,
                     parent,
                     patch,
+                    plugins,
                     root,
                     validator,
                     value,
@@ -308,6 +326,7 @@ function normalize(data) {
                     minor,
                     parent,
                     patch,
+                    plugins,
                     root,
                     validator,
                     value: result.value,
