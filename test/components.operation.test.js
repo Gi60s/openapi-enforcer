@@ -170,7 +170,7 @@ describe('components/operation', () => {
 
                     it('can deserialize exploded primitive', () => {
                         def.parameters[0].schema = numSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation, err ] = definition(3, Operation, def);
                         const [ req ] = operation.request({ header: { cookie: 'user=12345' } });
                         expect(req.cookie.user).to.equal(12345);
                     });

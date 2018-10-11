@@ -50,7 +50,6 @@ describe('definitions/parameter', () => {
 
         it('can be set', () => {
             const [ , err ] = definition(3, Parameter, { name: 'hi', in: 'query', schema, allowReserved: true });
-            console.log('' + err);
             expect(err).to.be.undefined;
         });
 

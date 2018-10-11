@@ -19,7 +19,7 @@ const DefinitionBuilder    = require('../bin/definition-builder');
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
 
-describe.only('enforcer/request', () => {
+describe('enforcer/request', () => {
 
     describe('path parameters', () => {
 
@@ -763,8 +763,7 @@ describe.only('enforcer/request', () => {
                             })
                         .build();
                     const enforcer = Enforcer(def);
-                    const [ req, err ] = enforcer.request({ path: '/?a=1&b=2&c=3&d=4' });
-                    console.log(''+err);
+                    const [ req ] = enforcer.request({ path: '/?a=1&b=2&c=3&d=4' });
                     expect(req.query).to.deep.equal({
                         x: { a:1, b:2 },
                         y: { a:'1', b: '2', c:'3', d:'4' }
@@ -875,7 +874,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'spaceDelimited',
                             explode: true
-                        });
+                        })
+                        .build();
                     expect(() => Enforcer(def)).to.throw(/Style "spaceDelimited" is incompatible with schema type: number/);
                 });
 
@@ -887,7 +887,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'spaceDelimited',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=1 2' });
                     expect(req.query.value).to.deep.equal([1,2]);
@@ -901,7 +902,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'spaceDelimited',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.deep.equal([1, 2]);
@@ -921,7 +923,8 @@ describe.only('enforcer/request', () => {
                             },
                             style: 'spaceDelimited',
                             explode: false
-                        });
+                        })
+                        .build();
                     expect(() => Enforcer(def)).to.throw(/Style "spaceDelimited" is incompatible with schema type: object/);
                 });
 
@@ -952,7 +955,8 @@ describe.only('enforcer/request', () => {
                                 },
                                 style: 'spaceDelimited',
                                 explode: true
-                            });
+                            })
+                        .build();
                     expect(() => Enforcer(def)).to.throw(/Style "spaceDelimited" is incompatible with schema type: object/);
                 });
 
@@ -968,7 +972,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'pipeDelimited',
                             explode: false
-                        });
+                        })
+                        .build();
                     expect(() => Enforcer(def)).to.throw(/Style "pipeDelimited" is incompatible with schema type: number/);
                 });
 
@@ -980,7 +985,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'pipeDelimited',
                             explode: true
-                        });
+                        })
+                        .build();
                     expect(() => Enforcer(def)).to.throw(/Style "pipeDelimited" is incompatible with schema type: number/);
                 });
 
@@ -992,7 +998,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'pipeDelimited',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=1|2' });
                     expect(req.query.value).to.deep.equal([1,2]);
@@ -1006,7 +1013,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'pipeDelimited',
                             explode: true
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.deep.equal([1, 2]);
@@ -1026,7 +1034,8 @@ describe.only('enforcer/request', () => {
                             },
                             style: 'pipeDelimited',
                             explode: false
-                        });
+                        })
+                        .build();
                     expect(() => Enforcer(def)).to.throw(/Style "pipeDelimited" is incompatible with schema type: object/);
                 });
 
@@ -1057,7 +1066,8 @@ describe.only('enforcer/request', () => {
                                 },
                                 style: 'pipeDelimited',
                                 explode: true
-                            });
+                            })
+                        .build();
                     expect(() => Enforcer(def)).to.throw(/Style "pipeDelimited" is incompatible with schema type: object/);
                 });
 
@@ -1073,7 +1083,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'deepObject',
                             explode: false
-                        });
+                        })
+                        .build();
                     expect(() => Enforcer(def)).to.throw(/Style "deepObject" is incompatible with schema type: number/);
                 });
 
@@ -1085,7 +1096,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'number' },
                             style: 'deepObject',
                             explode: true
-                        });
+                        })
+                        .build();
                     expect(() => Enforcer(def)).to.throw(/Style "deepObject" is incompatible with schema type: number/);
                 });
 
@@ -1097,7 +1109,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'deepObject',
                             explode: false
-                        });
+                        })
+                        .build();
                     expect(() => Enforcer(def)).to.throw(/Style "deepObject" is incompatible with schema type: array/);
                 });
 
@@ -1109,7 +1122,8 @@ describe.only('enforcer/request', () => {
                             schema: { type: 'array', items: { type: 'number' } },
                             style: 'deepObject',
                             explode: true
-                        });
+                        })
+                        .build();
                     expect(() => Enforcer(def)).to.throw(/Style "deepObject" is incompatible with schema type: array/);
                 });
 
@@ -1127,9 +1141,10 @@ describe.only('enforcer/request', () => {
                             },
                             style: 'deepObject',
                             explode: false
-                        });
+                        })
+                        .build();
                     const enforcer = Enforcer(def);
-                    const [err, req] = enforcer.request({ path: '/?value[a]=1&value[b]=2' });
+                    const [ req ] = enforcer.request({ path: '/?value[a]=1&value[b]=2' });
                     expect(req.query.value).to.deep.equal({ a: 1, b: 2 });
                 });
 
@@ -1160,7 +1175,8 @@ describe.only('enforcer/request', () => {
                                 },
                                 style: 'deepObject',
                                 explode: true
-                            });
+                            })
+                        .build();
                     const enforcer = Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?x[a]=1&x[b]=2&y[c]=3&y[d]=4' });
                     expect(req.query).to.deep.equal({ x: { a:1, b:2 }, y: { c:3, d:4 } });
@@ -1180,10 +1196,11 @@ describe.only('enforcer/request', () => {
                     name: 'vALUe',
                     in: 'header',
                     type: 'string'
-                });
+                })
+                .build();
             const enforcer = Enforcer(def);
-            const [ req ] = enforcer.request({ path: '/', headers: { VAlue: 'abc' } });
-            expect(req.headers.VAlue).to.equal('abc');
+            const [ req ] = enforcer.request({ path: '/', header: { VAlue: 'abc' } });
+            expect(req.header.value).to.equal('abc');
         });
 
         it('cannot have property allowEmptyValue', () => {
@@ -1193,7 +1210,8 @@ describe.only('enforcer/request', () => {
                     in: 'header',
                     type: 'string',
                     allowEmptyValue: true
-                });
+                })
+                .build();
             expect(() => Enforcer(def)).to.throw(/Property not allowed: allowEmptyValue/);
         });
 
@@ -1203,9 +1221,10 @@ describe.only('enforcer/request', () => {
                     name: 'value',
                     in: 'header',
                     type: 'string'
-                });
+                })
+                .build();
             const enforcer = Enforcer(def);
-            const [ , err ] = enforcer.request({ path: '/', headers: { value: '' } });
+            const [ , err ] = enforcer.request({ path: '/', header: { value: '' } });
             expect(err).to.match(/Empty value not allowed/);
         });
 
@@ -1219,10 +1238,11 @@ describe.only('enforcer/request', () => {
                         in: 'header',
                         type: 'string',
                         format: 'date'
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', headers: { value: '2000-01-01' } });
-                expect(req.headers.value).to.deep.equal(new Date('2000-01-01'));
+                const [ req ] = enforcer.request({ path: '/', header: { value: '2000-01-01' } });
+                expect(req.header.value).to.deep.equal(new Date('2000-01-01'));
             });
 
             it('will deserialize array of numbers', () => {
@@ -1232,10 +1252,11 @@ describe.only('enforcer/request', () => {
                         in: 'header',
                         type: 'array',
                         items: { type: 'number' }
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
-                expect(req.headers.value).to.deep.equal([1,2,3]);
+                const [ req ] = enforcer.request({ path: '/', header: { value: '1,2,3' } });
+                expect(req.header.value).to.deep.equal([1,2,3]);
             });
 
             it('will not allow multi collection format', () => {
@@ -1246,8 +1267,9 @@ describe.only('enforcer/request', () => {
                         type: 'array',
                         collectionFormat: 'multi',
                         items: { type: 'number' }
-                    });
-                expect(() => Enforcer(def)).to.throw(/Property "collectionFormat" has invalid value/);
+                    })
+                    .build();
+                expect(() => Enforcer(def)).to.throw(/Value must be one of: csv, ssv, tsv, pipes. Received: "multi"/);
             });
 
         });
@@ -1262,10 +1284,11 @@ describe.only('enforcer/request', () => {
                         schema: { type: 'number' },
                         explode: false
                     })
-                    .addPath('/', 'get');
+                    .addPath('/', 'get')
+                    .build();
                 const enforcer = Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', headers: { value: '1' } });
-                expect(req.headers.value).to.equal(1);
+                const [ req ] = enforcer.request({ path: '/', header: { value: '1' } });
+                expect(req.header.value).to.equal(1);
             });
 
             it('primitive explode', () => {
@@ -1275,10 +1298,11 @@ describe.only('enforcer/request', () => {
                         in: 'header',
                         schema: { type: 'number' },
                         explode: true
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', headers: { value: '1' } });
-                expect(req.headers.value).to.equal(1);
+                const [ req ] = enforcer.request({ path: '/', header: { value: '1' } });
+                expect(req.header.value).to.equal(1);
             });
 
             it('array', () => {
@@ -1288,10 +1312,11 @@ describe.only('enforcer/request', () => {
                         in: 'header',
                         schema: { type: 'array', items: { type: 'number' } },
                         explode: false
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
-                expect(req.headers.value).to.deep.equal([1,2,3]);
+                const [ req ] = enforcer.request({ path: '/', header: { value: '1,2,3' } });
+                expect(req.header.value).to.deep.equal([1,2,3]);
             });
 
             it('array explode', () => {
@@ -1301,10 +1326,11 @@ describe.only('enforcer/request', () => {
                         in: 'header',
                         schema: { type: 'array', items: { type: 'number' } },
                         explode: true
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
-                expect(req.headers.value).to.deep.equal([1,2,3]);
+                const [ req ] = enforcer.request({ path: '/', header: { value: '1,2,3' } });
+                expect(req.header.value).to.deep.equal([1,2,3]);
             });
 
             it('object', () => {
@@ -1320,10 +1346,11 @@ describe.only('enforcer/request', () => {
                             }
                         },
                         explode: false
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', headers: { value: 'a,1,b,2' } });
-                expect(req.headers.value).to.deep.equal({a:1,b:2});
+                const [ req ] = enforcer.request({ path: '/', header: { value: 'a,1,b,2' } });
+                expect(req.header.value).to.deep.equal({a:1,b:2});
             });
 
             it('object explode', () => {
@@ -1340,10 +1367,11 @@ describe.only('enforcer/request', () => {
                                 }
                             },
                             explode: true
-                        });
+                        })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', headers: { x: 'a=1,b=2' } });
-                expect(req.headers.x).to.deep.equal({ a:1, b:2 });
+                const [ req ] = enforcer.request({ path: '/', header: { x: 'a=1,b=2' } });
+                expect(req.header.x).to.deep.equal({ a:1, b:2 });
             });
 
         });
@@ -1360,8 +1388,9 @@ describe.only('enforcer/request', () => {
                         name: 'value',
                         in: 'cookie',
                         type: 'string'
-                    });
-                expect(() => Enforcer(def)).to.throw(/Property "in" has invalid value: "cookie"/);
+                    })
+                    .build();
+                expect(() => Enforcer(def)).to.throw(/Value must be one of: body, formData, header, query, path. Received: "cookie"/);
             });
 
         });
@@ -1376,10 +1405,11 @@ describe.only('enforcer/request', () => {
                         schema: { type: 'number' },
                         explode: false
                     })
-                    .addPath('/', 'get');
+                    .addPath('/', 'get')
+                    .build();
                 const enforcer = Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', cookies: 'value=1' });
-                expect(req.cookies.value).to.equal(1);
+                const [ req ] = enforcer.request({ path: '/', header: { cookie: 'value=1' } });
+                expect(req.cookie.value).to.equal(1);
             });
 
             it('primitive explode', () => {
@@ -1389,10 +1419,11 @@ describe.only('enforcer/request', () => {
                         in: 'cookie',
                         schema: { type: 'number' },
                         explode: true
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', cookies: 'value=1' });
-                expect(req.cookies.value).to.equal(1);
+                const [ req ] = enforcer.request({ path: '/', header: { cookie: 'value=1' } });
+                expect(req.cookie.value).to.equal(1);
             });
 
             it('array', () => {
@@ -1402,10 +1433,11 @@ describe.only('enforcer/request', () => {
                         in: 'cookie',
                         schema: { type: 'array', items: { type: 'number' } },
                         explode: false
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', cookies: 'value=1,2,3' });
-                expect(req.cookies.value).to.deep.equal([1,2,3]);
+                const [ req ] = enforcer.request({ path: '/', header: { cookie: 'value=1,2,3' } });
+                expect(req.cookie.value).to.deep.equal([1,2,3]);
             });
 
             it('array explode', () => {
@@ -1415,8 +1447,9 @@ describe.only('enforcer/request', () => {
                         in: 'cookie',
                         schema: { type: 'array', items: { type: 'number' } },
                         explode: true
-                    });
-                expect(() => Enforcer(def)).to.throw(/Cookies do not support exploded style "form" with schema type: array/);
+                    })
+                    .build();
+                expect(() => Enforcer(def)).to.throw(/Cookies do not support exploded values for non-primitive schemas/);
             });
 
             it('object', () => {
@@ -1432,10 +1465,11 @@ describe.only('enforcer/request', () => {
                             }
                         },
                         explode: false
-                    });
+                    })
+                    .build();
                 const enforcer = Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', cookies: 'value=a,1,b,2' });
-                expect(req.cookies.value).to.deep.equal({a:1,b:2});
+                const [ req ] = enforcer.request({ path: '/', header: { cookie: 'value=a,1,b,2' } });
+                expect(req.cookie.value).to.deep.equal({a:1,b:2});
             });
 
             it('object explode', () => {
@@ -1452,8 +1486,9 @@ describe.only('enforcer/request', () => {
                                 }
                             },
                             explode: true
-                        });
-                expect(() => Enforcer(def)).to.throw(/Cookies do not support exploded style "form" with schema type: object/);
+                        })
+                    .build();
+                expect(() => Enforcer(def)).to.throw(/Cookies do not support exploded values for non-primitive schemas/);
             });
 
         });
@@ -1473,6 +1508,8 @@ describe.only('enforcer/request', () => {
             });
 
             describe('in formData', () => {
+
+                it('requires the definition to be one of ')
 
             });
 
