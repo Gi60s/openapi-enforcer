@@ -138,7 +138,7 @@ function deserialize(exception, map, schema, value) {
             exception('Expected an array. Received: ' + util.smart(value));
         }
 
-    } else if (type === 'object') {
+    } else if (type === 'object') { // TODO: make sure that serialize and deserialze properly throw errors for invalid object properties
         if (util.isPlainObject(value)) {
             const result = {};
             const additionalProperties = schema.additionalProperties;

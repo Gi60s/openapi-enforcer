@@ -48,6 +48,8 @@ exports.populate = function(schema, params, value, options) {
     }
 };
 
+// TODO: add x-populate functionality
+
 function populate(exception, version, map, schema, params, object, property, options) {
     if (!schema) return;
     const type = schema.type;
