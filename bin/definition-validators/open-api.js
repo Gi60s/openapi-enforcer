@@ -52,6 +52,7 @@ function OpenAPIObject({ major }) {
                 }
             },
             components: {
+                weight: -1,
                 component: ComponentsEnforcer,
                 allowed: major === 3,
                 type: 'object',
@@ -97,6 +98,7 @@ function OpenAPIObject({ major }) {
                 items: 'string'
             },
             definitions: {
+                weight: -1,
                 allowed: major === 2,
                 type: 'object',
                 additionalProperties: Schema
