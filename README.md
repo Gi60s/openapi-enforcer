@@ -1,16 +1,19 @@
 
 # OpenAPI-Enforcer
 
-**Supports OpenAPI 2.0 (formerly Swagger) and OpenAPI 3.x**
+Tools for validating and using the Open API Specification (OAS).
+
+**Supports OAS 2.0 (formerly Swagger) and OAS 3.x**
 
 Features
 
-- Validate a value against a schema
-- Determine the schema for a provided path (allows path parameters)
-- Serialization and deserialization for interprocess or network communication
-- Request parsing and validating
-- Response building, serializing, and validating
-- Generate random valid values from a schema
+- [Validate](#) your OAS documents.
+- [Serialize](#), [deserialize](#), and [validate values](#) against OAS schemas.
+- Identify the [operation](#) associated with a [request](#).
+- Request parsing and validating.
+- Facilitated [response building](#) with automated [serialization](#) and [validating](#).
+- Generate [random valid values](#) from a schema.
+- [Plugin environment](#) for [custom document validation](#) and [extended object functionality](#).
 
 # Table of Contents
 
