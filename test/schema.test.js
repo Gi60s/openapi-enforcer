@@ -30,7 +30,7 @@ describe('request', () => {
                 a: {
                     type: 'integer',
                     'x-variable': 'myInteger',
-                    'x-allow-null': true,
+                    'x-nullable': true,
                     minimum: 0,
                     maximum: 10
                 },
@@ -90,12 +90,14 @@ describe('request', () => {
         expect(() => schema.validate({ a: 15 })).to.throw(/less than or equal to 10/)
     });
 
-    it('can allow null value with x-allow-null in schema', () => {
-        expect(() => schema.validate({ a: null })).not.to.throw(Error);
-    })
+    it('can allow null value with x-nullable in schema', () => {
+        expect(() =>
+            schema.validate({ a: null })
+        ).not.to.throw(Error);
+    });
 
-    it('does not allow null value without x-allow-null in schema', () => {
+    it('does not allow null value without x-nullable in schema', () => {
         expect(() => schema.validate({ b: null })).to.throw(/Expected a valid date object. Received: null/);
-    })
+    });
 
 });

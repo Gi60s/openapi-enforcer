@@ -295,7 +295,7 @@ describe('#serialize', () => {
         };
 
         function create(v) {
-            return { a: v, b: v, c: v, d: v, x: v, o: { x: v, y: v }};
+            return { a: v, b: v, c: v, d: v, o: { x: v, y: v }};
         }
 
         it('number', () => {
