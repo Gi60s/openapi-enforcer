@@ -74,6 +74,8 @@ function deserialize(exception, schema, value) {
                             result[key] = deserialize(exception.nest('/' + key), properties[key], value[key]);
                         } else if (additionalProperties) {
                             result[key] = deserialize(exception.nest('/' + key), additionalProperties, value[key]);
+                        } else {
+                            exception.push('Property not allowed: ' + key);
                         }
                     });
                     return result;
@@ -145,6 +147,8 @@ function serialize(exception, schema, value) {
                             result[key] = serialize(exception.nest('/' + key), additionalProperties, value[key]);
                         } else if (additionalProperties) {
                             result[key] = value[key];
+                        } else {
+                            exception.push('Property not allowed: ' + key);
                         }
                     });
                     return result;
