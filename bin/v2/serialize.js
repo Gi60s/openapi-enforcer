@@ -72,8 +72,10 @@ function deserialize(exception, schema, value) {
                     Object.keys(value).forEach(key => {
                         if (properties.hasOwnProperty(key)) {
                             result[key] = deserialize(exception.nest('/' + key), properties[key], value[key]);
-                        } else if (additionalProperties) {
+                        } else if (typeof additionalProperties === 'object') {
                             result[key] = deserialize(exception.nest('/' + key), additionalProperties, value[key]);
+                        } else if (additionalProperties) {
+                            result[key] = value[key];
                         } else {
                             exception.push('Property not allowed: ' + key);
                         }
