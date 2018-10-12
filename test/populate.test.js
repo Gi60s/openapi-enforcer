@@ -220,6 +220,77 @@ describe('#populate', () => {
             expect(value).to.deep.equal({ a: { x: 5 } });
         });
 
+        describe('x-populate', () => {
+            let schema;
+
+            beforeEach(() => {
+                schema = {
+                    type: 'object',
+                    properties: {
+                        a: { type: 'string', default: 'a' },
+                        b: {
+                            type: 'object',
+                            properties: {
+                                c: { type: 'string' },
+                                d: { type: 'string', default: 'd' }
+                            }
+                        }
+                    }
+                };
+            });
+
+            it('will populate everything if no x-populate specified', () => {
+                const value = enforcer.populate(schema, {}, {});
+                expect(value).to.deep.equal({ a: 'a', b: { d: 'd' } })
+            });
+
+            it('will populate everything if no x-populate is truthy', () => {
+                schema.properties.b['x-populate'] = {};
+                const value = enforcer.populate(schema, {}, {});
+                expect(value).to.deep.equal({ a: 'a', b: { d: 'd' } })
+            });
+
+            it('will not populate values where x-populate is false', () => {
+                schema.properties.b['x-populate'] = false;
+                const value = enforcer.populate(schema, {}, {});
+                expect(value).to.deep.equal({ a: 'a' })
+            });
+
+            it('will not populate values where x-populate variable value is false', () => {
+                schema.properties.b['x-populate'] = 'populateMe';
+                const value = enforcer.populate(schema, { populateMe: false }, {});
+                expect(value).to.deep.equal({ a: 'a' })
+            });
+
+        });
+
+        describe('partial invalid populations', () => {
+            let schema;
+
+            beforeEach(() => {
+                schema = {
+                    type: 'object',
+                    properties: {
+                        a: { type: 'string', default: 'a' },
+                        b: {
+                            type: 'object',
+                            required: ['c'],
+                            properties: {
+                                c: { type: 'string' },
+                                d: { type: 'string', default: 'd' }
+                            }
+                        }
+                    }
+                };
+            });
+
+            it('will not build the invalid object if only defaults are used', () => {
+                const value = enforcer.populate(schema, {}, {}, { ignoreMissingRequired: false });
+                expect(value).to.deep.equal({ a: 'a' });
+            });
+
+        });
+
         it('allOf', () => {
             const schema = {
                 allOf: [

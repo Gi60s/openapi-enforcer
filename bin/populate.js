@@ -30,6 +30,11 @@ exports.populate = function(v, exception, schema, object, property) {
     const type = util.schemaType(schema);
     let value = object[property];
 
+    if (schema.hasOwnProperty('x-populate')) {
+        const xPopulate = schema['x-populate'];
+        if (xPopulate === false || (typeof xPopulate === 'string' && !v.map[xPopulate])) return;
+    }
+
     if (schema.allOf) {
         schema.allOf.forEach((schema, index) => exports.populate(v, exception.nest('/allOf/' + index), schema, object, property));
 
@@ -167,107 +172,4 @@ function parseStringValue(exception, schema, value) {
         default:
             return value;
     }
-}
-
-function populate(version, schema, params, value, options) {
-    if (!params) params = {};
-
-    // normalize options
-    options = Object.assign({}, data.defaults.populate, options, version.defaults.populate);
-
-    // produce start value
-    if (options.copy) value = util.copy(value);
-
-    // acquire injector
-    const injector = populate.injector[options.replacement];
-
-    const result = traverse({
-        schema: schema,
-        value: value,
-        version: version,
-        handler: data => {
-            const schema = data.schema;
-            const type = data.type;
-
-            // if there is no value then attempt to populate one
-            if (data.value === undefined) {
-                if (options.variables && schema.hasOwnProperty('x-variable') && params.hasOwnProperty(schema['x-variable'])) {
-                    const value = params[schema['x-variable']];
-                    if (value !== undefined) data.value = value;
-
-                } else if (options.templates && type === 'string' && schema.hasOwnProperty('x-template')) {
-                    const value = injector(schema['x-template'], params);
-                    data.value = parseStringValue(exception, schema, value);
-
-                } else if (options.defaults && schema.hasOwnProperty('default')) {
-                    const defaultValue = schema.default;
-                    if (defaultValue !== undefined) {
-                        const value = options.templateDefaults && typeof defaultValue === 'string'
-                            ? injector(defaultValue, params)
-                            : defaultValue;
-                        data.value = parseStringValue(exception, schema, value);
-                    }
-                }
-            }
-
-            // if there is still no value and schema is for an object then try to populate its properties
-            if (type === 'object') {
-
-            }
-
-
-            // if still no value, maybe go deeper
-            if (data.value === undefined) {
-
-                switch (data.type) {
-                    case 'anyOf':
-                    case 'oneOf':
-                        schemas = data.type === 'anyOf' ? schema.anyOf : schema.oneOf;
-                        index = Math.floor(Math.random() * schemas.length);
-                        data.schema = schemas[index];
-                        data.again();
-                        break;
-
-                    case 'allOf':
-                        // if (type === 'object') {
-                        //     const merged = {};
-                        //     const schemas = schema.allOf;
-                        //     const length = schemas.length;
-                        //     let hasValue;
-                        //     for (let i = 0; i < length; i++) {
-                        //         const schema = schemas[i];
-                        //         if (!schema.type || util.schemaType(schema) === 'object') {
-                        //             if (schema.properties)
-                        //         } else {
-                        //             message('Invalid schema type at index: ' + i);
-                        //         }
-                        //     }
-                        //
-                        //     const merged = schema.allOf.reduce((p, c) => {
-                        //         Object.assign(p, { properties: })
-                        //     }, {})
-                        // } else {
-                        //     message('Unable to populate "allOf" except for type "object"')
-                        // }
-                        data.value = undefined;     // TODO: future functionality
-                        break;
-
-                    case 'not':
-                        message('Unable to populate "not" except for objects')
-                        break;
-
-                    default:
-                }
-            }
-
-            // if still no value then go deeper on arrays or objects
-            if (data.value === undefined) {
-                if (type === 'array') {
-
-                } else if (type === 'object') {
-
-                }
-            }
-        }
-    });
 }
