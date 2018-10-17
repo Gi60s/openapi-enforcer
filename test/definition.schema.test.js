@@ -15,11 +15,49 @@
  *    limitations under the License.
  **/
 'use strict';
+const assert        = require('../bin/assert');
 const definition    = require('../bin/definition-validator').normalize;
+const Enforcer      = require('../index');
 const expect        = require('chai').expect;
 const Schema        = require('../bin/definition-validators/schema');
 
 describe('definitions/schema', () => {
+    const schemas = {
+        Cat: {
+            type: 'object',
+            properties: {
+                huntingSkill: { type: 'string' }
+            }
+        },
+        Dog: {
+            type: 'object',
+            properties: {
+                packSize: { type: 'integer', minimum: 1 }
+            }
+        },
+        Pet2: {
+            type: 'object',
+            required: ['petType'],
+            properties: {
+                petType: { type: 'string' },
+                discriminator: 'petType'
+            }
+        },
+        Pet3: {
+            type: 'object',
+            required: ['petType'],
+            properties: {
+                petType: { type: 'string' },
+                discriminator: {
+                    propertyName: 'petType',
+                    mapping: {
+                        gato: 'Cat',
+                        perro: '#/components/schemas/Dog'
+                    }
+                }
+            }
+        }
+    };
 
     it('allows a valid schema object', () => {
         const [ , err ] = definition(2, Schema, { type: 'string' });
@@ -262,8 +300,118 @@ describe('definitions/schema', () => {
 
         describe('v3', () => {
 
-            it('todo', () => {
-                throw Error('TODO'); // TODO
+            it('can be valid', () => {
+                const [ , err ] = definition(3, Schema, {
+                    type: 'object',
+                    properties: { a: { type: 'string' } },
+                    discriminator: {
+                        propertyName: 'a'
+                    },
+                    required: ['a']
+                });
+                expect(err).to.be.undefined;
+            });
+
+            it('must be an object', () => {
+                const [ , err ] = definition(3, Schema, {
+                    type: 'object',
+                    properties: { a: { type: 'string' } },
+                    discriminator: 'a',
+                    required: ['a']
+                });
+                expect(err).to.match(/Value must be a plain object. Received: "a"/);
+            });
+
+            it('must have propertyName property', () => {
+                const [ , err ] = definition(3, Schema, {
+                    type: 'object',
+                    properties: { a: { type: 'string' } },
+                    discriminator: {},
+                    required: ['a']
+                });
+                expect(err).to.match(/Missing required property: propertyName/);
+            });
+
+            it('requires that propertyName property be a string', () => {
+                const [ , err ] = definition(3, Schema, {
+                    type: 'object',
+                    properties: { a: { type: 'string' } },
+                    discriminator: {
+                        propertyName: 5
+                    },
+                    required: ['a']
+                });
+                expect(err).to.match(/at: propertyName\n +Value must be a string/);
+            });
+
+            it('must have the propertyName as a required property', () => {
+                const [ , err ] = definition(3, Schema, {
+                    type: 'object',
+                    discriminator: {
+                        propertyName: 'a'
+                    },
+                    required: ['a']
+                });
+                expect(err).to.match(/Value "a" must be found in the parent's properties definition/);
+            });
+
+            it('allows a mapping', () => {
+                const [ , err ] = definition(3, Schema, {
+                    type: 'object',
+                    properties: { a: { type: 'string' } },
+                    discriminator: {
+                        propertyName: 'a',
+                        mapping: {
+                            x: '#/components/X'
+                        }
+                    },
+                    required: ['a']
+                });
+                expect(err).to.be.undefined;
+            });
+
+            it('requires each mapping value to be a string', () => {
+                const [ , err ] = definition(3, Schema, {
+                    type: 'object',
+                    properties: { a: { type: 'string' } },
+                    discriminator: {
+                        propertyName: 'a',
+                        mapping: {
+                            x: 1
+                        }
+                    },
+                    required: ['a']
+                });
+                expect(err).to.match(/> x\n +Value must be a string/);
+            });
+
+            it('requires mapping to resolve to schema instance', async () => {
+                const def = {
+                    openapi: '3.0.0',
+                    info: { title: '', version: '' },
+                    components: {
+                        schemas: {
+                            Cat: schemas.Cat,
+                            Dog: schemas.Dog,
+                            Pet: {
+                                type: 'object',
+                                required: ['petType'],
+                                properties: {
+                                    petType: { type: 'string' }
+                                },
+                                discriminator: {
+                                    propertyName: 'petType',
+                                    mapping: {
+                                        gato: 'Cat',
+                                        perro: '#/components/schemas/Dog',
+                                        vaca: '#/components/schemas/Vaca'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+                assert.willReject(() => Enforcer(def), /Reference cannot be resolved: #\/components\/schemas\/Vaca/)
             })
 
         });
