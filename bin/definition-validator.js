@@ -16,41 +16,50 @@
  **/
 'use strict';
 const Exception = require('./exception');
+const RefParser = require('json-schema-ref-parser');
 const Result    = require('./result');
 const OpenAPI   = require('./definition-validators/open-api');
 const util      = require('./util');
 
 const rxExtension = /^x-.+/;
 
-exports.openapi = function(definition) {
-    const exception = Exception('One or more errors exist in the OpenAPI definition');
-    const warn = Exception('One or more warnings exist in the OpenAPI definition');
-    const hasSwagger = definition.hasOwnProperty('swagger');
-    if (!hasSwagger && !definition.hasOwnProperty('openapi')) {
-        return new Result(null, exception('Missing required "openapi" or "swagger" property'));
-    } else {
-        const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
-        if (match) {
-            const map = new Map();
-            const major = +match[1];
-            const minor = +match[2];
-            const patch = +(match[3] || 0);
-            const parent = null;
-            const plugins = [];
-            const result = {};
-            const validator = OpenAPI;
-            const value = util.copy(definition);
-            const key = undefined;
+exports.openapi = function (definition) {
+    const refParser = new RefParser();
+    return refParser.dereference(definition)
+        .then(definition => {
+            definition = util.copy(definition);
+            const exception = Exception('One or more errors exist in the OpenAPI definition');
+            const warn = Exception('One or more warnings exist in the OpenAPI definition');
+            const hasSwagger = definition.hasOwnProperty('swagger');
+            if (!hasSwagger && !definition.hasOwnProperty('openapi')) {
+                return new Result(null, exception('Missing required "openapi" or "swagger" property'));
+            } else {
+                const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
+                if (match) {
+                    const map = new Map();
+                    const major = +match[1];
+                    const minor = +match[2];
+                    const patch = +(match[3] || 0);
+                    const parent = null;
+                    const plugins = [];
+                    const result = {};
+                    const validator = OpenAPI;
+                    const value = util.copy(definition);
+                    const key = undefined;
 
-            const root = { exception, key, major, map, minor, parent, patch, plugins, result, validator, value, warn };
-            root.root = root;
-            normalize(root);
-            plugins.forEach(plugin => plugin());
-            return new Result(result.value, exception, warn);
-        } else {
-            return new Result(null, exception('Invalid value for property: ' + (hasSwagger ? 'swagger' : 'openapi')));
-        }
-    }
+                    const root = { exception, key, major, map, minor, parent, patch, plugins, refParser, result, validator, value, warn };
+                    root.root = root;
+                    normalize(root);
+                    plugins.forEach(plugin => plugin());
+                    return new Result(result.value, exception, warn);
+                } else {
+                    return new Result(null, exception('Invalid value for property: ' + (hasSwagger ? 'swagger' : 'openapi')));
+                }
+            }
+        })
+        .catch(err => new Result(null, Exception('Unable to evaluate definition')(err.message)))
+
+
 };
 
 exports.component = function(Constructor, data) {
@@ -68,6 +77,7 @@ exports.component = function(Constructor, data) {
             minor: data.minor,
             patch: data.patch,
             plugins: data.plugins,
+            refParser: data.refParser,
             raw: data,
             get root() { return data.root.result.value },
             warn: data.warn
@@ -118,7 +128,7 @@ exports.normalize = function(version, validator, definition) {
  * @returns {*}
  */
 function normalize(data) {
-    const { exception, major, map, minor, parent, patch, plugins, result, root, value, warn } = data = Object.assign({}, data);
+    const { exception, major, map, minor, parent, patch, plugins, refParser, result, root, value, warn } = data = Object.assign({}, data);
 
     // if this definition has already been processed then return result
     if (value && typeof value === 'object') {
@@ -154,6 +164,7 @@ function normalize(data) {
                     parent: data,
                     patch,
                     plugins,
+                    refParser,
                     result: r,
                     root,
                     validator: validator.items,
@@ -178,6 +189,7 @@ function normalize(data) {
                         parent: data,
                         patch,
                         plugins,
+                        refParser,
                         result: r,
                         root,
                         validator: additionalPropertiesValidator,
@@ -231,6 +243,7 @@ function normalize(data) {
                         parent: data,
                         patch,
                         plugins,
+                        refParser,
                         root,
                         validator: prop.validator,
                         value: value[key],
@@ -281,6 +294,7 @@ function normalize(data) {
                             parent: data,
                             patch,
                             plugins,
+                            refParser,
                             result: r,
                             root,
                             value: value[key],
@@ -308,6 +322,7 @@ function normalize(data) {
                     parent,
                     patch,
                     plugins,
+                    refParser,
                     root,
                     validator,
                     value,
@@ -327,6 +342,7 @@ function normalize(data) {
                     parent,
                     patch,
                     plugins,
+                    refParser,
                     root,
                     validator,
                     value: result.value,
