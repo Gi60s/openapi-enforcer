@@ -15,9 +15,10 @@
  *    limitations under the License.
  **/
 'use strict';
-const DefinitionBuilder    = require('../bin/definition-builder');
-const Enforcer      = require('../index');
-const expect        = require('chai').expect;
+const assert            = require('../bin/assert');
+const DefinitionBuilder = require('../bin/definition-builder');
+const Enforcer          = require('../index');
+const expect            = require('chai').expect;
 
 describe('enforcer/request', () => {
 
@@ -25,16 +26,16 @@ describe('enforcer/request', () => {
 
         describe('variations', () => {
 
-            it('/{name}', () => {
+            it('/{name}', async () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/{name}', 'get', { name: 'name', in: 'path', required: true, type: 'string' })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/bob' });
                 expect(req.path).to.deep.equal({ name: 'bob' })
             });
 
-            it('/{a},{b}.{c}-{d}', () => {
+            it('/{a},{b}.{c}-{d}', async () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/{a},{b}.{c}-{d}', 'get',
                         { name: 'a', in: 'path', required: true, type: 'string' },
@@ -42,19 +43,19 @@ describe('enforcer/request', () => {
                         { name: 'c', in: 'path', required: true, type: 'string' },
                         { name: 'd', in: 'path', required: true, type: 'string' })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req] = enforcer.request({ path: '/paths,have.parameters-sometimes' });
                 expect(req.path).to.deep.equal({ a: 'paths', b: 'have', c: 'parameters', d: 'sometimes' })
             });
 
-            it('/{a}/b/{c}/{d}/e', () => {
+            it('/{a}/b/{c}/{d}/e', async () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/{a}/b/{c}/{d}/e', 'get',
                         { name: 'a', in: 'path', required: true, type: 'string' },
                         { name: 'c', in: 'path', required: true, type: 'string' },
                         { name: 'd', in: 'path', required: true, type: 'string' })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req] = enforcer.request({ path: '/a/b/c/d/e' });
                 expect(req.path).to.deep.equal({ a: 'a', c: 'c', d: 'd' })
             });
@@ -63,7 +64,7 @@ describe('enforcer/request', () => {
 
         describe('v2', () => {
 
-            it('will serialize values', () => {
+            it('will serialize values', async () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/{array}/{num}/{boolean}/{date}/{dateTime}/{binary}/{byte}', 'get',
                         { name: 'array', in: 'path', required: true, type: 'array', items: { type: 'integer' } },
@@ -74,7 +75,7 @@ describe('enforcer/request', () => {
                         { name: 'binary', in: 'path', required: true, type: 'string', format: 'binary' },
                         { name: 'byte', in: 'path', required: true, type: 'string', format: 'byte' })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '1,2,3/123/false/2000-01-01/2000-01-01T01:02:03.456Z/00000010/aGVsbG8=' });
                 expect(req.path).to.deep.equal({
                     array: [1,2,3],
@@ -87,7 +88,7 @@ describe('enforcer/request', () => {
                 })
             });
 
-            it('will serialize nested arrays', () => {
+            it('will serialize nested arrays', async () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/{array}', 'get', {
                         name: 'array',
@@ -106,7 +107,7 @@ describe('enforcer/request', () => {
                         }
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/1 2 3,4 5|6,7 8' });
                 expect(req.path).to.deep.equal({
                     array: [
@@ -126,7 +127,7 @@ describe('enforcer/request', () => {
 
         describe('v3', () => {
 
-            it('can handle complex path', () => {
+            it('can handle complex path', async () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/users{id}', 'get', {
                         name: 'id',
@@ -137,14 +138,14 @@ describe('enforcer/request', () => {
                         explode: true
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/users;id=1;id=2' });
                 expect(req.path.id).to.deep.equal([1,2]);
             });
 
             describe('style: simple', () => {
 
-                it('primitive', () => {
+                it('primitive', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -155,12 +156,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/5' });
                     expect(req.path.value).to.equal(5);
                 });
 
-                it('primitive explode', () => {
+                it('primitive explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -171,12 +172,12 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/5' });
                     expect(req.path.value).to.equal(5);
                 });
 
-                it('array', () => {
+                it('array', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -187,12 +188,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/3,4,5' });
                     expect(req.path.value).to.deep.equal([3,4,5]);
                 });
 
-                it('array explode', () => {
+                it('array explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -203,12 +204,12 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/3,4,5' });
                     expect(req.path.value).to.deep.equal([3,4,5]);
                 });
 
-                it('object', () => {
+                it('object', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -225,12 +226,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/a,1,b,2' });
                     expect(req.path.value).to.deep.equal({a:1,b:2});
                 });
 
-                it('object explode', () => {
+                it('object explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -247,7 +248,7 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/a=1,b=2' });
                     expect(req.path.value).to.deep.equal({a:1,b:2});
                 });
@@ -256,7 +257,7 @@ describe('enforcer/request', () => {
 
             describe('style: label', () => {
 
-                it('primitive', () => {
+                it('primitive', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -267,12 +268,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/.5' });
                     expect(req.path.value).to.equal(5);
                 });
 
-                it('primitive explode', () => {
+                it('primitive explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -283,12 +284,12 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/.5' });
                     expect(req.path.value).to.equal(5);
                 });
 
-                it('array', () => {
+                it('array', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -299,12 +300,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/.3,4,5' });
                     expect(req.path.value).to.deep.equal([3,4,5]);
                 });
 
-                it('array explode', () => {
+                it('array explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -315,12 +316,12 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/.3.4.5' });
                     expect(req.path.value).to.deep.equal([3,4,5]);
                 });
 
-                it('object', () => {
+                it('object', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -337,12 +338,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/.a,1,b,2' });
                     expect(req.path.value).to.deep.equal({a:1,b:2});
                 });
 
-                it('object explode', () => {
+                it('object explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -359,7 +360,7 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/.a=1.b=2' });
                     expect(req.path.value).to.deep.equal({a:1,b:2});
                 });
@@ -368,7 +369,7 @@ describe('enforcer/request', () => {
 
             describe('style: matrix', () => {
 
-                it('primitive', () => {
+                it('primitive', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -379,12 +380,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/;value=5' });
                     expect(req.path.value).to.equal(5);
                 });
 
-                it('primitive explode', () => {
+                it('primitive explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -395,12 +396,12 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/;value=5' });
                     expect(req.path.value).to.equal(5);
                 });
 
-                it('array', () => {
+                it('array', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -411,12 +412,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/;value=3,4,5' });
                     expect(req.path.value).to.deep.equal([3,4,5]);
                 });
 
-                it('array explode', () => {
+                it('array explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -427,12 +428,12 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/;value=3;value=4;value=5' });
                     expect(req.path.value).to.deep.equal([3,4,5]);
                 });
 
-                it('object', () => {
+                it('object', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -449,12 +450,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/;value=a,1,b,2' });
                     expect(req.path.value).to.deep.equal({a:1,b:2});
                 });
 
-                it('object explode', () => {
+                it('object explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/{value}', 'get', {
                             name: 'value',
@@ -471,7 +472,7 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/;a=1;b=2' });
                     expect(req.path.value).to.deep.equal({a:1,b:2});
                 });
@@ -488,7 +489,7 @@ describe('enforcer/request', () => {
 
             describe('collectionFormat multi', () => {
 
-                it('can parse multi input', () => {
+                it('can parse multi input', async () => {
                     const def = new DefinitionBuilder(2)
                         .addParameter('/', 'get', {
                             name: 'item',
@@ -498,12 +499,12 @@ describe('enforcer/request', () => {
                             items: { type: 'number' }
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?item=1&item=2&item=3' });
                     expect(req.query.item).to.deep.equal([1, 2, 3]);
                 });
 
-                it('can define multi that does not receive input', () => {
+                it('can define multi that does not receive input', async () => {
                     const def = new DefinitionBuilder(2)
                         .addParameter('/', 'get', {
                             name: 'item',
@@ -513,12 +514,12 @@ describe('enforcer/request', () => {
                             items: { type: 'number' }
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/' });
                     expect(req.query).not.to.haveOwnProperty('item');
                 });
 
-                it('can allow empty value', () => {
+                it('can allow empty value', async () => {
                     const def = new DefinitionBuilder(2)
                         .addParameter('/', 'get', {
                             name: 'item',
@@ -529,13 +530,13 @@ describe('enforcer/request', () => {
                             allowEmptyValue: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?item' });
                     expect(req.query).to.haveOwnProperty('item');
                     expect(req.query.item).to.deep.equal(['']);
                 });
 
-                it('can produce error with empty value', () => {
+                it('can produce error with empty value', async () => {
                     const def = new DefinitionBuilder(2)
                         .addParameter('/', 'get', {
                             name: 'item',
@@ -546,14 +547,14 @@ describe('enforcer/request', () => {
                             allowEmptyValue: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ , err ] = enforcer.request({ path: '/?item' });
                     expect(err).to.match(/Empty value not allowed/);
                 });
 
             });
 
-            it('can have value', () => {
+            it('can have value', async () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -562,12 +563,12 @@ describe('enforcer/request', () => {
                         allowEmptyValue: true
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/?value=yes' });
                 expect(req.query.value).to.equal('yes');
             });
 
-            it('can have empty value', () => {
+            it('can have empty value', async () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -576,7 +577,7 @@ describe('enforcer/request', () => {
                         allowEmptyValue: true
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/?value' });
                 expect(req.query).to.haveOwnProperty('value');
                 expect(req.query.value).to.equal('');
@@ -588,7 +589,7 @@ describe('enforcer/request', () => {
 
             describe('style: form', () => {
 
-                it('primitive', () => {
+                it('primitive', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', {
                             name: 'value',
@@ -599,12 +600,12 @@ describe('enforcer/request', () => {
                         })
                         .addPath('/', 'get')
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.equal(2);
                 });
 
-                it('primitive explode', () => {
+                it('primitive explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -614,12 +615,12 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.equal(2);
                 });
 
-                it('primitive allowEmptyValue', () => {
+                it('primitive allowEmptyValue', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -630,12 +631,12 @@ describe('enforcer/request', () => {
                             allowEmptyValue: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value' });
                     expect(req.query.value).to.equal('');
                 });
 
-                it('primitive do not allowEmptyValue', () => {
+                it('primitive do not allowEmptyValue', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -645,12 +646,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ , err ] = enforcer.request({ path: '/?value' });
                     expect(err).to.match(/Empty value not allowed/);
                 });
 
-                it('array', () => {
+                it('array', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -660,12 +661,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=1,2' });
                     expect(req.query.value).to.deep.equal([1,2]);
                 });
 
-                it('array explode', () => {
+                it('array explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -675,12 +676,12 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.deep.equal([1, 2]);
                 });
 
-                it('array allowEmptyValue', () => {
+                it('array allowEmptyValue', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -691,12 +692,12 @@ describe('enforcer/request', () => {
                             allowEmptyValue: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value' });
                     expect(req.query.value).to.deep.equal(['']);
                 });
 
-                it('array do not allowEmptyValue', () => {
+                it('array do not allowEmptyValue', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -706,12 +707,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ , err ] = enforcer.request({ path: '/?value' });
                     expect(err).to.match(/Empty value not allowed/);
                 });
 
-                it('object', () => {
+                it('object', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -727,12 +728,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=a,1,b,2' });
                     expect(req.query.value).to.deep.equal({a:1,b:2});
                 });
 
-                it('object explode', () => {
+                it('object explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get',
                             {
@@ -762,7 +763,7 @@ describe('enforcer/request', () => {
                                 explode: true
                             })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?a=1&b=2&c=3&d=4' });
                     expect(req.query).to.deep.equal({
                         x: { a:1, b:2 },
@@ -770,7 +771,7 @@ describe('enforcer/request', () => {
                     });
                 });
 
-                it('object explode with invalid values', () => {
+                it('object explode with invalid values', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get',
                             {
@@ -800,12 +801,12 @@ describe('enforcer/request', () => {
                                 explode: true
                             })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ , err ] = enforcer.request({ path: '/?a=bob&b=2&c=3&d=4' });
                     expect(err).to.match(/Received unexpected parameters: a, b/);
                 });
 
-                it('object allowEmptyValue', () => {
+                it('object allowEmptyValue', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -822,12 +823,12 @@ describe('enforcer/request', () => {
                             allowEmptyValue: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=a,,b,2' });
                     expect(req.query.value).to.deep.equal({ a: '', b: 2 });
                 });
 
-                it('object do not allowEmptyValue', () => {
+                it('object do not allowEmptyValue', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -844,7 +845,7 @@ describe('enforcer/request', () => {
                             allowEmptyValue: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ , err ] = enforcer.request({ path: '/?value=a,,b,2' });
                     expect(err).to.match(/Empty value not allowed/);
                 });
@@ -853,7 +854,7 @@ describe('enforcer/request', () => {
 
             describe('style: spaceDelimited', () => {
 
-                it('does not allow primitives', () => {
+                it('does not allow primitives', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -863,10 +864,10 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    expect(() => Enforcer(def)).to.throw(/Style "spaceDelimited" is incompatible with schema type: number/);
+                    assert.willReject(() => Enforcer(def), /Style "spaceDelimited" is incompatible with schema type: number/);
                 });
 
-                it('does not allow exploded primitives', () => {
+                it('does not allow exploded primitives', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -876,10 +877,10 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    expect(() => Enforcer(def)).to.throw(/Style "spaceDelimited" is incompatible with schema type: number/);
+                    assert.willReject(() => Enforcer(def), /Style "spaceDelimited" is incompatible with schema type: number/);
                 });
 
-                it('array', () => {
+                it('array', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -889,12 +890,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=1 2' });
                     expect(req.query.value).to.deep.equal([1,2]);
                 });
 
-                it('array explode', () => {
+                it('array explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -904,12 +905,12 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.deep.equal([1, 2]);
                 });
 
-                it('does not allow objects', () => {
+                it('does not allow objects', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -925,10 +926,10 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    expect(() => Enforcer(def)).to.throw(/Style "spaceDelimited" is incompatible with schema type: object/);
+                    assert.willReject(() => Enforcer(def), /Style "spaceDelimited" is incompatible with schema type: object/);
                 });
 
-                it('does not allow exploded objects', () => {
+                it('does not allow exploded objects', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get',
                             {
@@ -957,14 +958,14 @@ describe('enforcer/request', () => {
                                 explode: true
                             })
                         .build();
-                    expect(() => Enforcer(def)).to.throw(/Style "spaceDelimited" is incompatible with schema type: object/);
+                    assert.willReject(() => Enforcer(def), /Style "spaceDelimited" is incompatible with schema type: object/);
                 });
 
             });
 
             describe('style: pipeDelimited', () => {
 
-                it('does not allow primitives', () => {
+                it('does not allow primitives', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -974,10 +975,10 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    expect(() => Enforcer(def)).to.throw(/Style "pipeDelimited" is incompatible with schema type: number/);
+                    assert.willReject(() => Enforcer(def),/Style "pipeDelimited" is incompatible with schema type: number/);
                 });
 
-                it('does not allow exploded primitives', () => {
+                it('does not allow exploded primitives', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -987,10 +988,10 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    expect(() => Enforcer(def)).to.throw(/Style "pipeDelimited" is incompatible with schema type: number/);
+                    assert.willReject(() => Enforcer(def),/Style "pipeDelimited" is incompatible with schema type: number/);
                 });
 
-                it('array', () => {
+                it('array', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -1000,12 +1001,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=1|2' });
                     expect(req.query.value).to.deep.equal([1,2]);
                 });
 
-                it('array explode', () => {
+                it('array explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -1015,12 +1016,12 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value=1&value=2' });
                     expect(req.query.value).to.deep.equal([1, 2]);
                 });
 
-                it('does not allow objects', () => {
+                it('does not allow objects', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -1036,10 +1037,10 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    expect(() => Enforcer(def)).to.throw(/Style "pipeDelimited" is incompatible with schema type: object/);
+                    assert.willReject(() => Enforcer(def),/Style "pipeDelimited" is incompatible with schema type: object/);
                 });
 
-                it('does not allow exploded objects', () => {
+                it('does not allow exploded objects', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get',
                             {
@@ -1068,14 +1069,14 @@ describe('enforcer/request', () => {
                                 explode: true
                             })
                         .build();
-                    expect(() => Enforcer(def)).to.throw(/Style "pipeDelimited" is incompatible with schema type: object/);
+                    assert.willReject(() => Enforcer(def),/Style "pipeDelimited" is incompatible with schema type: object/);
                 });
 
             });
 
             describe('style: deepObject', () => {
 
-                it('does not allow primitives', () => {
+                it('does not allow primitives', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -1085,10 +1086,10 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    expect(() => Enforcer(def)).to.throw(/Style "deepObject" is incompatible with schema type: number/);
+                    assert.willReject(() => Enforcer(def),/Style "deepObject" is incompatible with schema type: number/);
                 });
 
-                it('does not allow exploded primitives', () => {
+                it('does not allow exploded primitives', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -1098,10 +1099,10 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    expect(() => Enforcer(def)).to.throw(/Style "deepObject" is incompatible with schema type: number/);
+                    assert.willReject(() => Enforcer(def),/Style "deepObject" is incompatible with schema type: number/);
                 });
 
-                it('does not allow arrays', () => {
+                it('does not allow arrays', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -1111,10 +1112,10 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    expect(() => Enforcer(def)).to.throw(/Style "deepObject" is incompatible with schema type: array/);
+                    assert.willReject(() => Enforcer(def),/Style "deepObject" is incompatible with schema type: array/);
                 });
 
-                it('does not allow exploded arrays', () => {
+                it('does not allow exploded arrays', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -1124,10 +1125,10 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                         .build();
-                    expect(() => Enforcer(def)).to.throw(/Style "deepObject" is incompatible with schema type: array/);
+                    assert.willReject(() => Enforcer(def),/Style "deepObject" is incompatible with schema type: array/);
                 });
 
-                it('object', () => {
+                it('object', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get', {
                             name: 'value',
@@ -1143,12 +1144,12 @@ describe('enforcer/request', () => {
                             explode: false
                         })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?value[a]=1&value[b]=2' });
                     expect(req.query.value).to.deep.equal({ a: 1, b: 2 });
                 });
 
-                it('object explode', () => {
+                it('object explode', async () => {
                     const def = new DefinitionBuilder(3)
                         .addParameter('/', 'get',
                             {
@@ -1177,7 +1178,7 @@ describe('enforcer/request', () => {
                                 explode: true
                             })
                         .build();
-                    const enforcer = Enforcer(def);
+                    const enforcer = await Enforcer(def);
                     const [ req ] = enforcer.request({ path: '/?x[a]=1&x[b]=2&y[c]=3&y[d]=4' });
                     expect(req.query).to.deep.equal({ x: { a:1, b:2 }, y: { c:3, d:4 } });
                 });
@@ -1190,7 +1191,7 @@ describe('enforcer/request', () => {
 
     describe('header parameters', () => {
 
-        it('has case insensitive header names', () => {
+        it('has case insensitive header names', async () => {
             const def = new DefinitionBuilder(2)
                 .addParameter('/', 'get', {
                     name: 'vALUe',
@@ -1198,12 +1199,12 @@ describe('enforcer/request', () => {
                     type: 'string'
                 })
                 .build();
-            const enforcer = Enforcer(def);
+            const enforcer = await Enforcer(def);
             const [ req ] = enforcer.request({ path: '/', header: { VAlue: 'abc' } });
             expect(req.header.value).to.equal('abc');
         });
 
-        it('cannot have property allowEmptyValue', () => {
+        it('cannot have property allowEmptyValue', async () => {
             const def = new DefinitionBuilder(2)
                 .addParameter('/', 'get', {
                     name: 'value',
@@ -1212,10 +1213,10 @@ describe('enforcer/request', () => {
                     allowEmptyValue: true
                 })
                 .build();
-            expect(() => Enforcer(def)).to.throw(/Property not allowed: allowEmptyValue/);
+            assert.willReject(() => Enforcer(def),/Property not allowed: allowEmptyValue/);
         });
 
-        it('cannot have empty header string', () => {
+        it('cannot have empty header string', async () => {
             const def = new DefinitionBuilder(2)
                 .addParameter('/', 'get', {
                     name: 'value',
@@ -1223,7 +1224,7 @@ describe('enforcer/request', () => {
                     type: 'string'
                 })
                 .build();
-            const enforcer = Enforcer(def);
+            const enforcer = await Enforcer(def);
             const [ , err ] = enforcer.request({ path: '/', header: { value: '' } });
             expect(err).to.match(/Empty value not allowed/);
         });
@@ -1231,7 +1232,7 @@ describe('enforcer/request', () => {
 
         describe('v2', () => {
 
-            it('will deserialize date value', () => {
+            it('will deserialize date value', async () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -1240,12 +1241,12 @@ describe('enforcer/request', () => {
                         format: 'date'
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/', header: { value: '2000-01-01' } });
                 expect(req.header.value).to.deep.equal(new Date('2000-01-01'));
             });
 
-            it('will deserialize array of numbers', () => {
+            it('will deserialize array of numbers', async () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -1254,12 +1255,12 @@ describe('enforcer/request', () => {
                         items: { type: 'number' }
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/', header: { value: '1,2,3' } });
                 expect(req.header.value).to.deep.equal([1,2,3]);
             });
 
-            it('will not allow multi collection format', () => {
+            it('will not allow multi collection format', async () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/', 'get', {
                         name: 'item',
@@ -1269,14 +1270,14 @@ describe('enforcer/request', () => {
                         items: { type: 'number' }
                     })
                     .build();
-                expect(() => Enforcer(def)).to.throw(/Value must be one of: csv, ssv, tsv, pipes. Received: "multi"/);
+                assert.willReject(() => Enforcer(def),/Value must be one of: csv, ssv, tsv, pipes. Received: "multi"/);
             });
 
         });
 
         describe('v3', () => {
 
-            it('primitive', () => {
+            it('primitive', async () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/', {
                         name: 'value',
@@ -1286,12 +1287,12 @@ describe('enforcer/request', () => {
                     })
                     .addPath('/', 'get')
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/', header: { value: '1' } });
                 expect(req.header.value).to.equal(1);
             });
 
-            it('primitive explode', () => {
+            it('primitive explode', async () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -1300,12 +1301,12 @@ describe('enforcer/request', () => {
                         explode: true
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/', header: { value: '1' } });
                 expect(req.header.value).to.equal(1);
             });
 
-            it('array', () => {
+            it('array', async () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -1314,12 +1315,12 @@ describe('enforcer/request', () => {
                         explode: false
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/', header: { value: '1,2,3' } });
                 expect(req.header.value).to.deep.equal([1,2,3]);
             });
 
-            it('array explode', () => {
+            it('array explode', async () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -1328,12 +1329,12 @@ describe('enforcer/request', () => {
                         explode: true
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/', header: { value: '1,2,3' } });
                 expect(req.header.value).to.deep.equal([1,2,3]);
             });
 
-            it('object', () => {
+            it('object', async () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -1348,12 +1349,12 @@ describe('enforcer/request', () => {
                         explode: false
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/', header: { value: 'a,1,b,2' } });
                 expect(req.header.value).to.deep.equal({a:1,b:2});
             });
 
-            it('object explode', () => {
+            it('object explode', async () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/', 'get',
                         {
@@ -1369,7 +1370,7 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/', header: { x: 'a=1,b=2' } });
                 expect(req.header.x).to.deep.equal({ a:1, b:2 });
             });
@@ -1382,7 +1383,7 @@ describe('enforcer/request', () => {
 
         describe('v2', () => {
 
-            it('does not support cookie parameters', () => {
+            it('does not support cookie parameters', async () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -1390,14 +1391,14 @@ describe('enforcer/request', () => {
                         type: 'string'
                     })
                     .build();
-                expect(() => Enforcer(def)).to.throw(/Value must be one of: body, formData, header, query, path. Received: "cookie"/);
+                assert.willReject(() => Enforcer(def),/Value must be one of: body, formData, header, query, path. Received: "cookie"/);
             });
 
         });
 
         describe('v3', () => {
 
-            it('primitive', () => {
+            it('primitive', async () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/', {
                         name: 'value',
@@ -1407,12 +1408,12 @@ describe('enforcer/request', () => {
                     })
                     .addPath('/', 'get')
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/', header: { cookie: 'value=1' } });
                 expect(req.cookie.value).to.equal(1);
             });
 
-            it('primitive explode', () => {
+            it('primitive explode', async () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -1421,12 +1422,12 @@ describe('enforcer/request', () => {
                         explode: true
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/', header: { cookie: 'value=1' } });
                 expect(req.cookie.value).to.equal(1);
             });
 
-            it('array', () => {
+            it('array',async  () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -1435,12 +1436,12 @@ describe('enforcer/request', () => {
                         explode: false
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/', header: { cookie: 'value=1,2,3' } });
                 expect(req.cookie.value).to.deep.equal([1,2,3]);
             });
 
-            it('array explode', () => {
+            it('array explode', async () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -1449,10 +1450,10 @@ describe('enforcer/request', () => {
                         explode: true
                     })
                     .build();
-                expect(() => Enforcer(def)).to.throw(/Cookies do not support exploded values for non-primitive schemas/);
+                assert.willReject(() => Enforcer(def),/Cookies do not support exploded values for non-primitive schemas/);
             });
 
-            it('object', () => {
+            it('object', async () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/', 'get', {
                         name: 'value',
@@ -1467,12 +1468,12 @@ describe('enforcer/request', () => {
                         explode: false
                     })
                     .build();
-                const enforcer = Enforcer(def);
+                const enforcer = await Enforcer(def);
                 const [ req ] = enforcer.request({ path: '/', header: { cookie: 'value=a,1,b,2' } });
                 expect(req.cookie.value).to.deep.equal({a:1,b:2});
             });
 
-            it('object explode', () => {
+            it('object explode', async () => {
                 const def = new DefinitionBuilder(3)
                     .addParameter('/', 'get',
                         {
@@ -1488,7 +1489,7 @@ describe('enforcer/request', () => {
                             explode: true
                         })
                     .build();
-                expect(() => Enforcer(def)).to.throw(/Cookies do not support exploded values for non-primitive schemas/);
+                assert.willReject(() => Enforcer(def),/Cookies do not support exploded values for non-primitive schemas/);
             });
 
         });
@@ -1501,8 +1502,8 @@ describe('enforcer/request', () => {
 
             describe('in body', () => {
 
-                it('', () => {
-
+                it('todo', () => {
+                    throw Error('TODO');
                 });
 
             });
@@ -1524,19 +1525,3 @@ describe('enforcer/request', () => {
     });
 
 });
-
-function template(version) {
-    const result = {
-        info: {
-            title: '',
-            version: '1.0'
-        },
-        paths: {}
-    };
-    if (version === 2) {
-        result.swagger = '2.0'
-    } else {
-        result.openapi = '3.0.0'
-    }
-    return result;
-}
