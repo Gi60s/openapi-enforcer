@@ -127,12 +127,12 @@ function SchemaObject() {
                         type: 'object',
                         additionalProperties: {
                             type: 'string',
-                            errors: ({ exception, major, refParser, value }) => {
+                            errors: ({ exception, refParser, value }) => {
                                 if (refParser) {
                                     try {
                                         const ref = rxHttp.test(value) || value.indexOf('/') !== -1
                                             ? value
-                                            : (major === 2 ? '#/definitions/' : '#/components/schemas/') + value;
+                                            : '#/components/schemas/' + value;
                                         refParser.$refs.get(ref)
                                     } catch (err) {
                                         exception('Reference cannot be resolved: ' + value);
