@@ -24,6 +24,27 @@ module.exports = function(Constructor) {
         callbacks.push(callback);
     };
 
+    Constructor.prototype.toObject = function () {
+        const result = {};
+        Object.keys(this).forEach(key => {
+            const value = this[key];
+            if (Array.isArray(value)) {
+                result[key] = value.map(item => {
+                    return item && typeof item === 'object' && typeof item.toObject === 'function'
+                        ? item.toObject()
+                        : item;
+                });
+            } else if (value && typeof value === 'object' && typeof value.toObject === 'function') {
+                result[key] = value.toObject();
+            } else if (value && typeof value === 'object') {
+                result[key] = Object.assign({}, value);
+            } else {
+                result[key] = value;
+            }
+        });
+        return result;
+    };
+
     function build(f, data) {
         const prototype = Object.assign({}, Constructor.prototype, { enforcerData: data });
         prototype.constructor = f;
