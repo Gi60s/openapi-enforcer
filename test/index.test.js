@@ -1501,20 +1501,113 @@ describe('enforcer/request', () => {
         describe('v2', () => {
 
             describe('in body', () => {
+                const arrSchema = {
+                    type: 'array',
+                    items: { type: 'number' }
+                };
+                const numSchema = { type: 'number' };
+                const objSchema = {
+                    type: 'object',
+                        properties: {
+                        a: { type: 'number' },
+                        b: { type: 'number' }
+                    }
+                };
 
-                it('todo', () => {
-                    throw Error('TODO');
+                it('requires the body to already be parsed', async () => {
+                    const def = new DefinitionBuilder(2)
+                        .addParameter('/', 'post', { name: 'x', in: 'body', schema: objSchema })
+                        .build();
+                    const enforcer = await Enforcer(def);
+                    const [ , err ] = enforcer.request({ path: '/', method: 'post', body: '{"a":1,"b":2}' });
+                    expect(err).to.match(/Expected an object/);
+                });
+
+                it('accepts object if schema is object', async () => {
+                    const def = new DefinitionBuilder(2)
+                        .addParameter('/', 'post', { name: 'x', in: 'body', schema: objSchema })
+                        .build();
+                    const enforcer = await Enforcer(def);
+                    const [ req ] = enforcer.request({ path: '/', method: 'post', body: { a: '1', b: '2' } });
+                    expect(req.body).to.deep.equal({ a: 1, b: 2 });
+                });
+
+                it('accepts array if schema is array', async () => {
+                    const def = new DefinitionBuilder(2)
+                        .addParameter('/', 'post', { name: 'x', in: 'body', schema: arrSchema })
+                        .build();
+                    const enforcer = await Enforcer(def);
+                    const [ req ] = enforcer.request({ path: '/', method: 'post', body: ['1', '2'] });
+                    expect(req.body).to.deep.equal([1,2]);
+                });
+
+                it('accepts string if schema is not object or array', async () => {
+                    const def = new DefinitionBuilder(2)
+                        .addParameter('/', 'post', { name: 'x', in: 'body', schema: numSchema })
+                        .build();
+                    const enforcer = await Enforcer(def);
+                    const [ req ] = enforcer.request({ path: '/', method: 'post', body: '1' });
+                    expect(req.body).to.equal(1);
                 });
 
             });
 
-            describe('in formData', () => {
+            describe.only('in formData', () => {
 
-                it('requires the definition to be one of ')
+                it('requires the body to be an object', async () => {
+                    const def = new DefinitionBuilder(2)
+                        .addParameter('/', 'post', { name: 'x', in: 'formData', type: 'number' })
+                        .build();
+                    const enforcer = await Enforcer(def);
+                    expect(() => enforcer.request({ path: '/', method: 'post', body: '1' })).to.throw(/Parameters in "formData" require that the provided body be a non-null object/);
+                });
+
+                it('deserializes and validates each property', async () => {
+                    const d = new Date();
+                    const def = new DefinitionBuilder(2)
+                        .addParameter('/', 'post', { name: 'x', in: 'formData', type: 'number' })
+                        .addParameter('/', 'post', { name: 'y', in: 'formData', type: 'string', format: 'date-time' })
+                        .build();
+                    const enforcer = await Enforcer(def);
+                    const [ req ] = enforcer.request({ path: '/', method: 'post', body: { x: '1', y: d.toISOString() } });
+                    expect(req.body).to.deep.equal({ x: 1, y: d });
+                });
+
+                describe('file', () => {
+
+                    it('can consume multipart/form-data', () => {
+                        const def = new DefinitionBuilder(2).addPath('/', 'post').build();
+                        def.paths['/'].consumes = ['multipart/form-data'];
+                        def.paths['/'].parameters = [
+                            { name: 'x', in: 'formData', type: 'file', format: 'byte' }
+                        ];
+                        throw Error('TODO');
+                    });
+
+                    it('can consume application/x-www-form-urlencoded', () => {
+                        const def = new DefinitionBuilder(2).addPath('/', 'post').build();
+                        def.consumes = ['application/x-www-form-urlencoded'];
+                        def.paths['/'].parameters = [
+                            { name: 'x', in: 'formData', type: 'file', format: 'byte' }
+                        ];
+                        throw Error('TODO');
+                    });
+
+                    it('must consume multipart/form-data and/or application/x-www-form-urlencoded', () => {
+                        throw Error('TODO');
+                    });
+
+                    it('accepts file as base64', () => {
+                        const def = new DefinitionBuilder(2).addPath('/', 'post').build();
+                        def.paths['/'].consumes = ['application/json'];
+                        def.paths['/'].parameters = [
+                            { type:}
+                        ]
+                    });
+
+                });
 
             });
-
-            // TODO: files
 
         });
 
