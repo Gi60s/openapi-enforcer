@@ -21,6 +21,8 @@ const rx                    = require('../rx');
 const util                  = require('../util');
 const XmlEnforcer           = require('../enforcers/xml');
 
+const rxHttp = /^https?:\/\//;
+
 module.exports = SchemaObject;
 
 function SchemaObject() {
@@ -124,7 +126,19 @@ function SchemaObject() {
                     mapping: {
                         type: 'object',
                         additionalProperties: {
-                            type: 'string'
+                            type: 'string',
+                            errors: ({ exception, major, refParser, value }) => {
+                                if (refParser) {
+                                    try {
+                                        const ref = rxHttp.test(value) || value.indexOf('/') !== -1
+                                            ? value
+                                            : (major === 2 ? '#/definitions/' : '#/components/schemas/') + value;
+                                        refParser.$refs.get(ref)
+                                    } catch (err) {
+                                        exception('Reference cannot be resolved: ' + value);
+                                    }
+                                }
+                            }
                         }
                     }
                 },
@@ -137,7 +151,7 @@ function SchemaObject() {
                             exception('Value "' + value + '" must be found in the parent\'s properties definition.');
                         }
 
-                    } else if (major === 3) {
+                    } else if (major === 3 && value.hasOwnProperty('propertyName')) {
                         if (!parent.value.required || !parent.value.required.includes(value.propertyName)) {
                             exception('Value "' + value.propertyName + '" must be found in the parent\'s required properties list.');
                         }
