@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const assert        = require('../bin/assert');
 const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
 const ExternalDoc   = require('../bin/definition-validators/external-documentation');
@@ -33,12 +34,12 @@ describe('definitions/external-documentation', () => {
 
     it('can have description property', () => {
         const [ def ] = definition(2, ExternalDoc, { url: 'a', description: 'b' });
-        expect(def).to.deep.equal({ url: 'a', description: 'b' })
+        assert.deepEqual(def, { url: 'a', description: 'b' });
     });
 
     it('can have extension property', () => {
         const [ def ] = definition(2, ExternalDoc, { url: 'a', 'x-prop': 'b' });
-        expect(def).to.deep.equal({ url: 'a', 'x-prop': 'b' })
+        assert.deepEqual(def, { url: 'a', 'x-prop': 'b' })
     });
 
     it('cannot have other property', () => {

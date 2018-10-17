@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const assert        = require('../bin/assert');
 const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
 const Info          = require('../bin/definition-validators/info');
@@ -33,12 +34,12 @@ describe('definitions/info', () => {
 
     it('can have description property', () => {
         const [ def ] = definition(2, Info, { title: 'a', version: '1.0', description: 'b' });
-        expect(def).to.deep.equal({ title: 'a', description: 'b', version: '1.0' })
+        assert.deepEqual(def, { title: 'a', description: 'b', version: '1.0' })
     });
 
     it('can have contact property', () => {
         const [ def ] = definition(2, Info, { title: 'a', version: '1.0', contact: { name: 'Bob', url: 'b' } });
-        expect(def).to.deep.equal({ title: 'a', version: '1.0', contact: { name: 'Bob', url: 'b' } })
+        assert.deepEqual(def, { title: 'a', version: '1.0', contact: { name: 'Bob', url: 'b' } })
     });
 
     it('will validate contact property', () => {
@@ -48,7 +49,7 @@ describe('definitions/info', () => {
 
     it('can have license property', () => {
         const [ def ] = definition(2, Info, { title: 'a', version: '1.0', license: { name: 'Bob', url: 'b' } });
-        expect(def).to.deep.equal({ title: 'a', version: '1.0', license: { name: 'Bob', url: 'b' } })
+        assert.deepEqual(def, { title: 'a', version: '1.0', license: { name: 'Bob', url: 'b' } })
     });
 
     it('will validate license property', () => {

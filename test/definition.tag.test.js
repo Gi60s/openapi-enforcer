@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const assert        = require('../bin/assert');
 const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
 const Tag           = require('../bin/definition-validators/tag');
@@ -33,12 +34,12 @@ describe('definitions/tag', () => {
 
     it('can have description property', () => {
         const [ def ] = definition(2, Tag, { name: 'a', description: 'b' });
-        expect(def).to.deep.equal({ name: 'a', description: 'b' })
+        assert.deepEqual(def, { name: 'a', description: 'b' });
     });
 
     it('can have externalDocs property', () => {
         const [ def ] = definition(2, Tag, { name: 'a', externalDocs: { url: 'b' } });
-        expect(def).to.deep.equal({ name: 'a', externalDocs: { url: 'b' } })
+        assert.deepEqual(def, { name: 'a', externalDocs: { url: 'b' } })
     });
 
     it('requires nested definition to be valid', () => {
@@ -48,7 +49,7 @@ describe('definitions/tag', () => {
 
     it('can have extension property', () => {
         const [ def ] = definition(2, Tag, { name: 'a', 'x-prop': 'b' });
-        expect(def).to.deep.equal({ name: 'a', 'x-prop': 'b' })
+        assert.deepEqual(def, { name: 'a', 'x-prop': 'b' })
     });
 
     it('cannot have other property', () => {

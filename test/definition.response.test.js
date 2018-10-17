@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const assert        = require('../bin/assert');
 const definition    = require('../bin/definition-validator').normalize;
 const expect        = require('chai').expect;
 const Response      = require('../bin/definition-validators/response');
@@ -87,7 +88,7 @@ describe('definitions/response', () => {
                     'application/json': { x: 'hello' }
                 }
             });
-            expect(def.examples['application/json']).to.deep.equal({ x: 'hello' })
+            assert.deepEqual(def.examples['application/json'], { x: 'hello' })
         });
 
         it('is not allowed for v3', () => {
