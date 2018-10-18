@@ -142,21 +142,27 @@ function OperationObject(data) {
     });
 }
 
-OperationObject.parametersValidation = ({ exception, value }) => {
+OperationObject.parametersValidation = ({ exception, parent, root, validator, value }) => {
     const length = value.length;
     const duplicates = [];
     let bodiesCount = 0;
     let hasBody = false;
     let hasFormData = false;
+    let hasFile = false;
     for (let i = 0; i < length; i++) {
         const p1 = value[i];
+
+        // make sure that in body and in formData are not both present
         if (p1.in === 'body') {
             bodiesCount++;
             hasBody = true;
         }
         if (p1.in === 'formData') {
             hasFormData = true;
+            if (p1.type === 'file') hasFile = true;
         }
+
+        // check for duplicate names within same parameter "in" value
         for (let j = 0; j < length; j++) {
             const p2 = value[j];
             if (p1 !== p2 && p1.name === p2.name && p1.in === p2.in) {
@@ -176,5 +182,24 @@ OperationObject.parametersValidation = ({ exception, value }) => {
 
     if (duplicates.length) {
         exception('Parameter name must be unique per location. Duplicates found: ' + duplicates.join(', '));
+    }
+
+    if (hasFile) {
+        // parameter might be defined within operation (that can have consumes) or path (that cannot have consumes)
+        const consumes = parent.validator.component === OperationEnforcer
+            ? parent.value.consumes || root.value.consumes
+            : root.value.consumes;
+        const length = Array.isArray(consumes) ? consumes.length : 0;
+        let consumesOk = false;
+        for (let i = 0; i < length; i++) {
+            const value = consumes[i];
+            if (value === 'multipart/form-data' || value === 'application/x-www-form-urlencoded') {
+                consumesOk = true;
+                break;
+            }
+        }
+        if (!consumesOk) {
+            exception('Parameters of type "file" require the consumes property to be set to either "multipart/form-data" or "application/x-www-form-urlencoded"')
+        }
     }
 };
