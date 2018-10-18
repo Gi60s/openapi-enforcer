@@ -1552,7 +1552,7 @@ describe('enforcer/request', () => {
 
             });
 
-            describe.only('in formData', () => {
+            describe('in formData', () => {
 
                 it('requires the body to be an object', async () => {
                     const def = new DefinitionBuilder(2)
@@ -1613,6 +1613,57 @@ describe('enforcer/request', () => {
         });
 
         describe('v3', () => {
+
+            it('uses content-type header to determine media type', async () => {
+                const def = new DefinitionBuilder(3).addPath('/', 'post').build();
+                def.paths['/'].post.requestBody = {
+                    content: {
+                        'text/plain': {
+                            schema: { type: 'number' }
+                        },
+                        'text/html': {
+                            schema: { type: 'string' }
+                        }
+                    }
+                };
+                const enforcer = await Enforcer(def);
+                const [ req ] = enforcer.request({ path: '/', method: 'post', body: '1', header: { 'content-type': 'text/plain' } });
+                expect(req.body).to.equal(1);
+            });
+
+            it('ranks media type by specificity', async () => {
+                const def = new DefinitionBuilder(3).addPath('/', 'post').build();
+                def.paths['/'].post.requestBody = {
+                    content: {
+                        'text/*': {
+                            schema: { type: 'number' }
+                        },
+                        'text/plain': {
+                            schema: { type: 'string' }
+                        }
+                    }
+                };
+                const enforcer = await Enforcer(def);
+                const [ req ] = enforcer.request({ path: '/', method: 'post', body: '1', header: { 'content-type': 'text/plain' } });
+                expect(req.body).to.equal('1');
+            });
+
+            it('can use wild card media type', async () => {
+                const def = new DefinitionBuilder(3).addPath('/', 'post').build();
+                def.paths['/'].post.requestBody = {
+                    content: {
+                        'text/*': {
+                            schema: { type: 'number' }
+                        },
+                        'text/plain': {
+                            schema: { type: 'string' }
+                        }
+                    }
+                };
+                const enforcer = await Enforcer(def);
+                const [ req ] = enforcer.request({ path: '/', method: 'post', body: '1', header: { 'content-type': 'text/html' } });
+                expect(req.body).to.equal(1);
+            });
 
         });
 
