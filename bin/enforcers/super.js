@@ -46,8 +46,8 @@ module.exports = function(Constructor) {
     };
 
     function build(f, data) {
-        const prototype = Object.assign({}, Constructor.prototype, { enforcerData: data });
-        prototype.constructor = f;
+        const prototype = Object.create(f.prototype);
+        prototype.enforcerData = data;
         const context = Object.create(prototype);
         Object.assign(context, data.definition);
         Constructor.call(context, data);
@@ -61,10 +61,12 @@ module.exports = function(Constructor) {
         return context;
     }
 
-    return new Function('build',
+    return new Function('build', 'Constructor',
         `const f = function ${Constructor.name} (data) {
             return build(f, data);
         }
+        f.prototype = Object.create(Constructor.prototype)
+        f.constructor = f
         return f`
-    )(build);
+    )(build, Constructor);
 };
