@@ -324,7 +324,7 @@ function parsePrimitive(parameter, schema, exception, value) {
 function v2Parse(parameter, schema, exception, value) {
     if (schema.type === 'array') {
         let values;
-        switch (parameter.collectionFormat) {
+        switch (schema.collectionFormat || parameter.collectionFormat) {
             case 'csv':
                 values = value.split(',');
                 break;
