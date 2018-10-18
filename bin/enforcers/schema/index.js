@@ -16,6 +16,7 @@
  **/
 'use strict';
 const Exception     = require('../../exception');
+const Coerce       = require('../../../coerce');
 const populate      = require('./populate');
 const random        = require('./random');
 const serial        = require('./serialize');
@@ -56,7 +57,12 @@ function Schema({ exception, definition, warn }) {
  * @returns {{ error: Exception|null, value: * }}
  */
 Schema.prototype.deserialize = function(value) {
-    return serial.deserialize(this, value);
+    let coerce = false;
+    if (Coerce.isCoercedValue(value)) {
+        coerce = true;
+        value = value.value;
+    }
+    return serial.deserialize(this, value, coerce);
 };
 
 /**
@@ -123,7 +129,12 @@ Schema.prototype.random = function(value, options) {
  * @returns {*}
  */
 Schema.prototype.serialize = function(value) {
-    return serial.deserialize(this, value);
+    let coerce = false;
+    if (Coerce.isCoercedValue(value)) {
+        coerce = true;
+        value = value.value;
+    }
+    return serial.serialize(this, value, coerce);
 };
 
 /**
