@@ -47,8 +47,12 @@ function ParameterEnforcer(data) {
         schemaProperties.forEach(key => {
             if (definition.hasOwnProperty(key)) def[key] = definition[key]
         });
+        if (def.type === 'file') def.type = 'string';
 
-        this.schema = Component(Schema, raw);
+        const newRaw = Object.assign({}, raw);
+        newRaw.value = def;
+        newRaw.result = { value: def };
+        this.schema = Component(Schema, newRaw);
 
     // v3 - set schema from content schema
     } else if (major === 3 && definition.content) {
