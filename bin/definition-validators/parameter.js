@@ -59,6 +59,23 @@ function ParameterObject(data) {
                     }
                 }
             },
+            format: {
+                allowed: ({ major, parent }) => major === 2 && ['file', 'integer', 'number', 'string'].includes(parent.value.type),
+                type: 'string',
+                errors: ({ exception, parent, warn }) => {
+                    const format = parent.value.format;
+                    if (format) {
+                        const enums = [];
+                        switch (parent.value.type) {
+                            case 'file': enums.push('binary', 'byte'); break;
+                            case 'integer': enums.push('int32', 'int64'); break;
+                            case 'number': enums.push('float', 'double'); break;
+                            case 'string': enums.push('binary', 'byte', 'date', 'date-time', 'password'); break;
+                        }
+                        if (!enums.includes(format)) warn('Non standard format used: ' + format);
+                    }
+                }
+            },
             in: {
                 weight: -10,
                 required: true,
