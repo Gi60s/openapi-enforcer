@@ -1575,34 +1575,35 @@ describe('enforcer/request', () => {
 
                 describe('file', () => {
 
-                    it('can consume multipart/form-data', () => {
+                    it('can consume multipart/form-data', async () => {
                         const def = new DefinitionBuilder(2).addPath('/', 'post').build();
-                        def.paths['/'].consumes = ['multipart/form-data'];
-                        def.paths['/'].parameters = [
+                        const operation = def.paths['/'].post;
+                        operation.consumes = ['multipart/form-data'];
+                        operation.parameters = [
                             { name: 'x', in: 'formData', type: 'file', format: 'byte' }
                         ];
-                        throw Error('TODO');
+                        const enforcer = await Enforcer(def);
+                        const [ req ] = enforcer.request({ path: '/', method: 'post', body: { x: 'aGVsbG8=' } });
+                        expect(req.body.x).to.be.instanceof(Buffer);
                     });
 
-                    it('can consume application/x-www-form-urlencoded', () => {
+                    it('can consume application/x-www-form-urlencoded', async () => {
                         const def = new DefinitionBuilder(2).addPath('/', 'post').build();
                         def.consumes = ['application/x-www-form-urlencoded'];
                         def.paths['/'].parameters = [
                             { name: 'x', in: 'formData', type: 'file', format: 'byte' }
                         ];
-                        throw Error('TODO');
+                        const enforcer = await Enforcer(def);
+                        const [ req ] = enforcer.request({ path: '/', method: 'post', body: { x: 'aGVsbG8=' } });
+                        expect(req.body.x).to.be.instanceof(Buffer);
                     });
 
-                    it('must consume multipart/form-data and/or application/x-www-form-urlencoded', () => {
-                        throw Error('TODO');
-                    });
-
-                    it('accepts file as base64', () => {
+                    it('must consume multipart/form-data and/or application/x-www-form-urlencoded', async () => {
                         const def = new DefinitionBuilder(2).addPath('/', 'post').build();
-                        def.paths['/'].consumes = ['application/json'];
                         def.paths['/'].parameters = [
-                            { type:}
-                        ]
+                            { name: 'x', in: 'formData', type: 'file', format: 'byte' }
+                        ];
+                        assert.willReject(() => Enforcer(def), /Parameters of type "file" require the consumes property to be set to either "multipart\/form-data" or "application\/x-www-form-urlencoded"/);
                     });
 
                 });
