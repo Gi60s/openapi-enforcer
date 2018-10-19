@@ -264,7 +264,7 @@ exports.same = function same(v1, v2) {
 exports.smart = function(value) {
     const type = typeof value;
     if (type === 'string') return '"' + value.replace(/"/g, '\\"') + '"';
-    if (value instanceof Date) return value.toISOString();
+    if (value instanceof Date) return isNaN(value) ? 'invalid date object' : value.toISOString();
     if (value && type === 'object') {
         const name = value.constructor.name;
         return '[object' + (name ? ' ' + name : '') + ']';
