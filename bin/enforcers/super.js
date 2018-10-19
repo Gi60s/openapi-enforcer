@@ -16,7 +16,7 @@
  **/
 'use strict';
 
-module.exports = function(Constructor) {
+module.exports = function(Constructor, proto) {
     const callbacks = [];
 
     Constructor.extend = function (callback) {
@@ -47,6 +47,7 @@ module.exports = function(Constructor) {
 
     function build(f, data) {
         const prototype = Object.create(f.prototype);
+        if (proto && typeof proto === 'object') Object.assign(prototype, proto);
         prototype.enforcerData = data;
         const context = Object.create(prototype);
         Object.assign(context, data.definition);
