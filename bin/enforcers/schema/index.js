@@ -15,8 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
+const BinaryByte    = require('../../data-types/binary-byte');
 const Exception     = require('../../exception');
-const Coerce       = require('../../../coerce');
 const populate      = require('./populate');
 const random        = require('./random');
 const serial        = require('./serialize');
@@ -24,8 +24,21 @@ const Super         = require('../super');
 const validate      = require('./validate');
 
 const store = new WeakMap();
+const globalDataTypes = {   // global types can be overwritten by local types
+    boolean: {},
+    integer: {},
+    number: {},
+    string: {
+        binary: BinaryByte.binary,
+        byte: BinaryByte.byte,
+        date: require('../../data-types/date'),
+        'date-time': require('../../data-types/date-time')
+    }
+};
 
-module.exports = Super(Schema);
+module.exports = Super(Schema, {
+    dataTypes: {}
+});
 
 function Schema({ exception, definition, warn }) {
 
@@ -48,7 +61,25 @@ function Schema({ exception, definition, warn }) {
         const error = this.validate(definition.example);
         if (error) warn.at('example')(error);
     }
+
+    // merge global data types into (currently empty) data types object
+    Object.assign(this.dataTypes, globalDataTypes);
 }
+
+Schema.prototype.defineDataType = function (type, format, definition) {
+    // validate input parameters
+    if (!this.dataTypes.hasOwnProperty('type')) throw Error('Invalid type specified. Must be one of: ' + Object.keys(this.dataTypes).join(', '));
+    if (!format || typeof format !== 'string') throw Error('Invalid format specified. Must be a non-empty string');
+    if (this.dataTypes.hasOwnProperty(format)) throw Error('Format "' + format + '" is already defined');
+    if (!definition || typeof definition !== 'object' ||
+        typeof definition.deserialize !== 'function' ||
+        typeof definition.serialize !== 'function' ||
+        typeof definition.validate !== 'function'
+        || (definition.random &&  typeof definition.random !== 'function')) throw Error('Invalid data type definition. Must be an object that defines handlers for "deserialize", "serialize", and "validate" with optional "random" handler.');
+
+    // store the definition
+    this.dataTypes[format] = definition;
+};
 
 /**
  * Take a serialized (ready for HTTP transmission) value and deserialize it.
@@ -57,12 +88,7 @@ function Schema({ exception, definition, warn }) {
  * @returns {{ error: Exception|null, value: * }}
  */
 Schema.prototype.deserialize = function(value) {
-    let coerce = false;
-    if (Coerce.isCoercedValue(value)) {
-        coerce = true;
-        value = value.value;
-    }
-    return serial.deserialize(this, value, coerce);
+    return serial.deserialize(this, value);
 };
 
 /**
@@ -71,7 +97,7 @@ Schema.prototype.deserialize = function(value) {
  * @returns {{ key: string, schema: Schema }}
  */
 Schema.prototype.getDiscriminator = function(value) {
-    const { definition, enforcer } = store.get(this);
+    const { definition, enforcer } = store.get(this);   // TODO: get rid of this, the values exist on the prototype
     const version = enforcer.version;
     if (version === 2) {
         const discriminator = definition.discriminator;
@@ -129,12 +155,7 @@ Schema.prototype.random = function(value, options) {
  * @returns {*}
  */
 Schema.prototype.serialize = function(value) {
-    let coerce = false;
-    if (Coerce.isCoercedValue(value)) {
-        coerce = true;
-        value = value.value;
-    }
-    return serial.serialize(this, value, coerce);
+    return serial.serialize(this, value);
 };
 
 /**
@@ -144,4 +165,21 @@ Schema.prototype.serialize = function(value) {
  */
 Schema.prototype.validate = function(value) {
     return validate(this, value);
+};
+
+
+
+Schema.defineDataType = function (type, format, definition) {
+    // validate input parameters
+    if (!globalDataTypes.hasOwnProperty('type')) throw Error('Invalid type specified. Must be one of: ' + Object.keys(globalDataTypes).join(', '));
+    if (!format || typeof format !== 'string') throw Error('Invalid format specified. Must be a non-empty string');
+    if (globalDataTypes.hasOwnProperty(format)) throw Error('Format "' + format + '" is already defined');
+    if (!definition || typeof definition !== 'object' ||
+        typeof definition.deserialize !== 'function' ||
+        typeof definition.serialize !== 'function' ||
+        typeof definition.validate !== 'function'
+        || (definition.random &&  typeof definition.random !== 'function')) throw Error('Invalid data type definition. Must be an object that defines handlers for "deserialize", "serialize", and "validate" with optional "random" handler.');
+
+    // store the definition
+    globalDataTypes[format] = definition;
 };
