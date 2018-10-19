@@ -292,6 +292,32 @@ exports.unIgnoreValues = function(source, value) {
     }
 };
 
+exports.validateMaxMin = function maxMin(exception, schema, type, maxProperty, minProperty, exclusives, value, maximum, minimum) {
+    if (schema.hasOwnProperty(maxProperty)) {
+        if (exclusives && schema.exclusiveMaximum && value >= maximum) {
+            exception('Expected ' + type + ' to be less than ' +
+                exports.smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
+                exports.smart(schema.serialize(value).value));
+        } else if (value > maximum) {
+            exception('Expected ' + type + ' to be less than or equal to ' +
+                exports.smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
+                exports.smart(schema.serialize(value).value));
+        }
+    }
+
+    if (schema.hasOwnProperty(minProperty)) {
+        if (exclusives && schema.exclusiveMinimum && value <= minimum) {
+            exception('Expected ' + type + ' to be greater than ' +
+                exports.smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
+                exports.smart(schema.serialize(value).value));
+        } else if (value < minimum) {
+            exception('Expected ' + type + ' to be greater than or equal to ' +
+                exports.smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
+                exports.smart(schema.serialize(value).value));
+        }
+    }
+};
+
 
 function copy(map, value) {
     if (value instanceof Date) {
