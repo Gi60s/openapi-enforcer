@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const Coerce    = require('../../../coerce');
 const Exception = require('../../exception');
 const Ignored   = require('../../../ignored');
 const rx        = require('../../rx');
@@ -30,7 +31,7 @@ const zeros = '00000000';
  * @param {*} value
  * @returns {EnforcerResult}
  */
-exports.deserialize = function(schema, value, coerce) {
+exports.deserialize = function(schema, value) {
     const exception = Exception('Unable to deserialize value');
     return new Result(deserialize(exception, new Map(), schema, value), exception);
 };
@@ -40,12 +41,11 @@ exports.deserialize = function(schema, value, coerce) {
  * Converts Buffer and Date objects into string equivalent.
  * @param {Schema} schema
  * @param {*} value
- * @param {boolean} [coerce=false]
  * @returns {EnforcerResult}
  */
-exports.serialize = function(schema, value, coerce) {
+exports.serialize = function(schema, value) {
     const exception = Exception('Unable to serialize value');
-    const result = serialize(exception, new Map(), schema, value, coerce);
+    const result = serialize(exception, new Map(), schema, value);
     return new Result(result, exception);
 };
 
@@ -55,7 +55,7 @@ exports.serialize = function(schema, value, coerce) {
  * @param value
  * @returns {*}
  */
-function coerceNumberOrBooleanToBuffer(exception, value) {
+function coerceToBuffer(exception, value) {
     const type = typeof value;
     if (type === 'number' || type === 'boolean') {
         value = Number(value);
@@ -73,6 +73,8 @@ function coerceNumberOrBooleanToBuffer(exception, value) {
         } else {
             exception('Unable to coerce value');
         }
+    } else if (type === 'string') {
+        value = value ? Buffer.from(value) : Buffer.from([0]);
     }
     return value;
 }
@@ -260,7 +262,10 @@ function runDiscriminator(exception, map, parentSchema, value, next) {
     }
 }
 
-function serialize(exception, map, schema, value, coerce) {
+function serialize(exception, map, schema, value) {
+    const coerce = typeof value === 'object' && value instanceof Coerce;
+    if (coerce) value = value.value;
+    const originalValue = value;
     let matches;
 
     // handle cyclic serialization
@@ -281,21 +286,21 @@ function serialize(exception, map, schema, value, coerce) {
     if (schema.allOf) {
         const result = {};
         schema.allOf.forEach((schema, index) => {
-            const v = serialize(exception.nest('Unable to serialize "allOf" at index ' + index), map, schema, value, coerce);
+            const v = serialize(exception.nest('Unable to serialize "allOf" at index ' + index), map, schema, value);
             Object.assign(result, v)
         });
         return result;
 
     } else if (schema.anyOf) {
         if (schema.discriminator) {
-            return runDiscriminator(exception, map, schema, value, serialize, coerce);
+            return runDiscriminator(exception, map, schema, value, serialize);
         } else {
             const anyOfException = Exception('Unable to serialize using anyOf schemas');
             const length = schema.allOf.length;
             for (let index = 0; index < length; index++) {
                 const subSchema = schema.allOf[index];
                 const child = anyOfException.nest('Unable to serialize using schema at index' + index);
-                const result = serialize(child, map, subSchema, value, coerce);
+                const result = serialize(child, map, subSchema, value);
                 if (!child.hasException) {
                     const error = subSchema.validate(result);
                     if (error) {
@@ -310,14 +315,14 @@ function serialize(exception, map, schema, value, coerce) {
 
     } else if (schema.oneOf) {
         if (schema.discriminator) {
-            return runDiscriminator(exception, map, schema, value, coerce, serialize);
+            return runDiscriminator(exception, map, schema, value, serialize);
         } else {
             const oneOfException = Exception('Did not serialize against exactly one oneOf schema');
             let valid = 0;
             let result = undefined;
             schema.oneOf.forEach((schema, index) => {
                 const child = oneOfException.nest('Unable to serialize using schema at index ' + index);
-                const result = serialize(child, map, schema, value, coerce);
+                const result = serialize(child, map, schema, value);
                 if (!child.hasException) {
                     const error = schema.validate(result);
                     if (error) {
@@ -338,12 +343,19 @@ function serialize(exception, map, schema, value, coerce) {
     } else if (type === 'array') {
         if (Array.isArray(value)) {
             const result = schema.items
-                ? value.map((v, i) => serialize(exception.nest('Unable to serialize array item at index ' + i), map, schema.items, v, coerce))
+                ? value.map((v, i) => serialize(exception.nest('Unable to serialize array item at index ' + i), map, schema.items, v))
                 : value;
             matches.set(schema, result);
             return result;
         } else {
-            exception('Expected an array. Received: ' + util.smart(value));
+            exception('Expected an array. Received: ' + util.smart(originalValue));
+        }
+
+    } else if (type === 'boolean' && typeofValue !== 'boolean') {
+        if (coerce) {
+            return Boolean(value)
+        } else {
+            exception('Expected a boolean. Received: ' + util.smart(originalValue));
         }
 
     } else if (type === 'object') {
@@ -353,55 +365,49 @@ function serialize(exception, map, schema, value, coerce) {
             const properties = schema.properties || {};
             Object.keys(value).forEach(key => {
                 if (properties.hasOwnProperty(key)) {
-                    result[key] = serialize(exception.nest('Unable to serialize property: ' + key), map, properties[key], value[key], coerce);
+                    result[key] = serialize(exception.nest('Unable to serialize property: ' + key), map, properties[key], value[key]);
                 } else if (additionalProperties) {
-                    result[key] = serialize(exception.nest('Unable to serialize property: ' + key), map, additionalProperties, value[key], coerce);
+                    result[key] = serialize(exception.nest('Unable to serialize property: ' + key), map, additionalProperties, value[key]);
                 }
             });
             return result;
         } else {
-            exception('Expected an object. Received: ' + util.smart(value));
+            exception('Expected an object. Received: ' + util.smart(originalValue));
         }
 
-    } else if (type === 'string' && typeofValue !== 'string') {
-        if (coerce)
+    } else if (type === 'string') {
 
-        switch (schema.format) {
-            case 'binary':
-                if (coerce) value = coerceNumberOrBooleanToBuffer(exception, value);
-                if (value instanceof Buffer) {
-                    let binary = '';
-                    for (let i = 0; i < value.length; i++) {
-                        const byte = value[i].toString(2);
-                        binary += zeros.substr(byte.length) + byte;
-                    }
-                    return binary;
-                } else {
-                    exception('Value must be a Buffer instance');
-                    break;
+
+        if (schema.format === 'binary') {
+            if (coerce) value = coerceToBuffer(exception, value);
+            if (value instanceof Buffer) {
+                let binary = '';
+                for (let i = 0; i < value.length; i++) {
+                    const byte = value[i].toString(2);
+                    binary += zeros.substr(byte.length) + byte;
                 }
-
-            case 'byte':
-                if (coerce) value = coerceNumberOrBooleanToBuffer(exception, value);
-                if (value instanceof Buffer) {
-                    return value.toString('base64');
-                } else {
-                    exception('Value must be a Buffer instance');
-                    break;
-                }
-
-            case 'date':
-            case 'date-time':
-                if (util.isDate(value)) {
-                    const string = value.toISOString();
-                    return schema.format === 'date' ? string.substr(0, 10) : string;
-                } else {
-                    exception('Value must be a Date instance');
-                    break;
-                }
-
-            default:
-                return value;
+                return binary;
+            } else {
+                exception('Expected a Buffer instance. Received: ' + util.smart(originalValue));
+            }
+        } else if (schema.format === 'byte') {
+            if (coerce) value = coerceToBuffer(exception, value);
+            if (value instanceof Buffer) {
+                return value.toString('base64');
+            } else {
+                exception('Expected a Buffer instance. Received: ' + util.smart(originalValue));
+            }
+        } else if (schema.format === 'date' || schema.format === 'date-time') {
+            if (typeofValue === 'string' && (rx.date.test(value) || rx.dateTime.test(value))) value = new Date(value);
+            if (coerce && typeofValue === 'number' && !isNaN(value)) value = new Date(Number(value));
+            if (util.isDate(value)) {
+                const string = value.toISOString();
+                return schema.format === 'date' ? string.substr(0, 10) : string;
+            } else {
+                exception('Expected a valid Date instance or date formatted string. Received: ' + util.smart(originalValue));
+            }
+        } else {
+            return value;
         }
 
     } else {
