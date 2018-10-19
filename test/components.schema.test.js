@@ -78,7 +78,7 @@ describe('components/schema', () => {
 
         });
 
-        describe.only('binary', () => {
+        describe('binary', () => {
             let schema;
 
             before(() => {
@@ -90,7 +90,7 @@ describe('components/schema', () => {
 
             it('does not allow value true', () => {
                 const [ , err ] = schema.serialize(true);
-                expect(err).to.match(/Value must be a Buffer instance/);
+                expect(err).to.match(/Expected a Buffer instance/);
             });
 
             it('allows value true if coerced', () => {
@@ -100,7 +100,7 @@ describe('components/schema', () => {
 
             it('does not allow value false', () => {
                 const [ , err ] = schema.serialize(false);
-                expect(err).to.match(/Value must be a Buffer instance/);
+                expect(err).to.match(/Expected a Buffer instance/);
             });
 
             it('allows value false if coerced', () => {
@@ -110,7 +110,7 @@ describe('components/schema', () => {
 
             it('does not allow number', () => {
                 const [ , err ] = schema.serialize(5);
-                expect(err).to.match(/Value must be a Buffer instance/);
+                expect(err).to.match(/Expected a Buffer instance/);
             });
 
             it('allows number if coerced', () => {
@@ -141,176 +141,305 @@ describe('components/schema', () => {
 
             it('does not allow object', () => {
                 const [ , err ] = schema.serialize(Coerce({}));
-                expect(err).to.match(/Value must be a Buffer instance/);
+                expect(err).to.match(/Expected a Buffer instance/);
+            });
+
+            it('does not allow null', () => {
+                const [ , err ] = schema.serialize(Coerce(null));
+                expect(err).to.match(/Expected a Buffer instance/);
             });
 
         });
 
         describe('boolean', () => {
-            const schema = { type: 'boolean' };
+            let schema;
+
+            before(() => {
+                [ schema ] = definition(3, Schema, { type: 'boolean' });
+            });
 
             it('allows true', () => {
-                expect(enforcer.serialize(schema, true)).to.be.true;
+                const [ value ] = schema.serialize(true);
+                expect(value).to.be.true;
             });
 
             it('allows false', () => {
-                expect(enforcer.serialize(schema, false)).to.be.false;
+                const [ value ] = schema.serialize(false);
+                expect(value).to.be.false;
             });
 
             it('does not allow 1', () => {
-                expect(enforcer.serialize(schema, 1)).to.be.true;
+                const [ , err ] = schema.serialize(1);
+                expect(err).to.match(/Expected a boolean/);
             });
 
             it('allows 1 if coerced', () => {
-
+                const [ value ] = schema.serialize(Coerce(1));
+                expect(value).to.be.true;
             });
 
             it('does not allow 0', () => {
-                expect(enforcer.serialize(schema, 0)).to.be.false;
+                const [ , err ] = schema.serialize(0);
+                expect(err).to.match(/Expected a boolean/);
             });
 
             it('allows 0 if coerced', () => {
-
+                const [ value ] = schema.serialize(Coerce(0));
+                expect(value).to.be.false;
             });
 
             it('does not allow string', () => {
-
+                const [ , err ] = schema.serialize('hello');
+                expect(err).to.match(/Expected a boolean/);
             });
 
             it('allows empty string if coerced', () => {
-
+                const [ value ] = schema.serialize(Coerce(''));
+                expect(value).to.be.false;
             });
 
             it('allows non-empty string if coerced', () => {
-
+                const [ value ] = schema.serialize(Coerce('hello'));
+                expect(value).to.be.true;
             });
 
             it('does not allow object', () => {
-
+                const [ , err ] = schema.serialize({});
+                expect(err).to.match(/Expected a boolean/);
             });
 
             it('allows object if coerced', () => {
-                expect(enforcer.serialize(schema, {})).to.be.true;
+                const [ value ] = schema.serialize(Coerce({}));
+                expect(value).to.be.true;
             });
 
             it('does not allow null', () => {
-
+                const [ , err ] = schema.serialize(null);
+                expect(err).to.match(/Expected a boolean/);
             });
 
             it('allows null if coerced', () => {
-                expect(enforcer.serialize(schema, null)).to.be.false;
+                const [ value ] = schema.serialize(Coerce(null));
+                expect(value).to.be.false;
             });
 
         });
 
         describe('byte', () => {
-            const schema = { type: 'string', format: 'byte' };
+            let schema;
 
-            it('true', () => {
-                expect(enforcer.serialize(schema, true)).to.equal('AQ==');
+            before(() => {
+                [ schema ] = definition(3, Schema, {
+                    type: 'string',
+                    format: 'byte'
+                });
             });
 
-            it('false', () => {
-                expect(enforcer.serialize(schema, false)).to.equal('AA==');
+            it('does not allow true', () => {
+                const [ , err ] = schema.serialize(true);
+                expect(err).to.match(/Expected a Buffer instance/);
             });
 
-            it('number', () => {
-                expect(enforcer.serialize(schema, 1)).to.equal('AQ==');
+            it('allows true if coerced', () => {
+                const [ value ] = schema.serialize(Coerce(true));
+                expect(value).to.equal('AQ==');
             });
 
-            it('large number', () => {
-                expect(enforcer.serialize(schema, 256)).to.equal('AQA=');
+            it('does not allow false', () => {
+                const [ , err ] = schema.serialize(false);
+                expect(err).to.match(/Expected a Buffer instance/);
             });
 
-            it('larger number', () => {
-                expect(enforcer.serialize(schema, 270721)).to.equal('BCGB');
+            it('allows false if coerced', () => {
+                const [ value ] = schema.serialize(Coerce(false));
+                expect(value).to.equal('AA==');
             });
 
-            it('M', () => {
-                expect(enforcer.serialize(schema, 'M')).to.equal('TQ==');
+            it('does not allow number', () => {
+                const [ , err ] = schema.serialize(1);
+                expect(err).to.match(/Expected a Buffer instance/);
             });
 
-            it('Ma', () => {
-                expect(enforcer.serialize(schema, 'Ma')).to.equal('TWE=');
+            it('allows 0 if coerced', () => {
+                const [ value ] = schema.serialize(Coerce(0));
+                expect(value).to.equal('AA==');
             });
 
-            it('buffer', () => {
-                const b = Buffer.from('M');
-                expect(enforcer.serialize(schema, b)).to.equal('TQ==')
+            it('allows 1 if coerced', () => {
+                const [ value ] = schema.serialize(Coerce(1));
+                expect(value).to.equal('AQ==');
             });
 
-            it('invalid type', () => {
-                expect(() => enforcer.serialize(schema, null)).to.throw(/errors occurred during serialization/);
+            it('allow 256 if coerced', () => {
+                const [ value ] = schema.serialize(Coerce(256));
+                expect(value).to.equal('AQA=');
+            });
+
+            it('allow 270721 if coerced', () => {
+                const [ value ] = schema.serialize(Coerce(270721));
+                expect(value).to.equal('BCGB');
+            });
+
+            it('does not allow string', () => {
+                const [ , err ] = schema.serialize('M');
+                expect(err).to.match(/Expected a Buffer instance/);
+            });
+
+            it('allows empty string if coerced', () => {
+                const [ value ] = schema.serialize(Coerce(''));
+                expect(value).to.equal('AA==');
+            });
+
+            it('allows single character string if coerced', () => {
+                const [ value ] = schema.serialize(Coerce('M'));
+                expect(value).to.equal('TQ==');
+            });
+
+            it('allows multiple character string if coerced', () => {
+                const [ value ] = schema.serialize(Coerce('Ma'));
+                expect(value).to.equal('TWE=');
+            });
+
+            it('allows buffer', () => {
+                const [ value ] = schema.serialize(Buffer.from('M'));
+                expect(value).to.equal('TQ==');
+            });
+
+            it('does not allow object', () => {
+                const [ , err ] = schema.serialize(Coerce({}));
+                expect(err).to.match(/Expected a Buffer instance/);
+            });
+
+            it('does not allow null', () => {
+                const [ , err ] = schema.serialize(Coerce(null));
+                expect(err).to.match(/Expected a Buffer instance/);
             });
 
         });
 
         describe('date', () => {
-            const schema = { type: 'string', format: 'date' };
-            const iso = '2000-01-01T00:00:00.000Z';
+            const date = '2000-01-01';
+            const iso = date + 'T00:00:00.000Z';
+            let schema;
 
-            it('Date object', () => {
-                const d = new Date(iso);
-                expect(enforcer.serialize(schema, d)).to.equal('2000-01-01');
+            before(() => {
+                [ schema ] = definition(3, Schema, {
+                    type: 'string',
+                    format: 'date'
+                });
             });
 
-            it('ISO format', () => {
-                expect(enforcer.serialize(schema, iso)).to.equal('2000-01-01');
+            it('allows a valid date object', () => {
+                const [ value ] = schema.serialize(new Date(iso));
+                expect(value).to.equal(date);
             });
 
-            it('date format', () => {
-                expect(enforcer.serialize(schema, '2000-01-01')).to.equal('2000-01-01');
+            it('does not allow an invalid date object', () => {
+                const [ , err ] = schema.serialize(new Date('hello'));
+                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
             });
 
-            it('oveflow', () => {
-                expect(enforcer.serialize(schema, '2000-02-30')).to.equal('2000-03-01');
+            it('allows a date string', () => {
+                const [ value ] = schema.serialize(date);
+                expect(value).to.equal(date);
             });
 
-            it('number', () => {
-                const d = new Date(iso);
-                expect(enforcer.serialize(schema, +d)).to.equal('2000-01-01');
+            it('allows a date-time string', () => {
+                const [ value ] = schema.serialize(iso);
+                expect(value).to.equal(date);
             });
 
-            it('boolean', () => {
-                expect(() => enforcer.serialize(schema, true)).to.throw(/errors occurred during serialization/);
+            it('does not allow a number', () => {
+                const [ , err ] = schema.serialize(1);
+                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
+            });
+
+            it('allows a number if coerced', () => {
+                const [ value ] = schema.serialize(Coerce(+(new Date(iso))));
+                expect(value).to.equal(date);
+            });
+
+            it('does not allow a boolean', () => {
+                const [ , err ] = schema.serialize(Coerce(true));
+                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
+            });
+
+            it('does not allow an object', () => {
+                const [ , err ] = schema.serialize(Coerce({}));
+                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
+            });
+
+            it('does not allow null', () => {
+                const [ , err ] = schema.serialize(Coerce(null));
+                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
             });
 
         });
 
-        describe('date-time', () => {
-            const schema = { type: 'string', format: 'date-time' };
-            const iso = '2000-01-01T01:15:22.345Z';
+        describe.only('date-time', () => {
+            const iso = '2000-01-01T00:00:00.000Z';
+            let schema;
 
-            it('Date object', () => {
-                const d = new Date(iso);
-                expect(enforcer.serialize(schema, d)).to.equal(iso);
+            before(() => {
+                [ schema ] = definition(3, Schema, {
+                    type: 'string',
+                    format: 'date-time'
+                });
             });
 
-            it('ISO format', () => {
-                expect(enforcer.serialize(schema, iso)).to.equal(iso);
+            it('allows a valid date object', () => {
+                const [ value ] = schema.serialize(new Date(iso));
+                expect(value).to.equal(iso);
             });
 
-            it('date format', () => {
-                expect(enforcer.serialize(schema, '2000-01-01')).to.equal('2000-01-01T00:00:00.000Z');
+            it('does not allow an invalid date object', () => {
+                const [ , err ] = schema.serialize(new Date('hello'));
+                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
             });
 
-            it('oveflow', () => {
-                expect(enforcer.serialize(schema, '2000-02-30')).to.equal('2000-03-01T00:00:00.000Z');
+            it('allows a date string', () => {
+                const [ value ] = schema.serialize(iso.substr(0, 10));
+                expect(value).to.equal(iso);
             });
 
-            it('number', () => {
-                const d = new Date(iso);
-                expect(enforcer.serialize(schema, +d)).to.equal(iso);
+            it('allows a date-time string', () => {
+                const [ value ] = schema.serialize(iso);
+                expect(value).to.equal(iso);
             });
 
-            it('boolean', () => {
-                expect(() => enforcer.serialize(schema, true)).to.throw(/errors occurred during serialization/);
+            it('does not allow a number', () => {
+                const [ , err ] = schema.serialize(1);
+                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
+            });
+
+            it('allows a number if coerced', () => {
+                const [ value ] = schema.serialize(Coerce(+(new Date(iso))));
+                expect(value).to.equal(iso);
+            });
+
+            it('does not allow a boolean', () => {
+                const [ , err ] = schema.serialize(Coerce(true));
+                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
+            });
+
+            it('does not allow an object', () => {
+                const [ , err ] = schema.serialize(Coerce({}));
+                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
+            });
+
+            it('does not allow null', () => {
+                const [ , err ] = schema.serialize(Coerce(null));
+                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
             });
 
         });
 
         describe('integer', () => {
-            const schema = { type: 'integer' };
+            let schema;
+
+            before(() => {
+                [ schema ] = definition(3, Schema, { type: 'integer' });
+            });
 
             it('integer', () => {
                 expect(enforcer.serialize(schema, 123)).to.equal(123);
