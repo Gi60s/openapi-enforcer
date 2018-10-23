@@ -15,9 +15,12 @@
  *    limitations under the License.
  **/
 'use strict';
-const definitionValidator   = require('./bin/definition-validator').openapi;
+const definitionValidator   = require('./bin/definition-validator');
 const freeze                = require('./bin/freeze');
-const Ignored               = require('./ignored');
+const schemaValidator       = require('./bin/definition-validators/schema');
+
+const openapiValidator = definitionValidator.openapi;
+const normalizeValidator = definitionValidator.normalize;
 
 module.exports = enforcer;
 
@@ -44,8 +47,6 @@ async function enforcer(definition, options) {
     return openapi;
 }
 
-enforcer.ignored = Ignored;
-
 enforcer.compile = enforcer;
 
 /**
@@ -54,7 +55,7 @@ enforcer.compile = enforcer;
  * @returns {Promise<string>}
  */
 enforcer.errors = function (definition) {
-    return definitionValidator(definition).then(({ error }) => error ? error.toString() : '')
+    return openapiValidator(definition).then(({ error }) => error ? error.toString() : '')
 };
 
 /**
@@ -64,5 +65,11 @@ enforcer.errors = function (definition) {
  * @returns {Promise<EnforcerResult<OpenAPIEnforcer>>}
  */
 enforcer.evaluate = function (definition) {
-    return definitionValidator(definition);
+    return openapiValidator(definition);
 };
+
+enforcer.Schema = function (version, definition) {
+    return normalizeValidator(version, schemaValidator, definition);
+};
+
+enforcer.Value = require('./value');
