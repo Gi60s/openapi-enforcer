@@ -63,7 +63,7 @@ describe('components/schema', () => {
 
     });
 
-    describe('serialize', () => {
+    describe.only('serialize', () => {
 
         describe('array', () => {
 
@@ -78,7 +78,7 @@ describe('components/schema', () => {
 
         });
 
-        describe.only('binary', () => {
+        describe('binary', () => {
             let schema;
 
             before(() => {
@@ -128,9 +128,9 @@ describe('components/schema', () => {
                 expect(value).to.equal('0000000100000000');
             });
 
-            it.only('ignores string', () => {
-                const [ value ] = schema.serialize('\r');
-                expect(value).to.equal('\r');
+            it('allows string if coerced', () => {
+                const [ value ] = schema.serialize(Coerce('\r'));
+                expect(value).to.equal('00001101');
             });
 
             it('allows buffer', () => {
@@ -434,7 +434,7 @@ describe('components/schema', () => {
 
         });
 
-        describe('integer', () => {
+        describe.only('integer', () => {
             let schema;
 
             before(() => {
@@ -442,10 +442,12 @@ describe('components/schema', () => {
             });
 
             it('integer', () => {
-                expect(enforcer.serialize(schema, 123)).to.equal(123);
+                const [ value ] = schema.serialize(123);
+                expect(value).to.equal(123);
             });
 
-            it('produces error when float is provided', () => {
+            it.only('produces error when float is provided', () => {
+                const [ value ] = schema.serialize(123.7);
                 expect(enforcer.serialize(schema, 123.7)).to.equal(124);
             });
 
