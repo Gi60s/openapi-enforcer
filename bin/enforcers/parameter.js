@@ -17,11 +17,11 @@
 'use strict';
 const Component     = require('../definition-validator').component;
 const Exception     = require('../exception');
-const Ignored       = require('../../ignored');
 const Result        = require('../result');
 const Schema        = require('./schema');
 const Super         = require('./super');
 const util          = require('../util');
+const Value         = require('../../value');
 
 const rxFalse = /^false/i;
 const rxTrue = /^true$/i;
@@ -296,7 +296,7 @@ function objectFlattened(delimiter, value) {
 
 function parsePrimitive(parameter, schema, exception, value) {
     if (!value) {
-        if (parameter.allowEmptyValue) return new Ignored(value);
+        if (parameter.allowEmptyValue) return new Value(value, { serialize: false, validate: false });
         exception('Empty value not allowed');
 
     } else if (schema.type === 'boolean') {
