@@ -47,7 +47,7 @@ async function enforcer(definition, options) {
     return openapi;
 }
 
-enforcer.compile = enforcer;
+enforcer.enforcer = enforcer;
 
 /**
  * Check the definition for errors.
