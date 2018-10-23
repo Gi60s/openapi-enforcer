@@ -39,12 +39,12 @@ exports.random = function ({ schema }) {
 exports.serialize = function ({ coerce, exception, value }) {
     const originalValue = value;
     const type = typeof value;
-    if (type === 'string' && (rx.date.test(value) || rx.dateTime.test(value))) value = new Date(value);
+    if (type === 'string' && (coerce || rx.date.test(value) || rx.dateTime.test(value))) value = new Date(value);
     if (coerce && type === 'number' && !isNaN(value)) value = new Date(Number(value));
     if (util.isDate(value)) {
         return value.toISOString();
     } else {
-        exception('Expected a valid Date instance or date formatted string. Received: ' + util.smart(originalValue));
+        exception('Expected a valid Date instance or an ISO date formatted string. Received: ' + util.smart(originalValue));
     }
 };
 

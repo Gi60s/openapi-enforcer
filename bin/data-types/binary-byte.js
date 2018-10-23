@@ -20,6 +20,7 @@ const util      = require('../util');
 
 const binary = {};
 const byte = {};
+const zeros = '00000000';
 
 module.exports = {
     binary,
@@ -52,7 +53,7 @@ binary.serialize = function ({ coerce, exception, value }) {
         }
         return binary;
     } else {
-        exception('Expected a Buffer instance. Received: ' + util.smart(originalValue));
+        exception('Expected a Buffer instance. Received: ' + util.smart(value));
     }
 };
 
