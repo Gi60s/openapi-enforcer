@@ -316,13 +316,32 @@ function serialize(exception, map, schema, originalValue) {
         }
         return result;
 
-    } else if (type === 'integer' || type === 'number') {
+    } else if (type === 'integer') {
+        let result = schema.dataTypeFormats.serialize(exception, originalValue);
+        if (result === undefined) {
+            if (typeofValue !== 'number' && !coerce) {
+                exception('Expected an integer. Received: ' + util.smart(value));
+            } else {
+                result = +value;
+                if (isNaN(result)) {
+                    exception('Expected a number. Received: ' + util.smart(value));
+                    result = undefined;
+                }
+            }
+        }
+        return result;
+
+    } else if (type === 'number') {
         let result = schema.dataTypeFormats.serialize(exception, originalValue);
         if (result === undefined) {
             if (typeofValue !== 'number' && !coerce) {
                 exception('Expected a number. Received: ' + util.smart(value));
             } else {
                 result = +value;
+                if (isNaN(result)) {
+                    exception('Expected a number. Received: ' + util.smart(value));
+                    result = undefined;
+                }
             }
         }
         return result;
