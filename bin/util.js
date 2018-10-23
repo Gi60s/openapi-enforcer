@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const Ignored       = require('../ignored');
 const queryString   = require('querystring');
 const rx            = require('./rx');
 
