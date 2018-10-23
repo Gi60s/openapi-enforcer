@@ -17,9 +17,9 @@
 'use strict';
 const definition    = require('../bin/definition-validator').normalize;
 const Enforcer      = require('../index');
-const Coerce       = require('../coerce');
 const expect        = require('chai').expect;
 const Schema        = require('../bin/definition-validators/schema');
+const Value         = require('../value');
 
 describe('components/schema', () => {
     let def;
@@ -78,7 +78,7 @@ describe('components/schema', () => {
 
         });
 
-        describe('binary', () => {
+        describe.only('binary', () => {
             let schema;
 
             before(() => {
@@ -128,7 +128,7 @@ describe('components/schema', () => {
                 expect(value).to.equal('0000000100000000');
             });
 
-            it('ignores string', () => {
+            it.only('ignores string', () => {
                 const [ value ] = schema.serialize('\r');
                 expect(value).to.equal('\r');
             });
@@ -376,7 +376,7 @@ describe('components/schema', () => {
 
         });
 
-        describe.only('date-time', () => {
+        describe('date-time', () => {
             const iso = '2000-01-01T00:00:00.000Z';
             let schema;
 
@@ -394,7 +394,7 @@ describe('components/schema', () => {
 
             it('does not allow an invalid date object', () => {
                 const [ , err ] = schema.serialize(new Date('hello'));
-                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
+                expect(err).to.match(/Expected a valid Date instance or an ISO date formatted string/);
             });
 
             it('allows a date string', () => {
@@ -409,7 +409,7 @@ describe('components/schema', () => {
 
             it('does not allow a number', () => {
                 const [ , err ] = schema.serialize(1);
-                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
+                expect(err).to.match(/Expected a valid Date instance or an ISO date formatted string/);
             });
 
             it('allows a number if coerced', () => {
@@ -419,17 +419,17 @@ describe('components/schema', () => {
 
             it('does not allow a boolean', () => {
                 const [ , err ] = schema.serialize(Coerce(true));
-                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
+                expect(err).to.match(/Expected a valid Date instance or an ISO date formatted string/);
             });
 
             it('does not allow an object', () => {
                 const [ , err ] = schema.serialize(Coerce({}));
-                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
+                expect(err).to.match(/Expected a valid Date instance or an ISO date formatted string/);
             });
 
             it('does not allow null', () => {
                 const [ , err ] = schema.serialize(Coerce(null));
-                expect(err).to.match(/Expected a valid Date instance or date formatted string/);
+                expect(err).to.match(/Expected a valid Date instance or an ISO date formatted string/);
             });
 
         });
@@ -591,3 +591,7 @@ describe('components/schema', () => {
     });
 
 });
+
+function Coerce(value) {
+    return new Value(value, { coerce: true });
+}
