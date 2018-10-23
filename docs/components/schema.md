@@ -51,20 +51,33 @@ Coercion can be enabled for specific values using the [EnforcerValue](#) constru
 ```js
 // TODO: this example is poor because it bypasses definition validation
 
-const { Schema, Value } = require('openapi-enforcer');
+const enforcer = require('openapi-enforcer');
 
-const schema = Schema(3, { type: 'number' });
-let exception;
-let value;
+const definition = {
+    swagger: '2.0',
+    // ...
+    definitions: {
+        Number: {
+            type: 'number'
+        }
+    }
+}
 
-[ value, exception ] = schema.deserialize("1");
-// value: undefined
-// exception: Expected a number. Received: "1"
+enforcer(definition)
+    .then(openapi => {
+        const schema = openapi.definitions.Number;
+        let exception;
+        let value;
 
-const input = Value("1", { coerce: true });
-[ value, exception] = schema.deserialize(input);
-// value: 1
-// exception: undefined
+        [ value, exception ] = schema.deserialize("1");
+        // value: undefined
+        // exception: Expected a number. Received: "1"
+
+        const input = Value("1", { coerce: true });
+        [ value, exception] = schema.deserialize(input);
+        // value: 1
+        // exception: undefined
+    });
 ```
 
 #### Booleans
@@ -101,3 +114,28 @@ A number is already a scalar value and is valid for data transmission.
 | ------ | ------------ | -------------- | ------------------ |
 | N/A | 1 | No | 1 |
 | N/A | "1" | Yes | 1 |
+| N/A | "1.5" | Yes | 1.5 |
+
+#### Strings
+
+A string can represent a literal string or it is also often used to represent non-scalar values.
+
+| Format | Scalar Value | Needs Coercion | Deserialized Value |
+| ------ | ------------ | -------------- | ------------------ |
+| binary | `"00000011"` | No | `Buffer<[3]>` |
+| byte | 1 | No | 1 |
+| date | 1 | No | 1 |
+| date-time | 1 | No | 1 |
+
+## Serialize
+
+#### Strings
+
+A string can represent a literal string or it is also often used to represent non-scalar values.
+
+| Format | Deserialized Value | Needs Coercion | Serialized Value |
+| ------ | ------------ | -------------- | ------------------ |
+| binary | `false` | Yes | `"00000000"` |
+| binary | `true` | Yes | `"00000001"` |
+| binary | `256` | Yes | `"0000000100000000"` |
+
