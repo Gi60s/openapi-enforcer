@@ -16,8 +16,8 @@
  **/
 'use strict';
 const Exception = require('../../exception');
-const Ignored   = require('../../../ignored');
 const util      = require('../../util');
+const Value     = require('../../../value');
 
 const smart = util.smart;
 
@@ -31,14 +31,16 @@ module.exports = function(schema, value) {
     const exception = Exception('Value is not valid');
 
     // validate the value
-    validate(exception, schema.version, new Map(), schema, value);
+    validate(exception, new Map(), schema, value);
 
     // return the exception if an error occurred
     return exception.hasException ? exception : null;
 };
 
-function validate(exception, version, map, schema, value) {
-    if (!schema) return;
+function validate(exception, map, schema, originalValue) {
+    const { validate, value } = Value.getAttributes(originalValue);
+    if (!validate) return originalValue;
+
     const type = schema.type;
 
     // handle cyclic validation
@@ -53,16 +55,13 @@ function validate(exception, version, map, schema, value) {
         schemas.push(schema);
     }
 
-    // don't validate empty values
-    if (Ignored.isIgnoredValue(value)) return;
-
     // if nullable and null then skip all other validation
     if (schema.nullable && value === null) return;
 
     if (schema.allOf) {
         const child = exception.nest('Did not validate against allOf schemas');
         schema.allOf.forEach((subSchema, index) => {
-            validate(child.nest('Did not validate against schema at index ' + index), version, map, subSchema, value);
+            validate(child.at(index), map, subSchema, originalValue);
         });
 
     } else if (schema.anyOf) {
@@ -73,15 +72,15 @@ function validate(exception, version, map, schema, value) {
             if (!subSchema) {
                 exception('Discriminator property "' + key + '" as "' + value[key] + '" did not map to a schema');
             } else {
-                validate(exception.nest('Discriminator property "' + key + '" as "' + value[key] + '" has one or more errors'), version, map, subSchema, value);
+                validate(exception.at(value[key]), map, subSchema, value);
             }
         } else {
             const anyOfException = Exception('Did not validate against one or more anyOf schemas');
             const length = schema.anyOf.length;
             let valid = false;
             for (let i = 0; i < length; i++) {
-                const child = anyOfException.nest('Did not validate against schema at index ' + i);
-                validate(child, version, map, schema.anyOf[i], value);
+                const child = anyOfException.at(i);
+                validate(child, map, schema.anyOf[i], value);
                 if (!child.hasException) {
                     valid = true;
                     break;
@@ -98,7 +97,7 @@ function validate(exception, version, map, schema, value) {
             if (!subSchema) {
                 exception('Discriminator property "' + key + '" as "' + value[key] + '" did not map to a schema');
             } else {
-                validate(exception.nest('Discriminator property "' + key + '" as "' + value[key] + '" has one or more errors'), version, map, subSchema, value);
+                validate(exception.at(value[key]), map, subSchema, value);
             }
         } else {
             const oneOfException = Exception('Did not validate against exactly one oneOf schema');
@@ -106,7 +105,7 @@ function validate(exception, version, map, schema, value) {
             let valid = 0;
             for (let i = 0; i < length; i++) {
                 const child = Exception('Did not validate against schema at index ' + i);
-                validate(child, version, map, schema.oneOf[i], value);
+                validate(child, map, schema.oneOf[i], value);
                 if (!child.hasException) {
                     valid++;
                     oneOfException('Validated against schema at index ' + i);
@@ -119,7 +118,7 @@ function validate(exception, version, map, schema, value) {
 
     } else if (schema.not) {
         const child = Exception('');
-        validate(child, version, map, schema, value);
+        validate(child, map, schema, value);
         if (!child.hasException) exception('Value should not validate against schema');
 
     } else if (type === 'array') {
@@ -152,31 +151,6 @@ function validate(exception, version, map, schema, value) {
                 value.forEach((val, index) => {
                     validate(exception.nest('One or more errors in array at index: ' + index), version, map, schema.items, val);
                 });
-            }
-        }
-
-    } else if (type === 'boolean') {
-        if (typeof value !== 'boolean') {
-            exception('Expected a boolean. Received: ' + smart(value));
-        }
-
-    } else if (type === 'integer') {
-        if (isNaN(value) || Math.round(value) !== value || typeof value !== 'number') {
-            exception('Expected an integer. Received: ' + smart(value));
-        } else {
-            maxMin(exception, schema, 'integer', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
-            if (schema.multipleOf && value % schema.multipleOf !== 0) {
-                exception('Expected a multiple of ' + schema.multipleOf + '. Received: ' + smart(value));
-            }
-        }
-
-    } else if (type === 'number') {
-        if (isNaN(value) || typeof value !== 'number') {
-            exception('Expected a number. Received: ' + smart(value));
-        } else {
-            maxMin(exception, schema, 'number', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
-            if (schema.multipleOf && value % schema.multipleOf !== 0) {
-                exception('Expected a multiple of ' + schema.multipleOf + '. Received: ' + smart(value));
             }
         }
 
@@ -222,51 +196,54 @@ function validate(exception, version, map, schema, value) {
             }
         }
 
+    } else if (type === 'boolean') {
+        if (typeof value !== 'boolean') {
+            exception('Expected a boolean. Received: ' + smart(value));
+        } else {
+            schema.dataTypeFormats.validate(exception, value);
+        }
+
+    } else if (type === 'integer') {
+        if (isNaN(value) || Math.round(value) !== value || typeof value !== 'number') {
+            exception('Expected an integer. Received: ' + smart(value));
+        } else {
+            maxMin(exception, schema, 'integer', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
+            if (schema.multipleOf && value % schema.multipleOf !== 0) {
+                exception('Expected a multiple of ' + schema.multipleOf + '. Received: ' + smart(value));
+            }
+            schema.dataTypeFormats.validate(exception, value);
+        }
+
+    } else if (type === 'number') {
+        if (isNaN(value) || typeof value !== 'number') {
+            exception('Expected a number. Received: ' + smart(value));
+        } else {
+            maxMin(exception, schema, 'number', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
+            if (schema.multipleOf && value % schema.multipleOf !== 0) {
+                exception('Expected a multiple of ' + schema.multipleOf + '. Received: ' + smart(value));
+            }
+            schema.dataTypeFormats.validate(exception, value);
+        }
+
     } else if (schema.type === 'string') {
-        switch(schema.format) {
-            case 'binary':
-                if (!Buffer.isBuffer(value)) {
-                    exception('Expected value to be a buffer. Received: ' + smart(value));
-                } else {
-                    maxMin(exception, schema, 'binary length', 'maxLength', 'minLength', true, value.length * 8, schema.maxLength, schema.minLength);
-                }
-                break;
+        if (typeof value !== 'string') {
+            exception('Expected a string. Received: ' + smart(value));
 
-            case 'byte':
-                if (!Buffer.isBuffer(value)) {
-                    exception('Expected value to be a buffer. Received: ' + smart(value));
-                } else {
-                    maxMin(exception, schema, 'byte length', 'maxLength', 'minLength', true, value.length, schema.maxLength, schema.minLength);
-                }
-                break;
+        } else {
+            const length = value.length;
+            if (schema.hasOwnProperty('maxLength') && length > schema.maxLength) {
+                exception('String too long. ' + smart(value) + ' (' + length + ') exceeds maximum length of ' + schema.maxLength);
+            }
 
-            case 'date':
-            case 'date-time':
-                if (!util.isDate(value)) {
-                    exception('Expected a valid date object. Received: ' + smart(value));
-                } else {
-                    maxMin(exception, schema, schema.format, 'maximum', 'minimum', false, value, schema.maximum, schema.minimum);
-                }
-                break;
+            if (schema.hasOwnProperty('minLength') && length < schema.minLength) {
+                exception('String too short. ' + smart(value) + ' (' + length + ') exceeds minimum length of ' + schema.minLength);
+            }
 
-            default:
-                if (typeof value !== 'string') {
-                    exception('Expected a string. Received: ' + smart(value));
+            if (schema.hasOwnProperty('pattern') && !schema.pattern.test(value)) {
+                exception('String does not match required pattern ' + schema.pattern + ' with value: ' + smart(value));
+            }
 
-                } else {
-                    const length = value.length;
-                    if (schema.hasOwnProperty('maxLength') && length > schema.maxLength) {
-                        exception('String too long. ' + smart(value) + ' (' + length + ') exceeds maximum length of ' + schema.maxLength);
-                    }
-
-                    if (schema.hasOwnProperty('minLength') && length < schema.minLength) {
-                        exception('String too short. ' + smart(value) + ' (' + length + ') exceeds minimum length of ' + schema.minLength);
-                    }
-
-                    if (schema.hasOwnProperty('pattern') && !schema.pattern.test(value)) {
-                        exception('String does not match required pattern ' + schema.pattern + ' with value: ' + smart(value));
-                    }
-                }
+            schema.dataTypeFormats.validate(exception, value);
         }
     }
 
