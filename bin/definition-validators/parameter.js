@@ -32,7 +32,12 @@ function ParameterObject(data) {
             allowEmptyValue: {
                 allowed: ({parent}) => ['query', 'formData'].includes(parent.value.in),
                 type: 'boolean',
-                default: false
+                default: false,
+                errors: ({warn, major}) => {
+                    if (major === 3) {
+                        warn('Per OAS 3.0.2: "Use of this property is NOT RECOMMENDED, as it is likely to be removed in a later revision."')
+                    }
+                }
             },
             allowReserved: {
                 allowed: ({ parent }) => major === 3 && parent.value.in === 'query',
