@@ -37,12 +37,13 @@ exports.deserialize = function(schema, value) {
  * Convert a deserialized value to serialized.
  * Converts Buffer and Date objects into string equivalent.
  * @param {Schema} schema
+ * @param {object} protect Protected data
  * @param {*} value
  * @returns {EnforcerResult}
  */
-exports.serialize = function(schema, value) {
+exports.serialize = function(schema, protect, value) {
     const exception = Exception('Unable to serialize value');
-    const result = serialize(exception, new Map(), schema, value);
+    const result = runSerialize(exception, new Map(), schema, protect, value);
     return new Result(result, exception);
 };
 
@@ -198,7 +199,7 @@ function runDiscriminator(exception, map, parentSchema, value, next) {
     }
 }
 
-function serialize(exception, map, schema, originalValue) {
+function runSerialize(exception, map, schema, originalValue) {
     const { coerce, serialize, value } = Value.getAttributes(originalValue);
     if (!serialize) return originalValue;
 
@@ -221,7 +222,7 @@ function serialize(exception, map, schema, originalValue) {
     if (schema.allOf) {
         const result = {};
         schema.allOf.forEach((schema, index) => {
-            const v = serialize(exception.nest('Unable to serialize "allOf" at index ' + index), map, schema, originalValue);
+            const v = runSerialize(exception.nest('Unable to serialize "allOf" at index ' + index), map, schema, originalValue);
             Object.assign(result, v)
         });
         return result;
@@ -235,7 +236,7 @@ function serialize(exception, map, schema, originalValue) {
             for (let index = 0; index < length; index++) {
                 const subSchema = schema.allOf[index];
                 const child = anyOfException.at(index);
-                const result = serialize(child, map, subSchema, originalValue);
+                const result = runSerialize(child, map, subSchema, originalValue);
                 if (!child.hasException) {
                     const error = subSchema.validate(result);
                     if (error) {
@@ -257,7 +258,7 @@ function serialize(exception, map, schema, originalValue) {
             let result = undefined;
             schema.oneOf.forEach((schema, index) => {
                 const child = oneOfException.at(index);
-                const result = serialize(child, map, schema, originalValue);
+                const result = runSerialize(child, map, schema, originalValue);
                 if (!child.hasException) {
                     const error = schema.validate(result);
                     if (error) {
@@ -278,7 +279,7 @@ function serialize(exception, map, schema, originalValue) {
     } else if (type === 'array') {
         if (Array.isArray(value)) {
             const result = schema.items
-                ? value.map((v, i) => serialize(exception.at(i), map, schema.items, v))
+                ? value.map((v, i) => runSerialize(exception.at(i), map, schema.items, v))
                 : value;
             matches.set(schema, result);
             return result;
@@ -293,9 +294,9 @@ function serialize(exception, map, schema, originalValue) {
             const properties = schema.properties || {};
             Object.keys(value).forEach(key => {
                 if (properties.hasOwnProperty(key)) {
-                    result[key] = serialize(exception.nest('Unable to serialize property: ' + key), map, properties[key], value[key]);
+                    result[key] = runSerialize(exception.nest('Unable to serialize property: ' + key), map, properties[key], value[key]);
                 } else if (additionalProperties) {
-                    result[key] = serialize(exception.nest('Unable to serialize property: ' + key), map, additionalProperties, value[key]);
+                    result[key] = runSerialize(exception.nest('Unable to serialize property: ' + key), map, additionalProperties, value[key]);
                 }
             });
             return result;
@@ -319,30 +320,33 @@ function serialize(exception, map, schema, originalValue) {
     } else if (type === 'integer') {
         let result = schema.dataTypeFormats.serialize(exception, originalValue);
         if (result === undefined) {
-            if (typeofValue !== 'number' && !coerce) {
-                exception('Expected an integer. Received: ' + util.smart(value));
-            } else {
+            const isInteger = typeofValue === 'number' && !isNaN(value) && value === Math.round(value);
+            if (isInteger) {
+                result = value;
+            } else if (coerce) {
                 result = +value;
-                if (isNaN(result)) {
-                    exception('Expected a number. Received: ' + util.smart(value));
-                    result = undefined;
-                }
+                if (!isNaN(result) && result !== Math.round(result)) result = Math.round(result);
             }
+        }
+        if (isNaN(result)) {
+            exception('Expected an integer. Received: ' + util.smart(value));
+            result = undefined;
         }
         return result;
 
     } else if (type === 'number') {
         let result = schema.dataTypeFormats.serialize(exception, originalValue);
         if (result === undefined) {
-            if (typeofValue !== 'number' && !coerce) {
-                exception('Expected a number. Received: ' + util.smart(value));
-            } else {
+            const isNumber = typeofValue === 'number' && !isNaN(value);
+            if (isNumber) {
+                result = value;
+            } else if (coerce) {
                 result = +value;
-                if (isNaN(result)) {
-                    exception('Expected a number. Received: ' + util.smart(value));
-                    result = undefined;
-                }
             }
+        }
+        if (isNaN(result)) {
+            exception('Expected a number. Received: ' + util.smart(value));
+            result = undefined;
         }
         return result;
 
