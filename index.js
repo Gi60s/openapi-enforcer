@@ -68,8 +68,20 @@ enforcer.evaluate = function (definition) {
     return openapiValidator(definition);
 };
 
-enforcer.Schema = function (version, definition) {
+enforcer.v2 = {
+    Schema: require('./bin/enforcers/schema')
+}
+
+enforcer.Schema = function (definition) {
+
     return normalizeValidator(version, schemaValidator, definition);
 };
 
 enforcer.Value = require('./value');
+
+function component(version, name) {
+    const component = require('./bin/enforcers/' + name);
+    return function (definition) {
+
+    }
+}
