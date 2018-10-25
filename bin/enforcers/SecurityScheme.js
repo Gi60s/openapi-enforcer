@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
@@ -44,7 +44,7 @@ module.exports = {
                     type: 'string',
                     enum: ['implicit', 'password', 'application', 'accessCode']
                 },
-                flows: ComponentRef('OAuthFlows', {
+                flows: EnforcerRef('OAuthFlows', {
                     allowed: ({ parent }) => major === 3 && parent.value.type === 'oauth2'
                 }) ,
                 in: {

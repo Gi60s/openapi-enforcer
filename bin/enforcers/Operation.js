@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 const requestBodyAllowedMethods = { post: true, put: true, options: true, head: true, patch: true };
 const rxCode = /^[1-5]\d{2}$/;
@@ -265,7 +265,7 @@ module.exports = {
                 callbacks: {
                     allowed: major === 3,
                     type: 'object',
-                    additionalProperties: ComponentRef('Callback')
+                    additionalProperties: EnforcerRef('Callback')
                 },
                 consumes: {
                     allowed: major === 2,
@@ -281,7 +281,7 @@ module.exports = {
                 description: {
                     type: 'string'
                 },
-                externalDocs: ComponentRef('ExternalDocumentation'),
+                externalDocs: EnforcerRef('ExternalDocumentation'),
                 operationId: {
                     type: 'string',
                     errors: (data) => {
@@ -296,7 +296,7 @@ module.exports = {
                 },
                 parameters: {
                     type: 'array',
-                    items: ComponentRef('Parameter'),
+                    items: EnforcerRef('Parameter'),
                     errors: module.exports.parametersValidation
                 },
                 produces: {
@@ -306,13 +306,13 @@ module.exports = {
                         type: 'string'
                     }
                 },
-                requestBody: ComponentRef('RequestBody', function (data) {
+                requestBody: EnforcerRef('RequestBody', function (data) {
                     const key = data.parent.key || 'post';  // for easy unit testing default key to post if there is no parent key
                     return {
                         allowed: major === 3 && !!requestBodyAllowedMethods[key]
                     }
                 }),
-                responses: ComponentRef('Responses', { required: true }),
+                responses: EnforcerRef('Responses', { required: true }),
                 schemes: {
                     allowed: major === 2,
                     type: 'array',
@@ -323,12 +323,12 @@ module.exports = {
                 },
                 security: {
                     type: 'array',
-                    items: ComponentRef('SecurityRequirement')
+                    items: EnforcerRef('SecurityRequirement')
                 },
                 servers: {
                     allowed: major === 3,
                     type: 'array',
-                    items: ComponentRef('Server')
+                    items: EnforcerRef('Server')
                 },
                 summary: {
                     type: 'string',

@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
@@ -38,8 +38,8 @@ module.exports = {
                 termsOfService: {
                     type: 'string'
                 },
-                contact: ComponentRef('Contact'),
-                license: ComponentRef('License'),
+                contact: EnforcerRef('Contact'),
+                license: EnforcerRef('License'),
                 version: {
                     required: true,
                     type: 'string'

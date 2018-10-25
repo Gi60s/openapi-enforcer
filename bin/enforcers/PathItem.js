@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
 
@@ -33,27 +33,27 @@ module.exports = {
         return {
             type: 'object',
             properties: {
-                delete: ComponentRef('Operation'),
+                delete: EnforcerRef('Operation'),
                 description: {
                     type: 'string'
                 },
-                get: ComponentRef('Operation'),
-                head: ComponentRef('Operation'),
-                options: ComponentRef('Operation'),
+                get: EnforcerRef('Operation'),
+                head: EnforcerRef('Operation'),
+                options: EnforcerRef('Operation'),
                 parameters: {
                     weight: -1,
                     type: 'array',
-                    items: ComponentRef('Parameter'),
+                    items: EnforcerRef('Parameter'),
                     errors: Operation.parametersValidation
                 },
-                patch: ComponentRef('Operation'),
-                post: ComponentRef('Operation'),
-                put: ComponentRef('Operation'),
-                trace: ComponentRef('Operation', { allowed: major === 3 }),
+                patch: EnforcerRef('Operation'),
+                post: EnforcerRef('Operation'),
+                put: EnforcerRef('Operation'),
+                trace: EnforcerRef('Operation', { allowed: major === 3 }),
                 servers: {
                     allowed: major === 3,
                     type: 'array',
-                    items: ComponentRef('Server')
+                    items: EnforcerRef('Server')
                 },
                 summary: {
                     type: 'string'
@@ -62,10 +62,3 @@ module.exports = {
         }
     }
 };
-
-module.exports = Super(PathEnforcer);
-
-function PathEnforcer(data) {
-
-
-}

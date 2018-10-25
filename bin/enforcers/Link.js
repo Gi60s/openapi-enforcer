@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
@@ -42,7 +42,7 @@ module.exports = {
                     additionalProperties: true
                 },
                 requestBody: {},
-                server: ComponentRef('Server')
+                server: EnforcerRef('Server')
             },
             errors: ({ exception, value }) => {
                 if (value.hasOwnProperty('operationRef') && value.hasOwnProperty('operationId')) {

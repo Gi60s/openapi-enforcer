@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
@@ -28,10 +28,10 @@ module.exports = {
         return {
             type: 'object',
             properties: {
-                authorizationCode: ComponentRef('OAuthFlow'),
-                clientCredentials: ComponentRef('OAuthFlow'),
-                implicit: ComponentRef('OAuthFlow'),
-                password: ComponentRef('OAuthFlow')
+                authorizationCode: EnforcerRef('OAuthFlow'),
+                clientCredentials: EnforcerRef('OAuthFlow'),
+                implicit: EnforcerRef('OAuthFlow'),
+                password: EnforcerRef('OAuthFlow')
             }
         }
     }

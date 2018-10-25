@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 const rxContentType = /^([a-z-]+)\/(\*|[a-z-]+)(?:\+([a-z-]+))?/;
 
@@ -62,7 +62,7 @@ module.exports = {
                 headers: {
                     ignore: ({ parent }) => !parent.parent.parent.key.startsWith('multipart/'),
                     type: 'object',
-                    additionalProperties: ComponentRef('Header', {
+                    additionalProperties: EnforcerRef('Header', {
                         ignore: ({ key }) => key.toLowerCase() === 'content-type'
                     })
                 },

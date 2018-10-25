@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 const rxContentTypeMime = /(?:^multipart\/)|(?:^application\/x-www-form-urlencoded$)/;
 
@@ -41,14 +41,14 @@ module.exports = {
                             return true;
                         }
                     },
-                    additionalProperties: ComponentRef('Encoding')
+                    additionalProperties: EnforcerRef('Encoding')
                 },
                 example: { allowed: true },
                 examples: {
                     type: 'object',
-                    additionalProperties: ComponentRef('Example')
+                    additionalProperties: EnforcerRef('Example')
                 },
-                schema: ComponentRef('Schema')
+                schema: EnforcerRef('Schema')
             }
         }
     },

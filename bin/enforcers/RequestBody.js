@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
@@ -35,7 +35,7 @@ module.exports = {
                 content: {
                     type: 'object',
                     required: true,
-                    additionalProperties: ComponentRef('MediaType')
+                    additionalProperties: EnforcerRef('MediaType')
                 },
                 required: {
                     type: 'boolean',

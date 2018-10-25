@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
@@ -29,38 +29,38 @@ module.exports = {
             allowed: major === 3,
             type: 'object',
             properties: {
-                callbacks: ComponentRef('Callback'),
+                callbacks: EnforcerRef('Callback'),
                 examples: {
                     type: 'object',
-                    additionalProperties: ComponentRef('Example')
+                    additionalProperties: EnforcerRef('Example')
                 },
                 headers: {
                     type: 'object',
-                    additionalProperties: ComponentRef('Header')
+                    additionalProperties: EnforcerRef('Header')
                 },
                 links: {
                     type: 'object',
-                    additionalProperties: ComponentRef('Link')
+                    additionalProperties: EnforcerRef('Link')
                 },
                 parameters: {
                     type: 'object',
-                    additionalProperties: ComponentRef('Parameter')
+                    additionalProperties: EnforcerRef('Parameter')
                 },
                 requestBodies: {
                     type: 'object',
-                    additionalProperties: ComponentRef('RequestBody')
+                    additionalProperties: EnforcerRef('RequestBody')
                 },
                 responses: {
                     type: 'object',
-                    additionalProperties: ComponentRef('Response')
+                    additionalProperties: EnforcerRef('Response')
                 },
                 schemas: {
                     type: 'object',
-                    additionalProperties: ComponentRef('Schema')
+                    additionalProperties: EnforcerRef('Schema')
                 },
                 securitySchemes: {
                     type: 'object',
-                    additionalProperties: ComponentRef('SecurityScheme')
+                    additionalProperties: EnforcerRef('SecurityScheme')
                 },
             }
         }

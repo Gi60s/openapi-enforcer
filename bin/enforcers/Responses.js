@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
@@ -27,7 +27,7 @@ module.exports = {
     validator: function (data) {
         return {
             type: 'object',
-            additionalProperties: ComponentRef('Response', function ({ key }) {
+            additionalProperties: EnforcerRef('Response', function ({ key }) {
                 return {
                     allowed: key === 'default' || rxCode.test(key) || (major === 3 && rxRange.test(key))
                         ? true

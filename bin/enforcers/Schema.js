@@ -16,7 +16,7 @@
  **/
 'use strict';
 const BinaryByte    = require('../data-types/binary-byte');
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 const Exception     = require('../exception');
 const Result        = require('../result');
 const util          = require('../util');
@@ -30,8 +30,8 @@ const globalDataTypeFormats = {   // global types can be overwritten by local ty
     string: {
         binary: BinaryByte.binary,
         byte: BinaryByte.byte,
-        date: require('../../data-types/date'),
-        'date-time': require('../../data-types/date-time')
+        date: require('../data-types/date'),
+        'date-time': require('../data-types/date-time')
     }
 };
 
@@ -240,19 +240,19 @@ module.exports = {
                     },
                     enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
                 },
-                additionalProperties: ComponentRef('Schema', {
+                additionalProperties: EnforcerRef('Schema', {
                     allowed: ({parent}) => parent.value.type === 'object',
                     type: ['boolean', 'object'],
                     default: true
                 }),
                 allOf: {
                     type: 'array',
-                    items: ComponentRef('Schema')
+                    items: EnforcerRef('Schema')
                 },
                 anyOf: {
                     allowed: ({major}) => major === 3,
                     type: 'array',
-                    items: ComponentRef('Schema')
+                    items: EnforcerRef('Schema')
                 },
                 default: {
                     type: ({ parent }) => parent.value.type,
@@ -331,7 +331,7 @@ module.exports = {
                 },
                 exclusiveMaximum: exclusive,
                 exclusiveMinimum: exclusive,
-                externalDocs: ComponentRef('ExternalDocumentation'),
+                externalDocs: EnforcerRef('ExternalDocumentation'),
                 format: {
                     allowed: ({ parent }) => ['integer', 'number', 'string'].includes(parent.value.type),
                     type: 'string',
@@ -348,7 +348,7 @@ module.exports = {
                         }
                     }
                 },
-                items: ComponentRef('Schema', {
+                items: EnforcerRef('Schema', {
                     allowed: ({parent}) => parent.value.type === 'array',
                     required: ({ parent }) => parent.value.type === 'array'
                 }),
@@ -364,7 +364,7 @@ module.exports = {
                     allowed: ({ parent }) => ['integer', 'number'].includes(parent.value.type),
                     type: 'number'
                 },
-                not: ComponentRef('Schema', { allowed: major === 3 }),
+                not: EnforcerRef('Schema', { allowed: major === 3 }),
                 nullable: {
                     allowed: ({major}) => major === 3,
                     type: 'boolean',
@@ -373,7 +373,7 @@ module.exports = {
                 oneOf: {
                     allowed: ({major}) => major === 3,
                     type: 'array',
-                    items: ComponentRef('Schema')
+                    items: EnforcerRef('Schema')
                 },
                 pattern: {
                     allowed: ({ parent }) => parent.value.type === 'string',
@@ -386,7 +386,7 @@ module.exports = {
                 properties: {
                     allowed: ({parent}) => parent.value.type === 'object',
                     type: 'object',
-                    additionalProperties: ComponentRef('Schema')
+                    additionalProperties: EnforcerRef('Schema')
                 },
                 readOnly: {
                     allowed: isSchemaProperty,
@@ -413,7 +413,7 @@ module.exports = {
                     type: 'boolean',
                     default: false
                 },
-                xml: ComponentRef('Xml')
+                xml: EnforcerRef('Xml')
             },
 
             errors: (data) => {

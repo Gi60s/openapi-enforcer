@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 const rxContentType = /^content-type$/i;
 const rxLinkName = /^[a-zA-Z0-9.\-_]+$/;
@@ -39,7 +39,7 @@ module.exports = {
                 content: {
                     allowed: major === 3,
                     type: 'object',
-                    additionalProperties: ComponentRef('MediaType', {
+                    additionalProperties: EnforcerRef('MediaType', {
                         errors: function({ key }) {
                             if (!MediaType.rx.mediaType.test(key)) data.warn('Media type appears invalid');
                         }
@@ -52,7 +52,7 @@ module.exports = {
                 },
                 headers: {
                     type: 'object',
-                    additionalProperties: ComponentRef('Header', function({ key }) {
+                    additionalProperties: EnforcerRef('Header', function({ key }) {
                         return {
                             ignore: rxContentType.test(key)
                         };
@@ -61,13 +61,13 @@ module.exports = {
                 links: {
                     allowed: major === 3,
                     type: 'object',
-                    additionalProperties: ComponentRef('Link', function({ key }) {
+                    additionalProperties: EnforcerRef('Link', function({ key }) {
                         return {
                             allowed: rxLinkName.test(key) ? true : 'Invalid key used for link value'
                         };
                     })
                 },
-                schema: major === 2 ? ComponentRef('Schema') : { allowed: false }
+                schema: major === 2 ? EnforcerRef('Schema') : { allowed: false }
             }
         }
     }

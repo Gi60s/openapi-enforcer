@@ -16,15 +16,15 @@
  **/
 'use strict';
 
-module.exports = ComponentRef;
+module.exports = EnforcerRef;
 
-function ComponentRef (value, config) {
-    const ref = Object.create(ComponentRef);
+function EnforcerRef (value, config) {
+    const ref = Object.create(EnforcerRef);
     ref.config = config || {};
     ref.value = value;
     return ref;
 }
 
-ComponentRef.isComponentRef = function (value) {
-    return typeof value === 'object' && value instanceof ComponentRef;
+EnforcerRef.isComponentRef = function (value) {
+    return typeof value === 'object' && value instanceof EnforcerRef;
 };

@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 const util          = require('../util');
 
 const rxPathParam = /{([^}]+)}/;
@@ -145,7 +145,7 @@ module.exports = {
         return {
             required: true,
             type: 'object',
-            additionalProperties: ComponentRef('Path'),
+            additionalProperties: EnforcerRef('Path'),
             errors: ({ exception, value }) => {
                 Object.keys(value).forEach(key => {
                     if (key[0] !== '/' || key[1] === '/') {

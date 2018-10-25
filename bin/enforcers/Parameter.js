@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 const Result        = require('../result');
 
 const rxFalse = /^false/i;
@@ -317,7 +317,7 @@ module.exports = {
                     default: ({parent}) => parent.value.in === 'path',
                     enum: ({parent}) => parent.value.in === 'path' ? [true] : [true, false]
                 },
-                schema: ComponentRef('Schema', {
+                schema: EnforcerRef('Schema', {
                     allowed: ({ parent}) => major === 3 || parent.value.in === 'body'
                 }),
                 style: {

@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
@@ -27,7 +27,7 @@ module.exports = {
     validator: function () {
         return {
             type: 'object',
-            additionalProperties: ComponentRef('Path')
+            additionalProperties: EnforcerRef('Path')
         };
     }
 };

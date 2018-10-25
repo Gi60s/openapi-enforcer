@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const ComponentRef  = require('../component-ref');
+const EnforcerRef  = require('../enforcer-ref');
 
 const rxHostParts = /^((?:https?|wss?):\/\/)?(.+?)(\/.+)?$/;
 const rxSemanticVersion = /^\d+\.\d+\.\d+$/;
@@ -129,38 +129,38 @@ module.exports = {
                     allowed: major === 3,
                     type: 'object',
                     properties: {
-                        callbacks: ComponentRef('Callback'),
+                        callbacks: EnforcerRef('Callback'),
                         examples: {
                             type: 'object',
-                            additionalProperties: ComponentRef('Example')
+                            additionalProperties: EnforcerRef('Example')
                         },
                         headers: {
                             type: 'object',
-                            additionalProperties: ComponentRef('Header')
+                            additionalProperties: EnforcerRef('Header')
                         },
                         links: {
                             type: 'object',
-                            additionalProperties: ComponentRef('Link')
+                            additionalProperties: EnforcerRef('Link')
                         },
                         parameters: {
                             type: 'object',
-                            additionalProperties: ComponentRef('Parameter')
+                            additionalProperties: EnforcerRef('Parameter')
                         },
                         requestBodies: {
                             type: 'object',
-                            additionalProperties: ComponentRef('RequestBody')
+                            additionalProperties: EnforcerRef('RequestBody')
                         },
                         responses: {
                             type: 'object',
-                            additionalProperties: ComponentRef('Response')
+                            additionalProperties: EnforcerRef('Response')
                         },
                         schemas: {
                             type: 'object',
-                            additionalProperties: ComponentRef('Schema')
+                            additionalProperties: EnforcerRef('Schema')
                         },
                         securitySchemes: {
                             type: 'object',
-                            additionalProperties: ComponentRef('SecurityScheme')
+                            additionalProperties: EnforcerRef('SecurityScheme')
                         },
                     }
                 },
@@ -173,7 +173,7 @@ module.exports = {
                     weight: -1,
                     allowed: major === 2,
                     type: 'object',
-                    additionalProperties: ComponentRef('Schema')
+                    additionalProperties: EnforcerRef('Schema')
                 },
                 host: {
                     type: 'string',
@@ -186,7 +186,7 @@ module.exports = {
                         }
                     }
                 },
-                info: ComponentRef('Info', { required: true }),
+                info: EnforcerRef('Info', { required: true }),
                 openapi: {
                     allowed: major === 3,
                     required: true,
@@ -198,9 +198,9 @@ module.exports = {
                 parameters: {
                     allowed: major === 2,
                     type: 'object',
-                    additionalProperties: ComponentRef('Parameter')
+                    additionalProperties: EnforcerRef('Parameter')
                 },
-                paths: ComponentRef('Paths'),
+                paths: EnforcerRef('Paths'),
                 produces: {
                     allowed: major === 2,
                     type: 'array',
@@ -209,7 +209,7 @@ module.exports = {
                 responses: {
                     allowed: major === 2,
                     type: 'object',
-                    additionalProperties: ComponentRef('Response')
+                    additionalProperties: EnforcerRef('Response')
                 },
                 schemes: {
                     allowed: major === 2,
@@ -221,17 +221,17 @@ module.exports = {
                 },
                 security: {
                     type: 'array',
-                    items: ComponentRef('SecurityRequirement')
+                    items: EnforcerRef('SecurityRequirement')
                 },
                 securityDefinitions: {
                     allowed: major === 2,
                     type: 'object',
-                    additionalProperties: ComponentRef('SecurityScheme')
+                    additionalProperties: EnforcerRef('SecurityScheme')
                 },
                 servers: {
                     allowed: major === 3,
                     type: 'array',
-                    items: ComponentRef('Server')
+                    items: EnforcerRef('Server')
                 },
                 swagger: {
                     allowed: major === 2,
@@ -241,9 +241,9 @@ module.exports = {
                 },
                 tags: {
                     type: 'array',
-                    items: ComponentRef('Tag')
+                    items: EnforcerRef('Tag')
                 },
-                externalDocs: ComponentRef('ExternalDocumentation')
+                externalDocs: EnforcerRef('ExternalDocumentation')
             }
         }
     }
