@@ -15,10 +15,10 @@
  *    limitations under the License.
  **/
 'use strict';
-const assert        = require('../bin/assert');
-const definition    = require('../bin/definition-validator').normalize;
-const expect        = require('chai').expect;
-const Info          = require('../bin/definition-validators/info');
+// const assert        = require('../bin/assert');
+// const definition    = require('../bin/definition-validator').normalize;
+// const expect        = require('chai').expect;
+// const Info          = require('../bin/definition-validators/info');
 
 describe('definitions/info', () => {
 

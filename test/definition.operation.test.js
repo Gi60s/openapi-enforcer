@@ -15,10 +15,10 @@
  *    limitations under the License.
  **/
 'use strict';
-const definition    = require('../bin/definition-validator').normalize;
-const expect        = require('chai').expect;
-const Operation     = require('../bin/definition-validators/operation');
-const Path          = require('../bin/definition-validators/path');
+// const definition    = require('../bin/definition-validator').normalize;
+// const expect        = require('chai').expect;
+// const Operation     = require('../bin/definition-validators/operation');
+// const Path          = require('../bin/definition-validators/path');
 
 describe('definitions/operation', () => {
     const responses = { default: { description: '' } };

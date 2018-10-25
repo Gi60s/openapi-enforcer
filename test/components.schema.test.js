@@ -15,11 +15,11 @@
  *    limitations under the License.
  **/
 'use strict';
-const definition    = require('../bin/definition-validator').normalize;
-const Enforcer      = require('../index');
-const expect        = require('chai').expect;
-const Schema        = require('../bin/definition-validators/schema');
-const Value         = require('../value');
+// const definition    = require('../bin/definition-validator').normalize;
+// const Enforcer      = require('../index');
+// const expect        = require('chai').expect;
+// const Schema        = require('../bin/definition-validators/schema');
+// const Value         = require('../value');
 
 describe('components/schema', () => {
     let def;
@@ -63,7 +63,7 @@ describe('components/schema', () => {
 
     });
 
-    describe.only('serialize', () => {
+    describe('serialize', () => {
 
         describe('array', () => {
 

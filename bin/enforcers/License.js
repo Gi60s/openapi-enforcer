@@ -15,35 +15,24 @@
  *    limitations under the License.
  **/
 'use strict';
-const ContactEnforcer   = null;//require('../enforcers/contact');
-const LicenseEnforcer   = require('../enforcers/license');
-const InfoEnforcer      = require('../enforcers/info');
 
-module.exports = InfoObject;
+module.exports = {
+    init: function (data) {
 
-function InfoObject () {
-    //const ContactObject = require('./contact');
+    },
 
-    Object.assign(this, {
-        component: InfoEnforcer,
+    prototype: {},
+
+    validator: {
         type: 'object',
         properties: {
-            title: {
+            name: {
                 required: true,
                 type: 'string'
             },
-            description: {
-                type: 'string'
-            },
-            termsOfService: {
-                type: 'string'
-            },
-            contact: null,//ContactObject,
-            license: null,
-            version: {
-                required: true,
+            url: {
                 type: 'string'
             }
         }
-    });
-}
+    }
+};

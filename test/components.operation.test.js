@@ -15,18 +15,19 @@
  *    limitations under the License.
  **/
 'use strict';
-const definition    = require('../bin/definition-validator').normalize;
+// const definition    = require('../bin/definition-validator').normalize;
+const Enforcer      = require('../');
 const expect        = require('chai').expect;
-const Operation     = require('../bin/definition-validators/operation');
-const Path          = require('../bin/definition-validators/path');
+// const Operation     = require('../bin/definition-validators/operation');
+// const Path          = require('../bin/definition-validators/path');
 
-describe('components/operation', () => {
+describe.only('enforcer/operation', () => {
 
     describe('constructor', () => {
         let def;
 
         before(() => {
-            const result = definition(2, Path, {
+            const result = Enforcer.v2.Path({
                 get: {
                     parameters: [
                         { name: 'b', in: 'path', type: 'number', required: true },

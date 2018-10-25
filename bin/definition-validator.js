@@ -18,7 +18,7 @@
 const Exception = require('./exception');
 const RefParser = require('json-schema-ref-parser');
 const Result    = require('./result');
-const OpenAPI   = require('./definition-validators/open-api');
+// const OpenAPI   = require('./definition-validators/open-api');
 const util      = require('./util');
 
 const rxExtension = /^x-.+/;
@@ -59,6 +59,10 @@ exports.openapi = function (definition) {
         })
         .catch(err => new Result(null, Exception('Unable to evaluate definition')(err.message)))
 
+
+};
+
+exports.component = function (version, name, data) {
 
 };
 
@@ -107,7 +111,7 @@ exports.normalize = function(version, validator, definition) {
     root.root = root;
     normalize(root);
     plugins.forEach(plugin => plugin());
-    return new Result(result.value, exception, warn);
+    return root;
 };
 
 /**

@@ -15,9 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
-const definition    = require('../bin/definition-validator').normalize;
-const expect        = require('chai').expect;
-const OpenAPI       = require('../bin/definition-validators/open-api');
+// const definition    = require('../bin/definition-validator').normalize;
+// const expect        = require('chai').expect;
+// const OpenAPI       = require('../bin/definition-validators/open-api');
 
 describe('definitions/open-api', () => {
 
