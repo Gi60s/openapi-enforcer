@@ -19,7 +19,7 @@ const Exception = require('../../exception');
 const rx        = require('../../rx');
 const util      = require('../../util');
 const Result    = require('../../result');
-const Value     = require('../../../value');
+const Value     = require('../../value');
 
 /**
  * Convert a serialized value to deserialized.

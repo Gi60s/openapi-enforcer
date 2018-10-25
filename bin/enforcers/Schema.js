@@ -20,7 +20,7 @@ const EnforcerRef  = require('../enforcer-ref');
 const Exception     = require('../exception');
 const Result        = require('../result');
 const util          = require('../util');
-const Value         = require('../../value');
+const Value         = require('../value');
 
 const store = new WeakMap();
 const globalDataTypeFormats = {   // global types can be overwritten by local types

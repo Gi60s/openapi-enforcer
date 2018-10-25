@@ -24,7 +24,7 @@ const serial        = require('./serialize');
 const Super         = require('../super');
 const util          = require('../../util');
 const validate      = require('./validate');
-const Value         = require('../../../value');
+const Value         = require('../../value');
 
 const store = new WeakMap();
 const globalDataTypeFormats = {   // global types can be overwritten by local types

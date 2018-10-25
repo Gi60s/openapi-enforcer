@@ -17,7 +17,7 @@
 'use strict';
 const Exception = require('../../exception');
 const util      = require('../../util');
-const Value     = require('../../../value');
+const Value     = require('../../value');
 
 const smart = util.smart;
 
