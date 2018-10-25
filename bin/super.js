@@ -18,12 +18,10 @@
 const definitionValidator   = require('./definition-validator');
 const Result                = require('./result');
 
-const store = {
-    2: {},
-    3: {}
-};
+const store = {};
 
 module.exports = function (version, name) {
+    if (!store[version]) store[version] = {};
     if (!store[version].hasOwnProperty(name)) {
         const enforcer = require('./enforcers/' + name);
         store[version][name] = createConstructor(version, name, enforcer);
