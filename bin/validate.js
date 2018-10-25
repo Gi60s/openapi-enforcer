@@ -16,6 +16,7 @@
  **/
 'use strict';
 const format    = require('./format');
+const rx        = require('./rx');
 const util      = require('./util');
 
 const smart = util.smart;
@@ -163,6 +164,8 @@ validate.byte = function(v, prefix, depth, schema, value) {
 validate.date = function(v, prefix, depth, schema, value) {
     if (!v.options.date) return;
     if (value === null && schema['x-nullable'] === true) return;
+    if (typeof value === 'string' && rx.date.test(value)) value = new Date(value + 'T00:00:00.000Z');
+    if (typeof value === 'string' && rx.dateTime.test(value)) value = new Date(value);
     if (!util.isDate(value)) {
         v.error(prefix, 'Expected a valid date object. Received: ' + smart(value));
     } else {
@@ -181,6 +184,8 @@ validate.date = function(v, prefix, depth, schema, value) {
 validate.dateTime = function(v, prefix, depth, schema, value) {
     if (!v.options.date) return;
     if (value === null && schema['x-nullable'] === true) return;
+    if (typeof value === 'string' && rx.date.test(value)) value = new Date(value + 'T00:00:00.000Z');
+    if (typeof value === 'string' && rx.dateTime.test(value)) value = new Date(value);
     if (!util.isDate(value)) {
         v.error(prefix, 'Expected a valid date object. Received: ' + smart(value));
     } else {
