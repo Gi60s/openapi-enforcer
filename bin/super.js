@@ -15,18 +15,26 @@
  *    limitations under the License.
  **/
 'use strict';
+module.exports = Super;
+
 const definitionValidator   = require('./definition-validator');
 const Result                = require('./result');
 
 const store = {};
+const constructors = [];
 
-module.exports = function (version, name) {
+function Super (version, name) {
     if (!store[version]) store[version] = {};
     if (!store[version].hasOwnProperty(name)) {
         const enforcer = require('./enforcers/' + name);
         store[version][name] = createConstructor(version, name, enforcer);
+        constructors.push(store[version][name]);
     }
     return store[version][name];
+}
+
+Super.getConstructor = function(version, name) {
+    return store[version] && store[version][name];
 };
 
 function createConstructor(version, name, enforcer) {
@@ -34,17 +42,21 @@ function createConstructor(version, name, enforcer) {
     const store = new WeakMap();
 
     // build the named constructor
-    const F = new Function('build', 'name',
+    const F = new Function('build',
         `const F = function ${name} (definition) {
             if (!(this instanceof F)) return new F(definition)
             return build(this, definition)
         }
         return F`
-    )(build, name);
+    )(build);
 
     // set the constructor prototype and constructor
     F.prototype = Object.assign({}, enforcer.prototype || {});
     F.constructor = F;
+
+    Object.defineProperty(F, 'enforcerDefinition', {
+        value: enforcer
+    });
 
     // get the enforcer data for this instance
     Object.defineProperty(F.prototype, 'enforcerData', {
@@ -82,11 +94,22 @@ function createConstructor(version, name, enforcer) {
     };
 
     function build (context, definition) {
-        // validate the definition
-        const data = definitionValidator.normalize(version, enforcer.validator, definition);
-        if (data.exception.hasException) return new Result(undefined, data.exception, data.warn);
+        const isStart = !definitionValidator.isValidatorState(definition);
 
-        // store full set of enforcer data
+        // validate the definition
+        let data;
+        if (isStart) {
+            data = definitionValidator.start(version, name, enforcer, definition);
+        } else {
+            data = definition;
+            data.validator = enforcer.validator;
+            definitionValidator.continue(data);
+        }
+
+        // if an exception has occurred then exit now
+        if (data.exception.hasException && isStart) return new Result(undefined, data.exception, data.warn);
+
+        // store the full set of enforcer data
         store.set(context, data);
 
         // add definition properties to context
@@ -101,7 +124,9 @@ function createConstructor(version, name, enforcer) {
             callback.call(context, data);
         }));
 
-        return new Result(context, data.exception, data.warn);
+        return isStart
+            ? new Result(context, data.exception, data.warn)
+            : context;
     }
 
     return F;

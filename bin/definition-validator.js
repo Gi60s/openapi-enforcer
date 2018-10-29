@@ -15,87 +15,17 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception = require('./exception');
-const RefParser = require('json-schema-ref-parser');
-const Result    = require('./result');
-// const OpenAPI   = require('./definition-validators/open-api');
-const util      = require('./util');
+const EnforcerRef   = require('./enforcer-ref');
+const Exception     = require('./exception');
+const Super         = require('./super');
+const util          = require('./util');
 
 const rxExtension = /^x-.+/;
 
-exports.openapi = function (definition) {
-    const refParser = new RefParser();
-    return refParser.dereference(definition)
-        .then(definition => {
-            definition = util.copy(definition);
-            const exception = Exception('One or more errors exist in the OpenAPI definition');
-            const warn = Exception('One or more warnings exist in the OpenAPI definition');
-            const hasSwagger = definition.hasOwnProperty('swagger');
-            if (!hasSwagger && !definition.hasOwnProperty('openapi')) {
-                return new Result(null, exception('Missing required "openapi" or "swagger" property'));
-            } else {
-                const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
-                if (match) {
-                    const map = new Map();
-                    const major = +match[1];
-                    const minor = +match[2];
-                    const patch = +(match[3] || 0);
-                    const parent = null;
-                    const plugins = [];
-                    const result = {};
-                    const validator = OpenAPI;
-                    const value = util.copy(definition);
-                    const key = undefined;
-
-                    const root = { exception, key, major, map, minor, parent, patch, plugins, refParser, result, validator, value, warn };
-                    root.root = root;
-                    normalize(root);
-                    plugins.forEach(plugin => plugin());
-                    return new Result(result.value, exception, warn);
-                } else {
-                    return new Result(null, exception('Invalid value for property: ' + (hasSwagger ? 'swagger' : 'openapi')));
-                }
-            }
-        })
-        .catch(err => new Result(null, Exception('Unable to evaluate definition')(err.message)))
-
-
-};
-
-exports.component = function (version, name, data) {
-
-};
-
-exports.component = function(Constructor, data) {
-    if (data.validator.hasOwnProperty('useComponent') && !fn(data.validator.useComponent, data)) {
-        return data.value;
-    } else {
-        const definition = data.result.value;
-
-        const enforcerData = {
-            exception: data.exception,
-            key: data.key,
-            definition,
-            get parent() { return data.parent && data.parent.result.value },
-            major: data.major,
-            minor: data.minor,
-            patch: data.patch,
-            plugins: data.plugins,
-            refParser: data.refParser,
-            raw: data,
-            get root() { return data.root.result.value },
-            warn: data.warn
-        };
-
-        return Constructor(enforcerData);
-    }
-};
-
-exports.normalize = function(version, validator, definition) {
-    if (version === 2) version = '2.0';
-    if (version === 3) version = '3.0.0';
-    const exception = Exception('One or more errors exist in the definition');
-    const warn = Exception('One or more warnings exist in the definition');
+exports.start = function (version, name, enforcer, definition) {
+    definition = util.copy(definition);
+    const exception = Exception('One or more errors exist in the ' + name + ' definition');
+    const warn = Exception('One or more warnings exist in the ' + name + ' definition');
     const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(version);
     const map = new Map();
     const major = +match[1];
@@ -104,37 +34,231 @@ exports.normalize = function(version, validator, definition) {
     const parent = null;
     const plugins = [];
     const result = {};
-    const value = util.copy(definition);
+    const validator = enforcer.validator;
     const key = undefined;
 
-    const root = { exception, key, major, map, minor, parent, patch, plugins, result, validator, value, warn };
+    const root = { definition, exception, key, major, map, minor, parent, patch, plugins, result, validator, warn };
     root.root = root;
     normalize(root);
-    plugins.forEach(plugin => plugin());
+    root.plugins.forEach(plugin => plugin());
     return root;
 };
 
+exports.continue = normalize;
+
+exports.isValidatorState = function (value) {
+    return value instanceof ValidatorState
+};
+
+function childData(parent, key, validator) {
+    parent = Object.assign({}, parent);
+    const child = {
+        definition: parent.definition[key],
+        exception: parent.exception.at(key),
+        key,
+        parent,
+        result: {},
+        validator,
+        warn: parent.warn.at(key)
+    };
+    return Object.assign(parent, child);
+}
+
+function normalize ({ definition, exception, key, major, map, minor, parent, patch, plugins, result, root, validator, warn }) {
+    let data = { definition, exception, key, major, map, minor, parent, patch, plugins, result, root, validator, warn };
+
+    try {
+
+        // get the definition type
+        let definitionType = typeof definition;
+        if (Array.isArray(definition)) definitionType = 'array';
+        if (definitionType === 'object' && !util.isPlainObject(definition)) {
+            exception('Definition must be a plain object');
+            return;
+        }
+
+        // generate the plain validator object
+        validator = fn(validator, data);
+        const usesComponentEnforcerConstructor = EnforcerRef.isEnforcerRef(validator);
+
+        // if type is invalid then exit
+        if (validator.type && definition !== undefined) {
+            // get valid types
+            let matches = fn(validator.type, data);
+            if (!Array.isArray(matches)) matches = [ matches ];
+
+            // check if types match
+            const length = matches.length;
+            let foundMatch = matches.length === 0;
+            for (let i = 0; i < length; i++) {
+                if (matches[i] === definitionType) {
+                    foundMatch = true;
+                    break;
+                }
+            }
+
+            if (!foundMatch) {
+                let message;
+                if (matches.length === 1) {
+                    message = expectedTypeMessage(matches[0]);
+                } else if (matches.length === 2) {
+                    message = expectedTypeMessage(matches[0]) + ' or ' + expectedTypeMessage(matches[1])
+                } else {
+                    const last = matches.pop();
+                    message = matches.map(match => expectedTypeMessage(match)).join(', ') + ' or ' + expectedTypeMessage(last);
+                }
+                exception('Value must be ' + message + '. Received: ' + util.smart(definition));
+                return;
+            }
+        }
+
+        // if the validator is actually an EnforcerRef then pass validation and creation to a component enforcer instance
+        if (usesComponentEnforcerConstructor && definition !== undefined) {
+            const version = major + '.' + minor;
+            const name = validator.value;
+            const additionalValidator = validator.config; // TODO: need to validate extra validations
+            result.value = new Super.getConstructor(version, name)(new ValidatorState(data));
+            return;
+        }
+
+        // if the value has already been processed then we are in a circular reference and we should return the known value
+        if (definition && typeof definition === 'object') {
+            const existing = map.get(definition);
+            if (existing) {
+                result.value = existing.value;
+                return;
+            }
+            map.set(definition, result);
+        }
+
+        // if enum is invalid then exit
+        if (validator.enum) {
+            const matches = fn(validator.enum, data);
+            if (!matches.includes(definition)) {
+                matches.length === 1
+                    ? exception('Value must be ' + util.smart(matches[0]) + '. Received: ' + util.smart(definition))
+                    : exception('Value must be one of: ' + matches.join(', ') + '. Received: ' + util.smart(definition));
+            }
+        }
+
+        // check if this value is allowed
+        const allowed = validator.hasOwnProperty('allowed') ? fn(validator.allowed, data) : true;
+        if (!allowed) {
+            let message = 'Property not allowed';
+            if (typeof allowed === 'string') message += '. ' + allowed;
+            exception(message);
+            return;
+        }
+
+        // check if this value is ignored
+        const ignore = validator.ignore && fn(validator.ignore, data);
+        if (ignore) {
+            result.value = undefined;
+            return;
+        }
+
+        // set default value
+        if (definition === undefined && validator.hasOwnProperty('default')) definition = fn(validator.default, data);
+
+        // if a component enforcer constructor was not used then run additional validations
+        if (!usesComponentEnforcerConstructor) {
+            if (definitionType === 'array') {
+                result.value = [];
+                definition.forEach((def, i) => {
+                    const data = childData(data, i, validator.items);
+                    const result = data.result;
+                    normalize(data);
+                    if (result.value !== undefined) value.push(result.value);
+                });
+
+            } else if (definitionType === 'object') {
+                const missingRequired = [];
+                const unknownKeys = [];
+                const resultValue = {};
+
+                // organize definition properties
+                Object.keys(definition).forEach(key => {
+                    if (rxExtension.test(key)) {
+                        resultValue[key] = definition[key];
+                    } else {
+                        unknownKeys.push(key);
+                    }
+                });
+
+                // get sorted array of all properties to use
+                const properties = Object.keys(validator.properties || {})
+                    .map(key => {
+                        const property = validator.properties[key];
+                        util.arrayRemoveItem(unknownKeys, key);
+                        return {
+                            data: childData(data, key, property),
+                            weight: property.weight || 0
+                        }
+                    });
+                properties.sort((a, b) => {
+                    if (a.weight < b.weight) return -1;
+                    if (a.weight > b.weight) return 1;
+                    return a.data.key < b.data.key ? -1 : 1;
+                });
+
+                // iterate through all known properties
+                properties.forEach(prop => {
+                    const data = prop.data;
+                    const key = data.key;
+                    const validator = data.validator;
+                    if (data.definition === undefined && validator.required && fn(validator.required, data)) {
+                        missingRequired.push(key);
+                    } else {
+                        normalize(data);
+                    }
+                    if (data.result.value !== undefined) resultValue[key] = data.result.value;
+                });
+
+                // determine action to take with unknown keys
+                if (validator.additionalProperties) {
+                    unknownKeys.forEach(key => {
+                        const child = childData(data, key, validator.additionalProperties);
+                        normalize(child);
+                        if (child.result.value !== undefined) resultValue[key] = child.result.value;
+                    });
+                } else if (unknownKeys.length) {
+                    exception('Propert' + (unknownKeys.length === 1 ? 'y' : 'ies') + ' not allowed: ' + unknownKeys.join(', '));
+                }
+
+                // report missing required properties
+                if (missingRequired.length) {
+                    exception('Missing required propert' + (unknownKeys.length === 1 ? 'y' : 'ies') + ': ' + missingRequired.join(', '));
+                }
+
+                if (Object.keys(resultValue).length) result.value = resultValue;
+
+            } else if (definition !== undefined) {
+                result.value = definition;
+            }
+        }
+
+        // run custom error validation check
+        if (result.value !== undefined && validator.errors) {
+            const d = Object.assign(data);
+            d.definition = result.value;
+            fn(validator.errors, d);
+        }
+
+    } catch (err) {
+        exception('Unexpected error encountered: ' + err.stack);
+    }
+}
+
 /**
  *
- * @param {object} data
- * @param {Exception} data.exception
- * @param {string|number} data.key
- * @param {number} data.major
- * @param {Map} data.map
- * @param {number} data.minor
- * @param {object} data.parent
- * @param {number} data.patch
- * @param {Array<function>} data.plugins
- * @param {*} data.root
- * @param {object} data.validator
- * @param {*} data.value
- * @param {Exception} data.warn
+ * @param {ValidatorState} data
  * @returns {*}
  */
-function normalize(data) {
+/*
+function normalize2(data) {
     const { exception, major, map, minor, parent, patch, plugins, refParser, result, root, value, warn } = data = Object.assign({}, data);
 
-    // if this definition has already been processed then return result
+    // if this value has already been processed then return result
     if (value && typeof value === 'object') {
         const existing = map.get(value);
         if (existing) return existing;
@@ -145,7 +269,7 @@ function normalize(data) {
     let message;
 
     try {
-        // check that type matches
+        // get the value's data type
         const type = getValueType(value);
         if (validator.type && (message = checkType(data))) {
             exception('Value must be ' + message + '. Received: ' + util.smart(value));
@@ -159,7 +283,7 @@ function normalize(data) {
         } else if (type === 'array') {
             result.value = value.map((v, i) => {
                 const r = {};
-                normalize({
+                normalize(new ValidatorState({
                     exception: exception.at(i),
                     key: i,
                     major,
@@ -174,7 +298,7 @@ function normalize(data) {
                     validator: validator.items,
                     value: v,
                     warn: warn.at(i)
-                });
+                }));
                 return r.value;
             });
 
@@ -184,7 +308,7 @@ function normalize(data) {
                 const additionalPropertiesValidator = validator.additionalProperties;
                 Object.keys(value).forEach(key => {
                     const r = {};
-                    const param = {
+                    const param = new ValidatorState({
                         exception: exception.at(key),
                         key,
                         major,
@@ -199,7 +323,7 @@ function normalize(data) {
                         validator: additionalPropertiesValidator,
                         value: value[key],
                         warn: warn.at(key)
-                    };
+                    });
                     const validator = getValidator(param);
 
                     const allowed = validator.hasOwnProperty('allowed')
@@ -239,20 +363,22 @@ function normalize(data) {
                 // check for missing required and set defaults
                 properties.forEach(prop => {
                     const key = prop.key;
-                    const param = {
+                    const param = new ValidatorState({
                         exception: exception.at(key),
                         key,
+                        map,
                         major,
                         minor,
                         parent: data,
                         patch,
                         plugins,
                         refParser,
+                        result: {},
                         root,
                         validator: prop.validator,
                         value: value[key],
                         warn: warn.at(key)
-                    };
+                    });
                     const validator = getValidator(param);
 
                     // check whether this property is allowed
@@ -289,7 +415,7 @@ function normalize(data) {
 
                     } else if (!ignores[key]) {
                         const r = {};
-                        normalize({
+                        normalize(new ValidatorState({
                             exception: exception.at(key),
                             key,
                             major,
@@ -304,7 +430,7 @@ function normalize(data) {
                             value: value[key],
                             validator: validator.properties[key],
                             warn: warn.at(key)
-                        });
+                        }));
                         result.value[key] = r.value;
                     }
                 });
@@ -318,9 +444,10 @@ function normalize(data) {
 
         } else {
             result.value = validator.deserialize
-                ? fn(validator.deserialize, {
+                ? fn(validator.deserialize, new ValidatorState({
                     exception,
                     key: undefined,
+                    map,
                     major,
                     minor,
                     parent,
@@ -331,16 +458,17 @@ function normalize(data) {
                     validator,
                     value,
                     warn
-                })
+                }))
                 : value;
         }
 
         if (result.value !== undefined) {
 
             if (validator.errors) {
-                fn(validator.errors, {
+                fn(validator.errors, new ValidatorState({
                     exception,
                     key: undefined,
+                    map,
                     major,
                     minor,
                     parent,
@@ -351,7 +479,7 @@ function normalize(data) {
                     validator,
                     value: result.value,
                     warn
-                });
+                }));
             }
 
             if (!exception.hasException && validator.component) {
@@ -362,6 +490,13 @@ function normalize(data) {
     } catch (err) {
         exception('Unexpected error encountered: ' + err.stack);
     }
+}
+*/
+
+function expectedTypeMessage(type) {
+    if (type === 'array') return 'an array';
+    if (type === 'object') return 'a plain object';
+    return 'a ' + type;
 }
 
 function fn(value, params) {
@@ -376,69 +511,6 @@ function fn(value, params) {
     }
 }
 
-function checkType(params) {
-    const { validator, value } = params;
-    if (!validator.type) return;
-
-    // get the value type
-    const type = getValueType(value);
-
-    // get valid types
-    let matches = fn(validator.type, params);
-    if (!Array.isArray(matches)) matches = [ matches ];
-
-    // check if types match
-    let valid = false;
-    const length = matches.length;
-    for (let i = 0; i < length; i++) {
-        if (matches[i] === type) {
-            valid = true;
-            break;
-        }
-    }
-
-    if (!valid) {
-        const suffixes = matches.map(type => {
-            let suffix = 'a ' + type;
-            if (type === 'array') suffix = 'an array';
-            if (type === 'object') suffix = 'a plain object';
-            return suffix;
-        });
-
-        if (suffixes.length === 1) return suffixes[0];
-        if (suffixes.length === 2) return suffixes[0] + ' or ' + suffixes[1];
-
-        const last = suffixes.pop();
-        return suffixes.join(', ') + ', or ' + last;
-    }
-}
-
-function checkEnum(params) {
-    const { validator, value } = params;
-    if (!validator.enum) return false;
-    const matches = fn(validator.enum, params);
-    return matches.indexOf(value) !== -1
-        ? false
-        : matches;
-}
-
-function getValidator(data) {
-    const type = typeof data.validator;
-    if (type === 'function') {
-        data.validator = new data.validator(data);
-    } else if (type === 'string') {
-        data.validator = { type: data.validator };
-    }
-    return data.validator;
-}
-
-/**
- * @param value
- * @returns {string|undefined}
- */
-function getValueType(value) {
-    let type = typeof value;
-    if (Array.isArray(value)) type = 'array';
-    if (type === 'object' && !util.isPlainObject(value)) type = undefined;
-    return type;
+function ValidatorState (data) {
+    Object.assign(this, data);
 }
