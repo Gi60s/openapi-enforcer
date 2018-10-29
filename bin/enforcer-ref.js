@@ -19,12 +19,11 @@
 module.exports = EnforcerRef;
 
 function EnforcerRef (value, config) {
-    const ref = Object.create(EnforcerRef);
-    ref.config = config || {};
-    ref.value = value;
-    return ref;
+    if (!(this instanceof EnforcerRef)) return new EnforcerRef(value, config);
+    this.config = config || {};
+    this.value = value;
 }
 
-EnforcerRef.isComponentRef = function (value) {
+EnforcerRef.isEnforcerRef = function (value) {
     return typeof value === 'object' && value instanceof EnforcerRef;
 };
