@@ -44,8 +44,8 @@ module.exports = {
                 requestBody: {},
                 server: EnforcerRef('Server')
             },
-            errors: ({ exception, value }) => {
-                if (value.hasOwnProperty('operationRef') && value.hasOwnProperty('operationId')) {
+            errors: ({ definition, exception }) => {
+                if (definition.hasOwnProperty('operationRef') && definition.hasOwnProperty('operationId')) {
                     exception('Must not define both operationId and operationRef');
                 }
             }

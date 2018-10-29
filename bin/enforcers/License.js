@@ -23,16 +23,22 @@ module.exports = {
 
     prototype: {},
 
-    validator: {
-        type: 'object',
-        properties: {
-            name: {
-                required: true,
-                type: 'string'
+    validator: function (data) {
+        return {
+            type: 'object',
+            properties: {
+                name: {
+                    required: true,
+                    type: 'string'
+                },
+                url: {
+                    type: 'string'
+                }
             },
-            url: {
-                type: 'string'
+            errors: function(data) {
+                const b = module.exports === data.validator;
+                const x = data;
             }
-        }
+        };
     }
 };

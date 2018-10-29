@@ -18,8 +18,6 @@
 const EnforcerRef  = require('../enforcer-ref');
 
 const requestBodyAllowedMethods = { post: true, put: true, options: true, head: true, patch: true };
-const rxCode = /^[1-5]\d{2}$/;
-const rxRange = /^[1-5](?:\d|X){2}$/;
 
 module.exports = {
     init: function (data) {
@@ -306,11 +304,9 @@ module.exports = {
                         type: 'string'
                     }
                 },
-                requestBody: EnforcerRef('RequestBody', function (data) {
-                    const key = data.parent.key || 'post';  // for easy unit testing default key to post if there is no parent key
-                    return {
-                        allowed: major === 3 && !!requestBodyAllowedMethods[key]
-                    }
+                requestBody: EnforcerRef('RequestBody', {
+                    // for easy unit testing default key to post if there is no parent key
+                    allowed: ({ parent }) => major === 3 && !!requestBodyAllowedMethods[parent.key || 'post']
                 }),
                 responses: EnforcerRef('Responses', { required: true }),
                 schemes: {

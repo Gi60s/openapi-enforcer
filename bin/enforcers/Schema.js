@@ -242,7 +242,7 @@ module.exports = {
                 },
                 additionalProperties: EnforcerRef('Schema', {
                     allowed: ({parent}) => parent.value.type === 'object',
-                    type: ['boolean', 'object'],
+                    type: ['boolean', 'object'],    // either boolean or object
                     default: true
                 }),
                 allOf: {

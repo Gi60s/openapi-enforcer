@@ -17,6 +17,9 @@
 'use strict';
 const EnforcerRef  = require('../enforcer-ref');
 
+const rxCode = /^[1-5]\d{2}$/;
+const rxRange = /^[1-5](?:\d|X){2}$/;
+
 module.exports = {
     init: function (data) {
 
@@ -27,12 +30,10 @@ module.exports = {
     validator: function (data) {
         return {
             type: 'object',
-            additionalProperties: EnforcerRef('Response', function ({ key }) {
-                return {
-                    allowed: key === 'default' || rxCode.test(key) || (major === 3 && rxRange.test(key))
-                        ? true
-                        : 'Invalid response code.'
-                };
+            additionalProperties: EnforcerRef('Response', {
+                allowed: ({ key }) => key === 'default' || rxCode.test(key) || (major === 3 && rxRange.test(key))
+                    ? true
+                    : 'Invalid response code.'
             }),
             errors: ({ exception, value }) => {
                 if (Object.keys(value).length === 0) {

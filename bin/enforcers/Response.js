@@ -52,19 +52,15 @@ module.exports = {
                 },
                 headers: {
                     type: 'object',
-                    additionalProperties: EnforcerRef('Header', function({ key }) {
-                        return {
-                            ignore: rxContentType.test(key)
-                        };
+                    additionalProperties: EnforcerRef('Header', {
+                        ignore: ({ key }) => rxContentType.test(key)
                     })
                 },
                 links: {
                     allowed: major === 3,
                     type: 'object',
-                    additionalProperties: EnforcerRef('Link', function({ key }) {
-                        return {
-                            allowed: rxLinkName.test(key) ? true : 'Invalid key used for link value'
-                        };
+                    additionalProperties: EnforcerRef('Link', {
+                        allowed: ({ key }) => rxLinkName.test(key) ? true : 'Invalid key used for link value'
                     })
                 },
                 schema: major === 2 ? EnforcerRef('Schema') : { allowed: false }
