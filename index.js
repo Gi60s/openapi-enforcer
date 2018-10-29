@@ -15,14 +15,12 @@
  *    limitations under the License.
  **/
 'use strict';
-const definitionValidator   = require('./bin/definition-validator');
-const freeze                = require('./bin/freeze');
-const Super                 = require('./bin/super');
-
-const openapiValidator = definitionValidator.openapi;
-const normalizeValidator = definitionValidator.normalize;
 
 module.exports = enforcer;
+
+const freeze                = require('./bin/freeze');
+const RefParser             = require('json-schema-ref-parser');
+const Super                 = require('./bin/super');
 
 /**
  * Create an enforcer instance.
@@ -33,13 +31,36 @@ module.exports = enforcer;
  * @returns {Promise<OpenApiEnforcer>}
  */
 async function enforcer(definition, options) {
+    let openapi;
+    let warnings;
+
     // normalize options
     options = Object.assign({}, options);
     if (!options.hasOwnProperty('freeze')) options.freeze = true;
     if (!options.hasOwnProperty('hideWarnings')) options.hideWarnings = false;
 
-    // validate definition and build enforcer
-    const [ openapi, exception, warnings ] = await enforcer.evaluate(definition);
+    const refParser = new RefParser();
+    definition = await refParser.dereference(definition);
+    definition = util.copy(definition);
+
+    let exception = Exception('One or more errors exist in the OpenAPI definition');
+    const hasSwagger = definition.hasOwnProperty('swagger');
+    if (!hasSwagger && !definition.hasOwnProperty('openapi')) {
+        exception('Missing required "openapi" or "swagger" property');
+
+    } else {
+        const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
+        if (!match) {
+            exception.at(hasSwagger ? 'swagger' : 'openapi')('Invalid value');
+
+        } else {
+            const major = +match[1];
+            const validator = major === 2
+                ? Enforcer.v2_0.Swagger
+                : Enforcer.v3_0.OpenApi;
+            [ openapi, exception, warnings ] = validator(definition);
+        }
+    }
 
     if (!options.hideWarnings && warnings) console.warn(warnings.toString());
     if (exception && exception.hasException) throw Error(exception.toString());
@@ -49,85 +70,61 @@ async function enforcer(definition, options) {
 
 enforcer.enforcer = enforcer;
 
-/**
- * Check the definition for errors.
- * @param {object} definition
- * @returns {Promise<string>}
- */
-enforcer.errors = function (definition) {
-    return openapiValidator(definition).then(({ error }) => error ? error.toString() : '')
+enforcer.v2_0 = {
+    Contact: Super('2.0', 'Contact'),
+    Discriminator: Super('2.0', 'Discriminator'),
+    Example: Super('2.0', 'Example'),
+    ExternalDocumentation: Super('2.0', 'ExternalDocumentation'),
+    Header: Super('2.0', 'Header'),
+    Info: Super('2.0', 'Info'),
+    Items: Super('2.0', 'Items'),
+    License: Super('2.0', 'License'),
+    Operation: Super('2.0', 'Operation'),
+    Parameter: Super('2.0', 'Parameter'),
+    PathItem: Super('2.0', 'PathItem'),
+    Paths: Super('2.0', 'Paths'),
+    Reference: Super('2.0', 'Reference'),
+    Response: Super('2.0', 'Response'),
+    Responses: Super('2.0', 'Responses'),
+    Schema: Super('2.0', 'Schema'),
+    SecurityRequirement: Super('2.0', 'SecurityRequirement'),
+    SecurityScheme: Super('2.0', 'SecurityScheme'),
+    Swagger: Super('2.0', 'Swagger'),
+    Tag: Super('2.0', 'Tag'),
+    Xml: Super('2.0', 'Xml')
 };
 
-/**
- * Evaluate a definition and get back errors, warnings, and the enforcer instance as appropriate.
- * @param {string|object} definition
- * @throws {Error} if definition is not a plain object
- * @returns {Promise<EnforcerResult<OpenAPIEnforcer>>}
- */
-enforcer.evaluate = function (definition) {
-    return openapiValidator(definition);
+enforcer.v3_0 = {
+    Callback: Super('3.0', 'Callback'),
+    Components: Super('3.0', 'Components'),
+    Contact: Super('3.0', 'Contact'),
+    Discriminator: Super('3.0', 'Discriminator'),
+    Encoding: Super('3.0', 'Encoding'),
+    Example: Super('3.0', 'Example'),
+    ExternalDocumentation: Super('3.0', 'ExternalDocumentation'),
+    Header: Super('3.0', 'Header'),
+    Info: Super('3.0', 'Info'),
+    License: Super('3.0', 'License'),
+    Link: Super('3.0', 'Link'),
+    MediaType: Super('3.0', 'MediaType'),
+    OAuthFlow: Super('3.0', 'OAuthFlow'),
+    OAuthFlows: Super('3.0', 'OAuthFlows'),
+    OpenApi: Super('3.0', 'OpenApi'),
+    Operation: Super('3.0', 'Operation'),
+    Parameter: Super('3.0', 'Parameter'),
+    PathItem: Super('3.0', 'PathItem'),
+    Paths: Super('3.0', 'Paths'),
+    Reference: Super('3.0', 'Reference'),
+    RequestBody: Super('3.0', 'RequestBody'),
+    Response: Super('3.0', 'Response'),
+    Responses: Super('3.0', 'Responses'),
+    Schema: Super('3.0', 'Schema'),
+    SecurityRequirement: Super('3.0', 'SecurityRequirement'),
+    SecurityScheme: Super('3.0', 'SecurityScheme'),
+    Server: Super('3.0', 'Server'),
+    ServerVariable: Super('3.0', 'ServerVariable'),
+    Tag: Super('3.0', 'Tag'),
+    Xml: Super('3.0', 'Xml')
 };
 
-enforcer.v2 = {
-    Contact: Super(2, 'Contact'),
-    Discriminator: Super(2, 'Discriminator'),
-    Example: Super(2, 'Example'),
-    ExternalDocumentation: Super(2, 'ExternalDocumentation'),
-    Header: Super(2, 'Header'),
-    Info: Super(2, 'Info'),
-    Items: Super(3, 'Items'),
-    License: Super(2, 'License'),
-    Operation: Super(2, 'Operation'),
-    Parameter: Super(2, 'Parameter'),
-    PathItem: Super(2, 'PathItem'),
-    Paths: Super(2, 'Paths'),
-    Reference: Super(2, 'Reference'),
-    Response: Super(2, 'Response'),
-    Responses: Super(2, 'Responses'),
-    Schema: Super(2, 'Schema'),
-    SecurityRequirement: Super(2, 'SecurityRequirement'),
-    SecurityScheme: Super(2, 'SecurityScheme'),
-    Swagger: Super(2, 'Swagger'),
-    Tag: Super(2, 'Tag'),
-    Xml: Super(2, 'Xml')
-};
-
-enforcer.v3 = {
-    Callback: Super(3, 'Callback'),
-    Components: Super(3, 'Components'),
-    Contact: Super(3, 'Contact'),
-    Discriminator: Super(3, 'Discriminator'),
-    Encoding: Super(3, 'Encoding'),
-    Example: Super(3, 'Example'),
-    ExternalDocumentation: Super(3, 'ExternalDocumentation'),
-    Header: Super(3, 'Header'),
-    Info: Super(3, 'Info'),
-    License: Super(3, 'License'),
-    Link: Super(3, 'Link'),
-    MediaType: Super(3, 'MediaType'),
-    OAuthFlow: Super(3, 'OAuthFlow'),
-    OAuthFlows: Super(3, 'OAuthFlows'),
-    OpenApi: Super(3, 'OpenApi'),
-    Operation: Super(3, 'Operation'),
-    Parameter: Super(3, 'Parameter'),
-    PathItem: Super(3, 'PathItem'),
-    Paths: Super(3, 'Paths'),
-    Reference: Super(3, 'Reference'),
-    RequestBody: Super(3, 'RequestBody'),
-    Response: Super(3, 'Response'),
-    Responses: Super(3, 'Responses'),
-    Schema: Super(3, 'Schema'),
-    SecurityRequirement: Super(3, 'SecurityRequirement'),
-    SecurityScheme: Super(3, 'SecurityScheme'),
-    Server: Super(3, 'Server'),
-    ServerVariable: Super(3, 'ServerVariable'),
-    Tag: Super(3, 'Tag'),
-    Xml: Super(3, 'Xml')
-};
-
-enforcer.Schema = function (definition) {
-
-    return normalizeValidator(version, schemaValidator, definition);
-};
-
-enforcer.Value = require('./value');
+enforcer.Value = require('./bin/value');
