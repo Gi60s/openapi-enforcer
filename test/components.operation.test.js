@@ -21,13 +21,13 @@ const expect        = require('chai').expect;
 // const Operation     = require('../bin/definition-validators/operation');
 // const Path          = require('../bin/definition-validators/path');
 
-describe.only('enforcer/operation', () => {
+describe('enforcer/operation', () => {
 
     describe('constructor', () => {
         let def;
 
         before(() => {
-            const result = Enforcer.v2.Path({
+            [ def ] = Enforcer.v2.PathItem({
                 get: {
                     parameters: [
                         { name: 'b', in: 'path', type: 'number', required: true },
@@ -43,7 +43,6 @@ describe.only('enforcer/operation', () => {
                     { name: 'b', in: 'query', type: 'string' }
                 ]
             });
-            def = result.value;
         });
 
         it('merges parameters from path and operation', () => {

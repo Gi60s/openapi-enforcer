@@ -15,8 +15,10 @@
  *    limitations under the License.
  **/
 'use strict';
+const assert    = require('../bin/assert');
 const expect    = require('chai').expect;
-const Info      = require('../').v2.Info;
+const Info      = require('../').v2_0.Info;
+const License   = require('../').v2_0.License;
 
 describe('enforcer.info', () => {
 
@@ -29,6 +31,56 @@ describe('enforcer.info', () => {
             }
         });
         expect(value).to.be.instanceof(Info);
+        expect(value.license).to.be.instanceof(License);
+    });
+
+    it('will report sub enforcer errors', () => {
+        const [ , err ] = new Info({
+            title: 'Title',
+            version: '1.0',
+            license: {
+                name: 1
+            }
+        });
+        expect(err).to.match(/at: license > name\s+Value must be a string/);
+    });
+
+    it('will report own errors', () => {
+        const [ , err ] = new Info({
+            title: 1,
+            version: '1.0'
+        });
+        expect(err).to.match(/at: title\s+Value must be a string/);
+    });
+
+    it('requires the "title" property', () => {
+        const [ , err ] = new Info({});
+        expect(err).to.match(/Missing required properties: title, version/);
+    });
+
+    it('can have description property', () => {
+        const [ def ] = new Info({ title: 'a', version: '1.0', description: 'b' });
+        assert.deepEqual(def, { title: 'a', description: 'b', version: '1.0' })
+    });
+
+    it('can have contact property', () => {
+        const [ def ] = new Info({ title: 'a', version: '1.0', contact: { name: 'Bob', url: 'b' } });
+        assert.deepEqual(def, { title: 'a', version: '1.0', contact: { name: 'Bob', url: 'b' } })
+    });
+
+    it('will validate contact property', () => {
+        const [ , err ] = new Info({ title: 'a', contact: { name: 'Bob', url: 'b', zmail: 'fake@fake.com' } });
+        expect(err).to.match(/Property not allowed: zmail/);
+    });
+
+    it('can have license property', () => {
+        const [ def ] = new Info({ title: 'a', version: '1.0', license: { name: 'Bob', url: 'b' } });
+        assert.deepEqual(def, { title: 'a', version: '1.0', license: { name: 'Bob', url: 'b' } })
+    });
+
+    it('will validate license property', () => {
+        const [ , err ] = new Info({ title: 'a', version: '1.0', contact: { name: true } });
+        expect(err).to.match(/Value must be a string./);
     });
 
 });

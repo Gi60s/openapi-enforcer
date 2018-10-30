@@ -15,45 +15,44 @@
  *    limitations under the License.
  **/
 'use strict';
-// const assert        = require('../bin/assert');
-// const definition    = require('../bin/definition-validator').normalize;
-// const expect        = require('chai').expect;
-// const Tag           = require('../bin/definition-validators/tag');
+const assert    = require('../bin/assert');
+const expect    = require('chai').expect;
+const Tag       = require('../').v2_0.Tag;
 
-describe('definitions/tag', () => {
+describe('enforcer.tag', () => {
 
     it('allows a valid tag object', () => {
-        const [ , err ] = definition(2, Tag, { name: 'hi' });
-        expect(err).to.be.undefined;
+        const [ value ] = new Tag({ name: 'hi' });
+        expect(value).to.be.instanceof(Tag);
     });
 
     it('requires the "name" property', () => {
-        const [ , err ] = definition(2, Tag, {});
+        const [ , err ] = new Tag({});
         expect(err).to.match(/Missing required property: name/);
     });
 
     it('can have description property', () => {
-        const [ def ] = definition(2, Tag, { name: 'a', description: 'b' });
+        const [ def ] = new Tag({ name: 'a', description: 'b' });
         assert.deepEqual(def, { name: 'a', description: 'b' });
     });
 
     it('can have externalDocs property', () => {
-        const [ def ] = definition(2, Tag, { name: 'a', externalDocs: { url: 'b' } });
+        const [ def ] = new Tag({ name: 'a', externalDocs: { url: 'b' } });
         assert.deepEqual(def, { name: 'a', externalDocs: { url: 'b' } })
     });
 
     it('requires nested definition to be valid', () => {
-        const [ , err ] = definition(2, Tag, { name: 'a', externalDocs: { a: 'b' } });
+        const [ , err ] = new Tag({ name: 'a', externalDocs: { a: 'b' } });
         expect(err).to.match(/Missing required property: url/);
     });
 
     it('can have extension property', () => {
-        const [ def ] = definition(2, Tag, { name: 'a', 'x-prop': 'b' });
+        const [ def, err ] = new Tag({ name: 'a', 'x-prop': 'b' });
         assert.deepEqual(def, { name: 'a', 'x-prop': 'b' })
     });
 
     it('cannot have other property', () => {
-        const [ , err ] = definition(2, Tag, { name: 'a', other: 'b' });
+        const [ , err ] = new Tag({ name: 'a', other: 'b' });
         expect(err).to.match(/Property not allowed: other/);
     });
 

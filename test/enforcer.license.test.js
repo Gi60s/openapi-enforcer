@@ -16,7 +16,7 @@
  **/
 'use strict';
 const expect    = require('chai').expect;
-const License   = require('../').v2.License;
+const License   = require('../').v2_0.License;
 
 describe('enforcer.license', () => {
 

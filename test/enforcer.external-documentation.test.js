@@ -15,35 +15,34 @@
  *    limitations under the License.
  **/
 'use strict';
-// const assert        = require('../bin/assert');
-// const definition    = require('../bin/definition-validator').normalize;
-// const expect        = require('chai').expect;
-// const ExternalDoc   = require('../bin/definition-validators/external-documentation');
+const assert                = require('../bin/assert');
+const expect                = require('chai').expect;
+const ExternalDocumentation = require('../').v2_0.ExternalDocumentation;
 
-describe('definitions/external-documentation', () => {
+describe('enforcer.external-documentation', () => {
 
     it('allows a valid external-documentation object', () => {
-        const [ , err ] = definition(2, ExternalDoc, { url: 'hi' });
+        const [ , err ] = new ExternalDocumentation({ url: 'hi' });
         expect(err).to.be.undefined;
     });
 
     it('requires the "url" property', () => {
-        const [ , err ] = definition(2, ExternalDoc, {});
+        const [ , err ] = new ExternalDocumentation({});
         expect(err).to.match(/Missing required property: url/);
     });
 
     it('can have description property', () => {
-        const [ def ] = definition(2, ExternalDoc, { url: 'a', description: 'b' });
+        const [ def ] = new ExternalDocumentation({ url: 'a', description: 'b' });
         assert.deepEqual(def, { url: 'a', description: 'b' });
     });
 
     it('can have extension property', () => {
-        const [ def ] = definition(2, ExternalDoc, { url: 'a', 'x-prop': 'b' });
+        const [ def ] = new ExternalDocumentation({ url: 'a', 'x-prop': 'b' });
         assert.deepEqual(def, { url: 'a', 'x-prop': 'b' })
     });
 
     it('cannot have other property', () => {
-        const [ , err ] = definition(2, ExternalDoc, { url: 'a', other: 'b' });
+        const [ , err ] = new ExternalDocumentation({ url: 'a', other: 'b' });
         expect(err).to.match(/Property not allowed: other/);
     });
 

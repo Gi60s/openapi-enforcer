@@ -16,7 +16,7 @@
  **/
 'use strict';
 const expect    = require('chai').expect;
-const Contact   = require('../').v2.Contact;
+const Contact   = require('../').v2_0.Contact;
 
 describe('enforcer.contact', () => {
 
