@@ -20,7 +20,7 @@ module.exports = EnforcerRef;
 
 function EnforcerRef (value, config) {
     if (!(this instanceof EnforcerRef)) return new EnforcerRef(value, config);
-    this.config = config || {};
+    this.config = config;
     this.value = value;
 }
 
