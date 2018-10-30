@@ -40,8 +40,8 @@ module.exports = {
                     allowed: major === 3,
                     type: 'object',
                     additionalProperties: EnforcerRef('MediaType', {
-                        errors: function({ key }) {
-                            if (!MediaType.rx.mediaType.test(key)) data.warn('Media type appears invalid');
+                        errors: function({ key, warn }) {
+                            if (!MediaType.rx.mediaType.test(key)) warn('Media type appears invalid');
                         }
                     })
                 },
