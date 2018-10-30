@@ -64,8 +64,9 @@ function childData(parent, key, validator) {
     return Object.assign(parent, child);
 }
 
-function normalize ({ definition, exception, key, major, map, minor, parent, patch, plugins, result, root, validator, warn }) {
-    let data = { definition, exception, key, major, map, minor, parent, patch, plugins, result, root, validator, warn };
+function normalize (data) {
+    const { exception, key, map, result } = data;
+    let definition = data.definition;
 
     try {
 
@@ -78,8 +79,7 @@ function normalize ({ definition, exception, key, major, map, minor, parent, pat
         }
 
         // generate the plain validator object
-        validator = fn(validator, data);
-        const usesComponentEnforcerConstructor = EnforcerRef.isEnforcerRef(validator);
+        const validator = fn(data.validator, data);
 
         // if type is invalid then exit
         if (validator.type && definition !== undefined) {
@@ -113,13 +113,18 @@ function normalize ({ definition, exception, key, major, map, minor, parent, pat
         }
 
         // if the validator is actually an EnforcerRef then pass validation and creation to a component enforcer instance
-        if (usesComponentEnforcerConstructor && definition !== undefined) {
-            const version = major + '.' + minor;
-            const name = validator.value;
-            const additionalValidator = validator.config; // TODO: need to validate extra validations
-            result.value = new Super.getConstructor(version, name)(new ValidatorState(data));
-            return;
-        }
+        // if (usesComponentEnforcerConstructor && definition !== undefined) {
+        //     const version = major + '.' + minor;
+        //     const name = validator.value;
+        //     const additionalValidator = validator.config; // TODO: need to validate extra validations
+        //
+        //     if (additionalValidator.ignore && !fn(additionalValidator.ignore, data)) {
+        //         result.value = new Super.getConstructor(version, name)(new ValidatorState(data));
+        //     }
+        //
+        //     throw Error('IDEA: have object and array run this logic within properties');
+        //     return;
+        // }
 
         // if the value has already been processed then we are in a circular reference and we should return the known value
         if (definition && typeof definition === 'object') {
@@ -142,38 +147,53 @@ function normalize ({ definition, exception, key, major, map, minor, parent, pat
         }
 
         // check if this value is allowed
-        const allowed = validator.hasOwnProperty('allowed') ? fn(validator.allowed, data) : true;
-        if (!allowed) {
-            let message = 'Property not allowed';
-            if (typeof allowed === 'string') message += '. ' + allowed;
-            exception(message);
-            return;
-        }
-
-        // check if this value is ignored
-        const ignore = validator.ignore && fn(validator.ignore, data);
-        if (ignore) {
-            result.value = undefined;
-            return;
-        }
+        // const allowed = validator.hasOwnProperty('allowed') ? fn(validator.allowed, data) : true;
+        // if (!allowed) {
+        //     let message = 'Property not allowed';
+        //     if (typeof allowed === 'string') message += '. ' + allowed;
+        //     exception(message);
+        //     return;
+        // }
+        //
+        // // check if this value is ignored
+        // const ignore = validator.ignore && fn(validator.ignore, data);
+        // if (ignore) {
+        //     result.value = undefined;
+        //     return;
+        // }
 
         // set default value
         if (definition === undefined && validator.hasOwnProperty('default')) definition = fn(validator.default, data);
 
-        // if a component enforcer constructor was not used then run additional validations
-        if (!usesComponentEnforcerConstructor) {
-            if (definitionType === 'array') {
-                result.value = [];
-                definition.forEach((def, i) => {
-                    const data = childData(data, i, validator.items);
-                    const result = data.result;
-                    normalize(data);
-                    if (result.value !== undefined) value.push(result.value);
-                });
+        if (definitionType === 'array') {
+            result.value = [];
+            definition.forEach((def, i) => {
+                const child = childData(data, i, validator.items);
+                runChildValidator(child);
+                if (child.result.value !== undefined) result.value.push(child.result.value);
+            });
 
-            } else if (definitionType === 'object') {
-                const missingRequired = [];
-                const unknownKeys = [];
+        } else if (definitionType === 'object') {
+            const missingRequired = [];
+            const notAllowed = [];
+            const unknownKeys = [];
+
+            if (validator === true) {
+                result.value = util.copy(definition);
+
+            } else if (validator === false) {
+                notAllowed.push.apply(notAllowed, Object.keys(definition));
+
+            } else if (validator.additionalProperties) {
+                const resultValue = {};
+                Object.keys(definition).forEach(key => {
+                    const child = childData(data, key, validator.additionalProperties);
+                    runChildValidator(child);
+                    if (child.result.value !== undefined) resultValue[key] = child.result.value;
+                });
+                data.result.value = resultValue;
+
+            } else {
                 const resultValue = {};
 
                 // organize definition properties
@@ -206,40 +226,39 @@ function normalize ({ definition, exception, key, major, map, minor, parent, pat
                     const data = prop.data;
                     const key = data.key;
                     const validator = data.validator;
-                    if (data.definition === undefined && validator.required && fn(validator.required, data)) {
+                    if (data.definition !== undefined) {
+                        if (validator.hasOwnProperty('allowed') && !fn(validator.allowed, data)) {
+                            notAllowed.push(key);
+                        } else if (!validator.ignore || !fn(validator.ignore, data)) {
+                            runChildValidator(data);
+                        }
+                    } else if (validator.required && fn(validator.required, data)) {
                         missingRequired.push(key);
-                    } else {
-                        normalize(data);
                     }
                     if (data.result.value !== undefined) resultValue[key] = data.result.value;
                 });
 
-                // determine action to take with unknown keys
-                if (validator.additionalProperties) {
-                    unknownKeys.forEach(key => {
-                        const child = childData(data, key, validator.additionalProperties);
-                        normalize(child);
-                        if (child.result.value !== undefined) resultValue[key] = child.result.value;
-                    });
-                } else if (unknownKeys.length) {
-                    exception('Propert' + (unknownKeys.length === 1 ? 'y' : 'ies') + ' not allowed: ' + unknownKeys.join(', '));
-                }
-
-                // report missing required properties
-                if (missingRequired.length) {
-                    exception('Missing required propert' + (unknownKeys.length === 1 ? 'y' : 'ies') + ': ' + missingRequired.join(', '));
-                }
-
-                if (Object.keys(resultValue).length) result.value = resultValue;
-
-            } else if (definition !== undefined) {
-                result.value = definition;
+                result.value = resultValue;
             }
+
+            // report any keys that are not allowed
+            notAllowed.push.apply(notAllowed, unknownKeys);
+            if (notAllowed.length) {
+                exception('Propert' + (notAllowed.length === 1 ? 'y' : 'ies') + ' not allowed: ' + notAllowed.join(', '));
+            }
+
+            // report missing required properties
+            if (missingRequired.length) {
+                exception('Missing required propert' + (missingRequired.length === 1 ? 'y' : 'ies') + ': ' + missingRequired.join(', '));
+            }
+
+        } else if (definition !== undefined) {
+            result.value = definition;
         }
 
         // run custom error validation check
         if (result.value !== undefined && validator.errors) {
-            const d = Object.assign(data);
+            const d = Object.assign({}, data);
             d.definition = result.value;
             fn(validator.errors, d);
         }
@@ -509,6 +528,19 @@ function fn(value, params) {
     } else {
         return value;
     }
+}
+
+function runChildValidator(data) {
+    const validator = fn(data.validator, data);
+    data.validator = validator;
+    if (EnforcerRef.isEnforcerRef(validator)) {
+        const version = data.major + '.' + data.minor;
+        const name = validator.value;
+        data.result.value = new Super.getConstructor(version, name)(new ValidatorState(data));
+        data.definition = data.result.value;
+        data.validator = validator.config ? fn(validator.config, data) : undefined;
+    }
+    if (data.validator) normalize(data);
 }
 
 function ValidatorState (data) {
