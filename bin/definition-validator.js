@@ -195,6 +195,7 @@ function normalize (data) {
 
             } else {
                 const resultValue = {};
+                let valueSet = false;
 
                 // organize definition properties
                 Object.keys(definition).forEach(key => {
@@ -235,10 +236,13 @@ function normalize (data) {
                     } else if (validator.required && fn(validator.required, data)) {
                         missingRequired.push(key);
                     }
-                    if (data.result.value !== undefined) resultValue[key] = data.result.value;
+                    if (data.result.value !== undefined) {
+                        valueSet = true;
+                        resultValue[key] = data.result.value;
+                    }
                 });
 
-                result.value = resultValue;
+                if (valueSet) result.value = resultValue;
             }
 
             // report any keys that are not allowed
@@ -539,6 +543,9 @@ function runChildValidator(data) {
         data.result.value = new Super.getConstructor(version, name)(new ValidatorState(data));
         data.definition = data.result.value;
         data.validator = validator.config ? fn(validator.config, data) : undefined;
+        if (data.validator) {
+            data.validator.additionalProperties = true;
+        }
     }
     if (data.validator) normalize(data);
 }
