@@ -42,6 +42,7 @@ function OpenAPIException(header, isHeader, parent) {
     const messages = [];
     const atMap = {};
     let cached = false;
+    let cachedCount;
     let hasException;
 
     function exception(message) {
@@ -66,6 +67,7 @@ function OpenAPIException(header, isHeader, parent) {
 
     exception.clearCache = function() {
         cached = false;
+        cachedCount = undefined;
         if (exception.parent) exception.parent.clearCache();
     };
 
@@ -136,6 +138,17 @@ function OpenAPIException(header, isHeader, parent) {
 
         return result;
     };
+
+    Object.defineProperty(exception, 'count', {
+        get: () => {
+            if (cachedCount === undefined) {
+                cachedCount = messages.length +
+                    positionals.reduce((p, c) => p + c.count, 0) +
+                    headers.reduce((p, c) => p + c.count, 0)
+            }
+            return cachedCount;
+        }
+    });
 
     Object.defineProperty(exception, 'hasException', {
         get: () => {
