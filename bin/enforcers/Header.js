@@ -24,7 +24,8 @@ module.exports = {
 
     prototype: {},
 
-    validator: function ({ major }) {
+    validator: function (data) {
+        const { major } = data;
         const Base = require('../validator-parameter-base');
         const base = Base(data);
         return {

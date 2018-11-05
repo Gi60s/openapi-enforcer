@@ -181,7 +181,7 @@ module.exports = {
     },
 
     validator: function (data) {
-        const ExternalDocumentation = require('./external-documentation');
+        const { major } = data;
 
         const exclusive = {
             type: 'boolean'
@@ -226,9 +226,7 @@ module.exports = {
             }
         };
 
-        Object.assign(this, {
-            useComponent: ({ value }) => value && typeof value === 'object',
-            component: SchemaEnforcer,
+        return {
             type: 'object',
             properties: {
                 type: {
@@ -268,7 +266,6 @@ module.exports = {
                     type: 'string'
                 },
                 discriminator: {
-                    component: DiscriminatorEnforcer,
                     allowed: ({ parent }) => {
                         return parent && parent.validator instanceof SchemaObject && parent.validator.type === 'object';
                     },
@@ -349,7 +346,9 @@ module.exports = {
                     }
                 },
                 items: EnforcerRef('Schema', {
-                    allowed: ({parent}) => parent.value.type === 'array',
+                    allowed: ({parent}) => {
+                        return parent.value.type === 'array'
+                    },
                     required: ({ parent }) => parent.value.type === 'array'
                 }),
                 maximum: maxOrMin,
@@ -417,49 +416,49 @@ module.exports = {
             },
 
             errors: (data) => {
-                const { exception, value } = data;
+                const { exception, definition } = data;
 
-                if (!minMaxValid(value.minItems, value.maxItems)) {
+                if (!minMaxValid(definition.minItems, definition.maxItems)) {
                     exception('Property "minItems" must be less than or equal to "maxItems"');
                 }
 
-                if (!minMaxValid(value.minLength, value.maxLength)) {
+                if (!minMaxValid(definition.minLength, definition.maxLength)) {
                     exception('Property "minLength" must be less than or equal to "maxLength"');
                 }
 
-                if (!minMaxValid(value.minProperties, value.maxProperties)) {
+                if (!minMaxValid(definition.minProperties, definition.maxProperties)) {
                     exception('Property "minProperties" must be less than or equal to "maxProperties"');
                 }
 
-                if (!minMaxValid(value.minimum, value.maximum, value.exclusiveMinimum, value.exclusiveMaximum)) {
-                    const msg = value.exclusiveMinimum || value.exclusiveMaximum ? '' : 'or equal to ';
+                if (!minMaxValid(definition.minimum, definition.maximum, definition.exclusiveMinimum, definition.exclusiveMaximum)) {
+                    const msg = definition.exclusiveMinimum || definition.exclusiveMaximum ? '' : 'or equal to ';
                     exception('Property "minimum" must be less than ' + msg + '"maximum"');
                 }
 
-                if (value.hasOwnProperty('properties')) {
-                    Object.keys(value.properties).forEach(key => {
-                        const v = value.properties[key];
+                if (definition.hasOwnProperty('properties')) {
+                    Object.keys(definition.properties).forEach(key => {
+                        const v = definition.properties[key];
                         if (v.readOnly && v.writeOnly) {
                             exception.at('properties').at(key)('Cannot be marked as both readOnly and writeOnly');
                         }
                     });
                 }
 
-                if (value.hasOwnProperty('default') && value.enum) {
-                    const index = value.enum.findIndex(v => util.same(v, value.default));
-                    if (index === -1) exception('Default value does not meet enum requirements');
+                if (definition.hasOwnProperty('default') && definition.enum) {
+                    const index = definition.enum.findIndex(v => util.same(v, definition.default));
+                    if (index === -1) exception('Default definition does not meet enum requirements');
                 }
 
                 // validate that zero or one composite has been defined
                 const composites = [];
                 ['allOf', 'anyOf', 'oneOf', 'not'].forEach(composite => {
-                    if (value.hasOwnProperty(composite)) composites.push(composite);
+                    if (definition.hasOwnProperty(composite)) composites.push(composite);
                 });
                 if (composites.length > 1) {
                     exception('Cannot have multiple composites: ' + composites.join(', '));
                 }
             }
-        });
+        };
     }
 };
 
