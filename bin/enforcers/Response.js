@@ -60,7 +60,9 @@ module.exports = {
                     allowed: major === 3,
                     type: 'object',
                     additionalProperties: EnforcerRef('Link', {
-                        allowed: ({ key }) => rxLinkName.test(key) ? true : 'Invalid key used for link value'
+                        errors: ({ exception, key }) => {
+                            if (!rxLinkName.test(key)) exception('Invalid key used for link value');
+                        }
                     })
                 },
                 schema: major === 2 ? EnforcerRef('Schema') : { allowed: false }
