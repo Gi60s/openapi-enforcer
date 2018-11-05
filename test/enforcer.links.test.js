@@ -18,7 +18,7 @@
 const expect    = require('chai').expect;
 const Link      = require('../').v3_0.Link;
 
-describe('enforcer.link', () => {
+describe('enforcer/link', () => {
 
     describe('description', () => {
 
@@ -34,6 +34,7 @@ describe('enforcer.link', () => {
                 description: 1
             });
             expect(err).to.match(/Value must be a string/);
+            expect(err.count).to.equal(1);
         });
 
     });
@@ -52,6 +53,7 @@ describe('enforcer.link', () => {
                 operationId: 1
             });
             expect(err).to.match(/Value must be a string/);
+            expect(err.count).to.equal(1);
         });
 
         it('is mutually exclusive of operationRef', () => {
@@ -60,6 +62,7 @@ describe('enforcer.link', () => {
                 operationRef: ''
             });
             expect(err).to.match(/Must not define both operationId and operationRef/);
+            expect(err.count).to.equal(1);
         });
 
     });
@@ -78,6 +81,7 @@ describe('enforcer.link', () => {
                 operationRef: 1
             });
             expect(err).to.match(/Value must be a string/);
+            expect(err.count).to.equal(1);
         });
 
         it('is mutually exclusive of operationRef', () => {
@@ -86,6 +90,7 @@ describe('enforcer.link', () => {
                 operationRef: ''
             });
             expect(err).to.match(/Must not define both operationId and operationRef/);
+            expect(err.count).to.equal(1);
         });
 
     });
@@ -104,6 +109,7 @@ describe('enforcer.link', () => {
                 parameters: []
             });
             expect(err).to.match(/Value must be a plain object/);
+            expect(err.count).to.equal(1);
         });
 
         it('can have any type of value', () => {
@@ -162,6 +168,7 @@ describe('enforcer.link', () => {
                 server: {}
             });
             expect(err).to.match(/Missing required property: url/);
+            expect(err.count).to.equal(1);
         });
 
     });

@@ -19,7 +19,7 @@ const assert                = require('../bin/assert');
 const expect                = require('chai').expect;
 const ExternalDocumentation = require('../').v2_0.ExternalDocumentation;
 
-describe('enforcer.external-documentation', () => {
+describe('enforcer/external-documentation', () => {
 
     it('allows a valid external-documentation object', () => {
         const [ , err ] = new ExternalDocumentation({ url: 'hi' });
@@ -29,6 +29,7 @@ describe('enforcer.external-documentation', () => {
     it('requires the "url" property', () => {
         const [ , err ] = new ExternalDocumentation({});
         expect(err).to.match(/Missing required property: url/);
+        expect(err.count).to.equal(1);
     });
 
     it('can have description property', () => {
@@ -44,6 +45,7 @@ describe('enforcer.external-documentation', () => {
     it('cannot have other property', () => {
         const [ , err ] = new ExternalDocumentation({ url: 'a', other: 'b' });
         expect(err).to.match(/Property not allowed: other/);
+        expect(err.count).to.equal(1);
     });
 
 });

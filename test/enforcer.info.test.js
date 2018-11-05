@@ -20,7 +20,7 @@ const expect    = require('chai').expect;
 const Info      = require('../').v2_0.Info;
 const License   = require('../').v2_0.License;
 
-describe('enforcer.info', () => {
+describe('enforcer/info', () => {
 
     it('can have valid definition', () => {
         const [ value ] = new Info({
@@ -43,6 +43,7 @@ describe('enforcer.info', () => {
             }
         });
         expect(err).to.match(/at: license > name\s+Value must be a string/);
+        expect(err.count).to.equal(1);
     });
 
     it('will report own errors', () => {
@@ -51,11 +52,13 @@ describe('enforcer.info', () => {
             version: '1.0'
         });
         expect(err).to.match(/at: title\s+Value must be a string/);
+        expect(err.count).to.equal(1);
     });
 
     it('requires the "title" property', () => {
         const [ , err ] = new Info({});
         expect(err).to.match(/Missing required properties: title, version/);
+        expect(err.count).to.equal(1);
     });
 
     it('can have description property', () => {
@@ -69,8 +72,9 @@ describe('enforcer.info', () => {
     });
 
     it('will validate contact property', () => {
-        const [ , err ] = new Info({ title: 'a', contact: { name: 'Bob', url: 'b', zmail: 'fake@fake.com' } });
+        const [ , err ] = new Info({ title: 'a', contact: { name: 'Bob', url: 'b', zmail: 'fake@fake.com' }, version: '1' });
         expect(err).to.match(/Property not allowed: zmail/);
+        expect(err.count).to.equal(1);
     });
 
     it('can have license property', () => {
@@ -81,6 +85,7 @@ describe('enforcer.info', () => {
     it('will validate license property', () => {
         const [ , err ] = new Info({ title: 'a', version: '1.0', contact: { name: true } });
         expect(err).to.match(/Value must be a string./);
+        expect(err.count).to.equal(1);
     });
 
 });

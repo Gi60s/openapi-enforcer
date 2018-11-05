@@ -18,7 +18,7 @@
 const expect    = require('chai').expect;
 const License   = require('../').v2_0.License;
 
-describe('enforcer.license', () => {
+describe('enforcer/license', () => {
 
     it('can have valid definition', () => {
         const [ value ] = new License({

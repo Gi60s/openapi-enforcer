@@ -18,7 +18,7 @@
 const expect    = require('chai').expect;
 const Contact   = require('../').v2_0.Contact;
 
-describe('enforcer.contact', () => {
+describe('enforcer/contact', () => {
 
     it('can have valid definition', () => {
         const [ value ] = new Contact({

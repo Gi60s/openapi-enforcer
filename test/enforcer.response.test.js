@@ -20,7 +20,7 @@ const expect        = require('chai').expect;
 const Response2     = require('../').v2_0.Response;
 const Response3     = require('../').v3_0.Response;
 
-describe.only('enforcers.response', () => {
+describe('enforcer/response', () => {
 
     it('allows a valid definition', () => {
         const [ , err ] = new Response2({
@@ -163,7 +163,7 @@ describe.only('enforcers.response', () => {
             expect(err).to.be.undefined;
         });
 
-        it.only('must meet naming conventions', () => {
+        it('must meet naming conventions', () => {
             const [ , err ] = new Response3({
                 description: '',
                 links: {
