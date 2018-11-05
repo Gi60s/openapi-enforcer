@@ -15,18 +15,16 @@
  *    limitations under the License.
  **/
 'use strict';
-const ItemsEnforcer     = require('./enforcers/Items');
+const EnforcerRef       = require('./enforcer-ref');
 
 module.exports = data => {
-    const Example   = require('./example');
-    const MediaType = require('./media-type');
-    const Schema    = require('./schema');
+    const Schema = require('./enforcers/Schema');
 
     const { major } = data;
     const result = {
         type: 'object'
     };
-    const schema = new Schema(data);
+    const schema = Schema.validator(data);
 
     if (major === 2) {
         result.properties = {};
@@ -70,7 +68,7 @@ module.exports = data => {
         result.properties = {
             content: {
                 type: 'object',
-                additionalProperties: MediaType,
+                additionalProperties: EnforcerRef('MediaType'),
                 errors: ({exception, value}) => {
                     const keys = Object.keys(value);
                     if (keys.length !== 1) {
@@ -87,19 +85,19 @@ module.exports = data => {
             example: {},
             examples: {
                 type: 'object',
-                additionalProperties: Example
+                additionalProperties: EnforcerRef('Example')
             },
-            schema: Schema
+            schema: EnforcerRef('Schema')
         };
 
-        result.errors = ({ exception, major, value }) => {
-            if (value.hasOwnProperty('content') && value.hasOwnProperty('schema')) {
+        result.errors = ({ exception, major, definition }) => {
+            if (definition.hasOwnProperty('content') && definition.hasOwnProperty('schema')) {
                 exception('Cannot have both "content" and "schema" properties');
-            } else if (!value.hasOwnProperty('content') && !value.hasOwnProperty('schema')) {
+            } else if (!definition.hasOwnProperty('content') && !definition.hasOwnProperty('schema')) {
                 exception('Missing required property "content" or "schema"');
             }
 
-            if (value.hasOwnProperty('example') && value.hasOwnProperty('examples')) {
+            if (definition.hasOwnProperty('example') && definition.hasOwnProperty('examples')) {
                 exception('Cannot have both "example" and "examples" properties');
             }
         };
