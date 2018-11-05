@@ -33,6 +33,7 @@ describe.only('enforcers.response', () => {
         const [ , err ] = new Response2({
         });
         expect(err).to.match(/Missing required property: description/);
+        expect(err.count).to.equal(1);
     });
 
     describe('content', () => {
@@ -45,6 +46,7 @@ describe.only('enforcers.response', () => {
                 }
             });
             expect(err).to.match(/Property not allowed: content/);
+            expect(err.count).to.equal(1);
         });
 
         it('is allowed in v3', () => {
@@ -65,6 +67,7 @@ describe.only('enforcers.response', () => {
                 }
             });
             expect(warning).to.match(/Media type appears invalid/);
+            expect(warning.count).to.equal(1);
         });
 
     });
@@ -97,6 +100,7 @@ describe.only('enforcers.response', () => {
                 examples: {}
             });
             expect(err).to.match(/Property not allowed: examples/);
+            expect(err.count).to.equal(1);
         });
 
     });
@@ -117,7 +121,7 @@ describe.only('enforcers.response', () => {
             expect(err).to.be.undefined;
         });
 
-        it.only('has style limited to "simple"', () => {
+        it('has style limited to "simple"', () => {
             const [ , err ] = new Response3({
                 description: '',
                 headers: {
@@ -132,7 +136,9 @@ describe.only('enforcers.response', () => {
                     }
                 }
             });
+            console.error(err.toString());
             expect(err).to.match(/Value must be "simple"/);
+            expect(err.count).to.equal(1);
         });
 
     });
@@ -157,7 +163,7 @@ describe.only('enforcers.response', () => {
             expect(err).to.be.undefined;
         });
 
-        it('must meet naming conventions', () => {
+        it.only('must meet naming conventions', () => {
             const [ , err ] = new Response3({
                 description: '',
                 links: {
@@ -165,6 +171,7 @@ describe.only('enforcers.response', () => {
                 }
             });
             expect(err).to.match(/Invalid key used for link value/);
+            expect(err.count).to.equal(1);
         });
 
     });
