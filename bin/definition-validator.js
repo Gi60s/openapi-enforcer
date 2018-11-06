@@ -51,21 +51,25 @@ exports.isValidatorState = function (value) {
 };
 
 function childData(parent, key, validator) {
-    parent = Object.assign({}, parent);
-    const child = {
+    return {
         definition: parent.definition[key],
         exception: parent.exception.at(key),
         key,
+        major: parent.major,
+        map: parent.map,
+        minor: parent.minor,
         parent,
+        patch: parent.patch,
+        plugins: parent.plugins,
         result: {},
+        root: parent.root,
         validator,
-        warn: parent.warn.at(key)
+        warn: parent.warn.at(key),
     };
-    return Object.assign(parent, child);
 }
 
 function normalize (data) {
-    const { exception, key, map, result } = data;
+    const { exception, map, result } = data;
     let definition = data.definition;
 
     try {
