@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const EnforcerRef  = require('../enforcer-ref');
+const EnforcerRef   = require('../enforcer-ref');
 const Result        = require('../result');
 
 const rxFalse = /^false/i;
@@ -27,7 +27,7 @@ const schemaProperties = ['default', 'enum', 'exclusiveMaximum', 'exclusiveMinim
 
 module.exports = {
     init: function (data) {
-        const { definition, major, raw, warn } = data;
+        const { context, definition, major, raw, warn } = data;
 
         if (definition.in === 'header' && definition.name !== definition.name.toLowerCase()) {
             warn('Header names are case insensitive and their lower case equivalent will be used');
@@ -46,7 +46,7 @@ module.exports = {
             const newRaw = Object.assign({}, raw);
             newRaw.value = def;
             newRaw.result = { value: def };
-            this.schema = Component(Schema, newRaw);
+            this.schema = new context.Schema(newRaw);
 
             // v3 - set schema from content schema
         } else if (major === 3 && definition.content) {
