@@ -30,7 +30,7 @@ module.exports = {
         return {
             type: 'object',
             allowed: ({ exception, key, parent }) => {
-                const schema = parent && parent.parent && parent.parent.value && parent.parent.value.schema;
+                const schema = parent && parent.parent && parent.parent.definition && parent.parent.definition.schema;
                 return schema && schema.type === 'object' && schema.properties && schema.properties.hasOwnProperty(key)
                     ? true
                     : 'Encoding property ' + key + ' not found among schema object properties';
@@ -45,7 +45,7 @@ module.exports = {
                     type: 'string',
                     default: ({ parent }) => {
                         const propertyName = parent.key;
-                        const v = parent.parent.parent.value.schema.properties[propertyName];
+                        const v = parent.parent.parent.definition.schema.properties[propertyName];
                         if (v.type === 'string' && v.format === 'binary') return 'application/octet-stream';
                         if (v.type === 'object') return 'application/json';
                         if (v.type === 'array') {
@@ -55,8 +55,8 @@ module.exports = {
                         }
                         return 'text/plain';
                     },
-                    errors: ({ exception, value }) => {
-                        if (!rxContentType.test(value)) exception('Value is not a valid content-type');
+                    errors: ({ exception, definition }) => {
+                        if (!rxContentType.test(definition)) exception('Value is not a valid content-type');
                     }
                 },
                 headers: {
@@ -72,15 +72,15 @@ module.exports = {
                     ignore: ({ parent }) => parent.parent.parent.key !== 'application/x-www-form-urlencoded',
                     default: 'form',
                     enum: ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'],
-                    errors: ({ exception, parent, value }) => {
-                        const type = parent.parent.parent.value.schema.type;
-                        if (!type || !value) return false;
-                        if (parent.value.in === 'query') {
-                            if ((value !== 'form') &&
-                                !(value === 'spaceDelimited' && type === 'array') &&
-                                !(value === 'pipeDelimited' && type === 'array') &&
-                                !(value === 'deepObject' && type === 'object')) {
-                                exception('Style "' + value + '" is incompatible with schema type: ' + type);
+                    errors: ({ exception, parent, definition }) => {
+                        const type = parent.parent.parent.definition.schema.type;
+                        if (!type || !definition) return false;
+                        if (parent.definition.in === 'query') {
+                            if ((definition !== 'form') &&
+                                !(definition === 'spaceDelimited' && type === 'array') &&
+                                !(definition === 'pipeDelimited' && type === 'array') &&
+                                !(definition === 'deepObject' && type === 'object')) {
+                                exception('Style "' + definition + '" is incompatible with schema type: ' + type);
                             }
                         }
                     }
@@ -88,7 +88,7 @@ module.exports = {
                 explode: {
                     type: 'boolean',
                     ignore: ({ parent }) => parent.parent.parent.key !== 'application/x-www-form-urlencoded',
-                    default: ({ parent }) => parent.value.style === 'form'
+                    default: ({ parent }) => parent.definition.style === 'form'
                 }
             }
         }

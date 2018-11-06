@@ -45,36 +45,36 @@ module.exports = {
                     type: 'object',
                     additionalProperties: {
                         type: 'string',
-                        errors: ({ exception, refParser, value }) => {
+                        errors: ({ exception, refParser, definition }) => {
                             if (refParser) {
                                 try {
-                                    const ref = rxHttp.test(value) || value.indexOf('/') !== -1
-                                        ? value
-                                        : '#/components/schemas/' + value;
+                                    const ref = rxHttp.test(definition) || definition.indexOf('/') !== -1
+                                        ? definition
+                                        : '#/components/schemas/' + definition;
                                     refParser.$refs.get(ref)
                                 } catch (err) {
-                                    exception('Reference cannot be resolved: ' + value);
+                                    exception('Reference cannot be resolved: ' + definition);
                                 }
                             }
                         }
                     }
                 }
             },
-            errors: ({ exception, major, parent, value }) => {
+            errors: ({ exception, major, parent, definition }) => {
                 if (major === 2) {
-                    if (!parent.value.required || !parent.value.required.includes(value)) {
-                        exception('Value "' + value + '" must be found in the parent\'s required properties list.');
+                    if (!parent.definition.required || !parent.definition.required.includes(definition)) {
+                        exception('Value "' + definition + '" must be found in the parent\'s required properties list.');
                     }
-                    if (!parent.value.properties || !parent.value.properties.hasOwnProperty(value)) {
-                        exception('Value "' + value + '" must be found in the parent\'s properties definition.');
+                    if (!parent.definition.properties || !parent.definition.properties.hasOwnProperty(definition)) {
+                        exception('Value "' + definition + '" must be found in the parent\'s properties definition.');
                     }
 
-                } else if (major === 3 && value.hasOwnProperty('propertyName')) {
-                    if (!parent.value.required || !parent.value.required.includes(value.propertyName)) {
-                        exception('Value "' + value.propertyName + '" must be found in the parent\'s required properties list.');
+                } else if (major === 3 && definition.hasOwnProperty('propertyName')) {
+                    if (!parent.definition.required || !parent.definition.required.includes(definition.propertyName)) {
+                        exception('Value "' + definition.propertyName + '" must be found in the parent\'s required properties list.');
                     }
-                    if (!parent.value.properties || !parent.value.properties.hasOwnProperty(value.propertyName)) {
-                        exception('Value "' + value.propertyName + '" must be found in the parent\'s properties definition.');
+                    if (!parent.definition.properties || !parent.definition.properties.hasOwnProperty(definition.propertyName)) {
+                        exception('Value "' + definition.propertyName + '" must be found in the parent\'s properties definition.');
                     }
                 }
             }

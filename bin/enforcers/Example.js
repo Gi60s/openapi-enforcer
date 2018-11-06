@@ -33,8 +33,8 @@ module.exports = {
                 value: { allowed: true },
                 externalValue: { type: 'string' }
             },
-            errors: ({ exception, value }) => {
-                if (value.hasOwnProperty('value') && value.hasOwnProperty('externalValue')) {
+            errors: ({ exception, definition }) => {
+                if (definition.hasOwnProperty('value') && definition.hasOwnProperty('externalValue')) {
                     exception('Cannot have both "externalValue" and "value" properties');
                 }
             }

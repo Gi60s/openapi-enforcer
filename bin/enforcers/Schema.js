@@ -22,6 +22,7 @@ const Result        = require('../result');
 const util          = require('../util');
 const Value         = require('../value');
 
+const rxHttp = /^https?:\/\//;
 const store = new WeakMap();
 const globalDataTypeFormats = {   // global types can be overwritten by local types
     boolean: {},
@@ -188,39 +189,39 @@ module.exports = {
         };
 
         const maxOrMin = {
-            allowed: ({ parent }) => numericish(parent.value),
-            type: ({ parent }) => dateType(parent.value) ? 'string' : 'number',
-            deserialize: ({ exception, parent, value }) =>
-                dateType(parent.value)
-                    ? deserializeDate(parent.value, exception, value)
-                    : value
+            allowed: ({ parent }) => numericish(parent.definition),
+            type: ({ parent }) => dateType(parent.definition) ? 'string' : 'number',
+            deserialize: ({ exception, parent, definition }) =>
+                dateType(parent.definition)
+                    ? deserializeDate(parent.definition, exception, definition)
+                    : definition
         };
 
         const maxOrMinItems = {
-            allowed: ({ parent }) => parent.value.type === 'array',
+            allowed: ({ parent }) => parent.definition.type === 'array',
             type: 'number',
-            errors: ({ exception, value }) => {
-                if (!util.isInteger(value) || value < 0) {
+            errors: ({ exception, definition }) => {
+                if (!util.isInteger(definition) || definition < 0) {
                     exception('Value must be a non-negative integer');
                 }
             }
         };
 
         const maxOrMinLength = {
-            allowed: ({ parent }) => parent.value.type === 'string' && !dateType(parent.value),
+            allowed: ({ parent }) => parent.definition.type === 'string' && !dateType(parent.definition),
             type: 'number',
-            errors: ({ exception, value }) => {
-                if (!util.isInteger(value) || value < 0) {
+            errors: ({ exception, definition }) => {
+                if (!util.isInteger(definition) || definition < 0) {
                     exception('Value must be a non-negative integer');
                 }
             }
         };
 
         const maxOrMinProperties = {
-            allowed: ({ parent }) => parent.value.type === 'object',
+            allowed: ({ parent }) => parent.definition.type === 'object',
             type: 'number',
-            errors: ({ exception, value }) => {
-                if (!util.isInteger(value) || value < 0) {
+            errors: ({ exception, definition }) => {
+                if (!util.isInteger(definition) || definition < 0) {
                     exception('Value must be a non-negative integer');
                 }
             }
@@ -232,14 +233,14 @@ module.exports = {
                 type: {
                     type: 'string',
                     required: ({ parent }) => {
-                        const v = parent.value;
+                        const v = parent.definition;
                         return !v.hasOwnProperty('allOf') && !v.hasOwnProperty('anyOf') &&
                             !v.hasOwnProperty('not') && !v.hasOwnProperty('oneOf');
                     },
                     enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
                 },
                 additionalProperties: EnforcerRef('Schema', {
-                    allowed: ({parent}) => parent.value.type === 'object',
+                    allowed: ({parent}) => parent.definition.type === 'object',
                     type: ['boolean', 'object'],    // either boolean or object
                     default: true
                 }),
@@ -253,9 +254,9 @@ module.exports = {
                     items: EnforcerRef('Schema')
                 },
                 default: {
-                    type: ({ parent }) => parent.value.type,
-                    deserialize: ({ exception, parent, value }) =>
-                        deserializeDate(parent.value, exception, value)
+                    type: ({ parent }) => parent.definition.type,
+                    deserialize: ({ exception, parent, definition }) =>
+                        deserializeDate(parent.definition, exception, definition)
                 },
                 deprecated: {
                     allowed: ({major}) => major === 3,
@@ -279,36 +280,36 @@ module.exports = {
                             type: 'object',
                             additionalProperties: {
                                 type: 'string',
-                                errors: ({ exception, refParser, value }) => {
+                                errors: ({ exception, refParser, definition }) => {
                                     if (refParser) {
                                         try {
-                                            const ref = rxHttp.test(value) || value.indexOf('/') !== -1
-                                                ? value
-                                                : '#/components/schemas/' + value;
+                                            const ref = rxHttp.test(definition) || definition.indexOf('/') !== -1
+                                                ? definition
+                                                : '#/components/schemas/' + definition;
                                             refParser.$refs.get(ref)
                                         } catch (err) {
-                                            exception('Reference cannot be resolved: ' + value);
+                                            exception('Reference cannot be resolved: ' + definition);
                                         }
                                     }
                                 }
                             }
                         }
                     },
-                    errors: ({ exception, major, parent, value }) => {
+                    errors: ({ exception, major, parent, definition }) => {
                         if (major === 2) {
-                            if (!parent.value.required || !parent.value.required.includes(value)) {
-                                exception('Value "' + value + '" must be found in the parent\'s required properties list.');
+                            if (!parent.definition.required || !parent.definition.required.includes(definition)) {
+                                exception('Value "' + definition + '" must be found in the parent\'s required properties list.');
                             }
-                            if (!parent.value.properties || !parent.value.properties.hasOwnProperty(value)) {
-                                exception('Value "' + value + '" must be found in the parent\'s properties definition.');
+                            if (!parent.definition.properties || !parent.definition.properties.hasOwnProperty(definition)) {
+                                exception('Value "' + definition + '" must be found in the parent\'s properties definition.');
                             }
 
-                        } else if (major === 3 && value.hasOwnProperty('propertyName')) {
-                            if (!parent.value.required || !parent.value.required.includes(value.propertyName)) {
-                                exception('Value "' + value.propertyName + '" must be found in the parent\'s required properties list.');
+                        } else if (major === 3 && definition.hasOwnProperty('propertyName')) {
+                            if (!parent.definition.required || !parent.definition.required.includes(definition.propertyName)) {
+                                exception('Value "' + definition.propertyName + '" must be found in the parent\'s required properties list.');
                             }
-                            if (!parent.value.properties || !parent.value.properties.hasOwnProperty(value.propertyName)) {
-                                exception('Value "' + value.propertyName + '" must be found in the parent\'s properties definition.');
+                            if (!parent.definition.properties || !parent.definition.properties.hasOwnProperty(definition.propertyName)) {
+                                exception('Value "' + definition.propertyName + '" must be found in the parent\'s properties definition.');
                             }
                         }
                     }
@@ -317,9 +318,9 @@ module.exports = {
                     type: 'array',
                     items: {
                         allowed: ({ parent }) => !!(parent && parent.parent),
-                        type: ({ parent }) => parent.parent.value.type,
-                        deserialize: ({ exception, parent, value }) => {
-                            return deserializeDate(parent.parent.value, exception, value);
+                        type: ({ parent }) => parent.parent.definition.type,
+                        deserialize: ({ exception, parent, definition }) => {
+                            return deserializeDate(parent.parent.definition, exception, definition);
                         }
                     }
                 },
@@ -330,13 +331,13 @@ module.exports = {
                 exclusiveMinimum: exclusive,
                 externalDocs: EnforcerRef('ExternalDocumentation'),
                 format: {
-                    allowed: ({ parent }) => ['integer', 'number', 'string'].includes(parent.value.type),
+                    allowed: ({ parent }) => ['integer', 'number', 'string'].includes(parent.definition.type),
                     type: 'string',
                     errors: ({ exception, parent, warn }) => {
-                        const format = parent.value.format;
+                        const format = parent.definition.format;
                         if (format) {
                             const enums = [];
-                            switch (parent.value.type) {
+                            switch (parent.definition.type) {
                                 case 'integer': enums.push('int32', 'int64'); break;
                                 case 'number': enums.push('float', 'double'); break;
                                 case 'string': enums.push('binary', 'byte', 'date', 'date-time', 'password');
@@ -347,9 +348,9 @@ module.exports = {
                 },
                 items: EnforcerRef('Schema', {
                     allowed: ({parent}) => {
-                        return parent.value.type === 'array'
+                        return parent.definition.type === 'array'
                     },
-                    required: ({ parent }) => parent.value.type === 'array'
+                    required: ({ parent }) => parent.definition.type === 'array'
                 }),
                 maximum: maxOrMin,
                 maxItems: maxOrMinItems,
@@ -360,7 +361,7 @@ module.exports = {
                 minLength: maxOrMinLength,
                 minProperties: maxOrMinProperties,
                 multipleOf: {
-                    allowed: ({ parent }) => ['integer', 'number'].includes(parent.value.type),
+                    allowed: ({ parent }) => ['integer', 'number'].includes(parent.definition.type),
                     type: 'number'
                 },
                 not: EnforcerRef('Schema', { allowed: major === 3 }),
@@ -375,15 +376,15 @@ module.exports = {
                     items: EnforcerRef('Schema')
                 },
                 pattern: {
-                    allowed: ({ parent }) => parent.value.type === 'string',
+                    allowed: ({ parent }) => parent.definition.type === 'string',
                     type: 'string',
-                    errors: ({ exception, value }) => {
-                        if (!value) exception('Value must be a non-empty string');
+                    errors: ({ exception, definition }) => {
+                        if (!definition) exception('Value must be a non-empty string');
                     },
-                    deserialize: ({ value }) => util.rxStringToRx(value)
+                    deserialize: ({ definition }) => util.rxStringToRx(definition)
                 },
                 properties: {
-                    allowed: ({parent}) => parent.value.type === 'object',
+                    allowed: ({parent}) => parent.definition.type === 'object',
                     type: 'object',
                     additionalProperties: EnforcerRef('Schema')
                 },
@@ -391,20 +392,20 @@ module.exports = {
                     allowed: isSchemaProperty,
                     type: 'boolean',
                     default: false,
-                    errors: ({ major, parent, value }) => {
-                        if (major === 2 && value && parent && parent.parent && parent.parent.parent && parent.parent.parent.value.required && parent.parent.parent.value.required.includes(parent.key)) {
+                    errors: ({ major, parent, definition }) => {
+                        if (major === 2 && definition && parent && parent.parent && parent.parent.parent && parent.parent.parent.definition.required && parent.parent.parent.definition.required.includes(parent.key)) {
                             parent.warn('Property should not be marked as both read only and required');
                         }
                     }
                 },
                 required: {
-                    allowed: ({parent}) => parent.value.type === 'object',
+                    allowed: ({parent}) => parent.definition.type === 'object',
                     type: 'array',
                     items: 'string'
                 },
                 title: 'string',
                 uniqueItems: {
-                    allowed: ({parent}) => parent.value.type === 'array',
+                    allowed: ({parent}) => parent.definition.type === 'array',
                     type: 'boolean'
                 },
                 writeOnly: {

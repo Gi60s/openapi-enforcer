@@ -120,8 +120,8 @@ module.exports = {
                 basePath: {
                     allowed: major === 2,
                     type: 'string',
-                    errors: ({ exception, value }) => {
-                        if (value[0] !== '/') exception('Value must start with a forward slash');
+                    errors: ({ exception, definition }) => {
+                        if (definition[0] !== '/') exception('Value must start with a forward slash');
                     }
                 },
                 components: {
@@ -178,8 +178,8 @@ module.exports = {
                 host: {
                     type: 'string',
                     allowed: major === 2,
-                    errors: ({ exception, value }) => {
-                        const match = rxHostParts.exec(value);
+                    errors: ({ exception, definition }) => {
+                        const match = rxHostParts.exec(definition);
                         if (match) {
                             if (match[1]) exception('Value must not include the scheme: ' + match[1]);
                             if (match[3]) exception('Value must not include sub path: ' + match[3]);
@@ -191,8 +191,8 @@ module.exports = {
                     allowed: major === 3,
                     required: true,
                     type: 'string',
-                    errors: ({ exception, value }) => {
-                        if (!rxSemanticVersion.test(value)) exception('Value must be a semantic version number');
+                    errors: ({ exception, definition }) => {
+                        if (!rxSemanticVersion.test(definition)) exception('Value must be a semantic version number');
                     }
                 },
                 parameters: {

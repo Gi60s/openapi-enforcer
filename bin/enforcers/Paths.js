@@ -146,8 +146,8 @@ module.exports = {
             required: true,
             type: 'object',
             additionalProperties: EnforcerRef('Path'),
-            errors: ({ exception, value }) => {
-                Object.keys(value).forEach(key => {
+            errors: ({ exception, definition }) => {
+                Object.keys(definition).forEach(key => {
                     if (key[0] !== '/' || key[1] === '/') {
                         exception.at(key)('Path must begin with a single forward slash')
                     }

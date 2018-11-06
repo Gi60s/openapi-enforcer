@@ -29,26 +29,26 @@ module.exports = {
             type: 'object',
             properties: {
                 authorizationUrl: {
-                    allowed: ({ parent }) => major === 2 && parent.value.type === 'oauth2',
-                    required: ({ parent }) => ['implicit', 'accessCode'].includes(parent.value.flow),
+                    allowed: ({ parent }) => major === 2 && parent.definition.type === 'oauth2',
+                    required: ({ parent }) => ['implicit', 'accessCode'].includes(parent.definition.flow),
                     type: 'string'
                 },
                 bearerFormat: {
-                    allowed: ({ parent }) => major === 3 && parent.value.type === 'http',
+                    allowed: ({ parent }) => major === 3 && parent.definition.type === 'http',
                     type: 'string'
                 },
                 description: 'string',
                 flow: {
-                    allowed: ({ parent }) => major === 2 && parent.value.type === 'oauth2',
+                    allowed: ({ parent }) => major === 2 && parent.definition.type === 'oauth2',
                     required: true,
                     type: 'string',
                     enum: ['implicit', 'password', 'application', 'accessCode']
                 },
                 flows: EnforcerRef('OAuthFlows', {
-                    allowed: ({ parent }) => major === 3 && parent.value.type === 'oauth2'
+                    allowed: ({ parent }) => major === 3 && parent.definition.type === 'oauth2'
                 }) ,
                 in: {
-                    allowed: ({ parent }) => parent.value.type === 'apiKey',
+                    allowed: ({ parent }) => parent.definition.type === 'apiKey',
                     required: true,
                     type: 'string',
                     enum: major === 2
@@ -56,22 +56,22 @@ module.exports = {
                         : ['query', 'header', 'cookie']
                 },
                 name: {
-                    allowed: ({ parent }) => parent.value.type === 'apiKey',
+                    allowed: ({ parent }) => parent.definition.type === 'apiKey',
                     required: true,
                     type: 'string'
                 },
                 openIdConnectUrl: {
                     allowed: major === 3,
-                    required: ({ parent }) => parent.value.type === 'openIdConnect',
+                    required: ({ parent }) => parent.definition.type === 'openIdConnect',
                     type: 'string'
                 },
                 scheme: {
-                    allowed: ({ parent }) => major === 3 && parent.value.type === 'http',
+                    allowed: ({ parent }) => major === 3 && parent.definition.type === 'http',
                     required: true,
                     type: 'string'
                 },
                 scopes: {
-                    allowed: ({ parent }) => major === 2 && parent.value.type === 'oauth2',
+                    allowed: ({ parent }) => major === 2 && parent.definition.type === 'oauth2',
                     type: 'object',
                     required: true,
                     additionalProperties: {
@@ -79,8 +79,8 @@ module.exports = {
                     }
                 },
                 tokenUrl: {
-                    allowed: ({ parent }) => major === 2 && parent.value.type === 'oauth2',
-                    required: ({ parent }) => ['password', 'application', 'accessCode'].includes(parent.value.flow),
+                    allowed: ({ parent }) => major === 2 && parent.definition.type === 'oauth2',
+                    required: ({ parent }) => ['password', 'application', 'accessCode'].includes(parent.definition.flow),
                 },
                 type: {
                     weight: -10,

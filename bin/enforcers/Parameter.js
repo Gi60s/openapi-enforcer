@@ -248,7 +248,7 @@ module.exports = {
             type: 'object',
             properties: Object.assign({}, base.properties, {
                 allowEmptyValue: {
-                    allowed: ({parent}) => ['query', 'formData'].includes(parent.value.in),
+                    allowed: ({parent}) => ['query', 'formData'].includes(parent.definition.in),
                     type: 'boolean',
                     default: false,
                     errors: ({warn, major}) => {
@@ -258,13 +258,13 @@ module.exports = {
                     }
                 },
                 allowReserved: {
-                    allowed: ({ parent }) => major === 3 && parent.value.in === 'query',
+                    allowed: ({ parent }) => major === 3 && parent.definition.in === 'query',
                     type: 'boolean',
                     default: false
                 },
                 collectionFormat: {
-                    allowed: ({major, parent}) => major === 2 && parent.value.type === 'array',
-                    enum: ({parent}) => ['query', 'formData'].includes(parent.value.in)
+                    allowed: ({major, parent}) => major === 2 && parent.definition.type === 'array',
+                    enum: ({parent}) => ['query', 'formData'].includes(parent.definition.in)
                         ? ['csv', 'ssv', 'tsv', 'pipes', 'multi']
                         : ['csv', 'ssv', 'tsv', 'pipes'],
                     default: 'csv'
@@ -273,23 +273,23 @@ module.exports = {
                     type: 'boolean',
                     allowed: major === 3,
                     default: ({parent}) => {
-                        return parent.value.style === 'form';
+                        return parent.definition.style === 'form';
                     },
                     errors: ({exception, parent}) => {
-                        const type = parent.value.schema && parent.value.schema.type;
-                        if (parent.value.in === 'cookie' && parent.value.explode && (type === 'array' || type === 'object')) {
+                        const type = parent.definition.schema && parent.definition.schema.type;
+                        if (parent.definition.in === 'cookie' && parent.definition.explode && (type === 'array' || type === 'object')) {
                             exception('Cookies do not support exploded values for non-primitive schemas');
                         }
                     }
                 },
                 format: {
-                    allowed: ({ major, parent }) => major === 2 && ['file', 'integer', 'number', 'string'].includes(parent.value.type),
+                    allowed: ({ major, parent }) => major === 2 && ['file', 'integer', 'number', 'string'].includes(parent.definition.type),
                     type: 'string',
                     errors: ({ exception, parent, warn }) => {
-                        const format = parent.value.format;
+                        const format = parent.definition.format;
                         if (format) {
                             const enums = [];
-                            switch (parent.value.type) {
+                            switch (parent.definition.type) {
                                 case 'file': enums.push('binary', 'byte'); break;
                                 case 'integer': enums.push('int32', 'int64'); break;
                                 case 'number': enums.push('float', 'double'); break;
@@ -312,20 +312,20 @@ module.exports = {
                     type: 'string'
                 },
                 required: {
-                    required: ({parent}) => parent.value.in === 'path',
+                    required: ({parent}) => parent.definition.in === 'path',
                     type: 'boolean',
-                    default: ({parent}) => parent.value.in === 'path',
-                    enum: ({parent}) => parent.value.in === 'path' ? [true] : [true, false]
+                    default: ({parent}) => parent.definition.in === 'path',
+                    enum: ({parent}) => parent.definition.in === 'path' ? [true] : [true, false]
                 },
                 schema: EnforcerRef('Schema', {
-                    allowed: ({ parent}) => major === 3 || parent.value.in === 'body'
+                    allowed: ({ parent}) => major === 3 || parent.definition.in === 'body'
                 }),
                 style: {
                     weight: -5,
                     allowed: major === 3,
                     type: 'string',
                     default: ({ parent }) => {
-                        switch (parent.value.in) {
+                        switch (parent.definition.in) {
                             case 'cookie': return 'form';
                             case 'header': return 'simple';
                             case 'path': return 'simple';
@@ -333,7 +333,7 @@ module.exports = {
                         }
                     },
                     enum: ({ parent }) => {
-                        switch (parent.value.in) {
+                        switch (parent.definition.in) {
                             case 'cookie': return ['form'];
                             case 'header': return ['simple'];
                             case 'path': return ['simple', 'label', 'matrix'];
@@ -341,10 +341,10 @@ module.exports = {
                         }
                     },
                     errors: ({ exception, parent }) => {
-                        const style = parent.value.style;
-                        const type = parent.value.schema && parent.value.schema.type;
+                        const style = parent.definition.style;
+                        const type = parent.definition.schema && parent.definition.schema.type;
                         if (!type || !style) return false;
-                        if (parent.value.in === 'query') {
+                        if (parent.definition.in === 'query') {
                             if ((style !== 'form') &&
                                 !(style === 'spaceDelimited' && type === 'array') &&
                                 !(style === 'pipeDelimited' && type === 'array') &&
@@ -356,9 +356,10 @@ module.exports = {
                 },
                 type: {
                     weight: -5,
-                    allowed: ({major, parent}) => major === 2 && parent.value.in !== 'body',
+                    allowed: ({major, parent}) => {
+                        return major === 2 && parent.definition.in !== 'body'},
                     required: true,
-                    enum: ({parent}) => parent.value.in === 'formData'
+                    enum: ({parent}) => parent.definition.in === 'formData'
                         ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
                         : ['array', 'boolean', 'integer', 'number', 'string']
                 },
@@ -367,8 +368,8 @@ module.exports = {
             errors: major === 3
                 ? base.errors
                 : data => {
-                    const { exception, value } = data;
-                    if (value.hasOwnProperty('default') && value.required) {
+                    const { exception, definition } = data;
+                    if (definition.hasOwnProperty('default') && definition.required) {
                         exception('Cannot have a "default" and set "required" to true');
                     }
                     base.errors(data);

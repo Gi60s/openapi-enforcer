@@ -283,12 +283,12 @@ module.exports = {
                 operationId: {
                     type: 'string',
                     errors: (data) => {
-                        const { exception, root, value } = data;
+                        const { exception, root, definition } = data;
                         if (!root.__operationIdMap) root.__operationIdMap = {};
-                        if (root.__operationIdMap[value]) {
+                        if (root.__operationIdMap[definition]) {
                             exception('The operationId must be unique');
                         } else {
-                            root.__operationIdMap[value] = data;
+                            root.__operationIdMap[definition] = data;
                         }
                     }
                 },
@@ -328,8 +328,8 @@ module.exports = {
                 },
                 summary: {
                     type: 'string',
-                    errors: ({ value, warn }) => {
-                        if (value.length >= 120) {
+                    errors: ({ definition, warn }) => {
+                        if (definition.length >= 120) {
                             warn('Value should be less than 120 characters');
                         }
                     }
@@ -344,15 +344,15 @@ module.exports = {
         }
     },
 
-    parametersValidation: ({ exception, parent, root, validator, value }) => {
-        const length = value.length;
+    parametersValidation: ({ exception, parent, root, validator, definition }) => {
+        const length = definition.length;
         const duplicates = [];
         let bodiesCount = 0;
         let hasBody = false;
         let hasFormData = false;
         let hasFile = false;
         for (let i = 0; i < length; i++) {
-            const p1 = value[i];
+            const p1 = definition[i];
 
             // make sure that in body and in formData are not both present
             if (p1.in === 'body') {
@@ -364,9 +364,9 @@ module.exports = {
                 if (p1.type === 'file') hasFile = true;
             }
 
-            // check for duplicate names within same parameter "in" value
+            // check for duplicate names within same parameter "in" definition
             for (let j = 0; j < length; j++) {
-                const p2 = value[j];
+                const p2 = definition[j];
                 if (p1 !== p2 && p1.name === p2.name && p1.in === p2.in) {
                     const description = p1.name + ' in ' + p1.in;
                     if (!duplicates.includes(description)) duplicates.push(description);
@@ -389,8 +389,8 @@ module.exports = {
         if (hasFile) {
             // parameter might be defined within operation (that can have consumes) or path (that cannot have consumes)
             const consumes = parent.validator.component === OperationEnforcer
-                ? parent.value.consumes || root.value.consumes
-                : root.value.consumes;
+                ? parent.definition.consumes || root.definition.consumes
+                : root.definition.consumes;
             const length = Array.isArray(consumes) ? consumes.length : 0;
             let consumesOk = false;
             for (let i = 0; i < length; i++) {

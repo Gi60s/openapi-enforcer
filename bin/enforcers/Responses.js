@@ -35,8 +35,8 @@ module.exports = {
                     ? true
                     : 'Invalid response code.'
             }),
-            errors: ({ exception, value }) => {
-                if (Object.keys(value).length === 0) {
+            errors: ({ exception, definition }) => {
+                if (Object.keys(definition).length === 0) {
                     exception('Response object cannot be empty');
                 }
             }

@@ -32,20 +32,20 @@ module.exports = {
                 items: {
                     type: 'string'
                 },
-                errors: ({ exception, parent, value }) => {
-                    if (root.value) {
-                        Object.keys(parent.value).forEach(key => {
+                errors: ({ exception, parent, definition }) => {
+                    if (root.definition) {
+                        Object.keys(parent.definition).forEach(key => {
                             let security;
                             if (major === 2) {
-                                security = root.value && root.value.securityDefinitions &&
-                                    root.value.securityDefinitions[key];
+                                security = root.definition && root.definition.securityDefinitions &&
+                                    root.definition.securityDefinitions[key];
                                 if (!security) {
                                     exception.at(key)('Security requirement name must be defined at the document root under the securityDefinitions');
                                 }
                             } else if (major === 3) {
-                                security = root.value && root.value.components &&
-                                    root.value.components.securitySchemes &&
-                                    root.value.components.securitySchemes[key];
+                                security = root.definition && root.definition.components &&
+                                    root.definition.components.securitySchemes &&
+                                    root.definition.components.securitySchemes[key];
                                 if (!security) {
                                     exception.at(key)('Security requirement name must be defined at the document root under the components/securitySchemes');
                                 }
@@ -65,14 +65,14 @@ module.exports = {
                                         })
                                     }
 
-                                    value.forEach(scope => {
+                                    definition.forEach(scope => {
                                         if (scopes.includes(scope)) {
                                             const name = major === 2 ? 'securityDefinitions' : 'securitySchemes';
                                             exception.at(key)('Oauth2 scope not defined in ' + name);
                                         }
                                     });
                                 } else {
-                                    if (value.length > 0) {
+                                    if (definition.length > 0) {
                                         exception.at(key)('Security requirement for ' + security.type + ' value must be an empty array');
                                     }
                                 }
