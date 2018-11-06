@@ -35,7 +35,7 @@ module.exports = data => {
                 enum: ['array', 'boolean', 'integer', 'number', 'string']
             },
             collectionFormat: {
-                allowed: ({ parent }) => parent.value.type === 'array',
+                allowed: ({ parent }) => parent.definition.type === 'array',
                 enum: ['csv', 'ssv', 'tsv', 'pipes'],
                 default: 'csv'
             },
@@ -45,10 +45,9 @@ module.exports = data => {
             exclusiveMinimum: schema.properties.exclusiveMinimum,
             format: schema.properties.format,
             items: {
-                component: ItemsEnforcer,
                 type: 'object',
-                allowed: ({ parent }) => parent.value.type === 'array',
-                required: ({ parent }) => parent.value.type === 'array',
+                allowed: ({ parent }) => parent.definition.type === 'array',
+                required: ({ parent }) => parent.definition.type === 'array',
                 properties: result.properties,
                 errors: result.errors
             },
@@ -69,8 +68,8 @@ module.exports = data => {
             content: {
                 type: 'object',
                 additionalProperties: EnforcerRef('MediaType'),
-                errors: ({exception, value}) => {
-                    const keys = Object.keys(value);
+                errors: ({exception, definition}) => {
+                    const keys = Object.keys(definition);
                     if (keys.length !== 1) {
                         exception('Value must have exactly one key. Received: ' + keys.join(', '));
                     }
