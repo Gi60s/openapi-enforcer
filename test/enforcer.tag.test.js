@@ -43,7 +43,7 @@ describe('enforcer/tag', () => {
     });
 
     it('requires nested definition to be valid', () => {
-        const [ , err ] = new Tag({ name: 'a', externalDocs: { a: 'b' } });
+        const [ , err ] = new Tag({ name: 'a', externalDocs: { } });
         expect(err).to.match(/Missing required property: url/);
         expect(err.count).to.equal(1);
     });
