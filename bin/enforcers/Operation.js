@@ -41,7 +41,7 @@ module.exports = {
                     if (!parametersProcessed) {
 
                         // build the parameters map
-                        if (parent) buildParametersMap(parametersMap, parent.parameters);
+                        if (parent) buildParametersMap(parametersMap, parent.result.value.parameters);
                         buildParametersMap(parametersMap, definition.parameters);
 
                         // overwrite the parameters array
