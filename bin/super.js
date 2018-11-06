@@ -23,11 +23,12 @@ const Result                = require('./result');
 const store = {};
 const constructors = [];
 
-function Super (version, name) {
+function Super (context, name) {
+    const version = context.version;
     if (!store[version]) store[version] = {};
     if (!store[version].hasOwnProperty(name)) {
         const enforcer = require('./enforcers/' + name);
-        store[version][name] = createConstructor(version, name, enforcer);
+        store[version][name] = createConstructor(version, name, enforcer, context);
         constructors.push(store[version][name]);
     }
     return store[version][name];
@@ -37,7 +38,7 @@ Super.getConstructor = function(version, name) {
     return store[version] && store[version][name];
 };
 
-function createConstructor(version, name, enforcer) {
+function createConstructor(version, name, enforcer, versionContext) {
     const callbacks = [];
     const store = new WeakMap();
 
@@ -99,7 +100,7 @@ function createConstructor(version, name, enforcer) {
         // validate the definition
         let data;
         if (isStart) {
-            data = definitionValidator.start(version, name, enforcer, definition);
+            data = definitionValidator.start(version, name, enforcer, definition, versionContext);
         } else {
             data = definition;
             data.validator = enforcer.validator;
@@ -116,7 +117,7 @@ function createConstructor(version, name, enforcer) {
         Object.assign(context, data.result.value);
 
         // run the construct function if present
-        if (enforcer.run) enforcer.run(data);
+        if (enforcer.init) enforcer.init.call(context, data);
 
         // add plugin callbacks to this instance
         const plugins = data.plugins;

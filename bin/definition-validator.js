@@ -22,7 +22,7 @@ const util          = require('./util');
 
 const rxExtension = /^x-.+/;
 
-exports.start = function (version, name, enforcer, definition) {
+exports.start = function (version, name, enforcer, definition, context) {
     definition = util.copy(definition);
     const exception = Exception('One or more errors exist in the ' + name + ' definition');
     const warn = Exception('One or more warnings exist in the ' + name + ' definition');
@@ -37,7 +37,7 @@ exports.start = function (version, name, enforcer, definition) {
     const validator = enforcer.validator;
     const key = undefined;
 
-    const root = { definition, exception, key, major, map, minor, parent, patch, plugins, result, validator, warn };
+    const root = { context, definition, exception, key, major, map, minor, parent, patch, plugins, result, validator, warn };
     root.root = root;
     normalize(root);
     root.plugins.forEach(plugin => plugin());
@@ -52,6 +52,7 @@ exports.isValidatorState = function (value) {
 
 function childData(parent, key, validator) {
     return {
+        context: parent.context,
         definition: parent.definition[key],
         exception: parent.exception.at(key),
         key,
