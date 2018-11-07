@@ -41,21 +41,21 @@ module.exports = {
         // validate the default value
         if (definition.hasOwnProperty('default')) {
             const error = this.validate(definition.default);
-            if (error) exception.at('default')(error);
+            if (error) exception.at('default').message(error);
         }
 
         // validate enum values
         if (definition.hasOwnProperty('enum')) {
             definition.enum.forEach((value, index) => {
                 const error = this.validate(value);
-                if (error) exception.at('enum').at(index)(error);
+                if (error) exception.at('enum').at(index).message(error);
             })
         }
 
         // validate the example
         if (definition.hasOwnProperty('example')) {
             const error = this.validate(definition.example);
-            if (error) warn.at('example')(error);
+            if (error) warn.at('example').message(error);
         }
 
         // define and store data type formats
@@ -202,7 +202,7 @@ module.exports = {
             type: 'number',
             errors: ({ exception, definition }) => {
                 if (!util.isInteger(definition) || definition < 0) {
-                    exception('Value must be a non-negative integer');
+                    exception.message('Value must be a non-negative integer');
                 }
             }
         };
@@ -212,7 +212,7 @@ module.exports = {
             type: 'number',
             errors: ({ exception, definition }) => {
                 if (!util.isInteger(definition) || definition < 0) {
-                    exception('Value must be a non-negative integer');
+                    exception.message('Value must be a non-negative integer');
                 }
             }
         };
@@ -222,7 +222,7 @@ module.exports = {
             type: 'number',
             errors: ({ exception, definition }) => {
                 if (!util.isInteger(definition) || definition < 0) {
-                    exception('Value must be a non-negative integer');
+                    exception.message('Value must be a non-negative integer');
                 }
             }
         };
@@ -288,7 +288,7 @@ module.exports = {
                                                 : '#/components/schemas/' + definition;
                                             refParser.$refs.get(ref)
                                         } catch (err) {
-                                            exception('Reference cannot be resolved: ' + definition);
+                                            exception.message('Reference cannot be resolved: ' + definition);
                                         }
                                     }
                                 }
@@ -298,18 +298,18 @@ module.exports = {
                     errors: ({ exception, major, parent, definition }) => {
                         if (major === 2) {
                             if (!parent.definition.required || !parent.definition.required.includes(definition)) {
-                                exception('Value "' + definition + '" must be found in the parent\'s required properties list.');
+                                exception.message('Value "' + definition + '" must be found in the parent\'s required properties list.');
                             }
                             if (!parent.definition.properties || !parent.definition.properties.hasOwnProperty(definition)) {
-                                exception('Value "' + definition + '" must be found in the parent\'s properties definition.');
+                                exception.message('Value "' + definition + '" must be found in the parent\'s properties definition.');
                             }
 
                         } else if (major === 3 && definition.hasOwnProperty('propertyName')) {
                             if (!parent.definition.required || !parent.definition.required.includes(definition.propertyName)) {
-                                exception('Value "' + definition.propertyName + '" must be found in the parent\'s required properties list.');
+                                exception.message('Value "' + definition.propertyName + '" must be found in the parent\'s required properties list.');
                             }
                             if (!parent.definition.properties || !parent.definition.properties.hasOwnProperty(definition.propertyName)) {
-                                exception('Value "' + definition.propertyName + '" must be found in the parent\'s properties definition.');
+                                exception.message('Value "' + definition.propertyName + '" must be found in the parent\'s properties definition.');
                             }
                         }
                     }
@@ -379,7 +379,7 @@ module.exports = {
                     allowed: ({ parent }) => parent.definition.type === 'string',
                     type: 'string',
                     errors: ({ exception, definition }) => {
-                        if (!definition) exception('Value must be a non-empty string');
+                        if (!definition) exception.message('Value must be a non-empty string');
                     },
                     deserialize: ({ definition }) => util.rxStringToRx(definition)
                 },
@@ -420,34 +420,34 @@ module.exports = {
                 const { exception, definition } = data;
 
                 if (!minMaxValid(definition.minItems, definition.maxItems)) {
-                    exception('Property "minItems" must be less than or equal to "maxItems"');
+                    exception.message('Property "minItems" must be less than or equal to "maxItems"');
                 }
 
                 if (!minMaxValid(definition.minLength, definition.maxLength)) {
-                    exception('Property "minLength" must be less than or equal to "maxLength"');
+                    exception.message('Property "minLength" must be less than or equal to "maxLength"');
                 }
 
                 if (!minMaxValid(definition.minProperties, definition.maxProperties)) {
-                    exception('Property "minProperties" must be less than or equal to "maxProperties"');
+                    exception.message('Property "minProperties" must be less than or equal to "maxProperties"');
                 }
 
                 if (!minMaxValid(definition.minimum, definition.maximum, definition.exclusiveMinimum, definition.exclusiveMaximum)) {
                     const msg = definition.exclusiveMinimum || definition.exclusiveMaximum ? '' : 'or equal to ';
-                    exception('Property "minimum" must be less than ' + msg + '"maximum"');
+                    exception.message('Property "minimum" must be less than ' + msg + '"maximum"');
                 }
 
                 if (definition.hasOwnProperty('properties')) {
                     Object.keys(definition.properties).forEach(key => {
                         const v = definition.properties[key];
                         if (v.readOnly && v.writeOnly) {
-                            exception.at('properties').at(key)('Cannot be marked as both readOnly and writeOnly');
+                            exception.at('properties').at(key).message('Cannot be marked as both readOnly and writeOnly');
                         }
                     });
                 }
 
                 if (definition.hasOwnProperty('default') && definition.enum) {
                     const index = definition.enum.findIndex(v => util.same(v, definition.default));
-                    if (index === -1) exception('Default definition does not meet enum requirements');
+                    if (index === -1) exception.message('Default definition does not meet enum requirements');
                 }
 
                 // validate that zero or one composite has been defined
@@ -456,7 +456,7 @@ module.exports = {
                     if (definition.hasOwnProperty(composite)) composites.push(composite);
                 });
                 if (composites.length > 1) {
-                    exception('Cannot have multiple composites: ' + composites.join(', '));
+                    exception.message('Cannot have multiple composites: ' + composites.join(', '));
                 }
             }
         };
@@ -582,7 +582,7 @@ function runSerialize(exception, map, schema, originalValue) {
             matches.set(schema, result);
             return result;
         } else {
-            exception('Expected an array. Received: ' + util.smart(value));
+            exception.message('Expected an array. Received: ' + util.smart(value));
         }
 
     } else if (type === 'object') {
@@ -599,14 +599,14 @@ function runSerialize(exception, map, schema, originalValue) {
             });
             return result;
         } else {
-            exception('Expected an object. Received: ' + util.smart(originalValue));
+            exception.message('Expected an object. Received: ' + util.smart(originalValue));
         }
 
     } else if (type === 'boolean') {
         let result = store.get(schema).dataTypeFormats.serialize(exception, originalValue);
         if (result === undefined) {
             if (typeofValue !== 'boolean' && !coerce) {
-                exception('Expected a boolean. Received: ' + util.smart(value));
+                exception.message('Expected a boolean. Received: ' + util.smart(value));
             } else {
                 result = typeofValue === 'string'
                     ? value.length > 0 && value.toLowerCase() !== 'false'
@@ -627,7 +627,7 @@ function runSerialize(exception, map, schema, originalValue) {
             }
         }
         if (isNaN(result)) {
-            exception('Expected an integer. Received: ' + util.smart(value));
+            exception.message('Expected an integer. Received: ' + util.smart(value));
             result = undefined;
         }
         return result;
@@ -643,7 +643,7 @@ function runSerialize(exception, map, schema, originalValue) {
             }
         }
         if (isNaN(result)) {
-            exception('Expected a number. Received: ' + util.smart(value));
+            exception.message('Expected a number. Received: ' + util.smart(value));
             result = undefined;
         }
         return result;
@@ -652,7 +652,7 @@ function runSerialize(exception, map, schema, originalValue) {
         let result = store.get(schema).dataTypeFormats.serialize(exception, originalValue);
         if (result === undefined) {
             if (typeofValue !== 'string' && !coerce) {
-                exception('Expected a string. Received: ' + util.smart(value));
+                exception.message('Expected a string. Received: ' + util.smart(value));
             } else {
                 result = String(value);
             }
@@ -668,11 +668,11 @@ function dateType(definition) {
 function deserializeDate(definition, exception, value) {
     if (dateType(definition)) {
         if (!rx[definition.format].test(value)) {
-            exception('Value must be formatted as a ' + definition.format);
+            exception.message('Value must be formatted as a ' + definition.format);
             return value;
         } else {
             const date = util.getDateFromValidDateString(definition.format, value);
-            if (!date) exception('Value is not a valid ' + definition.format);
+            if (!date) exception.message('Value is not a valid ' + definition.format);
             return date;
         }
     } else {

@@ -149,7 +149,7 @@ module.exports = {
             errors: ({ exception, definition }) => {
                 Object.keys(definition).forEach(key => {
                     if (key[0] !== '/' || key[1] === '/') {
-                        exception.at(key)('Path must begin with a single forward slash')
+                        exception.at(key).message('Path must begin with a single forward slash')
                     }
                 })
             }

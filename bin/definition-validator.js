@@ -78,8 +78,8 @@ function normalize (data) {
             const matches = fn(validator.enum, data);
             if (!matches.includes(definition)) {
                 matches.length === 1
-                    ? exception('Value must be ' + util.smart(matches[0]) + '. Received: ' + util.smart(definition))
-                    : exception('Value must be one of: ' + matches.join(', ') + '. Received: ' + util.smart(definition));
+                    ? exception.message('Value must be ' + util.smart(matches[0]) + '. Received: ' + util.smart(definition))
+                    : exception.message('Value must be one of: ' + matches.join(', ') + '. Received: ' + util.smart(definition));
             }
         }
 
@@ -104,7 +104,7 @@ function normalize (data) {
                 Object.keys(definition).forEach(key => {
                     const child = childData(data, key, validator.additionalProperties);
                     const keyValidator = EnforcerRef.isEnforcerRef(child.validator)
-                        ? validator.config || {}
+                        ? child.validator.config || {}
                         : child.validator;
 
                     const allowed = keyValidator.hasOwnProperty('allowed') ? fn(keyValidator.allowed, child) : true;
@@ -182,12 +182,12 @@ function normalize (data) {
             // report any keys that are not allowed
             notAllowed.push.apply(notAllowed, unknownKeys);
             if (notAllowed.length) {
-                exception('Propert' + (notAllowed.length === 1 ? 'y' : 'ies') + ' not allowed: ' + notAllowed.join(', '));
+                exception.message('Propert' + (notAllowed.length === 1 ? 'y' : 'ies') + ' not allowed: ' + notAllowed.join(', '));
             }
 
             // report missing required properties
             if (missingRequired.length) {
-                exception('Missing required propert' + (missingRequired.length === 1 ? 'y' : 'ies') + ': ' + missingRequired.join(', '));
+                exception.message('Missing required propert' + (missingRequired.length === 1 ? 'y' : 'ies') + ': ' + missingRequired.join(', '));
             }
 
         } else {
@@ -202,7 +202,7 @@ function normalize (data) {
         }
 
     } catch (err) {
-        exception('Unexpected error encountered: ' + err.stack);
+        exception.message('Unexpected error encountered: ' + err.stack);
     }
 
     return data.result;
@@ -223,7 +223,7 @@ function fn(value, params) {
         try {
             return value(params);
         } catch (err) {
-            params.exception('Unexpected error encountered: ' + err.stack);
+            params.exception.message('Unexpected error encountered: ' + err.stack);
         }
     } else {
         return value;
@@ -262,7 +262,7 @@ function validateType(definitionType, data) {
             const last = matches.pop();
             message = matches.map(match => expectedTypeMessage(match)).join(', ') + ', or ' + expectedTypeMessage(last);
         }
-        exception('Value must be ' + message + '. Received: ' + util.smart(definition));
+        exception.message('Value must be ' + message + '. Received: ' + util.smart(definition));
         return false;
     } else {
         return true;

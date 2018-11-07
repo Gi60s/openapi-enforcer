@@ -53,7 +53,7 @@ module.exports = {
                                         : '#/components/schemas/' + definition;
                                     refParser.$refs.get(ref)
                                 } catch (err) {
-                                    exception('Reference cannot be resolved: ' + definition);
+                                    exception.message('Reference cannot be resolved: ' + definition);
                                 }
                             }
                         }
@@ -63,18 +63,18 @@ module.exports = {
             errors: ({ exception, major, parent, definition }) => {
                 if (major === 2) {
                     if (!parent.definition.required || !parent.definition.required.includes(definition)) {
-                        exception('Value "' + definition + '" must be found in the parent\'s required properties list.');
+                        exception.message('Value "' + definition + '" must be found in the parent\'s required properties list.');
                     }
                     if (!parent.definition.properties || !parent.definition.properties.hasOwnProperty(definition)) {
-                        exception('Value "' + definition + '" must be found in the parent\'s properties definition.');
+                        exception.message('Value "' + definition + '" must be found in the parent\'s properties definition.');
                     }
 
                 } else if (major === 3 && definition.hasOwnProperty('propertyName')) {
                     if (!parent.definition.required || !parent.definition.required.includes(definition.propertyName)) {
-                        exception('Value "' + definition.propertyName + '" must be found in the parent\'s required properties list.');
+                        exception.message('Value "' + definition.propertyName + '" must be found in the parent\'s required properties list.');
                     }
                     if (!parent.definition.properties || !parent.definition.properties.hasOwnProperty(definition.propertyName)) {
-                        exception('Value "' + definition.propertyName + '" must be found in the parent\'s properties definition.');
+                        exception.message('Value "' + definition.propertyName + '" must be found in the parent\'s properties definition.');
                     }
                 }
             }

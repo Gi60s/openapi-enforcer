@@ -39,7 +39,7 @@ module.exports = {
             // find the path that matches the request
             const pathMatch = this.paths.findMatch(path);
             if (!pathMatch) {
-                exception('Path not found');
+                exception.message('Path not found');
                 exception.statusCode = 404;
                 return new Result(undefined, exception);
             }
@@ -47,7 +47,7 @@ module.exports = {
             // check that a valid method was specified
             const pathEnforcer = pathMatch.path;
             if (!pathEnforcer.methods.includes(method)) {
-                exception('Method not allowed: ' + method.toUpperCase());
+                exception.message('Method not allowed: ' + method.toUpperCase());
                 exception.statusCode = 405;
                 exception.header = { Allow: pathEnforcer.methods.map(v => v.toUpperCase()).join(', ') };
                 return new Result(undefined, exception);
@@ -121,7 +121,7 @@ module.exports = {
                     allowed: major === 2,
                     type: 'string',
                     errors: ({ exception, definition }) => {
-                        if (definition[0] !== '/') exception('Value must start with a forward slash');
+                        if (definition[0] !== '/') exception.message('Value must start with a forward slash');
                     }
                 },
                 components: {
@@ -181,8 +181,8 @@ module.exports = {
                     errors: ({ exception, definition }) => {
                         const match = rxHostParts.exec(definition);
                         if (match) {
-                            if (match[1]) exception('Value must not include the scheme: ' + match[1]);
-                            if (match[3]) exception('Value must not include sub path: ' + match[3]);
+                            if (match[1]) exception.message('Value must not include the scheme: ' + match[1]);
+                            if (match[3]) exception.message('Value must not include sub path: ' + match[3]);
                         }
                     }
                 },
@@ -192,7 +192,7 @@ module.exports = {
                     required: true,
                     type: 'string',
                     errors: ({ exception, definition }) => {
-                        if (!rxSemanticVersion.test(definition)) exception('Value must be a semantic version number');
+                        if (!rxSemanticVersion.test(definition)) exception.message('Value must be a semantic version number');
                     }
                 },
                 parameters: {

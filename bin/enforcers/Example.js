@@ -35,7 +35,7 @@ module.exports = {
             },
             errors: ({ exception, definition }) => {
                 if (definition.hasOwnProperty('value') && definition.hasOwnProperty('externalValue')) {
-                    exception('Cannot have both "externalValue" and "value" properties');
+                    exception.message('Cannot have both "externalValue" and "value" properties');
                 }
             }
         }

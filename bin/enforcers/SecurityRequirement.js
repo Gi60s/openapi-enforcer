@@ -40,14 +40,14 @@ module.exports = {
                                 security = root.definition && root.definition.securityDefinitions &&
                                     root.definition.securityDefinitions[key];
                                 if (!security) {
-                                    exception.at(key)('Security requirement name must be defined at the document root under the securityDefinitions');
+                                    exception.at(key).message('Security requirement name must be defined at the document root under the securityDefinitions');
                                 }
                             } else if (major === 3) {
                                 security = root.definition && root.definition.components &&
                                     root.definition.components.securitySchemes &&
                                     root.definition.components.securitySchemes[key];
                                 if (!security) {
-                                    exception.at(key)('Security requirement name must be defined at the document root under the components/securitySchemes');
+                                    exception.at(key).message('Security requirement name must be defined at the document root under the components/securitySchemes');
                                 }
                             }
 
@@ -68,12 +68,12 @@ module.exports = {
                                     definition.forEach(scope => {
                                         if (scopes.includes(scope)) {
                                             const name = major === 2 ? 'securityDefinitions' : 'securitySchemes';
-                                            exception.at(key)('Oauth2 scope not defined in ' + name);
+                                            exception.at(key).message('Oauth2 scope not defined in ' + name);
                                         }
                                     });
                                 } else {
                                     if (definition.length > 0) {
-                                        exception.at(key)('Security requirement for ' + security.type + ' value must be an empty array');
+                                        exception.at(key).message('Security requirement for ' + security.type + ' value must be an empty array');
                                     }
                                 }
                             }

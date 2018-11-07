@@ -61,7 +61,7 @@ module.exports = {
                     type: 'object',
                     additionalProperties: EnforcerRef('Link', {
                         errors: ({ exception, key }) => {
-                            if (!rxLinkName.test(key)) exception('Invalid key used for link value');
+                            if (!rxLinkName.test(key)) exception.message('Invalid key used for link value');
                         }
                     })
                 },

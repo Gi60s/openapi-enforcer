@@ -46,7 +46,7 @@ module.exports = {
             },
             errors: ({ definition, exception }) => {
                 if (definition.hasOwnProperty('operationRef') && definition.hasOwnProperty('operationId')) {
-                    exception('Must not define both operationId and operationRef');
+                    exception.message('Must not define both operationId and operationRef');
                 }
             }
         }

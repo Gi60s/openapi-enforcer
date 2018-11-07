@@ -37,7 +37,7 @@ module.exports = {
             }),
             errors: ({ exception, definition }) => {
                 if (Object.keys(definition).length === 0) {
-                    exception('Response object cannot be empty');
+                    exception.message('Response object cannot be empty');
                 }
             }
         }

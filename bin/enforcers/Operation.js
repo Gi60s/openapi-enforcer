@@ -150,7 +150,7 @@ module.exports = {
                             const data = parameter.parse(query, input);
                             if (data.error) {
                                 const exception = new Exception('In ' + at + ' parameter "' + key + '"');
-                                exception(data.error);
+                                exception.message(data.error);
                                 potentialCausesForUnknownParameters.push(exception);
                             } else {
                                 deserializeAndValidate(child.at(key), parameter.schema, data, value => {
@@ -163,7 +163,7 @@ module.exports = {
                             const data = parameter.parse(query, input);
                             if (data.error) {
                                 const exception = new Exception('In ' + at + ' parameter "' + key + '"');
-                                exception(data.error);
+                                exception.push(data.error);
                                 potentialCausesForUnknownParameters.push(exception);
                             } else {
                                 deserializeAndValidate(child.at(key), parameter.schema, data, value => {
@@ -239,19 +239,19 @@ module.exports = {
                         }
 
                         // if nothing passed then add all exceptions
-                        if (!passed) exception(child);
+                        if (!passed) exception.push(child);
 
                     } else {
-                        exception('Content-Type not accepted');
+                        exception.message('Content-Type not accepted');
                     }
 
                 } else if (!parameters.formData) {
-                    exception('Body is not allowed');
+                    exception.message('Body is not allowed');
                 }
             } else if (parameters.body && getBodyParameter(parameters).required) {
-                exception('Missing required parameter: body');
+                exception.message('Missing required parameter: body');
             } else if (this.requestBody && this.requestBody.required) {
-                exception('Missing required request body');
+                exception.message('Missing required request body');
             }
 
             return new Result(result, exception);
@@ -288,7 +288,7 @@ module.exports = {
                         const { exception, root, definition } = data;
                         if (!root.__operationIdMap) root.__operationIdMap = {};
                         if (root.__operationIdMap[definition]) {
-                            exception('The operationId must be unique');
+                            exception.message('The operationId must be unique');
                         } else {
                             root.__operationIdMap[definition] = data;
                         }
@@ -377,15 +377,15 @@ module.exports = {
         }
 
         if (bodiesCount > 1) {
-            exception('Only one body parameter allowed');
+            exception.message('Only one body parameter allowed');
         }
 
         if (hasBody && hasFormData) {
-            exception('Cannot have parameters in "body" and "formData" simultaneously');
+            exception.message('Cannot have parameters in "body" and "formData" simultaneously');
         }
 
         if (duplicates.length) {
-            exception('Parameter name must be unique per location. Duplicates found: ' + duplicates.join(', '));
+            exception.message('Parameter name must be unique per location. Duplicates found: ' + duplicates.join(', '));
         }
 
         if (hasFile) {
@@ -403,7 +403,7 @@ module.exports = {
                 }
             }
             if (!consumesOk) {
-                exception('Parameters of type "file" require the consumes property to be set to either "multipart/form-data" or "application/x-www-form-urlencoded"')
+                exception.message('Parameters of type "file" require the consumes property to be set to either "multipart/form-data" or "application/x-www-form-urlencoded"')
             }
         }
     }

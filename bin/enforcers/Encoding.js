@@ -56,7 +56,7 @@ module.exports = {
                         return 'text/plain';
                     },
                     errors: ({ exception, definition }) => {
-                        if (!rxContentType.test(definition)) exception('Value is not a valid content-type');
+                        if (!rxContentType.test(definition)) exception.message('Value is not a valid content-type');
                     }
                 },
                 headers: {
@@ -80,7 +80,7 @@ module.exports = {
                                 !(definition === 'spaceDelimited' && type === 'array') &&
                                 !(definition === 'pipeDelimited' && type === 'array') &&
                                 !(definition === 'deepObject' && type === 'object')) {
-                                exception('Style "' + definition + '" is incompatible with schema type: ' + type);
+                                exception.message('Style "' + definition + '" is incompatible with schema type: ' + type);
                             }
                         }
                     }

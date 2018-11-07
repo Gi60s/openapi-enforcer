@@ -42,11 +42,7 @@ module.exports = {
                 if (definition.hasOwnProperty(key)) def[key] = definition[key]
             });
             if (def.type === 'file') def.type = 'string';
-
-            const newRaw = Object.assign({}, raw);
-            newRaw.value = def;
-            newRaw.result = { value: def };
-            this.schema = new context.Schema(newRaw);
+            this.schema = new context.Schema(def);
 
             // v3 - set schema from content schema
         } else if (major === 3 && definition.content) {
@@ -232,7 +228,7 @@ module.exports = {
                         parsed = parsePrimitive(this, schema, exception, parsed)
                     }
                 } else if (parsed === undefined) {
-                    exception('The value is not formatted properly');
+                    exception.message('The value is not formatted properly');
                 }
 
                 return new Result(parsed, exception);
@@ -278,7 +274,7 @@ module.exports = {
                     errors: ({exception, parent}) => {
                         const type = parent.definition.schema && parent.definition.schema.type;
                         if (parent.definition.in === 'cookie' && parent.definition.explode && (type === 'array' || type === 'object')) {
-                            exception('Cookies do not support exploded values for non-primitive schemas');
+                            exception.message('Cookies do not support exploded values for non-primitive schemas');
                         }
                     }
                 },
@@ -349,7 +345,7 @@ module.exports = {
                                 !(style === 'spaceDelimited' && type === 'array') &&
                                 !(style === 'pipeDelimited' && type === 'array') &&
                                 !(style === 'deepObject' && type === 'object')) {
-                                exception('Style "' + style + '" is incompatible with schema type: ' + type);
+                                exception.message('Style "' + style + '" is incompatible with schema type: ' + type);
                             }
                         }
                     }
@@ -370,7 +366,7 @@ module.exports = {
                 : data => {
                     const { exception, definition } = data;
                     if (definition.hasOwnProperty('default') && definition.required) {
-                        exception('Cannot have a "default" and set "required" to true');
+                        exception.message('Cannot have a "default" and set "required" to true');
                     }
                     base.errors(data);
                 }
@@ -430,22 +426,22 @@ function objectFlattened(delimiter, value) {
 function parsePrimitive(parameter, schema, exception, value) {
     if (!value) {
         if (parameter.allowEmptyValue) return new Value(value, { serialize: false, validate: false });
-        exception('Empty value not allowed');
+        exception.message('Empty value not allowed');
 
     } else if (schema.type === 'boolean') {
         if (rxTrue.test(value)) return true;
         if (rxFalse.test(value)) return false;
-        exception('Expected "true" or "false". Received: ' + value)
+        exception.message('Expected "true" or "false". Received: ' + value)
 
     } else if (schema.type === 'integer') {
         const num = +value;
         if (!isNaN(num)) return num;
-        exception('Expected an integer. Received: ' + value);
+        exception.message('Expected an integer. Received: ' + value);
 
     } else if (schema.type === 'number') {
         const num = +value;
         if (!isNaN(num)) return num;
-        exception('Expected a number. Received: ' + value);
+        exception.message('Expected a number. Received: ' + value);
 
     } else if (schema.type === 'string') {
         return value;

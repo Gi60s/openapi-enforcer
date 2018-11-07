@@ -19,179 +19,155 @@
 module.exports = OpenAPIException;
 
 /**
- * @typedef {function} Exception
- * @property {string} header
- * @property {boolean} isHeader
- * @property {function} at
- * @property {function} first
- * @property {function} message
- * @property {function} nest
- * @property {function} toString
- * @property {boolean} hasException
+ * Create an OpenAPIException instance
+ * @param header
+ * @returns {OpenAPIException}
+ * @constructor
  */
+function OpenAPIException (header) {
+    if (!(this instanceof OpenAPIException)) return new OpenAPIException(header);
 
-/**
- * @param {string} header
- * @param {boolean} [isHeader]
- * @param {Exception} [parent]
- * @returns {Exception}
- */
-function OpenAPIException(header, isHeader, parent) {
-    const positionals = [];
-    const headers = [];
-    const messages = [];
-    const atMap = {};
-    let cached = false;
-    let cachedCount;
-    let hasException;
+    this.header = header;
+    this.cache = undefined;
+    this.children = {
+        at: {},
+        nest: [],
+        message: []
+    };
+    this.inspect = function () {
+        if (this.hasException) {
+            return '[ OpenAPIException: ' + toString(this, null, '  ') + ' ]';
+        } else {
+            return '[ OpenAPIException ]';
+        }
+    };
+}
 
-    function exception(message) {
-        return exception.message(message);
+OpenAPIException.prototype.at = function (key) {
+    const at = this.children.at;
+    if (!at[key]) {
+        at[key] = new OpenAPIException('');
+        this.cache = undefined;
     }
-    const self = exception;
+    return at[key];
+};
 
-    exception.header = header;
-    exception.isHeader = arguments.length === 2 ? isHeader : true;
-    exception.parent = parent;
+OpenAPIException.prototype.nest = function (header) {
+    const exception = new OpenAPIException(header);
+    this.children.nest.push(exception);
+    this.cache = undefined;
+    return exception;
+};
 
-    exception.at = function(at) {
-        let exception = atMap[at];
-        if (!exception) {
-            exception = OpenAPIException(at, false, self);
-            atMap[at] = exception;
-            positionals.push(exception);
-        }
-        exception.clearCache();
-        return exception;
-    };
+OpenAPIException.prototype.message = function (message) {
+    this.children.message.push(message);
+    this.cache = undefined;
+    return this;
+};
 
-    exception.clearCache = function() {
-        cached = false;
-        cachedCount = undefined;
-        if (exception.parent) exception.parent.clearCache();
-    };
+OpenAPIException.prototype.push = function (value) {
+    const type = typeof value;
+    if (type === 'string' && value.length) {
+        this.children.message.push(value);
+        this.cache = undefined;
+    } else if (type === 'object' && value instanceof OpenAPIException) {
+        this.children.nest.push(value);
+        this.cache = undefined;
+    } else {
+        throw Error('Can only push string or OpenAPIException instance');
+    }
+    return this;
+};
 
-    exception.first = function(message) {
-        if (!message) {
-            return;
-        } else if (typeof message === 'string') {
-            messages.unshift(message);
-        } else if (message.isHeader) {
-            headers.unshift(message);
-        } else {
-            positionals.unshift(message);
-        }
-        exception.clearCache();
-        return exception;
-    };
+OpenAPIException.prototype.toString = function () {
+    return toString(this, null, '');
+};
 
-    exception.message = function(message) {
-        if (!message) {
-            return;
-        } else if (typeof message === 'string') {
-            messages.push(message);
-        } else if (message.isHeader) {
-            message.parent = self;
-            headers.push(message);
-        } else {
-            positionals.push(message);
-        }
-        exception.clearCache();
-        return exception;
-    };
-
-    exception.nest = function(header) {
-        const exception = OpenAPIException(header, true, self);
-        headers.push(exception);
-        exception.clearCache();
-        return exception;
-    };
-
-    exception.toError = function() {
-        if (!this.hasException) return null;
-        return Error(exception.toString());
-    };
-
-    exception.toString = function() {
-        if (!this.hasException) return '';
-        let { prefix, positional, top } = arguments.length === 0 ? { prefix: '', positional: -1, top: true } : arguments[0];
-
-        let result = '';
-        if (!top && positional < 1) result += '\n';
-        if (positional <= 0) result += prefix;
-        if (positional === 0) result += 'at: ';
-        if (positional > 0) result += ' > ';
-        result += this.header;
-
-        positionals.forEach(pos => {
-            if (messages.length || exceptionInArray(headers)) positional = -1;
-            result += pos.toString({ positional: positional + 1, prefix: prefix + (positional < 0 ? '  ' : '') });
-        });
-
-        headers.forEach(header => {
-            result += header.toString({ positional: -1, prefix: prefix + '  ' });
-        });
-
-        messages.forEach(message => {
-            result += '\n  ' + prefix + message;
-        });
-
-        return result;
-    };
-
-    Object.defineProperty(exception, 'count', {
-        get: () => {
-            if (cachedCount === undefined) {
-                cachedCount = messages.length +
-                    positionals.reduce((p, c) => p + c.count, 0) +
-                    headers.reduce((p, c) => p + c.count, 0)
+Object.defineProperties(OpenAPIException.prototype, {
+    count: {
+        get: function () {
+            if (!this.cache) this.cache = {};
+            if (!this.cache.count) {
+                const children = this.children;
+                this.cache.count = children.message.length +
+                    children.nest.reduce((count, exception) => count + exception.count, 0) +
+                    Object.keys(children.at).reduce((count, key) => count + children.at[key].count, 0);
             }
-            return cachedCount;
+            return this.cache.count;
         }
-    });
+    },
 
-    Object.defineProperty(exception, 'hasException', {
-        get: () => {
-            if (!cached) {
-                cached = true;
-                hasException = false;
-                if (messages.length > 0) {
-                    hasException = true;
+    hasException: {
+        get: function () {
+            if (!this.cache) this.cache = {};
+
+            const cache = this.cache;
+            if (!cache.hasOwnProperty('hasException')) {
+                const children = this.children;
+
+                // if this has messages then an exception exists
+                cache.hasException = false;
+                if (children.message.length) {
+                    cache.hasException = true;
+
                 } else {
-                    let length = positionals.length;
+                    // if nested objects have exception then exception exists
+                    const nest = children.nest;
+                    const length = nest.length;
                     for (let i = 0; i < length; i++) {
-                        if (positionals[i].hasException) {
-                            hasException = true;
+                        if (nest[i].hasException) {
+                            cache.hasException = true;
                             break;
                         }
                     }
 
-                    length = headers.length;
-                    for (let i = 0; i < length; i++) {
-                        if (headers[i].hasException) {
-                            hasException = true;
-                            break;
+                    // if nested ats have exception then exception exists
+                    if (!cache.hasException) {
+                        const keys = Object.keys(children.at);
+                        const length = keys.length;
+                        for (let i = 0; i < length; i++) {
+                            if (children.at[keys[i]].hasException) {
+                                cache.hasException = true;
+                                break;
+                            }
                         }
                     }
                 }
             }
-            return hasException;
+
+            return cache.hasException;
+        }
+    }
+});
+
+function toString (context, parent, prefix) {
+    if (!context.hasException) return '';
+
+    const prefixPlus = prefix + '  ';
+    const children = context.children;
+    let result = '';
+
+    if (context.header) result += (parent ? prefix : '') + context.header;
+
+    const at = children.at;
+    const atKeys = Object.keys(at).filter(key => at[key].hasException);
+    const singleAtKey = atKeys.length === 1;
+    atKeys.forEach(key => {
+        const exception = children.at[key];
+        if (context.header || !singleAtKey || children.nest.length > 0 || children.message.length > 0) {
+            result += '\n' + prefixPlus + 'at: ' + key + toString(exception, context, prefixPlus)
+        } else {
+            result += ' > ' + key + toString(exception, context, prefix)
         }
     });
 
-    Object.defineProperty(exception, 'isOpenAPIException', {
-        value: true,
-        writable: false,
-        configurable: false
+    children.nest.forEach(exception => {
+        result += '\n' + toString(exception, context, prefixPlus);
     });
 
-    return exception;
-}
+    children.message.forEach(message => {
+        result += '\n' + prefixPlus + message;
+    });
 
-function exceptionInArray(exceptions) {
-    const length = exceptions.length;
-    for (let i = 0; i < length; i++) {
-        if (exceptions[i].hasException) return true;
-    }
-    return false;
+    return result;
 }
