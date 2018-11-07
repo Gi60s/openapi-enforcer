@@ -15,7 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
-const EnforcerRef  = require('../enforcer-ref');
+const EnforcerRef   = require('../enforcer-ref');
+const Exception     = require('../exception');
+const util          = require('../util');
 
 const requestBodyAllowedMethods = { post: true, put: true, options: true, head: true, patch: true };
 

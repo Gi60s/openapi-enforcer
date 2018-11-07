@@ -38,7 +38,7 @@ module.exports = {
             properties: {
                 allowReserved: {
                     type: 'boolean',
-                    ignore: ({ parent }) => parent.parent.parent.key !== 'application/x-www-form-urlencoded',
+                    ignored: ({ parent }) => parent.parent.parent.key !== 'application/x-www-form-urlencoded',
                     default: false
                 },
                 contentType: {
@@ -60,16 +60,16 @@ module.exports = {
                     }
                 },
                 headers: {
-                    ignore: ({ parent }) => !parent.parent.parent.key.startsWith('multipart/'),
+                    ignored: ({ parent }) => !parent.parent.parent.key.startsWith('multipart/'),
                     type: 'object',
                     additionalProperties: EnforcerRef('Header', {
-                        ignore: ({ key }) => key.toLowerCase() === 'content-type'
+                        ignored: ({ key }) => key.toLowerCase() === 'content-type'
                     })
                 },
                 style: {
                     weight: -5,
                     type: 'string',
-                    ignore: ({ parent }) => parent.parent.parent.key !== 'application/x-www-form-urlencoded',
+                    ignored: ({ parent }) => parent.parent.parent.key !== 'application/x-www-form-urlencoded',
                     default: 'form',
                     enum: ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'],
                     errors: ({ exception, parent, definition }) => {
@@ -87,7 +87,7 @@ module.exports = {
                 },
                 explode: {
                     type: 'boolean',
-                    ignore: ({ parent }) => parent.parent.parent.key !== 'application/x-www-form-urlencoded',
+                    ignored: ({ parent }) => parent.parent.parent.key !== 'application/x-www-form-urlencoded',
                     default: ({ parent }) => parent.definition.style === 'form'
                 }
             }

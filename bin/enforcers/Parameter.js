@@ -51,7 +51,7 @@ module.exports = {
             // v3 - set schema from content schema
         } else if (major === 3 && definition.content) {
             const key = Object.keys(definition.content)[0];
-            if (definition.content[key].schema) this.schema = definition.content[key].schema;
+            if (definition.content[key].schema) this.schema =  definition.content[key].schema;
         }
     },
 

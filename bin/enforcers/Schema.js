@@ -268,7 +268,7 @@ module.exports = {
                 },
                 discriminator: {
                     allowed: ({ parent }) => {
-                        return parent && parent.validator instanceof SchemaObject && parent.validator.type === 'object';
+                        return parent && parent.validator === module.exports.validator && parent.definition.type === 'object';
                     },
                     type: ({ major }) => major === 2 ? 'string' : 'object',
                     properties: {

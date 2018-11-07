@@ -53,7 +53,7 @@ module.exports = {
                 headers: {
                     type: 'object',
                     additionalProperties: EnforcerRef('Header', {
-                        ignore: ({ key }) => rxContentType.test(key)
+                        ignored: ({ key }) => rxContentType.test(key)
                     })
                 },
                 links: {
