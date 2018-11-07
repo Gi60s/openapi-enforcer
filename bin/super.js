@@ -18,27 +18,23 @@
 module.exports = Super;
 
 const definitionValidator   = require('./definition-validator');
+const Exception             = require('./exception');
 const Result                = require('./result');
+const util                  = require('./util');
 
 const store = {};
 const constructors = [];
 
-function Super (context, name) {
-    const version = context.version;
-    if (!store[version]) store[version] = {};
-    if (!store[version].hasOwnProperty(name)) {
-        const enforcer = require('./enforcers/' + name);
-        store[version][name] = createConstructor(version, name, enforcer, context);
-        constructors.push(store[version][name]);
-    }
-    return store[version][name];
+function Super (version, name, enforcer) {
+    if (!enforcer) enforcer = require('./enforcers/' + name);
+    return createConstructor(version, name, enforcer);
 }
 
 Super.getConstructor = function(version, name) {
     return store[version] && store[version][name];
 };
 
-function createConstructor(version, name, enforcer, versionContext) {
+function createConstructor(version, name, enforcer) {
     const callbacks = [];
     const store = new WeakMap();
 
@@ -94,40 +90,60 @@ function createConstructor(version, name, enforcer, versionContext) {
         callbacks.push(callback);
     };
 
-    function build (context, definition) {
+    function build (result, definition) {
         const isStart = !definitionValidator.isValidatorState(definition);
 
         // validate the definition
         let data;
         if (isStart) {
-            data = definitionValidator.start(version, name, enforcer, definition, versionContext);
+            const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(version.version);
+            definition = util.copy(definition);
+            data = {
+                context: version,
+                definition,
+                definitionType: Array.isArray(definition) ? 'array' : typeof definition,
+                exception: Exception('One or more errors exist in the ' + name + ' definition'),
+                key: undefined,
+                map: new Map(),
+                major: +match[1],
+                minor: +match[2],
+                parent: null,
+                patch: +(match[3] || 0),
+                plugins: [],
+                result,
+                validator: enforcer.validator,
+                warn: Exception('One or more warnings exist in the ' + name + ' definition'),
+            };
+            data.root = data;
+            definitionValidator(data);
         } else {
             data = definition;
             data.validator = enforcer.validator;
-            definitionValidator.continue(data);
+            data.result = result;
+            definitionValidator(data);
         }
 
         // if an exception has occurred then exit now
         if (data.exception.hasException && isStart) return new Result(undefined, data.exception, data.warn);
 
         // store the full set of enforcer data
-        store.set(context, data);
-
-        // add definition properties to context
-        Object.assign(context, data.result.value);
+        store.set(result, data);
 
         // run the construct function if present
-        if (enforcer.init) enforcer.init.call(context, data);
+        if (enforcer.init) enforcer.init.call(result, data);
 
         // add plugin callbacks to this instance
         const plugins = data.plugins;
         callbacks.forEach(callback => plugins.push(function() {
-            callback.call(context, data);
+            callback.call(result, data);
         }));
 
+        // execute plugins
+        if (isStart) data.plugins.forEach(plugin => plugin());
+
         return isStart
-            ? new Result(context, data.exception, data.warn)
-            : context;
+            ? new Result(result, data.exception, data.warn)
+            : result;
     }
 
     return F;
