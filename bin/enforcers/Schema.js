@@ -99,7 +99,9 @@ module.exports = {
          * @returns {{ error: Exception|null, value: * }}
          */
         deserialize: function(value) {
-            // return serial.deserialize(this, value);
+            const exception = Exception('Unable to deserialize value');
+            const result = runDeserialize(exception, new Map(), this, value);
+            return new Result(result, exception);
         },
 
         /**
@@ -497,9 +499,155 @@ function callDataTypeFormatFunction(mode, schema, exception, originalValue) {
     }
 }
 
+function runDeserialize(exception, map, schema, originalValue) {
+    const { coerce, serialize, value } = Value.getAttributes(originalValue);
+    if (!serialize) return originalValue;
+
+    const { dataTypeFormats } = store.get(schema);
+
+    const type = schema.type;
+    const typeofValue = typeof value;
+    let matches;
+
+    // handle cyclic serialization
+    if (value && typeofValue === 'object') {
+        matches = map.get(value);
+        if (matches) {
+            const existing = matches.get(schema);
+            if (existing) return existing;
+        } else {
+            matches = new WeakMap();
+            map.set(value, matches);
+        }
+    }
+
+    if (schema.allOf) {
+        const result = {};
+        const exception2 = exception.at('allOf');
+        schema.allOf.forEach((schema, index) => {
+            const v = runDeserialize(exception2.at(index), map, schema, originalValue);
+            Object.assign(result, v)
+        });
+        return result;
+
+    } else if (schema.anyOf) {
+        if (schema.discriminator) {
+            return runDiscriminator(exception, map, schema, originalValue, runDeserialize);
+        } else {
+            const anyOfException = Exception('Unable to deserialize using anyOf schemas');
+            const length = schema.allOf.length;
+            for (let index = 0; index < length; index++) {
+                const subSchema = schema.allOf[index];
+                const child = anyOfException.at(index);
+                const result = runDeserialize(child, map, subSchema, originalValue);
+                if (!child.hasException) {
+                    const error = subSchema.validate(result);
+                    if (error) {
+                        child(error);
+                    } else {
+                        return result;
+                    }
+                }
+            }
+            exception.push(anyOfException);
+        }
+
+    } else if (schema.oneOf) {
+        if (schema.discriminator) {
+            return runDiscriminator(exception, map, schema, originalValue, runDeserialize);
+        } else {
+            const oneOfException = Exception('Did not deserialize against exactly one oneOf schema');
+            let valid = 0;
+            let result = undefined;
+            schema.oneOf.forEach((schema, index) => {
+                const child = oneOfException.nest('Unable to deserialize using schema at index ' + index);
+                result = runDeserialize(child, map, schema, originalValue);
+                if (!child.hasException) {
+                    const error = schema.validate(result);
+                    if (error) {
+                        child(error);
+                    } else {
+                        child('Deserialized against schema at index ' + index);
+                        valid++;
+                    }
+                }
+            });
+            if (valid !== 1) {
+                exception.push(oneOfException);
+            } else {
+                return result;
+            }
+        }
+
+    } else if (type === 'array') {
+        if (Array.isArray(value)) {
+            const result = schema.items
+                ? value.map((v, i) => runDeserialize(exception.nest('/' + i), map, schema.items, v))
+                : value;
+            matches.set(schema, result);
+            return result;
+        } else {
+            exception.message('Expected an array. Received: ' + util.smart(value));
+        }
+
+    } else if (type === 'object') { // TODO: make sure that serialize and deserialze properly throw errors for invalid object properties
+        if (util.isPlainObject(value)) {
+            const result = {};
+            const additionalProperties = schema.additionalProperties;
+            const properties = schema.properties || {};
+            Object.keys(value).forEach(key => {
+                if (properties.hasOwnProperty(key)) {
+                    result[key] = runDeserialize(exception.nest('Unable to deserialize property: ' + key), map, properties[key], value[key]);
+                } else if (additionalProperties) {
+                    result[key] = runDeserialize(exception.nest('Unable to deserialize property: ' + key), map, additionalProperties, value[key]);
+                } else {
+                    result[key] = value[key];   // not deserialized, just left alone
+                }
+            });
+            matches.set(schema, result);
+            return result;
+        } else {
+            exception.message('Expected an object. Received: ' + util.smart(value));
+        }
+
+    } else if (type === 'boolean') {
+        if (typeofValue !== 'boolean' && !coerce) {
+            exception.message('Expected a boolean. Received: ' + util.smart(value));
+        } else {
+            const val = typeofValue === 'string'
+                ? value.toLowerCase() === 'false'
+                : !!value;
+            return dataTypeFormats.deserialize(exception, val);
+        }
+
+    } else if (type === 'integer') {
+        if (typeofValue !== 'number' && !coerce) {
+            exception.message('Expected a number. Received: ' + util.smart(value));
+        } else {
+            return dataTypeFormats.deserialize(exception, +value);
+        }
+
+    } else if (type === 'number') {
+        if (typeofValue !== 'number' && !coerce) {
+            exception.message('Expected a number. Received: ' + util.smart(value));
+        } else {
+            return dataTypeFormats.deserialize(exception, +value);
+        }
+
+    } else if (type === 'string') {
+        if (typeofValue !== 'string' && !coerce) {
+            exception.message('Expected a string. Received: ' + util.smart(value));
+        } else {
+            return dataTypeFormats.deserialize(exception, String(value));
+        }
+    }
+}
+
 function runSerialize(exception, map, schema, originalValue) {
     const { coerce, serialize, value } = Value.getAttributes(originalValue);
     if (!serialize) return originalValue;
+
+    const { dataTypeFormats } = store.get(schema);
 
     const type = schema.type;
     const typeofValue = typeof value;
