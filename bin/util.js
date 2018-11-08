@@ -275,22 +275,6 @@ exports.ucFirst = function(value) {
     return value[0].toUpperCase() + value.substr(1);
 };
 
-exports.unIgnoreValues = function(source, value) {
-    if (Array.isArray(source)) {
-        return source.map(v => exports.unIgnoreValues(v, value));
-    } else if (exports.isPlainObject(source)) {
-        const result = {};
-        Object.keys(source).forEach(key => {
-            result[key] = exports.unIgnoreValues(source[key], value);
-        });
-        return result;
-    } else if (Ignored.isIgnoredValue(source)) {
-        return source.value;
-    } else {
-        return source;
-    }
-};
-
 exports.validateMaxMin = function maxMin(exception, schema, type, maxProperty, minProperty, exclusives, value, maximum, minimum) {
     if (schema.hasOwnProperty(maxProperty)) {
         if (exclusives && schema.exclusiveMaximum && value >= maximum) {
