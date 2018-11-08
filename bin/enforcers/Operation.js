@@ -19,6 +19,7 @@ const EnforcerRef   = require('../enforcer-ref');
 const Exception     = require('../exception');
 const Result        = require('../result');
 const util          = require('../util');
+const Value         = require('../value');
 
 const requestBodyAllowedMethods = { post: true, put: true, options: true, head: true, patch: true };
 
@@ -26,10 +27,7 @@ module.exports = {
     init: function (data) {
         const { parent, plugins } = data;
 
-        const parameters = [];
-        const parametersMap = {};
-
-        plugins.push(function () {
+        plugins.push(() => {
             if (!this.parameters) this.parameters = [];
 
             // create a parameter map
@@ -220,11 +218,12 @@ module.exports = {
             });
 
             if (req.hasOwnProperty('body')) {
-                const value = req.body;
+                let value = req.body;
 
                 // v2 parameter in body
                 if (parameters.body) {
                     const parameter = getBodyParameter(parameters);
+                    if (typeof value === 'string') value = new Value(value, { coerce: true });
                     deserializeAndValidate(exception.nest('In body'), parameter.schema, { value }, value => {
                         result.body = value;
                     });
@@ -450,6 +449,6 @@ function deserializeAndValidate(exception, schema, data, success) {
     if (data.error) {
         if (exception) exception.push(data.error);
     } else {
-        success(util.unIgnoreValues(data.value));
+        success(data.value);
     }
 }
