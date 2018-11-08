@@ -17,48 +17,67 @@
 'use strict';
 const EnforcerRef   = require('../enforcer-ref');
 const Exception     = require('../exception');
+const Result        = require('../result');
 const util          = require('../util');
 
 const requestBodyAllowedMethods = { post: true, put: true, options: true, head: true, patch: true };
 
 module.exports = {
     init: function (data) {
-        const { definition, parent } = data;
+        const { parent, plugins } = data;
 
         const parameters = [];
         const parametersMap = {};
 
-        let parametersProcessed = false;
+        plugins.push(function () {
+            if (!this.parameters) this.parameters = [];
 
-        Object.defineProperties(this, {
-            parameters: {
-                get: function() {
-                    let o;
-                    if (!parametersProcessed) o = this.parametersMap;
-                    return parameters;
-                }
-            },
-            parametersMap: {
-                get: function() {
-                    if (!parametersProcessed) {
+            // create a parameter map
+            this.parametersMap = {};
+            if (parent && parent.result && parent.result.parameters) buildParametersMap(this.parametersMap, parent.result.parameters);
+            buildParametersMap(this.parametersMap, this.parameters);
 
-                        // build the parameters map
-                        if (parent) buildParametersMap(parametersMap, parent.result.value.parameters);
-                        buildParametersMap(parametersMap, definition.parameters);
-
-                        // overwrite the parameters array
-                        Object.keys(parametersMap).forEach(at => {
-                            Object.keys(parametersMap[at]).forEach(name => {
-                                parameters.push(parametersMap[at][name]);
-                            })
-                        });
-
-                        parametersProcessed = true;
-                    }
-                    return parametersMap;
-                }
-            }
+            // create an all parameters object
+            this.allParameters = [];
+            Object.keys(this.parametersMap).forEach(at => {
+                const atMap = this.parametersMap[at];
+                Object.keys(atMap).forEach(name => {
+                    this.allParameters.push(atMap[name]);
+                });
+            });
         });
+
+        // let parametersProcessed = false;
+
+        // Object.defineProperties(this, {
+        //     parameters: {
+        //         get: function() {
+        //             let o;
+        //             if (!parametersProcessed) o = this.parametersMap;
+        //             return parameters;
+        //         }
+        //     },
+        //     parametersMap: {
+        //         get: function() {
+        //             if (!parametersProcessed) {
+        //
+        //                 // build the parameters map
+        //                 if (parent) buildParametersMap(parametersMap, parent.result.parameters);
+        //                 buildParametersMap(parametersMap, result.parameters);
+        //
+        //                 // overwrite the parameters array
+        //                 Object.keys(parametersMap).forEach(at => {
+        //                     Object.keys(parametersMap[at]).forEach(name => {
+        //                         parameters.push(parametersMap[at][name]);
+        //                     })
+        //                 });
+        //
+        //                 parametersProcessed = true;
+        //             }
+        //             return parametersMap;
+        //         }
+        //     }
+        // });
     },
 
     prototype: {
@@ -429,7 +448,7 @@ function deserializeAndValidate(exception, schema, data, success) {
     if (!data.error) data = schema.deserialize(data.value);
     if (!data.error) data.error = schema.validate(data.value);
     if (data.error) {
-        if (exception) exception(data.error);
+        if (exception) exception.push(data.error);
     } else {
         success(util.unIgnoreValues(data.value));
     }
