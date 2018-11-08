@@ -23,10 +23,11 @@ const defaultSerialize = true;
 const defaultValidate = true;
 
 /**
- * Create a value with special handling.
+ * Create a value with special handling. If the value already is an Enforcer value then a new one
+ * will be created with handling overwritten where specified.
  * @param {*} value
  * @param {object} [config]
- * @param {boolean} [config.coerce=false] Whether the value should use strong type coercion.
+ * @param {boolean} [config.coerce] Whether the value should use strong type coercion.
  * @param {boolean} [config.serialize] Whether the value should be serialized or deserialized.
  * @param {boolean} [config.validate] Whether the value should be validated.
  * @returns {EnforcerValue}
@@ -34,21 +35,75 @@ const defaultValidate = true;
  */
 function EnforcerValue(value, config) {
     if (!(this instanceof EnforcerValue)) return new EnforcerValue(value, config);
+
+    if (typeof value === 'object' && value instanceof EnforcerValue) {
+        config = {
+            coerce: config.coerce === undefined ? value.coerce : config.coerce,
+            serialize: config.serialize === undefined ? value.serialize : config.serialize,
+            validate: config.validate === undefined ? value.validate : config.validate
+        };
+        value = value.value;
+    }
+
     const { coerce, serialize, validate } = config;
-    this.coerce = coerce === undefined ? defaultCoerce : coerce;
-    this.serialize = serialize === undefined ? defaultSerialize : serialize;
-    this.validate = validate === undefined ? defaultValidate : validate;
+    this.coerce = coerce;
+    this.serialize = serialize;
+    this.validate = validate;
     this.value = value;
 }
 
+/**
+ * Get the attributes (with defaults applied) for an enforcer value.
+ * @returns {{coerce: boolean, serialize: boolean, validate: boolean, value: *}}
+ */
+EnforcerValue.prototype.attributes = function () {
+    return {
+        coerce: this.coerce === undefined ? defaultCoerce : this.coerce,
+        serialize: this.serialize === undefined ? defaultSerialize : this.serialize,
+        validate: this.validate === undefined ? defaultValidate : this.validate,
+        value: this.value
+    };
+};
+
+/**
+ * Shorthand method for creating an EnforcerValue instance with coerce set to true.
+ * @param {*} value
+ * @returns {EnforcerValue}
+ */
+EnforcerValue.coerce = function (value) {
+    return new EnforcerValue(value, { coerce: true });
+};
+
+/**
+ * Create a new EnforcerValue instance that keeps it's own configuration over a supplied secondary configuration.
+ * @param {*} value
+ * @param {object} [config]
+ * @param {boolean} [config.coerce] Whether the value should use strong type coercion.
+ * @param {boolean} [config.serialize] Whether the value should be serialized or deserialized.
+ * @param {boolean} [config.validate] Whether the value should be validated.
+ * @returns {EnforcerValue}
+ */
+EnforcerValue.inherit = function (value, config) {
+    if (typeof value === 'object' && value instanceof EnforcerValue) {
+        const { coerce, serialize, validate } = value;
+        const result = new EnforcerValue(value.value);
+        if (coerce === undefined && config.coerce !== undefined) result.coerce = config.coerce;
+        if (serialize === undefined && config.serialize !== undefined) result.serialize = config.serialize;
+        if (validate === undefined && config.validate !== undefined) result.validate = config.validate;
+        return result;
+    } else {
+        return new EnforcerValue(value, config);
+    }
+};
+
+/**
+ * Get EnforcerValue attributes whether the value is actually an EnforcerValue instance or a plain value.
+ * @param {*} value
+ * @returns {{coerce: boolean, serialize: boolean, validate: boolean, value: *}}
+ */
 EnforcerValue.getAttributes = function (value) {
     return typeof value === 'object' && value instanceof EnforcerValue
-        ? {
-            coerce: value.coerce,
-            serialize: value.serialize,
-            validate: value.validate,
-            value: value.value
-        }
+        ? value.attributes()
         : {
             coerce: defaultCoerce,
             serialize: defaultSerialize,
