@@ -162,7 +162,7 @@ function toString (context, parent, prefix) {
     });
 
     children.nest.forEach(exception => {
-        result += '\n' + toString(exception, context, prefixPlus);
+        if (exception.hasException) result += '\n' + toString(exception, context, prefixPlus);
     });
 
     children.message.forEach(message => {
