@@ -32,8 +32,9 @@ const defaultValidate = true;
  * @returns {EnforcerValue}
  * @constructor
  */
-function EnforcerValue(value, { coerce, serialize, validate }) {
-    if (!(this instanceof EnforcerValue)) return new EnforcerValue(value, { coerce, serialize, validate });
+function EnforcerValue(value, config) {
+    if (!(this instanceof EnforcerValue)) return new EnforcerValue(value, config);
+    const { coerce, serialize, validate } = config;
     this.coerce = coerce === undefined ? defaultCoerce : coerce;
     this.serialize = serialize === undefined ? defaultSerialize : serialize;
     this.validate = validate === undefined ? defaultValidate : validate;
