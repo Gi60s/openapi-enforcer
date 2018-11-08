@@ -135,11 +135,21 @@ function createConstructor(version, name, enforcer) {
         // add plugin callbacks to this instance
         const plugins = data.plugins;
         callbacks.forEach(callback => plugins.push(function() {
-            callback.call(result, data);
+            callback.call(result, {
+                enforcers: parent.context,
+                exception: data.exception,
+                key: data.key,
+                major: data.major,
+                minor: data.minor,
+                parent: (data.parent && data.parent.result) || null,
+                path: data.patch,
+                root: data.root.result,
+                warn: data.warn
+            });
         }));
 
         // execute plugins
-        if (isStart) data.plugins.forEach(plugin => plugin());
+        if (isStart) data.plugins.forEach(plugin => plugin.call(result));
 
         return isStart
             ? new Result(result, data.exception, data.warn)
