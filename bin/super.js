@@ -149,7 +149,7 @@ function createConstructor(version, name, enforcer) {
         }));
 
         // execute plugins
-        if (isStart) data.plugins.forEach(plugin => plugin.call(result));
+        if (isStart) data.plugins.forEach(plugin => plugin());
 
         return isStart
             ? new Result(result, data.exception, data.warn)
