@@ -19,7 +19,7 @@ const expect        = require('chai').expect;
 const EnforcerRef   = require('../bin/enforcer-ref');
 const Super         = require('../bin/super');
 
-describe.only('definition-validator', () => {
+describe('definition-validator', () => {
 
     before(() => {
         const Enforcers = {};
@@ -212,7 +212,7 @@ describe.only('definition-validator', () => {
                     },
                     B: B
                 });
-                const [ , err ] = new Enforcers.A({});
+                const [ , err ] = new Enforcers.A({ x: { i: 1 } });
                 expect(err).to.match(/Property not allowed: x/);
             });
 
@@ -269,7 +269,7 @@ describe.only('definition-validator', () => {
                     },
                     B: B
                 });
-                const [ , err ] = new Enforcers.A({});
+                const [ , err ] = new Enforcers.A({ x: { i: 1 }});
                 expect(err).to.match(/Property not allowed: x/);
             });
 
@@ -318,7 +318,7 @@ describe.only('definition-validator', () => {
             const validator = {
                 type: 'object',
                 properties: { a: {} },
-                errors: function({ exception }) { exception('Pass') }
+                errors: function({ exception }) { exception.message('Pass') }
             };
             const Enforcer = createEnforcer({ validator });
             const [ , err ] = new Enforcer({ a: 1 });
@@ -330,7 +330,7 @@ describe.only('definition-validator', () => {
                 type: 'object',
                 properties: {
                     a: {
-                        errors: function({ exception }) { exception('Pass') }
+                        errors: function({ exception }) { exception.message('Pass') }
                     }
                 }
             };
@@ -343,7 +343,7 @@ describe.only('definition-validator', () => {
             const validator = {
                 type: 'object',
                 additionalProperties: {
-                    errors: function({ exception }) { exception('Pass') }
+                    errors: function({ exception }) { exception.message('Pass') }
                 }
             };
             const Enforcer = createEnforcer({ validator });
@@ -355,7 +355,7 @@ describe.only('definition-validator', () => {
             const validator = {
                 type: 'object',
                 additionalProperties: {
-                    errors: function({ exception }) { exception('Pass') }
+                    errors: function({ exception }) { exception.message('Pass') }
                 }
             };
             const Enforcer = createEnforcer({ validator });
