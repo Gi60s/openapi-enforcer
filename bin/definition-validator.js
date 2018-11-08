@@ -160,13 +160,14 @@ function normalize (data) {
                     const keyValidator = EnforcerRef.isEnforcerRef(validator)
                         ? validator.config || {}
                         : validator;
+                    const allowed = keyValidator.hasOwnProperty('allowed') ? fn(keyValidator.allowed, data) : true;
 
                     // set default value
-                    if (data.definition === undefined && validator.hasOwnProperty('default')) {
+                    if (data.definition === undefined && allowed && validator.hasOwnProperty('default')) {
                         data.definition = fn(validator.default, data);
+                        data.definitionType = Array.isArray(data.definition) ? 'array' : typeof data.definition;
                     }
 
-                    const allowed = keyValidator.hasOwnProperty('allowed') ? fn(keyValidator.allowed, data) : true;
                     if (data.definition !== undefined) {
                         if (!allowed) {
                             notAllowed.push(key);
