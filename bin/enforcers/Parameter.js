@@ -16,6 +16,7 @@
  **/
 'use strict';
 const EnforcerRef   = require('../enforcer-ref');
+const Exception     = require('../exception');
 const Result        = require('../result');
 
 const rxFalse = /^false/i;
@@ -27,7 +28,7 @@ const schemaProperties = ['default', 'enum', 'exclusiveMaximum', 'exclusiveMinim
 
 module.exports = {
     init: function (data) {
-        const { context, definition, major, raw, warn } = data;
+        const { context, definition, exception, major, warn } = data;
 
         if (definition.in === 'header' && definition.name !== definition.name.toLowerCase()) {
             warn('Header names are case insensitive and their lower case equivalent will be used');
@@ -42,7 +43,10 @@ module.exports = {
                 if (definition.hasOwnProperty(key)) def[key] = definition[key]
             });
             if (def.type === 'file') def.type = 'string';
-            this.schema = new context.Schema(def);
+            const [ schema, error, warning ] = new context.Schema(def);
+            if (schema) this.schema = schema;
+            if (error) exception.push(error);
+            if (warning) warn.push(warning);
 
             // v3 - set schema from content schema
         } else if (major === 3 && definition.content) {
