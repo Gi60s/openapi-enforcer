@@ -235,7 +235,14 @@ function runChildValidator(data) {
     const validator = fn(data.validator, data);
     data.validator = validator;
     if (EnforcerRef.isEnforcerRef(validator)) {
-        return new data.context[validator.value](new ValidatorState(data));
+        if (data.definitionType === 'object') {
+            return new data.context[validator.value](new ValidatorState(data));
+        } else if (data.validator.config) {
+            data.validator = data.validator.config;
+            return normalize(data);
+        } else {
+            return data.result;
+        }
     } else if (data.validator) {
         return normalize(data);
     } else {
