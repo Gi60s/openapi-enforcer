@@ -31,7 +31,7 @@ module.exports = {
         const { context, definition, exception, major, warn } = data;
 
         if (definition.in === 'header' && definition.name !== definition.name.toLowerCase()) {
-            warn('Header names are case insensitive and their lower case equivalent will be used');
+            warn.message('Header names are case insensitive and their lower case equivalent will be used');
         }
 
         // v2 - set schema for non-body parameters from schema-like attributes
@@ -253,7 +253,7 @@ module.exports = {
                     default: false,
                     errors: ({warn, major}) => {
                         if (major === 3) {
-                            warn('Per OAS 3.0.2: "Use of this property is NOT RECOMMENDED, as it is likely to be removed in a later revision."')
+                            warn.message('Per OAS 3.0.2: "Use of this property is NOT RECOMMENDED, as it is likely to be removed in a later revision."')
                         }
                     }
                 },
@@ -295,7 +295,7 @@ module.exports = {
                                 case 'number': enums.push('float', 'double'); break;
                                 case 'string': enums.push('binary', 'byte', 'date', 'date-time', 'password'); break;
                             }
-                            if (!enums.includes(format)) warn('Non standard format used: ' + format);
+                            if (!enums.includes(format)) warn.message('Non standard format used: ' + format);
                         }
                     }
                 },

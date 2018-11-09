@@ -346,7 +346,7 @@ module.exports = {
                                 case 'number': enums.push('float', 'double'); break;
                                 case 'string': enums.push('binary', 'byte', 'date', 'date-time', 'password');
                             }
-                            if (!enums.includes(format)) warn('Non standard format used: ' + format);
+                            if (!enums.includes(format)) warn.message('Non standard format used: ' + format);
                         }
                     }
                 },
@@ -398,7 +398,7 @@ module.exports = {
                     default: false,
                     errors: ({ major, parent, definition }) => {
                         if (major === 2 && definition && parent && parent.parent && parent.parent.parent && parent.parent.parent.definition.required && parent.parent.parent.definition.required.includes(parent.key)) {
-                            parent.warn('Property should not be marked as both read only and required');
+                            parent.warn.message('Property should not be marked as both read only and required');
                         }
                     }
                 },

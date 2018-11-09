@@ -41,7 +41,7 @@ module.exports = {
                     type: 'object',
                     additionalProperties: EnforcerRef('MediaType', {
                         errors: function({ key, warn }) {
-                            if (!MediaType.rx.mediaType.test(key)) warn('Media type appears invalid');
+                            if (!MediaType.rx.mediaType.test(key)) warn.message('Media type appears invalid');
                         }
                     })
                 },

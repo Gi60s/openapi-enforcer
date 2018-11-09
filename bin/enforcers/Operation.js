@@ -205,13 +205,13 @@ module.exports = {
                         const subChild = child.nest(message).nest('Possible causes');
                         potentialCausesForUnknownParameters.forEach(err => subChild(err));
                     } else {
-                        child(message);
+                        child.message(message);
                     }
                 }
 
                 //
                 if (missingRequired.length) {
-                    child('Missing required parameter' + (missingRequired.length > 1 ? 's' : '') +
+                    child.message('Missing required parameter' + (missingRequired.length > 1 ? 's' : '') +
                         ': ' + missingRequired.join(', '));
                 }
             });
@@ -349,7 +349,7 @@ module.exports = {
                     type: 'string',
                     errors: ({ definition, warn }) => {
                         if (definition.length >= 120) {
-                            warn('Value should be less than 120 characters');
+                            warn.message('Value should be less than 120 characters');
                         }
                     }
                 },
