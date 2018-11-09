@@ -27,7 +27,7 @@ module.exports = {
     validator: function () {
         return {
             type: 'object',
-            additionalProperties: EnforcerRef('Path')
+            additionalProperties: EnforcerRef('PathItem')
         };
     }
 };

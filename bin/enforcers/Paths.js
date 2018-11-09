@@ -145,7 +145,7 @@ module.exports = {
         return {
             required: true,
             type: 'object',
-            additionalProperties: EnforcerRef('Path'),
+            additionalProperties: EnforcerRef('PathItem'),
             errors: ({ exception, definition }) => {
                 Object.keys(definition).forEach(key => {
                     if (key[0] !== '/' || key[1] === '/') {
