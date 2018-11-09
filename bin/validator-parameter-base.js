@@ -71,7 +71,7 @@ module.exports = data => {
                 errors: ({exception, definition}) => {
                     const keys = Object.keys(definition);
                     if (keys.length !== 1) {
-                        exception('Value must have exactly one key. Received: ' + keys.join(', '));
+                        exception.message('Value must have exactly one key. Received: ' + keys.join(', '));
                     }
                 }
             },
@@ -91,13 +91,13 @@ module.exports = data => {
 
         result.errors = ({ exception, major, definition }) => {
             if (definition.hasOwnProperty('content') && definition.hasOwnProperty('schema')) {
-                exception('Cannot have both "content" and "schema" properties');
+                exception.message('Cannot have both "content" and "schema" properties');
             } else if (!definition.hasOwnProperty('content') && !definition.hasOwnProperty('schema')) {
-                exception('Missing required property "content" or "schema"');
+                exception.message('Missing required property "content" or "schema"');
             }
 
             if (definition.hasOwnProperty('example') && definition.hasOwnProperty('examples')) {
-                exception('Cannot have both "example" and "examples" properties');
+                exception.message('Cannot have both "example" and "examples" properties');
             }
         };
     }
