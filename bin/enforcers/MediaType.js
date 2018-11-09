@@ -15,7 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const EnforcerRef  = require('../enforcer-ref');
+const EnforcerRef   = require('../enforcer-ref');
+const RequestBody   = require('./RequestBody');
 
 const rxContentTypeMime = /(?:^multipart\/)|(?:^application\/x-www-form-urlencoded$)/;
 
@@ -32,16 +33,13 @@ module.exports = {
             properties: {
                 encoding: {
                     type: 'object',
-                    allowed: ({ key, parent }) => {
+                    allowed: ({ key, parent }) => parent.parent.parent.validator === RequestBody.validator,
+                    additionalProperties: EnforcerRef('Encoding'),
+                    errors: ({ exception, key, parent }) => {
                         if (!rxContentTypeMime.test(parent.key)) {
-                            return 'Mime type must be multipart/* or application/x-www-form-urlencoded. Found: ' + parent.key
-                        } else if (!(parent.parent.parent.validator instanceof RequestBody)) {
-                            return 'The encoding validator is only allowed for requestBody objects';
-                        } else {
-                            return true;
+                            exception('Mime type must be multipart/* or application/x-www-form-urlencoded. Found: ' + parent.key);
                         }
-                    },
-                    additionalProperties: EnforcerRef('Encoding')
+                    }
                 },
                 example: { allowed: true },
                 examples: {
