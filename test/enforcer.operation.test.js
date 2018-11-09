@@ -15,12 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
-// const definition    = require('../bin/definition-validator').normalize;
 const Enforcer      = require('../');
 const expect        = require('chai').expect;
 const Value         = require('../bin/value');
-// const Operation     = require('../bin/definition-validators/operation');
-// const Path          = require('../bin/definition-validators/path');
 
 describe('enforcer/operation', () => {
 
@@ -193,7 +190,7 @@ describe('enforcer/operation', () => {
 
                     it('can deserialize exploded primitive', () => {
                         def.parameters[0].schema = numSchema;
-                        const [ operation, err ] = Enforcer.v3_0.Operation(def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ header: { cookie: 'user=12345' } });
                         expect(req.cookie.user).to.equal(12345);
                     });
