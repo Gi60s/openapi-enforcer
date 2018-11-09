@@ -38,6 +38,21 @@ const globalDataTypeFormats = {   // global types can be overwritten by local ty
 
 module.exports = {
     init: function ({ exception, definition, warn }) {
+        // define and store data type formats
+        const dataTypeFormats = {
+            types: {},
+            handlesFormat: () => !!(dataTypeFormats.types[this.type] && dataTypeFormats.types[this.type][this.format]),
+            deserialize: (exception, value) => callDataTypeFormatFunction('deserialize', this, dataTypeFormats, exception, value),
+            serialize: (exception, value) => callDataTypeFormatFunction('serialize', this, dataTypeFormats, exception, value),
+            validate: (exception, value) => callDataTypeFormatFunction('validate', this, dataTypeFormats, exception, value)
+        };
+        store.set(this, { dataTypeFormats });
+
+        // merge global data types into (currently empty) data types object
+        Object.keys(globalDataTypeFormats).forEach(key => {
+            dataTypeFormats.types[key] = Object.assign({}, globalDataTypeFormats[key]);
+        });
+
         // validate the default value
         if (definition.hasOwnProperty('default')) {
             const error = this.validate(definition.default);
@@ -57,21 +72,6 @@ module.exports = {
             const error = this.validate(definition.example);
             if (error) warn.at('example').message(error);
         }
-
-        // define and store data type formats
-        const dataTypeFormats = {
-            types: {},
-            handlesFormat: () => !!(dataTypeFormats.types[this.type] && dataTypeFormats.types[this.type][this.format]),
-            deserialize: (exception, value) => callDataTypeFormatFunction('deserialize', this, dataTypeFormats, exception, value),
-            serialize: (exception, value) => callDataTypeFormatFunction('serialize', this, dataTypeFormats, exception, value),
-            validate: (exception, value) => callDataTypeFormatFunction('validate', this, dataTypeFormats, exception, value)
-        };
-        store.set(this, { dataTypeFormats });
-
-        // merge global data types into (currently empty) data types object
-        Object.keys(globalDataTypeFormats).forEach(key => {
-            dataTypeFormats.types[key] = Object.assign({}, globalDataTypeFormats[key]);
-        });
     },
 
     prototype: {
