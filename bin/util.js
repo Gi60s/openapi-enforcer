@@ -17,6 +17,7 @@
 'use strict';
 const queryString   = require('querystring');
 const rx            = require('./rx');
+const Value         = require('./value');
 
 const rxMediaType = /^([\s\S]+?)\/(?:([\s\S]+?)\+)?([\s\S]+?)$/;
 
@@ -37,6 +38,22 @@ exports.edgeSlashes = function(value, start, end) {
     if (start) value = '/' + value;
     if (end) value += '/';
     return value;
+};
+
+exports.extractEnforcerValues = function(source) {
+    if (Array.isArray(source)) {
+        return source.map(v => exports.extractEnforcerValues(v));
+    } else if (exports.isPlainObject(source)) {
+        const result = {};
+        Object.keys(source).forEach(key => {
+            result[key] = exports.extractEnforcerValues(source[key]);
+        });
+        return result;
+    } else if (typeof source === 'object' && source instanceof Value) {
+        return source.value;
+    } else {
+        return source;
+    }
 };
 
 /**
