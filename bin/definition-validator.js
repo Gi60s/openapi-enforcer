@@ -183,11 +183,13 @@ function normalize (data) {
             // report any keys that are not allowed
             notAllowed.push.apply(notAllowed, unknownKeys);
             if (notAllowed.length) {
+                notAllowed.sort();
                 exception.message('Propert' + (notAllowed.length === 1 ? 'y' : 'ies') + ' not allowed: ' + notAllowed.join(', '));
             }
 
             // report missing required properties
             if (missingRequired.length) {
+                missingRequired.sort();
                 exception.message('Missing required propert' + (missingRequired.length === 1 ? 'y' : 'ies') + ': ' + missingRequired.join(', '));
             }
 
