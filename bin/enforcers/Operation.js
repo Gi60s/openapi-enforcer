@@ -99,7 +99,6 @@ module.exports = {
             if (!request.hasOwnProperty('header')) request.header = {};
             if (!request.hasOwnProperty('path')) request.path = {};
             if (!request.hasOwnProperty('query')) request.query = '';
-            if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || typeof request.body === 'object')) throw Error('Invalid body provided');
             if (!util.isObjectStringMap(request.header)) throw Error('Invalid request headers. Expected an object with string keys and string values');
             if (!util.isObjectStringMap(request.path)) throw Error('Invalid request path. Expected an object with string keys and string values');
             if (typeof request.query !== 'string') throw Error('Invalid request query. Expected a string');
@@ -115,7 +114,7 @@ module.exports = {
                 path: request.path,
                 query: util.parseQueryString(request.query)
             };
-            if (request.hasOwnProperty('body')) req.body = request.body;
+            if (request.body !== undefined) req.body = request.body;
             const cookie = req.header.cookie || '';
             const query = request.query;
             req.cookie = cookie ? util.parseCookieString(cookie) : {};
