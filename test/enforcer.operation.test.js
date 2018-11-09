@@ -22,7 +22,7 @@ const Value         = require('../bin/value');
 // const Operation     = require('../bin/definition-validators/operation');
 // const Path          = require('../bin/definition-validators/path');
 
-describe.only('enforcer/operation', () => {
+describe('enforcer/operation', () => {
 
     describe('constructor', () => {
         let def;
@@ -48,8 +48,8 @@ describe.only('enforcer/operation', () => {
             if (err) console.log(err);
         });
 
-        it('merges parameters from path and operation', () => {
-            const parameters = def.get.parameters;
+        it('can get all parameters from path and operation', () => {
+            const parameters = def.get.allParameters;
             expect(parameters.length).to.equal(4);
             expect(parameters.filter(p => p.in === 'path').length).to.equal(2);
             expect(parameters.filter(p => p.in === 'query').length).to.equal(2);
@@ -91,24 +91,40 @@ describe.only('enforcer/operation', () => {
                 };
             });
 
-            it.only('deserializes primitive string', () => {
+            it('deserializes primitive string', () => {
                 def.parameters[0].schema = numSchema;
                 const [ operation ] = Enforcer.v2_0.Operation(def);
-                const [ req, err ] = operation.request({ body: '1' });
+                const [ req ] = operation.request({ body: '1' });
                 expect(req.body).to.equal(1);
             });
 
-            it('deserializes array elements', () => {
+            it('does not deserialize array elements without coercion', () => {
                 def.parameters[0].schema = arrSchema;
                 const [ operation ] = Enforcer.v2_0.Operation(def);
-                const [ req ] = operation.request({ body: ['1', '2', '3'] });
+                const [ , err ] = operation.request({ body: ['1', '2', '3'] });
+                expect(err).to.match(/Unable to deserialize value\s+at: 0\s+Expected a number/);
+                expect(err.count).to.equal(3);
+            });
+
+            it('deserializes array elements with coercion', () => {
+                def.parameters[0].schema = arrSchema;
+                const [ operation ] = Enforcer.v2_0.Operation(def);
+                const [ req ] = operation.request({ body: Value.coerce(['1', '2', '3']) });
                 expect(req.body).to.deep.equal([1,2,3]);
             });
 
-            it('deserializes object elements', () => {
+            it('does not deserialize object elements without coercion', () => {
                 def.parameters[0].schema = objSchema;
                 const [ operation ] = Enforcer.v2_0.Operation(def);
-                const [ req ] = operation.request({ body: { R: '50', G: '100', B: '150' } });
+                const [ , err ] = operation.request({ body: { R: '50', G: '100', B: '150' } });
+                expect(err).to.match(/Unable to deserialize value\s+at: R\s+Expected a number/);
+                expect(err.count).to.equal(3);
+            });
+
+            it('deserializes object elements with coercion', () => {
+                def.parameters[0].schema = objSchema;
+                const [ operation ] = Enforcer.v2_0.Operation(def);
+                const [ req ] = operation.request({ body: Value.coerce({ R: '50', G: '100', B: '150' }) });
                 expect(req.body).to.deep.equal({ R: 50, G: 100, B: 150 });
             });
 
@@ -118,13 +134,15 @@ describe.only('enforcer/operation', () => {
                 const [ operation ] = Enforcer.v2_0.Operation(def);
                 const [ , err ] = operation.request({ });
                 expect(err).to.match(/Missing required parameter: body/);
+                expect(err.count).to.equal(1);
             });
 
             it('validates primitive', () => {
                 def.parameters[0].schema = { type: 'number', maximum: 1 };
                 const [ operation ] = Enforcer.v2_0.Operation(def);
-                const [ , err ] = operation.request({ body: '2' });
+                const [ , err ] = operation.request({ body: 2 });
                 expect(err).to.match(/Expected number to be less than or equal to 1/);
+                expect(err.count).to.equal(1);
                 expect(err.statusCode).to.equal(400);
             });
 
@@ -137,8 +155,9 @@ describe.only('enforcer/operation', () => {
                     }
                 };
                 const [ operation ] = Enforcer.v2_0.Operation(def);
-                const [ , err ] = operation.request({ body: ['1', '2', '3'] });
+                const [ , err ] = operation.request({ body: [1, 2, 3] });
                 expect(err).to.match(/Expected number to be greater than or equal to 2/);
+                expect(err.count).to.equal(1);
             });
 
             it('validates object elements', () => {
@@ -151,8 +170,9 @@ describe.only('enforcer/operation', () => {
                     }
                 };
                 const [ operation ] = Enforcer.v2_0.Operation(def);
-                const [ , err ] = operation.request({ body: { R: '50', G: '100', B: '150' } });
+                const [ , err ] = operation.request({ body: { R: 50, G: 100, B: 150 } });
                 expect(err).to.match(/Property not allowed: B/);
+                expect(err.count).to.equal(1);
             });
 
         });
@@ -173,7 +193,7 @@ describe.only('enforcer/operation', () => {
 
                     it('can deserialize exploded primitive', () => {
                         def.parameters[0].schema = numSchema;
-                        const [ operation, err ] = definition(3, Operation, def);
+                        const [ operation, err ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ header: { cookie: 'user=12345' } });
                         expect(req.cookie.user).to.equal(12345);
                     });
@@ -181,7 +201,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize primitive', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = numSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ header: { cookie: 'user=12345' } });
                         expect(req.cookie.user).to.equal(12345);
                     });
@@ -189,7 +209,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize array', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = arrSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ header: { cookie: 'user=1,2,3' } });
                         expect(req.cookie.user).to.deep.equal([1, 2, 3]);
                     });
@@ -197,7 +217,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize object', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = objSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ header: { cookie: 'user=R,50,G,100,B,150' } });
                         expect(req.cookie.user).to.deep.equal({ R: 50, G: 100, B: 150 });
                     });
@@ -287,7 +307,7 @@ describe.only('enforcer/operation', () => {
 
                     it('allows other headers', () => {
                         def.parameters[0].schema = numSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ , err ] = operation.request({ header: { 'x-value': '1', 'x-str': 'str' } });
                         expect(err).to.be.undefined;
                     });
@@ -295,7 +315,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize exploded primitive', () => {
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = numSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ header: { 'x-value': '1' } });
                         expect(req.header['x-value']).to.equal(1);
                     });
@@ -303,7 +323,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize primitive', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = numSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ header: { 'x-value': '1' } });
                         expect(req.header['x-value']).to.equal(1);
                     });
@@ -311,7 +331,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize exploded array', () => {
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = arrSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ header: { 'x-value': '1,2,3' } });
                         expect(req.header['x-value']).to.deep.equal([1, 2, 3]);
                     });
@@ -319,7 +339,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize array', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = arrSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ header: { 'x-value': '1,2,3' } });
                         expect(req.header['x-value']).to.deep.equal([1, 2, 3]);
                     });
@@ -327,7 +347,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize exploded object', () => {
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = objSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ header: { 'x-value': 'R=50,G=100,B=200' } });
                         expect(req.header['x-value']).to.deep.equal({ R: 50, G: 100, B: 200 });
                     });
@@ -335,7 +355,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize object', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = objSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ header: { 'x-value': 'R,50,G,100,B,200' } });
                         expect(req.header['x-value']).to.deep.equal({ R: 50, G: 100, B: 200 });
                     });
@@ -381,7 +401,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize exploded primitive', () => {
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = numSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: '1' } });
                         expect(req.path.x).to.equal(1);
                     });
@@ -389,7 +409,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize primitive', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = numSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: '1' } });
                         expect(req.path.x).to.equal(1);
                     });
@@ -397,7 +417,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize exploded array', () => {
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = arrSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: '1,2,3' } });
                         expect(req.path.x).to.deep.equal([1, 2, 3]);
                     });
@@ -405,7 +425,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize array', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = arrSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: '1,2,3' } });
                         expect(req.path.x).to.deep.equal([1, 2, 3]);
                     });
@@ -413,7 +433,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize exploded object', () => {
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = objSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: 'R=50,G=100,B=150' } });
                         expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
                     });
@@ -421,7 +441,7 @@ describe.only('enforcer/operation', () => {
                     it('can deserialize object', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = objSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: 'R,50,G,100,B,150' } });
                         expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
                     });
@@ -434,7 +454,7 @@ describe.only('enforcer/operation', () => {
                         def.parameters[0].style = 'label';
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = numSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: '.1' } });
                         expect(req.path.x).to.equal(1);
                     });
@@ -443,7 +463,7 @@ describe.only('enforcer/operation', () => {
                         def.parameters[0].style = 'label';
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = numSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: '.1' } });
                         expect(req.path.x).to.equal(1);
                     });
@@ -452,7 +472,7 @@ describe.only('enforcer/operation', () => {
                         def.parameters[0].style = 'label';
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = arrSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: '.1.2.3' } });
                         expect(req.path.x).to.deep.equal([1, 2, 3]);
                     });
@@ -461,7 +481,7 @@ describe.only('enforcer/operation', () => {
                         def.parameters[0].style = 'label';
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = arrSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: '.1,2,3' } });
                         expect(req.path.x).to.deep.equal([1, 2, 3]);
                     });
@@ -470,7 +490,7 @@ describe.only('enforcer/operation', () => {
                         def.parameters[0].style = 'label';
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = objSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: '.R=50.G=100.B=150' } });
                         expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
                     });
@@ -479,7 +499,7 @@ describe.only('enforcer/operation', () => {
                         def.parameters[0].style = 'label';
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = objSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: '.R,50,G,100,B,150' } });
                         expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
                     });
@@ -492,7 +512,7 @@ describe.only('enforcer/operation', () => {
                         def.parameters[0].style = 'matrix';
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = numSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: ';x=1' } });
                         expect(req.path.x).to.equal(1);
                     });
@@ -501,7 +521,7 @@ describe.only('enforcer/operation', () => {
                         def.parameters[0].style = 'matrix';
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = numSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: ';x=1' } });
                         expect(req.path.x).to.equal(1);
                     });
@@ -510,7 +530,7 @@ describe.only('enforcer/operation', () => {
                         def.parameters[0].style = 'matrix';
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = arrSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: ';x=1;x=2;x=3' } });
                         expect(req.path.x).to.deep.equal([1, 2, 3]);
                     });
@@ -519,7 +539,7 @@ describe.only('enforcer/operation', () => {
                         def.parameters[0].style = 'matrix';
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = arrSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: ';x=1,2,3' } });
                         expect(req.path.x).to.deep.equal([1, 2, 3]);
                     });
@@ -528,7 +548,7 @@ describe.only('enforcer/operation', () => {
                         def.parameters[0].style = 'matrix';
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = objSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: ';R=50;G=100;B=150' } });
                         expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
                     });
@@ -537,7 +557,7 @@ describe.only('enforcer/operation', () => {
                         def.parameters[0].style = 'matrix';
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = objSchema;
-                        const [ operation ] = definition(3, Operation, def);
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: ';x=R,50,G,100,B,150' } });
                         expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
                     });
@@ -586,7 +606,7 @@ describe.only('enforcer/operation', () => {
                     responses: { 200: { description: '' } }
                 };
                 const [ operation ] = Enforcer.v2_0.Operation(def);
-                const [ req ] = operation.request({ query: 'color=' });
+                const [ req, ] = operation.request({ query: 'color=' });
                 expect(req.query).to.haveOwnProperty('color');
                 expect(req.query.color).to.equal('');
             });
@@ -760,17 +780,33 @@ describe.only('enforcer/operation', () => {
                 expect(req.body).to.equal(1);
             });
 
-            it('deserializes array elements', () => {
+            it('does not deserialize array elements without coercion', () => {
                 appJson.schema = arrSchema;
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ req ] = operation.request({ body: ['1', '2', '3'], header: { 'content-type': 'application/json' } });
+                const [ , err ] = operation.request({ body: ['1', '2', '3'], header: { 'content-type': 'application/json' } });
+                expect(err).to.match(/at: 0\s+Expected a number/);
+                expect(err.count).to.equal(3);
+            });
+
+            it('deserializes array elements with coercion', () => {
+                appJson.schema = arrSchema;
+                const [ operation ] = Enforcer.v3_0.Operation(def);
+                const [ req ] = operation.request({ body: Value.coerce(['1', '2', '3']), header: { 'content-type': 'application/json' } });
                 expect(req.body).to.deep.equal([1,2,3]);
             });
 
-            it('deserializes object elements', () => {
+            it('does not deserialize object elements without coercion', () => {
                 appJson.schema = objSchema;
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ req ] = operation.request({ body: { R: '50', G: '100', B: '150' }, header: { 'content-type': 'application/json' } });
+                const [ , err ] = operation.request({ body: { R: '50', G: '100', B: '150' }, header: { 'content-type': 'application/json' } });
+                expect(err).to.match(/at: R\s+Expected a number/);
+                expect(err.count).to.equal(3);
+            });
+
+            it('deserializes object elements with coercion', () => {
+                appJson.schema = objSchema;
+                const [ operation ] = Enforcer.v3_0.Operation(def);
+                const [ req ] = operation.request({ body: Value.coerce({ R: '50', G: '100', B: '150' }), header: { 'content-type': 'application/json' } });
                 expect(req.body).to.deep.equal({ R: 50, G: 100, B: 150 });
             });
 
@@ -783,25 +819,25 @@ describe.only('enforcer/operation', () => {
 
             it('matches correct media type', () => {
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ req ] = operation.request({ body: { json: '50' }, header: { 'content-type': 'application/json' } });
+                const [ req ] = operation.request({ body: { json: 50 }, header: { 'content-type': 'application/json' } });
                 expect(req.body).to.deep.equal({ json: 50 });
             });
 
             it('matches correct media type with custom subtype', () => {
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ req ] = operation.request({ body: { star: '50' }, header: { 'content-type': 'application/custom' } });
+                const [ req ] = operation.request({ body: { star: 50 }, header: { 'content-type': 'application/custom' } });
                 expect(req.body).to.deep.equal({ star: 50 });
             });
 
             it('limits validations if exact match media type found', () => {
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ , err ] = operation.request({ body: { star: '50' }, header: { 'content-type': 'application/json' } });
+                const [ , err ] = operation.request({ body: { star: 50 }, header: { 'content-type': 'application/json' } });
                 expect(err).to.match(/Property not allowed: star/);
             });
 
             it('matches multiple media types but actual content fails for each media type', () => {
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ , err ] = operation.request({ body: { number: '50' }, header: { 'content-type': 'application/custom' } });
+                const [ , err ] = operation.request({ body: { number: 50 }, header: { 'content-type': 'application/custom' } });
                 expect(err).to.match(/For Content-Type application\/\*/);
                 expect(err).to.match(/For Content-Type \*\/\*/);
             });
