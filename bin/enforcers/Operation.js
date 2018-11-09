@@ -407,7 +407,7 @@ module.exports = {
 
         if (hasFile) {
             // parameter might be defined within operation (that can have consumes) or path (that cannot have consumes)
-            const consumes = parent.validator.component === OperationEnforcer
+            const consumes = parent.validator === module.exports.validator
                 ? parent.definition.consumes || root.definition.consumes
                 : root.definition.consumes;
             const length = Array.isArray(consumes) ? consumes.length : 0;
@@ -448,6 +448,6 @@ function deserializeAndValidate(exception, schema, data, success) {
     if (data.error) {
         if (exception) exception.push(data.error);
     } else {
-        success(data.value);
+        success(util.extractEnforcerValues(data.value));
     }
 }
