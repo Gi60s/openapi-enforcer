@@ -146,6 +146,15 @@ exports.getDateFromValidDateString = function (format, string) {
     date.getUTCMilliseconds() === millisecond ? date : null;
 };
 
+exports.getDefinitionType = function (definition) {
+    if (Array.isArray(definition)) return 'array';
+    if (exports.isPlainObject(definition)) return 'object';
+    if (definition === null) return 'null';
+
+    const type = typeof definition;
+    return type === 'object' ? 'decoratedObject' : type;
+};
+
 exports.isDate = function (value) {
     return value && !isNaN(value) && value instanceof Date;
 };
