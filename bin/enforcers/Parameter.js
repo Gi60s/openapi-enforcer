@@ -46,8 +46,8 @@ module.exports = {
             if (def.type === 'file') def.type = 'string';
             const [ schema, error, warning ] = new context.Schema(def);
             if (schema) this.schema = schema;
-            if (error) exception.push(error);
-            if (warning) warn.push(warning);
+            if (error) exception.at('schema').merge(error);
+            if (warning) warn.at('schema').merge(warning);
 
             // v3 - set schema from content schema
         } else if (major === 3 && definition.content) {
