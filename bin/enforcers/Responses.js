@@ -18,7 +18,7 @@
 const EnforcerRef  = require('../enforcer-ref');
 
 const rxCode = /^[1-5]\d{2}$/;
-const rxRange = /^[1-5](?:\d|X){2}$/;
+const rxRange = /^[1-5]X{2}$/;
 
 module.exports = {
     init: function (data) {
@@ -28,15 +28,14 @@ module.exports = {
     prototype: {},
 
     validator: function (data) {
+        const { major } = data;
         return {
             type: 'object',
             additionalProperties: EnforcerRef('Response', {
                 allowed: ({ key }) => key === 'default' || rxCode.test(key) || (major === 3 && rxRange.test(key))
-                    ? true
-                    : 'Invalid response code.'
             }),
             errors: ({ exception, definition }) => {
-                if (Object.keys(definition).length === 0) {
+                if (Object.keys(definition).length === 0 && !exception.hasException) {
                     exception.message('Response object cannot be empty');
                 }
             }
