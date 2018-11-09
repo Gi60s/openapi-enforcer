@@ -244,7 +244,7 @@ function runChildValidator(data) {
     const validator = fn(data.validator, data);
     data.validator = validator;
     if (EnforcerRef.isEnforcerRef(validator)) {
-        if (data.definition === true) {     // account for true instead of schema definition
+        if (data.definitionType === 'boolean') {     // account for boolean instead of schema definition
             data.validator = data.validator.config;
             return normalize(data);
         } else if (data.definitionType === 'object') {
