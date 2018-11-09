@@ -59,6 +59,23 @@ OpenAPIException.prototype.nest = function (header) {
     return exception;
 };
 
+OpenAPIException.prototype.merge = function (exception) {
+    const thisChildren = this.children;
+    const thatChildren = exception.children;
+    const at = thisChildren.at;
+
+    Object.keys(thatChildren.at).forEach(key => {
+        if (!at[key]) {
+            at[key] = thatChildren.at[key];
+        } else {
+            at[key].merge(thatChildren.at[key]);
+        }
+    });
+
+    thatChildren.nest.forEach(exception => thisChildren.nest.push(exception));
+    thatChildren.message.forEach(message => thisChildren.message.push(message));
+};
+
 OpenAPIException.prototype.message = function (message) {
     this.children.message.push(message);
     this.cache = undefined;
