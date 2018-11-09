@@ -18,6 +18,7 @@
 const EnforcerRef   = require('../enforcer-ref');
 const Exception     = require('../exception');
 const Result        = require('../result');
+const Value         = require('../value');
 
 const rxFalse = /^false/i;
 const rxTrue = /^true$/i;
@@ -272,9 +273,7 @@ module.exports = {
                 explode: {
                     type: 'boolean',
                     allowed: major === 3,
-                    default: ({parent}) => {
-                        return parent.definition.style === 'form';
-                    },
+                    default: ({parent}) => parent.result.style === 'form',
                     errors: ({exception, parent}) => {
                         const type = parent.definition.schema && parent.definition.schema.type;
                         if (parent.definition.in === 'cookie' && parent.definition.explode && (type === 'array' || type === 'object')) {
