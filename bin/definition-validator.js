@@ -25,7 +25,7 @@ module.exports = normalize;
 function childData(parent, key, validator) {
     const definition = parent.definition[key];
 
-    const definitionType = Array.isArray(definition) ? 'array' : typeof definition;
+    const definitionType = util.getDefinitionType(definition);
     let result;
 
     if (definitionType === 'array') {
@@ -165,7 +165,7 @@ function normalize (data) {
                     // set default value
                     if (data.definition === undefined && allowed && validator.hasOwnProperty('default')) {
                         data.definition = fn(validator.default, data);
-                        data.definitionType = Array.isArray(data.definition) ? 'array' : typeof data.definition;
+                        data.definitionType = util.getDefinitionType(data.definition);
                     }
 
                     if (data.definition !== undefined) {
@@ -192,7 +192,16 @@ function normalize (data) {
             }
 
         } else {
-            data.result = definition;
+            switch (definitionType) {
+                case 'boolean':
+                case 'number':
+                case 'string':
+                    data.result = definition;
+                    break;
+                default:
+                    exception('Unknown data type provided');
+                    break;
+            }
         }
 
         // run custom error validation check
@@ -235,13 +244,13 @@ function runChildValidator(data) {
     const validator = fn(data.validator, data);
     data.validator = validator;
     if (EnforcerRef.isEnforcerRef(validator)) {
-        if (data.definitionType === 'object') {
-            return new data.context[validator.value](new ValidatorState(data));
-        } else if (data.validator.config) {
+        if (data.definition === true) {     // account for true instead of schema definition
             data.validator = data.validator.config;
             return normalize(data);
+        } else if (data.definitionType === 'object') {
+            return new data.context[validator.value](new ValidatorState(data));
         } else {
-            return data.result;
+            data.exception.message('Value must be a plain object');
         }
     } else if (data.validator) {
         return normalize(data);

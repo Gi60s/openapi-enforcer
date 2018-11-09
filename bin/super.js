@@ -101,7 +101,7 @@ function createConstructor(version, name, enforcer) {
             data = {
                 context: version,
                 definition,
-                definitionType: Array.isArray(definition) ? 'array' : typeof definition,
+                definitionType: util.getDefinitionType(definition),
                 exception: Exception('One or more errors exist in the ' + name + ' definition'),
                 key: undefined,
                 map: new Map(),
