@@ -61,9 +61,10 @@ module.exports = {
         // define and store data type formats
         const dataTypeFormats = {
             types: {},
-            deserialize: (exception, value) => callDataTypeFormatFunction('deserialize', this, exception, value),
-            serialize: (exception, value) => callDataTypeFormatFunction('serialize', this, exception, value),
-            validate: (exception, value) => callDataTypeFormatFunction('validate', this, exception, value)
+            handlesFormat: () => !!(dataTypeFormats.types[this.type] && dataTypeFormats.types[this.type][this.format]),
+            deserialize: (exception, value) => callDataTypeFormatFunction('deserialize', this, dataTypeFormats, exception, value),
+            serialize: (exception, value) => callDataTypeFormatFunction('serialize', this, dataTypeFormats, exception, value),
+            validate: (exception, value) => callDataTypeFormatFunction('validate', this, dataTypeFormats, exception, value)
         };
         store.set(this, { dataTypeFormats });
 
@@ -483,14 +484,13 @@ module.exports.defineDataTypeFormat = function (type, format, definition) {
 };
 
 
-function callDataTypeFormatFunction(mode, schema, exception, originalValue) {
-    const dataTypeFormats = store.get(schema).dataTypeFormats;
+function callDataTypeFormatFunction(mode, schema, dataTypeFormats, exception, originalValue) {
     const format = schema.format;
-    const map = dataTypeFormats.types[schema.type] && dataTypeFormats.types[schema.type][schema.format];
+    const map = dataTypeFormats.types[schema.type] && dataTypeFormats.types[schema.type][format];
     const fn = format && typeof map === 'object' && typeof map[mode] === 'function' ? map[mode] : null;
     if (fn) {
         const { coerce, serialize, validate, value } = Value.getAttributes(originalValue);
-        return fn({
+        return fn.call(schema, {
             coerce,
             exception,
             serialize,
@@ -1067,10 +1067,7 @@ function runValidate(exception, map, schema, originalValue) {
         }
 
     } else if (schema.type === 'string') {
-        if (typeof value !== 'string') {
-            exception.message('Expected a string. Received: ' + util.smart(value));
-
-        } else {
+        if (typeof value === 'string') {
             const length = value.length;
             if (schema.hasOwnProperty('maxLength') && length > schema.maxLength) {
                 exception.message('String too long. ' + util.smart(value) + ' (' + length + ') exceeds maximum length of ' + schema.maxLength);
@@ -1083,8 +1080,10 @@ function runValidate(exception, map, schema, originalValue) {
             if (schema.hasOwnProperty('pattern') && !schema.pattern.test(value)) {
                 exception.message('String does not match required pattern ' + schema.pattern + ' with value: ' + util.smart(value));
             }
-
+        } else if (dataTypeFormats.handlesFormat()) {
             dataTypeFormats.validate(exception, value);
+        } else {
+            exception.message('Expected a string. Received: ' + util.smart(value));
         }
     }
 
