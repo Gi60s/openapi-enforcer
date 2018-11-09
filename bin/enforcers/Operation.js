@@ -193,7 +193,7 @@ module.exports = {
                         }
                     });
 
-                    result[reqKey] = output;
+                    result[reqKey] = util.extractEnforcerValues(output);
                 }
 
                 // add exception for any unknown query parameters
@@ -224,10 +224,10 @@ module.exports = {
                     const parameter = getBodyParameter(parameters);
                     if (typeof value === 'string') value = new Value(value, { coerce: true });
                     deserializeAndValidate(exception.nest('In body'), parameter.schema, { value }, value => {
-                        result.body = value;
+                        result.body = util.extractEnforcerValues(value);
                     });
 
-                    // v3 requestBody
+                // v3 requestBody
                 } else if (this.requestBody) {
                     const contentType = req.header['content-type'] || '*/*';
                     const content = this.requestBody.content;
@@ -238,6 +238,7 @@ module.exports = {
                     // one or more potential matches
                     if (length) {
                         const child = new Exception('In body');
+                        if (typeof value === 'string') value = new Value(value, { coerce: true });
 
                         // find the first media type that matches the request body
                         let passed = false;
@@ -246,7 +247,7 @@ module.exports = {
                             const media = content[mediaType];
                             if (media.schema) {
                                 deserializeAndValidate(child.nest('For Content-Type ' + mediaType), media.schema, { value }, value => {
-                                    result.body = value;
+                                    result.body = util.extractEnforcerValues(value);
                                     passed = true;
                                 });
                             }
@@ -448,6 +449,6 @@ function deserializeAndValidate(exception, schema, data, success) {
     if (data.error) {
         if (exception) exception.push(data.error);
     } else {
-        success(util.extractEnforcerValues(data.value));
+        success(data.value);
     }
 }
