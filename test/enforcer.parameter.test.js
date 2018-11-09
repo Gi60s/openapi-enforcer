@@ -15,15 +15,40 @@
  *    limitations under the License.
  **/
 'use strict';
-// const definition    = require('../bin/definition-validator').normalize;
-// const expect        = require('chai').expect;
-// const Parameter     = require('../bin/definition-validators/parameter');
+const expect        = require('chai').expect;
+const Enforcer      = require('../');
 
-describe('definitions/parameter', () => {
+describe('enforcer/parameter', () => {
     const schema = { type: 'string' };
 
+    describe('constructor', () => {
+
+        it('defines schema for v2', () => {
+            const [ def ] = Enforcer.v2_0.Parameter({
+                name: 'hi',
+                in: 'query',
+                type: 'string'
+            });
+            expect(def.schema.type).to.equal('string');
+        });
+
+        it('defines schema for v3 with content', () => {
+            const [ def ] = Enforcer.v3_0.Parameter({
+                name: 'hi',
+                in: 'query',
+                content: {
+                    'application/json': {
+                        schema: { type: 'string' }
+                    }
+                }
+            });
+            expect(def.schema.type).to.equal('string');
+        })
+
+    });
+
     it('can be valid', () => {
-        const [ , err ] = definition(2, Parameter, {
+        const [ , err ] = Enforcer.v2_0.Parameter({
             name: 'hi',
             in: 'path',
             type: 'string',
@@ -35,12 +60,12 @@ describe('definitions/parameter', () => {
     describe('allowEmptyValue', () => {
 
         it('is valid in query', () => {
-            const [ , err ] = definition(2, Parameter, { name: 'hi', in: 'query', type: 'string', allowEmptyValue: true });
+            const [ , err ] = Enforcer.v2_0.Parameter({ name: 'hi', in: 'query', type: 'string', allowEmptyValue: true });
             expect(err).to.be.undefined;
         });
 
         it('is not valid in header', () => {
-            const [ , err ] = definition(2, Parameter, { name: 'hi', in: 'header', type: 'string', allowEmptyValue: true });
+            const [ , err ] = Enforcer.v2_0.Parameter({ name: 'hi', in: 'header', type: 'string', allowEmptyValue: true });
             expect(err).to.match(/Property not allowed: allowEmptyValue/);
         });
 
@@ -49,22 +74,22 @@ describe('definitions/parameter', () => {
     describe('allowReserved', () => {
 
         it('can be set', () => {
-            const [ , err ] = definition(3, Parameter, { name: 'hi', in: 'query', schema, allowReserved: true });
+            const [ , err ] = Enforcer.v3_0.Parameter({ name: 'hi', in: 'query', schema, allowReserved: true });
             expect(err).to.be.undefined;
         });
 
         it('is not allowed for v2', () => {
-            const [ , err ] = definition(2, Parameter, { name: 'hi', in: 'header', type: 'string', allowReserved: true });
+            const [ , err ] = Enforcer.v2_0.Parameter({ name: 'hi', in: 'header', type: 'string', allowReserved: true });
             expect(err).to.match(/Property not allowed: allowReserved/);
         });
 
         it('it not allowed in header', () => {
-            const [ , err ] = definition(3, Parameter, { name: 'hi', in: 'header', schema, allowReserved: true });
+            const [ , err ] = Enforcer.v3_0.Parameter({ name: 'hi', in: 'header', schema, allowReserved: true });
             expect(err).to.match(/Property not allowed: allowReserved/);
         });
 
         it('it must be a boolean', () => {
-            const [ , err ] = definition(3, Parameter, { name: 'hi', in: 'query', schema, allowReserved: 'abc' });
+            const [ , err ] = Enforcer.v3_0.Parameter({ name: 'hi', in: 'query', schema, allowReserved: 'abc' });
             expect(err).to.match(/Value must be a boolean/);
         });
 
@@ -73,22 +98,22 @@ describe('definitions/parameter', () => {
     describe('collectionFormat', () => {
 
         it('can be set', () => {
-            const [ , err ] = definition(2, Parameter, { name: 'hi', in: 'query', type: 'array', items: { type: 'string' }, collectionFormat: 'multi' });
+            const [ , err ] = Enforcer.v2_0.Parameter({ name: 'hi', in: 'query', type: 'array', items: { type: 'string' }, collectionFormat: 'multi' });
             expect(err).to.be.undefined;
         });
 
         it('is not valid in v3', () => {
-            const [ , err ] = definition(3, Parameter, { name: 'hi', in: 'query', schema, collectionFormat: 'multi' });
+            const [ , err ] = Enforcer.v3_0.Parameter({ name: 'hi', in: 'query', schema, collectionFormat: 'multi' });
             expect(err).to.match(/Property not allowed: collectionFormat/);
         });
 
         it('is not valid for "string" type', () => {
-            const [ , err ] = definition(2, Parameter, { name: 'hi', in: 'query', type: 'string', collectionFormat: 'multi' });
+            const [ , err ] = Enforcer.v2_0.Parameter({ name: 'hi', in: 'query', type: 'string', collectionFormat: 'multi' });
             expect(err).to.match(/Property not allowed: collectionFormat/);
         });
 
         it('defaults to csv', () => {
-            const [ def ] = definition(2, Parameter, { name: 'hi', in: 'query', type: 'array', items: { type: 'string' } });
+            const [ def ] = Enforcer.v2_0.Parameter({ name: 'hi', in: 'query', type: 'array', items: { type: 'string' } });
             expect(def.collectionFormat).to.equal('csv');
         });
 
@@ -97,7 +122,7 @@ describe('definitions/parameter', () => {
     describe('content', () => {
 
         it('must be a plain object', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 content: []
@@ -106,7 +131,7 @@ describe('definitions/parameter', () => {
         });
 
         it('can only have one property', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 content: {
@@ -120,7 +145,7 @@ describe('definitions/parameter', () => {
         describe('media type', () => {
 
             it('can have a schema defined', () => {
-                const [ , err ] = definition(3, Parameter, {
+                const [ , err ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'query',
                     content: {
@@ -133,7 +158,7 @@ describe('definitions/parameter', () => {
             });
 
             it('will validate that the schema is valid', () => {
-                const [ , err ] = definition(3, Parameter, {
+                const [ , err ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'query',
                     content: {
@@ -146,7 +171,7 @@ describe('definitions/parameter', () => {
             });
 
             it('can not set encoding for parameters', () => {
-                const [ , err ] = definition(3, Parameter, {
+                const [ , err ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'query',
                     content: {
@@ -175,17 +200,17 @@ describe('definitions/parameter', () => {
     describe('default', () => {
 
         it('can be set', () => {
-            const [ , err ] = definition(2, Parameter, { name: 'hi', in: 'query', type: 'string', default: 'hello' });
+            const [ , err ] = Enforcer.v2_0.Parameter({ name: 'hi', in: 'query', type: 'string', default: 'hello' });
             expect(err).to.be.undefined;
         });
 
         it('is not valid in v3', () => {
-            const [ , err ] = definition(3, Parameter, { name: 'hi', in: 'query', schema, default: 'hello' });
+            const [ , err ] = Enforcer.v3_0.Parameter({ name: 'hi', in: 'query', schema, default: 'hello' });
             expect(err).to.match(/Property not allowed: default/);
         });
 
         it('must match type', () => {
-            const [ , err ] = definition(2, Parameter, { name: 'hi', in: 'query', type: 'string', default: 1 });
+            const [ , err ] = Enforcer.v2_0.Parameter({ name: 'hi', in: 'query', type: 'string', default: 1 });
             expect(err).to.match(/Value must be a string/);
         });
 
@@ -194,17 +219,17 @@ describe('definitions/parameter', () => {
     describe('deprecated', () => {
 
         it('can be set', () => {
-            const [ , err ] = definition(3, Parameter, { name: 'hi', in: 'query', schema, deprecated: true });
+            const [ , err ] = Enforcer.v3_0.Parameter({ name: 'hi', in: 'query', schema, deprecated: true });
             expect(err).to.be.undefined;
         });
 
         it('is not valid in v2', () => {
-            const [ , err ] = definition(2, Parameter, { name: 'hi', in: 'query', deprecated: true });
+            const [ , err ] = Enforcer.v2_0.Parameter({ name: 'hi', in: 'query', deprecated: true });
             expect(err).to.match(/Property not allowed: deprecated/);
         });
 
         it('must be a boolean', () => {
-            const [ , err ] = definition(3, Parameter, { name: 'hi', in: 'query', schema, deprecated: 1 });
+            const [ , err ] = Enforcer.v3_0.Parameter({ name: 'hi', in: 'query', schema, deprecated: 1 });
             expect(err).to.match(/Value must be a boolean/);
         });
 
@@ -213,7 +238,7 @@ describe('definitions/parameter', () => {
     describe('examples', () => {
 
         it('can be set', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 schema,
@@ -227,7 +252,7 @@ describe('definitions/parameter', () => {
         });
 
         it('cannot be set for v2', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 type: 'string',
@@ -241,7 +266,7 @@ describe('definitions/parameter', () => {
         });
 
         it('cannot have both example and examples', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 schema,
@@ -260,7 +285,7 @@ describe('definitions/parameter', () => {
     describe('explode', () => {
 
         it('can be set', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 schema,
@@ -270,7 +295,7 @@ describe('definitions/parameter', () => {
         });
 
         it('is not valid in v2', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 explode: true
@@ -279,7 +304,7 @@ describe('definitions/parameter', () => {
         });
 
         it('defaults to true for "form"', () => {
-            const [ def ] = definition(3, Parameter, {
+            const [ def ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 schema,
@@ -289,7 +314,7 @@ describe('definitions/parameter', () => {
         });
 
         it('defaults to false for not "form"', () => {
-            const [ def ] = definition(3, Parameter, {
+            const [ def ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 schema: { type: 'array', items: { type: 'string' } },
@@ -299,7 +324,7 @@ describe('definitions/parameter', () => {
         });
 
         it('does not let cookies be exploded for non-primitives', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'cookie',
                 schema: { type: 'object' },
@@ -313,7 +338,7 @@ describe('definitions/parameter', () => {
     describe('in', () => {
 
         it('is required', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 type: 'string',
                 name: 'hi'
             });
@@ -321,7 +346,7 @@ describe('definitions/parameter', () => {
         });
 
         it('can be formData if version 2', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 type: 'string',
                 name: 'hi',
                 in: 'formData'
@@ -330,7 +355,7 @@ describe('definitions/parameter', () => {
         });
 
         it('cannot be formData if version 3', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 schema,
                 in: 'formData'
@@ -343,7 +368,7 @@ describe('definitions/parameter', () => {
     describe('items', () => {
 
         it('is allowed in version 2', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 type: 'array',
@@ -355,7 +380,7 @@ describe('definitions/parameter', () => {
         });
 
         it('is only valid for array types', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 type: 'string',
@@ -367,7 +392,7 @@ describe('definitions/parameter', () => {
         });
 
         it('is not allowed in version 3', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 schema,
@@ -383,7 +408,7 @@ describe('definitions/parameter', () => {
     describe('name', () => {
 
         it('is required', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 schema,
                 in: 'query'
             });
@@ -391,7 +416,7 @@ describe('definitions/parameter', () => {
         });
 
         it('must be a string', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 schema,
                 name: 1,
                 in: 'query'
@@ -404,7 +429,7 @@ describe('definitions/parameter', () => {
     describe('required', () => {
 
         it('can be set', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 type: 'string',
                 name: 'hi',
                 in: 'formData',
@@ -414,7 +439,7 @@ describe('definitions/parameter', () => {
         });
 
         it('must be a boolean', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 type: 'string',
                 name: 'hi',
                 in: 'formData',
@@ -424,7 +449,7 @@ describe('definitions/parameter', () => {
         });
 
         it('must be true if in path', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 type: 'string',
                 name: 'hi',
                 in: 'path',
@@ -433,17 +458,17 @@ describe('definitions/parameter', () => {
             expect(err).to.match(/Value must be true/);
         });
 
-        it('is required for path ', () => {
-            const [ , err ] = definition(2, Parameter, {
+        it('defaults to true for path ', () => {
+            const [ param ] = Enforcer.v2_0.Parameter({
                 type: 'string',
                 name: 'hi',
                 in: 'path'
             });
-            expect(err).to.match(/Missing required property: required/);
+            expect(param.required).to.equal(true);
         });
 
         it('is optional for non path', () => {
-            const [ def ] = definition(2, Parameter, {
+            const [ def ] = Enforcer.v2_0.Parameter({
                 type: 'string',
                 name: 'hi',
                 in: 'query'
@@ -456,7 +481,7 @@ describe('definitions/parameter', () => {
     describe('schema', () => {
 
         it('can be set for v3', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 schema: { type: 'string' }
@@ -465,7 +490,7 @@ describe('definitions/parameter', () => {
         });
 
         it('cannot be set for v2', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 schema
@@ -474,16 +499,16 @@ describe('definitions/parameter', () => {
         });
 
         it('must be plain object', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 schema: []
             });
-            expect(err).to.match(/Value must be a plain object/);
+            expect(err).to.match(/at: schema\s+Value must be a plain object/);
         });
 
         it('must be a valid schema', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 schema: {}
@@ -492,7 +517,7 @@ describe('definitions/parameter', () => {
         });
 
         it('cannot accompany content property', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 schema: { type: 'string' },
@@ -506,7 +531,7 @@ describe('definitions/parameter', () => {
     describe('style', () => {
 
         it('can be set', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 schema,
@@ -516,7 +541,7 @@ describe('definitions/parameter', () => {
         });
 
         it('is not valid in v2', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 style: 'form'
@@ -527,7 +552,7 @@ describe('definitions/parameter', () => {
         describe('cookie', () => {
 
             it('defaults to form', () => {
-                const [ def ] = definition(3, Parameter, {
+                const [ def ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'cookie',
                     schema
@@ -536,7 +561,7 @@ describe('definitions/parameter', () => {
             });
 
             it('must be form', () => {
-                const [ , err ] = definition(3, Parameter, {
+                const [ , err ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'cookie',
                     style: 'spaceDelimited',
@@ -550,7 +575,7 @@ describe('definitions/parameter', () => {
         describe('header', () => {
 
             it('defaults to simple', () => {
-                const [ def ] = definition(3, Parameter, {
+                const [ def ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'header',
                     schema
@@ -559,7 +584,7 @@ describe('definitions/parameter', () => {
             });
 
             it('must be simple', () => {
-                const [ , err ] = definition(3, Parameter, {
+                const [ , err ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'header',
                     style: 'spaceDelimited',
@@ -573,7 +598,7 @@ describe('definitions/parameter', () => {
         describe('path', () => {
 
             it('defaults to simple', () => {
-                const [ def ] = definition(3, Parameter, {
+                const [ def ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'path',
                     required: true,
@@ -583,7 +608,7 @@ describe('definitions/parameter', () => {
             });
 
             it('must be valid type', () => {
-                const [ , err ] = definition(3, Parameter, {
+                const [ , err ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'path',
                     required: true,
@@ -598,7 +623,7 @@ describe('definitions/parameter', () => {
         describe('query', () => {
 
             it('defaults to form', () => {
-                const [ def ] = definition(3, Parameter, {
+                const [ def ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'query',
                     schema
@@ -607,7 +632,7 @@ describe('definitions/parameter', () => {
             });
 
             it('must be valid type', () => {
-                const [ , err ] = definition(3, Parameter, {
+                const [ , err ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'query',
                     style: 'simple',
@@ -617,7 +642,7 @@ describe('definitions/parameter', () => {
             });
 
             it('must be array for spaceDelimited', () => {
-                const [ , err ] = definition(3, Parameter, {
+                const [ , err ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'query',
                     schema: { type: 'string' },
@@ -627,7 +652,7 @@ describe('definitions/parameter', () => {
             });
 
             it('must be array for pipeDelimited', () => {
-                const [ , err ] = definition(3, Parameter, {
+                const [ , err ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'query',
                     schema: { type: 'string' },
@@ -637,7 +662,7 @@ describe('definitions/parameter', () => {
             });
 
             it('must be object for deepObject', () => {
-                const [ , err ] = definition(3, Parameter, {
+                const [ , err ] = Enforcer.v3_0.Parameter({
                     name: 'hi',
                     in: 'query',
                     schema: { type: 'string' },
@@ -653,7 +678,7 @@ describe('definitions/parameter', () => {
     describe('type', () => {
 
         it('is allowed in v2', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 name: 'hi',
                 in: 'query',
                 type: 'string'
@@ -662,7 +687,7 @@ describe('definitions/parameter', () => {
         });
 
         it('is not allowed if "in" is body', () => {
-            const [ , err ] = definition(2, Parameter, {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 name: 'hi',
                 in: 'body',
                 type: 'string'
@@ -671,7 +696,7 @@ describe('definitions/parameter', () => {
         });
 
         it('is not allowed in v3', () => {
-            const [ , err ] = definition(3, Parameter, {
+            const [ , err ] = Enforcer.v3_0.Parameter({
                 name: 'hi',
                 in: 'body',
                 type: 'string'
