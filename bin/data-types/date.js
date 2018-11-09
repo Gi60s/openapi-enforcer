@@ -52,6 +52,6 @@ exports.validate = function ({ exception, value }) {
     if (!util.isDate(value)) {
         exception('Expected a valid date object. Received: ' + util.smart(value));
     } else {
-        util.validateMaxMin(exception, schema, schema.format, 'maximum', 'minimum', false, value, schema.maximum, schema.minimum);
+        util.validateMaxMin(exception, this, this.format, 'maximum', 'minimum', false, value, this.maximum, this.minimum);
     }
 };
