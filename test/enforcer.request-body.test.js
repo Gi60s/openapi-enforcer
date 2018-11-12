@@ -15,15 +15,14 @@
  *    limitations under the License.
  **/
 'use strict';
-// const assert        = require('../bin/assert');
-// const definition    = require('../bin/definition-validator').normalize;
-// const expect        = require('chai').expect;
-// const RequestBody   = require('../bin/definition-validators/request-body');
+const assert        = require('../bin/assert');
+const expect        = require('chai').expect;
+const Enforcer      = require('../');
 
-describe('definitions/request-body', () => {
+describe.only('enforcer/request-body', () => {
 
     it('allows a valid definition', () => {
-        const [ , err ] = definition(3, RequestBody, {
+        const [ , err ] = Enforcer.v3_0.RequestBody({
             content: {
                 'application/json': {
 
@@ -34,8 +33,7 @@ describe('definitions/request-body', () => {
     });
 
     it('is not allowed for GET method', () => {
-        const Path = require('../bin/definition-validators/path');
-        const [ , err ] = definition(3, Path, {
+        const [ , err ] = Enforcer.v3_0.PathItem({
             get: {
                 requestBody: {
                     content: {
@@ -57,7 +55,7 @@ describe('definitions/request-body', () => {
     describe('encoding', () => {
 
         it('is allowed with multipart mimetype', () => {
-            const [ , err ] = definition(3, RequestBody, {
+            const [ , err ] = Enforcer.v3_0.RequestBody({
                 content: {
                     'multipart/mixed': {
                         schema: {
@@ -78,7 +76,7 @@ describe('definitions/request-body', () => {
         });
 
         it('is allowed with application/x-www-form-urlencoded mimetype', () => {
-            const [ , err ] = definition(3, RequestBody, {
+            const [ , err ] = Enforcer.v3_0.RequestBody({
                 content: {
                     'application/x-www-form-urlencoded': {
                         schema: {
@@ -99,7 +97,7 @@ describe('definitions/request-body', () => {
         });
 
         it('is not allowed for other mime types', () => {
-            const [ , err ] = definition(3, RequestBody, {
+            const [ , err ] = Enforcer.v3_0.RequestBody({
                 content: {
                     'text/plain': {
                         schema: {
@@ -116,13 +114,13 @@ describe('definitions/request-body', () => {
                     }
                 }
             });
-            expect(err).to.match(/Property not allowed: encoding/);
+            expect(err).to.match(/Mime type must be multipart\/\* or application\/x-www-form-urlencoded/);
         });
 
         describe('allowReserved', () => {
 
             it('is allowed with multipart mimetype', () => {
-                const [ , err ] = definition(3, RequestBody, {
+                const [ , err ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'multipart/mixed': {
                             schema: {
@@ -144,7 +142,7 @@ describe('definitions/request-body', () => {
             });
 
             it('defaults to false', () => {
-                const [ def ] = definition(3, RequestBody, {
+                const [ def ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'application/x-www-form-urlencoded': {
                             schema: {
@@ -165,7 +163,7 @@ describe('definitions/request-body', () => {
             });
 
             it('is ignored when not application/x-www-form-urlencoded mimetype', () => {
-                const [ def ] = definition(3, RequestBody, {
+                const [ def ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'multipart/mixed': {
                             schema: {
@@ -191,7 +189,7 @@ describe('definitions/request-body', () => {
         describe('contentType', () => {
 
             it('defaults to application/octet-stream for binary format', () => {
-                const [ def ] = definition(3, RequestBody, {
+                const [ def ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'multipart/mixed': {
                             schema: {
@@ -210,7 +208,7 @@ describe('definitions/request-body', () => {
             });
 
             it('defaults to text/plain for primitives', () => {
-                const [ def ] = definition(3, RequestBody, {
+                const [ def ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'multipart/mixed': {
                             schema: {
@@ -229,7 +227,7 @@ describe('definitions/request-body', () => {
             });
 
             it('defaults to application/json for objects', () => {
-                const [ def ] = definition(3, RequestBody, {
+                const [ def ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'multipart/mixed': {
                             schema: {
@@ -248,7 +246,7 @@ describe('definitions/request-body', () => {
             });
 
             it('defaults to application/json for array with objects', () => {
-                const [ def ] = definition(3, RequestBody, {
+                const [ def ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'multipart/mixed': {
                             schema: {
@@ -267,7 +265,7 @@ describe('definitions/request-body', () => {
             });
 
             it('defaults to application/octet-stream for array with binary', () => {
-                const [ def ] = definition(3, RequestBody, {
+                const [ def ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'multipart/mixed': {
                             schema: {
@@ -290,7 +288,7 @@ describe('definitions/request-body', () => {
         describe('explode', () => {
 
             it('is ignored is not application/x-www-form-urlencoded mime type', () => {
-                const [ def ] = definition(3, RequestBody, {
+                const [ def ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'multipart/mixed': {
                             schema: {
@@ -311,7 +309,7 @@ describe('definitions/request-body', () => {
             });
 
             it('defaults to true if style is form', () => {
-                const [ def ] = definition(3, RequestBody, {
+                const [ def ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'application/x-www-form-urlencoded': {
                             schema: {
@@ -332,7 +330,7 @@ describe('definitions/request-body', () => {
             });
 
             it('defaults to true if style is omitted', () => {
-                const [ def ] = definition(3, RequestBody, {
+                const [ def ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'application/x-www-form-urlencoded': {
                             schema: {
@@ -355,7 +353,7 @@ describe('definitions/request-body', () => {
         describe('headers', () => {
 
             it('ignores headers if not multipart', () => {
-                const [ def ] = definition(3, RequestBody, {
+                const [ def ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'application/x-www-form-urlencoded': {
                             encoding: {
@@ -379,7 +377,7 @@ describe('definitions/request-body', () => {
             });
 
             it('ignores content type header', () => {
-                const [ def ] = definition(3, RequestBody, {
+                const [ def ] = Enforcer.v3_0.RequestBody({
                     content: {
                         'multipart/mixed': {
                             schema: {
