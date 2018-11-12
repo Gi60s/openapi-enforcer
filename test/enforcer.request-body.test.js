@@ -19,7 +19,7 @@ const assert        = require('../bin/assert');
 const expect        = require('chai').expect;
 const Enforcer      = require('../');
 
-describe.only('enforcer/request-body', () => {
+describe('enforcer/request-body', () => {
 
     it('allows a valid definition', () => {
         const [ , err ] = Enforcer.v3_0.RequestBody({
