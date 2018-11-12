@@ -165,6 +165,7 @@ function normalize (data) {
                     // set default value
                     if (data.definition === undefined && allowed && validator.hasOwnProperty('default')) {
                         data.definition = fn(validator.default, data);
+                        data.parent.definition[key] = data.definition;
                         data.definitionType = util.getDefinitionType(data.definition);
                     }
 
