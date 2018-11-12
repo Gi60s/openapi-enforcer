@@ -115,12 +115,17 @@ function createConstructor(version, name, enforcer) {
                 warn: Exception('One or more warnings exist in the ' + name + ' definition'),
             };
             data.root = data;
-            definitionValidator(data);
+
         } else {
             data = definition;
             data.validator = enforcer.validator;
             data.result = result;
+        }
+
+        if (util.isPlainObject(data.definition)) {
             definitionValidator(data);
+        } else {
+            data.exception.message('Value must be a plain object');
         }
 
         // if an exception has occurred then exit now

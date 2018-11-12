@@ -249,10 +249,8 @@ function runChildValidator(data) {
         if (data.definitionType === 'boolean') {     // account for boolean instead of schema definition
             data.validator = data.validator.config;
             return normalize(data);
-        } else if (data.definitionType === 'object') {
-            return new data.context[validator.value](new ValidatorState(data));
         } else {
-            data.exception.message('Value must be a plain object');
+            return new data.context[validator.value](new ValidatorState(data));
         }
     } else if (data.validator) {
         return normalize(data);
