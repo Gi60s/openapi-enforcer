@@ -37,7 +37,7 @@ module.exports = {
                     additionalProperties: EnforcerRef('Encoding'),
                     errors: ({ exception, key, parent }) => {
                         if (!rxContentTypeMime.test(parent.key)) {
-                            exception('Mime type must be multipart/* or application/x-www-form-urlencoded. Found: ' + parent.key);
+                            exception.message('Mime type must be multipart/* or application/x-www-form-urlencoded. Found: ' + parent.key);
                         }
                     }
                 },
