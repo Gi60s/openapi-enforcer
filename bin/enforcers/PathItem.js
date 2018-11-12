@@ -21,9 +21,8 @@ const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'tr
 
 module.exports = {
     init: function (data) {
-        this.methods = {
-            value: methods.filter(method => !!this[method]) // an array of all methods used by this path
-        };
+        // an array of all methods used by this path
+        this.methods = methods.filter(method => !!this[method]);
     },
 
     prototype: {},
