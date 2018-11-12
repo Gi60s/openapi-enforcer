@@ -15,11 +15,11 @@
  *    limitations under the License.
  **/
 'use strict';
-// const definition    = require('../bin/definition-validator').normalize;
-// const expect        = require('chai').expect;
+const expect        = require('chai').expect;
+const Enforcer      = require('../');
 // const Paths         = require('../bin/definition-validators/paths');
 
-describe('definitions/paths', () => {
+describe('enforcer/paths', () => {
 
     function validPathObject (parameters) {
         const result = {
@@ -36,33 +36,33 @@ describe('definitions/paths', () => {
     }
 
     it('must be an object', () => {
-        const [ , err ] = definition(2, Paths, []);
+        const [ , err ] = Enforcer.v2_0.Paths([]);
         expect(err).to.match(/Value must be a plain object/);
     });
 
     it('can be used to define valid path item objects', () => {
-        const [ , err ] = definition(2, Paths, {
+        const [ , err ] = Enforcer.v2_0.Paths({
             '/': validPathObject()
         });
         expect(err).to.be.undefined;
     });
 
     it('requires that each path start with a slash', () => {
-        const [ , err ] = definition(2, Paths, {
+        const [ , err ] = Enforcer.v2_0.Paths({
             'abc': validPathObject()
         });
         expect(err).to.match(/Path must begin with a single forward slash/);
     });
 
     it('requires that each path start with a single slash', () => {
-        const [ , err ] = definition(2, Paths, {
+        const [ , err ] = Enforcer.v2_0.Paths({
             '//abc': validPathObject()
         });
         expect(err).to.match(/Path must begin with a single forward slash/);
     });
 
     it('will identify variable path duplications', () => {
-        const [ , err ] = definition(2, Paths, {
+        const [ , err ] = Enforcer.v2_0.Paths({
             '/a/b/{c}/d/{e}': validPathObject([
                 { name: 'c', in: 'path', required: true, type: 'string' },
                 { name: 'e', in: 'path', required: true, type: 'string' }
@@ -86,7 +86,8 @@ describe('definitions/paths', () => {
                 { name: 'c', in: 'path', required: true, type: 'string' }
             ]),
         });
-        expect(err).to.match(/Equivalent paths are not allowed/)
+        expect(err).to.match(/Equivalent paths are not allowed/);
+        expect(err.count).to.equal(5);
     })
 
 });
