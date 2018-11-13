@@ -18,6 +18,7 @@
 
 module.exports = enforcer;
 
+const dataTypeFormats       = require('./bin/data-type-formats');
 const freeze                = require('./bin/freeze');
 const RefParser             = require('json-schema-ref-parser');
 const Super                 = require('./bin/super');
@@ -132,3 +133,14 @@ Object.assign(v3_0, {
 });
 
 enforcer.Value = require('./bin/value');
+
+
+enforcer.v2_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
+enforcer.v2_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
+enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
+enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date-time', dataTypeFormats.dateTime);
+
+enforcer.v3_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
+enforcer.v3_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
+enforcer.v3_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
+enforcer.v3_0.Schema.defineDataTypeFormat('string', 'date-time', dataTypeFormats.dateTime);
