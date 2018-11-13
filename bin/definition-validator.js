@@ -63,6 +63,11 @@ function normalize (data) {
         // generate the plain validator object
         const validator = fn(data.validator, data);
 
+        if (validator.stopValidator) {
+            data.result = data.definition;
+            return data.result;
+        }
+
         // if type is invalid then exit
         if (!validateType(definitionType, data)) return;
 
