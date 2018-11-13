@@ -20,12 +20,22 @@ module.exports = OpenAPIException;
 
 /**
  * Create an OpenAPIException instance
- * @param header
+ * @param {string} [header]
  * @returns {OpenAPIException}
  * @constructor
  */
 function OpenAPIException (header) {
     if (!(this instanceof OpenAPIException)) return new OpenAPIException(header);
+    const callbacks = {};
+
+    this.emit = function (type, payload) {
+        if (callbacks[type]) callbacks[type].forEach(callback => callback(payload));
+    };
+
+    this.on = function (type, handler) {
+        if (!callbacks[type]) callbacks[type] = [];
+        callbacks[type].push(handler);
+    };
 
     this.header = header;
     this.cache = undefined;
@@ -47,15 +57,23 @@ OpenAPIException.prototype.at = function (key) {
     const at = this.children.at;
     if (!at[key]) {
         at[key] = new OpenAPIException('');
-        this.cache = undefined;
+        at[key].on('cache-clear', () => this.clearCache());
+        this.clearCache();
     }
     return at[key];
 };
 
+OpenAPIException.prototype.clearCache = function () {
+    this.cache = undefined;
+    this.emit('cache-clear');
+    return this;
+};
+
 OpenAPIException.prototype.nest = function (header) {
     const exception = new OpenAPIException(header);
+    exception.on('cache-clear', () => this.clearCache());
     this.children.nest.push(exception);
-    this.cache = undefined;
+    this.clearCache();
     return exception;
 };
 
@@ -67,6 +85,7 @@ OpenAPIException.prototype.merge = function (exception) {
     Object.keys(thatChildren.at).forEach(key => {
         if (!at[key]) {
             at[key] = thatChildren.at[key];
+            at[key].on('cache-clear', () => this.clearCache());
         } else {
             at[key].merge(thatChildren.at[key]);
         }
@@ -78,7 +97,7 @@ OpenAPIException.prototype.merge = function (exception) {
 
 OpenAPIException.prototype.message = function (message) {
     this.children.message.push(message);
-    this.cache = undefined;
+    this.clearCache();
     return this;
 };
 
@@ -86,10 +105,10 @@ OpenAPIException.prototype.push = function (value) {
     const type = typeof value;
     if (type === 'string' && value.length) {
         this.children.message.push(value);
-        this.cache = undefined;
+        this.clearCache();
     } else if (type === 'object' && value instanceof OpenAPIException) {
         this.children.nest.push(value);
-        this.cache = undefined;
+        this.clearCache();
     } else {
         throw Error('Can only push string or OpenAPIException instance');
     }
