@@ -1,37 +1,89 @@
 # Schema
 
-## Adding Custom Data Type Formats
+## API
 
-It is possible to extend the custom data types to enable custom format deserialization, serialization, validation, and even random value generation.
+### Schema.defineDataFormat
 
-When defining a custom data type format you must define handler functions for the `deserialize`, `serialize`, and `validate` properties. You can also optionally define the `random` handler function.
+This is a static method that is used to define custom data formats, their serialization and deserialization, and their validation.
 
-##### Define Custom Format for All Schema Instances
+**Parameters**
 
-The define a custom data type format for all schema instances you can define them staticly.
+- *type* [`string`] - The type to assign the custom format to. This is the data type to use when the value is serialized and must be one of `boolean`, `integer`, `number`, or `string`.
+
+- *format* [`string`] - The name of the format.
+
+- *configuration* [`object`] - An object defining how to serialize, deserialize, validate, etc.
+
+    - *deserialize* [`function`] - The function to call to deserialize the value. It receives two parameters: `exception` for reporting errors and `value` which contains the serialized value. This function should return the deserialized value. Within the function `this` is the schema instance.
+
+    - *isCollection* [`boolean] - If this value is a collection then it allows the schema properties `maxItems` and `minItems`. Defaults to `false`.
+    
+    - *isNumeric* [`boolean`] - If this value is numeric then it allows the schema properties `maximum`, `minimum`, `exclusiveMaximum`, `exclusiveMinimum`, and `multipleOf`. Defaults to `true` if the type is `integer` or `number`, otherwise `false`.
+
+    - *isObject* [`boolean`] - If this value is an object then it allows the schema properties `maxProperties` and `minProperties`. Defaults to `false`.
+
+    - *random* [`function`] - The function to call to generate a random deserialized value. It receives one parameter, `exception` for reporting errors. The function should return the deserialized value. Within the function `this` is the schema instance.
+
+    - *serialize* [`function`] - The function to call to serialize the value. It receives two parameters: `exception` for reporting errors and `value` which contains the deserialized value. This function should return the serialized value. Within the function `this` is the schema instance.
+
+    - *validate* [`function`] - The function to call to validate the deserialized value. It receives two parameters: `exception` for reporting errors and `value` which contains the deserialized value. This function does not need to return anything.
+
+Returns `undefined`.
+
+**Example**
+
+This example shows how you might define a decimal type that uses exact decimal values. The example omits many validations and scenarios for simplicity sake.
 
 ```js
-const Schema = require('openapi-enforcer/components/schema');
+class Decimal {
+  constructor (value) {
+    const array = value.split('.');
+    this.characteristic = array[0];
+    this.mantissa = array[1];
+  }
 
-Schema.define('string', 'person-id', {
-    deserialize() {},
+  valueOf () {
+    return +this.characteristic + +this.mantissa / Math.pow(10, this.mantissa.length);
+  }
+
+  toString () {
+      return this.characteristic + '.' + this.mantissa;
+  }
+}
+
+const Schema = require('openapi-enforcer').v3_0.Schema;
+
+Schema.defineDataFormat('string', 'decimal', {
+    // define how to deserialize a value
+    deserialize (exception, value) => new Decimal(value),
+
+    // is numeric - allows schema maximum, minimum, exclusiveMaximum, etc.
+    isNumeric: true,
+
+    // generate a random value
+    random: (exception) => new Decimal(String(Math.random() * 100)),
+
+    // define how to serialize a value
+    serialize (exception, value) => value.toString(),
+
+    // define validation function for deserialized value
+    validate (exception, value) {
+        if (this.hasOwnProperty('minimum') && this.minimum > +value) {
+            exception.message('Value must be above the minimum of ' + 
+                this.minimum + '. Received: ' + value);
+        }
+    }
 });
 ```
 
-##### Define Custom Format for Some Schema Instances
+Then, within your OAS document you might have something like this:
 
-You may not want a custom data type format to exist for all schemas. If that is the case you can [extend](#) the schema instance.
-
-```js
-const Schema = require('openapi-enforcer/components/schema');
-
-Schema.extend(function(data) {
-
-});
-
-Schema.define('string', 'person-id', {
-    deserialize() {},
-});
+```yaml
+components:
+    schemas:
+        Decimal:
+            type: 'string'
+            format: 'decimal'
 ```
 
 ## Deserialize
