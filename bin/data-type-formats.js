@@ -18,14 +18,12 @@
 const rx        = require('./rx');
 const util      = require('./util');
 
-const binary = {};
-const byte = {};
 const zeros = '00000000';
 
 exports.binary = {
     deserialize: function ({ exception, value }) {
         if (!rx.binary.test(value)) {
-            exception('Value is not a binary octet string');
+            exception.message('Value is not a binary octet string');
         } else {
             const length = value.length;
             const array = [];
@@ -49,13 +47,13 @@ exports.binary = {
             }
             return binary;
         } else {
-            exception('Expected a Buffer instance. Received: ' + util.smart(value));
+            exception.message('Expected a Buffer instance. Received: ' + util.smart(value));
         }
     },
 
     validate: function ({ exception, schema, value }) {
         if (!Buffer.isBuffer(value)) {
-            exception('Expected value to be a buffer. Received: ' + util.smart(value));
+            exception.message('Expected value to be a buffer. Received: ' + util.smart(value));
         } else {
             util.validateMaxMin(exception, schema, 'binary length', 'maxLength', 'minLength', true, value.length * 8, schema.maxLength, schema.minLength);
         }
@@ -65,7 +63,7 @@ exports.binary = {
 exports.byte = {
     deserialize: function ({ exception, value }) {
         if (!rx.byte.test(value) && value.length % 4 !== 0) {
-            exception('Value is not a base64 string');
+            exception.message('Value is not a base64 string');
         } else {
             return Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64');
         }
@@ -82,13 +80,13 @@ exports.byte = {
         if (value instanceof Buffer) {
             return value.toString('base64');
         } else {
-            exception('Expected a Buffer instance. Received: ' + util.smart(originalValue));
+            exception.message('Expected a Buffer instance. Received: ' + util.smart(originalValue));
         }
     },
 
     validate: function ({ exception, value }) {
         if (!Buffer.isBuffer(value)) {
-            exception('Expected value to be a buffer. Received: ' + util.smart(value));
+            exception.message('Expected value to be a buffer. Received: ' + util.smart(value));
         } else {
             util.validateMaxMin(exception, schema, 'byte length', 'maxLength', 'minLength', true, value.length, schema.maxLength, schema.minLength);
         }
@@ -98,11 +96,11 @@ exports.byte = {
 exports.date = {
     deserialize: function ({ exception, value }) {
         if (!rx.date.test(value)) {
-            exception('Value is not date string of the format YYYY-MM-DD');
+            exception.message('Value is not date string of the format YYYY-MM-DD');
         } else {
             const date = util.getDateFromValidDateString('date', value);
             if (!date) {
-                exception('Value is not a valid date');
+                exception.message('Value is not a valid date');
             } else {
                 return date;
             }
@@ -124,13 +122,13 @@ exports.date = {
         if (util.isDate(value)) {
             return value.toISOString().substr(0, 10);
         } else {
-            exception('Expected a valid Date instance or date formatted string. Received: ' + util.smart(originalValue));
+            exception.message('Expected a valid Date instance or date formatted string. Received: ' + util.smart(originalValue));
         }
     },
 
     validate: function ({ exception, schema, value }) {
         if (!util.isDate(value)) {
-            exception('Expected a valid date object. Received: ' + util.smart(value));
+            exception.message('Expected a valid date object. Received: ' + util.smart(value));
         } else {
             util.validateMaxMin(exception, schema, schema.format, 'maximum', 'minimum', false, value, schema.maximum, schema.minimum);
         }
@@ -140,11 +138,11 @@ exports.date = {
 exports.dateTime = {
     deserialize: function ({ exception, value }) {
         if (!rx.dateTime.test(value)) {
-            exception('Value is not date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
+            exception.message('Value is not date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
         } else {
             const date = util.getDateFromValidDateString('date-time', value);
             if (!date) {
-                exception('Value is not a valid date-time');
+                exception.message('Value is not a valid date-time');
             } else {
                 return date;
             }
@@ -166,13 +164,13 @@ exports.dateTime = {
         if (util.isDate(value)) {
             return value.toISOString();
         } else {
-            exception('Expected a valid Date instance or an ISO date formatted string. Received: ' + util.smart(originalValue));
+            exception.message('Expected a valid Date instance or an ISO date formatted string. Received: ' + util.smart(originalValue));
         }
     },
 
     validate: function ({ exception, schema, value }) {
         if (!util.isDate(value)) {
-            exception('Expected a valid date object. Received: ' + util.smart(value));
+            exception.message('Expected a valid date object. Received: ' + util.smart(value));
         } else {
             util.validateMaxMin(exception, schema, schema.format, 'maximum', 'minimum', false, value, schema.maximum, schema.minimum);
         }
@@ -195,7 +193,7 @@ function coerceToBuffer(exception, value) {
 
             value = Buffer.from(array.join(''), 'hex');
         } else {
-            exception('Unable to coerce value');
+            exception.message('Unable to coerce value');
         }
     } else if (type === 'string') {
         value = value ? Buffer.from(value) : Buffer.from([0]);
