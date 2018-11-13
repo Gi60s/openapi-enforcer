@@ -20,7 +20,7 @@ const DefinitionBuilder = require('../bin/definition-builder');
 const Enforcer          = require('../index');
 const expect            = require('chai').expect;
 
-describe('enforcer/request', () => {
+describe('index/request', () => {
 
     describe('path parameters', () => {
 
