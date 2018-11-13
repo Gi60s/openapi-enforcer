@@ -31,6 +31,8 @@ exports.deserialize = function ({ exception, value }) {
     }
 };
 
+exports.numeric = true;
+
 exports.random = function ({ schema }) {
     // TODO: random
     throw Error('TODO');
