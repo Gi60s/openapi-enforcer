@@ -247,10 +247,11 @@ function runChildValidator(data) {
     const validator = fn(data.validator, data);
     data.validator = validator;
     if (EnforcerRef.isEnforcerRef(validator)) {
+        const subValidator = data.validator.config;
         if (data.definitionType === 'boolean') {     // account for boolean instead of schema definition
             data.validator = data.validator.config;
             return normalize(data);
-        } else {
+        } else if (!subValidator || validateType(data.definitionType, Object.assign({}, data, { validator: subValidator }))) {
             return new data.context[validator.value](new ValidatorState(data));
         }
     } else if (data.validator) {
