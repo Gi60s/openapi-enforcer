@@ -24,6 +24,7 @@ const Value         = require('../value');
 
 const rxHttp = /^https?:\/\//;
 const store = new WeakMap();
+const globalTypes = { boolean: true, integer: true, number: true, string: true };
 const globalDataTypeFormats = {   // global types can be overwritten by local types
     boolean: {},
     integer: {},
@@ -47,11 +48,6 @@ module.exports = {
             validate: (exception, value) => callDataTypeFormatFunction('validate', this, dataTypeFormats, exception, value)
         };
         store.set(this, { dataTypeFormats });
-
-        // merge global data types into (currently empty) data types object
-        Object.keys(globalDataTypeFormats).forEach(key => {
-            dataTypeFormats.types[key] = Object.assign({}, globalDataTypeFormats[key]);
-        });
 
         // validate the default value
         if (definition.hasOwnProperty('default')) {
@@ -186,6 +182,31 @@ module.exports = {
         }
     },
 
+    statics: function (scope) {
+        const dataTypes = scope.dataTypes = {
+            boolean: {},
+            integer: {},
+            number: {},
+            string: {}
+        };
+        return {
+            defineDataTypeFormat: function (type, format, definition) {
+                // validate input parameters
+                if (!dataTypes.hasOwnProperty(type)) throw Error('Invalid type specified. Must be one of: ' + Object.keys(dataTypes).join(', '));
+                if (!format || typeof format !== 'string') throw Error('Invalid format specified. Must be a non-empty string');
+                if (globalDataTypeFormats.hasOwnProperty(format)) throw Error('Format "' + format + '" is already defined');
+                if (!definition || typeof definition !== 'object' ||
+                    typeof definition.deserialize !== 'function' ||
+                    typeof definition.serialize !== 'function' ||
+                    typeof definition.validate !== 'function'
+                    || (definition.random &&  typeof definition.random !== 'function')) throw Error('Invalid data type definition. Must be an object that defines handlers for "deserialize", "serialize", and "validate" with optional "random" handler.');
+
+                // store the definition
+                dataTypes[type][format] = definition;
+            }
+        }
+    },
+
     validator: function (data) {
         const { major } = data;
 
@@ -260,8 +281,7 @@ module.exports = {
                 },
                 default: {
                     type: ({ parent }) => parent.definition.type,
-                    deserialize: ({ exception, parent, definition }) =>
-                        deserializeDate(parent.definition, exception, definition)
+                    deserialize: ({ exception, parent, definition }) => deserializeDate(parent.definition, exception, definition)
                 },
                 deprecated: {
                     allowed: ({major}) => major === 3,
@@ -468,21 +488,6 @@ module.exports = {
     }
 };
 
-module.exports.defineDataTypeFormat = function (type, format, definition) {
-    // validate input parameters
-    if (!globalDataTypeFormats.hasOwnProperty('type')) throw Error('Invalid type specified. Must be one of: ' + Object.keys(globalDataTypes).join(', '));
-    if (!format || typeof format !== 'string') throw Error('Invalid format specified. Must be a non-empty string');
-    if (globalDataTypeFormats.hasOwnProperty(format)) throw Error('Format "' + format + '" is already defined');
-    if (!definition || typeof definition !== 'object' ||
-        typeof definition.deserialize !== 'function' ||
-        typeof definition.serialize !== 'function' ||
-        typeof definition.validate !== 'function'
-        || (definition.random &&  typeof definition.random !== 'function')) throw Error('Invalid data type definition. Must be an object that defines handlers for "deserialize", "serialize", and "validate" with optional "random" handler.');
-
-    // store the definition
-    globalDataTypeFormats[format] = definition;
-};
-
 
 function callDataTypeFormatFunction(mode, schema, dataTypeFormats, exception, originalValue) {
     const format = schema.format;
@@ -494,7 +499,6 @@ function callDataTypeFormatFunction(mode, schema, dataTypeFormats, exception, or
             coerce,
             exception,
             serialize,
-            schema: this,
             validate,
             value
         });

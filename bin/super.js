@@ -90,6 +90,14 @@ function createConstructor(version, name, enforcer) {
         callbacks.push(callback);
     };
 
+    let scope = {};
+    if (enforcer.statics) {
+        const exported = enforcer.statics(scope);
+        Object.keys(exported).forEach(key => {
+            F[key] = exported[key];
+        });
+    }
+
     function build (result, definition) {
         const isStart = !definitionValidator.isValidatorState(definition);
 
@@ -135,7 +143,7 @@ function createConstructor(version, name, enforcer) {
         store.set(result, data);
 
         // run the construct function if present
-        if (enforcer.init) enforcer.init.call(result, data);
+        if (enforcer.init) enforcer.init.call(result, data, scope);
 
         // add plugin callbacks to this instance
         const plugins = data.plugins;
