@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const BinaryByte    = require('../data-types/binary-byte');
 const EnforcerRef  = require('../enforcer-ref');
 const Exception     = require('../exception');
 const Result        = require('../result');
@@ -24,70 +23,44 @@ const Value         = require('../value');
 
 const rxHttp = /^https?:\/\//;
 const store = new WeakMap();
-const globalTypes = { boolean: true, integer: true, number: true, string: true };
-const globalDataTypeFormats = {   // global types can be overwritten by local types
-    boolean: {},
-    integer: {},
-    number: {},
-    string: {
-        binary: BinaryByte.binary,
-        byte: BinaryByte.byte,
-        date: require('../data-types/date'),
-        'date-time': require('../data-types/date-time')
-    }
-};
 
 module.exports = {
-    init: function ({ exception, definition, warn }) {
-        // define and store data type formats
-        const dataTypeFormats = {
-            types: {},
-            handlesFormat: () => !!(dataTypeFormats.types[this.type] && dataTypeFormats.types[this.type][this.format]),
-            deserialize: (exception, value) => callDataTypeFormatFunction('deserialize', this, dataTypeFormats, exception, value),
-            serialize: (exception, value) => callDataTypeFormatFunction('serialize', this, dataTypeFormats, exception, value),
-            validate: (exception, value) => callDataTypeFormatFunction('validate', this, dataTypeFormats, exception, value)
-        };
-        store.set(this, { dataTypeFormats });
+    init: function ({ exception, result, warn }, scope) {
+        store.set(this, scope);
+
+        // deserialize and validate enum values
+        if (result.hasOwnProperty('enum')) {
+            const child = exception.at('enum');
+            const errorsAt = {};
+
+            // first deserialize all enum
+            result.enum = result.enum.map((value, index) => {
+                let error;
+                [ value, error] = this.deserialize(value);
+                if (error) {
+                    child.at(index).push(error);
+                    errorsAt[index] = true;
+                }
+                return value;
+            });
+
+            // once all deserialized then validate each
+            result.enum.forEach((value, index) => {
+                if (!errorsAt[index]) {
+                    const err = this.validate(value);
+                    if (err) child.at(index).push(err);
+                }
+            });
+        }
 
         // validate the default value
-        if (definition.hasOwnProperty('default')) {
-            const error = this.validate(definition.default);
-            if (error) exception.at('default').message(error);
-        }
-
-        // validate enum values
-        if (definition.hasOwnProperty('enum')) {
-            definition.enum.forEach((value, index) => {
-                const error = this.validate(value);
-                if (error) exception.at('enum').at(index).message(error);
-            })
-        }
+        if (result.hasOwnProperty('default')) result.default = deserializeAndValidate(this, exception.at('default'), result.default);
 
         // validate the example
-        if (definition.hasOwnProperty('example')) {
-            const error = this.validate(definition.example);
-            if (error) warn.at('example').message(error);
-        }
+        if (result.hasOwnProperty('example')) result.example = deserializeAndValidate(this, warn.at('example'), result.example);
     },
 
     prototype: {
-        // Plugins can define data type formats
-        defineDataType: function (type, format, definition) {
-            const types = store.get(this).dataTypeFormats.types;
-
-            // validate input parameters
-            if (!types.hasOwnProperty(type)) throw Error('Invalid type specified. Must be one of: ' + Object.keys(types).join(', '));
-            if (!format || typeof format !== 'string') throw Error('Invalid format specified. Must be a non-empty string');
-            if (types[type].hasOwnProperty(format)) throw Error('Format "' + format + '" is already defined for type ' + type);
-            if (!definition || typeof definition !== 'object' ||
-                typeof definition.deserialize !== 'function' ||
-                typeof definition.serialize !== 'function' ||
-                typeof definition.validate !== 'function'
-                || (definition.random &&  typeof definition.random !== 'function')) throw Error('Invalid data type definition. Must be an object that defines handlers for "deserialize", "serialize", and "validate" with optional "random" handler.');
-
-            // store the definition
-            types[type][format] = definition;
-        },
 
         /**
          * Take a serialized (ready for HTTP transmission) value and deserialize it.
@@ -194,7 +167,7 @@ module.exports = {
                 // validate input parameters
                 if (!dataTypes.hasOwnProperty(type)) throw Error('Invalid type specified. Must be one of: ' + Object.keys(dataTypes).join(', '));
                 if (!format || typeof format !== 'string') throw Error('Invalid format specified. Must be a non-empty string');
-                if (globalDataTypeFormats.hasOwnProperty(format)) throw Error('Format "' + format + '" is already defined');
+                if (dataTypes.hasOwnProperty(format)) throw Error('Format "' + format + '" is already defined');
                 if (!definition || typeof definition !== 'object' ||
                     typeof definition.deserialize !== 'function' ||
                     typeof definition.serialize !== 'function' ||
@@ -216,11 +189,7 @@ module.exports = {
 
         const maxOrMin = {
             allowed: ({ parent }) => numericish(parent.definition),
-            type: ({ parent }) => dateType(parent.definition) ? 'string' : 'number',
-            deserialize: ({ exception, parent, definition }) =>
-                dateType(parent.definition)
-                    ? deserializeDate(parent.definition, exception, definition)
-                    : definition
+            type: ({ parent }) => dateType(parent.definition) ? 'string' : 'number'
         };
 
         const maxOrMinItems = {
@@ -281,7 +250,7 @@ module.exports = {
                 },
                 default: {
                     type: ({ parent }) => parent.definition.type,
-                    deserialize: ({ exception, parent, definition }) => deserializeDate(parent.definition, exception, definition)
+                    stopValidator: true
                 },
                 deprecated: {
                     allowed: ({major}) => major === 3,
@@ -344,13 +313,12 @@ module.exports = {
                     items: {
                         allowed: ({ parent }) => !!(parent && parent.parent),
                         type: ({ parent }) => parent.parent.definition.type,
-                        deserialize: ({ exception, parent, definition }) => {
-                            return deserializeDate(parent.parent.definition, exception, definition);
-                        }
+                        stopValidator: true
                     }
                 },
                 example: {
-                    allowed: true
+                    allowed: true,
+                    stopValidator: true
                 },
                 exclusiveMaximum: exclusive,
                 exclusiveMinimum: exclusive,
@@ -405,8 +373,7 @@ module.exports = {
                     type: 'string',
                     errors: ({ exception, definition }) => {
                         if (!definition) exception.message('Value must be a non-empty string');
-                    },
-                    deserialize: ({ definition }) => util.rxStringToRx(definition)
+                    }
                 },
                 properties: {
                     allowed: ({parent}) => parent.definition.type === 'object',
@@ -489,28 +456,9 @@ module.exports = {
 };
 
 
-function callDataTypeFormatFunction(mode, schema, dataTypeFormats, exception, originalValue) {
-    const format = schema.format;
-    const map = dataTypeFormats.types[schema.type] && dataTypeFormats.types[schema.type][format];
-    const fn = format && typeof map === 'object' && typeof map[mode] === 'function' ? map[mode] : null;
-    if (fn) {
-        const { coerce, serialize, validate, value } = Value.getAttributes(originalValue);
-        return fn.call(schema, {
-            coerce,
-            exception,
-            serialize,
-            validate,
-            value
-        });
-    }
-    return originalValue;
-}
-
 function runDeserialize(exception, map, schema, originalValue) {
     const { coerce, serialize, value } = Value.getAttributes(originalValue);
     if (!serialize) return originalValue;
-
-    const { dataTypeFormats } = store.get(schema);
 
     const type = schema.type;
     const typeofValue = typeof value;
@@ -604,9 +552,15 @@ function runDeserialize(exception, map, schema, originalValue) {
             const properties = schema.properties || {};
             Object.keys(value).forEach(key => {
                 if (properties.hasOwnProperty(key)) {
-                    result[key] = runDeserialize(exception.at(key), map, properties[key], Value.inherit(value[key], { coerce, serialize }));
+                    result[key] = runDeserialize(exception.at(key), map, properties[key], Value.inherit(value[key], {
+                        coerce,
+                        serialize
+                    }));
                 } else if (additionalProperties) {
-                    result[key] = runDeserialize(exception.at(key), map, additionalProperties, Value.inherit(value[key], { coerce, serialize }));
+                    result[key] = runDeserialize(exception.at(key), map, additionalProperties, Value.inherit(value[key], {
+                        coerce,
+                        serialize
+                    }));
                 } else {
                     result[key] = value[key];   // not deserialized, just left alone
                 }
@@ -617,35 +571,57 @@ function runDeserialize(exception, map, schema, originalValue) {
             exception.message('Expected an object. Received: ' + util.smart(value));
         }
 
-    } else if (type === 'boolean') {
-        if (typeofValue !== 'boolean' && !coerce) {
-            exception.message('Expected a boolean. Received: ' + util.smart(value));
-        } else {
-            const val = typeofValue === 'string'
-                ? value.toLowerCase() === 'false'
-                : !!value;
-            return dataTypeFormats.deserialize(exception, val);
-        }
+    } else {
+        const { dataTypes } = store.get(schema);
+        const dataType = dataTypes[schema.type][schema.format] || { deserialize: function({ value }) { return value } };
 
-    } else if (type === 'integer') {
-        if (typeofValue !== 'number' && !coerce) {
-            exception.message('Expected a number. Received: ' + util.smart(value));
-        } else {
-            return dataTypeFormats.deserialize(exception, +value);
-        }
+        if (type === 'boolean') {
+            if (typeofValue !== 'boolean' && !coerce) {
+                exception.message('Expected a boolean. Received: ' + util.smart(value));
+            } else {
+                return dataType.deserialize({
+                    coerce,
+                    exception,
+                    schema,
+                    value: typeofValue === 'string' ? value.toLowerCase() === 'false' : !!value
+                });
+            }
 
-    } else if (type === 'number') {
-        if (typeofValue !== 'number' && !coerce) {
-            exception.message('Expected a number. Received: ' + util.smart(value));
-        } else {
-            return dataTypeFormats.deserialize(exception, +value);
-        }
+        } else if (type === 'integer') {
+            if (typeofValue !== 'number' && !coerce) {
+                exception.message('Expected a number. Received: ' + util.smart(value));
+            } else {
+                return dataType.deserialize({
+                    coerce,
+                    exception,
+                    schema,
+                    value: +value
+                });
+            }
 
-    } else if (type === 'string') {
-        if (typeofValue !== 'string' && !coerce) {
-            exception.message('Expected a string. Received: ' + util.smart(value));
-        } else {
-            return dataTypeFormats.deserialize(exception, String(value));
+        } else if (type === 'number') {
+            if (typeofValue !== 'number' && !coerce) {
+                exception.message('Expected a number. Received: ' + util.smart(value));
+            } else {
+                return dataType.deserialize({
+                    coerce,
+                    exception,
+                    schema,
+                    value: +value
+                });
+            }
+
+        } else if (type === 'string') {
+            if (typeofValue !== 'string' && !coerce) {
+                exception.message('Expected a string. Received: ' + util.smart(value));
+            } else {
+                return dataType.deserialize({
+                    coerce,
+                    exception,
+                    schema,
+                    value: String(value)
+                });
+            }
         }
     }
 }
@@ -653,8 +629,6 @@ function runDeserialize(exception, map, schema, originalValue) {
 function runSerialize(exception, map, schema, originalValue) {
     const { coerce, serialize, value } = Value.getAttributes(originalValue);
     if (!serialize) return originalValue;
-
-    const { dataTypeFormats } = store.get(schema);
 
     const type = schema.type;
     const typeofValue = typeof value;
@@ -758,67 +732,88 @@ function runSerialize(exception, map, schema, originalValue) {
             exception.message('Expected an object. Received: ' + util.smart(originalValue));
         }
 
-    } else if (type === 'boolean') {
-        let result = dataTypeFormats.serialize(exception, originalValue);
-        if (result === undefined) {
-            if (typeofValue !== 'boolean' && !coerce) {
-                exception.message('Expected a boolean. Received: ' + util.smart(value));
-            } else {
-                result = typeofValue === 'string'
-                    ? value.length > 0 && value.toLowerCase() !== 'false'
-                    : !!value;
-            }
-        }
-        return result;
+    } else {
+        const { dataTypes } = store.get(schema);
+        const dataType = dataTypes[schema.type][schema.format] || { serialize: function({ value }) { return value } };
 
-    } else if (type === 'integer') {
-        let result = dataTypeFormats.serialize(exception, originalValue);
-        if (result === undefined) {
-            const isInteger = typeofValue === 'number' && !isNaN(value) && value === Math.round(value);
+        if (type === 'boolean') {
+            let result = dataType.serialize({
+                coerce,
+                exception,
+                schema,
+                value: originalValue
+            });
+            if (typeof result !== 'boolean' && !coerce) {
+                exception.message('Unable to serialize to boolean. Received: ' + util.smart(result));
+            } else {
+                result = !!result;
+            }
+            return result;
+
+        } else if (type === 'integer') {
+            let result = dataType.serialize({
+                coerce,
+                exception,
+                schema,
+                value: originalValue
+            });
+            const isInteger = typeof result === 'number' && !isNaN(result) && result === Math.round(result);
             if (isInteger) {
                 result = value;
             } else if (coerce) {
                 result = +value;
                 if (!isNaN(result) && result !== Math.round(result)) result = Math.round(result);
+            } else {
+                exception.message('Unable to serialize to integer. Received: ' + util.smart(result));
             }
-        }
-        if (isNaN(result)) {
-            exception.message('Expected an integer. Received: ' + util.smart(value));
-            result = undefined;
-        }
-        return result;
+            return result;
 
-    } else if (type === 'number') {
-        let result = dataTypeFormats.serialize(exception, originalValue);
-        if (result === undefined) {
+        } else if (type === 'number') {
+            let result = dataType.serialize({
+                coerce,
+                exception,
+                schema,
+                value: originalValue
+            });
             const isNumber = typeofValue === 'number' && !isNaN(value);
             if (isNumber) {
                 result = value;
             } else if (coerce) {
                 result = +value;
             }
-        }
-        if (isNaN(result)) {
-            exception.message('Expected a number. Received: ' + util.smart(value));
-            result = undefined;
-        }
-        return result;
+            if (isNaN(result)) {
+                exception.message('Unable to serialize to number. Received: ' + util.smart(value));
+                result = undefined;
+            }
+            return result;
 
-    } else if (type === 'string') {
-        let result = dataTypeFormats.serialize(exception, originalValue);
-        if (result === undefined) {
-            if (typeofValue !== 'string' && !coerce) {
-                exception.message('Expected a string. Received: ' + util.smart(value));
+        } else if (type === 'string') {
+            let result = dataType.serialize({
+                coerce,
+                exception,
+                schema,
+                value: originalValue
+            });
+            if (typeof result !== 'string' && !coerce) {
+                exception.message('Unable to serialize to string. Received: ' + util.smart(value));
             } else {
                 result = String(value);
             }
+            return result;
         }
-        return result;
     }
 }
 
 function dateType(definition) {
     return definition.type === 'string' && definition.format && definition.format.startsWith('date')
+}
+
+function deserializeAndValidate(schema, exception, value) {
+    let error;
+    [ value, error ] = schema.deserialize(value);
+    if (!error) error = schema.validate(value);
+    if (error) exception.push(error);
+    return value;
 }
 
 function deserializeDate(definition, exception, value) {
@@ -881,8 +876,6 @@ function numericish(definitiion) {
 function runValidate(exception, map, schema, originalValue) {
     const { validate, value } = Value.getAttributes(originalValue);
     if (!validate) return originalValue;
-
-    const { dataTypeFormats } = store.get(schema);
 
     const type = schema.type;
 
@@ -1041,53 +1034,53 @@ function runValidate(exception, map, schema, originalValue) {
             }
         }
 
-    } else if (type === 'boolean') {
-        if (typeof value !== 'boolean') {
-            exception.message('Expected a boolean. Received: ' + util.smart(value));
-        } else {
-            dataTypeFormats.validate(exception, value);
-        }
+    } else {
+        const { dataTypes } = store.get(schema);
+        const dataType = dataTypes[schema.type][schema.format] || { validate: null };
 
-    } else if (type === 'integer') {
-        if (isNaN(value) || Math.round(value) !== value || typeof value !== 'number') {
-            exception.message('Expected an integer. Received: ' + util.smart(value));
-        } else {
-            maxMin(exception, schema, 'integer', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
-            if (schema.multipleOf && value % schema.multipleOf !== 0) {
-                exception.message('Expected a multiple of ' + schema.multipleOf + '. Received: ' + util.smart(value));
-            }
-            dataTypeFormats.validate(exception, value);
-        }
+        if (dataType.validate) {
+            dataType.validate({ exception, schema, value });
 
-    } else if (type === 'number') {
-        if (isNaN(value) || typeof value !== 'number') {
-            exception.message('Expected a number. Received: ' + util.smart(value));
-        } else {
-            maxMin(exception, schema, 'number', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
-            if (schema.multipleOf && value % schema.multipleOf !== 0) {
-                exception.message('Expected a multiple of ' + schema.multipleOf + '. Received: ' + util.smart(value));
-            }
-            dataTypeFormats.validate(exception, value);
-        }
+        } else if (type === 'boolean') {
+            if (typeof value !== 'boolean') exception.message('Expected a boolean. Received: ' + util.smart(value));
 
-    } else if (schema.type === 'string') {
-        if (typeof value === 'string') {
-            const length = value.length;
-            if (schema.hasOwnProperty('maxLength') && length > schema.maxLength) {
-                exception.message('String too long. ' + util.smart(value) + ' (' + length + ') exceeds maximum length of ' + schema.maxLength);
+        } else if (type === 'integer') {
+            if (isNaN(value) || Math.round(value) !== value || typeof value !== 'number') {
+                exception.message('Expected an integer. Received: ' + util.smart(value));
+            } else {
+                maxMin(exception, schema, 'integer', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
+                if (schema.multipleOf && value % schema.multipleOf !== 0) {
+                    exception.message('Expected a multiple of ' + schema.multipleOf + '. Received: ' + util.smart(value));
+                }
             }
 
-            if (schema.hasOwnProperty('minLength') && length < schema.minLength) {
-                exception.message('String too short. ' + util.smart(value) + ' (' + length + ') exceeds minimum length of ' + schema.minLength);
+        } else if (type === 'number') {
+            if (isNaN(value) || typeof value !== 'number') {
+                exception.message('Expected a number. Received: ' + util.smart(value));
+            } else {
+                maxMin(exception, schema, 'number', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
+                if (schema.multipleOf && value % schema.multipleOf !== 0) {
+                    exception.message('Expected a multiple of ' + schema.multipleOf + '. Received: ' + util.smart(value));
+                }
             }
 
-            if (schema.hasOwnProperty('pattern') && !schema.pattern.test(value)) {
-                exception.message('String does not match required pattern ' + schema.pattern + ' with value: ' + util.smart(value));
+        } else if (schema.type === 'string') {
+            if (typeof value !== 'string') {
+                exception.message('Expected a string. Received: ' + util.smart(value));
+            } else {
+                const length = value.length;
+                if (schema.hasOwnProperty('maxLength') && length > schema.maxLength) {
+                    exception.message('String too long. ' + util.smart(value) + ' (' + length + ') exceeds maximum length of ' + schema.maxLength);
+                }
+
+                if (schema.hasOwnProperty('minLength') && length < schema.minLength) {
+                    exception.message('String too short. ' + util.smart(value) + ' (' + length + ') exceeds minimum length of ' + schema.minLength);
+                }
+
+                if (schema.hasOwnProperty('pattern') && !schema.pattern.test(value)) {
+                    exception.message('String does not match required pattern ' + schema.pattern + ' with value: ' + util.smart(value));
+                }
             }
-        } else if (dataTypeFormats.handlesFormat()) {
-            dataTypeFormats.validate(exception, value);
-        } else {
-            exception.message('Expected a string. Received: ' + util.smart(value));
         }
     }
 
