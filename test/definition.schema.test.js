@@ -178,7 +178,7 @@ describe.only('enforcer/schema', () => {
                         { type: 'string', default: 1 }
                     ]
                 });
-                expect(err).to.match(/Expected a string/);
+                expect(err).to.match(/Value must be a string/);
             });
 
         });
@@ -190,7 +190,7 @@ describe.only('enforcer/schema', () => {
                 expect(err).to.be.undefined;
             });
 
-            it.only('deserializes default', () => {
+            it('deserializes default', () => {
                 const [ def, err ] = Enforcer.v2_0.Schema({ type: 'string', format: 'date', default: '2000-01-01' });
                 expect(err).to.be.undefined;
                 expect(def.default).to.deep.equal(new Date('2000-01-01'));
@@ -198,7 +198,7 @@ describe.only('enforcer/schema', () => {
 
             it('must must be the same type as type specified', () => {
                 const [ , err ] = Enforcer.v2_0.Schema({ type: 'number', default: 'hello' });
-                expect(err).to.match(/Expected a number/)
+                expect(err).to.match(/Value must be a number/)
             });
 
             it('must match schema', () => {
@@ -440,7 +440,7 @@ describe.only('enforcer/schema', () => {
 
                 it('does not allow enum value with mismatched type', () => {
                     const [ , err ] = Enforcer.v2_0.Schema({ type: 'string', enum: [1] });
-                    expect(err).to.match(/Expected a string/);
+                    expect(err).to.match(/Value must be a string/);
                 });
 
             });
@@ -454,7 +454,7 @@ describe.only('enforcer/schema', () => {
 
                 it('does not allow enum value with mismatched type', () => {
                     const [ , err ] = Enforcer.v2_0.Schema({ type: 'number', enum: ['a'] });
-                    expect(err).to.match(/Expected a number/);
+                    expect(err).to.match(/Value must be a number/);
                 });
 
             });
@@ -553,22 +553,22 @@ describe.only('enforcer/schema', () => {
         describe('items', () => {
 
             it('is valid for arrays', () => {
-                const [ def, err ] = Enforcer.v2_0.Schema({ type: 'array', items: { type: 'string' } });
+                const [ , err ] = Enforcer.v2_0.Schema({ type: 'array', items: { type: 'string' } });
                 expect(err).to.be.undefined;
             });
 
             it('is required for arrays', () => {
-                const [ def, err ] = Enforcer.v2_0.Schema({ type: 'array' });
+                const [ , err ] = Enforcer.v2_0.Schema({ type: 'array' });
                 expect(err).to.match(/Missing required property: items/);
             });
 
             it('is not valid for non-arrays', () => {
-                const [ def, err ] = Enforcer.v2_0.Schema({ type: 'number', items: { type: 'string' } });
+                const [ , err ] = Enforcer.v2_0.Schema({ type: 'number', items: { type: 'string' } });
                 expect(err).to.match(/Property not allowed: items/);
             });
 
             it('cannot be a non object', () => {
-                const [ def, err ] = Enforcer.v2_0.Schema({ type: 'array', items: 'string' });
+                const [ , err ] = Enforcer.v2_0.Schema({ type: 'array', items: 'string' });
                 expect(err).to.match(/Value must be a plain object/);
             });
 
@@ -769,7 +769,7 @@ describe.only('enforcer/schema', () => {
                 const [ , err ] = Enforcer.v3_0.Schema({
                     not: { type: 'string', default: 1 }
                 });
-                expect(err).to.match(/Expected a string/);
+                expect(err).to.match(/Value must be a string/);
             });
 
         });
@@ -797,7 +797,7 @@ describe.only('enforcer/schema', () => {
                         { type: 'string', default: 1 }
                     ]
                 });
-                expect(err).to.match(/Expected a string/);
+                expect(err).to.match(/Value must be a string/);
             });
 
         });
