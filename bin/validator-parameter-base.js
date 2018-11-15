@@ -17,14 +17,24 @@
 'use strict';
 const EnforcerRef       = require('./enforcer-ref');
 
-module.exports = data => {
-    const Schema = require('./enforcers/Schema');
+const schemaProperties = ['default', 'enum', 'exclusiveMaximum', 'exclusiveMinimum', 'format', 'items',
+    'maximum', 'maxItems', 'maxLength', 'minimum', 'minItems', 'minLength', 'multipleOf',
+    'pattern', 'type', 'uniqueItems'];
+
+exports.extractSchemaDefinition = definition => {
+    const result = {};
+    schemaProperties.forEach(key => {
+        if (definition.hasOwnProperty(key)) result[key] = definition[key]
+    });
+    return result;
+};
+
+exports.validator = data => {
 
     const { major } = data;
     const result = {
         type: 'object'
     };
-    const schema = Schema.validator(data);
 
     if (major === 2) {
         result.properties = {};
@@ -39,11 +49,11 @@ module.exports = data => {
                 enum: ['csv', 'ssv', 'tsv', 'pipes'],
                 default: 'csv'
             },
-            default: schema.properties.default,
-            enum: schema.properties.enum,
-            exclusiveMaximum: schema.properties.exclusiveMaximum,
-            exclusiveMinimum: schema.properties.exclusiveMinimum,
-            format: schema.properties.format,
+            default: { allowed: true },
+            enum: { allowed: true },
+            exclusiveMaximum: { allowed: true },
+            exclusiveMinimum: { allowed: true },
+            format: { allowed: true },
             items: {
                 type: 'object',
                 allowed: ({ parent }) => parent.definition.type === 'array',
@@ -51,17 +61,18 @@ module.exports = data => {
                 properties: result.properties,
                 errors: result.errors
             },
-            maximum: schema.properties.maximum,
-            maxItems: schema.properties.maxItems,
-            maxLength: schema.properties.maxLength,
-            minimum: schema.properties.minimum,
-            minItems: schema.properties.minItems,
-            minLength: schema.properties.minLength,
-            multipleOf: schema.properties.multipleOf,
-            pattern: schema.properties.pattern,
-            uniqueItems: schema.properties.uniqueItems
+            maximum: { allowed: true },
+            maxItems: { allowed: true },
+            maxLength: { allowed: true },
+            minimum: { allowed: true },
+            minItems: { allowed: true },
+            minLength: { allowed: true },
+            multipleOf: { allowed: true },
+            pattern: { allowed: true },
+            uniqueItems: { allowed: true }
         });
-        result.errors = schema.errors;
+
+        result.errors = () => {};
 
     } else if (major === 3) {
         result.properties = {
