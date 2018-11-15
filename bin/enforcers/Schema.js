@@ -113,14 +113,24 @@ const prototype = {
      */
     validate: function(value) {
         const exception = Exception('Invalid value');
-        runValidate(exception, new Map(), this, value);
+        runValidate(exception, new Map(), this, value, {});
         if (exception.hasException) return exception;
     }
 };
 
 module.exports = {
     init: function (data) {
+        const { exception, warn } = data;
 
+        if (this.hasOwnProperty('enum')) {
+            const child = exception.at('enum');
+            this.enum = this.enum.map((value, index) => {
+                return deserializeAndValidate(this, child.at(index), value, { enum: false });
+            });
+        }
+
+        if (this.hasOwnProperty('default')) this.default = deserializeAndValidate(this, exception.at('default'), this.default, {});
+        if (this.hasOwnProperty('example')) this.example = deserializeAndValidate(this, warn.at('example'), this.example, {});
     },
 
     prototype,
@@ -176,8 +186,8 @@ module.exports = {
         const maxOrMinItems = {
             allowed: ({ parent }) => parent.definition.type === 'array',
             type: 'number',
-            errors: ({ exception, definition }) => {
-                if (!util.isInteger(definition) || definition < 0) {
+            errors: ({ exception, result }) => {
+                if (!util.isInteger(result) || result < 0) {
                     exception.message('Value must be a non-negative integer');
                 }
             }
@@ -186,8 +196,8 @@ module.exports = {
         const maxOrMinLength = {
             allowed: ({ parent }) => parent.definition.type === 'string' && !numericish(parent.result),
             type: 'number',
-            errors: ({ exception, definition }) => {
-                if (!util.isInteger(definition) || definition < 0) {
+            errors: ({ exception, result }) => {
+                if (!util.isInteger(result) || result < 0) {
                     exception.message('Value must be a non-negative integer');
                 }
             }
@@ -196,8 +206,8 @@ module.exports = {
         const maxOrMinProperties = {
             allowed: ({ parent }) => parent.definition.type === 'object',
             type: 'number',
-            errors: ({ exception, definition }) => {
-                if (!util.isInteger(definition) || definition < 0) {
+            errors: ({ exception, result }) => {
+                if (!util.isInteger(result) || result < 0) {
                     exception.message('Value must be a non-negative integer');
                 }
             }
@@ -221,15 +231,7 @@ module.exports = {
                     items: EnforcerRef('Schema')
                 },
                 default: {
-                    type: ({ parent }) => parent.definition.type,
-                    deserialize: ({ exception, parent, result }) => {
-                        const value = runDeserialize(exception, new Map(), parent.result, result);
-                        return exception.hasException ? result : value;
-                    },
-                    errors: ({ exception, parent, result }) => {
-                        runValidate(exception, new Map(), parent.result, result);
-                    },
-                    stopValidator: true
+                    type: ({ parent }) => parent.definition.type
                 },
                 deprecated: {
                     allowed: ({major}) => major === 3,
@@ -253,15 +255,15 @@ module.exports = {
                             type: 'object',
                             additionalProperties: {
                                 type: 'string',
-                                errors: ({ exception, refParser, definition }) => {
+                                errors: ({ exception, refParser, result }) => {
                                     if (refParser) {
                                         try {
-                                            const ref = rxHttp.test(definition) || definition.indexOf('/') !== -1
-                                                ? definition
-                                                : '#/components/schemas/' + definition;
+                                            const ref = rxHttp.test(result) || result.indexOf('/') !== -1
+                                                ? result
+                                                : '#/components/schemas/' + result;
                                             refParser.$refs.get(ref)
                                         } catch (err) {
-                                            exception.message('Reference cannot be resolved: ' + definition);
+                                            exception.message('Reference cannot be resolved: ' + result);
                                         }
                                     }
                                 }
@@ -293,26 +295,12 @@ module.exports = {
                     items: {
                         allowed: ({ parent }) => !!(parent && parent.parent),
                         type: ({ parent }) => parent.parent.definition.type,
-                        deserialize: ({ exception, parent, result }) => {
-                            const value = runDeserialize(exception, new Map(), parent.parent.result, result);
-                            return exception.hasException ? result : value;
-                        },
-                        errors: ({ exception, parent, result }) => {
-                            runValidate(exception, new Map(), parent.parent.result, result, { enum: false });
-                        },
-                        stopValidator: true
+                        freeForm: true
                     }
                 },
                 example: {
                     allowed: true,
-                    deserialize: ({ exception, parent, result }) => {
-                        const value = runDeserialize(exception, new Map(), parent.result, result);
-                        return exception.hasException ? result : value;
-                    },
-                    errors: ({ exception, parent, result }) => {
-                        runValidate(exception, new Map(), parent.result, result);
-                    },
-                    stopValidator: true
+                    freeForm: true
                 },
                 exclusiveMaximum: exclusive,
                 exclusiveMinimum: exclusive,
@@ -367,15 +355,15 @@ module.exports = {
                     allowed: ({ parent }) => parent.definition.type === 'string',
                     type: 'string',
                     deserialize: ({ exception, result }) => {
-                        if (!definition) {
+                        if (!result) {
                             exception.message('Value must be a non-empty string');
                             return /./;
                         } else {
                             return new RegExp(result);
                         }
                     },
-                    errors: ({ exception, definition }) => {
-                        if (!definition) exception.message('Value must be a non-empty string');
+                    errors: ({ exception, result }) => {
+                        if (!result) exception.message('Value must be a non-empty string');
                     }
                 },
                 properties: {
@@ -448,11 +436,6 @@ module.exports = {
                             exception.at('properties').at(key).message('Cannot be marked as both readOnly and writeOnly');
                         }
                     });
-                }
-
-                if (result.hasOwnProperty('default') && result.enum) {
-                    const index = result.enum.findIndex(v => util.same(v, result.default));
-                    if (index === -1) exception.message('Default result does not meet enum requirements');
                 }
 
                 // validate that zero or one composite has been defined
