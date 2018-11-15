@@ -63,11 +63,7 @@ function normalize (data) {
     try {
         // generate the plain validator object
         const validator = fn(data.validator, data);
-
-        if (validator.stopValidator) {
-            data.result = data.definition;
-            return data.result;
-        }
+        const freeForm = validator.freeForm;
 
         // if type is invalid then exit
         if (!validateType(definitionType, data)) return;
@@ -89,13 +85,13 @@ function normalize (data) {
             }
         }
 
-        if (definitionType === 'array') {
+        if (definitionType === 'array' && !freeForm) {
             definition.forEach((def, i) => {
                 const child = childData(data, i, validator.items);
                 result.push(runChildValidator(child));
             });
 
-        } else if (definitionType === 'object') {
+        } else if (definitionType === 'object' && !freeForm) {
             const missingRequired = [];
             const notAllowed = [];
             const unknownKeys = [];
@@ -200,7 +196,7 @@ function normalize (data) {
                 exception.message('Missing required propert' + (missingRequired.length === 1 ? 'y' : 'ies') + ': ' + missingRequired.join(', '));
             }
 
-        } else {
+        } else if (!freeForm) {
             switch (definitionType) {
                 case 'boolean':
                 case 'number':
@@ -211,6 +207,8 @@ function normalize (data) {
                     exception('Unknown data type provided');
                     break;
             }
+        } else {
+            data.result = definition;
         }
 
         if (validator.deserialize) {
