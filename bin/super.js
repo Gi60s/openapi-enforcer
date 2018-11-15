@@ -22,17 +22,10 @@ const Exception             = require('./exception');
 const Result                = require('./result');
 const util                  = require('./util');
 
-const store = {};
-const constructors = [];
-
 function Super (version, name, enforcer) {
     if (!enforcer) enforcer = require('./enforcers/' + name);
     return createConstructor(version, name, enforcer);
 }
-
-Super.getConstructor = function(version, name) {
-    return store[version] && store[version][name];
-};
 
 function createConstructor(version, name, enforcer) {
     const callbacks = [];
@@ -40,9 +33,9 @@ function createConstructor(version, name, enforcer) {
 
     // build the named constructor
     const F = new Function('build',
-        `const F = function ${name} (definition) {
-            if (!(this instanceof F)) return new F(definition)
-            return build(this, definition)
+        `const F = function ${name} (definition, refParser) {
+            if (!(this instanceof F)) return new F(definition, refParser)
+            return build(this, definition, refParser)
         }
         return F`
     )(build);
@@ -98,7 +91,7 @@ function createConstructor(version, name, enforcer) {
         });
     }
 
-    function build (result, definition) {
+    function build (result, definition, refParser) {
         const isStart = !definitionValidator.isValidatorState(definition);
 
         // validate the definition
@@ -118,6 +111,7 @@ function createConstructor(version, name, enforcer) {
                 parent: null,
                 patch: +(match[3] || 0),
                 plugins: [],
+                refParser,
                 result,
                 staticData,
                 validator: enforcer.validator,
