@@ -50,6 +50,7 @@ function childData(parent, key, validator) {
         plugins: parent.plugins,
         result,
         root: parent.root,
+        staticData: null,
         validator,
         warn: parent.warn.at(key),
     };
@@ -210,6 +211,12 @@ function normalize (data) {
                     exception('Unknown data type provided');
                     break;
             }
+        }
+
+        if (validator.deserialize) {
+            const d = Object.assign({}, data);
+            d.definition = data.result;
+            data.result = validator.deserialize(d);
         }
 
         // run custom error validation check

@@ -90,9 +90,9 @@ function createConstructor(version, name, enforcer) {
         callbacks.push(callback);
     };
 
-    let scope = {};
+    const staticData = {};
     if (enforcer.statics) {
-        const exported = enforcer.statics(scope);
+        const exported = enforcer.statics(staticData);
         Object.keys(exported).forEach(key => {
             F[key] = exported[key];
         });
@@ -119,6 +119,7 @@ function createConstructor(version, name, enforcer) {
                 patch: +(match[3] || 0),
                 plugins: [],
                 result,
+                staticData,
                 validator: enforcer.validator,
                 warn: Exception('One or more warnings exist in the ' + name + ' definition'),
             };
@@ -126,9 +127,13 @@ function createConstructor(version, name, enforcer) {
 
         } else {
             data = definition;
+            data.staticData = staticData;
             data.validator = enforcer.validator;
             data.result = result;
         }
+
+        // store the full set of enforcer data
+        store.set(result, data);
 
         if (util.isPlainObject(data.definition)) {
             definitionValidator(data);
@@ -139,11 +144,8 @@ function createConstructor(version, name, enforcer) {
         // if an exception has occurred then exit now
         if (data.exception.hasException && isStart) return new Result(undefined, data.exception, data.warn);
 
-        // store the full set of enforcer data
-        store.set(result, data);
-
         // run the construct function if present
-        if (enforcer.init) enforcer.init.call(result, data, scope);
+        if (enforcer.init) enforcer.init.call(result, data);
 
         // add plugin callbacks to this instance
         const plugins = data.plugins;
