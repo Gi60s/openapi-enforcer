@@ -31,7 +31,7 @@ exports.willReject = async function(callback, error) {
         .then(
             () => { throw Error('Expected a rejection'); },
             err => {
-                console.error(err.stack);
+                // console.error(err.stack);
                 expect(err.toString()).to.match(error)
             }
         )
