@@ -22,138 +22,108 @@ const util          = require('../util');
 const Value         = require('../value');
 
 const rxHttp = /^https?:\/\//;
-const store = new WeakMap();
+
+const prototype = {
+
+    /**
+     * Take a serialized (ready for HTTP transmission) value and deserialize it.
+     * Converts strings of binary, byte, date, and date-time to JavaScript equivalents.
+     * @param {*} value
+     * @returns {{ error: Exception|null, value: * }}
+     */
+    deserialize: function(value) {
+        const exception = Exception('Unable to deserialize value');
+        const result = runDeserialize(exception, new Map(), this, value);
+        return new Result(result, exception);
+    },
+
+    /**
+     * Get discriminator key and schema.
+     * @param {*} value
+     * @returns {{ key: string, schema: Schema }}
+     */
+    getDiscriminator: function(value) {
+        const { definition, enforcer } = store.get(this);   // TODO: get rid of this, the values exist on the prototype
+        const version = enforcer.version;
+        if (version === 2) {
+            const discriminator = definition.discriminator;
+            const key = discriminator && value && value.hasOwnProperty(discriminator) ? value[discriminator] : undefined;
+            if (!key) return { key: undefined, schema: undefined };
+            const schema = enforcer.definition && enforcer.definition.definitions && enforcer.definition.definitions[key];
+            return { key, schema };
+
+        } else if (version === 3) {
+            const discriminator = definition.discriminator;
+            const key = discriminator && value && value.hasOwnProperty(discriminator.propertyName) ? value[discriminator.propertyName] : undefined;
+            if (!key) return { key: undefined, schema: undefined };
+
+            const mapping = discriminator.mapping;
+            const schema = mapping && mapping[key];
+            return { key, schema };
+        }
+    },
+
+    /**
+     * Populate a value from a list of parameters.
+     * @param {object} params
+     * @param {*} [value]
+     * @param {object} [options]
+     * @param {boolean} [options.copy=false]
+     * @param {boolean} [options.conditions=true]
+     * @param {boolean} [options.defaults=true]
+     * @param {string} [options.replacement='handlebar']
+     * @param {boolean} [options.reportErrors=false]
+     * @param {boolean} [options.templateDefaults=true]
+     * @param {boolean} [options.templates=true]
+     * @param {boolean} [options.variables=true]
+     * @returns {{ error: Exception|null, value: * }}
+     */
+    populate: function(params, value, options) {
+        // return populate.populate(this, params, value, options);
+    },
+
+    /**
+     * Produce a random value for the schema.
+     * @param {*} value An initial value to add random values to.
+     * @param {object} [options]
+     * @param {boolean} [options.skipInvalid=false]
+     * @param {boolean} [options.throw=true]
+     * @returns {{ error: Exception|null, value: * }}
+     */
+    random: function(value, options) {
+        //return random(this, value, options);
+    },
+
+    /**
+     * Take a deserialized (not ready for HTTP transmission) value and serialize it.
+     * Converts Buffer and Date objects into string equivalent.
+     * @param value
+     * @returns {*}
+     */
+    serialize: function(value) {
+        const exception = Exception('Unable to serialize value');
+        const result = runSerialize(exception, new Map(), this, value);
+        return new Result(result, exception);
+    },
+
+    /**
+     * Check to see if the value is valid for this schema.
+     * @param {*} value
+     * @returns {Exception|undefined}
+     */
+    validate: function(value) {
+        const exception = Exception('Invalid value');
+        runValidate(exception, new Map(), this, value);
+        if (exception.hasException) return exception;
+    }
+};
 
 module.exports = {
-    init: function ({ exception, result, warn }, scope) {
-        store.set(this, scope);
+    init: function (data) {
 
-        // deserialize and validate enum values
-        if (result.hasOwnProperty('enum')) {
-            const child = exception.at('enum');
-            const errorsAt = {};
-
-            // first deserialize all enum
-            result.enum = result.enum.map((value, index) => {
-                let error;
-                [ value, error] = this.deserialize(value);
-                if (error) {
-                    child.at(index).push(error);
-                    errorsAt[index] = true;
-                }
-                return value;
-            });
-
-            // once all deserialized then validate each
-            result.enum.forEach((value, index) => {
-                if (!errorsAt[index]) {
-                    const err = this.validate(value);
-                    if (err) child.at(index).push(err);
-                }
-            });
-        }
-
-        // validate the default value
-        if (result.hasOwnProperty('default')) result.default = deserializeAndValidate(this, exception.at('default'), result.default);
-
-        // validate the example
-        if (result.hasOwnProperty('example')) result.example = deserializeAndValidate(this, warn.at('example'), result.example);
     },
 
-    prototype: {
-
-        /**
-         * Take a serialized (ready for HTTP transmission) value and deserialize it.
-         * Converts strings of binary, byte, date, and date-time to JavaScript equivalents.
-         * @param {*} value
-         * @returns {{ error: Exception|null, value: * }}
-         */
-        deserialize: function(value) {
-            const exception = Exception('Unable to deserialize value');
-            const result = runDeserialize(exception, new Map(), this, value);
-            return new Result(result, exception);
-        },
-
-        /**
-         * Get discriminator key and schema.
-         * @param {*} value
-         * @returns {{ key: string, schema: Schema }}
-         */
-        getDiscriminator: function(value) {
-            const { definition, enforcer } = store.get(this);   // TODO: get rid of this, the values exist on the prototype
-            const version = enforcer.version;
-            if (version === 2) {
-                const discriminator = definition.discriminator;
-                const key = discriminator && value && value.hasOwnProperty(discriminator) ? value[discriminator] : undefined;
-                if (!key) return { key: undefined, schema: undefined };
-                const schema = enforcer.definition && enforcer.definition.definitions && enforcer.definition.definitions[key];
-                return { key, schema };
-
-            } else if (version === 3) {
-                const discriminator = definition.discriminator;
-                const key = discriminator && value && value.hasOwnProperty(discriminator.propertyName) ? value[discriminator.propertyName] : undefined;
-                if (!key) return { key: undefined, schema: undefined };
-
-                const mapping = discriminator.mapping;
-                const schema = mapping && mapping[key];
-                return { key, schema };
-            }
-        },
-
-        /**
-         * Populate a value from a list of parameters.
-         * @param {object} params
-         * @param {*} [value]
-         * @param {object} [options]
-         * @param {boolean} [options.copy=false]
-         * @param {boolean} [options.conditions=true]
-         * @param {boolean} [options.defaults=true]
-         * @param {string} [options.replacement='handlebar']
-         * @param {boolean} [options.reportErrors=false]
-         * @param {boolean} [options.templateDefaults=true]
-         * @param {boolean} [options.templates=true]
-         * @param {boolean} [options.variables=true]
-         * @returns {{ error: Exception|null, value: * }}
-         */
-        populate: function(params, value, options) {
-            // return populate.populate(this, params, value, options);
-        },
-
-        /**
-         * Produce a random value for the schema.
-         * @param {*} value An initial value to add random values to.
-         * @param {object} [options]
-         * @param {boolean} [options.skipInvalid=false]
-         * @param {boolean} [options.throw=true]
-         * @returns {{ error: Exception|null, value: * }}
-         */
-        random: function(value, options) {
-            //return random(this, value, options);
-        },
-
-        /**
-         * Take a deserialized (not ready for HTTP transmission) value and serialize it.
-         * Converts Buffer and Date objects into string equivalent.
-         * @param value
-         * @returns {*}
-         */
-        serialize: function(value) {
-            const exception = Exception('Unable to serialize value');
-            const result = runSerialize(exception, new Map(), this, value);
-            return new Result(result, exception);
-        },
-
-        /**
-         * Check to see if the value is valid for this schema.
-         * @param {*} value
-         * @returns {Exception|undefined}
-         */
-        validate: function(value) {
-            const exception = Exception('Invalid value');
-            runValidate(exception, new Map(), this, value);
-            if (exception.hasException) return exception;
-        }
-    },
+    prototype,
 
     statics: function (scope) {
         const dataTypes = scope.dataTypes = {
@@ -175,7 +145,7 @@ module.exports = {
                     || (definition.random &&  typeof definition.random !== 'function')) throw Error('Invalid data type definition. Must be an object that defines handlers for "deserialize", "serialize", and "validate" with optional "random" handler.');
 
                 // store the definition
-                dataTypes[type][format] = definition;
+                dataTypes[type][format] = Object.assign({}, definition, { type, format });
             }
         }
     },
@@ -184,12 +154,23 @@ module.exports = {
         const { major } = data;
 
         const exclusive = {
+            allowed: ({ parent }) => {
+                return numericish(parent.result);
+            },
             type: 'boolean'
         };
 
         const maxOrMin = {
-            allowed: ({ parent }) => numericish(parent.definition),
-            type: ({ parent }) => dateType(parent.definition) ? 'string' : 'number'
+            weight: -8,
+            allowed: ({ parent }) => numericish(parent.result),
+            type: ({ parent }) => numericType(parent.result),
+            deserialize: ({ exception, parent, result }) => {
+                const value = runDeserialize(exception, new Map(), parent.result, result);
+                return exception.hasException ? result : value;
+            },
+            errors: ({ exception, parent, result }) => {
+                runValidate(exception, new Map(), parent.result, result, { maxMin: false })
+            }
         };
 
         const maxOrMinItems = {
@@ -203,7 +184,7 @@ module.exports = {
         };
 
         const maxOrMinLength = {
-            allowed: ({ parent }) => parent.definition.type === 'string' && !dateType(parent.definition),
+            allowed: ({ parent }) => parent.definition.type === 'string' && !numericish(parent.result),
             type: 'number',
             errors: ({ exception, definition }) => {
                 if (!util.isInteger(definition) || definition < 0) {
@@ -225,15 +206,6 @@ module.exports = {
         return {
             type: 'object',
             properties: {
-                type: {
-                    type: 'string',
-                    required: ({ parent }) => {
-                        const v = parent.definition;
-                        return !v.hasOwnProperty('allOf') && !v.hasOwnProperty('anyOf') &&
-                            !v.hasOwnProperty('not') && !v.hasOwnProperty('oneOf');
-                    },
-                    enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
-                },
                 additionalProperties: EnforcerRef('Schema', {
                     allowed: ({parent}) => parent.definition.type === 'object',
                     type: ['boolean', 'object'],    // either boolean or object
@@ -250,6 +222,13 @@ module.exports = {
                 },
                 default: {
                     type: ({ parent }) => parent.definition.type,
+                    deserialize: ({ exception, parent, result }) => {
+                        const value = runDeserialize(exception, new Map(), parent.result, result);
+                        return exception.hasException ? result : value;
+                    },
+                    errors: ({ exception, parent, result }) => {
+                        runValidate(exception, new Map(), parent.result, result);
+                    },
                     stopValidator: true
                 },
                 deprecated: {
@@ -309,21 +288,37 @@ module.exports = {
                     }
                 },
                 enum: {
+                    weight: -7,
                     type: 'array',
                     items: {
                         allowed: ({ parent }) => !!(parent && parent.parent),
                         type: ({ parent }) => parent.parent.definition.type,
+                        deserialize: ({ exception, parent, result }) => {
+                            const value = runDeserialize(exception, new Map(), parent.parent.result, result);
+                            return exception.hasException ? result : value;
+                        },
+                        errors: ({ exception, parent, result }) => {
+                            runValidate(exception, new Map(), parent.parent.result, result, { enum: false });
+                        },
                         stopValidator: true
                     }
                 },
                 example: {
                     allowed: true,
+                    deserialize: ({ exception, parent, result }) => {
+                        const value = runDeserialize(exception, new Map(), parent.result, result);
+                        return exception.hasException ? result : value;
+                    },
+                    errors: ({ exception, parent, result }) => {
+                        runValidate(exception, new Map(), parent.result, result);
+                    },
                     stopValidator: true
                 },
                 exclusiveMaximum: exclusive,
                 exclusiveMinimum: exclusive,
                 externalDocs: EnforcerRef('ExternalDocumentation'),
                 format: {
+                    weight: -9,
                     allowed: ({ parent }) => ['integer', 'number', 'string'].includes(parent.definition.type),
                     type: 'string',
                     errors: ({ exception, parent, warn }) => {
@@ -371,6 +366,14 @@ module.exports = {
                 pattern: {
                     allowed: ({ parent }) => parent.definition.type === 'string',
                     type: 'string',
+                    deserialize: ({ exception, result }) => {
+                        if (!definition) {
+                            exception.message('Value must be a non-empty string');
+                            return /./;
+                        } else {
+                            return new RegExp(result);
+                        }
+                    },
                     errors: ({ exception, definition }) => {
                         if (!definition) exception.message('Value must be a non-empty string');
                     }
@@ -396,6 +399,16 @@ module.exports = {
                     items: 'string'
                 },
                 title: 'string',
+                type: {
+                    weight: -10,
+                    type: 'string',
+                    required: ({ parent }) => {
+                        const v = parent.definition;
+                        return !v.hasOwnProperty('allOf') && !v.hasOwnProperty('anyOf') &&
+                            !v.hasOwnProperty('not') && !v.hasOwnProperty('oneOf');
+                    },
+                    enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
+                },
                 uniqueItems: {
                     allowed: ({parent}) => parent.definition.type === 'array',
                     type: 'boolean'
@@ -409,43 +422,43 @@ module.exports = {
             },
 
             errors: (data) => {
-                const { exception, definition } = data;
+                const { exception, result } = data;
 
-                if (!minMaxValid(definition.minItems, definition.maxItems)) {
+                if (!minMaxValid(result.minItems, result.maxItems)) {
                     exception.message('Property "minItems" must be less than or equal to "maxItems"');
                 }
 
-                if (!minMaxValid(definition.minLength, definition.maxLength)) {
+                if (!minMaxValid(result.minLength, result.maxLength)) {
                     exception.message('Property "minLength" must be less than or equal to "maxLength"');
                 }
 
-                if (!minMaxValid(definition.minProperties, definition.maxProperties)) {
+                if (!minMaxValid(result.minProperties, result.maxProperties)) {
                     exception.message('Property "minProperties" must be less than or equal to "maxProperties"');
                 }
 
-                if (!minMaxValid(definition.minimum, definition.maximum, definition.exclusiveMinimum, definition.exclusiveMaximum)) {
-                    const msg = definition.exclusiveMinimum || definition.exclusiveMaximum ? '' : 'or equal to ';
+                if (!minMaxValid(result.minimum, result.maximum, result.exclusiveMinimum, result.exclusiveMaximum)) {
+                    const msg = result.exclusiveMinimum || result.exclusiveMaximum ? '' : 'or equal to ';
                     exception.message('Property "minimum" must be less than ' + msg + '"maximum"');
                 }
 
-                if (definition.hasOwnProperty('properties')) {
-                    Object.keys(definition.properties).forEach(key => {
-                        const v = definition.properties[key];
+                if (result.hasOwnProperty('properties')) {
+                    Object.keys(result.properties).forEach(key => {
+                        const v = result.properties[key];
                         if (v.readOnly && v.writeOnly) {
                             exception.at('properties').at(key).message('Cannot be marked as both readOnly and writeOnly');
                         }
                     });
                 }
 
-                if (definition.hasOwnProperty('default') && definition.enum) {
-                    const index = definition.enum.findIndex(v => util.same(v, definition.default));
-                    if (index === -1) exception.message('Default definition does not meet enum requirements');
+                if (result.hasOwnProperty('default') && result.enum) {
+                    const index = result.enum.findIndex(v => util.same(v, result.default));
+                    if (index === -1) exception.message('Default result does not meet enum requirements');
                 }
 
                 // validate that zero or one composite has been defined
                 const composites = [];
                 ['allOf', 'anyOf', 'oneOf', 'not'].forEach(composite => {
-                    if (definition.hasOwnProperty(composite)) composites.push(composite);
+                    if (result.hasOwnProperty(composite)) composites.push(composite);
                 });
                 if (composites.length > 1) {
                     exception.message('Cannot have multiple composites: ' + composites.join(', '));
@@ -572,7 +585,7 @@ function runDeserialize(exception, map, schema, originalValue) {
         }
 
     } else {
-        const { dataTypes } = store.get(schema);
+        const dataTypes = schema.enforcerData.staticData.dataTypes;
         const dataType = dataTypes[schema.type][schema.format] || { deserialize: function({ value }) { return value } };
 
         if (type === 'boolean') {
@@ -733,7 +746,7 @@ function runSerialize(exception, map, schema, originalValue) {
         }
 
     } else {
-        const { dataTypes } = store.get(schema);
+        const dataTypes = schema.enforcerData.staticData.dataTypes;
         const dataType = dataTypes[schema.type][schema.format] || { serialize: function({ value }) { return value } };
 
         if (type === 'boolean') {
@@ -804,31 +817,16 @@ function runSerialize(exception, map, schema, originalValue) {
     }
 }
 
-function dateType(definition) {
-    return definition.type === 'string' && definition.format && definition.format.startsWith('date')
-}
-
-function deserializeAndValidate(schema, exception, value) {
+function deserializeAndValidate(schema, exception, value, options) {
     let error;
     [ value, error ] = schema.deserialize(value);
-    if (!error) error = schema.validate(value);
+    if (!error) {
+        const exception = Exception('Invalid value');
+        runValidate(exception, new Map(), schema, value, options);
+        if (exception.hasException) error = exception;
+    }
     if (error) exception.push(error);
     return value;
-}
-
-function deserializeDate(definition, exception, value) {
-    if (dateType(definition)) {
-        if (!rx[definition.format].test(value)) {
-            exception.message('Value must be formatted as a ' + definition.format);
-            return value;
-        } else {
-            const date = util.getDateFromValidDateString(definition.format, value);
-            if (!date) exception.message('Value is not a valid ' + definition.format);
-            return date;
-        }
-    } else {
-        return value;
-    }
 }
 
 function isSchemaProperty({ parent }) {
@@ -869,11 +867,33 @@ function minMaxValid(minimum, maximum, exclusiveMinimum, exclusiveMaximum) {
     return minimum < maximum || (!exclusiveMinimum && !exclusiveMaximum && minimum === maximum);
 }
 
-function numericish(definitiion) {
-    return ['number', 'integer'].includes(definitiion.type) || dateType(definitiion);
+function numericish(schema) {
+    if (['number', 'integer'].includes(schema.type)) return true;
+    const dataTypes = schema.enforcerData.staticData.dataTypes;
+    const dataType = dataTypes[schema.type] && dataTypes[schema.type][schema.format];
+    return !!(dataType && dataType.isNumeric);
 }
 
-function runValidate(exception, map, schema, originalValue) {
+function numericType (schema) {
+    const dataTypes = schema.enforcerData.staticData.dataTypes;
+    const dataType = dataTypes[schema.type] && dataTypes[schema.type][schema.format];
+    if (dataType && dataType.isNumeric) {
+        switch (schema.type) {
+            case 'boolean':
+                return 'boolean';
+            case 'string':
+                return 'string';
+            case 'integer':
+            case 'number':
+            default:
+                return 'number';
+        }
+    } else {
+        return 'number';
+    }
+}
+
+function runValidate(exception, map, schema, originalValue, options) {
     const { validate, value } = Value.getAttributes(originalValue);
     if (!validate) return originalValue;
 
@@ -897,7 +917,7 @@ function runValidate(exception, map, schema, originalValue) {
     if (schema.allOf) {
         const child = exception.nest('Did not validate against allOf schemas');
         schema.allOf.forEach((subSchema, index) => {
-            runValidate(child.at(index), map, subSchema, originalValue);
+            runValidate(child.at(index), map, subSchema, originalValue, options);
         });
 
     } else if (schema.anyOf) {
@@ -908,7 +928,7 @@ function runValidate(exception, map, schema, originalValue) {
             if (!subSchema) {
                 exception.message('Discriminator property "' + key + '" as "' + value[key] + '" did not map to a schema');
             } else {
-                runValidate(exception.at(value[key]), map, subSchema, value);
+                runValidate(exception.at(value[key]), map, subSchema, value, options);
             }
         } else {
             const anyOfException = Exception('Did not validate against one or more anyOf schemas');
@@ -916,7 +936,7 @@ function runValidate(exception, map, schema, originalValue) {
             let valid = false;
             for (let i = 0; i < length; i++) {
                 const child = anyOfException.at(i);
-                runValidate(child, map, schema.anyOf[i], value);
+                runValidate(child, map, schema.anyOf[i], value, options);
                 if (!child.hasException) {
                     valid = true;
                     break;
@@ -933,7 +953,7 @@ function runValidate(exception, map, schema, originalValue) {
             if (!subSchema) {
                 exception.message('Discriminator property "' + key + '" as "' + value[key] + '" did not map to a schema');
             } else {
-                runValidate(exception.at(value[key]), map, subSchema, value);
+                runValidate(exception.at(value[key]), map, subSchema, value, options);
             }
         } else {
             const oneOfException = Exception('Did not validate against exactly one oneOf schema');
@@ -941,7 +961,7 @@ function runValidate(exception, map, schema, originalValue) {
             let valid = 0;
             for (let i = 0; i < length; i++) {
                 const child = Exception('Did not validate against schema at index ' + i);
-                runValidate(child, map, schema.oneOf[i], value);
+                runValidate(child, map, schema.oneOf[i], value, options);
                 if (!child.hasException) {
                     valid++;
                     oneOfException('Validated against schema at index ' + i);
@@ -954,7 +974,7 @@ function runValidate(exception, map, schema, originalValue) {
 
     } else if (schema.not) {
         const child = Exception('');
-        runValidate(child, map, schema, value);
+        runValidate(child, map, schema, value, options);
         if (!child.hasException) exception.message('Value should not validate against schema');
 
     } else if (type === 'array') {
@@ -985,7 +1005,7 @@ function runValidate(exception, map, schema, originalValue) {
             }
             if (schema.items) {
                 value.forEach((val, index) => {
-                    runValidate(exception.at(index), map, schema.items, val);
+                    runValidate(exception.at(index), map, schema.items, val, options);
                 });
             }
         }
@@ -1005,12 +1025,12 @@ function runValidate(exception, map, schema, originalValue) {
                 const index = required.indexOf(key);
                 if (index !== -1) required.splice(index, 1);
                 if (properties.hasOwnProperty(key)) {
-                    runValidate(knownPropertyException.at(key), map, properties[key], value[key]);
+                    runValidate(knownPropertyException.at(key), map, properties[key], value[key], options);
                 } else {
                     if (schema.additionalProperties === false) {
                         exception.message('Property not allowed: ' + key);
                     } else if (typeof schema.additionalProperties === 'object') {
-                        runValidate(additionalPropertyException.at(key), map, schema.additionalProperties, value[key]);
+                        runValidate(additionalPropertyException.at(key), map, schema.additionalProperties, value[key], options);
                     }
                 }
             });
@@ -1027,7 +1047,7 @@ function runValidate(exception, map, schema, originalValue) {
             if (schema.discriminator) {
                 const discriminatorSchema = version.getDiscriminatorSchema(schema, value);
                 if (discriminatorSchema) {
-                    runValidate(exception, map, discriminatorSchema, value);
+                    runValidate(exception, map, discriminatorSchema, value, options);
                 } else {
                     exception.message('Unable to map discriminator schema');
                 }
@@ -1035,7 +1055,7 @@ function runValidate(exception, map, schema, originalValue) {
         }
 
     } else {
-        const { dataTypes } = store.get(schema);
+        const dataTypes = schema.enforcerData.staticData.dataTypes;
         const dataType = dataTypes[schema.type][schema.format] || { validate: null };
 
         if (dataType.validate) {
@@ -1048,7 +1068,9 @@ function runValidate(exception, map, schema, originalValue) {
             if (isNaN(value) || Math.round(value) !== value || typeof value !== 'number') {
                 exception.message('Expected an integer. Received: ' + util.smart(value));
             } else {
-                maxMin(exception, schema, 'integer', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
+                if (options.maxMin !== false) {
+                    maxMin(exception, schema, 'integer', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
+                }
                 if (schema.multipleOf && value % schema.multipleOf !== 0) {
                     exception.message('Expected a multiple of ' + schema.multipleOf + '. Received: ' + util.smart(value));
                 }
@@ -1058,7 +1080,9 @@ function runValidate(exception, map, schema, originalValue) {
             if (isNaN(value) || typeof value !== 'number') {
                 exception.message('Expected a number. Received: ' + util.smart(value));
             } else {
-                maxMin(exception, schema, 'number', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
+                if (options.maxMin !== false) {
+                    maxMin(exception, schema, 'number', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
+                }
                 if (schema.multipleOf && value % schema.multipleOf !== 0) {
                     exception.message('Expected a multiple of ' + schema.multipleOf + '. Received: ' + util.smart(value));
                 }
@@ -1085,7 +1109,7 @@ function runValidate(exception, map, schema, originalValue) {
     }
 
     // enum validation
-    if (schema.enum) {
+    if (schema.enum && options.enum !== false) {
         const length = schema.enum.length;
         let found;
         for (let i = 0; i < length; i++) {
