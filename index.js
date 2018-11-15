@@ -61,7 +61,7 @@ async function Enforcer(definition, options) {
             const validator = major === 2
                 ? Enforcer.v2_0.Swagger
                 : Enforcer.v3_0.OpenApi;
-            [ openapi, exception, warnings ] = validator(definition);
+            [ openapi, exception, warnings ] = validator(definition, refParser);
         }
     }
 
@@ -71,13 +71,17 @@ async function Enforcer(definition, options) {
     return openapi;
 }
 
-Enforcer.enforcer = Enforcer;
+Enforcer.dereference = function (definition) {
+    const refParser = new RefParser();
+    return refParser.dereference(definition);
+};
+
+Enforcer.Enforcer = Enforcer;
 
 const v2_0 = Enforcer.v2_0 = {};
 Object.defineProperty(v2_0, 'version', { value: '2.0' });
 Object.assign(v2_0, {
     Contact: Super(v2_0, 'Contact'),
-    Discriminator: Super(v2_0, 'Discriminator'),
     Example: Super(v2_0, 'Example'),
     ExternalDocumentation: Super(v2_0, 'ExternalDocumentation'),
     Header: Super(v2_0, 'Header'),
@@ -105,7 +109,6 @@ Object.assign(v3_0, {
     Callback: Super(v3_0, 'Callback'),
     Components: Super(v3_0, 'Components'),
     Contact: Super(v3_0, 'Contact'),
-    Discriminator: Super(v3_0, 'Discriminator'),
     Encoding: Super(v3_0, 'Encoding'),
     Example: Super(v3_0, 'Example'),
     ExternalDocumentation: Super(v3_0, 'ExternalDocumentation'),
