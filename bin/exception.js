@@ -64,8 +64,15 @@ OpenAPIException.prototype.at = function (key) {
 };
 
 OpenAPIException.prototype.clearCache = function () {
+    const children = this.children;
+    const at = children.at;
+    const emit = arguments.length ? arguments[0] : true;
+
+    Object.keys(at).forEach(key => at[key].clearCache(false));
+    children.nest.forEach(child => child.clearCache(false));
     this.cache = undefined;
-    this.emit('cache-clear');
+
+    if (emit) this.emit('cache-clear');
     return this;
 };
 
@@ -73,7 +80,6 @@ OpenAPIException.prototype.nest = function (header) {
     const exception = new OpenAPIException(header);
     exception.on('cache-clear', () => this.clearCache());
     this.children.nest.push(exception);
-    this.clearCache();
     return exception;
 };
 
@@ -81,6 +87,7 @@ OpenAPIException.prototype.merge = function (exception) {
     const thisChildren = this.children;
     const thatChildren = exception.children;
     const at = thisChildren.at;
+    let addedMessage = false;
 
     Object.keys(thatChildren.at).forEach(key => {
         if (!at[key]) {
@@ -91,8 +98,15 @@ OpenAPIException.prototype.merge = function (exception) {
         }
     });
 
-    thatChildren.nest.forEach(exception => thisChildren.nest.push(exception));
-    thatChildren.message.forEach(message => thisChildren.message.push(message));
+    thatChildren.nest.forEach(exception => {
+        thisChildren.nest.push(exception);
+    });
+    thatChildren.message.forEach(message => {
+        thisChildren.message.push(message);
+        addedMessage = true;
+    });
+
+    if (addedMessage) this.clearCache();
 };
 
 OpenAPIException.prototype.message = function (message) {
