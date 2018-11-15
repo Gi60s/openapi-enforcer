@@ -16,22 +16,24 @@
  **/
 'use strict';
 
-module.exports = enforcer;
+module.exports = Enforcer;
 
 const dataTypeFormats       = require('./bin/data-type-formats');
+const Exception             = require('./bin/exception');
 const freeze                = require('./bin/freeze');
 const RefParser             = require('json-schema-ref-parser');
 const Super                 = require('./bin/super');
+const util                  = require('./bin/util');
 
 /**
- * Create an enforcer instance.
+ * Create an Enforcer instance.
  * @param {object} definition
  * @param {object} [options]
  * @param {boolean} [options.freeze=true] Whether to freeze the result object to prevent modification.
  * @param {boolean} [options.hideWarnings=false] Set to true to hide warnings from the console.
  * @returns {Promise<OpenApiEnforcer>}
  */
-async function enforcer(definition, options) {
+async function Enforcer(definition, options) {
     let openapi;
     let warnings;
 
@@ -69,9 +71,9 @@ async function enforcer(definition, options) {
     return openapi;
 }
 
-enforcer.enforcer = enforcer;
+Enforcer.enforcer = Enforcer;
 
-const v2_0 = enforcer.v2_0 = {};
+const v2_0 = Enforcer.v2_0 = {};
 Object.defineProperty(v2_0, 'version', { value: '2.0' });
 Object.assign(v2_0, {
     Contact: Super(v2_0, 'Contact'),
@@ -97,7 +99,7 @@ Object.assign(v2_0, {
     Xml: Super(v2_0, 'Xml')
 });
 
-const v3_0 = enforcer.v3_0 = {};
+const v3_0 = Enforcer.v3_0 = {};
 Object.defineProperty(v3_0, 'version', { value: '3.0' });
 Object.assign(v3_0, {
     Callback: Super(v3_0, 'Callback'),
@@ -132,15 +134,15 @@ Object.assign(v3_0, {
     Xml: Super(v3_0, 'Xml')
 });
 
-enforcer.Value = require('./bin/value');
+Enforcer.Value = require('./bin/value');
 
 
-enforcer.v2_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
-enforcer.v2_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
-enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
-enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date-time', dataTypeFormats.dateTime);
+Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
+Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
+Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
+Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date-time', dataTypeFormats.dateTime);
 
-enforcer.v3_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
-enforcer.v3_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
-enforcer.v3_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
-enforcer.v3_0.Schema.defineDataTypeFormat('string', 'date-time', dataTypeFormats.dateTime);
+Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
+Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
+Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
+Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'date-time', dataTypeFormats.dateTime);
