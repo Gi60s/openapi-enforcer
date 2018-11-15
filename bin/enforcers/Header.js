@@ -15,35 +15,40 @@
  *    limitations under the License.
  **/
 'use strict';
-const EnforcerRef  = require('../enforcer-ref');
+const base          = require('../validator-parameter-base');
+const EnforcerRef   = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
-
+        const { context, exception, major, warn } = data;
+        if (major === 2) {
+            const def = base.extractSchemaDefinition(this);
+            const [schema, error, warning] = context.Schema(def);
+            if (schema) this.schema = schema;
+            if (error) exception.merge(error);
+            if (warning) warn.merge(warning);
+        }
     },
 
     prototype: {},
 
     validator: function (data) {
         const { major } = data;
-        const Base = require('../validator-parameter-base');
-        const base = Base(data);
-        return {
-            type: 'object',
-            properties: Object.assign({}, base.properties, {
-                required: {
-                    type: 'boolean',
-                    default: false
-                },
-                style: {
-                    weight: -5,
-                    allowed: major === 3,
-                    type: 'string',
-                    default: 'simple',
-                    enum: ['simple']
-                }
-            }),
-            errors: base.errors
-        }
+        const validator = base.validator(data);
+
+        validator.properties.required = {
+            type: 'boolean',
+            default: false
+        };
+
+        validator.properties.style = {
+            weight: -5,
+            allowed: major === 3,
+            type: 'string',
+            default: 'simple',
+            enum: ['simple']
+        };
+
+        return validator;
     }
 };

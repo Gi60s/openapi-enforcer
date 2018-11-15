@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const Base          = require('../validator-parameter-base');
 const EnforcerRef   = require('../enforcer-ref');
 const Exception     = require('../exception');
 const Result        = require('../result');
@@ -23,9 +24,6 @@ const Value         = require('../value');
 const rxFalse = /^false/i;
 const rxTrue = /^true$/i;
 const rxLabel = /^\./;
-const schemaProperties = ['default', 'enum', 'exclusiveMaximum', 'exclusiveMinimum', 'format', 'items',
-    'maximum', 'maxItems', 'maxLength', 'minimum', 'minItems', 'minLength', 'multipleOf',
-    'pattern', 'type', 'uniqueItems'];
 
 module.exports = {
     init: function (data) {
@@ -39,15 +37,12 @@ module.exports = {
         if (major === 2 && definition.in !== 'body') {
 
             // TODO: type might be file which is not really supported in Schema - shouldn't be a problem but I need to test it
-            const def = {};
-            schemaProperties.forEach(key => {
-                if (definition.hasOwnProperty(key)) def[key] = definition[key]
-            });
+            const def = Base.extractSchemaDefinition(this);
             if (def.type === 'file') def.type = 'string';
-            const [ schema, error, warning ] = new context.Schema(def);
+            const [ schema, err, warning ] = new context.Schema(def);
             if (schema) this.schema = schema;
-            if (error) exception.at('schema').merge(error);
-            if (warning) warn.at('schema').merge(warning);
+            if (err) exception.merge(err);
+            if (warning) warn.merge(warning);
 
             // v3 - set schema from content schema
         } else if (major === 3 && definition.content) {
@@ -242,9 +237,8 @@ module.exports = {
     },
 
     validator: function (data) {
-        const Base      = require('../validator-parameter-base');
         const { major } = data;
-        const base = Base(data);
+        const base = Base.validator(data);
         return {
             type: 'object',
             properties: Object.assign({}, base.properties, {
@@ -282,6 +276,7 @@ module.exports = {
                     }
                 },
                 format: {
+                    weight: -9,
                     allowed: ({ major, parent }) => major === 2 && ['file', 'integer', 'number', 'string'].includes(parent.definition.type),
                     type: 'string',
                     errors: ({ exception, parent, warn }) => {
@@ -299,7 +294,7 @@ module.exports = {
                     }
                 },
                 in: {
-                    weight: -10,
+                    weight: -20,
                     required: true,
                     type: 'string',
                     enum: ({major}) => major === 2
@@ -320,7 +315,7 @@ module.exports = {
                     allowed: ({ parent}) => major === 3 || parent.definition.in === 'body'
                 }),
                 style: {
-                    weight: -5,
+                    weight: -19,
                     allowed: major === 3,
                     type: 'string',
                     default: ({ parent }) => {
@@ -354,7 +349,7 @@ module.exports = {
                     }
                 },
                 type: {
-                    weight: -5,
+                    weight: -10,
                     allowed: ({major, parent}) => {
                         return major === 2 && parent.definition.in !== 'body'},
                     required: true,
