@@ -48,6 +48,7 @@ function childData(parent, key, validator) {
         parent,
         patch: parent.patch,
         plugins: parent.plugins,
+        refParser: parent.refParser,
         result,
         root: parent.root,
         staticData: null,
@@ -120,7 +121,7 @@ function normalize (data) {
                         }
                     }
 
-                    if (valueSet && keyValidator.errors) {
+                    if (valueSet && keyValidator.errors && keyValidator !== child.validator) {
                         const d = Object.assign({}, child);
                         d.definition = result[key];
                         fn(keyValidator.errors, d);
