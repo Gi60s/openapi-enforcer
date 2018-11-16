@@ -737,7 +737,7 @@ function runSerialize(exception, map, schema, originalValue) {
                 coerce,
                 exception,
                 schema,
-                value: originalValue
+                value
             });
             if (typeof result !== 'boolean' && !coerce) {
                 exception.message('Unable to serialize to boolean. Received: ' + util.smart(result));
@@ -751,7 +751,7 @@ function runSerialize(exception, map, schema, originalValue) {
                 coerce,
                 exception,
                 schema,
-                value: originalValue
+                value
             });
             const isInteger = typeof result === 'number' && !isNaN(result) && result === Math.round(result);
             if (isInteger) {
@@ -769,7 +769,7 @@ function runSerialize(exception, map, schema, originalValue) {
                 coerce,
                 exception,
                 schema,
-                value: originalValue
+                value
             });
             const isNumber = typeofValue === 'number' && !isNaN(value);
             if (isNumber) {
@@ -788,12 +788,14 @@ function runSerialize(exception, map, schema, originalValue) {
                 coerce,
                 exception,
                 schema,
-                value: originalValue
+                value
             });
-            if (typeof result !== 'string' && !coerce) {
-                exception.message('Unable to serialize to string. Received: ' + util.smart(value));
-            } else {
-                result = String(value);
+            if (typeof result !== 'string') {
+                if (!coerce) {
+                    exception.message('Unable to serialize to string. Received: ' + util.smart(value));
+                } else {
+                    result = String(result);
+                }
             }
             return result;
         }
