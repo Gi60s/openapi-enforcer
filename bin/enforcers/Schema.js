@@ -255,7 +255,7 @@ module.exports = {
                             type: 'object',
                             additionalProperties: {
                                 type: 'string',
-                                errors: ({ exception, refParser, result }) => {
+                                errors: ({ exception, key, refParser, result }) => {
                                     if (refParser) {
                                         try {
                                             const ref = rxHttp.test(result) || result.indexOf('/') !== -1
