@@ -15,18 +15,18 @@
  *    limitations under the License.
  **/
 'use strict';
-const EnforcerRef  = require('../enforcer-ref');
+const Base          = require('../validator-parameter-base');
 
 module.exports = {
     init: function (data) {
-
+        // TODO: need to test this, maybe create schema for each item
+        throw Error('TODO');
     },
 
     prototype: {},
 
     validator: function (data) {
-        const Base = require('../validator-parameter-base');
-        const base = Base(data);
+        const base = Base.validator(data);
         return base.properties.items;
     }
 };
