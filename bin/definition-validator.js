@@ -40,6 +40,7 @@ function childData(parent, key, validator) {
         context: parent.context,
         definition,
         definitionType,
+        defToInstanceMap: parent.defToInstanceMap,
         exception: parent.exception.at(key),
         key,
         major: parent.major,
