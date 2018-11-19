@@ -98,10 +98,11 @@ function createConstructor(version, name, enforcer) {
         let data;
         if (isStart) {
             const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(version.version);
-            definition = util.copy(definition);
+            if (!refParser) definition = util.copy(definition);
             data = {
                 context: version,
                 definition,
+                defToInstanceMap: new WeakMap(),
                 definitionType: util.getDefinitionType(definition),
                 exception: Exception('One or more errors exist in the ' + name + ' definition'),
                 key: undefined,
@@ -128,6 +129,7 @@ function createConstructor(version, name, enforcer) {
 
         // store the full set of enforcer data
         store.set(result, data);
+        data.defToInstanceMap.set(data.definition, result);
 
         if (util.isPlainObject(data.definition)) {
             definitionValidator(data);
