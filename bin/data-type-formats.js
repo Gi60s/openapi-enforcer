@@ -22,8 +22,10 @@ const zeros = '00000000';
 
 exports.binary = {
     deserialize: function ({ exception, value }) {
-        if (!rx.binary.test(value)) {
-            exception.message('Value is not a binary octet string');
+        if (value instanceof Buffer) {
+            return value;
+        } else if (typeof value !== 'string' || !rx.binary.test(value)) {
+            exception.message('Expected a binary octet string');
         } else {
             const length = value.length;
             const array = [];
@@ -32,13 +34,16 @@ exports.binary = {
         }
     },
 
-    random: function () {
-        // TODO: random
-        throw Error('TODO');
+    random: function ({ schema }, { length, maxLength, minLength }) {
+        if (maxLength === undefined) maxLength = schema.hasOwnProperty('maxLength') / 8 ? schema.maxLength : 25;
+        if (minLength === undefined) minLength = schema.hasOwnProperty('minLength') / 8 ? schema.minLength : 1;
+        if (length === undefined) length = minLength + Math.round(Math.random() * (maxLength - minLength));
+        const array = [];
+        for (let i = 0; i < length; i++) array.push(Math.floor(Math.random() * 256));
+        return Buffer.from(array);
     },
 
     serialize: function ({ coerce, exception, value }) {
-        if (coerce) value = coerceToBuffer(exception, value);
         if (value instanceof Buffer) {
             let binary = '';
             for (let i = 0; i < value.length; i++) {
@@ -57,21 +62,37 @@ exports.binary = {
         } else {
             util.validateMaxMin(exception, schema, 'binary length', 'maxLength', 'minLength', true, value.length * 8, schema.maxLength, schema.minLength);
         }
+    },
+
+    validator: function (data) {
+        const { exception } = data;
+        if (this.hasOwnProperty('maxLength') && this.maxLength % 8 !== 0) {
+            exception.at('maxLength').message('Binary format requires maxLength to be a multiple of 8');
+        }
+        if (this.hasOwnProperty('minLength') && this.minLength % 8 !== 0) {
+            exception.at('minLength').message('Binary format requires minLength to be a multiple of 8');
+        }
     }
 };
 
 exports.byte = {
     deserialize: function ({ exception, value }) {
-        if (!rx.byte.test(value) && value.length % 4 !== 0) {
-            exception.message('Value is not a base64 string');
+        if (value instanceof Buffer) {
+            return value;
+        } else if (typeof value !== 'string' || !rx.byte.test(value) || value.length % 4 !== 0) {
+            exception.message('Expected a base64 string');
         } else {
             return Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64');
         }
     },
 
-    random: function () {
-        // TODO: random
-        throw Error('TODO');
+    random: function ({ schema }, { length, maxLength, minLength }) {
+        if (maxLength === undefined) maxLength = schema.hasOwnProperty('maxLength') / 4 ? schema.maxLength : 150;
+        if (minLength === undefined) minLength = schema.hasOwnProperty('minLength') / 4 ? schema.minLength : 1;
+        if (length === undefined) length = minLength + Math.round(Math.random() * (maxLength - minLength));
+        const array = [];
+        for (let i = 0; i < length; i++) array.push(Math.floor(Math.random() * 256));
+        return Buffer.from(array);
     },
 
     serialize: function ({ coerce, exception, value }) {
@@ -90,13 +111,25 @@ exports.byte = {
         } else {
             util.validateMaxMin(exception, schema, 'byte length', 'maxLength', 'minLength', true, value.length, schema.maxLength, schema.minLength);
         }
+    },
+
+    validator: function (data) {
+        const { exception } = data;
+        if (this.hasOwnProperty('maxLength') && this.maxLength % 4 !== 0) {
+            exception.at('maxLength').message('Byte format requires maxLength to be a multiple of 4');
+        }
+        if (this.hasOwnProperty('minLength') && this.minLength % 4 !== 0) {
+            exception.at('minLength').message('Byte format requires minLength to be a multiple of 4');
+        }
     }
 };
 
 exports.date = {
     deserialize: function ({ exception, value }) {
-        if (!rx.date.test(value)) {
-            exception.message('Value is not date string of the format YYYY-MM-DD');
+        if (value instanceof Date) {
+            return value;
+        } else if (typeof value !== 'string' || !rx.date.test(value)) {
+            exception.message('Expected a date string of the format YYYY-MM-DD');
         } else {
             const date = util.getDateFromValidDateString('date', value);
             if (!date) {
@@ -109,9 +142,11 @@ exports.date = {
 
     isNumeric: true,
 
-    random: function () {
-        // TODO: random
-        throw Error('TODO');
+    random: function ({ schema }, { minimum, maximum }) {
+        minimum = +minimum;
+        maximum = +maximum;
+        const value = minimum + Math.round(Math.random() * (maximum - minimum));
+        return new Date(value);
     },
 
     serialize: function ({ coerce, exception, value }) {
@@ -132,17 +167,29 @@ exports.date = {
         } else {
             util.validateMaxMin(exception, schema, schema.format, 'maximum', 'minimum', false, value, schema.maximum, schema.minimum);
         }
+    },
+
+    validator: function (data) {
+        const { exception } = data;
+        if (this.hasOwnProperty('maxLength') && this.maxLength !== 10) {
+            exception.at('maxLength').message('Date format requires maxLength to equal 10');
+        }
+        if (this.hasOwnProperty('minLength') && this.minLength % 4 !== 0) {
+            exception.at('minLength').message('Date format requires minLength to equal 10');
+        }
     }
 };
 
 exports.dateTime = {
     deserialize: function ({ exception, value }) {
-        if (!rx.dateTime.test(value)) {
-            exception.message('Value is not date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
+        if (value instanceof Date) {
+            return value;
+        } else if (typeof value !== 'string' || !rx.dateTime.test(value)) {
+            exception.message('Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
         } else {
             const date = util.getDateFromValidDateString('date-time', value);
             if (!date) {
-                exception.message('Value is not a valid date-time');
+                exception.message('Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
             } else {
                 return date;
             }
@@ -151,9 +198,11 @@ exports.dateTime = {
 
     isNumeric: true,
 
-    random: function () {
-        // TODO: random
-        throw Error('TODO');
+    random: function ({ schema }, { minimum, maximum }) {
+        minimum = +minimum;
+        maximum = +maximum;
+        const value = minimum + Math.round(Math.random() * (maximum - minimum));
+        return new Date(value);
     },
 
     serialize: function ({ coerce, exception, value }) {
@@ -173,6 +222,16 @@ exports.dateTime = {
             exception.message('Expected a valid date object. Received: ' + util.smart(value));
         } else {
             util.validateMaxMin(exception, schema, schema.format, 'maximum', 'minimum', false, value, schema.maximum, schema.minimum);
+        }
+    },
+
+    validator: function (data) {
+        const { exception } = data;
+        if (this.hasOwnProperty('maxLength') && this.maxLength !== 10) {
+            exception.at('maxLength').message('Date-time format requires maxLength to equal 24');
+        }
+        if (this.hasOwnProperty('minLength') && this.minLength % 4 !== 0) {
+            exception.at('minLength').message('Date-time format requires minLength to equal 24');
         }
     }
 };
