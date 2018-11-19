@@ -344,7 +344,7 @@ function copy(map, value) {
         value.forEach(v => result.push(copy(map, v)));
         return result;
 
-    } else if (value && typeof value === 'object') {
+    } else if (exports.isPlainObject(value)) {
         let result = map.get(value);
         if (result) return result;
 
