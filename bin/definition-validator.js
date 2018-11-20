@@ -92,6 +92,7 @@ function normalize (data) {
                 const child = childData(data, i, validator.items);
                 result.push(runChildValidator(child));
             });
+            Object.freeze(result);
 
         } else if (definitionType === 'object' && !freeForm) {
             const missingRequired = [];
@@ -99,7 +100,10 @@ function normalize (data) {
             const unknownKeys = [];
 
             if (validator === true) {
-                Object.assign(result, util.copy(definition));
+                Object.keys(definition).forEach(key => {
+                    Object.defineProperty(result, key, { value: definition[key] });
+                });
+                // Object.assign(result, util.copy(definition));
 
             } else if (validator === false) {
                 notAllowed.push.apply(notAllowed, Object.keys(definition));
@@ -117,7 +121,7 @@ function normalize (data) {
                         if (!allowed) {
                             notAllowed.push(key);
                         } else if (!keyValidator.ignored || !fn(keyValidator.ignored, child)) {
-                            result[key] = runChildValidator(child);
+                            Object.defineProperty(result, key, { value: runChildValidator(child) });
                             valueSet = true;
                         }
                     }
@@ -134,7 +138,7 @@ function normalize (data) {
                 // organize definition properties
                 Object.keys(definition).forEach(key => {
                     if (rxExtension.test(key)) {
-                        result[key] = definition[key];
+                        Object.defineProperty(result, key, { value: definition[key] });
                     } else {
                         unknownKeys.push(key);
                     }
@@ -177,7 +181,9 @@ function normalize (data) {
                         if (!allowed) {
                             notAllowed.push(key);
                         } else if (!keyValidator.ignored || !fn(keyValidator.ignored, data)) {
-                            result[key] = runChildValidator(data);
+                            Object.defineProperty(result, key, {
+                                value: runChildValidator(data)
+                            });
                         }
                     } else if (allowed && keyValidator.required && fn(keyValidator.required, data)) {
                         missingRequired.push(key);
