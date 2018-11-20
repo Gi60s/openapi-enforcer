@@ -129,7 +129,7 @@ function createConstructor(version, name, enforcer) {
 
         // store the full set of enforcer data
         store.set(result, data);
-        data.defToInstanceMap.set(data.definition, result);
+        if (data.definition && typeof data.definition === 'object') data.defToInstanceMap.set(data.definition, result);
 
         if (util.isPlainObject(data.definition)) {
             definitionValidator(data);
