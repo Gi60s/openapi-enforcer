@@ -101,7 +101,11 @@ function normalize (data) {
 
             if (validator === true) {
                 Object.keys(definition).forEach(key => {
-                    Object.defineProperty(result, key, { value: definition[key] });
+                    Object.defineProperty(result, key, {
+                        configurable: true,
+                        enumerable: true,
+                        value: definition[key]
+                    });
                 });
                 // Object.assign(result, util.copy(definition));
 
@@ -121,7 +125,11 @@ function normalize (data) {
                         if (!allowed) {
                             notAllowed.push(key);
                         } else if (!keyValidator.ignored || !fn(keyValidator.ignored, child)) {
-                            Object.defineProperty(result, key, { value: runChildValidator(child) });
+                            Object.defineProperty(result, key, {
+                                configurable: true,
+                                enumerable: true,
+                                value: runChildValidator(child)
+                            });
                             valueSet = true;
                         }
                     }
@@ -138,7 +146,10 @@ function normalize (data) {
                 // organize definition properties
                 Object.keys(definition).forEach(key => {
                     if (rxExtension.test(key)) {
-                        Object.defineProperty(result, key, { value: definition[key] });
+                        Object.defineProperty(result, key, {
+                            configurable: true,
+                            enumerable: true,
+                            value: definition[key] });
                     } else {
                         unknownKeys.push(key);
                     }
@@ -182,6 +193,8 @@ function normalize (data) {
                             notAllowed.push(key);
                         } else if (!keyValidator.ignored || !fn(keyValidator.ignored, data)) {
                             Object.defineProperty(result, key, {
+                                configurable: true,
+                                enumerable: true,
                                 value: runChildValidator(data)
                             });
                         }
