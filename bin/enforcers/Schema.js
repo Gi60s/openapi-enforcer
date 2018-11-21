@@ -40,26 +40,27 @@ const prototype = {
     /**
      * Get discriminator key and schema.
      * @param {*} value
-     * @returns {{ key: string, schema: Schema }}
+     * @returns {Schema }
      */
-    getDiscriminator: function(value) {
-        const { definition, enforcer } = store.get(this);   // TODO: get rid of this, the values exist on the prototype
-        const version = enforcer.version;
-        if (version === 2) {
-            const discriminator = definition.discriminator;
+    discriminate: function(value) {
+        const { major, root } = this.enforcerData;
+        const discriminator = this.discriminator;
+        const openapi = root.result;
+        if (major === 2) {
             const key = discriminator && value && value.hasOwnProperty(discriminator) ? value[discriminator] : undefined;
-            if (!key) return { key: undefined, schema: undefined };
-            const schema = enforcer.definition && enforcer.definition.definitions && enforcer.definition.definitions[key];
-            return { key, schema };
+            if (!key) return undefined;
+            return openapi.definitions && openapi.definitions[key];
 
-        } else if (version === 3) {
-            const discriminator = definition.discriminator;
-            const key = discriminator && value && value.hasOwnProperty(discriminator.propertyName) ? value[discriminator.propertyName] : undefined;
-            if (!key) return { key: undefined, schema: undefined };
+        } else if (major === 3) {
+            let key = discriminator && value && value.hasOwnProperty(discriminator.propertyName) ? value[discriminator.propertyName] : undefined;
+            if (!key) return undefined;
 
+            // if there is a mapping then use mapping result
             const mapping = discriminator.mapping;
-            const schema = mapping && mapping[key];
-            return { key, schema };
+            if (mapping && mapping.hasOwnProperty(key)) return mapping[key];
+
+            // if no mapping then look at global schemas
+            return openapi.components && openapi.components.schemas && openapi.components.schemas[key];
         }
     },
 
@@ -120,17 +121,44 @@ const prototype = {
 
 module.exports = {
     init: function (data) {
-        const { exception, warn } = data;
+        const { exception, major, plugins, refParser, staticData, warn } = data;
 
+        // deserialize and validate enum, default, and example
         if (this.hasOwnProperty('enum')) {
             const child = exception.at('enum');
-            this.enum = this.enum.map((value, index) => {
+            const value = this.enum.map((value, index) => {
                 return deserializeAndValidate(this, child.at(index), value, { enum: false });
             });
+            Object.freeze(value);
+            setProperty(this, 'enum', value);
+        }
+        if (this.hasOwnProperty('default')) {
+            setProperty(this, 'default', deserializeAndValidate(this, exception.at('default'), this.default, {}));
+        }
+        if (this.hasOwnProperty('example')) {
+            setProperty(this, 'example', deserializeAndValidate(this, warn.at('example'), this.example, {}));
         }
 
-        if (this.hasOwnProperty('default')) this.default = deserializeAndValidate(this, exception.at('default'), this.default, {});
-        if (this.hasOwnProperty('example')) this.example = deserializeAndValidate(this, warn.at('example'), this.example, {});
+        // run data type validator
+        const dataTypes = staticData.dataTypes;
+        const dataType = (dataTypes && dataTypes[this.type] && dataTypes[this.type][this.format]) || null;
+        if (dataType && dataType.validator) dataType.validator.call(this, data);
+
+        // if there is a discriminator with mappings then resolve those references
+        const discriminator = this.discriminator;
+        if (major === 3 && refParser && discriminator && discriminator.mapping) {
+            plugins.push(() => {
+                const instanceMap = this.enforcerData.defToInstanceMap;
+                Object.keys(discriminator.mapping).forEach(key => {
+                    const value = discriminator.mapping[key];
+                    const ref = rxHttp.test(value) || value.indexOf('/') !== -1
+                        ? value
+                        : '#/components/schemas/' + value;
+                    const definition = refParser.$refs.get(ref);
+                    setProperty(discriminator.mapping, key, instanceMap.get(definition));
+                });
+            });
+        }
     },
 
     prototype,
@@ -243,27 +271,44 @@ module.exports = {
                 },
                 discriminator: {
                     allowed: ({ parent }) => {
-                        return parent && parent.validator === module.exports.validator && parent.definition.type === 'object';
+                        return parent && parent.validator === module.exports.validator &&
+                            (parent.definition.type === 'object' || parent.definition.anyOf || parent.definition.oneOf);
                     },
                     type: ({ major }) => major === 2 ? 'string' : 'object',
                     properties: {
                         propertyName: {
                             type: 'string',
-                            required: true
+                            required: true,
+                            errors: ({ definition, parent }) => {
+                                const def = parent.parent.definition;
+                                if (def.type === 'object' && (!def.required || !def.required.includes(definition))) {
+                                    parent.parent.exception.message('Property "' + definition + '" must be required because it is used as the discriminator property')
+                                }
+                            }
                         },
                         mapping: {
                             type: 'object',
                             additionalProperties: {
                                 type: 'string',
-                                errors: ({ exception, key, refParser, result }) => {
+                                errors: ({ exception, key, parent, refParser, result }) => {
                                     if (refParser) {
+                                        let schema;
                                         try {
                                             const ref = rxHttp.test(result) || result.indexOf('/') !== -1
                                                 ? result
                                                 : '#/components/schemas/' + result;
-                                            refParser.$refs.get(ref)
+                                            schema = refParser.$refs.get(ref)
                                         } catch (err) {
                                             exception.message('Reference cannot be resolved: ' + result);
+                                        }
+
+                                        if (schema) {
+                                            const def = parent.parent.parent.definition;
+                                            if (def.anyOf && !def.anyOf.includes(schema)) {
+                                                exception.message('Mapping reference must exist in anyOf: ' + result);
+                                            } else if (def.oneOf && !def.oneOf.includes(schema)) {
+                                                exception.message('Mapping reference must exist in oneOf: ' + result);
+                                            }
                                         }
                                     }
                                 }
@@ -279,7 +324,7 @@ module.exports = {
                                 exception.message('Value "' + definition + '" must be found in the parent\'s properties definition.');
                             }
 
-                        } else if (major === 3 && definition.hasOwnProperty('propertyName')) {
+                        } else if (major === 3 && definition.hasOwnProperty('propertyName') && definition.type === 'object') {
                             if (!parent.definition.required || !parent.definition.required.includes(definition.propertyName)) {
                                 exception.message('Value "' + definition.propertyName + '" must be found in the parent\'s required properties list.');
                             }
@@ -452,8 +497,85 @@ module.exports = {
 };
 
 
+
+function deserializeAndValidate(schema, exception, value, options) {
+    let error;
+    [ value, error ] = schema.deserialize(value);
+    if (!error) {
+        const exception = Exception('Invalid value');
+        runValidate(exception, new Map(), schema, value, options);
+        if (exception.hasException) error = exception;
+    }
+    if (error) exception.push(error);
+    return value;
+}
+
+function isSchemaProperty({ parent }) {
+    return parent && parent.parent && parent.parent.key === 'properties' &&
+        parent.parent.parent && parent.parent.parent.validator === module.exports.validator;
+}
+
+function maxMin(exception, schema, type, maxProperty, minProperty, exclusives, value, maximum, minimum) {
+    if (schema.hasOwnProperty(maxProperty)) {
+        if (exclusives && schema.exclusiveMaximum && value >= maximum) {
+            exception.message('Expected ' + type + ' to be less than ' +
+                util.smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
+                util.smart(schema.serialize(value).value));
+        } else if (value > maximum) {
+            exception.message('Expected ' + type + ' to be less than or equal to ' +
+                util.smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
+                util.smart(schema.serialize(value).value));
+        }
+    }
+
+    if (schema.hasOwnProperty(minProperty)) {
+        if (exclusives && schema.exclusiveMinimum && value <= minimum) {
+            exception.message('Expected ' + type + ' to be greater than ' +
+                util.smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
+                util.smart(schema.serialize(value).value));
+        } else if (value < minimum) {
+            exception.message('Expected ' + type + ' to be greater than or equal to ' +
+                util.smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
+                util.smart(schema.serialize(value).value));
+        }
+    }
+}
+
+function minMaxValid(minimum, maximum, exclusiveMinimum, exclusiveMaximum) {
+    if (minimum === undefined || maximum === undefined) return true;
+    minimum = +minimum;
+    maximum = +maximum;
+    return minimum < maximum || (!exclusiveMinimum && !exclusiveMaximum && minimum === maximum);
+}
+
+function numericish(schema) {
+    if (['number', 'integer'].includes(schema.type)) return true;
+    const dataTypes = schema.enforcerData.staticData.dataTypes;
+    const dataType = dataTypes[schema.type] && dataTypes[schema.type][schema.format];
+    return !!(dataType && dataType.isNumeric);
+}
+
+function numericType (schema) {
+    const dataTypes = schema.enforcerData.staticData.dataTypes;
+    const dataType = dataTypes[schema.type] && dataTypes[schema.type][schema.format];
+    if (dataType && dataType.isNumeric) {
+        switch (schema.type) {
+            case 'boolean':
+                return 'boolean';
+            case 'string':
+                return 'string';
+            case 'integer':
+            case 'number':
+            default:
+                return 'number';
+        }
+    } else {
+        return 'number';
+    }
+}
+
 function runDeserialize(exception, map, schema, originalValue) {
-    const { coerce, serialize, value } = Value.getAttributes(originalValue);
+    const { serialize, value } = Value.getAttributes(originalValue);
     if (!serialize) return originalValue;
 
     const type = schema.type;
@@ -533,7 +655,7 @@ function runDeserialize(exception, map, schema, originalValue) {
     } else if (type === 'array') {
         if (Array.isArray(value)) {
             const result = schema.items
-                ? value.map((v, i) => runDeserialize(exception.at(i), map, schema.items, Value.inherit(v, { coerce, serialize })))
+                ? value.map((v, i) => runDeserialize(exception.at(i), map, schema.items, Value.inherit(v, { serialize })))
                 : value;
             matches.set(schema, result);
             return result;
@@ -548,15 +670,9 @@ function runDeserialize(exception, map, schema, originalValue) {
             const properties = schema.properties || {};
             Object.keys(value).forEach(key => {
                 if (properties.hasOwnProperty(key)) {
-                    result[key] = runDeserialize(exception.at(key), map, properties[key], Value.inherit(value[key], {
-                        coerce,
-                        serialize
-                    }));
+                    result[key] = runDeserialize(exception.at(key), map, properties[key], Value.inherit(value[key], { serialize }));
                 } else if (additionalProperties) {
-                    result[key] = runDeserialize(exception.at(key), map, additionalProperties, Value.inherit(value[key], {
-                        coerce,
-                        serialize
-                    }));
+                    result[key] = runDeserialize(exception.at(key), map, additionalProperties, Value.inherit(value[key], { serialize }));
                 } else {
                     result[key] = value[key];   // not deserialized, just left alone
                 }
@@ -569,65 +685,68 @@ function runDeserialize(exception, map, schema, originalValue) {
 
     } else {
         const dataTypes = schema.enforcerData.staticData.dataTypes;
-        const dataType = dataTypes[schema.type][schema.format] || { deserialize: function({ value }) { return value } };
+        const dataType = dataTypes[schema.type][schema.format] || null;
 
         if (type === 'boolean') {
-            if (typeofValue !== 'boolean' && !coerce) {
-                exception.message('Expected a boolean. Received: ' + util.smart(value));
-            } else {
+            if (dataType) {
                 return dataType.deserialize({
-                    coerce,
                     exception,
                     schema,
-                    value: typeofValue === 'string' ? value.toLowerCase() === 'false' : !!value
+                    value
                 });
+            } else if (typeofValue !== 'boolean') {
+                exception.message('Expected a boolean. Received: ' + util.smart(value));
+            } else {
+                return typeofValue === 'string' ? value.toLowerCase() === 'false' : !!value;
             }
 
         } else if (type === 'integer') {
-            if (typeofValue !== 'number' && !coerce) {
-                exception.message('Expected a number. Received: ' + util.smart(value));
-            } else {
+            if (dataType) {
                 return dataType.deserialize({
-                    coerce,
                     exception,
                     schema,
-                    value: +value
+                    value
                 });
+            } else if (typeofValue !== 'number' || !util.isInteger(value)) {
+                exception.message('Expected an integer. Received: ' + util.smart(value));
+            } else {
+                return value;
             }
 
         } else if (type === 'number') {
-            if (typeofValue !== 'number' && !coerce) {
-                exception.message('Expected a number. Received: ' + util.smart(value));
-            } else {
+            if (dataType) {
                 return dataType.deserialize({
-                    coerce,
                     exception,
                     schema,
-                    value: +value
+                    value: value
                 });
+            } else if (typeofValue !== 'number') {
+                exception.message('Expected a number. Received: ' + util.smart(value));
+            } else {
+                return value;
             }
 
         } else if (type === 'string') {
-            if (typeofValue !== 'string' && !coerce) {
-                exception.message('Expected a string. Received: ' + util.smart(value));
-            } else {
+            if (dataType) {
                 return dataType.deserialize({
-                    coerce,
                     exception,
                     schema,
-                    value: String(value)
+                    value
                 });
+            } if (typeofValue !== 'string') {
+                exception.message('Expected a string. Received: ' + util.smart(value));
+            } else {
+                return value;
             }
         }
     }
 }
 
 function runSerialize(exception, map, schema, originalValue) {
-    const { coerce, serialize, value } = Value.getAttributes(originalValue);
+    const { serialize, value } = Value.getAttributes(originalValue);
     if (!serialize) return originalValue;
 
     const type = schema.type;
-    const typeofValue = typeof value;
     let matches;
 
     // handle cyclic serialization
@@ -734,147 +853,48 @@ function runSerialize(exception, map, schema, originalValue) {
 
         if (type === 'boolean') {
             let result = dataType.serialize({
-                coerce,
                 exception,
                 schema,
                 value
             });
-            if (typeof result !== 'boolean' && !coerce) {
-                exception.message('Unable to serialize to boolean. Received: ' + util.smart(result));
-            } else {
-                result = !!result;
+            if (typeof result !== 'boolean') {
+                exception.message('Unable to serialize to boolean. Received: ' + util.smart(value));
             }
             return result;
 
         } else if (type === 'integer') {
             let result = dataType.serialize({
-                coerce,
                 exception,
                 schema,
                 value
             });
-            const isInteger = typeof result === 'number' && !isNaN(result) && result === Math.round(result);
-            if (isInteger) {
-                result = value;
-            } else if (coerce) {
-                result = +value;
-                if (!isNaN(result) && result !== Math.round(result)) result = Math.round(result);
-            } else {
-                exception.message('Unable to serialize to integer. Received: ' + util.smart(result));
+            if (typeof result !== 'number' || isNaN(result) || result !== Math.round(result)) {
+                exception.message('Unable to serialize to integer. Received: ' + util.smart(value));
             }
             return result;
 
         } else if (type === 'number') {
             let result = dataType.serialize({
-                coerce,
                 exception,
                 schema,
                 value
             });
-            const isNumber = typeofValue === 'number' && !isNaN(value);
-            if (isNumber) {
-                result = value;
-            } else if (coerce) {
-                result = +value;
-            }
-            if (isNaN(result)) {
+            if (typeof result !== 'number' || isNaN(result)) {
                 exception.message('Unable to serialize to number. Received: ' + util.smart(value));
-                result = undefined;
             }
             return result;
 
         } else if (type === 'string') {
             let result = dataType.serialize({
-                coerce,
                 exception,
                 schema,
                 value
             });
             if (typeof result !== 'string') {
-                if (!coerce) {
-                    exception.message('Unable to serialize to string. Received: ' + util.smart(value));
-                } else {
-                    result = String(result);
-                }
+                exception.message('Unable to serialize to string. Received: ' + util.smart(value));
             }
             return result;
         }
-    }
-}
-
-function deserializeAndValidate(schema, exception, value, options) {
-    let error;
-    [ value, error ] = schema.deserialize(value);
-    if (!error) {
-        const exception = Exception('Invalid value');
-        runValidate(exception, new Map(), schema, value, options);
-        if (exception.hasException) error = exception;
-    }
-    if (error) exception.push(error);
-    return value;
-}
-
-function isSchemaProperty({ parent }) {
-    return parent && parent.parent && parent.parent.key === 'properties' &&
-        parent.parent.parent && parent.parent.parent.validator === module.exports.validator;
-}
-
-function maxMin(exception, schema, type, maxProperty, minProperty, exclusives, value, maximum, minimum) {
-    if (schema.hasOwnProperty(maxProperty)) {
-        if (exclusives && schema.exclusiveMaximum && value >= maximum) {
-            exception.message('Expected ' + type + ' to be less than ' +
-                util.smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
-                util.smart(schema.serialize(value).value));
-        } else if (value > maximum) {
-            exception.message('Expected ' + type + ' to be less than or equal to ' +
-                util.smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
-                util.smart(schema.serialize(value).value));
-        }
-    }
-
-    if (schema.hasOwnProperty(minProperty)) {
-        if (exclusives && schema.exclusiveMinimum && value <= minimum) {
-            exception.message('Expected ' + type + ' to be greater than ' +
-                util.smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
-                util.smart(schema.serialize(value).value));
-        } else if (value < minimum) {
-            exception.message('Expected ' + type + ' to be greater than or equal to ' +
-                util.smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
-                util.smart(schema.serialize(value).value));
-        }
-    }
-}
-
-function minMaxValid(minimum, maximum, exclusiveMinimum, exclusiveMaximum) {
-    if (minimum === undefined || maximum === undefined) return true;
-    minimum = +minimum;
-    maximum = +maximum;
-    return minimum < maximum || (!exclusiveMinimum && !exclusiveMaximum && minimum === maximum);
-}
-
-function numericish(schema) {
-    if (['number', 'integer'].includes(schema.type)) return true;
-    const dataTypes = schema.enforcerData.staticData.dataTypes;
-    const dataType = dataTypes[schema.type] && dataTypes[schema.type][schema.format];
-    return !!(dataType && dataType.isNumeric);
-}
-
-function numericType (schema) {
-    const dataTypes = schema.enforcerData.staticData.dataTypes;
-    const dataType = dataTypes[schema.type] && dataTypes[schema.type][schema.format];
-    if (dataType && dataType.isNumeric) {
-        switch (schema.type) {
-            case 'boolean':
-                return 'boolean';
-            case 'string':
-                return 'string';
-            case 'integer':
-            case 'number':
-            default:
-                return 'number';
-        }
-    } else {
-        return 'number';
     }
 }
 
@@ -1105,4 +1125,12 @@ function runValidate(exception, map, schema, originalValue, options) {
         }
         if (!found) exception.message('Value ' + util.smart(value) + ' did not meet enum requirements');
     }
+}
+
+function setProperty(object, property, value) {
+    Object.defineProperty(object, property, {
+        configurable: true,
+        enumerable: true,
+        value
+    });
 }
