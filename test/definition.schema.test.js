@@ -18,17 +18,21 @@
 const assert        = require('../bin/assert');
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
+const util          = require('../bin/util');
+const Value         = require('../bin/value');
 
-describe('enforcer/schema', () => {
+describe.only('enforcer/schema', () => {
     const schemas = {
         Cat: {
             type: 'object',
+            additionalProperties: false,
             properties: {
                 huntingSkill: { type: 'string' }
             }
         },
         Dog: {
             type: 'object',
+            additionalProperties: false,
             properties: {
                 packSize: { type: 'integer', minimum: 1 }
             }
@@ -37,22 +41,108 @@ describe('enforcer/schema', () => {
             type: 'object',
             required: ['petType'],
             properties: {
-                petType: { type: 'string' },
-                discriminator: 'petType'
-            }
+                petType: { type: 'string' }
+            },
+            discriminator: 'petType'
         },
         Pet3: {
             type: 'object',
             required: ['petType'],
-            properties: {
-                petType: { type: 'string' },
-                discriminator: {
-                    propertyName: 'petType',
-                    mapping: {
-                        gato: 'Cat',
-                        perro: '#/components/schemas/Dog'
-                    }
+            discriminator: {
+                propertyName: 'petType',
+                mapping: {
+                    dog: 'Dog',
+                    cat: '#/components/schemas/Cat'
                 }
+            },
+            properties: {
+                petType: { type: 'string' }
+            }
+        }
+    };
+    const allOf2Def = {
+        swagger: '2.0',
+        info: {title: '', version: ''},
+        definitions: {
+            Cat: {
+                allOf: [
+                    { '$ref': '#/definitions/Pet' },
+                    schemas.Cat
+                ]
+            },
+            Dog: {
+                allOf: [
+                    { '$ref': '#/definitions/Pet' },
+                    schemas.Dog
+                ]
+            },
+            Pet: schemas.Pet2
+        }
+    };
+    const allOf3Def = {
+        openapi: '3.0.0',
+        info: {title: '', version: ''},
+        components: {
+            schemas: {
+                Cat: {
+                    allOf: [
+                        { '$ref': '#/components/schemas/Pet' },
+                        schemas.Cat
+                    ]
+                },
+                Dog: {
+                    allOf: [
+                        { '$ref': '#/components/schemas/Pet' },
+                        schemas.Dog
+                    ]
+                },
+                Pet: schemas.Pet3
+            }
+        }
+    };
+    const anyOfDef = {
+        openapi: '3.0.0',
+        info: { title: '', version: '' },
+        components: {
+            schemas: {
+                Pet: {
+                    anyOf: [
+                        { '$ref': '#/components/schemas/Cat' },
+                        { '$ref': '#/components/schemas/Dog' }
+                    ],
+                    discriminator: {
+                        propertyName: 'petType',
+                        mapping: {
+                            cat: 'Cat',
+                            dog: '#/components/schemas/Dog'
+                        }
+                    }
+                },
+                Cat: schemas.Cat,
+                Dog: schemas.Dog
+            }
+        }
+    };
+    const oneOfDef = {
+        openapi: '3.0.0',
+        info: { title: '', version: '' },
+        components: {
+            schemas: {
+                Pet: {
+                    oneOf: [
+                        { '$ref': '#/components/schemas/Cat' },
+                        { '$ref': '#/components/schemas/Dog' }
+                    ],
+                    discriminator: {
+                        propertyName: 'petType',
+                        mapping: {
+                            cat: 'Cat',
+                            dog: '#/components/schemas/Dog'
+                        }
+                    }
+                },
+                Cat: schemas.Cat,
+                Dog: schemas.Dog
             }
         }
     };
@@ -342,7 +432,7 @@ describe('enforcer/schema', () => {
                         },
                         required: ['a']
                     });
-                    expect(err).to.match(/at: propertyName\n +Value must be a string/);
+                    expect(err).to.match(/at: discriminator > propertyName\n +Value must be a string/);
                 });
 
                 it('must have the propertyName as a required property', () => {
@@ -350,10 +440,9 @@ describe('enforcer/schema', () => {
                         type: 'object',
                         discriminator: {
                             propertyName: 'a'
-                        },
-                        required: ['a']
+                        }
                     });
-                    expect(err).to.match(/Value "a" must be found in the parent's properties definition/);
+                    expect(err).to.match(/Property "a" must be required because it is used as the discriminator property/);
                 });
 
                 it('allows a mapping', () => {
@@ -387,33 +476,22 @@ describe('enforcer/schema', () => {
                 });
 
                 it('requires mapping to resolve to schema instance', async () => {
-                    const def = {
-                        openapi: '3.0.0',
-                        info: { title: '', version: '' },
-                        components: {
-                            schemas: {
-                                Cat: schemas.Cat,
-                                Dog: schemas.Dog,
-                                Pet: {
-                                    type: 'object',
-                                    required: ['petType'],
-                                    properties: {
-                                        petType: { type: 'string' }
-                                    },
-                                    discriminator: {
-                                        propertyName: 'petType',
-                                        mapping: {
-                                            gato: 'Cat',
-                                            perro: '#/components/schemas/Dog',
-                                            vaca: '#/components/schemas/Vaca'
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    await assert.willReject(() => Enforcer(def), /Reference cannot be resolved: #\/components\/schemas\/Vaca/)
-                })
+                    const def = util.copy(allOf3Def);
+                    def.components.schemas.Pet.discriminator.mapping.cow = '#/components/schemas/Cow';
+                    await assert.willReject(() => Enforcer(def), /Reference cannot be resolved: #\/components\/schemas\/Cow/)
+                });
+
+                it('must match one of the anyOf options', async () => {
+                    const def = util.copy(anyOfDef);
+                    def.components.schemas.Pet.anyOf = [ { '$ref': '#/components/schemas/Cat' } ];
+                    await assert.willReject(() => Enforcer(def), /Mapping reference must exist in anyOf/);
+                });
+
+                it('must match one of the oneOf options', async () => {
+                    const def = util.copy(anyOfDef);
+                    def.components.schemas.Pet.oneOf = [ { '$ref': '#/components/schemas/Cat' } ];
+                    await assert.willReject(() => Enforcer(def), /Mapping reference must exist in oneOf/);
+                });
 
             });
 
@@ -473,7 +551,7 @@ describe('enforcer/schema', () => {
 
                 it('does not allow enum value with mismatched type', () => {
                     const [ , err ] = Enforcer.v2_0.Schema({ type: 'string', format: 'date', enum: ['a'] });
-                    expect(err).to.match(/Value is not date string/);
+                    expect(err).to.match(/Expected a date string of the format YYYY-MM-DD/);
                 });
             });
 
@@ -573,7 +651,7 @@ describe('enforcer/schema', () => {
             });
 
             it('traverses sub objects', () => {
-                const [ def, err ] = Enforcer.v2_0.Schema({
+                const [ def ] = Enforcer.v2_0.Schema({
                     type: 'array',
                     items: {
                         type: 'string',
@@ -992,16 +1070,464 @@ describe('enforcer/schema', () => {
 
     describe('deserialize', () => {
 
-        it('todo', () => {
-            throw Error('TODO');
+        describe('array', () => {
+
+            it('deserialize each item in the array', () => {
+                const [schema] = Enforcer.v3_0.Schema({
+                    type: 'array',
+                    items: {type: 'string', format: 'date'}
+                });
+                const [value] = schema.deserialize(['2000-01-01']);
+                expect(value).to.deep.equal([new Date('2000-01-01')]);
+            });
+
+        });
+
+        describe('binary', () => {
+            let schema;
+
+            before(() => {
+                [schema] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    format: 'binary'
+                });
+            });
+
+            it('does not allow value true', () => {
+                const [, err] = schema.deserialize(true);
+                expect(err).to.match(/Expected a binary octet string/);
+            });
+
+            it('does not allow value false', () => {
+                const [, err] = schema.deserialize(false);
+                expect(err).to.match(/Expected a binary octet string/);
+            });
+
+            it('does not allow number', () => {
+                const [, err] = schema.deserialize(5);
+                expect(err).to.match(/Expected a binary octet string/);
+            });
+
+            it('does not allow non-binary octet string', () => {
+                const [, err] = schema.deserialize('hello');
+                expect(err).to.match(/Expected a binary octet string/);
+            });
+
+            it('allows binary octet string', () => {
+                const [value] = schema.deserialize(('00001101'));
+                expect(value).to.deep.equal(Buffer.from([13]));
+            });
+
+            it('allows buffer', () => {
+                const buf = Buffer.from('\r');
+                const [value] = schema.deserialize(buf);
+                expect(value).to.deep.equal(Buffer.from([13]));
+            });
+
+            it('does not allow object', () => {
+                const [, err] = schema.deserialize(Value.coerce({}));
+                expect(err).to.match(/Expected a binary octet string/);
+            });
+
+            it('does not allow null', () => {
+                const [, err] = schema.deserialize(Value.coerce(null));
+                expect(err).to.match(/Expected a binary octet string/);
+            });
+
+        });
+
+        describe('boolean', () => {
+            let schema;
+
+            before(() => {
+                [schema] = Enforcer.v3_0.Schema({type: 'boolean'});
+            });
+
+            it('allows true', () => {
+                const [value] = schema.deserialize(true);
+                expect(value).to.be.true;
+            });
+
+            it('allows false', () => {
+                const [value] = schema.deserialize(false);
+                expect(value).to.be.false;
+            });
+
+            it('does not allow number', () => {
+                const [, err] = schema.deserialize(1);
+                expect(err).to.match(/Expected a boolean/);
+            });
+
+        });
+
+        describe('byte', () => {
+            let schema;
+
+            before(() => {
+                [schema] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    format: 'byte'
+                });
+            });
+
+            it('does not allow true', () => {
+                const [, err] = schema.deserialize(true);
+                expect(err).to.match(/Expected a base64 string/);
+            });
+
+            it('does not allow false', () => {
+                const [, err] = schema.deserialize(false);
+                expect(err).to.match(/Expected a base64 string/);
+            });
+
+            it('does not allow number', () => {
+                const [, err] = schema.deserialize(1);
+                expect(err).to.match(/Expected a base64 string/);
+            });
+
+            it('does not allow string', () => {
+                const [, err] = schema.deserialize('M');
+                expect(err).to.match(/Expected a base64 string/);
+            });
+
+            it('allows buffer', () => {
+                const [value] = schema.deserialize(Buffer.from('M'));
+                expect(value).to.be.an.instanceof(Buffer);
+            });
+
+            it('does not allow object', () => {
+                const [, err] = schema.serialize(Value.coerce({}));
+                expect(err).to.match(/Expected a Buffer instance/);
+            });
+
+            it('does not allow null', () => {
+                const [, err] = schema.deserialize(Value.coerce(null));
+                expect(err).to.match(/Expected a base64 string/);
+            });
+
+        });
+
+        describe('date', () => {
+            const date = '2000-01-01';
+            const iso = date + 'T00:00:00.000Z';
+            let schema;
+
+            before(() => {
+                [schema] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    format: 'date'
+                });
+            });
+
+            it('allows a valid date object', () => {
+                const [value] = schema.deserialize(new Date(iso));
+                expect(value.toISOString()).to.equal(iso);
+            });
+
+            it('allows a date string', () => {
+                const [value] = schema.deserialize(date);
+                expect(value).to.deep.equal(new Date(iso));
+            });
+
+            it('does not allow a date-time string', () => {
+                const [,err] = schema.deserialize(iso);
+                expect(err).to.match(/Expected a date string of the format YYYY-MM-DD/);
+            });
+
+            it('does not allow a number', () => {
+                const [, err] = schema.deserialize(1);
+                expect(err).to.match(/Expected a date string of the format YYYY-MM-DD/);
+            });
+
+            it('does not allow a boolean', () => {
+                const [, err] = schema.deserialize(true);
+                expect(err).to.match(/Expected a date string of the format YYYY-MM-DD/);
+            });
+
+            it('does not allow an object', () => {
+                const [, err] = schema.deserialize({});
+                expect(err).to.match(/Expected a date string of the format YYYY-MM-DD/);
+            });
+
+            it('does not allow null', () => {
+                const [, err] = schema.deserialize(null);
+                expect(err).to.match(/Expected a date string of the format YYYY-MM-DD/);
+            });
+
+        });
+
+        describe('date-time', () => {
+            const iso = '2000-01-01T00:00:00.000Z';
+            let schema;
+
+            before(() => {
+                [schema] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    format: 'date-time'
+                });
+            });
+
+            it('allows a valid date object', () => {
+                const d = new Date(iso);
+                const [value] = schema.deserialize(d);
+                expect(value).to.equal(d);
+            });
+
+            it('does not allow a date string', () => {
+                const [,err] = schema.deserialize(iso.substr(0, 10));
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+            });
+
+            it('allows a date-time string', () => {
+                const [value] = schema.deserialize(iso);
+                expect(value).to.deep.equal(new Date(iso));
+            });
+
+            it('does not allow a number', () => {
+                const [, err] = schema.deserialize(1);
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+            });
+
+            it('does not allow a boolean', () => {
+                const [, err] = schema.deserialize(Value.coerce(true));
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+            });
+
+            it('does not allow an object', () => {
+                const [, err] = schema.deserialize(Value.coerce({}));
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+            });
+
+            it('does not allow null', () => {
+                const [, err] = schema.deserialize(Value.coerce(null));
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+            });
+
+        });
+
+        describe('integer', () => {
+            let schema;
+
+            before(() => {
+                [schema] = Enforcer.v3_0.Schema({type: 'integer'});
+            });
+
+            it('allows integer', () => {
+                const [value] = schema.deserialize(123);
+                expect(value).to.equal(123);
+            });
+
+            it('does not allow decimal number', () => {
+                const [, err] = schema.deserialize(123.7);
+                expect(err).to.match(/Expected an integer/);
+            });
+
+            it('does not allow string integer', () => {
+                const [, err] = schema.deserialize('123');
+                expect(err).to.match(/Expected an integer/);
+            });
+
+            it('does not allow string decimal', () => {
+                const [, err] = schema.deserialize('123.7');
+                expect(err).to.match(/Expected an integer/);
+            });
+
+            it('does not allow date object', () => {
+                const [, err] = schema.deserialize(new Date('2000-01-01T00:00:00.000Z'));
+                expect(err).to.match(/Expected an integer/);
+            });
+
+            it('does not allow true', () => {
+                const [, err] = schema.deserialize(true);
+                expect(err).to.match(/Expected an integer/);
+            });
+
+            it('does not allow false', () => {
+                const [, err] = schema.deserialize(false);
+                expect(err).to.match(/Expected an integer/);
+            });
+
+            it('does not allow object', () => {
+                const [, err] = schema.deserialize(Value.coerce({}));
+                expect(err).to.match(/Expected an integer/);
+            });
+
+        });
+
+        describe('number', () => {
+
+            let schema;
+
+            before(() => {
+                [schema] = Enforcer.v3_0.Schema({type: 'number'});
+            });
+
+            it('allows a number', () => {
+                const [value] = schema.deserialize(123.7);
+                expect(value).to.equal(123.7);
+            });
+
+            it('does not allow string number', () => {
+                const [, err] = schema.deserialize('123.7');
+                expect(err).to.match(/Expected a number/);
+            });
+
+            it('does not allow date object', () => {
+                const [, err] = schema.deserialize(new Date('2000-01-01T00:00:00.000Z'));
+                expect(err).to.match(/Expected a number/);
+            });
+
+            it('does not allow true', () => {
+                const [, err] = schema.deserialize(true);
+                expect(err).to.match(/Expected a number/);
+            });
+
+            it('does not allow false', () => {
+                const [, err] = schema.deserialize(false);
+                expect(err).to.match(/Expected a number/);
+            });
+
+            it('does not allow object', () => {
+                const [, err] = schema.deserialize({});
+                expect(err).to.match(/Expected a number/);
+            });
+
+        });
+
+        describe('object', () => {
+
+            it('can deserialize object properties', () => {
+                const [schema] = Enforcer.v3_0.Schema({
+                    type: 'object',
+                    properties: {
+                        a: { type: 'string', format: 'date-time' },
+                        b: {
+                            type: 'object',
+                            properties: {
+                                c: { type: 'string', format: 'date' }
+                            }
+                        }
+                    }
+                });
+                const dt = new Date();
+                const [value] = schema.deserialize({a: dt.toISOString(), b: {c: dt.toISOString().substr(0, 10)}});
+                expect(value).to.deep.equal({
+                    a: dt,
+                    b: {
+                        c: new Date(dt.toISOString().substr(0, 10))
+                    }
+                });
+            });
+
         });
 
     });
 
-    describe('getDiscriminator', () => {
+    describe('discriminate', () => {
 
-        it('todo', () => {
-            throw Error('TODO');
+        describe('anyOf', () => {
+
+            it('pet can be Cat', async () => {
+                const enforcer = await Enforcer(anyOfDef);
+                const pet = enforcer.components.schemas.Pet;
+                const schema = pet.discriminate({ name: 'Mittens', petType: 'Cat' });
+                expect(schema).to.equal(enforcer.components.schemas.Cat);
+            });
+
+        });
+
+        describe('oneOf', () => {
+
+            it('pet can be Cat', async () => {
+                const enforcer = await Enforcer(oneOfDef);
+                const pet = enforcer.components.schemas.Pet;
+                const schema = pet.discriminate({ name: 'Mittens', petType: 'Cat' });
+                expect(schema).to.equal(enforcer.components.schemas.Cat);
+            });
+
+        });
+
+        describe('polymorphism', () => {
+
+            describe('v2', () => {
+
+                const def = {
+                    swagger: '2.0',
+                    info: { title: '', version: '' },
+                    definitions: {
+                        Pet: schemas.Pet2,
+                        Cat: {
+                            allOf: [
+                                { '$ref': '#/definitions/Pet' },
+                                schemas.Cat
+                            ]
+                        },
+                        Dog: {
+                            allOf: [
+                                { '$ref': '#/definitions/Pet' },
+                                schemas.Dog
+                            ]
+                        }
+                    }
+                };
+
+                let enforcer;
+                before(async () => {
+                    enforcer = await Enforcer(def);
+                });
+
+                it('pet can be Cat', () => {
+                    const pet = enforcer.definitions.Pet;
+                    const schema = pet.discriminate({ name: 'Mittens', petType: 'Cat' });
+                    expect(schema).to.equal(enforcer.definitions.Cat);
+                });
+
+                it('pet can be Dog', () => {
+                    const pet = enforcer.definitions.Pet;
+                    const schema = pet.discriminate({ name: 'Fido', petType: 'Dog' });
+                    expect(schema).to.equal(enforcer.definitions.Dog);
+                });
+
+                it('pet cannot be cat (case mismatch)', () => {
+                    const pet = enforcer.definitions.Pet;
+                    const schema = pet.discriminate({ name: 'Hopper', petType: 'cat' });
+                    expect(schema).to.be.undefined;
+                });
+
+            });
+
+            describe('v3', () => {
+                let enforcer;
+                before(async () => {
+                    enforcer = await Enforcer(allOf3Def);
+                });
+
+                it('pet can be Cat', () => {
+                    const pet = enforcer.components.schemas.Pet;
+                    const schema = pet.discriminate({ name: 'Mittens', petType: 'Cat' });
+                    expect(schema).to.equal(enforcer.components.schemas.Cat);
+                });
+
+                it('pet can be cat (using mapping)', () => {
+                    const pet = enforcer.components.schemas.Pet;
+                    const schema = pet.discriminate({ name: 'Mittens', petType: 'cat' });
+                    expect(schema).to.equal(enforcer.components.schemas.Cat);
+                });
+
+                it('pet can be Dog', () => {
+                    const pet = enforcer.components.schemas.Pet;
+                    const schema = pet.discriminate({ name: 'Mittens', petType: 'Dog' });
+                    expect(schema).to.equal(enforcer.components.schemas.Dog);
+                });
+
+                it('pet can be dog (using mapping)', () => {
+                    const pet = enforcer.components.schemas.Pet;
+                    const schema = pet.discriminate({ name: 'Mittens', petType: 'dog' });
+                    expect(schema).to.equal(enforcer.components.schemas.Dog);
+                });
+
+            });
+
         });
 
     });
@@ -1022,18 +1548,20 @@ describe('enforcer/schema', () => {
 
     });
 
-    describe('serialize', () => {describe('array', () => {
+    describe('serialize', () => {
 
-        it('serializes each item in the array', () => {
-            const [schema] = Enforcer.v3_0.Schema({
-                type: 'array',
-                items: {type: 'string', format: 'date'}
+        describe('array', () => {
+
+            it('serializes each item in the array', () => {
+                const [schema] = Enforcer.v3_0.Schema({
+                    type: 'array',
+                    items: {type: 'string', format: 'date'}
+                });
+                const [value] = schema.serialize([new Date('2000-01-01')]);
+                expect(value).to.deep.equal(['2000-01-01']);
             });
-            const [value] = schema.serialize([new Date('2000-01-01')]);
-            expect(value).to.deep.equal(['2000-01-01']);
-        });
 
-    });
+        });
 
         describe('binary', () => {
             let schema;
@@ -1050,44 +1578,14 @@ describe('enforcer/schema', () => {
                 expect(err).to.match(/Expected a Buffer instance/);
             });
 
-            it('allows value true if coerced', () => {
-                const [value] = schema.serialize(Coerce(true));
-                expect(value).to.equal('00000001');
-            });
-
             it('does not allow value false', () => {
                 const [, err] = schema.serialize(false);
                 expect(err).to.match(/Expected a Buffer instance/);
             });
 
-            it('allows value false if coerced', () => {
-                const [value] = schema.serialize(Coerce(false));
-                expect(value).to.equal('00000000');
-            });
-
             it('does not allow number', () => {
                 const [, err] = schema.serialize(5);
                 expect(err).to.match(/Expected a Buffer instance/);
-            });
-
-            it('allows number if coerced', () => {
-                const [value] = schema.serialize(Coerce(5));
-                expect(value).to.equal('00000101');
-            });
-
-            it('allows 255 if coerced', () => {
-                const [value] = schema.serialize(Coerce(255));
-                expect(value).to.equal('11111111');
-            });
-
-            it('allows large number if coerced', () => {
-                const [value] = schema.serialize(Coerce(256));
-                expect(value).to.equal('0000000100000000');
-            });
-
-            it('allows string if coerced', () => {
-                const [value] = schema.serialize(Coerce('\r'));
-                expect(value).to.equal('00001101');
             });
 
             it('allows buffer', () => {
@@ -1097,12 +1595,12 @@ describe('enforcer/schema', () => {
             });
 
             it('does not allow object', () => {
-                const [, err] = schema.serialize(Coerce({}));
+                const [, err] = schema.serialize(Value.coerce({}));
                 expect(err).to.match(/Expected a Buffer instance/);
             });
 
             it('does not allow null', () => {
-                const [, err] = schema.serialize(Coerce(null));
+                const [, err] = schema.serialize(Value.coerce(null));
                 expect(err).to.match(/Expected a Buffer instance/);
             });
 
@@ -1127,57 +1625,27 @@ describe('enforcer/schema', () => {
 
             it('does not allow 1', () => {
                 const [, err] = schema.serialize(1);
-                expect(err).to.match(/Expected a boolean/);
-            });
-
-            it('allows 1 if coerced', () => {
-                const [value] = schema.serialize(Coerce(1));
-                expect(value).to.be.true;
+                expect(err).to.match(/Unable to serialize to boolean/);
             });
 
             it('does not allow 0', () => {
                 const [, err] = schema.serialize(0);
-                expect(err).to.match(/Expected a boolean/);
-            });
-
-            it('allows 0 if coerced', () => {
-                const [value] = schema.serialize(Coerce(0));
-                expect(value).to.be.false;
+                expect(err).to.match(/Unable to serialize to boolean/);
             });
 
             it('does not allow string', () => {
                 const [, err] = schema.serialize('hello');
-                expect(err).to.match(/Expected a boolean/);
-            });
-
-            it('allows empty string if coerced', () => {
-                const [value] = schema.serialize(Coerce(''));
-                expect(value).to.be.false;
-            });
-
-            it('allows non-empty string if coerced', () => {
-                const [value] = schema.serialize(Coerce('hello'));
-                expect(value).to.be.true;
+                expect(err).to.match(/Unable to serialize to boolean/);
             });
 
             it('does not allow object', () => {
                 const [, err] = schema.serialize({});
-                expect(err).to.match(/Expected a boolean/);
-            });
-
-            it('allows object if coerced', () => {
-                const [value] = schema.serialize(Coerce({}));
-                expect(value).to.be.true;
+                expect(err).to.match(/Unable to serialize to boolean/);
             });
 
             it('does not allow null', () => {
                 const [, err] = schema.serialize(null);
-                expect(err).to.match(/Expected a boolean/);
-            });
-
-            it('allows null if coerced', () => {
-                const [value] = schema.serialize(Coerce(null));
-                expect(value).to.be.false;
+                expect(err).to.match(/Unable to serialize to boolean/);
             });
 
         });
@@ -1197,19 +1665,9 @@ describe('enforcer/schema', () => {
                 expect(err).to.match(/Expected a Buffer instance/);
             });
 
-            it('allows true if coerced', () => {
-                const [value] = schema.serialize(Coerce(true));
-                expect(value).to.equal('AQ==');
-            });
-
             it('does not allow false', () => {
                 const [, err] = schema.serialize(false);
                 expect(err).to.match(/Expected a Buffer instance/);
-            });
-
-            it('allows false if coerced', () => {
-                const [value] = schema.serialize(Coerce(false));
-                expect(value).to.equal('AA==');
             });
 
             it('does not allow number', () => {
@@ -1217,44 +1675,9 @@ describe('enforcer/schema', () => {
                 expect(err).to.match(/Expected a Buffer instance/);
             });
 
-            it('allows 0 if coerced', () => {
-                const [value] = schema.serialize(Coerce(0));
-                expect(value).to.equal('AA==');
-            });
-
-            it('allows 1 if coerced', () => {
-                const [value] = schema.serialize(Coerce(1));
-                expect(value).to.equal('AQ==');
-            });
-
-            it('allow 256 if coerced', () => {
-                const [value] = schema.serialize(Coerce(256));
-                expect(value).to.equal('AQA=');
-            });
-
-            it('allow 270721 if coerced', () => {
-                const [value] = schema.serialize(Coerce(270721));
-                expect(value).to.equal('BCGB');
-            });
-
             it('does not allow string', () => {
                 const [, err] = schema.serialize('M');
                 expect(err).to.match(/Expected a Buffer instance/);
-            });
-
-            it('allows empty string if coerced', () => {
-                const [value] = schema.serialize(Coerce(''));
-                expect(value).to.equal('AA==');
-            });
-
-            it('allows single character string if coerced', () => {
-                const [value] = schema.serialize(Coerce('M'));
-                expect(value).to.equal('TQ==');
-            });
-
-            it('allows multiple character string if coerced', () => {
-                const [value] = schema.serialize(Coerce('Ma'));
-                expect(value).to.equal('TWE=');
             });
 
             it('allows buffer', () => {
@@ -1263,12 +1686,12 @@ describe('enforcer/schema', () => {
             });
 
             it('does not allow object', () => {
-                const [, err] = schema.serialize(Coerce({}));
+                const [, err] = schema.serialize(Value.coerce({}));
                 expect(err).to.match(/Expected a Buffer instance/);
             });
 
             it('does not allow null', () => {
-                const [, err] = schema.serialize(Coerce(null));
+                const [, err] = schema.serialize(Value.coerce(null));
                 expect(err).to.match(/Expected a Buffer instance/);
             });
 
@@ -1311,23 +1734,18 @@ describe('enforcer/schema', () => {
                 expect(err).to.match(/Expected a valid Date instance or date formatted string/);
             });
 
-            it('allows a number if coerced', () => {
-                const [value] = schema.serialize(Coerce(+(new Date(iso))));
-                expect(value).to.equal(date);
-            });
-
             it('does not allow a boolean', () => {
-                const [, err] = schema.serialize(Coerce(true));
+                const [, err] = schema.serialize(Value.coerce(true));
                 expect(err).to.match(/Expected a valid Date instance or date formatted string/);
             });
 
             it('does not allow an object', () => {
-                const [, err] = schema.serialize(Coerce({}));
+                const [, err] = schema.serialize(Value.coerce({}));
                 expect(err).to.match(/Expected a valid Date instance or date formatted string/);
             });
 
             it('does not allow null', () => {
-                const [, err] = schema.serialize(Coerce(null));
+                const [, err] = schema.serialize(Value.coerce(null));
                 expect(err).to.match(/Expected a valid Date instance or date formatted string/);
             });
 
@@ -1369,23 +1787,18 @@ describe('enforcer/schema', () => {
                 expect(err).to.match(/Expected a valid Date instance or an ISO date formatted string/);
             });
 
-            it('allows a number if coerced', () => {
-                const [value] = schema.serialize(Coerce(+(new Date(iso))));
-                expect(value).to.equal(iso);
-            });
-
             it('does not allow a boolean', () => {
-                const [, err] = schema.serialize(Coerce(true));
+                const [, err] = schema.serialize(Value.coerce(true));
                 expect(err).to.match(/Expected a valid Date instance or an ISO date formatted string/);
             });
 
             it('does not allow an object', () => {
-                const [, err] = schema.serialize(Coerce({}));
+                const [, err] = schema.serialize(Value.coerce({}));
                 expect(err).to.match(/Expected a valid Date instance or an ISO date formatted string/);
             });
 
             it('does not allow null', () => {
-                const [, err] = schema.serialize(Coerce(null));
+                const [, err] = schema.serialize(Value.coerce(null));
                 expect(err).to.match(/Expected a valid Date instance or an ISO date formatted string/);
             });
 
@@ -1405,68 +1818,37 @@ describe('enforcer/schema', () => {
 
             it('does not allow decimal number', () => {
                 const [, err] = schema.serialize(123.7);
-                expect(err).to.match(/Expected an integer/);
-            });
-
-            it('allows a decimal number if coerced', () => {
-                const [value] = schema.serialize(Coerce(123.7));
-                expect(value).to.equal(124);
+                expect(err).to.match(/Unable to serialize to integer/);
             });
 
             it('does not allow string integer', () => {
                 const [, err] = schema.serialize('123');
-                expect(err).to.match(/Expected an integer/);
-            });
-
-            it('allows string integer if coerced', () => {
-                const [value] = schema.serialize(Coerce('123'));
-                expect(value).to.equal(123);
+                expect(err).to.match(/Unable to serialize to integer/);
             });
 
             it('does not allow string decimal', () => {
                 const [, err] = schema.serialize('123.7');
-                expect(err).to.match(/Expected an integer/);
-            });
-
-            it('allows string decimal if coerced', () => {
-                const [value] = schema.serialize(Coerce('123.7'));
-                expect(value).to.equal(124);
+                expect(err).to.match(/Unable to serialize to integer/);
             });
 
             it('does not allow date object', () => {
                 const [, err] = schema.serialize(new Date('2000-01-01T00:00:00.000Z'));
-                expect(err).to.match(/Expected an integer/);
-            });
-
-            it('allows date object if coerced', () => {
-                const dt = new Date('2000-01-01T00:00:00.000Z');
-                const [value] = schema.serialize(Coerce(dt));
-                expect(value).to.equal(+dt);
+                expect(err).to.match(/Unable to serialize to integer/);
             });
 
             it('does not allow true', () => {
                 const [, err] = schema.serialize(true);
-                expect(err).to.match(/Expected an integer/);
-            });
-
-            it('allows true if coerced', () => {
-                const [value] = schema.serialize(Coerce(true));
-                expect(value).to.equal(1);
+                expect(err).to.match(/Unable to serialize to integer/);
             });
 
             it('does not allow false', () => {
                 const [, err] = schema.serialize(false);
-                expect(err).to.match(/Expected an integer/);
-            });
-
-            it('allows false if coerced', () => {
-                const [value] = schema.serialize(Coerce(false));
-                expect(value).to.equal(0);
+                expect(err).to.match(/Unable to serialize to integer/);
             });
 
             it('does not allow object', () => {
-                const [, err] = schema.serialize(Coerce({}));
-                expect(err).to.match(/Expected an integer/);
+                const [, err] = schema.serialize(Value.coerce({}));
+                expect(err).to.match(/Unable to serialize to integer/);
             });
 
         });
@@ -1486,48 +1868,27 @@ describe('enforcer/schema', () => {
 
             it('does not allow string number', () => {
                 const [, err] = schema.serialize('123.7');
-                expect(err).to.match(/Expected a number/);
-            });
-
-            it('allows string number if coerced', () => {
-                const [value] = schema.serialize(Coerce('123.7'));
-                expect(value).to.equal(123.7);
+                expect(err).to.match(/Unable to serialize to number/);
             });
 
             it('does not allow date object', () => {
                 const [, err] = schema.serialize(new Date('2000-01-01T00:00:00.000Z'));
-                expect(err).to.match(/Expected a number/);
-            });
-
-            it('allows date object if coerced', () => {
-                const dt = new Date('2000-01-01T00:00:00.000Z');
-                const [value] = schema.serialize(Coerce(dt));
-                expect(value).to.equal(+dt);
+                expect(err).to.match(/Unable to serialize to number/);
             });
 
             it('does not allow true', () => {
                 const [, err] = schema.serialize(true);
-                expect(err).to.match(/Expected a number/);
-            });
-
-            it('allows true if coerced', () => {
-                const [value] = schema.serialize(Coerce(true));
-                expect(value).to.equal(1);
+                expect(err).to.match(/Unable to serialize to number/);
             });
 
             it('does not allow false', () => {
                 const [, err] = schema.serialize(false);
-                expect(err).to.match(/Expected a number/);
-            });
-
-            it('allows false if coerced', () => {
-                const [value] = schema.serialize(Coerce(false));
-                expect(value).to.equal(0);
+                expect(err).to.match(/Unable to serialize to number/);
             });
 
             it('does not allow object', () => {
-                const [, err] = schema.serialize(Coerce({}));
-                expect(err).to.match(/Expected a number/);
+                const [, err] = schema.serialize(Value.coerce({}));
+                expect(err).to.match(/Unable to serialize to number/);
             });
 
         });
