@@ -20,7 +20,6 @@ module.exports = Enforcer;
 
 const dataTypeFormats       = require('./bin/data-type-formats');
 const Exception             = require('./bin/exception');
-const freeze                = require('./bin/freeze');
 const RefParser             = require('json-schema-ref-parser');
 const Super                 = require('./bin/super');
 const util                  = require('./bin/util');
@@ -43,8 +42,8 @@ async function Enforcer(definition, options) {
     if (!options.hasOwnProperty('hideWarnings')) options.hideWarnings = false;
 
     const refParser = new RefParser();
-    definition = await refParser.dereference(definition);
     definition = util.copy(definition);
+    definition = await refParser.dereference(definition);
 
     let exception = Exception('One or more errors exist in the OpenAPI definition');
     const hasSwagger = definition.hasOwnProperty('swagger');
@@ -67,7 +66,6 @@ async function Enforcer(definition, options) {
 
     if (!options.hideWarnings && warnings) console.warn(warnings.toString());
     if (exception && exception.hasException) throw Error(exception.toString());
-    if (options.freeze) freeze.deep(openapi);
     return openapi;
 }
 
