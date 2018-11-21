@@ -127,40 +127,50 @@ function createConstructor(version, name, enforcer) {
             data.result = result;
         }
 
-        // store the full set of enforcer data
-        store.set(result, data);
-        if (data.definition && typeof data.definition === 'object') data.defToInstanceMap.set(data.definition, result);
+        const existing = data.definition && typeof definition === 'object'
+            ? data.map.get(data.definition)
+            : undefined;
 
-        if (util.isPlainObject(data.definition)) {
-            definitionValidator(data);
+        if (existing) {
+            data.result = result = existing;
         } else {
-            data.exception.message('Value must be a plain object');
+            // store the full set of enforcer data
+            store.set(result, data);
+            if (data.definition && typeof data.definition === 'object') data.defToInstanceMap.set(data.definition, result);
+
+            if (util.isPlainObject(data.definition)) {
+                definitionValidator(data);
+            } else {
+                data.exception.message('Value must be a plain object');
+            }
+
+            // if an exception has occurred then exit now
+            if (data.exception.hasException && isStart) return new Result(undefined, data.exception, data.warn);
+
+            // run the init function if present
+            if (enforcer.init) enforcer.init.call(result, data);
+
+            // add plugin callbacks to this instance
+            const plugins = data.plugins;
+            callbacks.forEach(callback => plugins.push(function () {
+                callback.call(result, {
+                    enforcers: parent.context,
+                    exception: data.exception,
+                    key: data.key,
+                    major: data.major,
+                    minor: data.minor,
+                    parent: (data.parent && data.parent.result) || null,
+                    path: data.patch,
+                    root: data.root.result,
+                    warn: data.warn
+                });
+            }));
         }
 
-        // if an exception has occurred then exit now
-        if (data.exception.hasException && isStart) return new Result(undefined, data.exception, data.warn);
-
-        // run the construct function if present
-        if (enforcer.init) enforcer.init.call(result, data);
-
-        // add plugin callbacks to this instance
-        const plugins = data.plugins;
-        callbacks.forEach(callback => plugins.push(function() {
-            callback.call(result, {
-                enforcers: parent.context,
-                exception: data.exception,
-                key: data.key,
-                major: data.major,
-                minor: data.minor,
-                parent: (data.parent && data.parent.result) || null,
-                path: data.patch,
-                root: data.root.result,
-                warn: data.warn
-            });
-        }));
-
         // execute plugins
-        if (isStart) data.plugins.forEach(plugin => plugin());
+        if (isStart) {
+            while (data.plugins.length) data.plugins.pop()();
+        }
 
         return isStart
             ? new Result(result, data.exception, data.warn)
