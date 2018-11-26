@@ -80,7 +80,7 @@ const prototype = {
      * @param {boolean} [options.copy=false]
      * @param {boolean} [options.conditions=true]
      * @param {boolean} [options.defaults=true]
-     * @param {number} [options.depth=-1]
+     * @param {number} [options.depth=100]
      * @param {string} [options.replacement='handlebar']
      * @param {boolean} [options.templateDefaults=true]
      * @param {boolean} [options.templates=true]
@@ -96,11 +96,15 @@ const prototype = {
         if (!options.hasOwnProperty('copy')) options.copy = false;
         if (!options.hasOwnProperty('conditions')) options.conditions = true;
         if (!options.hasOwnProperty('defaults')) options.defaults = true;
+        if (!options.hasOwnProperty('depth')) options.depth = 100;
         if (!options.hasOwnProperty('replacement')) options.replacement = 'handlebar';
         if (!options.hasOwnProperty('templateDefaults')) options.templateDefaults = true;
         if (!options.hasOwnProperty('templates')) options.templates = true;
         if (!options.hasOwnProperty('variables')) options.variables = true;
 
+        if (!util.isInteger(options.depth) || options.depth < 0) {
+            throw Error('Invalid depth specified. Expected a non-negative integer');
+        }
         if (!populateInjectors.hasOwnProperty(options.replacement)) {
             throw Error('Invalid replacement type specified. Expected one of: ' + Object.keys(populateInjectors).join(', '));
         }
@@ -113,9 +117,9 @@ const prototype = {
         // validate the value
         const exception = Exception('Unable to populate value');
         const warn = Exception('One or more warnings found while populating value');
-        runPopulate(exception, warn, new Map(), this, params, root, 'value', options);
+        runPopulate(exception, warn, options.depth - 1, this, params, root, 'value', options);
 
-        return new Result(root.value, exception);
+        return new Result(root.value, exception, warn);
     },
 
     /**
