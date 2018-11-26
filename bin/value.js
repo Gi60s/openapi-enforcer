@@ -45,6 +45,8 @@ function EnforcerValue(value, config) {
         value = value.value;
     }
 
+    if (!config || typeof config !== 'object') throw Error('Invalid enforcer value configuration');
+
     const { populate, serialize, validate } = config;
     this.populate = populate;
     this.serialize = serialize;
