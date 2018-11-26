@@ -43,7 +43,7 @@ exports.binary = {
         return Buffer.from(array);
     },
 
-    serialize: function ({ coerce, exception, value }) {
+    serialize: function ({ exception, value }) {
         if (value instanceof Buffer) {
             let binary = '';
             for (let i = 0; i < value.length; i++) {
@@ -95,13 +95,11 @@ exports.byte = {
         return Buffer.from(array);
     },
 
-    serialize: function ({ coerce, exception, value }) {
-        const originalValue = value;
-        if (coerce) value = coerceToBuffer(exception, value);
+    serialize: function ({ exception, value }) {
         if (value instanceof Buffer) {
             return value.toString('base64');
         } else {
-            exception.message('Expected a Buffer instance. Received: ' + util.smart(originalValue));
+            exception.message('Expected a Buffer instance. Received: ' + util.smart(value));
         }
     },
 
@@ -149,11 +147,10 @@ exports.date = {
         return new Date(value);
     },
 
-    serialize: function ({ coerce, exception, value }) {
+    serialize: function ({ exception, value }) {
         const originalValue = value;
         const type = typeof value;
         if (type === 'string' && (rx.date.test(value) || rx.dateTime.test(value))) value = new Date(value);
-        if (coerce && type === 'number' && !isNaN(value)) value = new Date(Number(value));
         if (util.isDate(value)) {
             return value.toISOString().substr(0, 10);
         } else {
@@ -205,11 +202,10 @@ exports.dateTime = {
         return new Date(value);
     },
 
-    serialize: function ({ coerce, exception, value }) {
+    serialize: function ({ exception, value }) {
         const originalValue = value;
         const type = typeof value;
-        if (type === 'string' && (coerce || rx.date.test(value) || rx.dateTime.test(value))) value = new Date(value);
-        if (coerce && type === 'number' && !isNaN(value)) value = new Date(Number(value));
+        if (type === 'string' && (rx.date.test(value) || rx.dateTime.test(value))) value = new Date(value);
         if (util.isDate(value)) {
             return value.toISOString();
         } else {
@@ -235,27 +231,3 @@ exports.dateTime = {
         }
     }
 };
-
-function coerceToBuffer(exception, value) {
-    const type = typeof value;
-    if (type === 'number' || type === 'boolean') {
-        value = Number(value);
-        if (!isNaN(value) && value >= 0) {
-            let hex = value.toString(16);
-            if (hex.length % 2) hex = '0' + hex;
-
-            const array = [];
-            const length = hex.length;
-            for (let i = 0; i < length; i += 2) {
-                array.push(hex.substr(i, 2));
-            }
-
-            value = Buffer.from(array.join(''), 'hex');
-        } else {
-            exception.message('Unable to coerce value');
-        }
-    } else if (type === 'string') {
-        value = value ? Buffer.from(value) : Buffer.from([0]);
-    }
-    return value;
-}
