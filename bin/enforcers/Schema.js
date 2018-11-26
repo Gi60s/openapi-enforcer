@@ -15,13 +15,21 @@
  *    limitations under the License.
  **/
 'use strict';
-const EnforcerRef  = require('../enforcer-ref');
-const Exception     = require('../exception');
-const Result        = require('../result');
-const util          = require('../util');
-const Value         = require('../value');
+const EnforcerRef       = require('../enforcer-ref');
+const Exception         = require('../exception');
+const Result            = require('../result');
+const runDeserialize    = require('../schema/deserialize');
+const runPopulate       = require('../schema/populate');
+const runSerialize      = require('../schema/serialize');
+const util              = require('../util');
+const Value             = require('../value');
 
 const rxHttp = /^https?:\/\//;
+const populateInjectors = {
+    colon: buildInjector(() => /:([_$a-z][_$a-z0-9]*)/ig),
+    doubleHandlebar: buildInjector(() => /{{([_$a-z][_$a-z0-9]*)}}/ig),
+    handlebar: buildInjector(() => /{([_$a-z][_$a-z0-9]*)}/ig)
+};
 
 const prototype = {
 
@@ -66,21 +74,48 @@ const prototype = {
 
     /**
      * Populate a value from a list of parameters.
-     * @param {object} params
+     * @param {object} [params]
      * @param {*} [value]
      * @param {object} [options]
      * @param {boolean} [options.copy=false]
      * @param {boolean} [options.conditions=true]
      * @param {boolean} [options.defaults=true]
+     * @param {number} [options.depth=-1]
      * @param {string} [options.replacement='handlebar']
-     * @param {boolean} [options.reportErrors=false]
      * @param {boolean} [options.templateDefaults=true]
      * @param {boolean} [options.templates=true]
      * @param {boolean} [options.variables=true]
      * @returns {{ error: Exception|null, value: * }}
      */
     populate: function(params, value, options) {
-        // return populate.populate(this, params, value, options);
+        if (arguments.length === 0) params = {};
+        if (!params || !util.isPlainObject(params)) throw Error('Invalid params specified. Must be a plain object');
+
+        if (arguments.length < 3) options = {};
+        if (!options || !util.isPlainObject(options)) throw Error('Invalid options specified. Must be a plain object');
+        if (!options.hasOwnProperty('copy')) options.copy = false;
+        if (!options.hasOwnProperty('conditions')) options.conditions = true;
+        if (!options.hasOwnProperty('defaults')) options.defaults = true;
+        if (!options.hasOwnProperty('replacement')) options.replacement = 'handlebar';
+        if (!options.hasOwnProperty('templateDefaults')) options.templateDefaults = true;
+        if (!options.hasOwnProperty('templates')) options.templates = true;
+        if (!options.hasOwnProperty('variables')) options.variables = true;
+
+        if (!populateInjectors.hasOwnProperty(options.replacement)) {
+            throw Error('Invalid replacement type specified. Expected one of: ' + Object.keys(populateInjectors).join(', '));
+        }
+
+        options.injector = populateInjectors[options.replacement];
+        if (!params) params = {};
+        if (options.copy) value = util.copy(value);
+        const root = { value };
+
+        // validate the value
+        const exception = Exception('Unable to populate value');
+        const warn = Exception('One or more warnings found while populating value');
+        runPopulate(exception, warn, new Map(), this, params, root, 'value', options);
+
+        return new Result(root.value, exception);
     },
 
     /**
@@ -101,7 +136,7 @@ const prototype = {
      * @param value
      * @returns {*}
      */
-    serialize: function(value) {
+    serialize: function (value) {
         const exception = Exception('Unable to serialize value');
         const result = runSerialize(exception, new Map(), this, value);
         return new Result(result, exception);
@@ -496,7 +531,25 @@ module.exports = {
     }
 };
 
-
+/**
+ * Accepts a function that returns a regular expression. Uses the regular expression to extract parameter names from strings.
+ * @param {function} rxGenerator
+ * @returns {function}
+ */
+function buildInjector(rxGenerator) {
+    return function(value, data) {
+        const rx = rxGenerator();
+        let match;
+        let result = '';
+        let offset = 0;
+        while (match = rx.exec(value)) {
+            const property = match[1];
+            result += value.substring(offset, match.index) + (data[property] !== undefined ? data[property] : match[0]);
+            offset = match.index + match[0].length;
+        }
+        return result + value.substr(offset);
+    };
+}
 
 function deserializeAndValidate(schema, exception, value, options) {
     let error;
@@ -571,330 +624,6 @@ function numericType (schema) {
         }
     } else {
         return 'number';
-    }
-}
-
-function runDeserialize(exception, map, schema, originalValue) {
-    const { serialize, value } = Value.getAttributes(originalValue);
-    if (!serialize) return originalValue;
-
-    const type = schema.type;
-    const typeofValue = typeof value;
-    let matches;
-
-    // handle cyclic serialization
-    if (value && typeofValue === 'object') {
-        matches = map.get(value);
-        if (matches) {
-            const existing = matches.get(schema);
-            if (existing) return existing;
-        } else {
-            matches = new WeakMap();
-            map.set(value, matches);
-        }
-    }
-
-    if (schema.allOf) {
-        const result = {};
-        const exception2 = exception.at('allOf');
-        schema.allOf.forEach((schema, index) => {
-            const v = runDeserialize(exception2.at(index), map, schema, originalValue);
-            Object.assign(result, v)
-        });
-        return result;
-
-    } else if (schema.anyOf) {
-        if (schema.discriminator) {
-            return runDiscriminator(exception, map, schema, originalValue, runDeserialize);
-        } else {
-            const anyOfException = Exception('Unable to deserialize using anyOf schemas');
-            const length = schema.allOf.length;
-            for (let index = 0; index < length; index++) {
-                const subSchema = schema.allOf[index];
-                const child = anyOfException.at(index);
-                const result = runDeserialize(child, map, subSchema, originalValue);
-                if (!child.hasException) {
-                    const error = subSchema.validate(result);
-                    if (error) {
-                        child(error);
-                    } else {
-                        return result;
-                    }
-                }
-            }
-            exception.push(anyOfException);
-        }
-
-    } else if (schema.oneOf) {
-        if (schema.discriminator) {
-            return runDiscriminator(exception, map, schema, originalValue, runDeserialize);
-        } else {
-            const oneOfException = Exception('Did not deserialize against exactly one oneOf schema');
-            let valid = 0;
-            let result = undefined;
-            schema.oneOf.forEach((schema, index) => {
-                const child = oneOfException.nest('Unable to deserialize using schema at index ' + index);
-                result = runDeserialize(child, map, schema, originalValue);
-                if (!child.hasException) {
-                    const error = schema.validate(result);
-                    if (error) {
-                        child(error);
-                    } else {
-                        child('Deserialized against schema at index ' + index);
-                        valid++;
-                    }
-                }
-            });
-            if (valid !== 1) {
-                exception.push(oneOfException);
-            } else {
-                return result;
-            }
-        }
-
-    } else if (type === 'array') {
-        if (Array.isArray(value)) {
-            const result = schema.items
-                ? value.map((v, i) => runDeserialize(exception.at(i), map, schema.items, Value.inherit(v, { serialize })))
-                : value;
-            matches.set(schema, result);
-            return result;
-        } else {
-            exception.message('Expected an array. Received: ' + util.smart(value));
-        }
-
-    } else if (type === 'object') { // TODO: make sure that serialize and deserialze properly throw errors for invalid object properties
-        if (util.isPlainObject(value)) {
-            const result = {};
-            const additionalProperties = schema.additionalProperties;
-            const properties = schema.properties || {};
-            Object.keys(value).forEach(key => {
-                if (properties.hasOwnProperty(key)) {
-                    result[key] = runDeserialize(exception.at(key), map, properties[key], Value.inherit(value[key], { serialize }));
-                } else if (additionalProperties) {
-                    result[key] = runDeserialize(exception.at(key), map, additionalProperties, Value.inherit(value[key], { serialize }));
-                } else {
-                    result[key] = value[key];   // not deserialized, just left alone
-                }
-            });
-            matches.set(schema, result);
-            return result;
-        } else {
-            exception.message('Expected an object. Received: ' + util.smart(value));
-        }
-
-    } else {
-        const dataTypes = schema.enforcerData.staticData.dataTypes;
-        const dataType = dataTypes[schema.type][schema.format] || null;
-
-        if (type === 'boolean') {
-            if (dataType) {
-                return dataType.deserialize({
-                    exception,
-                    schema,
-                    value
-                });
-            } else if (typeofValue !== 'boolean') {
-                exception.message('Expected a boolean. Received: ' + util.smart(value));
-            } else {
-                return typeofValue === 'string' ? value.toLowerCase() === 'false' : !!value;
-            }
-
-        } else if (type === 'integer') {
-            if (dataType) {
-                return dataType.deserialize({
-                    exception,
-                    schema,
-                    value
-                });
-            } else if (typeofValue !== 'number' || !util.isInteger(value)) {
-                exception.message('Expected an integer. Received: ' + util.smart(value));
-            } else {
-                return value;
-            }
-
-        } else if (type === 'number') {
-            if (dataType) {
-                return dataType.deserialize({
-                    exception,
-                    schema,
-                    value: value
-                });
-            } else if (typeofValue !== 'number') {
-                exception.message('Expected a number. Received: ' + util.smart(value));
-            } else {
-                return value;
-            }
-
-        } else if (type === 'string') {
-            if (dataType) {
-                return dataType.deserialize({
-                    exception,
-                    schema,
-                    value
-                });
-            } if (typeofValue !== 'string') {
-                exception.message('Expected a string. Received: ' + util.smart(value));
-            } else {
-                return value;
-            }
-        }
-    }
-}
-
-function runSerialize(exception, map, schema, originalValue) {
-    const { serialize, value } = Value.getAttributes(originalValue);
-    if (!serialize) return originalValue;
-
-    const type = schema.type;
-    let matches;
-
-    // handle cyclic serialization
-    if (value && typeof value === 'object') {
-        matches = map.get(value);
-        if (matches) {
-            const existing = matches.get(schema);
-            if (existing) return existing;
-        } else {
-            matches = new WeakMap();
-            map.set(value, matches);
-        }
-    }
-
-    if (schema.allOf) {
-        const result = {};
-        const allOfException = exception.nest('Unable to serialize allOf');
-        schema.allOf.forEach((schema, index) => {
-            const v = runSerialize(allOfException.at(index), map, schema, originalValue);
-            Object.assign(result, v)
-        });
-        return result;
-
-    } else if (schema.anyOf) {
-        if (schema.discriminator) {
-            return runDiscriminator(exception, map, schema, value, serialize);
-        } else {
-            const anyOfException = Exception('Unable to serialize using anyOf schemas');
-            const length = schema.allOf.length;
-            for (let index = 0; index < length; index++) {
-                const subSchema = schema.allOf[index];
-                const child = anyOfException.at(index);
-                const result = runSerialize(child, map, subSchema, originalValue);
-                if (!child.hasException) {
-                    const error = subSchema.validate(result);
-                    if (error) {
-                        child(error);
-                    } else {
-                        return result;
-                    }
-                }
-            }
-            exception(anyOfException);
-        }
-
-    } else if (schema.oneOf) {
-        if (schema.discriminator) {
-            return runDiscriminator(exception, map, schema, originalValue, serialize);
-        } else {
-            const oneOfException = Exception('Did not serialize against exactly one oneOf schema');
-            let valid = 0;
-            let result = undefined;
-            schema.oneOf.forEach((schema, index) => {
-                const child = oneOfException.at(index);
-                const result = runSerialize(child, map, schema, originalValue);
-                if (!child.hasException) {
-                    const error = schema.validate(result);
-                    if (error) {
-                        child(error);
-                    } else {
-                        child('Serialized against schema at index ' + index);
-                        valid++;
-                    }
-                }
-            });
-            if (valid !== 1) {
-                exception(oneOfException);
-            } else {
-                return result;
-            }
-        }
-
-    } else if (type === 'array') {
-        if (Array.isArray(value)) {
-            const result = schema.items
-                ? value.map((v, i) => runSerialize(exception.at(i), map, schema.items, v))
-                : value;
-            matches.set(schema, result);
-            return result;
-        } else {
-            exception.message('Expected an array. Received: ' + util.smart(value));
-        }
-
-    } else if (type === 'object') {
-        if (util.isPlainObject(value)) {
-            const result = {};
-            const additionalProperties = schema.additionalProperties;
-            const properties = schema.properties || {};
-            Object.keys(value).forEach(key => {
-                if (properties.hasOwnProperty(key)) {
-                    result[key] = runSerialize(exception.at(key), map, properties[key], value[key]);
-                } else if (additionalProperties) {
-                    result[key] = runSerialize(exception.at(key), map, additionalProperties, value[key]);
-                }
-            });
-            return result;
-        } else {
-            exception.message('Expected an object. Received: ' + util.smart(originalValue));
-        }
-
-    } else {
-        const dataTypes = schema.enforcerData.staticData.dataTypes;
-        const dataType = dataTypes[schema.type][schema.format] || { serialize: function({ value }) { return value } };
-
-        if (type === 'boolean') {
-            let result = dataType.serialize({
-                exception,
-                schema,
-                value
-            });
-            if (typeof result !== 'boolean') {
-                exception.message('Unable to serialize to boolean. Received: ' + util.smart(value));
-            }
-            return result;
-
-        } else if (type === 'integer') {
-            let result = dataType.serialize({
-                exception,
-                schema,
-                value
-            });
-            if (typeof result !== 'number' || isNaN(result) || result !== Math.round(result)) {
-                exception.message('Unable to serialize to integer. Received: ' + util.smart(value));
-            }
-            return result;
-
-        } else if (type === 'number') {
-            let result = dataType.serialize({
-                exception,
-                schema,
-                value
-            });
-            if (typeof result !== 'number' || isNaN(result)) {
-                exception.message('Unable to serialize to number. Received: ' + util.smart(value));
-            }
-            return result;
-
-        } else if (type === 'string') {
-            let result = dataType.serialize({
-                exception,
-                schema,
-                value
-            });
-            if (typeof result !== 'string') {
-                exception.message('Unable to serialize to string. Received: ' + util.smart(value));
-            }
-            return result;
-        }
     }
 }
 
