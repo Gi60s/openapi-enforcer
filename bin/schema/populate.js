@@ -45,16 +45,16 @@ function runPopulate(exception, warn, depth, schema, params, object, property, o
             if (subSchema) {
                 runPopulate(exception, warn, depth, subSchema, params, object, property, options);
             } else {
-                exception('Unable to find discriminator schema');
+                exception.message('Unable to find discriminator schema');
             }
         }
 
     } else if (schema.not) {
-        exception('Cannot populate "not" schemas');
+        exception.message('Cannot populate "not" schemas');
 
     } else if (type === 'array') {
         if (value !== undefined && !Array.isArray(value)) {
-            exception('Provided value must be an array. Received: ' + util.smart(value));
+            exception.message('Provided value must be an array. Received: ' + util.smart(value));
         } else {
             const value = apply(exception, schema, params, object, property, options);
             if (schema.items && Array.isArray(value)) {
@@ -70,7 +70,7 @@ function runPopulate(exception, warn, depth, schema, params, object, property, o
 
     } else if (type === 'object') {
         if (value !== undefined && (!value || typeof value !== 'object')) {
-            exception('Provided value must be an object. Received: ' + util.smart(value));
+            exception.message('Provided value must be an object. Received: ' + util.smart(value));
         } else if (depth < 0) {
             warn.message('Reached maximum depth');
         } else {
