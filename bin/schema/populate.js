@@ -23,7 +23,10 @@ module.exports = runPopulate;
 function runPopulate(exception, warn, depth, schema, params, object, property, options) {
     const { populate, value } = Value.getAttributes(object[property]);
     const type = schema.type;
-    if (!populate) return;
+    if (!populate) {
+        object[property] = value;
+        return;
+    }
 
     // if condition is not met then exit
     if (schema.hasOwnProperty('x-condition') && !params[schema['x-condition']]) return;
