@@ -50,7 +50,7 @@ const prototype = {
      * @param {*} value
      * @returns {Schema }
      */
-    discriminate: function(value) {
+    discriminate: function (value) {
         const { major, root } = this.enforcerData;
         const discriminator = this.discriminator;
         const openapi = root.result;
@@ -172,10 +172,12 @@ module.exports = {
             setProperty(this, 'enum', value);
         }
         if (this.hasOwnProperty('default')) {
-            setProperty(this, 'default', deserializeAndValidate(this, exception.at('default'), this.default, {}));
+            const value = deserializeAndValidate(this, exception.at('default'), this.default, {});
+            setProperty(this, 'default', freeze(value));
         }
         if (this.hasOwnProperty('example')) {
-            setProperty(this, 'example', deserializeAndValidate(this, warn.at('example'), this.example, {}));
+            const value = deserializeAndValidate(this, warn.at('example'), this.example, {});
+            setProperty(this, 'example', freeze(value));
         }
 
         // run data type validator
@@ -555,6 +557,10 @@ function buildInjector(rxGenerator) {
     };
 }
 
+function dateIsFrozen() {
+    throw Error('Date object cannot be modified');
+}
+
 function deserializeAndValidate(schema, exception, value, options) {
     let error;
     [ value, error ] = schema.deserialize(value);
@@ -564,6 +570,30 @@ function deserializeAndValidate(schema, exception, value, options) {
         if (exception.hasException) error = exception;
     }
     if (error) exception.push(error);
+    return value;
+}
+
+function freeze (value) {
+    if (!value || typeof value !== 'object') return value;
+    if (value instanceof Date) {
+        value.setDate = dateIsFrozen;
+        value.setFullYear= dateIsFrozen;
+        value.setHours= dateIsFrozen;
+        value.setMilliseconds= dateIsFrozen;
+        value.setMinutes= dateIsFrozen;
+        value.setMonth= dateIsFrozen;
+        value.setSeconds= dateIsFrozen;
+        value.setTime= dateIsFrozen;
+        value.setUTCDate= dateIsFrozen;
+        value.setUTCFullYear= dateIsFrozen;
+        value.setUTCHours= dateIsFrozen;
+        value.setUTCMilliseconds= dateIsFrozen;
+        value.setUTCMinutes= dateIsFrozen;
+        value.setUTCMonth= dateIsFrozen;
+        value.setUTCSeconds= dateIsFrozen;
+        value.setYear= dateIsFrozen;
+    }
+    Object.freeze(value);
     return value;
 }
 
