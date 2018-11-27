@@ -200,7 +200,7 @@ module.exports = {
                     type: 'object',
                     additionalProperties: EnforcerRef('Parameter')
                 },
-                paths: EnforcerRef('Paths'),
+                paths: EnforcerRef('Paths', { required: true }),
                 produces: {
                     allowed: major === 2,
                     type: 'array',
