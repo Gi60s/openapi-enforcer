@@ -298,8 +298,7 @@ function validateType(definitionType, data) {
         // get valid types
         let matches = fn(validator.type, data);
         if (!Array.isArray(matches)) matches = [ matches ];
-
-        // check if types match
+        matches = matches.map(v => v === 'integer' ? 'number' : v);
         if (matches.includes(definitionType)) return true;
 
         const length = matches.length;
