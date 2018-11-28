@@ -1276,7 +1276,7 @@ describe.only('enforcer/schema', () => {
             it('allows a valid date object', () => {
                 const d = new Date(iso);
                 const [value] = schema.deserialize(d);
-                expect(value).to.equal(d);
+                expect(value).to.deep.equal(d);
             });
 
             it('does not allow a date string', () => {
@@ -1400,7 +1400,7 @@ describe.only('enforcer/schema', () => {
 
         });
 
-        describe.only('object', () => {
+        describe('object', () => {
 
             it('can deserialize object properties', () => {
                 const [schema] = Enforcer.v3_0.Schema({
@@ -1457,36 +1457,32 @@ describe.only('enforcer/schema', () => {
             it('can discriminate with allOf', async () => {
                 const enforcer = await Enforcer(allOf2Def);
                 const schema = enforcer.definitions.Pet;
+                const birthDate = '2000-01-01';
 
-                const [ value ] = schema.deserialize({ petType: 'Dog', birthDate: '2000-01-01' });
+                const [ value ] = schema.deserialize({ petType: 'Dog', birthDate });
                 expect(value.birthDate).to.be.an.instanceof(Date);
 
-                const [ value2 ] = schema.deserialize({ petType: 'Cat', birthDate: '2000-01-01' });
+                const [ value2 ] = schema.deserialize({ petType: 'Cat', birthDate });
                 expect(value2.birthDate).to.be.a('string');
             });
 
-            it('can determine anyOf without discriminator', async () => {
+            it('cannot determine anyOf without discriminator', async () => {
                 const enforcer = await Enforcer(anyOfDef);
                 const schema = enforcer.components.schemas.Pet;
-                throw Error('TODO');
+                const [ , err ] = schema.deserialize({ birthDate: '2000-01-01' });
+                expect(err).to.match(/Unable to discriminate to schema/);
             });
 
             it('can determine anyOf with discriminator', async () => {
                 const enforcer = await Enforcer(anyOfDef);
                 const schema = enforcer.components.schemas.Pet;
-                throw Error('TODO');
-            });
+                const birthDate = '2000-01-01';
 
-            it('can determine oneOf without discriminator', async () => {
-                const enforcer = await Enforcer(oneOfDef);
-                const schema = enforcer.components.schemas.Pet;
-                throw Error('TODO');
-            });
+                const [ value ] = schema.deserialize({ petType: 'Dog', birthDate });
+                expect(value.birthDate).to.be.an.instanceof(Date);
 
-            it('can determine oneOf with discriminator', async () => {
-                const enforcer = await Enforcer(anyOfDef);
-                const schema = enforcer.components.schemas.Pet;
-                throw Error('TODO');
+                const [ value2 ] = schema.deserialize({ petType: 'Cat', birthDate });
+                expect(value2.birthDate).to.be.a('string');
             });
 
         });
@@ -1961,27 +1957,27 @@ describe.only('enforcer/schema', () => {
 
             it('does not allow 1', () => {
                 const [, err] = schema.serialize(1);
-                expect(err).to.match(/Unable to serialize to boolean/);
+                expect(err).to.match(/Unable to serialize to a boolean/);
             });
 
             it('does not allow 0', () => {
                 const [, err] = schema.serialize(0);
-                expect(err).to.match(/Unable to serialize to boolean/);
+                expect(err).to.match(/Unable to serialize to a boolean/);
             });
 
             it('does not allow string', () => {
                 const [, err] = schema.serialize('hello');
-                expect(err).to.match(/Unable to serialize to boolean/);
+                expect(err).to.match(/Unable to serialize to a boolean/);
             });
 
             it('does not allow object', () => {
                 const [, err] = schema.serialize({});
-                expect(err).to.match(/Unable to serialize to boolean/);
+                expect(err).to.match(/Unable to serialize to a boolean/);
             });
 
             it('does not allow null', () => {
                 const [, err] = schema.serialize(null);
-                expect(err).to.match(/Unable to serialize to boolean/);
+                expect(err).to.match(/Unable to serialize to a boolean/);
             });
 
         });
@@ -2154,37 +2150,37 @@ describe.only('enforcer/schema', () => {
 
             it('does not allow decimal number', () => {
                 const [, err] = schema.serialize(123.7);
-                expect(err).to.match(/Unable to serialize to integer/);
+                expect(err).to.match(/Unable to serialize to an integer/);
             });
 
             it('does not allow string integer', () => {
                 const [, err] = schema.serialize('123');
-                expect(err).to.match(/Unable to serialize to integer/);
+                expect(err).to.match(/Unable to serialize to an integer/);
             });
 
             it('does not allow string decimal', () => {
                 const [, err] = schema.serialize('123.7');
-                expect(err).to.match(/Unable to serialize to integer/);
+                expect(err).to.match(/Unable to serialize to an integer/);
             });
 
             it('does not allow date object', () => {
                 const [, err] = schema.serialize(new Date('2000-01-01T00:00:00.000Z'));
-                expect(err).to.match(/Unable to serialize to integer/);
+                expect(err).to.match(/Unable to serialize to an integer/);
             });
 
             it('does not allow true', () => {
                 const [, err] = schema.serialize(true);
-                expect(err).to.match(/Unable to serialize to integer/);
+                expect(err).to.match(/Unable to serialize to an integer/);
             });
 
             it('does not allow false', () => {
                 const [, err] = schema.serialize(false);
-                expect(err).to.match(/Unable to serialize to integer/);
+                expect(err).to.match(/Unable to serialize to an integer/);
             });
 
             it('does not allow object', () => {
                 const [, err] = schema.serialize({});
-                expect(err).to.match(/Unable to serialize to integer/);
+                expect(err).to.match(/Unable to serialize to an integer/);
             });
 
         });
@@ -2204,27 +2200,27 @@ describe.only('enforcer/schema', () => {
 
             it('does not allow string number', () => {
                 const [, err] = schema.serialize('123.7');
-                expect(err).to.match(/Unable to serialize to number/);
+                expect(err).to.match(/Unable to serialize to a number/);
             });
 
             it('does not allow date object', () => {
                 const [, err] = schema.serialize(new Date('2000-01-01T00:00:00.000Z'));
-                expect(err).to.match(/Unable to serialize to number/);
+                expect(err).to.match(/Unable to serialize to a number/);
             });
 
             it('does not allow true', () => {
                 const [, err] = schema.serialize(true);
-                expect(err).to.match(/Unable to serialize to number/);
+                expect(err).to.match(/Unable to serialize to a number/);
             });
 
             it('does not allow false', () => {
                 const [, err] = schema.serialize(false);
-                expect(err).to.match(/Unable to serialize to number/);
+                expect(err).to.match(/Unable to serialize to a number/);
             });
 
             it('does not allow object', () => {
                 const [, err] = schema.serialize({});
-                expect(err).to.match(/Unable to serialize to number/);
+                expect(err).to.match(/Unable to serialize to a number/);
             });
 
         });
@@ -2254,14 +2250,946 @@ describe.only('enforcer/schema', () => {
                 });
             });
 
+            it('can produce errors for invalid object properties', () => {
+                const [schema] = Enforcer.v3_0.Schema({
+                    type: 'object',
+                    properties: {
+                        a: { type: 'number' }
+                    }
+                });
+                const [,err] = schema.serialize({a: 'hello'});
+                expect(err).to.match(/Unable to serialize to a number. Received: "hello"/);
+            });
+
+            it('can serialize with allOf', () => {
+                const [ schema ] = Enforcer.v2_0.Schema({
+                    allOf: [
+                        { type: 'object', properties: { a: { type: 'string', format: 'date' } } },
+                        { type: 'object', properties: { b: { type: 'string', format: 'date' } } },
+                        { type: 'object', properties: { c: { type: 'string', format: 'date-time' } } }
+                    ]
+                });
+                const date = new Date('2000-01-01T00:00:00.000Z');
+                const [ value ] = schema.serialize({
+                    a: date,
+                    b: date,
+                    c: date
+                });
+                expect(value).to.deep.equal({
+                    a: '2000-01-01',
+                    b: '2000-01-01',
+                    c: '2000-01-01T00:00:00.000Z'
+                });
+            });
+
+            it('can discriminate with allOf', async () => {
+                const enforcer = await Enforcer(allOf2Def);
+                const schema = enforcer.definitions.Pet;
+                const birthDate = new Date('2000-01-01T00:00:00.000Z');
+
+                const [ value ] = schema.serialize({ petType: 'Dog', birthDate });
+                expect(value.birthDate).to.equal('2000-01-01');
+
+                const [ , err ] = schema.serialize({ petType: 'Cat', birthDate });
+                expect(err).to.match(/at: 1 > birthDate\s+Unable to serialize to a string/);
+            });
+
+            it('cannot determine anyOf without discriminator', async () => {
+                const enforcer = await Enforcer(anyOfDef);
+                const schema = enforcer.components.schemas.Pet;
+                const [ , err ] = schema.serialize({ birthDate: new Date('2000-01-01') });
+                expect(err).to.match(/Unable to discriminate to schema/);
+            });
+
+            it('can determine anyOf with discriminator', async () => {
+                const enforcer = await Enforcer(anyOfDef);
+                const schema = enforcer.components.schemas.Pet;
+                const birthDate = new Date('2000-01-01T00:00:00.000Z');
+
+                const [ value ] = schema.serialize({ petType: 'Dog', birthDate });
+                expect(value.birthDate).to.equal('2000-01-01');
+
+                const [ , err ] = schema.serialize({ petType: 'Cat', birthDate });
+                expect(err).to.match(/at: birthDate\s+Unable to serialize to a string/);
+            });
+
         });
 
     });
 
     describe('validate', () => {
 
-        it('todo', () => {
-            throw Error('TODO');
+        describe('array', () => {
+            const base = { type: 'array', items: { type: 'number' } };
+
+            it('is array', () => {
+                const [ schema ] = Enforcer.v2_0.Schema(base);
+                const errors = schema.validate(5);
+                expect(errors).to.match(/Expected an array/);
+            });
+
+            describe('max items 10 no min items', () => {
+                let schema;
+                before(() => {
+                    const def = Object.assign({}, base, { maxItems: 10 });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('zero items', () => {
+                    const errors = schema.validate([]);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('11 items', () => {
+                    const errors = schema.validate([1,2,3,4,5,6,7,8,9,10,11]);
+                    expect(errors).to.match(/Too many items in the array/);
+                });
+
+            });
+
+            describe('min items 2 no max items', () => {
+                let schema;
+                before(() => {
+                    const def = Object.assign({}, base, { minItems: 2 });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('zero items', () => {
+                    const errors = schema.validate([]);
+                    expect(errors).to.match(/Too few items in the array/);
+                });
+
+                it('3 items', () => {
+                    const errors = schema.validate([1,2,3]);
+                    expect(errors).to.be.undefined;
+                });
+
+            });
+
+            describe('unique items', () => {
+                let schema;
+                before(() => {
+                    const def = Object.assign({}, base, { uniqueItems: true });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('unique', () => {
+                    const errors = schema.validate([1,2,3]);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('duplicate', () => {
+                    const errors = schema.validate([1,2,1]);
+                    expect(errors).to.match(/Array items must be unique/);
+                });
+
+            });
+
+            describe('enum', () => {
+                let schema;
+                before(() => {
+                    const def = Object.assign({}, base, { enum: [[1,2], [3,4]] });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('in enum 1', () => {
+                    const errors = schema.validate([1,2]);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('in enum 2', () => {
+                    const errors = schema.validate([3,4]);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('not in enum', () => {
+                    const errors = schema.validate([1,2,1]);
+                    expect(errors).to.match(/did not meet enum requirements/);
+                });
+
+            });
+
+        });
+
+        describe('binary', () => {
+            const base = { type: 'string', format: 'binary' };
+            let schema;
+            before(() => {
+                const def = Object.assign({}, base);
+                [ schema ] = Enforcer.v2_0.Schema(def);
+            });
+
+            it('value is a buffer', () => {
+                const errors = schema.validate(Buffer.from(['00110011'], 'binary'));
+                expect(errors).to.be.undefined;
+            });
+
+            it('value is not a buffer', () => {
+                const errors = schema.validate('00110011');
+                expect(errors).to.match(/Expected value to be a buffer/);
+            });
+
+            describe('min length', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { minLength: 8 });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('below minimum', () => {
+                    const errors = schema.validate(Buffer.from([]));
+                    expect(errors).to.match(/Expected binary length to be greater than or equal to 8/);
+                });
+
+                it('at minimum', () => {
+                    const errors = schema.validate(Buffer.from(['00110011'], 'binary'));
+                    expect(errors).to.be.undefined;
+                });
+
+            });
+
+            describe('max length', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { maxLength: 8 });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('above max', () => {
+                    const errors = schema.validate(Buffer.from([51, 51]));
+                    expect(errors).to.match(/Expected binary length to be less than or equal to 8/);
+                });
+
+                it('at max', () => {
+                    const errors = schema.validate(Buffer.from([51], 'binary'));
+                    expect(errors).to.be.undefined;
+                });
+
+            });
+
+            describe('enum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { enum: ['00110011'] });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('in enum', () => {
+                    const errors = schema.validate(Buffer.from([51], 'binary'));
+                    expect(errors).to.be.undefined;
+                });
+
+                it('not in enum', () => {
+                    const errors = schema.validate(Buffer.from([52], 'binary'));
+                    expect(errors).to.match(/did not meet enum requirements/i);
+                });
+
+            });
+
+        });
+
+        describe('boolean', () => {
+            const base = { type: 'boolean' };
+            let schema;
+            before(() => {
+                const def = Object.assign({}, base);
+                [ schema ] = Enforcer.v2_0.Schema(def);
+            });
+
+            it('is true', () => {
+                const errors = schema.validate(true);
+                expect(errors).to.be.undefined;
+            });
+
+            it('is false', () => {
+                const errors = schema.validate(false);
+                expect(errors).to.be.undefined;
+            });
+
+            it('is zero', () => {
+                const errors = schema.validate(0);
+                expect(errors).to.match(/Expected a boolean/);
+            });
+
+            describe('enum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { enum: [true] });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('in enum', () => {
+                    const errors = schema.validate(true);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('not in enum', () => {
+                    const errors = schema.validate(false);
+                    expect(errors).to.match(/did not meet enum requirements/i);
+                });
+
+            });
+
+        });
+
+        describe('byte', () => {
+            const base = { type: 'string', format: 'byte' };
+            let schema;
+            before(() => {
+                const def = Object.assign({}, base);
+                [ schema ] = Enforcer.v2_0.Schema(def);
+            });
+
+            it('is buffer', () => {
+                const errors = schema.validate(Buffer.from('Aa==', 'base64'));
+                expect(errors).to.be.undefined;
+            });
+
+            it('is not buffer', () => {
+                const errors = schema.validate('Aa==');
+                expect(errors).to.match(/expected value to be a buffer/i);
+            });
+
+            describe('enum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { enum: ['AQ=='] });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('in enum', () => {
+                    const errors = schema.validate(Buffer.from('AQ==', 'base64'));
+                    expect(errors).to.be.undefined;
+                });
+
+                it('not in enum', () => {
+                    const errors = schema.validate(Buffer.from('BQ==', 'base64'));
+                    expect(errors).to.match(/did not meet enum requirements/i);
+                });
+
+            });
+
+        });
+
+        describe('date', () => {
+            const base = { type: 'string', format: 'date' };
+            let schema;
+            before(() => {
+                const def = Object.assign({}, base);
+                [ schema ] = Enforcer.v2_0.Schema(def);
+            });
+
+            it('is date object', () => {
+                const errors = schema.validate(new Date());
+                expect(errors).to.be.undefined;
+            });
+
+            it('is not date object', () => {
+                const errors = schema.validate('abc');
+                expect(errors).to.match(/expected a valid date object/i);
+            });
+
+            describe('minimum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { minimum: '2000-01-02' });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('above minimum', () => {
+                    const errors = schema.validate(new Date('2000-01-03'));
+                    expect(errors).to.be.undefined;
+                });
+
+                it('at minimum', () => {
+                    const errors = schema.validate(new Date('2000-01-02'));
+                    expect(errors).to.be.undefined;
+                });
+
+                it('below minimum', () => {
+                    const errors = schema.validate(new Date('2000-01-01'));
+                    expect(errors).to.match(/greater than or equal/);
+                });
+
+            });
+
+            describe('maximum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { maximum: '2000-01-02' });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('above maximum', () => {
+                    const errors = schema.validate(new Date('2000-01-03'));
+                    expect(errors).to.match(/less than or equal/);
+                });
+
+                it('at maximum', () => {
+                    const errors = schema.validate(new Date('2000-01-02'));
+                    expect(errors).to.be.undefined;
+                });
+
+                it('below maximum', () => {
+                    const errors = schema.validate(new Date('2000-01-01'));
+                    expect(errors).to.be.undefined;
+                });
+
+            });
+
+            describe('enum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { enum: ['2000-01-01'] });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('in enum', () => {
+                    const errors = schema.validate(new Date('2000-01-01'));
+                    expect(errors).to.be.undefined;
+                });
+
+                it('not in enum', () => {
+                    const errors = schema.validate(new Date('2001-02-02'));
+                    expect(errors).to.match(/did not meet enum requirements/i);
+                });
+
+            });
+
+        });
+
+        describe('date-time', () => {
+            const base = { type: 'string', format: 'date-time' };
+            let schema;
+            before(() => {
+                const def = Object.assign({}, base);
+                [ schema ] = Enforcer.v2_0.Schema(def);
+            });
+
+            it('is date object', () => {
+                const errors = schema.validate(new Date());
+                expect(errors).to.be.undefined;
+            });
+
+            it('is not date object', () => {
+                const errors = schema.validate('abc');
+                expect(errors).to.match(/expected a valid date object/i);
+            });
+
+            describe('enum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { enum: ['2000-01-01T01:02:00.000Z'] });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('in enum', () => {
+                    const errors = schema.validate(new Date('2000-01-01T01:02:00.000Z'));
+                    expect(errors).to.be.undefined;
+                });
+
+                it('not in enum', () => {
+                    const errors = schema.validate(new Date('2000-01-01T00:00:00.000Z'));
+                    expect(errors).to.match(/did not meet enum requirements/i);
+                });
+
+            });
+
+        });
+
+        describe('integer', () => {
+            const base = { type: 'integer' };
+            let schema;
+            before(() => {
+                const def = Object.assign({}, base);
+                [ schema ] = Enforcer.v2_0.Schema(def);
+            });
+
+            it('is an integer', () => {
+                const errors = schema.validate(5);
+                expect(errors).to.be.undefined;
+            });
+
+            it('is a number with decimal', () => {
+                const errors = schema.validate(1.5);
+                expect(errors).to.match(/Expected an integer/);
+            });
+
+            describe('multiple of', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { multipleOf: 2 });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('is multiple of 2', () => {
+                    const errors = schema.validate(4);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('is not a multiple of 2', () => {
+                    const errors = schema.validate(5);
+                    expect(errors).to.match(/Expected a multiple/);
+                });
+
+            });
+
+            describe('minimum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { minimum: 2 });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('above minimum', () => {
+                    const errors = schema.validate(3);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('at minimum', () => {
+                    const errors = schema.validate(2);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('below minimum', () => {
+                    const errors = schema.validate(1);
+                    expect(errors).to.match(/greater than or equal/);
+                });
+
+            });
+
+            describe('exclusive minimum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { minimum: 2, exclusiveMinimum: true });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('above minimum', () => {
+                    const errors = schema.validate(3);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('at minimum', () => {
+                    const errors = schema.validate(2);
+                    expect(errors).to.match(/greater than 2/);
+                });
+
+                it('below minimum', () => {
+                    const errors = schema.validate(1);
+                    expect(errors).to.match(/greater than 2/);
+                });
+
+            });
+
+            describe('maximum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { maximum: 2 });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('above maximum', () => {
+                    const errors = schema.validate(3);
+                    expect(errors).to.match(/less than or equal/);
+                });
+
+                it('at maximum', () => {
+                    const errors = schema.validate(2);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('below maximum', () => {
+                    const errors = schema.validate(1);
+                    expect(errors).to.be.undefined;
+                });
+
+            });
+
+            describe('exclusive maximum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { maximum: 2, exclusiveMaximum: true });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('above maximum', () => {
+                    const errors = schema.validate(3);
+                    expect(errors).to.match(/less than 2/);
+                });
+
+                it('at maximum', () => {
+                    const errors = schema.validate(2);
+                    expect(errors).to.match(/less than 2/);
+                });
+
+                it('below maximum', () => {
+                    const errors = schema.validate(1);
+                    expect(errors).to.be.undefined;
+                });
+
+            });
+
+            describe('enum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { enum: [1] });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('in enum', () => {
+                    const errors = schema.validate(1);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('not in enum', () => {
+                    const errors = schema.validate(2);
+                    expect(errors).to.match(/did not meet enum requirements/i);
+                });
+
+            });
+
+        });
+
+        describe('number', () => {
+            const base = { type: 'number' };
+            let schema;
+            before(() => {
+                const def = Object.assign({}, base);
+                [ schema ] = Enforcer.v2_0.Schema(def);
+            });
+
+            it('is a number', () => {
+                const errors = schema.validate(1.2);
+                expect(errors).to.be.undefined;
+            });
+
+            it('is not a number', () => {
+                const errors = schema.validate('a');
+                expect(errors).to.match(/Expected a number/);
+            });
+
+            describe('enum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { enum: [1.2] });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('in enum', () => {
+                    const errors = schema.validate(1.2);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('not in enum', () => {
+                    const errors = schema.validate(1.3);
+                    expect(errors).to.match(/did not meet enum requirements/i);
+                });
+
+            });
+
+        });
+
+        describe('object', () => {
+            const base = { type: 'object' };
+            let schema;
+            before(() => {
+                const def = Object.assign({}, base);
+                [ schema ] = Enforcer.v2_0.Schema(def);
+            });
+
+            describe('minimum properties', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { minProperties: 1 });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('more than minimum', () => {
+                    const errors = schema.validate({ a: 1, b: 2 });
+                    expect(errors).to.be.undefined;
+                });
+
+                it('same as minimum', () => {
+                    const errors = schema.validate({ a: 1 });
+                    expect(errors).to.be.undefined;
+                });
+
+                it('less than minimum', () => {
+                    const errors = schema.validate({});
+                    expect(errors).to.match(/greater than or equal/);
+                });
+
+            });
+
+            describe('maximum properties', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { maxProperties: 1 });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('more than maximum', () => {
+                    const errors = schema.validate({ a: 1, b: 2 });
+                    expect(errors).to.match(/less than or equal/);
+                });
+
+                it('same as maximum', () => {
+                    const errors = schema.validate({ a: 1 });
+                    expect(errors).to.be.undefined;
+                });
+
+                it('less than maximum', () => {
+                    const errors = schema.validate({});
+                    expect(errors).to.be.undefined;
+                });
+
+            });
+
+            describe('properties', () => {
+                before(() => {
+                    const def = Object.assign({}, base, {
+                        properties: {
+                            x: { type: 'number' },
+                            y: { type: 'boolean' }
+                        }
+                    });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('valid property values 1', () => {
+                    const errors = schema.validate({ x: 1 });
+                    expect(errors).to.be.undefined;
+                });
+
+                it('valid property values 2', () => {
+                    const errors = schema.validate({ x: 1, y: true });
+                    expect(errors).to.be.undefined;
+                });
+
+                it('invalid property value', () => {
+                    const errors = schema.validate({ y: 0 });
+                    expect(errors).to.match(/Expected a boolean/);
+                });
+
+            });
+
+            describe('enum', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { enum: [{ x: 1 }] });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('in enum', () => {
+                    const errors = schema.validate({ x: 1 });
+                    expect(errors).to.be.undefined;
+                });
+
+                it('not in enum 1', () => {
+                    const errors = schema.validate({ x: 2 });
+                    expect(errors).to.match(/did not meet enum requirements/i);
+                });
+
+                it('not in enum 2', () => {
+                    const errors = schema.validate({ y: 1 });
+                    expect(errors).to.match(/did not meet enum requirements/i);
+                });
+
+            });
+
+            describe('required', () => {
+                before(() => {
+                    const def = Object.assign({}, base, { required: ['name'] });
+                    [ schema ] = Enforcer.v2_0.Schema(def);
+                });
+
+                it('has required property', () => {
+                    const errors = schema.validate({ name: true });
+                    expect(errors).to.be.undefined;
+                });
+
+                it('missing required property', () => {
+                    const errors = schema.validate({ age: true });
+                    expect(errors).to.match(/required properties missing/);
+                });
+
+            });
+
+            describe('allOf', () => {
+                before(() => {
+                    [ schema ] = Enforcer.v2_0.Schema({
+                        allOf: [
+                            { type: 'object', properties: { x: { type: 'number' }} },
+                            { type: 'object', properties: { y: { type: 'string' }} }
+                        ]
+                    });
+                });
+
+                it('both valid', () => {
+                    const errors = schema.validate({ x: 2, y: 'hello' });
+                    expect(errors).to.be.undefined;
+                });
+
+                it('first invalid', () => {
+                    const errors = schema.validate({ x: true, y: 'hello' });
+                    expect(errors.count).to.equal(1);
+                    expect(errors).to.match(/at: 0 > x\s+Expected a number/);
+                });
+
+                it('second invalid', () => {
+                    const errors = schema.validate({ x: 2, y: 4 });
+                    expect(errors.count).to.equal(1);
+                    expect(errors).to.match(/at: 1 > y\s+Expected a string/);
+                });
+
+                describe('discriminator', () => {
+                    let enforcer;
+                    before(async () => {
+                        enforcer = await Enforcer({
+                            swagger: '2.0',
+                            info: { title: '', version: '' },
+                            paths: {},
+                            definitions: {
+                                Animal: {
+                                    type: 'object',
+                                    required: ['animalType'],
+                                    properties: {
+                                        animalType: { type: 'string' }
+                                    },
+                                    discriminator: 'animalType'
+                                },
+                                Cat: {
+                                    allOf: [
+                                        { '$ref': '#/definitions/Pet' },
+                                        Object.assign({}, schemas.Cat, { additionalProperties: true })
+                                    ]
+                                },
+                                Dog: {
+                                    allOf: [
+                                        { '$ref': '#/definitions/Pet' },
+                                        Object.assign({}, schemas.Dog, { additionalProperties: true })
+                                    ]
+                                },
+                                Pet: {
+                                    allOf: [
+                                        { '$ref': '#/definitions/Animal' },
+                                        {
+                                            type: 'object',
+                                            required: ['petType'],
+                                            properties: {
+                                                petType: { type: 'string' }
+                                            },
+                                            discriminator: 'petType'
+                                        }
+                                    ]
+                                }
+                            }
+                        });
+                    });
+
+                    it('valid Dog from Pet', () => {
+                        const schema = enforcer.definitions.Pet;
+                        const errors = schema.validate({ animalType: 'Pet', petType: 'Dog', packSize: 2 });
+                        expect(errors).to.be.undefined;
+                    });
+
+                    it('invalid Dog from Pet', () => {
+                        const schema = enforcer.definitions.Pet;
+                        const errors = schema.validate({ animalType: 'Pet', petType: 'Dog', packSize: 'a' });
+                        expect(errors).to.match(/Expected an integer/);
+                    });
+
+                    it('undefined discriminator', () => {
+                        const schema = enforcer.definitions.Pet;
+                        const errors = schema.validate({ petType: 'Mouse' });
+                        expect(errors).to.match(/One or more required properties missing: animalType/);
+                        expect(errors).to.match(/it has no associated schema/);
+                        expect(errors.count).to.equal(2);
+                    });
+
+                    it('valid Cat from Pet', () => {
+                        const schema = enforcer.definitions.Pet;
+                        const errors = schema.validate({ animalType: 'Pet', petType: 'Cat', huntingSkill: 'sneak' });
+                        expect(errors).to.be.undefined;
+                    });
+
+                    it('invalid Cat from Pet', () => {
+                        const schema = enforcer.definitions.Pet;
+                        const errors = schema.validate({ animalType: 'Pet', petType: 'Cat', huntingSkill: 1 });
+                        expect(errors).to.match(/expected a string/i);
+                    });
+
+                    it('valid Dog from Animal', () => {
+                        const schema = enforcer.definitions.Animal;
+                        const errors = schema.validate({ animalType: 'Pet', petType: 'Dog', packSize: 2 });
+                        expect(errors).to.be.undefined;
+                    });
+
+                });
+
+            });
+
+            describe('anyOf', () => {
+                before(() => {
+                    [ schema ] = Enforcer.v3_0.Schema({
+                        anyOf: [
+                            { type: 'number' },
+                            { type: 'boolean' },
+                        ]
+                    });
+                });
+
+                it('valid 1', () => {
+                    const errors = schema.validate(5);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('valid 2', () => {
+                    const errors = schema.validate(true);
+                    expect(errors).to.be.undefined;
+                });
+
+                it('invalid', () => {
+                    const errors = schema.validate({ x: 'abc' });
+                    expect(errors).to.match(/Expected a number/);
+                    expect(errors).to.match(/Expected a boolean/);
+                    expect(errors.count).to.equal(2);
+                });
+
+            });
+
+            describe('oneOf', () => {
+                before(() => {
+                    [ schema ] = Enforcer.v3_0.Schema({
+                        oneOf: [
+                            { type: 'object', properties: { x: { type: 'number', minimum: 2, maximum: 10 } }},
+                            { type: 'object', properties: { x: { type: 'number', maximum: 5 } }},
+                        ]
+                    });
+                });
+
+                it('found 0', () => {
+                    const errors = schema.validate({ x: 11 });
+                    expect(errors).to.match(/Did not validate against exactly one schema/);
+                });
+
+                it('found 1', () => {
+                    const errors = schema.validate({ x: 6 });
+                    expect(errors).to.be.undefined;
+                });
+
+                it('found 2', () => {
+                    const errors = schema.validate({ x: 3 });
+                    expect(errors).to.match(/Did not validate against exactly one schema/);
+                });
+
+            });
+
+        });
+
+        describe('string', () => {
+            const base = { type: 'string' };
+            let schema;
+
+            describe('enum', () => {
+                before(() => {
+                    [ schema ] = Enforcer.v3_0.Schema(Object.assign({}, base, { enum: ['abc'] }));
+                });
+
+                it('in enum', () => {
+                    const errors = schema.validate('abc');
+                    expect(errors).to.be.undefined;
+                });
+
+                it('not in enum', () => {
+                    const errors = schema.validate('def');
+                    expect(errors).to.match(/did not meet enum requirements/i);
+                });
+
+            });
+
         });
 
     });
