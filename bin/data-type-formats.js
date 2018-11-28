@@ -103,7 +103,7 @@ exports.byte = {
         }
     },
 
-    validate: function ({ exception, value }) {
+    validate: function ({ exception, schema, value }) {
         if (!Buffer.isBuffer(value)) {
             exception.message('Expected value to be a buffer. Received: ' + util.smart(value));
         } else {
