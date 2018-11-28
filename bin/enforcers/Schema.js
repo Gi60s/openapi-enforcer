@@ -41,7 +41,7 @@ const prototype = {
      */
     deserialize: function(value) {
         const exception = Exception('Unable to deserialize value');
-        const result = runDeserialize(exception, new Map(), this, value);
+        const result = runDeserialize(exception, new Map(), this, util.copy(value));
         return new Result(result, exception);
     },
 
@@ -88,7 +88,7 @@ const prototype = {
      * @returns {{ error: Exception|null, value: * }}
      */
     populate: function(params, value, options) {
-        if (arguments.length === 0) params = {};
+        if (params === undefined || params === null) params = {};
         if (!params || !util.isPlainObject(params)) throw Error('Invalid params specified. Must be a plain object');
 
         if (arguments.length < 3) options = {};
