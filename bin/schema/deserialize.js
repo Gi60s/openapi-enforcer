@@ -47,54 +47,16 @@ function runDeserialize(exception, map, schema, originalValue) {
         });
         return Object.assign(value, result);
 
-    } else if (schema.anyOf) {
-        if (schema.discriminator) {
-            return runDiscriminator(exception, map, schema, originalValue, runDeserialize);
+    } else if (schema.anyOf || schema.oneOf) {
+        let subSchema;
+        if (!schema.discriminator) {
+            exception.message('Unable to deserialize without discriminator');
+        } else if ((subSchema = schema.discriminate(value))) {
+            Object.assign(value, runDeserialize(exception, map, subSchema, originalValue));
         } else {
-            const anyOfException = Exception('Unable to deserialize using anyOf schemas');
-            const length = schema.allOf.length;
-            for (let index = 0; index < length; index++) {
-                const subSchema = schema.anyOf[index];
-                const child = anyOfException.at(index);
-                const result = runDeserialize(child, map, subSchema, originalValue);
-                if (!child.hasException) {
-                    const error = subSchema.validate(result);
-                    if (error) {
-                        child(error);
-                    } else {
-                        return result;
-                    }
-                }
-            }
-            exception.push(anyOfException);
+            exception.message('Unable to discriminate to schema');
         }
-
-    } else if (schema.oneOf) {
-        if (schema.discriminator) {
-            return runDiscriminator(exception, map, schema, originalValue, runDeserialize);
-        } else {
-            const oneOfException = Exception('Did not deserialize against exactly one oneOf schema');
-            let valid = 0;
-            let result = undefined;
-            schema.oneOf.forEach((schema, index) => {
-                const child = oneOfException.nest('Unable to deserialize using schema at index ' + index);
-                result = runDeserialize(child, map, schema, originalValue);
-                if (!child.hasException) {
-                    const error = schema.validate(result);
-                    if (error) {
-                        child(error);
-                    } else {
-                        child('Deserialized against schema at index ' + index);
-                        valid++;
-                    }
-                }
-            });
-            if (valid !== 1) {
-                exception.push(oneOfException);
-            } else {
-                return result;
-            }
-        }
+        return value;
 
     } else if (type === 'array') {
         if (Array.isArray(value)) {
@@ -121,11 +83,11 @@ function runDeserialize(exception, map, schema, originalValue) {
             });
 
             if (schema.discriminator) {
-                const schema2 = schema.discriminate(value);
-                if (!schema2) {
-                    exception.message('Unable to discriminate schema');
+                const subSchema = schema.discriminate(value);
+                if (subSchema) {
+                    Object.assign(value, runDeserialize(exception, map, subSchema, originalValue));
                 } else {
-                    runDeserialize(exception, map, schema2, Value.inherit(value, { serialize }));
+                    exception.message('Unable to discriminate to schema');
                 }
             }
             return value;
