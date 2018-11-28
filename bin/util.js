@@ -290,6 +290,18 @@ exports.smart = function(value) {
     const type = typeof value;
     if (type === 'string') return '"' + value.replace(/"/g, '\\"') + '"';
     if (value instanceof Date) return isNaN(value) ? 'invalid date object' : value.toISOString();
+    if (Array.isArray(value)) {
+        let result = '[' + value.toString() + ']';
+        const length = result.length;
+        if (length > 15) {
+            const excess = length - 15;
+            const offTop = Math.floor(excess / 2);
+            const offBottom = excess - offTop;
+            const middle = Math.ceil(length / 2);
+            result = result.substr(0, middle - offBottom) + '...' + result.substr(middle + offTop)
+        }
+        return result;
+    }
     if (value && type === 'object') {
         const name = value.constructor.name;
         return '[object' + (name ? ' ' + name : '') + ']';
@@ -304,25 +316,33 @@ exports.ucFirst = function(value) {
 exports.validateMaxMin = function maxMin(exception, schema, type, maxProperty, minProperty, exclusives, value, maximum, minimum) {
     if (schema.hasOwnProperty(maxProperty)) {
         if (exclusives && schema.exclusiveMaximum && value >= maximum) {
-            exception('Expected ' + type + ' to be less than ' +
-                exports.smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
-                exports.smart(schema.serialize(value).value));
+            let bound = schema.serialize(schema[maxProperty]).value || schema[maxProperty];
+            let val = schema.serialize(value).value || value;
+            exception.message('Expected ' + type + ' to be less than ' +
+                exports.smart(bound) + '. Received: ' +
+                exports.smart(val));
         } else if (value > maximum) {
-            exception('Expected ' + type + ' to be less than or equal to ' +
-                exports.smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
-                exports.smart(schema.serialize(value).value));
+            let bound = schema.serialize(schema[maxProperty]).value || schema[maxProperty];
+            let val = schema.serialize(value).value || value;
+            exception.message('Expected ' + type + ' to be less than or equal to ' +
+                exports.smart(bound) + '. Received: ' +
+                exports.smart(val));
         }
     }
 
     if (schema.hasOwnProperty(minProperty)) {
         if (exclusives && schema.exclusiveMinimum && value <= minimum) {
-            exception('Expected ' + type + ' to be greater than ' +
-                exports.smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
-                exports.smart(schema.serialize(value).value));
+            let bound = schema.serialize(schema[minProperty]).value || schema[minProperty];
+            let val = schema.serialize(value).value || value;
+            exception.message('Expected ' + type + ' to be greater than ' +
+                exports.smart(bound) + '. Received: ' +
+                exports.smart(val));
         } else if (value < minimum) {
-            exception('Expected ' + type + ' to be greater than or equal to ' +
-                exports.smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
-                exports.smart(schema.serialize(value).value));
+            let bound = schema.serialize(schema[minProperty]).value || schema[minProperty];
+            let val = schema.serialize(value).value || value;
+            exception.message('Expected ' + type + ' to be greater than or equal to ' +
+                exports.smart(bound) + '. Received: ' +
+                exports.smart(val));
         }
     }
 };
