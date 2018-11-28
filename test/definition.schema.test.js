@@ -1874,8 +1874,151 @@ describe.only('enforcer/schema', () => {
 
     describe('random', () => {
 
-        it('todo', () => {
-            throw Error('TODO');
+        it('can select random enum', () => {
+            const enumValues = ['a', 'b', 'c'];
+            const [ schema ] = Enforcer.v3_0.Schema({ type: 'string', enum: enumValues });
+            const [ value ] = schema.random();
+            expect(value).to.be.oneOf(enumValues);
+        });
+
+        describe('array', () => {
+
+            it('can produce random array', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce random array within length bounds', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce array with unique items', () => {
+                throw Error('TODO');
+            });
+
+        });
+
+        describe('binary', () => {
+
+            it('can produce a random binary', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce a random binary within length bounds', () => {
+                throw Error('TODO');
+            });
+
+        });
+
+        describe('boolean', () => {
+
+            it('can produce random boolean', () => {
+                throw Error('TODO');
+            });
+
+        });
+
+        describe('byte', () => {
+
+            it('can produce a random byte', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce a random byte within length bounds', () => {
+                throw Error('TODO');
+            });
+
+        });
+
+        describe('date and date-time', () => {
+
+            it('can produce a random date', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce a random date within bounds', () => {
+                throw Error('TODO');
+            });
+
+        });
+
+        describe('integer', () => {
+
+            it('can produce random integer', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce random integer within bounds', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce multipleOf', () => {
+                throw Error('TODO');
+            });
+
+        });
+
+        describe('number', () => {
+
+            it('can produce random number', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce random number within bounds', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce multipleOf', () => {
+                throw Error('TODO');
+            });
+
+        });
+
+        describe('object', () => {
+
+            it('can produce a random object', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce random object within property count bounds', () => {
+                throw Error('TODO');
+            });
+
+            it('will have all required properties', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce additional properties', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce allOf object', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce oneOf or anyOf object', () => {
+                throw Error('TODO');
+            });
+
+            it('cannot produce not object', () => {
+                throw Error('TODO');
+            });
+
+        });
+
+        describe('string', () => {
+
+            it('can produce random string', () => {
+                throw Error('TODO');
+            });
+
+            it('can produce random string within bounds', () => {
+                throw Error('TODO');
+            });
+
+            it('cannot produce random string with pattern match', () => {
+                throw Error('TODO');
+            });
+
         });
 
     });
