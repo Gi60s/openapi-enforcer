@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception = require('../exception');
 const util      = require('../util');
 const Value     = require('../value');
 
