@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception         = require('../exception');
 const util              = require('../util');
 const Value             = require('../value');
 
@@ -42,14 +43,14 @@ function runValidate(exception, map, schema, originalValue, options) {
     if (schema.nullable && value === null) return;
 
     if (schema.allOf) {
-        const child = exception.nest('Did not validate against allOf schemas');
+        const child = exception.nest('Did not validate against all schemas');
         schema.allOf.forEach((subSchema, index) => {
             runValidate(child.at(index), map, subSchema, originalValue, options);
         });
 
     } else if (schema.anyOf) {
         if (schema.discriminator) {
-            const data = schema.getDiscriminator(value);
+            const data = schema.discriminate(value, true);
             const subSchema = data.schema;
             const key = data.key;
             if (!subSchema) {
@@ -58,7 +59,7 @@ function runValidate(exception, map, schema, originalValue, options) {
                 runValidate(exception.at(value[key]), map, subSchema, value, options);
             }
         } else {
-            const anyOfException = Exception('Did not validate against one or more anyOf schemas');
+            const anyOfException = Exception('Did not validate against at least one schema');
             const length = schema.anyOf.length;
             let valid = false;
             for (let i = 0; i < length; i++) {
@@ -69,7 +70,7 @@ function runValidate(exception, map, schema, originalValue, options) {
                     break;
                 }
             }
-            if (!valid) exception.message(anyOfException);
+            if (!valid) exception.push(anyOfException);
         }
 
     } else if (schema.oneOf) {
@@ -83,17 +84,17 @@ function runValidate(exception, map, schema, originalValue, options) {
                 runValidate(exception.at(value[key]), map, subSchema, value, options);
             }
         } else {
-            const oneOfException = Exception('Did not validate against exactly one oneOf schema');
+            const oneOfException = Exception('Did not validate against exactly one schema');
             const length = schema.oneOf.length;
             let valid = 0;
             for (let i = 0; i < length; i++) {
-                const child = Exception('Did not validate against schema at index ' + i);
+                const child = Exception('Invalid value');
                 runValidate(child, map, schema.oneOf[i], value, options);
                 if (!child.hasException) {
                     valid++;
-                    oneOfException('Validated against schema at index ' + i);
+                    oneOfException.at(i).message('Valid value');
                 } else {
-                    oneOfException(child);
+                    oneOfException.at(i).push(child);
                 }
             }
             if (valid !== 1) exception.push(oneOfException);
@@ -144,20 +145,18 @@ function runValidate(exception, map, schema, originalValue, options) {
             const properties = schema.properties || {};
             const required = schema.required ? schema.required.concat() : [];
             const keys = Object.keys(value);
-            const knownPropertyException = exception.nest('Error with properties');
-            const additionalPropertyException = exception.nest('Error with additional properties');
 
             // validate each property in the value
             keys.forEach(key => {
                 const index = required.indexOf(key);
                 if (index !== -1) required.splice(index, 1);
                 if (properties.hasOwnProperty(key)) {
-                    runValidate(knownPropertyException.at(key), map, properties[key], value[key], options);
+                    runValidate(exception.at(key), map, properties[key], value[key], options);
                 } else {
                     if (schema.additionalProperties === false) {
-                        exception.message('Property not allowed: ' + key);
+                        exception.at(key).message('Property not allowed');
                     } else if (typeof schema.additionalProperties === 'object') {
-                        runValidate(additionalPropertyException.at(key), map, schema.additionalProperties, value[key], options);
+                        runValidate(exception.at(key), map, schema.additionalProperties, value[key], options);
                     }
                 }
             });
@@ -172,12 +171,13 @@ function runValidate(exception, map, schema, originalValue, options) {
 
             // if a discriminator is present then validate discriminator mapping
             if (schema.discriminator) {
-                const discriminatorSchema = version.getDiscriminatorSchema(schema, value);
-                if (discriminatorSchema) {
-                    runValidate(exception, map, discriminatorSchema, value, options);
-                } else {
-                    exception.message('Unable to map discriminator schema');
-                }
+                const details = schema.discriminate(value, true);
+                const { name, key } = details;
+                if (details.schema) {
+                    runValidate(exception, map, details.schema, value, options);
+                } else if (name) {
+                    exception.message('The value "' + name + '" is not valid for "' + key + '" because it has no associated schema');
+                } // else - already taken care of because it's a missing required error
             }
         }
 
