@@ -26,17 +26,14 @@ function runSerialize(exception, map, schema, originalValue) {
     if (!serialize) return originalValue;
 
     const type = schema.type;
-    let matches;
 
     // handle cyclic serialization
     if (value && typeof value === 'object') {
-        matches = map.get(value);
-        if (matches) {
-            const existing = matches.get(schema);
-            if (existing) return existing;
+        const matches = map.get(schema);
+        if (matches && matches.includes(value)) {
+            return value;
         } else {
-            matches = new WeakMap();
-            map.set(value, matches);
+            map.set(schema, [ value ]);
         }
     }
 
@@ -47,81 +44,52 @@ function runSerialize(exception, map, schema, originalValue) {
             const v = runSerialize(allOfException.at(index), map, schema, originalValue);
             Object.assign(result, v)
         });
-        return result;
+        return Object.assign(value, result);
 
-    } else if (schema.anyOf) {
-        if (schema.discriminator) {
-            return runDiscriminator(exception, map, schema, value, serialize);
+    } else if (schema.anyOf || schema.oneOf) {
+        let subSchema;
+        if (!schema.discriminator) {
+            exception.message('Unable to serialize without discriminator');
+        } else if ((subSchema = schema.discriminate(value))) {
+            Object.assign(value, runSerialize(exception, map, subSchema, originalValue));
         } else {
-            const anyOfException = Exception('Unable to serialize using anyOf schemas');
-            const length = schema.allOf.length;
-            for (let index = 0; index < length; index++) {
-                const subSchema = schema.allOf[index];
-                const child = anyOfException.at(index);
-                const result = runSerialize(child, map, subSchema, originalValue);
-                if (!child.hasException) {
-                    const error = subSchema.validate(result);
-                    if (error) {
-                        child(error);
-                    } else {
-                        return result;
-                    }
-                }
-            }
-            exception(anyOfException);
+            exception.message('Unable to discriminate to schema');
         }
-
-    } else if (schema.oneOf) {
-        if (schema.discriminator) {
-            return runDiscriminator(exception, map, schema, originalValue, serialize);
-        } else {
-            const oneOfException = Exception('Did not serialize against exactly one oneOf schema');
-            let valid = 0;
-            let result = undefined;
-            schema.oneOf.forEach((schema, index) => {
-                const child = oneOfException.at(index);
-                const result = runSerialize(child, map, schema, originalValue);
-                if (!child.hasException) {
-                    const error = schema.validate(result);
-                    if (error) {
-                        child(error);
-                    } else {
-                        child('Serialized against schema at index ' + index);
-                        valid++;
-                    }
-                }
-            });
-            if (valid !== 1) {
-                exception(oneOfException);
-            } else {
-                return result;
-            }
-        }
+        return value;
 
     } else if (type === 'array') {
         if (Array.isArray(value)) {
-            const result = schema.items
-                ? value.map((v, i) => runSerialize(exception.at(i), map, schema.items, v))
-                : value;
-            matches.set(schema, result);
-            return result;
+            if (schema.items) {
+                value.forEach((v, i) => {
+                    value[i] = runSerialize(exception.at(i), map, schema.items, Value.inherit(v, { serialize }));
+                })
+            }
+            return value;
         } else {
             exception.message('Expected an array. Received: ' + util.smart(value));
         }
 
     } else if (type === 'object') {
         if (util.isPlainObject(value)) {
-            const result = {};
             const additionalProperties = schema.additionalProperties;
             const properties = schema.properties || {};
             Object.keys(value).forEach(key => {
                 if (properties.hasOwnProperty(key)) {
-                    result[key] = runSerialize(exception.at(key), map, properties[key], value[key]);
+                    value[key] = runSerialize(exception.at(key), map, properties[key], value[key]);
                 } else if (additionalProperties) {
-                    result[key] = runSerialize(exception.at(key), map, additionalProperties, value[key]);
+                    value[key] = runSerialize(exception.at(key), map, additionalProperties, value[key]);
                 }
             });
-            return result;
+
+            if (schema.discriminator) {
+                const subSchema = schema.discriminate(value);
+                if (subSchema) {
+                    Object.assign(value, runSerialize(exception, map, subSchema, originalValue));
+                } else {
+                    exception.message('Unable to discriminate to schema');
+                }
+            }
+            return value;
         } else {
             exception.message('Expected an object. Received: ' + util.smart(originalValue));
         }
@@ -137,7 +105,7 @@ function runSerialize(exception, map, schema, originalValue) {
                 value
             });
             if (typeof result !== 'boolean') {
-                exception.message('Unable to serialize to boolean. Received: ' + util.smart(value));
+                exception.message('Unable to serialize to a boolean. Received: ' + util.smart(value));
             }
             return result;
 
@@ -148,7 +116,7 @@ function runSerialize(exception, map, schema, originalValue) {
                 value
             });
             if (typeof result !== 'number' || isNaN(result) || result !== Math.round(result)) {
-                exception.message('Unable to serialize to integer. Received: ' + util.smart(value));
+                exception.message('Unable to serialize to an integer. Received: ' + util.smart(value));
             }
             return result;
 
@@ -159,7 +127,7 @@ function runSerialize(exception, map, schema, originalValue) {
                 value
             });
             if (typeof result !== 'number' || isNaN(result)) {
-                exception.message('Unable to serialize to number. Received: ' + util.smart(value));
+                exception.message('Unable to serialize to a number. Received: ' + util.smart(value));
             }
             return result;
 
@@ -170,7 +138,7 @@ function runSerialize(exception, map, schema, originalValue) {
                 value
             });
             if (typeof result !== 'string') {
-                exception.message('Unable to serialize to string. Received: ' + util.smart(value));
+                exception.message('Unable to serialize to a string. Received: ' + util.smart(value));
             }
             return result;
         }
