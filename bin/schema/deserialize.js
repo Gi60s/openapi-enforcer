@@ -27,17 +27,14 @@ function runDeserialize(exception, map, schema, originalValue) {
 
     const type = schema.type;
     const typeofValue = typeof value;
-    let matches;
 
-    // handle cyclic serialization
+    // handle cyclic deserialization
     if (value && typeofValue === 'object') {
-        matches = map.get(value);
-        if (matches) {
-            const existing = matches.get(schema);
-            if (existing) return existing;
+        let matches = map.get(schema);
+        if (matches && matches.includes(value)) {
+            return value;
         } else {
-            matches = new WeakMap();
-            map.set(value, matches);
+            map.set(schema, [ value ]);
         }
     }
 
@@ -48,7 +45,7 @@ function runDeserialize(exception, map, schema, originalValue) {
             const v = runDeserialize(exception2.at(index), map, schema, originalValue);
             Object.assign(result, v)
         });
-        return result;
+        return Object.assign(value, result);
 
     } else if (schema.anyOf) {
         if (schema.discriminator) {
@@ -57,7 +54,7 @@ function runDeserialize(exception, map, schema, originalValue) {
             const anyOfException = Exception('Unable to deserialize using anyOf schemas');
             const length = schema.allOf.length;
             for (let index = 0; index < length; index++) {
-                const subSchema = schema.allOf[index];
+                const subSchema = schema.anyOf[index];
                 const child = anyOfException.at(index);
                 const result = runDeserialize(child, map, subSchema, originalValue);
                 if (!child.hasException) {
@@ -101,31 +98,37 @@ function runDeserialize(exception, map, schema, originalValue) {
 
     } else if (type === 'array') {
         if (Array.isArray(value)) {
-            const result = schema.items
-                ? value.map((v, i) => runDeserialize(exception.at(i), map, schema.items, Value.inherit(v, { serialize })))
-                : value;
-            matches.set(schema, result);
-            return result;
+            if (schema.items) {
+                value.forEach((v, i) => {
+                    value[i] = runDeserialize(exception.at(i), map, schema.items, Value.inherit(v, { serialize }));
+                });
+            }
+            return value;
         } else {
             exception.message('Expected an array. Received: ' + util.smart(value));
         }
 
     } else if (type === 'object') { // TODO: make sure that serialize and deserialze properly throw errors for invalid object properties
         if (util.isPlainObject(value)) {
-            const result = {};
             const additionalProperties = schema.additionalProperties;
             const properties = schema.properties || {};
             Object.keys(value).forEach(key => {
                 if (properties.hasOwnProperty(key)) {
-                    result[key] = runDeserialize(exception.at(key), map, properties[key], Value.inherit(value[key], { serialize }));
+                    value[key] = runDeserialize(exception.at(key), map, properties[key], Value.inherit(value[key], { serialize }));
                 } else if (additionalProperties) {
-                    result[key] = runDeserialize(exception.at(key), map, additionalProperties, Value.inherit(value[key], { serialize }));
-                } else {
-                    result[key] = value[key];   // not deserialized, just left alone
+                    value[key] = runDeserialize(exception.at(key), map, additionalProperties, Value.inherit(value[key], { serialize }));
                 }
             });
-            matches.set(schema, result);
-            return result;
+
+            if (schema.discriminator) {
+                const schema2 = schema.discriminate(value);
+                if (!schema2) {
+                    exception.message('Unable to discriminate schema');
+                } else {
+                    runDeserialize(exception, map, schema2, Value.inherit(value, { serialize }));
+                }
+            }
+            return value;
         } else {
             exception.message('Expected an object. Received: ' + util.smart(value));
         }
