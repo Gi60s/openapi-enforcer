@@ -48,28 +48,34 @@ const prototype = {
     /**
      * Get discriminator key and schema.
      * @param {*} value
-     * @returns {Schema }
+     * @param {boolean=false} details
+     * @returns {Schema|{ key:string, name:string, schema:Schema }}
      */
-    discriminate: function (value) {
+    discriminate: function (value, details) {
         const { major, root } = this.enforcerData;
         const discriminator = this.discriminator;
         const openapi = root.result;
+        let key;
+        let name;
+        let schema;
         if (major === 2) {
-            const key = discriminator && value && value.hasOwnProperty(discriminator) ? value[discriminator] : undefined;
-            if (!key) return undefined;
-            return openapi.definitions && openapi.definitions[key];
+            key = discriminator;
+            name = discriminator && value && value.hasOwnProperty(discriminator) ? value[discriminator] : undefined;
+            if (name) schema = openapi.definitions && openapi.definitions[name];
 
         } else if (major === 3) {
-            let key = discriminator && value && value.hasOwnProperty(discriminator.propertyName) ? value[discriminator.propertyName] : undefined;
-            if (!key) return undefined;
-
-            // if there is a mapping then use mapping result
-            const mapping = discriminator.mapping;
-            if (mapping && mapping.hasOwnProperty(key)) return mapping[key];
-
-            // if no mapping then look at global schemas
-            return openapi.components && openapi.components.schemas && openapi.components.schemas[key];
+            key = discriminator.propertyName;
+            name = discriminator && value && value.hasOwnProperty(discriminator.propertyName) ? value[discriminator.propertyName] : undefined;
+            if (name) {
+                const mapping = discriminator.mapping;
+                schema = mapping && mapping.hasOwnProperty(name)
+                    ? mapping[name]
+                    : openapi.components && openapi.components.schemas && openapi.components.schemas[name];
+            }
         }
+        return details
+            ? { key, name, schema }
+            : schema;
     },
 
     /**
@@ -142,7 +148,7 @@ const prototype = {
      */
     serialize: function (value) {
         const exception = Exception('Unable to serialize value');
-        const result = runSerialize(exception, new Map(), this, value);
+        const result = runSerialize(exception, new Map(), this, util.copy(value));
         return new Result(result, exception);
     },
 
