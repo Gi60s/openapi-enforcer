@@ -20,33 +20,94 @@ const rx            = require('./rx');
 const Value         = require('./value');
 
 const rxMediaType = /^([\s\S]+?)\/(?:([\s\S]+?)\+)?([\s\S]+?)$/;
+const punctuation = ',,,,,,,,,,.................................:;!?';
+const punctuationCount = punctuation.length;
+const words = "lorem ipsum dolor sit amet consectetur adipiscing elit suspendisse sollicitudin felis pretium laoreet tortor facilisis a integer eu metus velit praesent varius sed erat quis ornare nunc porttitor nulla at ultrices nam ac vestibulum metus maecenas malesuada lectus leo blandit a congue gravida phasellus consectetur libero et tincidunt diam pellentesque lacus neque eros sed porta nunc id lobortis eget ligula mollis nulla nunc maximus gravida felis finibus est ullamcorper pellentesque ex in turpis pharetra dictum in fermentum arcu mauris odio molestie iaculis accumsan nec convallis nec nunc vestibulum nisl curabitur tristique non porttitor vivamus dui ipsum orci eget vulputate lacus interdum suscipit massa elementum sodales at interdum fames ante primis in faucibus duis mi pulvinar accumsan donec odio enim sed dignissim turpis quisque vitae turpis ut nibh tincidunt aliquam magna semper aliquam feugiat sapien justo egestas condimentum metus tincidunt odio volutpat vehicula pulvinar arcu diam bibendum sem leo sodales eleifend vehicula fusce faucibus quam lorem rhoncus amet hendrerit rhoncus augue mattis commodo lobortis urna consequat hendrerit enim risus placerat eros euismod ligula tellus tempus condimentum ac lectus erat ultrices mi lacus nisi scelerisque vehicula cursus cras enim elit aenean aliquam tempor ullamcorper est proin aliquet orci et augue posuere viverra massa augue purus orci purus neque ut elit pretium molestie vel tellus ex consequat tristique urna fringilla dignissim ex lectus imperdiet lobortis potenti efficitur feugiat facilisi placerat posuere bibendum velit volutpat dapibus donec".split(' ');
+const wordCount = words.length;
 
-exports.arrayRemoveItem = function(array, item) {
+module.exports = {
+    arrayRemoveItem,
+    copy: value => {
+        const map = new Map();
+        return copy(map, value);
+    },
+    edgeSlashes,
+    extractEnforcerValues,
+    findMediaMatch,
+    getDateFromValidDateString,
+    getDefinitionType,
+    isDate,
+    isNumber,
+    isInteger,
+    isPlainObject,
+    isObject,
+    isObjectStringMap,
+    lowerCaseObjectProperties,
+    mapObject,
+    parseCookieString,
+    parseQueryString,
+    randomNumber,
+    randomOneOf,
+    randomText,
+    reject,
+    rxStringToRx,
+    same,
+    smart,
+    ucFirst,
+    validateMaxMin
+};
+
+function arrayRemoveItem(array, item) {
     const index = array.indexOf(item);
     if (index !== -1) array.splice(index, 1);
     return array;
-};
+}
 
-exports.copy = function(value) {
-    const map = new Map();
-    return copy(map, value);
-};
+function copy(map, value) {
+    if (value instanceof Date) {
+        return new Date(+value);
 
-exports.edgeSlashes = function(value, start, end) {
+    } else if (value instanceof Buffer) {
+        return value.slice(0);
+
+    } else if (Array.isArray(value)) {
+        let result = map.get(value);
+        if (result) return result;
+
+        result = [];
+        map.set(value, result);
+        value.forEach(v => result.push(copy(map, v)));
+        return result;
+
+    } else if (exports.isPlainObject(value)) {
+        let result = map.get(value);
+        if (result) return result;
+
+        result = {};
+        map.set(value, result);
+        Object.keys(value).forEach(key => result[key] = copy(map, value[key]));
+        return result;
+
+    } else {
+        return value;
+    }
+}
+
+function edgeSlashes (value, start, end) {
     value = value.replace(/^\//, '').replace(/\/$/, '');
     if (value.length === 0 && (start || end)) return '/';
     if (start) value = '/' + value;
     if (end) value += '/';
     return value;
-};
+}
 
-exports.extractEnforcerValues = function(source) {
+function extractEnforcerValues(source) {
     if (Array.isArray(source)) {
-        return source.map(v => exports.extractEnforcerValues(v));
+        return source.map(v => extractEnforcerValues(v));
     } else if (exports.isPlainObject(source)) {
         const result = {};
         Object.keys(source).forEach(key => {
-            result[key] = exports.extractEnforcerValues(source[key]);
+            result[key] = extractEnforcerValues(source[key]);
         });
         return result;
     } else if (typeof source === 'object' && source instanceof Value) {
@@ -54,7 +115,7 @@ exports.extractEnforcerValues = function(source) {
     } else {
         return source;
     }
-};
+}
 
 /**
  * Provide an accept media / mime type string and possible matches and get the match.
@@ -62,7 +123,7 @@ exports.extractEnforcerValues = function(source) {
  * @param {string[]} store An array of media types to search through (no quality number)
  * @returns {string[]} The media type matches in order of best match first.
  */
-exports.findMediaMatch = function(input, store) {
+function findMediaMatch(input, store) {
     const accepts = input
         .split(/, */)
         .map((value, index) => {
@@ -125,9 +186,9 @@ exports.findMediaMatch = function(input, store) {
     });
 
     return unique;
-};
+}
 
-exports.getDateFromValidDateString = function (format, string) {
+function getDateFromValidDateString (format, string) {
     const date = new Date(string);
     const match = rx[format].exec(string);
     const year = +match[1];
@@ -144,26 +205,34 @@ exports.getDateFromValidDateString = function (format, string) {
     date.getUTCMinutes() === minute &&
     date.getUTCSeconds() === second &&
     date.getUTCMilliseconds() === millisecond ? date : null;
-};
+}
 
-exports.getDefinitionType = function (definition) {
+function getDefinitionType (definition) {
     if (Array.isArray(definition)) return 'array';
     if (exports.isPlainObject(definition)) return 'object';
     if (definition === null) return 'null';
 
     const type = typeof definition;
     return type === 'object' ? 'decoratedObject' : type;
-};
+}
 
-exports.isDate = function (value) {
+function isDate (value) {
     return value && !isNaN(value) && value instanceof Date;
-};
+}
 
-exports.isInteger = function(value) {
+function isNumber (value) {
+    return typeof value === 'number' && !isNaN(value);
+}
+
+function isInteger (value) {
     return !isNaN(value) && typeof value === 'number' && value === Math.round(value);
-};
+}
 
-exports.isPlainObject = function(value) {
+function isObject(v) {
+    return v && typeof v === 'object' && Object.prototype.toString.call(v) === '[object Object]';
+}
+
+function isPlainObject (value) {
     if (!isObject(value)) return false;
 
     // check for modified constructor
@@ -176,10 +245,10 @@ exports.isPlainObject = function(value) {
 
     // check constructor for Object-specific method
     return prototype.hasOwnProperty('isPrototypeOf');
-};
+}
 
 // check to see if its an object with properties as strings
-exports.isObjectStringMap = function(obj) {
+function isObjectStringMap (obj) {
     if (!exports.isPlainObject(obj)) return false;
     const keys = Object.keys(obj);
     const length = keys.length;
@@ -187,26 +256,26 @@ exports.isObjectStringMap = function(obj) {
         if (typeof keys[i] !== 'string' || typeof obj[keys[i]] !== 'string') return false;
     }
     return true;
-};
+}
 
 // create shallow copy of the object but make all property names lower case
-exports.lowerCaseObjectProperties = function(obj) {
+function lowerCaseObjectProperties (obj) {
     const result = {};
     Object.keys(obj).forEach(key => {
         result[key.toLowerCase()] = obj[key];
     });
     return result;
-};
+}
 
-exports.mapObject = function(object, callback) {
+function mapObject (object, callback) {
     const result = {};
     Object.keys(object).forEach(key => {
         result[key] = callback(object[key], key);
     });
     return result;
-};
+}
 
-exports.parseCookieString = function(str) {
+function parseCookieString(str) {
     const result = {};
     str.split(/; */).forEach(pair => {
         const [key, value] = pair.split('=');
@@ -214,22 +283,76 @@ exports.parseCookieString = function(str) {
         result[key].push(value || '');
     });
     return result;
-};
+}
 
-exports.parseQueryString = function (str, delimiter) {
+function parseQueryString (str, delimiter) {
     const query = queryString.parse(str, delimiter);
     Object.keys(query).forEach(key => {
         const value = query[key];
         if (!Array.isArray(value)) query[key] = [ value ];
     });
     return Object.assign({}, query);
-};
+}
 
-exports.reject = function(message) {
+function randomNumber ({ min, max, decimalPlaces = 0 } = {}) {
+    const minIsNumber = isNumber(min);
+    const maxIsNumber = isNumber(max);
+    const multiplier = minIsNumber && maxIsNumber ? max - min : 1000;
+    let num = Math.random() * multiplier;
+    if (minIsNumber) num += min;
+
+    decimalPlaces = Math.round(decimalPlaces);
+    if (decimalPlaces === 0) {
+        num = Math.round(num);
+    } else if (decimalPlaces > 0) {
+        const dec = Math.pow(10, decimalPlaces);
+        if (dec > 1) num = Math.round(num * dec) / dec;
+    }
+
+    if (num < min) num = min;
+    if (num > max) num = max;
+    return num;
+}
+
+function randomOneOf (choices) {
+    const index = Math.floor(Math.random() * choices.length);
+    return choices[index];
+}
+
+function randomText ({ minLength = 1, maxLength = 250 } = {}) {
+    const length = randomNumber({ min: minLength, max: maxLength });
+    let result = '';
+    let punctuationIndex = 1;
+    let uc = true;
+    while (result.length < length) {
+        const index = Math.floor(Math.random() * wordCount);
+        let word = words[index];
+        if (uc) word = ucFirst(word);
+        uc = false;
+        result += word;
+        if (Math.random() >= punctuationIndex) {
+            punctuationIndex = 1;
+            const index = Math.floor(Math.random() * punctuationCount);
+            const punct = punctuation[index];
+            if (/[.!?]/.test(punct)) uc = true;
+            result += punct;
+        } else {
+            punctuationIndex *= .9;
+        }
+        result += ' ';
+    }
+    result = result.trim();
+    result = result.replace(/[,.:;!?]$/, '');
+    if (result.length >= maxLength) result = result.substr(0, maxLength - 1);
+    result += '.';
+    return result;
+}
+
+function reject (message) {
     return Promise.reject(typeof message === 'string' ? Error(message) : Error(message.toString()));
-};
+}
 
-exports.rxStringToRx = function(value) {
+function rxStringToRx (value) {
     if (typeof value === 'string') {
         const rx = /^\/([\s\S]+?)\/(\w*)?$/;
         const match = rx.exec(value);
@@ -241,9 +364,9 @@ exports.rxStringToRx = function(value) {
     } else {
         throw Error('Cannot convert value to RegExp instance');
     }
-};
+}
 
-exports.same = function same(v1, v2) {
+function same (v1, v2) {
     if (v1 === v2) return true;
 
     const type = typeof v1;
@@ -284,9 +407,9 @@ exports.same = function same(v1, v2) {
     } else {
         return false;
     }
-};
+}
 
-exports.smart = function(value) {
+function smart (value) {
     const type = typeof value;
     if (type === 'string') return '"' + value.replace(/"/g, '\\"') + '"';
     if (value instanceof Date) return isNaN(value) ? 'invalid date object' : value.toISOString();
@@ -307,13 +430,13 @@ exports.smart = function(value) {
         return '[object' + (name ? ' ' + name : '') + ']';
     }
     return String(value);
-};
+}
 
-exports.ucFirst = function(value) {
+function ucFirst (value) {
     return value[0].toUpperCase() + value.substr(1);
-};
+}
 
-exports.validateMaxMin = function maxMin(exception, schema, type, maxProperty, minProperty, exclusives, value, maximum, minimum) {
+function validateMaxMin(exception, schema, type, maxProperty, minProperty, exclusives, value, maximum, minimum) {
     if (schema.hasOwnProperty(maxProperty)) {
         if (exclusives && schema.exclusiveMaximum && value >= maximum) {
             let bound = schema.serialize(schema[maxProperty]).value || schema[maxProperty];
@@ -345,39 +468,4 @@ exports.validateMaxMin = function maxMin(exception, schema, type, maxProperty, m
                 exports.smart(val));
         }
     }
-};
-
-
-function copy(map, value) {
-    if (value instanceof Date) {
-        return new Date(+value);
-
-    } else if (value instanceof Buffer) {
-        return value.slice(0);
-
-    } else if (Array.isArray(value)) {
-        let result = map.get(value);
-        if (result) return result;
-
-        result = [];
-        map.set(value, result);
-        value.forEach(v => result.push(copy(map, v)));
-        return result;
-
-    } else if (exports.isPlainObject(value)) {
-        let result = map.get(value);
-        if (result) return result;
-
-        result = {};
-        map.set(value, result);
-        Object.keys(value).forEach(key => result[key] = copy(map, value[key]));
-        return result;
-
-    } else {
-        return value;
-    }
-}
-
-function isObject(v) {
-    return v && typeof v === 'object' && Object.prototype.toString.call(v) === '[object Object]';
 }
