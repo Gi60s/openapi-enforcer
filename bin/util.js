@@ -79,7 +79,7 @@ function copy(map, value) {
         value.forEach(v => result.push(copy(map, v)));
         return result;
 
-    } else if (exports.isPlainObject(value)) {
+    } else if (isPlainObject(value)) {
         let result = map.get(value);
         if (result) return result;
 
@@ -104,7 +104,7 @@ function edgeSlashes (value, start, end) {
 function extractEnforcerValues(source) {
     if (Array.isArray(source)) {
         return source.map(v => extractEnforcerValues(v));
-    } else if (exports.isPlainObject(source)) {
+    } else if (isPlainObject(source)) {
         const result = {};
         Object.keys(source).forEach(key => {
             result[key] = extractEnforcerValues(source[key]);
@@ -209,7 +209,7 @@ function getDateFromValidDateString (format, string) {
 
 function getDefinitionType (definition) {
     if (Array.isArray(definition)) return 'array';
-    if (exports.isPlainObject(definition)) return 'object';
+    if (isPlainObject(definition)) return 'object';
     if (definition === null) return 'null';
 
     const type = typeof definition;
@@ -249,7 +249,7 @@ function isPlainObject (value) {
 
 // check to see if its an object with properties as strings
 function isObjectStringMap (obj) {
-    if (!exports.isPlainObject(obj)) return false;
+    if (!isPlainObject(obj)) return false;
     const keys = Object.keys(obj);
     const length = keys.length;
     for (let i = 0; i < length; i++) {
@@ -294,10 +294,10 @@ function parseQueryString (str, delimiter) {
     return Object.assign({}, query);
 }
 
-function randomNumber ({ min, max, exclusiveMin = false, exclusiveMax = false, decimalPlaces = 0 } = {}) {
+function randomNumber ({ min, max, exclusiveMin = false, exclusiveMax = false, decimalPlaces = 0, spread = 1000 } = {}) {
     const minIsNumber = isNumber(min);
     const maxIsNumber = isNumber(max);
-    const multiplier = minIsNumber && maxIsNumber ? max - min : 1000;
+    const multiplier = minIsNumber && maxIsNumber ? max - min : spread;
     let num = Math.random() * multiplier;
     if (minIsNumber) num += min;
 
@@ -396,8 +396,8 @@ function same (v1, v2) {
     } else if (Buffer.isBuffer(v1)) {
         return Buffer.isBuffer(v2) && v1.toString() === v2.toString();
 
-    } else if (exports.isDate(v1)) {
-        return exports.isDate(v2) && +v2 === +v1;
+    } else if (isDate(v1)) {
+        return isDate(v2) && +v2 === +v1;
 
     } else if (v1 && type === 'object') {
         if (!v2) return false;
@@ -451,14 +451,14 @@ function validateMaxMin(exception, schema, type, maxProperty, minProperty, exclu
             let bound = schema.serialize(schema[maxProperty]).value || schema[maxProperty];
             let val = schema.serialize(value).value || value;
             exception.message('Expected ' + type + ' to be less than ' +
-                exports.smart(bound) + '. Received: ' +
-                exports.smart(val));
+                smart(bound) + '. Received: ' +
+                smart(val));
         } else if (value > maximum) {
             let bound = schema.serialize(schema[maxProperty]).value || schema[maxProperty];
             let val = schema.serialize(value).value || value;
             exception.message('Expected ' + type + ' to be less than or equal to ' +
-                exports.smart(bound) + '. Received: ' +
-                exports.smart(val));
+                smart(bound) + '. Received: ' +
+                smart(val));
         }
     }
 
@@ -467,14 +467,14 @@ function validateMaxMin(exception, schema, type, maxProperty, minProperty, exclu
             let bound = schema.serialize(schema[minProperty]).value || schema[minProperty];
             let val = schema.serialize(value).value || value;
             exception.message('Expected ' + type + ' to be greater than ' +
-                exports.smart(bound) + '. Received: ' +
-                exports.smart(val));
+                smart(bound) + '. Received: ' +
+                smart(val));
         } else if (value < minimum) {
             let bound = schema.serialize(schema[minProperty]).value || schema[minProperty];
             let val = schema.serialize(value).value || value;
             exception.message('Expected ' + type + ' to be greater than or equal to ' +
-                exports.smart(bound) + '. Received: ' +
-                exports.smart(val));
+                smart(bound) + '. Received: ' +
+                smart(val));
         }
     }
 }
