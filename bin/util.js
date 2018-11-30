@@ -319,7 +319,7 @@ function randomNumber ({ min, max, exclusiveMin = false, exclusiveMax = false, d
     }
 
     if (minIsNumber && (num < min || (num === min && exclusiveMin))) return undefined;
-    if (maxIsNumber && (num < max || (num === max && exclusiveMax))) return undefined;
+    if (maxIsNumber && (num > max || (num === max && exclusiveMax))) return undefined;
     return num;
 }
 
