@@ -20,6 +20,7 @@ const Exception         = require('../exception');
 const Result            = require('../result');
 const runDeserialize    = require('../schema/deserialize');
 const runPopulate       = require('../schema/populate');
+const runRandom         = require('../schema/random');
 const runSerialize      = require('../schema/serialize');
 const runValidate       = require('../schema/validate');
 const util              = require('../util');
@@ -137,7 +138,9 @@ const prototype = {
      * @returns {{ error: Exception|null, value: * }}
      */
     random: function(value, options) {
-        //return random(this, value, options);
+        const exception = Exception('Unable to generate random value');
+        const result = runRandom(exception, schema, value, options, 0);
+        return new Result(result, exception);
     },
 
     /**
