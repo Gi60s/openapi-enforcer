@@ -140,12 +140,7 @@ exports.date = {
 
     isNumeric: true,
 
-    random: function ({ schema }, { minimum, maximum }) {
-        minimum = +minimum;
-        maximum = +maximum;
-        const value = minimum + Math.round(Math.random() * (maximum - minimum));
-        return new Date(value);
-    },
+    random: randomDate,
 
     serialize: function ({ exception, value }) {
         const originalValue = value;
@@ -195,12 +190,7 @@ exports.dateTime = {
 
     isNumeric: true,
 
-    random: function ({ schema }, { minimum, maximum }) {
-        minimum = +minimum;
-        maximum = +maximum;
-        const value = minimum + Math.round(Math.random() * (maximum - minimum));
-        return new Date(value);
-    },
+    random: randomDate,
 
     serialize: function ({ exception, value }) {
         const originalValue = value;
@@ -231,3 +221,33 @@ exports.dateTime = {
         }
     }
 };
+
+
+function randomDate(schema, { randomNumber }) {
+    const fiveYears = 157248000000; // 5 years in milliseconds
+    const hasMin = schema.hasOwnProperty('minimum');
+    const hasMax = schema.hasOwnProperty('maximum');
+    const config = {
+        exclusiveMinimum: schema.exclusiveMinimum,
+        exclusiveMaximum: schema.exclusiveMaximum
+    };
+
+    if (hasMin && hasMax) {
+        config.min = +schema.minimum;
+        config.max = +schema.maximum;
+    } else if (hasMin) {
+        config.min = +schema.minimum;
+        config.max = config.min + fiveYears;
+    } else if (hasMax) {
+        config.max = +schema.maximum;
+        config.min = config.max - fiveYears;
+    } else {
+        const adder = fiveYears / 2;
+        config.min = Date.now() - adder;
+        config.max = Date.now() + adder;
+    }
+
+    const value = randomNumber(config);
+    if (value === undefined) return;
+    return new Date(value);
+}
