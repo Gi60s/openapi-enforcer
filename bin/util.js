@@ -294,7 +294,7 @@ function parseQueryString (str, delimiter) {
     return Object.assign({}, query);
 }
 
-function randomNumber ({ min, max, decimalPlaces = 0 } = {}) {
+function randomNumber ({ min, max, exclusiveMin = false, exclusiveMax = false, decimalPlaces = 0 } = {}) {
     const minIsNumber = isNumber(min);
     const maxIsNumber = isNumber(max);
     const multiplier = minIsNumber && maxIsNumber ? max - min : 1000;
@@ -309,8 +309,17 @@ function randomNumber ({ min, max, decimalPlaces = 0 } = {}) {
         if (dec > 1) num = Math.round(num * dec) / dec;
     }
 
-    if (num < min) num = min;
-    if (num > max) num = max;
+    if (minIsNumber) {
+        if (num < min) num = min;
+        if (num === min && exclusiveMin) num += Math.pow(10, -1 * decimalPlaces);
+    }
+    if (maxIsNumber) {
+        if (num > max) num = max;
+        if (num === min && exclusiveMin) num -= Math.pow(10, -1 * decimalPlaces);
+    }
+
+    if (minIsNumber && (num < min || (num === min && exclusiveMin))) return undefined;
+    if (maxIsNumber && (num < max || (num === max && exclusiveMax))) return undefined;
     return num;
 }
 
