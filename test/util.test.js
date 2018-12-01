@@ -20,7 +20,7 @@ const util          = require('../bin/util');
 
 describe('util', () => {
 
-    describe.only('randomNumber', () => {
+    describe('randomNumber', () => {
         const randomNumber = util.randomNumber;
 
         it('does not require any parameters', () => {
