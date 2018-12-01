@@ -34,14 +34,7 @@ exports.binary = {
         }
     },
 
-    random: function ({ schema }, { length, maxLength, minLength }) {
-        if (maxLength === undefined) maxLength = schema.hasOwnProperty('maxLength') / 8 ? schema.maxLength : 25;
-        if (minLength === undefined) minLength = schema.hasOwnProperty('minLength') / 8 ? schema.minLength : 1;
-        if (length === undefined) length = minLength + Math.round(Math.random() * (maxLength - minLength));
-        const array = [];
-        for (let i = 0; i < length; i++) array.push(Math.floor(Math.random() * 256));
-        return Buffer.from(array);
-    },
+    random: randomBuffer(8),
 
     serialize: function ({ exception, value }) {
         if (value instanceof Buffer) {
@@ -86,14 +79,7 @@ exports.byte = {
         }
     },
 
-    random: function ({ schema }, { length, maxLength, minLength }) {
-        if (maxLength === undefined) maxLength = schema.hasOwnProperty('maxLength') / 4 ? schema.maxLength : 150;
-        if (minLength === undefined) minLength = schema.hasOwnProperty('minLength') / 4 ? schema.minLength : 1;
-        if (length === undefined) length = minLength + Math.round(Math.random() * (maxLength - minLength));
-        const array = [];
-        for (let i = 0; i < length; i++) array.push(Math.floor(Math.random() * 256));
-        return Buffer.from(array);
-    },
+    random: randomBuffer(4),
 
     serialize: function ({ exception, value }) {
         if (value instanceof Buffer) {
@@ -222,6 +208,32 @@ exports.dateTime = {
     }
 };
 
+function randomBuffer (divider) {
+    return function (schema, { randomNumber }) {
+        const hasMin = schema.hasOwnProperty('minLength');
+        const hasMax = schema.hasOwnProperty('maxLength');
+
+        const config = {};
+        if (hasMin && hasMax) {
+            config.min = schema.minLength / divider;
+            config.max = schema.maxLength / divider;
+        } else if (hasMin) {
+            config.min = +schema.minLength / divider;
+            config.max = config.min + 25;
+        } else if (hasMax) {
+            config.max = +schema.maximum / divider;
+            config.min = config.max - 25;
+        } else {
+            config.min = 1;
+            config.max = 25;
+        }
+
+        const length = randomNumber(config);
+        const array = [];
+        for (let i = 0; i < length; i++) array.push(Math.floor(Math.random() * 256));
+        return Buffer.from(array);
+    }
+}
 
 function randomDate(schema, { randomNumber }) {
     const fiveYears = 157248000000; // 5 years in milliseconds
