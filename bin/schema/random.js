@@ -22,8 +22,7 @@ const { copy, randomOneOf: chooseOne, randomNumber, randomText } = util;
 module.exports = runRandom;
 
 function runRandom(exception, schema, value, options, depth) {
-    throw Error('TODO: use data-type random when available');
-
+    if (!options) options = {};
     const { arrayVariation = 4, defaultPossibility = .25, numberVariation = 1000, } = options;
     const type = schema.type;
 
@@ -36,18 +35,18 @@ function runRandom(exception, schema, value, options, depth) {
     if (schema.allOf) {
         exception.message('Cannot generate random value for schema with allOf');
 
-    } else if (schema.anyOf) {
-        exception.message('Cannot generate random value for schema with anyOf');
-
-    } else if (schema.oneOf) {
-        exception.message('Cannot generate random value for schema with oneOf');
+    } else if (schema.anyOf || schema.oneOf) {
+        const mode = schema.anyOf ? 'anyOf' : 'oneOf';
+        const subSchema = schema.discriminate(value) || chooseOne(schema[mode]);
+        return runRandom(exception, subSchema, value, options, depth);
 
     } else if (schema.not) {
         exception.message('Cannot generate random value for schema with not');
 
     } else if (type === 'array') {
         const min = schema.hasOwnProperty('minItems') ? schema.minItems : 0;
-        const max = schema.hasOwnProperty('maxItems') ? schema.maxItems : config.minimum + arrayVariation;
+        let max = schema.hasOwnProperty('maxItems') ? schema.maxItems : min + arrayVariation - Math.round(.5 * depth);
+        if (max < min) max = min;
         const length = randomNumber({ min, max });
         const array = Array.isArray(value) ? value.concat() : [];
         let duplicates = 0;
@@ -70,20 +69,6 @@ function runRandom(exception, schema, value, options, depth) {
             }
         }
         return array;
-
-    } else if (type === 'boolean') {
-        return value === undefined ? chooseOne([true, false]) : value;
-
-    } else if (type === 'integer' || type === 'number') {
-        if (value === undefined) {
-            const decimalPlaces = type === 'integer' ? 0 : randomNumber({ min: 0, max: 4 });
-            const exclusiveMin = !!schema.exclusiveMinimum;
-            const exclusiveMax = !!schema.exclusiveMaximum;
-            const min = schema.hasOwnProperty('minimum') ? schema.minimum : -1 * Math.floor(numberVariation * .25);
-            const max = schema.hasOwnProperty('maximum') ? schema.maximum :Math.ceil(numberVariation * .75);
-            value = randomNumber({ min, max, exclusiveMin, exclusiveMax, decimalPlaces });
-        }
-        return value;
 
     } else if (type === 'object') {
         const result = Object.assign({}, value);
@@ -134,12 +119,33 @@ function runRandom(exception, schema, value, options, depth) {
 
         return result;
 
-    } else if (type === 'string') {
-        const options = {};
-        if (schema.hasOwnProperty('minLength')) options.minLength = schema.minLength;
-        if (schema.hasOwnProperty('maxLength')) options.maxLength = schema.maxLength;
-        return randomText(options)
+    } else if (value === undefined) {
+        const dataTypes = schema.enforcerData.staticData.dataTypes;
+        const dataType = dataTypes[schema.type][schema.format] || null;
 
+        if (dataType) {
+            return dataType.random(schema, { chooseOne, randomNumber, randomText });
+
+        } else if (type === 'boolean') {
+            return chooseOne([true, false]);
+
+        } else if (type === 'integer' || type === 'number') {
+            const decimalPlaces = type === 'integer' ? 0 : randomNumber({min: 0, max: 4});
+            const exclusiveMin = !!schema.exclusiveMinimum;
+            const exclusiveMax = !!schema.exclusiveMaximum;
+            const min = schema.hasOwnProperty('minimum') ? schema.minimum : -1 * Math.floor(numberVariation * .25);
+            const max = schema.hasOwnProperty('maximum') ? schema.maximum : Math.ceil(numberVariation * .75);
+            return randomNumber({min, max, exclusiveMin, exclusiveMax, decimalPlaces});
+
+        } else if (type === 'string') {
+            const options = {};
+            if (schema.hasOwnProperty('minLength')) options.minLength = schema.minLength;
+            if (schema.hasOwnProperty('maxLength')) options.maxLength = schema.maxLength;
+            return randomText(options)
+
+        }
+    } else {
+        return value;
     }
 }
 
