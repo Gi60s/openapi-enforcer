@@ -139,7 +139,7 @@ const prototype = {
      */
     random: function(value, options) {
         const exception = Exception('Unable to generate random value');
-        const result = runRandom(exception, schema, value, options, 0);
+        const result = runRandom(exception, this, value, options, 0);
         return new Result(result, exception);
     },
 
@@ -408,6 +408,7 @@ module.exports = {
                         const format = parent.definition.format;
                         if (format) {
                             const enums = [];
+                            // TODO: allow custom types
                             switch (parent.definition.type) {
                                 case 'integer': enums.push('int32', 'int64'); break;
                                 case 'number': enums.push('float', 'double'); break;
