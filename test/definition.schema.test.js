@@ -21,7 +21,7 @@ const expect        = require('chai').expect;
 const util          = require('../bin/util');
 const Value         = require('../bin/value');
 
-describe.only('enforcer/schema', () => {
+describe('enforcer/schema', () => {
     const schemas = {
         Cat: {
             type: 'object',
@@ -1872,7 +1872,7 @@ describe.only('enforcer/schema', () => {
 
     });
 
-    describe('random', () => {
+    describe.only('random', () => {
 
         it('can select random enum', () => {
             const enumValues = ['a', 'b', 'c'];
@@ -1884,27 +1884,66 @@ describe.only('enforcer/schema', () => {
         describe('array', () => {
 
             it('can produce random array', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'array', items: { type: 'number' } });
+                const [ value ] = schema.random();
+                expect(value).to.be.an('array');
+                value.forEach(v => {
+                    expect(v).to.be.a('number');
+                });
+            });
+
+            it('can produce an array with min items', () => {
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'array', minItems: 100, items: { type: 'number' } });
+                const [ value ] = schema.random();
+                expect(value.length).to.be.at.least(100);
+            });
+
+            it('can produce an array with max items', () => {
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'array', maxItems: 0, items: { type: 'number' } });
+                const [ value ] = schema.random();
+                expect(value.length).to.equal(0);
             });
 
             it('can produce random array within length bounds', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'array', minItems: 5, maxItems: 5, items: { type: 'number' } });
+                const [ value ] = schema.random();
+                expect(value.length).to.equal(5);
             });
 
             it('can produce array with unique items', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    type: 'array',
+                    minItems: 2,
+                    maxItems: 2,
+                    uniqueItems: true,
+                    items: {
+                        type: 'integer',
+                        minimum: 0,
+                        maximum: 1
+                    }
+                });
+                const [ value ] = schema.random();
+                const uniqueItems = [];
+                value.forEach(v => {
+                    if (!uniqueItems.includes(v)) uniqueItems.push(v);
+                });
+                expect(uniqueItems.length).to.equal(2);
             });
 
         });
 
         describe('binary', () => {
 
-            it('can produce a random binary', () => {
-                throw Error('TODO');
+            it('can produce a random buffer', () => {
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string', format: 'binary' });
+                const [ value ] = schema.random();
+                expect(value).to.be.instanceof(Buffer);
             });
 
             it('can produce a random binary within length bounds', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string', format: 'binary', minLength: 8, maxLength: 8 });
+                const [ value ] = schema.random();
+                expect(value.length).to.equal(1);
             });
 
         });
@@ -1912,19 +1951,25 @@ describe.only('enforcer/schema', () => {
         describe('boolean', () => {
 
             it('can produce random boolean', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'boolean' });
+                const [ value ] = schema.random();
+                expect(value).to.be.oneOf([true, false]);
             });
 
         });
 
         describe('byte', () => {
 
-            it('can produce a random byte', () => {
-                throw Error('TODO');
+            it('can produce a random buffer', () => {
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string', format: 'binary' });
+                const [ value ] = schema.random();
+                expect(value).to.be.instanceof(Buffer);
             });
 
-            it('can produce a random byte within length bounds', () => {
-                throw Error('TODO');
+            it('can produce a random binary within length bounds', () => {
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string', format: 'byte', minLength: 4, maxLength: 4 });
+                const [ value ] = schema.random();
+                expect(value.length).to.equal(1);
             });
 
         });
@@ -1932,11 +1977,21 @@ describe.only('enforcer/schema', () => {
         describe('date and date-time', () => {
 
             it('can produce a random date', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string', format: 'date' });
+                const [ value ] = schema.random();
+                expect(value).to.be.a('date');
             });
 
             it('can produce a random date within bounds', () => {
-                throw Error('TODO');
+                const str = '2000-01-01T00:00:00.000Z';
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    format: 'date-time',
+                    minimum: str,
+                    maximum: str
+                });
+                const [ value ] = schema.random();
+                expect(value.toISOString()).to.equal(str);
             });
 
         });
