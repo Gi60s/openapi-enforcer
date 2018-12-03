@@ -182,8 +182,8 @@ function normalize (data) {
                     const allowed = keyValidator.hasOwnProperty('allowed') ? fn(keyValidator.allowed, data) : true;
 
                     // set default value
-                    if (data.definition === undefined && allowed && validator.hasOwnProperty('default')) {
-                        data.definition = fn(validator.default, data);
+                    if (data.definition === undefined && allowed && keyValidator.hasOwnProperty('default')) {
+                        data.definition = fn(keyValidator.default, data);
                         data.parent.definition[key] = data.definition;
                         data.definitionType = util.getDefinitionType(data.definition);
                     }
