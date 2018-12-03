@@ -94,11 +94,10 @@ const prototype = {
      * @param {boolean} [options.variables=true]
      * @returns {{ error: Exception|null, value: * }}
      */
-    populate: function(params, value, options) {
+    populate: function(params, value, options = {}) {
         if (params === undefined || params === null) params = {};
         if (!params || !util.isPlainObject(params)) throw Error('Invalid params specified. Must be a plain object');
 
-        if (arguments.length < 3) options = {};
         if (!options || !util.isPlainObject(options)) throw Error('Invalid options specified. Must be a plain object');
         if (!options.hasOwnProperty('copy')) options.copy = false;
         if (!options.hasOwnProperty('conditions')) options.conditions = true;
@@ -131,16 +130,36 @@ const prototype = {
 
     /**
      * Produce a random value for the schema.
-     * @param {*} value An initial value to add random values to.
+     * @param {*} [value] An initial value to add random values to.
      * @param {object} [options]
-     * @param {boolean} [options.skipInvalid=false]
-     * @param {boolean} [options.throw=true]
+     * @param {object} [options.additionalPropertiesPossibility=0]
+     * @param {object} [options.arrayVariation=4]
+     * @param {object} [options.copy=false]
+     * @param {object} [options.defaultPossibility=.25]
+     * @param {object} [options.definedPropertyPossibility=.80]
+     * @param {object} [options.maxDepth=10]
+     * @param {object} [options.numberVariation=1000]
      * @returns {{ error: Exception|null, value: * }}
      */
-    random: function(value, options) {
+    random: function (value, options = {}) {
+        if (!options || !util.isPlainObject(options)) throw Error('Invalid options specified. Must be a plain object');
+        if (!options.hasOwnProperty('additionalPropertiesPossibility')) options.additionalPropertiesPossibility = 0;
+        if (!options.hasOwnProperty('arrayVariation')) options.arrayVariation = 4;
+        if (!options.hasOwnProperty('copy')) options.copy = false;
+        if (!options.hasOwnProperty('defaultPossibility')) options.defaultPossibility = .25;
+        if (!options.hasOwnProperty('definedPropertyPossibility')) options.definedPropertyPossibility = .80;
+        if (!options.hasOwnProperty('maxDepth')) options.maxDepth = 10;
+        if (!options.hasOwnProperty('numberVariation')) options.numberVariation = 1000;
+        if (!options.hasOwnProperty('uniqueItemRetry')) options.uniqueItemRetry = 5;
+
+        if (options.additionalPropertiesPossibility < 0 || options.additionalPropertiesPossibility > 1) throw Error('The option "additionalPropertiesPossibility" must be between 0 and 1 inclusive');
+        if (options.defaultPossibility < 0 || options.defaultPossibility > 1) throw Error('The option "defaultPossibility" must be between 0 and 1 inclusive');
+        if (options.definedPropertyPossibility < 0 || options.definedPropertyPossibility > 1) throw Error('The option "definedPropertyPossibility" must be between 0 and 1 inclusive');
+
         const exception = Exception('Unable to generate random value');
-        const result = runRandom(exception, this, value, options, 0);
-        return new Result(result, exception);
+        const root = { root: options.copy ? util.copy(value) : value };
+        runRandom(exception, new Map(), this, root, 'root', options, 0);
+        return new Result(root.root, exception);
     },
 
     /**
