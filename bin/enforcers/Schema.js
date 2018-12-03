@@ -463,6 +463,7 @@ module.exports = {
                     }
                 },
                 properties: {
+                    weight: -5,
                     allowed: ({parent}) => parent.definition.type === 'object',
                     type: 'object',
                     additionalProperties: EnforcerRef('Schema')
@@ -478,9 +479,19 @@ module.exports = {
                     }
                 },
                 required: {
+                    weight: 1,
                     allowed: ({parent}) => parent.definition.type === 'object',
                     type: 'array',
-                    items: 'string'
+                    items: 'string',
+                    errors: ({ definition, exception, parent }) => {
+                        const additionalProperties = parent.definition.additionalProperties;
+                        const parentProperties = parent.definition.properties;
+                        definition.forEach(key => {
+                            if ((!parentProperties || !parentProperties[key]) && !additionalProperties) {
+                                exception.at(key).message('Property is listed as required but is not defined in the schema properties and additional properties are not allowed.')
+                            }
+                        })
+                    }
                 },
                 title: 'string',
                 type: {
@@ -518,6 +529,10 @@ module.exports = {
 
                 if (!minMaxValid(result.minProperties, result.maxProperties)) {
                     exception.message('Property "minProperties" must be less than or equal to "maxProperties"');
+                }
+
+                if (result.required && result.hasOwnProperty('maxProperties') && result.required.length > result.maxProperties) {
+                    exception.message('There are more required properties than is allows by "maxProperties" contraint');
                 }
 
                 if (!minMaxValid(result.minimum, result.maximum, result.exclusiveMinimum, result.exclusiveMaximum)) {
