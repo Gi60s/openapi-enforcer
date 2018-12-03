@@ -94,7 +94,7 @@ function runDeserialize(exception, map, schema, originalValue) {
             exception.message('Expected an object. Received: ' + util.smart(value));
         }
 
-    } else {
+    } else if (schema !== true) {
         const dataTypes = schema.enforcerData.staticData.dataTypes;
         const dataType = dataTypes[schema.type][schema.format] || null;
 
@@ -150,5 +150,8 @@ function runDeserialize(exception, map, schema, originalValue) {
                 return value;
             }
         }
+
+    } else {
+        return value;
     }
 }

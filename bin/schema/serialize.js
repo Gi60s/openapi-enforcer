@@ -94,7 +94,7 @@ function runSerialize(exception, map, schema, originalValue) {
             exception.message('Expected an object. Received: ' + util.smart(originalValue));
         }
 
-    } else {
+    } else if (schema !== true) {
         const dataTypes = schema.enforcerData.staticData.dataTypes;
         const dataType = dataTypes[schema.type][schema.format] || { serialize: function({ value }) { return value } };
 
@@ -142,5 +142,8 @@ function runSerialize(exception, map, schema, originalValue) {
             }
             return result;
         }
+
+    } else {
+        return value;
     }
 }
