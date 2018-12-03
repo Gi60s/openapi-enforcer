@@ -294,33 +294,42 @@ function parseQueryString (str, delimiter) {
     return Object.assign({}, query);
 }
 
-function randomNumber ({ min, max, exclusiveMin = false, exclusiveMax = false, decimalPlaces = 0, spread = 1000 } = {}) {
+function randomNumber ({ min, max, multipleOf, exclusiveMin = false, exclusiveMax = false, decimalPlaces = 0, spread = 1000 } = {}) {
     const minIsNumber = isNumber(min);
     const maxIsNumber = isNumber(max);
-    const multiplier = minIsNumber && maxIsNumber ? max - min : spread;
-    let num = Math.random() * multiplier;
-    if (minIsNumber) num += min;
 
-    decimalPlaces = Math.round(decimalPlaces);
-    if (decimalPlaces === 0) {
-        num = Math.round(num);
-    } else if (decimalPlaces > 0) {
-        const dec = Math.pow(10, decimalPlaces);
-        if (dec > 1) num = Math.round(num * dec) / dec;
-    }
+    if (typeof multipleOf === 'number' && multipleOf > 0) {
+        min = Math.ceil(min / multipleOf);
+        max = Math.floor(max / multipleOf);
+        const index = Math.round(Math.random() * (max - min) / multipleOf);
+        return index * multipleOf;
 
-    if (minIsNumber) {
-        if (num < min) num = min;
-        if (num === min && exclusiveMin) num += Math.pow(10, -1 * decimalPlaces);
-    }
-    if (maxIsNumber) {
-        if (num > max) num = max;
-        if (num === min && exclusiveMin) num -= Math.pow(10, -1 * decimalPlaces);
-    }
+    } else {
+        const multiplier = minIsNumber && maxIsNumber ? max - min : spread;
+        let num = Math.random() * multiplier;
+        if (minIsNumber) num += min;
 
-    if (minIsNumber && (num < min || (num === min && exclusiveMin))) return undefined;
-    if (maxIsNumber && (num > max || (num === max && exclusiveMax))) return undefined;
-    return num;
+        decimalPlaces = Math.round(decimalPlaces);
+        if (decimalPlaces === 0) {
+            num = Math.round(num);
+        } else if (decimalPlaces > 0) {
+            const dec = Math.pow(10, decimalPlaces);
+            if (dec > 1) num = Math.round(num * dec) / dec;
+        }
+
+        if (minIsNumber) {
+            if (num < min) num = min;
+            if (num === min && exclusiveMin) num += Math.pow(10, -1 * decimalPlaces);
+        }
+        if (maxIsNumber) {
+            if (num > max) num = max;
+            if (num === max && exclusiveMax) num -= Math.pow(10, -1 * decimalPlaces);
+        }
+
+        if (minIsNumber && (num < min || (num === min && exclusiveMin))) return undefined;
+        if (maxIsNumber && (num > max || (num === max && exclusiveMax))) return undefined;
+        return num;
+    }
 }
 
 function randomOneOf (choices) {
