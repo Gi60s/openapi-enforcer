@@ -225,7 +225,7 @@ function normalize (data) {
                     data.result = definition;
                     break;
                 default:
-                    exception('Unknown data type provided');
+                    exception.message('Unknown data type provided');
                     break;
             }
         } else {
