@@ -15,16 +15,15 @@
  *    limitations under the License.
  **/
 'use strict';
-// const definition    = require('../bin/definition-validator').normalize;
-// const expect        = require('chai').expect;
-// const OpenAPI       = require('../bin/definition-validators/open-api');
+const Enforcer      = require('../');
+const expect        = require('chai').expect;
 
 describe('definitions/open-api', () => {
 
     describe('basePath', () => {
 
         it('is not allowed in v3', () => {
-            const [ , err ] = oas(3, {
+            const [ value, err ] = oas(3, {
                 basePath: '/'
             });
             expect(err).to.match(/Property not allowed: basePath/);
@@ -487,7 +486,7 @@ describe('definitions/open-api', () => {
     describe('info', () => {
 
         it('is required', () => {
-            const [ , err ] = definition(2, OpenAPI, {
+            const [ , err ] = Enforcer.v2_0.Swagger({
                 swagger: '2.0',
                 paths: {}
             });
@@ -513,29 +512,37 @@ describe('definitions/open-api', () => {
     describe('openapi', () => {
 
         it('is not allowed for v2', () => {
-            const [ , err ] = oas(2, {
-                openapi: '3.0.0'
+            const [ , err ] = Enforcer.v2_0.Swagger({
+                openapi: '3.0.0',
+                info: { title: '', version: '' },
+                paths: {}
             });
             expect(err).to.match(/Property not allowed: openapi/);
         });
 
         it('can be a semantic version number string', () => {
-            const [ , err ] = oas(3, {
-                openapi: '3.0.0'
+            const [ , err ] = Enforcer.v3_0.OpenApi({
+                openapi: '3.0.0',
+                info: { title: '', version: '' },
+                paths: {}
             });
             expect(err).to.be.undefined;
         });
 
         it('must be a string', () => {
-            const [ , err ] = oas(3, {
-                openapi: 1
+            const [ , err ] = Enforcer.v3_0.OpenApi({
+                openapi: 1,
+                info: { title: '', version: '' },
+                paths: {}
             });
             expect(err).to.match(/Value must be a string/);
         });
 
         it('must be a semantic version number string', () => {
-            const [ , err ] = oas(3, {
-                openapi: '3.0'
+            const [ , err ] = Enforcer.v3_0.OpenApi({
+                openapi: '3.0',
+                info: { title: '', version: '' },
+                paths: {}
             });
             expect(err).to.match(/Value must be a semantic version number/);
         });
@@ -590,7 +597,7 @@ describe('definitions/open-api', () => {
         };
 
         it('is required', () => {
-            const [ , err ] = definition(2, OpenAPI, {
+            const [ , err ] = Enforcer.v2_0.Swagger({
                 swagger: '2.0',
                 info: { title: '', version: '' }
             });
@@ -870,7 +877,7 @@ describe('definitions/open-api', () => {
         });
 
         it('must be 2.0', () => {
-            const [ , err ] = oas(2, {
+            const [ , err ] = Enforcer.v2_0.Swagger({
                 swagger: '3.0'
             });
             expect(err).to.match(/Value must be "2.0"/);
@@ -910,10 +917,12 @@ function oas(version, def) {
         info: { title: '', version: '1.0.0' },
         paths: {}
     };
+    Object.assign(config, def);
     if (version === 2) {
         config.swagger = '2.0';
+        return Enforcer.v2_0.Swagger(config);
     }  else {
         config.openapi = '3.0.0';
+        return Enforcer.v3_0.OpenApi(config);
     }
-    return definition(version, OpenAPI, Object.assign(config, def));
 }
