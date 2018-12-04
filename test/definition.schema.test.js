@@ -1886,7 +1886,7 @@ describe('enforcer/schema', () => {
 
     });
 
-    describe.only('random', () => {
+    describe('random', () => {
 
         it('can select random enum', () => {
             const enumValues = ['a', 'b', 'c'];
@@ -2071,7 +2071,7 @@ describe('enforcer/schema', () => {
                 expect(value).to.equal(1.5);
             });
 
-            it.only('can produce random number within bounds with exclusive maximum and minimum', () => {
+            it('can produce random number within bounds with exclusive maximum and minimum', () => {
                 const [ schema ] = Enforcer.v3_0.Schema({
                     type: 'number',
                     minimum: 1,
@@ -2168,7 +2168,7 @@ describe('enforcer/schema', () => {
             });
 
             it('cannot produce allOf object', () => {
-                const [ schema, error ] = Enforcer.v3_0.Schema({ allOf: [{ type: 'string' }] });
+                const [ schema ] = Enforcer.v3_0.Schema({ allOf: [{ type: 'string' }] });
                 const [ , , warn ] = schema.random();
                 expect(warn).to.match(/Cannot generate random value for schema with allOf/);
             });
