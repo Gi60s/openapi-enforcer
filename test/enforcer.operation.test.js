@@ -17,7 +17,6 @@
 'use strict';
 const Enforcer      = require('../');
 const expect        = require('chai').expect;
-const Value         = require('../bin/value');
 
 describe('enforcer/operation', () => {
 
@@ -95,7 +94,7 @@ describe('enforcer/operation', () => {
                 expect(req.body).to.equal(1);
             });
 
-            it('does not deserialize array elements without coercion', () => {
+            it('does not deserialize array elements', () => {
                 def.parameters[0].schema = arrSchema;
                 const [ operation ] = Enforcer.v2_0.Operation(def);
                 const [ , err ] = operation.request({ body: ['1', '2', '3'] });
@@ -103,26 +102,12 @@ describe('enforcer/operation', () => {
                 expect(err.count).to.equal(3);
             });
 
-            it('deserializes array elements with coercion', () => {
-                def.parameters[0].schema = arrSchema;
-                const [ operation ] = Enforcer.v2_0.Operation(def);
-                const [ req ] = operation.request({ body: Value.coerce(['1', '2', '3']) });
-                expect(req.body).to.deep.equal([1,2,3]);
-            });
-
-            it('does not deserialize object elements without coercion', () => {
+            it('does not deserialize object elements', () => {
                 def.parameters[0].schema = objSchema;
                 const [ operation ] = Enforcer.v2_0.Operation(def);
                 const [ , err ] = operation.request({ body: { R: '50', G: '100', B: '150' } });
                 expect(err).to.match(/Unable to deserialize value\s+at: R\s+Expected a number/);
                 expect(err.count).to.equal(3);
-            });
-
-            it('deserializes object elements with coercion', () => {
-                def.parameters[0].schema = objSchema;
-                const [ operation ] = Enforcer.v2_0.Operation(def);
-                const [ req ] = operation.request({ body: Value.coerce({ R: '50', G: '100', B: '150' }) });
-                expect(req.body).to.deep.equal({ R: 50, G: 100, B: 150 });
             });
 
             it('validates missing required body', () => {
@@ -168,7 +153,7 @@ describe('enforcer/operation', () => {
                 };
                 const [ operation ] = Enforcer.v2_0.Operation(def);
                 const [ , err ] = operation.request({ body: { R: 50, G: 100, B: 150 } });
-                expect(err).to.match(/Property not allowed: B/);
+                expect(err).to.match(/at: B\s+Property not allowed/);
                 expect(err.count).to.equal(1);
             });
 
@@ -777,7 +762,7 @@ describe('enforcer/operation', () => {
                 expect(req.body).to.equal(1);
             });
 
-            it('does not deserialize array elements without coercion', () => {
+            it('does not deserialize array elements', () => {
                 appJson.schema = arrSchema;
                 const [ operation ] = Enforcer.v3_0.Operation(def);
                 const [ , err ] = operation.request({ body: ['1', '2', '3'], header: { 'content-type': 'application/json' } });
@@ -785,26 +770,12 @@ describe('enforcer/operation', () => {
                 expect(err.count).to.equal(3);
             });
 
-            it('deserializes array elements with coercion', () => {
-                appJson.schema = arrSchema;
-                const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ req ] = operation.request({ body: Value.coerce(['1', '2', '3']), header: { 'content-type': 'application/json' } });
-                expect(req.body).to.deep.equal([1,2,3]);
-            });
-
-            it('does not deserialize object elements without coercion', () => {
+            it('does not deserialize object elements', () => {
                 appJson.schema = objSchema;
                 const [ operation ] = Enforcer.v3_0.Operation(def);
                 const [ , err ] = operation.request({ body: { R: '50', G: '100', B: '150' }, header: { 'content-type': 'application/json' } });
                 expect(err).to.match(/at: R\s+Expected a number/);
                 expect(err.count).to.equal(3);
-            });
-
-            it('deserializes object elements with coercion', () => {
-                appJson.schema = objSchema;
-                const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ req ] = operation.request({ body: Value.coerce({ R: '50', G: '100', B: '150' }), header: { 'content-type': 'application/json' } });
-                expect(req.body).to.deep.equal({ R: 50, G: 100, B: 150 });
             });
 
             it('validates missing required request body', () => {
@@ -829,7 +800,7 @@ describe('enforcer/operation', () => {
             it('limits validations if exact match media type found', () => {
                 const [ operation ] = Enforcer.v3_0.Operation(def);
                 const [ , err ] = operation.request({ body: { star: 50 }, header: { 'content-type': 'application/json' } });
-                expect(err).to.match(/Property not allowed: star/);
+                expect(err).to.match(/at: star\s+Property not allowed/);
             });
 
             it('matches multiple media types but actual content fails for each media type', () => {
