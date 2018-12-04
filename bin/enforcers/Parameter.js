@@ -74,8 +74,8 @@ module.exports = {
                         values.forEach((value, index) => {
                             if (!value && !this.allowEmptyValue) {
                                 exception.at(index)('Empty value not allowed');
-                            } else if (this.schema.items) {
-                                result.push(v2Parse(this, this, exception.at(index), value));
+                            } else if (this.items) {
+                                result.push(v2Parse(this, this.items, exception.at(index), value));
                             } else {
                                 result.push(value);
                             }
