@@ -92,7 +92,8 @@ describe('index/request', () => {
                 const def = new DefinitionBuilder(2)
                     .addParameter('/{array}', 'get', {
                         name: 'array',
-                        in: 'path', required: true,
+                        in: 'path',
+                        required: true,
                         type: 'array',
                         collectionFormat: 'pipes',
                         items: {
@@ -1528,7 +1529,7 @@ describe('index/request', () => {
                         .addParameter('/', 'post', { name: 'x', in: 'body', schema: objSchema })
                         .build();
                     const enforcer = await Enforcer(def);
-                    const [ req ] = enforcer.request({ path: '/', method: 'post', body: { a: '1', b: '2' } });
+                    const [ req ] = enforcer.request({ path: '/', method: 'post', body: { a: 1, b: 2 } });
                     expect(req.body).to.deep.equal({ a: 1, b: 2 });
                 });
 
@@ -1537,7 +1538,7 @@ describe('index/request', () => {
                         .addParameter('/', 'post', { name: 'x', in: 'body', schema: arrSchema })
                         .build();
                     const enforcer = await Enforcer(def);
-                    const [ req ] = enforcer.request({ path: '/', method: 'post', body: ['1', '2'] });
+                    const [ req ] = enforcer.request({ path: '/', method: 'post', body: [1, 2] });
                     expect(req.body).to.deep.equal([1,2]);
                 });
 
