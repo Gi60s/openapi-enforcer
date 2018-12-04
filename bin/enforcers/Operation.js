@@ -19,8 +19,9 @@ const EnforcerRef   = require('../enforcer-ref');
 const Exception     = require('../exception');
 const Result        = require('../result');
 const util          = require('../util');
-const Value         = require('../value');
 
+const rxInteger = /^\d+$/;
+const rxNumber = /^\d+(?:\.\d+)?$/;
 const requestBodyAllowedMethods = { post: true, put: true, options: true, head: true, patch: true };
 
 module.exports = {
@@ -222,7 +223,7 @@ module.exports = {
                 // v2 parameter in body
                 if (parameters.body) {
                     const parameter = getBodyParameter(parameters);
-                    if (typeof value === 'string') value = new Value(value, { coerce: true });
+                    value = primitiveBodyDeserialization(value, parameter.schema);
                     deserializeAndValidate(exception.nest('In body'), parameter.schema, { value }, value => {
                         result.body = util.extractEnforcerValues(value);
                     });
@@ -238,7 +239,6 @@ module.exports = {
                     // one or more potential matches
                     if (length) {
                         const child = new Exception('In body');
-                        if (typeof value === 'string') value = new Value(value, { coerce: true });
 
                         // find the first media type that matches the request body
                         let passed = false;
@@ -246,6 +246,7 @@ module.exports = {
                             const mediaType = matches[i];
                             const media = content[mediaType];
                             if (media.schema) {
+                                value = primitiveBodyDeserialization(value, media.schema);
                                 deserializeAndValidate(child.nest('For Content-Type ' + mediaType), media.schema, { value }, value => {
                                     result.body = util.extractEnforcerValues(value);
                                     passed = true;
@@ -451,4 +452,18 @@ function deserializeAndValidate(exception, schema, data, success) {
     } else {
         success(data.value);
     }
+}
+
+function primitiveBodyDeserialization (value, schema) {
+    if (typeof value === 'string') {
+        if (schema.type === 'boolean') {
+            if (value === 'true') value = true;
+            if (!value || value === 'false') value = false;
+        } else if (schema.type === 'integer') {
+            if (rxInteger.test(value)) value = parseInt(value);
+        } else if (schema.type === 'number') {
+            if (rxNumber.test(value)) value = parseFloat(value);
+        }
+    }
+    return value;
 }
