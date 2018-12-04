@@ -15,7 +15,10 @@
  *    limitations under the License.
  **/
 'use strict';
-const EnforcerRef  = require('../enforcer-ref');
+const EnforcerRef   = require('../enforcer-ref');
+const Exception     = require('../exception');
+const Result        = require('../result');
+const util          = require('../util');
 
 const rxHostParts = /^((?:https?|wss?):\/\/)?(.+?)(\/.+)?$/;
 const rxSemanticVersion = /^\d+\.\d+\.\d+$/;
@@ -167,7 +170,9 @@ module.exports = {
                 consumes: {
                     allowed: major === 2,
                     type: 'array',
-                    items: 'string'
+                    items: {
+                        type: 'string'
+                    }
                 },
                 definitions: {
                     weight: -1,
@@ -204,7 +209,9 @@ module.exports = {
                 produces: {
                     allowed: major === 2,
                     type: 'array',
-                    items: 'string'
+                    items: {
+                        type: 'string'
+                    }
                 },
                 responses: {
                     allowed: major === 2,
