@@ -157,9 +157,10 @@ const prototype = {
         if (options.definedPropertyPossibility < 0 || options.definedPropertyPossibility > 1) throw Error('The option "definedPropertyPossibility" must be between 0 and 1 inclusive');
 
         const exception = Exception('Unable to generate random value');
+        const warn = Exception('One or more warnings found while generating random value');
         const root = { root: options.copy ? util.copy(value) : value };
-        runRandom(exception, new Map(), this, root, 'root', options, 0);
-        return new Result(root.root, exception);
+        runRandom(exception, warn, new Map(), this, root, 'root', options, 0);
+        return new Result(root.root, exception, warn);
     },
 
     /**
