@@ -317,7 +317,6 @@ function randomNumber ({ min, max, multipleOf, exclusiveMin = false, exclusiveMa
             if (dec > 1) num = Math.round(num * dec) / dec;
         }
 
-        // TODO: for number (non integer) where min needs to be upped slightly, this code is failing
         if (minIsNumber) {
             if (num < min) num = min;
             if (num === min && exclusiveMin) num += Math.pow(10, -1 * decimalPlaces);
