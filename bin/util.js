@@ -317,6 +317,7 @@ function randomNumber ({ min, max, multipleOf, exclusiveMin = false, exclusiveMa
             if (dec > 1) num = Math.round(num * dec) / dec;
         }
 
+        // TODO: for number (non integer) where min needs to be upped slightly, this code is failing
         if (minIsNumber) {
             if (num < min) num = min;
             if (num === min && exclusiveMin) num += Math.pow(10, -1 * decimalPlaces);
@@ -360,9 +361,13 @@ function randomText ({ minLength = 1, maxLength = 250 } = {}) {
         result += ' ';
     }
     result = result.trim();
-    result = result.replace(/[,.:;!?]$/, '');
-    if (result.length >= maxLength) result = result.substr(0, maxLength - 1);
-    result += '.';
+    result = result.replace(/[,.:;!?]$/, ''); // if ends in punctation then remove it
+    if (maxLength > 5) {
+        if (result.length >= maxLength) result = result.substr(0, maxLength - 1);
+        result += '.';
+    } else if (result.length > maxLength) {
+        result = result.substr(0, maxLength);
+    }
     return result;
 }
 
