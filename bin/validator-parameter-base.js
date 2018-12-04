@@ -21,13 +21,7 @@ const schemaProperties = ['default', 'enum', 'exclusiveMaximum', 'exclusiveMinim
     'maximum', 'maxItems', 'maxLength', 'minimum', 'minItems', 'minLength', 'multipleOf',
     'pattern', 'type', 'uniqueItems'];
 
-exports.extractSchemaDefinition = definition => {
-    const result = {};
-    schemaProperties.forEach(key => {
-        if (definition.hasOwnProperty(key)) result[key] = definition[key]
-    });
-    return result;
-};
+exports.extractSchemaDefinition = extractSchemaDefinition;
 
 exports.validator = data => {
 
@@ -115,3 +109,20 @@ exports.validator = data => {
 
     return result;
 };
+
+function extractSchemaDefinition(definition) {
+    const result = {};
+    schemaProperties.forEach(key => {
+        if (definition.hasOwnProperty(key)) {
+            const value = definition[key];
+            if (Array.isArray(value)) {
+                result[key] = value.map(extractSchemaDefinition)
+            } else if (value && typeof value === 'object') {
+                result[key] = extractSchemaDefinition(value);
+            } else {
+                result[key] = value;
+            }
+        }
+    });
+    return result;
+}
