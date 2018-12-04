@@ -75,7 +75,7 @@ module.exports = {
                             if (!value && !this.allowEmptyValue) {
                                 exception.at(index)('Empty value not allowed');
                             } else if (this.schema.items) {
-                                result.push(v2Parse(this, this.schema.items, exception.at(index), value));
+                                result.push(v2Parse(this, this, exception.at(index), value));
                             } else {
                                 result.push(value);
                             }
@@ -88,13 +88,13 @@ module.exports = {
                 } else if (query && query.hasOwnProperty(this.name)) {
                     const ar = query[this.name];
                     if (ar.length) {
-                        return new Result(v2Parse(this, this.schema, exception, ar[ar.length - 1]), exception);
+                        return new Result(v2Parse(this, this, exception, ar[ar.length - 1]), exception);
                     } else {
-                        return new Result(v2Parse(this, this.schema, exception, undefined), exception);
+                        return new Result(v2Parse(this, this, exception, undefined), exception);
                     }
 
                 } else {
-                    return new Result(v2Parse(this, this.schema, exception, value), exception);
+                    return new Result(v2Parse(this, this, exception, value), exception);
                 }
 
 
@@ -117,7 +117,7 @@ module.exports = {
                     const result = {};
                     let match;
                     let hasValue = false;
-                    while (match = rx.exec(value)) {
+                    while ((match = rx.exec(value))) {
                         hasValue = true;
                         result[match[1]] = match[2];
                     }
@@ -258,7 +258,9 @@ module.exports = {
                     default: false
                 },
                 collectionFormat: {
-                    allowed: ({major, parent}) => major === 2 && parent.definition.type === 'array',
+                    allowed: ({major, parent}) => {
+                        return major === 2 && parent.definition.type === 'array'
+                    },
                     enum: ({parent}) => ['query', 'formData'].includes(parent.definition.in)
                         ? ['csv', 'ssv', 'tsv', 'pipes', 'multi']
                         : ['csv', 'ssv', 'tsv', 'pipes'],
@@ -401,7 +403,7 @@ function objectExploded(setDelimiter, valueDelimiter, value) {
     const result = {};
     let match;
     let offset = 0;
-    while (match = rx.exec(value)) {
+    while ((match = rx.exec(value))) {
         result[match[1]] = match[2] || '';
         offset = match.index + match[0].length;
     }
@@ -451,7 +453,7 @@ function parsePrimitive(parameter, schema, exception, value) {
 function v2Parse(parameter, schema, exception, value) {
     if (schema.type === 'array') {
         let values;
-        switch (schema.collectionFormat || parameter.collectionFormat) {
+        switch (schema.collectionFormat) {
             case 'csv':
                 values = value.split(',');
                 break;
