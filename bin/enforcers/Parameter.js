@@ -73,7 +73,7 @@ module.exports = {
                         const result = [];
                         values.forEach((value, index) => {
                             if (!value && !this.allowEmptyValue) {
-                                exception.at(index)('Empty value not allowed');
+                                exception.at(index).message('Empty value not allowed');
                             } else if (this.items) {
                                 result.push(v2Parse(this, this.items, exception.at(index), value));
                             } else {
