@@ -143,7 +143,7 @@ function runRandom(exception, warn, map, schema, parent, property, options, dept
             parent[property] = chooseOne([true, false]);
 
         } else if (type === 'integer' || type === 'number') {
-            const decimalPlaces = type === 'integer' ? 0 : randomNumber({min: 0, max: 4});
+            const decimalPlaces = type === 'integer' ? 0 : randomNumber({min: 1, max: 4});
             const exclusiveMin = !!schema.exclusiveMinimum;
             const exclusiveMax = !!schema.exclusiveMaximum;
             const multipleOf = schema.hasOwnProperty('multipleOf') ? schema.multipleOf : 0;
