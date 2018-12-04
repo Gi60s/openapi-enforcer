@@ -169,7 +169,7 @@ function createConstructor(version, name, enforcer) {
 
         // execute plugins
         if (isStart) {
-            while (data.plugins.length) data.plugins.pop()();
+            while (data.plugins.length) data.plugins.shift()();
         }
 
         return isStart
