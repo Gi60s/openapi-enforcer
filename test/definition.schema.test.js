@@ -998,6 +998,20 @@ describe('enforcer/schema', () => {
                 expect(err).to.match(/Property not allowed: required/);
             });
 
+            it('must be included in defined property or allowed through additional properties', () => {
+                const def = {
+                    type: 'object',
+                    required: ['a', 'd'],
+                    additionalProperties: false,
+                    properties: {
+                        a: { type: 'number' },
+                    }
+                };
+                const [ , err ] = Enforcer.v3_0.Schema(def);
+                expect(err).to.match(/at: required > d\s+Property is listed as required but is not defined in the schema properties and additional properties are not allowed/);
+                expect(err.count).to.equal(1);
+            });
+
         });
 
         describe('uniqueItems', () => {
@@ -1913,21 +1927,18 @@ describe('enforcer/schema', () => {
             it('can produce array with unique items', () => {
                 const [ schema ] = Enforcer.v3_0.Schema({
                     type: 'array',
-                    minItems: 2,
-                    maxItems: 2,
+                    minItems: 5,
+                    maxItems: 5,
                     uniqueItems: true,
                     items: {
                         type: 'integer',
                         minimum: 0,
-                        maximum: 1
+                        maximum: 4
                     }
                 });
-                const [ value ] = schema.random();
-                const uniqueItems = [];
-                value.forEach(v => {
-                    if (!uniqueItems.includes(v)) uniqueItems.push(v);
-                });
-                expect(uniqueItems.length).to.equal(2);
+                const [ value ] = schema.random(undefined, { uniqueItemRetry: Number.MAX_SAFE_INTEGER });
+                value.sort();
+                expect(value).to.deep.equal([0, 1, 2, 3, 4]);
             });
 
         });
@@ -1999,15 +2010,43 @@ describe('enforcer/schema', () => {
         describe('integer', () => {
 
             it('can produce random integer', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    type: 'integer'
+                });
+                const [ value ] = schema.random();
+                expect(value).to.be.a('number');
+                expect(value % 1).to.equal(0);
             });
 
             it('can produce random integer within bounds', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    type: 'integer',
+                    minimum: 1,
+                    maximum: 1
+                });
+                const [ value ] = schema.random();
+                expect(value).to.equal(1);
+            });
+
+            it('can produce random integer within bounds with exclusive maximum and minimum', () => {
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    type: 'integer',
+                    minimum: 1,
+                    maximum: 3,
+                    exclusiveMinimum: true,
+                    exclusiveMaximum: true
+                });
+                const [ value ] = schema.random();
+                expect(value).to.equal(2);
             });
 
             it('can produce multipleOf', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    type: 'integer',
+                    multipleOf: 3
+                });
+                const [ value ] = schema.random();
+                expect(value % 3).to.equal(0);
             });
 
         });
@@ -2015,15 +2054,43 @@ describe('enforcer/schema', () => {
         describe('number', () => {
 
             it('can produce random number', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    type: 'number'
+                });
+                const [ value ] = schema.random();
+                expect(value).to.be.a('number');
             });
 
             it('can produce random number within bounds', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    type: 'number',
+                    minimum: 1.5,
+                    maximum: 1.5
+                });
+                const [ value ] = schema.random();
+                expect(value).to.equal(1.5);
+            });
+
+            it.only('can produce random number within bounds with exclusive maximum and minimum', () => {
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    type: 'number',
+                    minimum: 1,
+                    maximum: 2,
+                    exclusiveMinimum: true,
+                    exclusiveMaximum: true
+                });
+                const [ value ] = schema.random();
+                expect(value).to.be.greaterThan(1);
+                expect(value).to.be.lessThan(2);
             });
 
             it('can produce multipleOf', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    type: 'number',
+                    multipleOf: .5
+                });
+                const [ value ] = schema.random();
+                expect(value % .5).to.equal(0);
             });
 
         });
@@ -2031,31 +2098,97 @@ describe('enforcer/schema', () => {
         describe('object', () => {
 
             it('can produce a random object', () => {
-                throw Error('TODO');
+                const def = {
+                    type: 'object',
+                    properties: {
+                        a: { type: 'number' },
+                        b: { type: 'boolean' },
+                        c: { type: 'string' }
+                    }
+                };
+                const [ schema ] = Enforcer.v3_0.Schema(def);
+                const [ value ] = schema.random();
+                expect(value).to.be.an('object');
+
+            });
+
+            it('can produce a random object from a circular schema', () => {
+                const def = {
+                    type: 'object',
+                    required: ['a', 'b'],
+                    properties: {
+                        a: { type: 'integer' }
+                    }
+                };
+                def.properties.b = def;
+                const [ schema ] = Enforcer.v3_0.Schema(def);
+                const [ value ] = schema.random();
+                expect(value).to.be.an('object');
             });
 
             it('can produce random object within property count bounds', () => {
-                throw Error('TODO');
+                const def = {
+                    type: 'object',
+                    properties: {
+                        a: { type: 'number' },
+                        b: { type: 'boolean' },
+                        c: { type: 'string' }
+                    },
+                    minProperties: 1,
+                    maxProperties: 1
+                };
+                const [ schema ] = Enforcer.v3_0.Schema(def);
+                const [ value ] = schema.random();
+                const keys = Object.keys(value);
+                expect(keys.length).to.equal(1);
             });
 
             it('will have all required properties', () => {
-                throw Error('TODO');
+                const def = {
+                    type: 'object',
+                    required: ['a', 'd'],
+                    properties: {
+                        a: { type: 'number' }
+                    }
+                };
+                const [ schema ] = Enforcer.v3_0.Schema(def);
+                const [ value ] = schema.random();
+                expect(value).to.haveOwnProperty('a');
+                expect(value).to.haveOwnProperty('d');
             });
 
-            it('can produce additional properties', () => {
-                throw Error('TODO');
+            it('can produce additional properties from required by not defined', () => {
+                const def = {
+                    type: 'object',
+                    required: ['a']
+                };
+                const [ schema ] = Enforcer.v3_0.Schema(def);
+                const [ value ] = schema.random();
+                expect(value).to.haveOwnProperty('a');
             });
 
-            it('can produce allOf object', () => {
-                throw Error('TODO');
+            it('cannot produce allOf object', () => {
+                const [ schema, error ] = Enforcer.v3_0.Schema({ allOf: [{ type: 'string' }] });
+                const [ , , warn ] = schema.random();
+                expect(warn).to.match(/Cannot generate random value for schema with allOf/);
             });
 
             it('can produce oneOf or anyOf object', () => {
-                throw Error('TODO');
+                const def = {
+                    oneOf: [
+                        { type: 'number' },
+                        { type: 'boolean' }
+                    ]
+                };
+                const [ schema ] = Enforcer.v3_0.Schema(def);
+                const [ value ] = schema.random();
+                expect(typeof value).to.be.oneOf(['boolean', 'number'])
             });
 
             it('cannot produce not object', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({ not: { type: 'string' } });
+                const [ , , warn ] = schema.random();
+                expect(warn).to.match(/Cannot generate random value for schema with not/);
             });
 
         });
@@ -2063,15 +2196,21 @@ describe('enforcer/schema', () => {
         describe('string', () => {
 
             it('can produce random string', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string' });
+                const [ value ] = schema.random();
+                expect(value).to.be.a('string');
             });
 
             it('can produce random string within bounds', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string', minLength: 5, maxLength: 5 });
+                const [ value ] = schema.random();
+                expect(value.length).to.equal(5);
             });
 
             it('cannot produce random string with pattern match', () => {
-                throw Error('TODO');
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string', pattern: 'abc' });
+                const [ , , warn ] = schema.random();
+                expect(warn).to.match(/Cannot generate random value that matches a pattern/);
             });
 
         });
