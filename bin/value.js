@@ -78,12 +78,10 @@ EnforcerValue.prototype.attributes = function () {
  */
 EnforcerValue.inherit = function (value, config) {
     if (typeof value === 'object' && value instanceof EnforcerValue) {
-        const { populate, serialize, validate } = value;
-        const result = new EnforcerValue(value.value);
-        if (populate === undefined && config.populate !== undefined) result.populate = config.populate;
-        if (serialize === undefined && config.serialize !== undefined) result.serialize = config.serialize;
-        if (validate === undefined && config.validate !== undefined) result.validate = config.validate;
-        return result;
+        if (value.populate === undefined && config.populate !== undefined) value.populate = config.populate;
+        if (value.serialize === undefined && config.serialize !== undefined) value.serialize = config.serialize;
+        if (value.validate === undefined && config.validate !== undefined) value.validate = config.validate;
+        return value;
     } else {
         return new EnforcerValue(value, config);
     }
