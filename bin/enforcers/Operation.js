@@ -204,7 +204,7 @@ module.exports = {
                         unknownParameters.join(', ');
                     if (potentialCausesForUnknownParameters.length) {
                         const subChild = child.nest(message).nest('Possible causes');
-                        potentialCausesForUnknownParameters.forEach(err => subChild(err));
+                        potentialCausesForUnknownParameters.forEach(err => subChild.push(err));
                     } else {
                         child.message(message);
                     }
