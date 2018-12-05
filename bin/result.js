@@ -28,6 +28,8 @@ module.exports = EnforcerResult;
  * @constructor
  */
 function EnforcerResult(value, exception, warn) {
+    if (!(this instanceof EnforcerResult)) return new EnforcerResult(value, exception, warn);
+
     if (!exception || !exception.hasException) exception = undefined;
     if (!warn || !warn.hasException) warn = undefined;
     if (exception) value = undefined;
@@ -36,7 +38,7 @@ function EnforcerResult(value, exception, warn) {
     this.value = value;
     this.warning = warn;
 
-    store.set(this, [ value, exception, warn ]);
+    this.__iterableValues = [ value, exception, warn ];
 }
 
 EnforcerResult.prototype[Symbol.iterator] = function() {
@@ -44,7 +46,7 @@ EnforcerResult.prototype[Symbol.iterator] = function() {
 };
 
 EnforcerResult.prototype.next = function() {
-    const data = store.get(this);
+    const data = this.__iterableValues;
     if (data.length === 0) {
         return { done: true }
     } else {
