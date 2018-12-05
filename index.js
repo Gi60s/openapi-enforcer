@@ -21,6 +21,7 @@ module.exports = Enforcer;
 const dataTypeFormats       = require('./bin/data-type-formats');
 const Exception             = require('./bin/exception');
 const RefParser             = require('json-schema-ref-parser');
+const Result                = require('./bin/result');
 const Super                 = require('./bin/super');
 const util                  = require('./bin/util');
 
@@ -75,6 +76,10 @@ Enforcer.dereference = function (definition) {
 };
 
 Enforcer.Enforcer = Enforcer;
+
+Enforcer.Exception = Exception;
+
+Enforcer.Result = Result;
 
 const v2_0 = Enforcer.v2_0 = {};
 Object.defineProperty(v2_0, 'version', { value: '2.0' });
