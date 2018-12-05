@@ -16,16 +16,16 @@
  **/
 'use strict';
 
-module.exports = OpenAPIException;
+module.exports = EnforcerException;
 
 /**
- * Create an OpenAPIException instance
+ * Create an EnforcerException instance
  * @param {string} [header]
- * @returns {OpenAPIException}
+ * @returns {EnforcerException}
  * @constructor
  */
-function OpenAPIException (header) {
-    if (!(this instanceof OpenAPIException)) return new OpenAPIException(header);
+function EnforcerException (header) {
+    if (!(this instanceof EnforcerException)) return new EnforcerException(header);
     const callbacks = {};
 
     this.emit = function (type, payload) {
@@ -46,24 +46,24 @@ function OpenAPIException (header) {
     };
     this.inspect = function () {
         if (this.hasException) {
-            return '[ OpenAPIException: ' + toString(this, null, '  ') + ' ]';
+            return '[ EnforcerException: ' + toString(this, null, '  ') + ' ]';
         } else {
-            return '[ OpenAPIException ]';
+            return '[ EnforcerException ]';
         }
     };
 }
 
-OpenAPIException.prototype.at = function (key) {
+EnforcerException.prototype.at = function (key) {
     const at = this.children.at;
     if (!at[key]) {
-        at[key] = new OpenAPIException('');
+        at[key] = new EnforcerException('');
         at[key].on('cache-clear', () => this.clearCache());
         this.clearCache();
     }
     return at[key];
 };
 
-OpenAPIException.prototype.clearCache = function () {
+EnforcerException.prototype.clearCache = function () {
     const children = this.children;
     const at = children.at;
     const emit = arguments.length ? arguments[0] : true;
@@ -76,14 +76,14 @@ OpenAPIException.prototype.clearCache = function () {
     return this;
 };
 
-OpenAPIException.prototype.nest = function (header) {
-    const exception = new OpenAPIException(header);
+EnforcerException.prototype.nest = function (header) {
+    const exception = new EnforcerException(header);
     exception.on('cache-clear', () => this.clearCache());
     this.children.nest.push(exception);
     return exception;
 };
 
-OpenAPIException.prototype.merge = function (exception) {
+EnforcerException.prototype.merge = function (exception) {
     const thisChildren = this.children;
     const thatChildren = exception.children;
     const at = thisChildren.at;
@@ -107,33 +107,35 @@ OpenAPIException.prototype.merge = function (exception) {
     });
 
     if (addedMessage) this.clearCache();
+
+    return this;
 };
 
-OpenAPIException.prototype.message = function (message) {
+EnforcerException.prototype.message = function (message) {
     this.children.message.push(message);
     this.clearCache();
     return this;
 };
 
-OpenAPIException.prototype.push = function (value) {
+EnforcerException.prototype.push = function (value) {
     const type = typeof value;
     if (type === 'string' && value.length) {
         this.children.message.push(value);
         this.clearCache();
-    } else if (type === 'object' && value instanceof OpenAPIException) {
+    } else if (type === 'object' && value instanceof EnforcerException) {
         this.children.nest.push(value);
         this.clearCache();
     } else {
-        throw Error('Can only push string or OpenAPIException instance');
+        throw Error('Can only push string or EnforcerException instance');
     }
     return this;
 };
 
-OpenAPIException.prototype.toString = function () {
+EnforcerException.prototype.toString = function () {
     return toString(this, null, '');
 };
 
-Object.defineProperties(OpenAPIException.prototype, {
+Object.defineProperties(EnforcerException.prototype, {
     count: {
         get: function () {
             if (!this.cache) this.cache = {};
