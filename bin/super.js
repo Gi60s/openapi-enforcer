@@ -154,13 +154,13 @@ function createConstructor(version, name, enforcer) {
             const plugins = data.plugins;
             callbacks.forEach(callback => plugins.push(function () {
                 callback.call(result, {
-                    enforcers: parent.context,
+                    enforcers: version,
                     exception: data.exception,
                     key: data.key,
                     major: data.major,
                     minor: data.minor,
                     parent: (data.parent && data.parent.result) || null,
-                    path: data.patch,
+                    patch: data.patch,
                     root: data.root.result,
                     warn: data.warn
                 });
