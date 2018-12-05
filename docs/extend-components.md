@@ -1,8 +1,8 @@
-# Extend Functionality
+# Extend Components
 
 The OpenAPI Enforcer is built from components and each component can be extended to have additional custom functionality or additional custom validation.
 
-## Add Custom Validation
+## Add Custom Code to the Constructor
 
 The `extend` function that exists for each component is a hook into the component's constructor. You can use it to completely rewrite how the the component works, to add functionality, or to add definition validation.
 
