@@ -19,7 +19,7 @@ const assert        = require('../bin/assert');
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
 const util          = require('../bin/util');
-const Value         = require('../bin/value');
+const Value         = require('../bin/schema/value');
 
 describe('enforcer/schema', () => {
     const schemas = {
