@@ -320,7 +320,7 @@ function randomOneOf (choices) {
 }
 
 function randomText ({ minLength = 1, maxLength = 250 } = {}) {
-    const length = randomNumber({ min: minLength, max: maxLength });
+    const length = randomNumber({ min: minLength, max: maxLength }) + 1;
     let result = '';
     let punctuationIndex = 1;
     let uc = true;
@@ -342,7 +342,7 @@ function randomText ({ minLength = 1, maxLength = 250 } = {}) {
         result += ' ';
     }
     result = result.trim();
-    result = result.replace(/[,.:;!?]$/, ''); // if ends in punctation then remove it
+    result = result.replace(/[,.:;!?]$/, ''); // if ends in punctuation then remove it
     if (maxLength > 5) {
         if (result.length >= maxLength) result = result.substr(0, maxLength - 1);
         result += '.';
