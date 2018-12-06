@@ -19,7 +19,7 @@ const Base          = require('../validator-parameter-base');
 const EnforcerRef   = require('../enforcer-ref');
 const Exception     = require('../exception');
 const Result        = require('../result');
-const Value         = require('../value');
+const Value         = require('../schema/value');
 
 const rxFalse = /^false/i;
 const rxTrue = /^true$/i;

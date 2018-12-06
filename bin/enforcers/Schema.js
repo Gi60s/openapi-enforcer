@@ -24,6 +24,7 @@ const runRandom         = require('../schema/random');
 const runSerialize      = require('../schema/serialize');
 const runValidate       = require('../schema/validate');
 const util              = require('../util');
+const Value             = require('../schema/value');
 
 const rxHttp = /^https?:\/\//;
 const populateInjectors = {
@@ -38,7 +39,7 @@ const prototype = {
      * Take a serialized (ready for HTTP transmission) value and deserialize it.
      * Converts strings of binary, byte, date, and date-time to JavaScript equivalents.
      * @param {*} value
-     * @returns {{ error: Exception|null, value: * }}
+     * @returns {EnforcerResult<*>}
      */
     deserialize: function(value) {
         const exception = Exception('Unable to deserialize value');
@@ -59,6 +60,9 @@ const prototype = {
         let key;
         let name;
         let schema;
+
+        if (!discriminator) return undefined;
+
         if (major === 2) {
             key = discriminator;
             name = discriminator && value && value.hasOwnProperty(discriminator) ? value[discriminator] : undefined;
@@ -92,7 +96,7 @@ const prototype = {
      * @param {boolean} [options.templateDefaults=true]
      * @param {boolean} [options.templates=true]
      * @param {boolean} [options.variables=true]
-     * @returns {{ error: Exception|null, value: * }}
+     * @returns {EnforcerResult<*>}
      */
     populate: function(params, value, options = {}) {
         if (params === undefined || params === null) params = {};
@@ -132,14 +136,15 @@ const prototype = {
      * Produce a random value for the schema.
      * @param {*} [value] An initial value to add random values to.
      * @param {object} [options]
-     * @param {object} [options.additionalPropertiesPossibility=0]
-     * @param {object} [options.arrayVariation=4]
-     * @param {object} [options.copy=false]
-     * @param {object} [options.defaultPossibility=.25]
-     * @param {object} [options.definedPropertyPossibility=.80]
-     * @param {object} [options.maxDepth=10]
-     * @param {object} [options.numberVariation=1000]
-     * @returns {{ error: Exception|null, value: * }}
+     * @param {number} [options.additionalPropertiesPossibility=0]
+     * @param {number} [options.arrayVariation=4]
+     * @param {boolean} [options.copy=false]
+     * @param {number} [options.defaultPossibility=.25]
+     * @param {number} [options.definedPropertyPossibility=.80]
+     * @param {number} [options.maxDepth=10]
+     * @param {number} [options.numberVariation=1000]
+     * @param {number} [options.uniqueItemRetry=5]
+     * @returns {EnforcerResult<*>}
      */
     random: function (value, options = {}) {
         if (!options || !util.isPlainObject(options)) throw Error('Invalid options specified. Must be a plain object');
@@ -167,7 +172,7 @@ const prototype = {
      * Take a deserialized (not ready for HTTP transmission) value and serialize it.
      * Converts Buffer and Date objects into string equivalent.
      * @param value
-     * @returns {*}
+     * @returns {EnforcerResult<*>}
      */
     serialize: function (value) {
         const exception = Exception('Unable to serialize value');
@@ -178,7 +183,7 @@ const prototype = {
     /**
      * Check to see if the value is valid for this schema.
      * @param {*} value
-     * @returns {Exception|undefined}
+     * @returns {EnforcerException|undefined}
      */
     validate: function(value) {
         const exception = Exception('Invalid value');
@@ -254,6 +259,12 @@ module.exports = {
 
                 // store the definition
                 dataTypes[type][format] = Object.assign({}, definition, { type, format });
+            },
+
+            extractValue: Value.extract,
+
+            value: function (value, config) {
+
             }
         }
     },
