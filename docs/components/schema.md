@@ -4,23 +4,23 @@
 
 - Instance Methods
 
-    - [Schema.prototype.deserialize()](#enforcerexceptionprototype)
+    - [Schema.prototype.deserialize()](#schemaprototypedeserialize)
 
-    - [Schema.prototype.discriminate()](#enforcerexceptionprototypediscriminate)
+    - [Schema.prototype.discriminate()](#schemaprototypediscriminate)
 
-    - [Schema.prototype.populate()](#enforcerexceptionprototypepopulate)
+    - [Schema.prototype.populate()](#schemaprototypepopulate)
 
-    - [Schema.prototype.random()](#enforcerexceptionprototyperandom)
+    - [Schema.prototype.random()](#schemaprototyperandom)
 
-    - [Schema.prototype.serialize()](#enforcerexceptionprototypeserialize)
+    - [Schema.prototype.serialize()](#schemaprototypeserialize)
 
-    - [Schema.prototype.validate()](#enforcerexceptionprototypevalidate)
+    - [Schema.prototype.validate()](#schemaprototypevalidate)
 
 - Static Methods
 
-    - [Schema.defineDataFormat()](schemadefinedataformat)
+    - [Schema.defineDataFormat()](#schemadefinedataformat)
 
-    - [Schema.Value](schemavalue)
+    - [Schema.Value](#schemavalue)
 
 ### Schema.prototype.deserialize
 
