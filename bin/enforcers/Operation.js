@@ -19,6 +19,7 @@ const EnforcerRef   = require('../enforcer-ref');
 const Exception     = require('../exception');
 const Result        = require('../result');
 const util          = require('../util');
+const Value         = require('../schema/value');
 
 const rxInteger = /^\d+$/;
 const rxNumber = /^\d+(?:\.\d+)?$/;
@@ -194,7 +195,7 @@ module.exports = {
                         }
                     });
 
-                    result[reqKey] = util.extractEnforcerValues(output);
+                    result[reqKey] = Value.extract(output);
                 }
 
                 // add exception for any unknown query parameters
@@ -225,7 +226,7 @@ module.exports = {
                     const parameter = getBodyParameter(parameters);
                     value = primitiveBodyDeserialization(value, parameter.schema);
                     deserializeAndValidate(exception.nest('In body'), parameter.schema, { value }, value => {
-                        result.body = util.extractEnforcerValues(value);
+                        result.body = Value.extract(value);
                     });
 
                 // v3 requestBody
@@ -248,7 +249,7 @@ module.exports = {
                             if (media.schema) {
                                 value = primitiveBodyDeserialization(value, media.schema);
                                 deserializeAndValidate(child.nest('For Content-Type ' + mediaType), media.schema, { value }, value => {
-                                    result.body = util.extractEnforcerValues(value);
+                                    result.body = Value.extract(value);
                                     passed = true;
                                 });
                             }
