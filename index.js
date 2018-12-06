@@ -140,9 +140,6 @@ Object.assign(v3_0, {
     Xml: Super(v3_0, 'Xml')
 });
 
-Enforcer.Value = require('./bin/value');
-
-
 Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
 Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
 Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
