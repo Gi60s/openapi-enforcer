@@ -71,8 +71,7 @@ module.exports = {
          * @param {string} [request.path='/']
          * @param {object} [options]
          * @param {boolean} [options.allowOtherQueryParameters=false] Allow query parameter data that is not specified in the OAS document
-         * @param {boolean} [options.bodyDeserializer] A function to call to deserialize the body into it's expected type.
-         * @returns {EnforcerResult<{ body:*, header:object, method:string, path:object, query:object }>}
+         * @returns {EnforcerResult<{ body:*, cookie:object, header:object, operation: Operation, path:object, query:object, response:function }>}
          */
         request: function (request, options) {
             // validate input parameters
@@ -106,13 +105,13 @@ module.exports = {
             const result = operation.request(req, options);
             if (result.value) {
                 result.value.operation = operation;
-                result.value.response = code => this.response(operation, code);
+                result.value.response = response => operation.response(response)
             }
             return result;
         },
 
-        response: function (operation, code) {
-
+        response: function (operation, response) {
+            return operation.response(response);
         }
     },
 
