@@ -16,7 +16,7 @@
  **/
 'use strict';
 const util      = require('../util');
-const Value     = require('../value');
+const Value     = require('./value');
 
 module.exports = runDeserialize;
 

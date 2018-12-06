@@ -15,8 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
+const { isPlainObject } = require('../util');
 
-module.exports = EnforcerValue;
+module.exports = SchemaValue;
 
 const defaultPopulate = true;
 const defaultSerialize = true;
@@ -30,13 +31,13 @@ const defaultValidate = true;
  * @param {boolean} [config.populate] Whether the value should be populated.
  * @param {boolean} [config.serialize] Whether the value should be serialized or deserialized.
  * @param {boolean} [config.validate] Whether the value should be validated.
- * @returns {EnforcerValue}
+ * @returns {SchemaValue}
  * @constructor
  */
-function EnforcerValue(value, config) {
-    if (!(this instanceof EnforcerValue)) return new EnforcerValue(value, config);
+function SchemaValue(value, config = {}) {
+    if (!(this instanceof SchemaValue)) return new SchemaValue(value, config);
 
-    if (typeof value === 'object' && value instanceof EnforcerValue) {
+    if (typeof value === 'object' && value instanceof SchemaValue) {
         config = {
             populate: config.populate === undefined ? value.populate : config.populate,
             serialize: config.serialize === undefined ? value.serialize : config.serialize,
@@ -58,7 +59,7 @@ function EnforcerValue(value, config) {
  * Get the attributes (with defaults applied) for an enforcer value.
  * @returns {{populate: boolean, serialize: boolean, validate: boolean, value: *}}
  */
-EnforcerValue.prototype.attributes = function () {
+SchemaValue.prototype.attributes = function () {
     return {
         populate: this.populate === undefined ? defaultPopulate : this.populate,
         serialize: this.serialize === undefined ? defaultSerialize : this.serialize,
@@ -68,32 +69,34 @@ EnforcerValue.prototype.attributes = function () {
 };
 
 /**
- * Create a new EnforcerValue instance that keeps it's own configuration over a supplied secondary configuration.
+ * Create a new SchemaValue instance that keeps it's own configuration over a supplied secondary configuration.
  * @param {*} value
  * @param {object} [config]
  * @param {boolean} [config.populate] Whether the value should use strong type coercion.
  * @param {boolean} [config.serialize] Whether the value should be serialized or deserialized.
  * @param {boolean} [config.validate] Whether the value should be validated.
- * @returns {EnforcerValue}
+ * @returns {SchemaValue}
  */
-EnforcerValue.inherit = function (value, config) {
-    if (typeof value === 'object' && value instanceof EnforcerValue) {
+SchemaValue.inherit = function (value, config) {
+    if (typeof value === 'object' && value instanceof SchemaValue) {
         if (value.populate === undefined && config.populate !== undefined) value.populate = config.populate;
         if (value.serialize === undefined && config.serialize !== undefined) value.serialize = config.serialize;
         if (value.validate === undefined && config.validate !== undefined) value.validate = config.validate;
         return value;
     } else {
-        return new EnforcerValue(value, config);
+        return new SchemaValue(value, config);
     }
 };
 
+SchemaValue.extract = extractSchemaValues;
+
 /**
- * Get EnforcerValue attributes whether the value is actually an EnforcerValue instance or a plain value.
+ * Get SchemaValue attributes whether the value is actually an SchemaValue instance or a plain value.
  * @param {*} value
  * @returns {{populate: boolean, serialize: boolean, validate: boolean, value: *}}
  */
-EnforcerValue.getAttributes = function (value) {
-    return typeof value === 'object' && value instanceof EnforcerValue
+SchemaValue.getAttributes = function (value) {
+    return typeof value === 'object' && value instanceof SchemaValue
         ? value.attributes()
         : {
             populate: defaultPopulate,
@@ -102,3 +105,19 @@ EnforcerValue.getAttributes = function (value) {
             value
         };
 };
+
+function extractSchemaValues(source) {
+    if (Array.isArray(source)) {
+        return source.map(v => extractSchemaValues(v));
+    } else if (isPlainObject(source)) {
+        const result = {};
+        Object.keys(source).forEach(key => {
+            result[key] = extractSchemaValues(source[key]);
+        });
+        return result;
+    } else if (typeof source === 'object' && source instanceof SchemaValue) {
+        return source.value;
+    } else {
+        return source;
+    }
+}
