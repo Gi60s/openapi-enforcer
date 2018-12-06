@@ -16,7 +16,6 @@
  **/
 'use strict';
 const base          = require('../validator-parameter-base');
-const EnforcerRef   = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
