@@ -17,7 +17,6 @@
 'use strict';
 const queryString   = require('querystring');
 const rx            = require('./rx');
-const Value         = require('./value');
 
 const rxMediaType = /^([\s\S]+?)\/(?:([\s\S]+?)\+)?([\s\S]+?)$/;
 const punctuation = ',,,,,,,,,,.................................:;!?';
@@ -32,7 +31,6 @@ module.exports = {
         return copy(map, value);
     },
     edgeSlashes,
-    extractEnforcerValues,
     findMediaMatch,
     getDateFromValidDateString,
     getDefinitionType,
@@ -99,22 +97,6 @@ function edgeSlashes (value, start, end) {
     if (start) value = '/' + value;
     if (end) value += '/';
     return value;
-}
-
-function extractEnforcerValues(source) {
-    if (Array.isArray(source)) {
-        return source.map(v => extractEnforcerValues(v));
-    } else if (isPlainObject(source)) {
-        const result = {};
-        Object.keys(source).forEach(key => {
-            result[key] = extractEnforcerValues(source[key]);
-        });
-        return result;
-    } else if (typeof source === 'object' && source instanceof Value) {
-        return source.value;
-    } else {
-        return source;
-    }
 }
 
 /**
