@@ -68,13 +68,13 @@ console.log(exception)
 
 ## API
 
-- Properties
+- Instance Properties
 
-  - EnforcerException.count
+  - [EnforcerException.count](#enforcerexceptioncount)
 
-  - EnforcerException.hasException
+  - [EnforcerException.hasException](#enforcerexceptionhasexception)
 
-- Methods
+- Instance Methods
 
   - [EnforcerException.prototype.at()](#enforcerexceptionprototypeat)
 
