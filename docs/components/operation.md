@@ -33,3 +33,73 @@ Parse and validate an incomming request.
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the deserialized and validatated request object.
 
 **This probably isn't the method you're looking for. Check out [OpenAPI.prototype.request()](./openapi.md#openapiprototyperequest)**
+
+### Operation.prototype.response
+
+Validate and serialize response data.
+
+**Parameters:**
+
+- *code* - The response code. (This can also be `default` if a `default` is provided.)
+
+- *body* - The response body. If you do not want to provide a body use `undefined` or skip the parameter.
+
+- *headers* - The response headers as an object of key value pairs. Defaults to `{}`.
+
+**Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to an object with properties `body` and `header`. If the `body` passed in was an object then the `body` result will also be an object, not a JSON string.
+
+**Example with Body and Headers**
+
+```js
+const Operation = require('openapi-enforcer').v3_0.Operation;
+const operation = new Operation({
+    responses: {
+        200: {
+            description: 'Success',
+            content: {
+                'text/plain': {
+                    schema: {
+                        type: 'string',
+                        maxLength: 10
+                    }
+                }
+            },
+            headers: {
+                expires: {
+                    description: 'When the content expires',
+                    schema: {
+                        type: 'string',
+                        format: 'date'
+                    }
+                }
+            }
+        }
+    }
+})
+
+const [ response ] = operation.response(200, 'hello', {
+    expires: new Date('2000-01-01T00:00:00.000Z')
+})
+
+console.log(response)
+// {
+//     body: 'hello',
+//     headers: {
+//         expires: '2000-01-01'
+//     }
+// }
+```
+
+**Examples without Body**
+
+```js
+const [ response ] = operation.response(200, undefined, {
+    expires: new Date('2000-01-01T00:00:00.000Z')
+})
+```
+
+```js
+const [ response ] = operation.response(200, , {
+    expires: new Date('2000-01-01T00:00:00.000Z')
+})
+```
