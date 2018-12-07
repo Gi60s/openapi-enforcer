@@ -46,38 +46,6 @@ module.exports = {
                 });
             });
         });
-
-        // let parametersProcessed = false;
-
-        // Object.defineProperties(this, {
-        //     parameters: {
-        //         get: function() {
-        //             let o;
-        //             if (!parametersProcessed) o = this.parametersMap;
-        //             return parameters;
-        //         }
-        //     },
-        //     parametersMap: {
-        //         get: function() {
-        //             if (!parametersProcessed) {
-        //
-        //                 // build the parameters map
-        //                 if (parent) buildParametersMap(parametersMap, parent.result.parameters);
-        //                 buildParametersMap(parametersMap, result.parameters);
-        //
-        //                 // overwrite the parameters array
-        //                 Object.keys(parametersMap).forEach(at => {
-        //                     Object.keys(parametersMap[at]).forEach(name => {
-        //                         parameters.push(parametersMap[at][name]);
-        //                     })
-        //                 });
-        //
-        //                 parametersProcessed = true;
-        //             }
-        //             return parametersMap;
-        //         }
-        //     }
-        // });
     },
 
     prototype: {
@@ -85,12 +53,11 @@ module.exports = {
          * Take the input parameters and deserialize and validate them.
          * @param {object} request
          * @param {string|object} [request.body] The request body
-         * @param {Object<string,string>} [request.header={}] The request headers
+         * @param {Object<string,string>} [request.headers={}] The request headers
          * @param {object} [request.path={}] The path and query string
          * @param {string} [request.query=''] The request query string.
          * @param {object} [options]
          * @param {boolean} [options.allowOtherQueryParameters=false] Allow query parameter data that is not specified in the OAS document
-         * @param {boolean} [options.bodyDeserializer] A function to call to deserialize the body into it's expected type.
          * @param {Object<string,string>} [options.pathParametersValueMap] A map of the already parsed out path parameters.
          */
         request: function (request, options) {
@@ -98,10 +65,10 @@ module.exports = {
             // validate input parameters
             if (!request || typeof request !== 'object') throw Error('Invalid request. Expected a non-null object. Received: ' + request);
             request = Object.assign({}, request);
-            if (!request.hasOwnProperty('header')) request.header = {};
+            if (!request.hasOwnProperty('headers')) request.headers = {};
             if (!request.hasOwnProperty('path')) request.path = {};
             if (!request.hasOwnProperty('query')) request.query = '';
-            if (!util.isObjectStringMap(request.header)) throw Error('Invalid request headers. Expected an object with string keys and string values');
+            if (!util.isObjectStringMap(request.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
             if (!util.isObjectStringMap(request.path)) throw Error('Invalid request path. Expected an object with string keys and string values');
             if (typeof request.query !== 'string') throw Error('Invalid request query. Expected a string');
 
@@ -112,7 +79,7 @@ module.exports = {
 
             // build request objects
             const req = {
-                header: util.lowerCaseObjectProperties(request.header),
+                header: util.lowerCaseObjectProperties(request.headers),
                 path: request.path,
                 query: util.parseQueryString(request.query)
             };
@@ -128,7 +95,7 @@ module.exports = {
             const parameters = this.parametersMap;
             const result = {
                 cookie: {},
-                header: {},
+                headers: {},
                 path: {},
                 query: {}
             };
@@ -195,7 +162,7 @@ module.exports = {
                         }
                     });
 
-                    result[reqKey] = Value.extract(output);
+                    result[reqKey === 'header' ? 'headers' : reqKey] = Value.extract(output);
                 }
 
                 // add exception for any unknown query parameters
@@ -275,6 +242,59 @@ module.exports = {
             }
 
             return new Result(result, exception);
+        },
+
+        response: function (code, body, headers = {}) {
+            const exception = new Exception('Response invalid');
+            const warning = new Exception('Response has one or more warnings');
+            const hasBody = body !== undefined;
+            const response = this.responses[code];
+            const result = { headers: {} };
+            const major = this.enforcerData.major;
+
+            if (response) {
+                if (major === 2) {
+
+                    // validate and serialize body
+                    if (hasBody) {
+                        const schema = response.schema;
+                        let err = schema.validate(body);
+                        if (!err) [ body, err ] = schema.serialize(body);
+                        if (err) {
+                            exception.at('body').push(err);
+                        } else {
+                            result.body = body;
+                        }
+                    }
+
+                    // validate and serialize headers
+                    Object.keys(headers).forEach(key => {
+                        const header = response.headers[key];
+                        let value = headers[key];
+                        if (header) {
+                            const schema = header.schema;
+
+                        } else {
+                            if (typeof value === 'string') {
+                                warning.at('headers').at(key).message('Value has no schema and is not a string');
+                            }
+                            result.headers[key] = value
+                        }
+
+                        result.headers[key] = null; // TODO
+                    })
+
+                } else if (major === 3) {
+                    // TODO
+                }
+
+                // TODO: case where body is included but no schema
+
+            } else {
+                exception.message('Invalid response code: ' + code);
+            }
+
+            return new Result(result, exception, warning);
         }
     },
 

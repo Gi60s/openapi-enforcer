@@ -66,18 +66,18 @@ module.exports = {
          * Deserialize and validate a request.
          * @param {object} [request]
          * @param {object|string} [request.body]
-         * @param {Object<string,string>} [request.header={}] The request headers
+         * @param {Object<string,string>} [request.headers={}] The request headers
          * @param {string} [request.method='get']
          * @param {string} [request.path='/']
          * @param {object} [options]
          * @param {boolean} [options.allowOtherQueryParameters=false] Allow query parameter data that is not specified in the OAS document
-         * @returns {EnforcerResult<{ body:*, cookie:object, header:object, operation: Operation, path:object, query:object, response:function }>}
+         * @returns {EnforcerResult<{ body:*, cookie:object, headers:object, operation: Operation, path:object, query:object, response:function }>}
          */
         request: function (request, options) {
             // validate input parameters
             if (!request || typeof request !== 'object') throw Error('Invalid request. Expected a non-null object. Received: ' + request);
             if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || typeof request.body === 'object')) throw Error('Invalid body provided');
-            if (request.hasOwnProperty('header') && !util.isObjectStringMap(request.header)) throw Error('Invalid request header. Expected an object with string keys and string values');
+            if (request.hasOwnProperty('headers') && !util.isObjectStringMap(request.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
             if (request.hasOwnProperty('method') && typeof request.method !== 'string') throw Error('Invalid request method. Expected a string');
             if (!request.hasOwnProperty('path')) throw Error('Missing required request path');
             if (typeof request.path !== 'string') throw Error('Invalid request path. Expected a string');
@@ -96,7 +96,7 @@ module.exports = {
             // set up request input
             const { operation, params } = pathObject;
             const req = {
-                header: request.header || {},
+                headers: request.headers || {},
                 path: params,
                 query: query || ''
             };
