@@ -176,7 +176,7 @@ describe('enforcer/operation', () => {
                     it('can deserialize exploded primitive', () => {
                         def.parameters[0].schema = numSchema;
                         const [ operation ] = Enforcer.v3_0.Operation(def);
-                        const [ req ] = operation.request({ header: { cookie: 'user=12345' } });
+                        const [ req ] = operation.request({ headers: { cookie: 'user=12345' } });
                         expect(req.cookie.user).to.equal(12345);
                     });
 
@@ -184,7 +184,7 @@ describe('enforcer/operation', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = numSchema;
                         const [ operation ] = Enforcer.v3_0.Operation(def);
-                        const [ req ] = operation.request({ header: { cookie: 'user=12345' } });
+                        const [ req ] = operation.request({ headers: { cookie: 'user=12345' } });
                         expect(req.cookie.user).to.equal(12345);
                     });
 
@@ -192,7 +192,7 @@ describe('enforcer/operation', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = arrSchema;
                         const [ operation ] = Enforcer.v3_0.Operation(def);
-                        const [ req ] = operation.request({ header: { cookie: 'user=1,2,3' } });
+                        const [ req ] = operation.request({ headers: { cookie: 'user=1,2,3' } });
                         expect(req.cookie.user).to.deep.equal([1, 2, 3]);
                     });
 
@@ -200,7 +200,7 @@ describe('enforcer/operation', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = objSchema;
                         const [ operation ] = Enforcer.v3_0.Operation(def);
-                        const [ req ] = operation.request({ header: { cookie: 'user=R,50,G,100,B,150' } });
+                        const [ req ] = operation.request({ headers: { cookie: 'user=R,50,G,100,B,150' } });
                         expect(req.cookie.user).to.deep.equal({ R: 50, G: 100, B: 150 });
                     });
 
@@ -257,8 +257,8 @@ describe('enforcer/operation', () => {
                     responses: { 200: { description: '' } }
                 };
                 const [ operation ] = Enforcer.v2_0.Operation(def);
-                const [ req ] = operation.request({ header: { 'x-value': '1' } });
-                expect(req.header).not.to.haveOwnProperty('x-value');
+                const [ req ] = operation.request({ headers: { 'x-value': '1' } });
+                expect(req.headers).not.to.haveOwnProperty('x-value');
             });
 
             describe('v2', () => {
@@ -269,8 +269,8 @@ describe('enforcer/operation', () => {
                         responses: { 200: { description: '' } }
                     };
                     const [ operation ] = Enforcer.v2_0.Operation(def);
-                    const [ req ] = operation.request({ header: { 'x-date': '2000-01-01' } });
-                    expect(+req.header['x-date']).to.equal(+new Date('2000-01-01'));
+                    const [ req ] = operation.request({ headers: { 'x-date': '2000-01-01' } });
+                    expect(+req.headers['x-date']).to.equal(+new Date('2000-01-01'));
                 });
 
             });
@@ -290,7 +290,7 @@ describe('enforcer/operation', () => {
                     it('allows other headers', () => {
                         def.parameters[0].schema = numSchema;
                         const [ operation ] = Enforcer.v3_0.Operation(def);
-                        const [ , err ] = operation.request({ header: { 'x-value': '1', 'x-str': 'str' } });
+                        const [ , err ] = operation.request({ headers: { 'x-value': '1', 'x-str': 'str' } });
                         expect(err).to.be.undefined;
                     });
 
@@ -298,48 +298,48 @@ describe('enforcer/operation', () => {
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = numSchema;
                         const [ operation ] = Enforcer.v3_0.Operation(def);
-                        const [ req ] = operation.request({ header: { 'x-value': '1' } });
-                        expect(req.header['x-value']).to.equal(1);
+                        const [ req ] = operation.request({ headers: { 'x-value': '1' } });
+                        expect(req.headers['x-value']).to.equal(1);
                     });
 
                     it('can deserialize primitive', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = numSchema;
                         const [ operation ] = Enforcer.v3_0.Operation(def);
-                        const [ req ] = operation.request({ header: { 'x-value': '1' } });
-                        expect(req.header['x-value']).to.equal(1);
+                        const [ req ] = operation.request({ headers: { 'x-value': '1' } });
+                        expect(req.headers['x-value']).to.equal(1);
                     });
 
                     it('can deserialize exploded array', () => {
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = arrSchema;
                         const [ operation ] = Enforcer.v3_0.Operation(def);
-                        const [ req ] = operation.request({ header: { 'x-value': '1,2,3' } });
-                        expect(req.header['x-value']).to.deep.equal([1, 2, 3]);
+                        const [ req ] = operation.request({ headers: { 'x-value': '1,2,3' } });
+                        expect(req.headers['x-value']).to.deep.equal([1, 2, 3]);
                     });
 
                     it('can deserialize array', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = arrSchema;
                         const [ operation ] = Enforcer.v3_0.Operation(def);
-                        const [ req ] = operation.request({ header: { 'x-value': '1,2,3' } });
-                        expect(req.header['x-value']).to.deep.equal([1, 2, 3]);
+                        const [ req ] = operation.request({ headers: { 'x-value': '1,2,3' } });
+                        expect(req.headers['x-value']).to.deep.equal([1, 2, 3]);
                     });
 
                     it('can deserialize exploded object', () => {
                         def.parameters[0].explode = true;
                         def.parameters[0].schema = objSchema;
                         const [ operation ] = Enforcer.v3_0.Operation(def);
-                        const [ req ] = operation.request({ header: { 'x-value': 'R=50,G=100,B=200' } });
-                        expect(req.header['x-value']).to.deep.equal({ R: 50, G: 100, B: 200 });
+                        const [ req ] = operation.request({ headers: { 'x-value': 'R=50,G=100,B=200' } });
+                        expect(req.headers['x-value']).to.deep.equal({ R: 50, G: 100, B: 200 });
                     });
 
                     it('can deserialize object', () => {
                         def.parameters[0].explode = false;
                         def.parameters[0].schema = objSchema;
                         const [ operation ] = Enforcer.v3_0.Operation(def);
-                        const [ req ] = operation.request({ header: { 'x-value': 'R,50,G,100,B,200' } });
-                        expect(req.header['x-value']).to.deep.equal({ R: 50, G: 100, B: 200 });
+                        const [ req ] = operation.request({ headers: { 'x-value': 'R,50,G,100,B,200' } });
+                        expect(req.headers['x-value']).to.deep.equal({ R: 50, G: 100, B: 200 });
                     });
 
                 });
@@ -758,14 +758,14 @@ describe('enforcer/operation', () => {
             it('deserializes primitive string', () => {
                 appJson.schema = numSchema;
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ req ] = operation.request({ body: '1', header: { 'content-type': 'application/json' } });
+                const [ req ] = operation.request({ body: '1', headers: { 'content-type': 'application/json' } });
                 expect(req.body).to.equal(1);
             });
 
             it('does not deserialize array elements', () => {
                 appJson.schema = arrSchema;
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ , err ] = operation.request({ body: ['1', '2', '3'], header: { 'content-type': 'application/json' } });
+                const [ , err ] = operation.request({ body: ['1', '2', '3'], headers: { 'content-type': 'application/json' } });
                 expect(err).to.match(/at: 0\s+Expected a number/);
                 expect(err.count).to.equal(3);
             });
@@ -773,7 +773,7 @@ describe('enforcer/operation', () => {
             it('does not deserialize object elements', () => {
                 appJson.schema = objSchema;
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ , err ] = operation.request({ body: { R: '50', G: '100', B: '150' }, header: { 'content-type': 'application/json' } });
+                const [ , err ] = operation.request({ body: { R: '50', G: '100', B: '150' }, headers: { 'content-type': 'application/json' } });
                 expect(err).to.match(/at: R\s+Expected a number/);
                 expect(err.count).to.equal(3);
             });
@@ -787,25 +787,25 @@ describe('enforcer/operation', () => {
 
             it('matches correct media type', () => {
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ req ] = operation.request({ body: { json: 50 }, header: { 'content-type': 'application/json' } });
+                const [ req ] = operation.request({ body: { json: 50 }, headers: { 'content-type': 'application/json' } });
                 expect(req.body).to.deep.equal({ json: 50 });
             });
 
             it('matches correct media type with custom subtype', () => {
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ req ] = operation.request({ body: { star: 50 }, header: { 'content-type': 'application/custom' } });
+                const [ req ] = operation.request({ body: { star: 50 }, headers: { 'content-type': 'application/custom' } });
                 expect(req.body).to.deep.equal({ star: 50 });
             });
 
             it('limits validations if exact match media type found', () => {
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ , err ] = operation.request({ body: { star: 50 }, header: { 'content-type': 'application/json' } });
+                const [ , err ] = operation.request({ body: { star: 50 }, headers: { 'content-type': 'application/json' } });
                 expect(err).to.match(/at: star\s+Property not allowed/);
             });
 
             it('matches multiple media types but actual content fails for each media type', () => {
                 const [ operation ] = Enforcer.v3_0.Operation(def);
-                const [ , err ] = operation.request({ body: { number: 50 }, header: { 'content-type': 'application/custom' } });
+                const [ , err ] = operation.request({ body: { number: 50 }, headers: { 'content-type': 'application/custom' } });
                 expect(err).to.match(/For Content-Type application\/\*/);
                 expect(err).to.match(/For Content-Type \*\/\*/);
             });
@@ -1317,6 +1317,69 @@ describe('enforcer/operation', () => {
                     responses
                 });
                 expect(err).to.match(/Value must be a string/);
+            });
+
+        });
+
+    });
+
+    describe('response', () => {
+
+        describe.only('v2', () => {
+            let operation;
+
+            before(() => {
+                [ operation ] = new Enforcer.v2_0.Operation({
+                    responses: {
+                        200: {
+                            description: 'Success',
+                            headers: {
+                                expires: {
+                                    type: 'string',
+                                    format: 'date'
+                                }
+                            },
+                            schema: {
+                                type: 'string',
+                                format: 'date'
+                            }
+                        },
+                        default: {
+                            description: 'Success',
+                            schema: {
+                                type: 'string',
+                                format: 'date-time'
+                            }
+                        }
+                    }
+                })
+            });
+
+            it('can process via 200 response object', () => {
+                const date = new Date('2000-01-01T00:00:00.000Z');
+                const [ res ] = operation.response(200, date);
+                expect(res.body).to.equal('2000-01-01');
+            });
+
+            it('can process via default response object', () => {
+                const date = new Date('2000-01-01T00:00:00.000Z');
+                const [ res ] = operation.response('default', date);
+                expect(res.body).to.equal('2000-01-01T00:00:00.000Z');
+            });
+
+            it('can process headers', () => {
+                const date = new Date('2000-01-01T00:00:00.000Z');
+                const [ res ] = operation.response(200, date, { expires: date });
+                expect(res.body).to.equal('2000-01-01');
+                expect(res.headers.expires).to.equal('2000-01-01');
+            });
+
+        });
+
+        describe('v3', () => {
+
+            it('todo', () => {
+                throw Error('TODO')
             });
 
         });
