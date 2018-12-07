@@ -1201,8 +1201,8 @@ describe('index/request', () => {
                 })
                 .build();
             const enforcer = await Enforcer(def);
-            const [ req ] = enforcer.request({ path: '/', header: { VAlue: 'abc' } });
-            expect(req.header.value).to.equal('abc');
+            const [ req ] = enforcer.request({ path: '/', headers: { VAlue: 'abc' } });
+            expect(req.headers.value).to.equal('abc');
         });
 
         it('cannot have property allowEmptyValue', async () => {
@@ -1226,7 +1226,7 @@ describe('index/request', () => {
                 })
                 .build();
             const enforcer = await Enforcer(def);
-            const [ , err ] = enforcer.request({ path: '/', header: { value: '' } });
+            const [ , err ] = enforcer.request({ path: '/', headers: { value: '' } });
             expect(err).to.match(/Empty value not allowed/);
         });
 
@@ -1243,8 +1243,8 @@ describe('index/request', () => {
                     })
                     .build();
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', header: { value: '2000-01-01' } });
-                expect(req.header.value).to.deep.equal(new Date('2000-01-01'));
+                const [ req ] = enforcer.request({ path: '/', headers: { value: '2000-01-01' } });
+                expect(req.headers.value).to.deep.equal(new Date('2000-01-01'));
             });
 
             it('will deserialize array of numbers', async () => {
@@ -1257,8 +1257,8 @@ describe('index/request', () => {
                     })
                     .build();
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', header: { value: '1,2,3' } });
-                expect(req.header.value).to.deep.equal([1,2,3]);
+                const [ req ] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
+                expect(req.headers.value).to.deep.equal([1,2,3]);
             });
 
             it('will not allow multi collection format', async () => {
@@ -1289,8 +1289,8 @@ describe('index/request', () => {
                     .addPath('/', 'get')
                     .build();
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', header: { value: '1' } });
-                expect(req.header.value).to.equal(1);
+                const [ req ] = enforcer.request({ path: '/', headers: { value: '1' } });
+                expect(req.headers.value).to.equal(1);
             });
 
             it('primitive explode', async () => {
@@ -1303,8 +1303,8 @@ describe('index/request', () => {
                     })
                     .build();
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', header: { value: '1' } });
-                expect(req.header.value).to.equal(1);
+                const [ req ] = enforcer.request({ path: '/', headers: { value: '1' } });
+                expect(req.headers.value).to.equal(1);
             });
 
             it('array', async () => {
@@ -1317,8 +1317,8 @@ describe('index/request', () => {
                     })
                     .build();
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', header: { value: '1,2,3' } });
-                expect(req.header.value).to.deep.equal([1,2,3]);
+                const [ req ] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
+                expect(req.headers.value).to.deep.equal([1,2,3]);
             });
 
             it('array explode', async () => {
@@ -1331,8 +1331,8 @@ describe('index/request', () => {
                     })
                     .build();
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', header: { value: '1,2,3' } });
-                expect(req.header.value).to.deep.equal([1,2,3]);
+                const [ req ] = enforcer.request({ path: '/', headers: { value: '1,2,3' } });
+                expect(req.headers.value).to.deep.equal([1,2,3]);
             });
 
             it('object', async () => {
@@ -1351,8 +1351,8 @@ describe('index/request', () => {
                     })
                     .build();
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', header: { value: 'a,1,b,2' } });
-                expect(req.header.value).to.deep.equal({a:1,b:2});
+                const [ req ] = enforcer.request({ path: '/', headers: { value: 'a,1,b,2' } });
+                expect(req.headers.value).to.deep.equal({a:1,b:2});
             });
 
             it('object explode', async () => {
@@ -1372,8 +1372,8 @@ describe('index/request', () => {
                         })
                     .build();
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', header: { x: 'a=1,b=2' } });
-                expect(req.header.x).to.deep.equal({ a:1, b:2 });
+                const [ req ] = enforcer.request({ path: '/', headers: { x: 'a=1,b=2' } });
+                expect(req.headers.x).to.deep.equal({ a:1, b:2 });
             });
 
         });
@@ -1410,7 +1410,7 @@ describe('index/request', () => {
                     .addPath('/', 'get')
                     .build();
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', header: { cookie: 'value=1' } });
+                const [ req ] = enforcer.request({ path: '/', headers: { cookie: 'value=1' } });
                 expect(req.cookie.value).to.equal(1);
             });
 
@@ -1424,7 +1424,7 @@ describe('index/request', () => {
                     })
                     .build();
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', header: { cookie: 'value=1' } });
+                const [ req ] = enforcer.request({ path: '/', headers: { cookie: 'value=1' } });
                 expect(req.cookie.value).to.equal(1);
             });
 
@@ -1438,7 +1438,7 @@ describe('index/request', () => {
                     })
                     .build();
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', header: { cookie: 'value=1,2,3' } });
+                const [ req ] = enforcer.request({ path: '/', headers: { cookie: 'value=1,2,3' } });
                 expect(req.cookie.value).to.deep.equal([1,2,3]);
             });
 
@@ -1470,7 +1470,7 @@ describe('index/request', () => {
                     })
                     .build();
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', header: { cookie: 'value=a,1,b,2' } });
+                const [ req ] = enforcer.request({ path: '/', headers: { cookie: 'value=a,1,b,2' } });
                 expect(req.cookie.value).to.deep.equal({a:1,b:2});
             });
 
@@ -1615,7 +1615,7 @@ describe('index/request', () => {
 
         describe('v3', () => {
 
-            it('uses content-type header to determine media type', async () => {
+            it('uses content-type headers to determine media type', async () => {
                 const def = new DefinitionBuilder(3).addPath('/', 'post').build();
                 def.paths['/'].post.requestBody = {
                     content: {
@@ -1628,7 +1628,7 @@ describe('index/request', () => {
                     }
                 };
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', method: 'post', body: '1', header: { 'content-type': 'text/plain' } });
+                const [ req ] = enforcer.request({ path: '/', method: 'post', body: '1', headers: { 'content-type': 'text/plain' } });
                 expect(req.body).to.equal(1);
             });
 
@@ -1645,7 +1645,7 @@ describe('index/request', () => {
                     }
                 };
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', method: 'post', body: '1', header: { 'content-type': 'text/plain' } });
+                const [ req ] = enforcer.request({ path: '/', method: 'post', body: '1', headers: { 'content-type': 'text/plain' } });
                 expect(req.body).to.equal('1');
             });
 
@@ -1662,7 +1662,7 @@ describe('index/request', () => {
                     }
                 };
                 const enforcer = await Enforcer(def);
-                const [ req ] = enforcer.request({ path: '/', method: 'post', body: '1', header: { 'content-type': 'text/html' } });
+                const [ req ] = enforcer.request({ path: '/', method: 'post', body: '1', headers: { 'content-type': 'text/html' } });
                 expect(req.body).to.equal(1);
             });
 
