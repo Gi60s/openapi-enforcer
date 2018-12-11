@@ -252,43 +252,71 @@ module.exports = {
             const result = { headers: {} };
             const major = this.enforcerData.major;
 
-            if (response) {
-                if (major === 2) {
+            if (!util.isPlainObject(headers)) throw Error('Invalid headers input parameter. Must be a plain object');
 
-                    // validate and serialize body
-                    if (hasBody) {
+            if (response) {
+                if (hasBody) {
+                    if (major === 2) {
                         const schema = response.schema;
-                        let err = schema.validate(body);
-                        if (!err) [ body, err ] = schema.serialize(body);
-                        if (err) {
-                            exception.at('body').push(err);
-                        } else {
+                        if (!schema) {
                             result.body = body;
+                        } else if (schema.type === 'file') {
+                            result.body = body;
+                        } else {
+                            let err = schema.validate(body);
+                            if (!err) [body, err] = schema.serialize(body);
+                            if (err) {
+                                exception.at('body').merge(err);
+                            } else {
+                                result.body = body;
+                            }
+                        }
+
+                    } else if (major === 3) {
+                        const content = response.content;
+                        if (!content) {
+                            result.body = body;
+                        } else {
+                            throw Error('working here')
                         }
                     }
-
-                    // validate and serialize headers
-                    Object.keys(headers).forEach(key => {
-                        const header = response.headers[key];
-                        let value = headers[key];
-                        if (header) {
-                            const schema = header.schema;
-
-                        } else {
-                            if (typeof value === 'string') {
-                                warning.at('headers').at(key).message('Value has no schema and is not a string');
-                            }
-                            result.headers[key] = value
-                        }
-
-                        result.headers[key] = null; // TODO
-                    })
-
-                } else if (major === 3) {
-                    // TODO
                 }
 
-                // TODO: case where body is included but no schema
+                // validate and serialize headers
+                const headerKeys = Object.keys(headers);
+                if (response.headers) {
+                    Object.keys(response.headers).forEach(key => {
+                        const header = response.headers[key];
+                        const schema = header.schema;
+                        let value;
+
+                        if (headers.hasOwnProperty(key)) {
+                            value = headers[key];
+                        } else if (schema.hasOwnProperty('default')) {
+                            value = util.copy(schema.default);
+                        }
+
+                        if (value !== undefined) {
+                            util.arrayRemoveItem(headerKeys, key);
+                            let err = schema.validate(value);
+                            if (!err) [value, err] = schema.serialize(value);
+                            if (!err) [value, err] = header.stringify(value);
+                            if (err) {
+                                exception.at('headers').at(key).merge(err);
+                            } else {
+                                result.headers[key] = value;
+                            }
+                        } else if (header.required) {
+                            exception.at('headers').at(key).message('Missing required header: ' + key);
+                        }
+                    });
+                }
+                headerKeys.forEach(key => {
+                    const value = headers[key];
+                    if (typeof value !== 'string') {
+                        warning.at('headers').at(key).message('Value has no schema and is not a string');
+                    }
+                });
 
             } else {
                 exception.message('Invalid response code: ' + code);
