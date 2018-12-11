@@ -1325,61 +1325,300 @@ describe('enforcer/operation', () => {
 
     describe('response', () => {
 
-        describe.only('v2', () => {
-            let operation;
+        function getOperationWithResponseHeader(version, definition) {
+            const mode = version === 2 ? 'v2_0' : 'v3_0';
+            const [ operation, err ] = new Enforcer[mode].Operation({
+                responses: {
+                    200: {
+                        description: 'Success',
+                        headers: definition
+                    }
+                }
+            });
+            if (err) throw Error(err);
+            return operation;
+        }
 
-            before(() => {
-                [ operation ] = new Enforcer.v2_0.Operation({
-                    responses: {
-                        200: {
-                            description: 'Success',
-                            headers: {
-                                expires: {
+        describe('v2', () => {
+
+            describe('body', () => {
+                let operation;
+
+                before(() => {
+                    [ operation ] = new Enforcer.v2_0.Operation({
+                        responses: {
+                            200: {
+                                description: 'Success',
+                                schema: {
                                     type: 'string',
                                     format: 'date'
                                 }
                             },
-                            schema: {
-                                type: 'string',
-                                format: 'date'
-                            }
-                        },
-                        default: {
-                            description: 'Success',
-                            schema: {
-                                type: 'string',
-                                format: 'date-time'
+                            default: {
+                                description: 'Success',
+                                schema: {
+                                    type: 'string',
+                                    format: 'date-time'
+                                }
                             }
                         }
-                    }
-                })
+                    })
+                });
+
+                it('can process via 200 response object', () => {
+                    const date = new Date('2000-01-01T00:00:00.000Z');
+                    const [ res ] = operation.response(200, date);
+                    expect(res.body).to.equal('2000-01-01');
+                });
+
+                it('can process via default response object', () => {
+                    const date = new Date('2000-01-01T00:00:00.000Z');
+                    const [ res ] = operation.response('default', date);
+                    expect(res.body).to.equal('2000-01-01T00:00:00.000Z');
+                });
+
+                it('will validate the body', () => {
+                    const [ , err ] = operation.response(200, 'hello');
+                    expect(err).to.match(/at: body\s+Expected a valid date object/)
+                });
+
+                it('does not validate or serialize for file', () => {
+                    [ operation ] = new Enforcer.v2_0.Operation({
+                        responses: {
+                            200: {
+                                description: 'Success',
+                                schema: { type: 'file' }
+                            }
+                        }
+                    });
+                    const file = Symbol('file');
+                    const [ res ] = operation.response(200, file);
+                    expect(res).to.equal(file);
+                });
+
             });
 
-            it('can process via 200 response object', () => {
-                const date = new Date('2000-01-01T00:00:00.000Z');
-                const [ res ] = operation.response(200, date);
-                expect(res.body).to.equal('2000-01-01');
-            });
+            describe('header', () => {
 
-            it('can process via default response object', () => {
-                const date = new Date('2000-01-01T00:00:00.000Z');
-                const [ res ] = operation.response('default', date);
-                expect(res.body).to.equal('2000-01-01T00:00:00.000Z');
-            });
+                it('can process headers', () => {
+                    const operation = getOperationWithResponseHeader(2, {
+                        expires: {
+                            type: 'string',
+                            format: 'date'
+                        }
+                    });
+                    const date = new Date('2000-01-01T00:00:00.000Z');
+                    const [ res ] = operation.response(200, undefined, { expires: date });
+                    expect(res.headers.expires).to.equal('2000-01-01');
+                });
 
-            it('can process headers', () => {
-                const date = new Date('2000-01-01T00:00:00.000Z');
-                const [ res ] = operation.response(200, date, { expires: date });
-                expect(res.body).to.equal('2000-01-01');
-                expect(res.headers.expires).to.equal('2000-01-01');
+                it('will auto populate header default', () => {
+                    const operation = getOperationWithResponseHeader(2, {
+                        expires: {
+                            type: 'string',
+                            format: 'date',
+                            default: '2001-01-01'
+                        }
+                    });
+                    const [ res ] = operation.response(200);
+                    expect(res.headers.expires).to.equal('2001-01-01');
+                });
+
+                it('will validate the headers', () => {
+                    const operation = getOperationWithResponseHeader(2, {
+                        expires: {
+                            type: 'string',
+                            format: 'date'
+                        }
+                    });
+                    const [ , err ] = operation.response(200, '', { expires: 'hello' });
+                    expect(err).to.match(/at: headers > expires\s+Expected a valid date object/);
+                });
+
+                it('can handle an array of collectionFormat csv', () => {
+                    const operation = getOperationWithResponseHeader(2, {
+                        'x': {
+                            collectionFormat: 'csv',
+                            type: 'array',
+                            items: { type: 'string' }
+                        }
+                    });
+                    const [ res ] = operation.response(200, undefined, { x: ['a', 'b', 'c']});
+                    expect(res.headers.x).to.equal('a,b,c');
+                });
+
+                it('can nested arrays', () => {
+                    const operation = getOperationWithResponseHeader(2, {
+                        'x': {
+                            type: 'array',
+                            collectionFormat: 'pipes',
+                            items: {
+                                type: 'array',
+                                collectionFormat: 'ssv',
+                                items: {
+                                    type: 'array',
+                                    collectionFormat: 'tsv',
+                                    items: {
+                                        type: 'array',
+                                        collectionFormat: 'csv',
+                                        items: { type: 'string' }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    const ar = [
+                        [
+                            [
+                                ['a', 'b'], // comma separated value
+                                // tab delimiter
+                                ['c', 'd']
+                            ], // space delimiter
+                            [
+                                ['e', 'f', 'g']
+                            ]
+                        ], // pipe delimiter
+                        [
+                            [
+                                ['h']
+                            ]
+                        ]
+                    ];
+                    const [ res ] = operation.response(200, undefined, { x: ar});
+                    expect(res.headers.x).to.equal('a,b\tc,d e,f,g|h');
+                });
+
             });
 
         });
 
-        describe('v3', () => {
+        describe.only('v3', () => {
 
-            it('todo', () => {
-                throw Error('TODO')
+            describe('body', () => {
+
+                it.only('uses headers to determine content type', () => {
+                    const [ operation, err ] = Enforcer.v3_0.Operation({
+                        responses: {
+                            200: {
+                                description: 'success',
+                                content: {
+                                    'text/plain': {
+                                        schema: { type: 'string', format: 'date' }
+                                    },
+                                    'text/other': {
+                                        schema: { type: 'string', format: 'date-time' }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    const date = new Date('2000-01-01T00:00:00.000Z');
+
+                    const [ res1 ] = operation.response(200, date, { 'content-type': 'text/plain' });
+                    expect(res1.body).to.equal('2001-01-01');
+
+                    const [ res2 ] = operation.response(200, date, { 'content-type': 'text/other' });
+                    expect(res2.body).to.equal('2000-01-01T00:00:00.000Z');
+                });
+
+            });
+
+            describe('headers', () => {
+
+                it('can stringify a primitive', () => {
+                    const operation = getOperationWithResponseHeader(3, {
+                        exists: {
+                            schema: { type: 'boolean' }
+                        }
+                    });
+                    const [ res ] = operation.response(200, '', { exists: true });
+                    expect(res.headers.exists).to.equal('true');
+                });
+
+                it('can stringify an array of items', () => {
+                    const operation = getOperationWithResponseHeader(3, {
+                        numbers: {
+                            schema: {
+                                type: 'array',
+                                items: { type: 'number' }
+                            }
+                        }
+                    });
+                    const [ res ] = operation.response(200, '', { numbers: [1, 2, 3] });
+                    expect(res.headers.numbers).to.equal('1,2,3');
+                });
+
+                it('can stringify an array of items exploded', () => {
+                    const operation = getOperationWithResponseHeader(3, {
+                        numbers: {
+                            explode: true,
+                            schema: {
+                                type: 'array',
+                                items: { type: 'number' }
+                            }
+                        }
+                    });
+                    const [ res ] = operation.response(200, '', { numbers: [1, 2, 3] });
+                    expect(res.headers.numbers).to.equal('1,2,3');
+                });
+
+                it('can stringify an object', () => {
+                    const operation = getOperationWithResponseHeader(3, {
+                        color: {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    R: { type: 'number' },
+                                    G: { type: 'number' },
+                                    B: { type: 'number' }
+                                }
+                            }
+                        }
+                    });
+                    const [ res ] = operation.response(200, '', { color: { R: 50, G: 100, B: 150 } });
+                    expect(res.headers.color).to.equal('R,50,G,100,B,150');
+                });
+
+                it('can stringify an object exploded', () => {
+                    const operation = getOperationWithResponseHeader(3, {
+                        color: {
+                            explode: true,
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    R: { type: 'number' },
+                                    G: { type: 'number' },
+                                    B: { type: 'number' }
+                                }
+                            }
+                        }
+                    });
+                    const [ res ] = operation.response(200, '', { color: { R: 50, G: 100, B: 150 } });
+                    expect(res.headers.color).to.equal('R=50,G=100,B=150');
+                });
+
+                it('cannot do deep objects', () => {
+                    const operation = getOperationWithResponseHeader(3, {
+                        color: {
+                            explode: true,
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    x: {
+                                        type: 'object',
+                                        properties: {
+                                            y: { type: 'number' }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    const [ , err ] = operation.response(200, '', { color: { x: { y: 5 } } });
+                    expect(err).to.match(/at: headers > color > x\s+Unable to stringify value/)
+                });
+
             });
 
         });

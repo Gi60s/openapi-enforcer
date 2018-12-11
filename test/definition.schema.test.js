@@ -173,6 +173,44 @@ describe('enforcer/schema', () => {
                 expect(err).to.match(/Value must be one of:/);
             });
 
+            it('allows top level schema to be of type "file" for v2', () => {
+                const [ , err ] = Enforcer.v2_0.Schema({ type: 'file' });
+                expect(err).to.be.undefined;
+            });
+
+            it('does not allow nested schema to be of type "file" for nested schema', () => {
+                const [ , err ] = Enforcer.v2_0.Schema({
+                    type: 'object',
+                    properties: {
+                        file: { type: 'file' }
+                    }
+                });
+                expect(err).to.match(/at: properties > file\s+asdfasdf/);
+            });
+
+            it('does not allow top level schema to be of type "file" for v3', () => {
+                const [ , err ] = Enforcer.v3_0.Schema({ type: 'file' });
+                expect(err).to.match(/asdfafd/);
+            });
+
+            it('type "file" accounts for multi-use schema', () => {
+                // TODO: introduce to validator a "inContext" function that will execute even if the validator has already been run with a different parent
+                const def = {
+                    swagger: '2.0',
+                    info: { title: '', version: '' },
+                    definitions: {
+                        File: { type: 'file '},
+                        Folder: {
+                            type: 'array'
+                        }
+                    }
+                };
+                def.definitions.Folder.items = def.definitions.File;
+                const [ , err ] = Enforcer.v2_0.Swagger(def);
+                expect(err).to.match(/at definitions > Folder > items\s+asdfasdf/);
+                expect(err.count).to.equal(1);
+            })
+
         });
 
         describe('additionalProperties', () => {
