@@ -533,7 +533,11 @@ module.exports = {
                         return !v.hasOwnProperty('allOf') && !v.hasOwnProperty('anyOf') &&
                             !v.hasOwnProperty('not') && !v.hasOwnProperty('oneOf');
                     },
-                    enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
+                    enum: ({ parent }) => {
+                        const items = ['array', 'boolean', 'integer', 'number', 'object', 'string'];
+                        if (major === 2 && parent && parent.validator !== module.exports.validator) items.push('file');
+                        return items;
+                    }
                 },
                 uniqueItems: {
                     allowed: ({parent}) => parent.definition.type === 'array',
@@ -545,6 +549,12 @@ module.exports = {
                     default: false
                 },
                 xml: EnforcerRef('Xml')
+            },
+
+            revalidate: ({ definition, exception, parent }) => {
+                if (definition.type === 'file' && parent && parent.validator !== module.exports.validator) {
+                    exception.at('type').message('Value can only be "file" for non-nested schemas')
+                }
             },
 
             errors: (data) => {
