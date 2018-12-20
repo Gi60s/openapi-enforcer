@@ -111,7 +111,7 @@ module.exports = {
                         const matches = operation.getResponseContentTypeMatches(code, req.headers.accept);
                         if (matches.length) headers['content-type'] = matches[0];
                     }
-                    operation.response(code, body, headers)
+                    return operation.response(code, body, headers)
                 }
             }
             return result;
