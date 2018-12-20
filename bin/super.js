@@ -133,6 +133,7 @@ function createConstructor(version, name, enforcer) {
 
         if (existing) {
             data.result = result = existing;
+            definitionValidator(data)
         } else {
             // store the full set of enforcer data
             store.set(result, data);
