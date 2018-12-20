@@ -115,10 +115,6 @@ module.exports = {
                 }
             }
             return result;
-        },
-
-        response: function (operation, code, body, headers) {
-            return operation.response(code, body, headers);
         }
     },
 
