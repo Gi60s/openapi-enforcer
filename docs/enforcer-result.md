@@ -4,9 +4,9 @@ This class generates an object that allows destructuring into an array or a plai
 
 The EnforcerResult is an object with three properties:
 
-- *error* - An [EnforcerException object](#) with detailed error report. If there is no error exception then this value will be `undefined`.
+- *error* - An [EnforcerException object](./enforcer-exception.md) with detailed error report. If there is no error exception then this value will be `undefined`.
 - *value* - The success value. This value will be `undefined` if an error exception occurred.
-- *warning* - An [EnforcerException object](#) with warnings that do not prevent successful operation. If there is no warning exception then this value will be `undefined`.
+- *warning* - An [EnforcerException object](./enforcer-exception.md) with warnings that do not prevent successful operation. If there is no warning exception then this value will be `undefined`.
 
 ## Read the Results
 
@@ -74,7 +74,7 @@ const Enforcer = require('openapi-enforcer')
 
 ## Create Your Own EnforcerResult Instance
 
-It's possible to create your own EnforcerResult instance, but you'll also want to read up about the [EnforcerException object](#).
+It's possible to create your own EnforcerResult instance, but you'll also want to read up about the [EnforcerException object](./enforcer-exception.md).
 
 ```js
 const { Exception, Result } = require('openapi-enforcer')
