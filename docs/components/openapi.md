@@ -10,8 +10,6 @@ The top level class.
 
   - [OpenApi.prototype.request()](#openapiprototyperequest)
 
-  - [OpenApi.prototype.response()](#openapiprototyperequest)
-
 ### OpenApi.prototype.path
 
 Get path parameters and operation from a method and path.
@@ -92,7 +90,7 @@ Deserialize and validate a request.
 
 - *query* - An `object` map of query parameter names and deserialized and validated values.
 
-- *response* - The `function` [Operation.prototype.reponse()](./operation.md#operationprototyperesponse) 
+- *response* - A small wrapper around the `function` [Operation.prototype.reponse()](./operation.md#operationprototyperesponse). This will automatically set the response header `content-type` based on the request `accept` header unless you specifically set a response `content-type`.
 
 ```js
 const OpenAPI = require('openapi-enforcer').v3_0.OpenApi
@@ -107,7 +105,3 @@ const req = openapi.request({
   path: '/path/abc?x=1',
 })
 ```
-
-### OpenApi.prototype.response
-
-This is a pointer to the [Operation.prototype.reponse()](./operation.md#operationprototyperesponse) function.
