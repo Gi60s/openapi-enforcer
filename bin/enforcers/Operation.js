@@ -49,6 +49,31 @@ module.exports = {
     },
 
     prototype: {
+
+        /**
+         * The the possible response mime types for the response code and accepts string.
+         * @param {string, number} code
+         * @param {string} accepts The allowed media type string. Example: text/html, application/xhtml+xml, application/xml;q=0.9, text/*;q=0.8
+         * @returns {EnforcerResult<string[]>}
+         */
+        getResponseContentTypeMatches: function (code, accepts) {
+            const exception = new Exception('Unable to determine acceptable response content types');
+            const response = this.responses[code];
+            let matches;
+            if (!response) {
+                exception.message('Invalid response code');
+            } else if (this.produces) {
+                matches = util.findMediaMatch(accepts, this.produces);
+                if (!matches.length) exception.message('Operation does not produce acceptable type');
+            } else if (response.content) {
+                matches = util.findMediaMatch(accepts, Object.keys(response.content));
+                if (!matches.length) exception.message('Operation does not produce acceptable type');
+            } else {
+                exception.message('Response mime types not defined');
+            }
+            return new Result(matches, exception);
+        },
+
         /**
          * Take the input parameters and deserialize and validate them.
          * @param {object} request
@@ -253,6 +278,7 @@ module.exports = {
             const major = this.enforcerData.major;
 
             if (!util.isPlainObject(headers)) throw Error('Invalid headers input parameter. Must be a plain object');
+            headers = util.lowerCaseObjectProperties(headers);
 
             if (response) {
                 if (hasBody) {
@@ -276,8 +302,35 @@ module.exports = {
                         const content = response.content;
                         if (!content) {
                             result.body = body;
+
                         } else {
-                            throw Error('working here')
+                            const definedTypes = Object.keys(content);
+                            let contentType;
+                            if (headers.hasOwnProperty('content-type')) {
+                                const type = headers['content-type'];
+                                if (content.hasOwnProperty(type)) {
+                                    contentType = type;
+                                } else {
+                                    warning.message('Content type specified is not defined as a possible mime-type: ' + type);
+                                }
+                            } else if (definedTypes.length === 1) {
+                                contentType = definedTypes[0];
+                            } else {
+                                exception.message('Unable to determine content type to use. Please specify this value in the header object');
+                            }
+
+                            const schema = contentType && content[contentType] && content[contentType].schema;
+                            if (schema) {
+                                let err = schema.validate(body);
+                                if (!err) [body, err] = schema.serialize(body);
+                                if (err) {
+                                    exception.at('body').merge(err);
+                                } else {
+                                    result.body = body;
+                                }
+                            } else {
+                                result.body = body;
+                            }
                         }
                     }
                 }
