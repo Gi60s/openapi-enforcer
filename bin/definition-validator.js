@@ -73,10 +73,7 @@ function normalize (data) {
         // if the value has already been processed then we are in a circular reference and we should return the known value
         if (definition && typeof definition === 'object') {
             const existing = map.get(definition);
-            if (existing) {
-                if (validator.revalidate) validator.revalidate(data);
-                return existing;
-            }
+            if (existing) return existing;
             map.set(definition, result);
         }
 
