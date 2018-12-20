@@ -15,6 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
+const util = require('util');
+
+let inspect = util.inspect.custom || 'inspect';
 
 module.exports = EnforcerException;
 
@@ -44,13 +47,6 @@ function EnforcerException (header) {
         nest: [],
         message: []
     };
-    this.inspect = function () {
-        if (this.hasException) {
-            return '[ EnforcerException: ' + toString(this, null, '  ') + ' ]';
-        } else {
-            return '[ EnforcerException ]';
-        }
-    };
 }
 
 EnforcerException.prototype.at = function (key) {
@@ -74,6 +70,14 @@ EnforcerException.prototype.clearCache = function () {
 
     if (emit) this.emit('cache-clear');
     return this;
+};
+
+EnforcerException.prototype[inspect] = function () {
+    if (this.hasException) {
+        return '[ EnforcerException: ' + toString(this, null, '  ') + ' ]';
+    } else {
+        return '[ EnforcerException ]';
+    }
 };
 
 EnforcerException.prototype.nest = function (header) {
