@@ -4,13 +4,29 @@
 
 - Instance Methods
 
-    - [Operation.prototype.request()](#operationprototype)
+    - [Operation.prototype.getResponseContentTypeMatches()](#operationprototypegetresponsecontenttypematches)
+
+    - [Operation.prototype.request()](#operationprototyperequest)
+
+    - [Operation.prototype.response()](#operationprototyperesponse)
+
+### Operation.prototype.getResponseContentTypeMatches
+
+For OpenAPI 3.x.x, the response body's definition is based on a mime type. This function allow you to find an appropriate response mime type based on an [HTTP Accept](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept) string that is generally passed in with the request.
+
+**Parameters:**
+
+- *code* - A `string` or `number` of the response code to return.
+
+- *accepts* - The [HTTP Accept](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept) string to compare response mime types to.
+
+**Returns:** An array of strings for each response mime type that matches the accept string.
 
 ### Operation.prototype.request
 
 **This probably isn't the method you're looking for. Check out [OpenAPI.prototype.request()](./openapi.md#openapiprototyperequest)**
 
-Parse and validate an incomming request.
+Parse and validate an incoming request.
 
 **Parameters:**
 
@@ -44,7 +60,7 @@ Validate and serialize response data.
 
 - *body* - The response body. If you do not want to provide a body use `undefined` or skip the parameter.
 
-- *headers* - The response headers as an object of key value pairs. Defaults to `{}`.
+- *headers* - The response headers as an object of key value pairs. If you're using OpenAPI 3 and your response has multiple possible mime types then you can specify in the headers `content-type` property which mime type to use. Defaults to `{}`.
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to an object with properties `body` and `header`. If the `body` passed in was an object then the `body` result will also be an object, not a JSON string.
 
