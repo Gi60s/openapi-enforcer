@@ -1393,7 +1393,7 @@ describe('enforcer/operation', () => {
                     });
                     const file = Symbol('file');
                     const [ res ] = operation.response(200, file);
-                    expect(res).to.equal(file);
+                    expect(res.body).to.equal(file);
                 });
 
             });
@@ -1492,12 +1492,12 @@ describe('enforcer/operation', () => {
 
         });
 
-        describe.only('v3', () => {
+        describe('v3', () => {
 
             describe('body', () => {
 
-                it.only('uses headers to determine content type', () => {
-                    const [ operation, err ] = Enforcer.v3_0.Operation({
+                it('uses headers to determine content type', () => {
+                    const [ operation ] = Enforcer.v3_0.Operation({
                         responses: {
                             200: {
                                 description: 'success',
@@ -1516,10 +1516,42 @@ describe('enforcer/operation', () => {
                     const date = new Date('2000-01-01T00:00:00.000Z');
 
                     const [ res1 ] = operation.response(200, date, { 'content-type': 'text/plain' });
-                    expect(res1.body).to.equal('2001-01-01');
+                    expect(res1.body).to.equal('2000-01-01');
 
                     const [ res2 ] = operation.response(200, date, { 'content-type': 'text/other' });
                     expect(res2.body).to.equal('2000-01-01T00:00:00.000Z');
+                });
+
+                it('will auto select the only content type if header does not define to use it', () => {
+                    const [ operation ] = Enforcer.v3_0.Operation({
+                        responses: {
+                            200: {
+                                description: 'success',
+                                content: {
+                                    'text/plain': {
+                                        schema: { type: 'string', format: 'date' }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    const date = new Date('2000-01-01T00:00:00.000Z');
+                    const [ res ] = operation.response(200, date);
+                    expect(res.body).to.equal('2000-01-01');
+                });
+
+                it('produces warning if specified content-type is not supported', () => {
+                    const [ operation ] = Enforcer.v3_0.Operation({
+                        responses: {
+                            200: {
+                                description: 'success',
+                                content: {}
+                            }
+                        }
+                    });
+                    const [ , err, warn ] = operation.response(200, '', { 'content-type': 'application/json' });
+                    expect(err).to.be.undefined;
+                    expect(warn).to.match(/Content type specified is not defined as a possible mime-type/)
                 });
 
             });
