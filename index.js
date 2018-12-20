@@ -27,9 +27,8 @@ const util                  = require('./bin/util');
 
 /**
  * Create an Enforcer instance.
- * @param {object} definition
+ * @param {string, object} definition
  * @param {object} [options]
- * @param {boolean} [options.freeze=true] Whether to freeze the result object to prevent modification.
  * @param {boolean} [options.hideWarnings=false] Set to true to hide warnings from the console.
  * @returns {Promise<OpenApiEnforcer>}
  */
@@ -39,7 +38,6 @@ async function Enforcer(definition, options) {
 
     // normalize options
     options = Object.assign({}, options);
-    if (!options.hasOwnProperty('freeze')) options.freeze = true;
     if (!options.hasOwnProperty('hideWarnings')) options.hideWarnings = false;
 
     const refParser = new RefParser();
