@@ -57,6 +57,17 @@ module.exports = {
                 summary: {
                     type: 'string'
                 },
+            },
+            errors: ({ definition, warn }) => {
+                const length = methods.length;
+                let hasMethod = false;
+                for (let i = 0; i < length; i++) {
+                    if (definition.hasOwnProperty(methods[i])) {
+                        hasMethod = true;
+                        break;
+                    }
+                }
+                if (!hasMethod) warn.message('No methods defined')
             }
         }
     }
