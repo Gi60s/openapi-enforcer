@@ -105,13 +105,20 @@ module.exports = {
             const result = operation.request(req, options);
             if (result.value) {
                 result.value.operation = operation;
-                result.value.response = response => operation.response(response)
+                result.value.response = (code, body, headers = {}) => {
+                    headers = util.lowerCaseObjectProperties(headers);
+                    if (!headers['content-type'] && req.headers.accept) {
+                        const matches = operation.getResponseContentTypeMatches(code, req.headers.accept);
+                        if (matches.length) headers['content-type'] = matches[0];
+                    }
+                    operation.response(code, body, headers)
+                }
             }
             return result;
         },
 
-        response: function (operation, response) {
-            return operation.response(response);
+        response: function (operation, code, body, headers) {
+            return operation.response(code, body, headers);
         }
     },
 
