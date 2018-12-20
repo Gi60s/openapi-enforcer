@@ -24,7 +24,7 @@
 
 ### Schema.prototype.deserialize
 
-Schema instances can deserialize values. Deserialization is the process of extracting a data structure from a scalar value. For example, the string `2000-01-01` as a date string would be deserialized to `new Date('2000-01-01')` which gives you a date object instaead of a date string.
+Schema instances can deserialize values. Deserialization is the process of extracting a data structure from a scalar value. For example, the string `2000-01-01` as a date string would be deserialized to `new Date('2000-01-01')` which gives you a date object instead of a date string.
 
 Note that the deserialization process keeps validation to a minimum. It won't care if a decimal number was provided for an `integer` type, but it will care if `"hello"` is provided as an `integer`.
 
@@ -32,7 +32,7 @@ Note that the deserialization process keeps validation to a minimum. It won't ca
 
 - *value* - The value to deserialize
 
-**Returns:** An [EnforcerResult](./enforcer-result.md) that resolves to the deserialized value.
+**Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the deserialized value.
 
 ```js
 const Enforcer = require('openapi-enforcer')
@@ -76,16 +76,16 @@ This method is used to generate values using a combination of a parameters map a
 
     - *options.depth* - How deep to traverse an object that is being built. Defaults to `100`.
 
-    - *options.replacmenet* - The template replacement method to use. Options include `colon` (`:name`), `doubleHandlerBar` (`{{name}}`), or `handlebar` (`{name}`). Defaults to `handlebar`.
+    - *options.replacement* - The template replacement method to use. Options include `colon` (`:name`), `doubleHandlerBar` (`{{name}}`), or `handlebar` (`{name}`). Defaults to `handlebar`.
 
     - *options.templateDefaults* - Whether to apply template replacement to default values. Defaults to `true`.
 
     - *options.templates* - Whether to use templating (`x-template`) to populate the value. Defaults to `true`.
 
-    - *options.varialbes* - Whether to use variables (`x-variable`) to populate the value.
+    - *options.variables* - Whether to use variables (`x-variable`) to populate the value.
 
 
-**Returns:** An [EnforcerResult](./enforcer-result.md) that resolves to the populated value.
+**Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the populated value.
 
 ```js
 const Enforcer = require('openapi-enforcer')
@@ -152,15 +152,15 @@ Generate a random value that complies with the schema definition.
 
 - *options* - The random value generation options. Parameter is optional.
 
-    - *options.additionalPropertiesPossibility* - A number between `0` and `1` that signifies the posibility of additional properties being added to objects that allow them. In cases where the definition's `minProperties` has not been reached or if a property is required but not defined as a known property then that additional property will be added, regardless of the `additionalPropertiesPossibility` value. Defaults to `0`.
+    - *options.additionalPropertiesPossibility* - A number between `0` and `1` that signifies the possibility of additional properties being added to objects that allow them. In cases where the definition's `minProperties` has not been reached or if a property is required but not defined as a known property then that additional property will be added, regardless of the `additionalPropertiesPossibility` value. Defaults to `0`.
 
     - *options.arrayVariation* - The maximum random array size. This value will be overwritten if the schema defines `minItems` or `maxItems`. Defaults to `4`.
 
     - *options.copy* - Whether the passed in value should be copied (`true`) or mutated (`false`). Defaults to `false`.
 
-    - *options.defaultPossibility* - A number between `0` and `1` that signifies the posibility of a default value being used when on exists. Defaults to `0.25`.
+    - *options.defaultPossibility* - A number between `0` and `1` that signifies the possibility of a default value being used when on exists. Defaults to `0.25`.
 
-    - *options.definedPropertyPossibility* - A number between `0` and `1` that signifies the posibility of setting a value for an object with a defined property. If the property is required then the random value will be set regardless of the `defaultPossibility` value. Defaults to `0.80`.
+    - *options.definedPropertyPossibility* - A number between `0` and `1` that signifies the possibility of setting a value for an object with a defined property. If the property is required then the random value will be set regardless of the `defaultPossibility` value. Defaults to `0.80`.
 
     - *options.maxDepth* - How deep to build a random object or array. Defaults to `10`.
 
@@ -168,7 +168,7 @@ Generate a random value that complies with the schema definition.
 
     - *options.uniqueItemRetry* - The number of times to attempt to come up with a unique value for arrays that have `uniqueItems` set to `true`. Defaults to `5`.
 
-**Returns:** An [EnforcerResult](./enforcer-result.md) that resolves to the random value.
+**Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the random value.
 
 ```js
 const Enforcer = require('openapi-enforcer')
@@ -191,7 +191,7 @@ Serialization is the process of converting a data structure to a scalar value. F
 
 - *value* - The value to serialize
 
-**Returns:** An [EnforcerResult](./enforcer-result.md) that resolves to the serialized value.
+**Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the serialized value.
 
 ```js
 const Enforcer = require('openapi-enforcer')

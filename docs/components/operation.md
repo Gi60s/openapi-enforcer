@@ -44,9 +44,9 @@ Parse and validate an incoming request.
 
   - *allowOtherQueryParameters* - A `boolean` that indicates whether query parameters that are not specified in the OAS definition should be allowed. Defaults to `false`.
 
-  - *pathParametersValueMap* - An `object` map containing already deserialized path parameters. Used internall for performance optimization. Defaults to `{}`.
+  - *pathParametersValueMap* - An `object` map containing already deserialized path parameters. Used internally for performance optimization. Defaults to `{}`.
 
-**Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the deserialized and validatated request object.
+**Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the deserialized and validated request object.
 
 **This probably isn't the method you're looking for. Check out [OpenAPI.prototype.request()](./openapi.md#openapiprototyperequest)**
 

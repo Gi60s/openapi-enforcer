@@ -90,7 +90,7 @@ Deserialize and validate a request.
 
 - *query* - An `object` map of query parameter names and deserialized and validated values.
 
-- *response* - A small wrapper around the `function` [Operation.prototype.reponse()](./operation.md#operationprototyperesponse). This will automatically set the response header `content-type` based on the request `accept` header unless you specifically set a response `content-type`.
+- *response* - A small wrapper around the `function` [Operation.prototype.response()](./operation.md#operationprototyperesponse). This will automatically set the response header `content-type` based on the request `accept` header unless you specifically set a response `content-type`.
 
 ```js
 const OpenAPI = require('openapi-enforcer').v3_0.OpenApi

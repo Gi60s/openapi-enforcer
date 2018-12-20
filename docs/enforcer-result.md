@@ -1,6 +1,6 @@
 # EnforcerResult
 
-This class generates an object that allows destructuring into an array or a plain object. Most function calls provided within the [OpenAPI Enforcer](../) will return this object.
+This class generates an object that allows destructuring into an array or a plain object. Most function calls provided within the [OpenAPI Enforcer](./README.md) will return this object.
 
 The EnforcerResult is an object with three properties:
 
