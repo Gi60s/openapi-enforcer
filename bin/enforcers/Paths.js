@@ -50,7 +50,7 @@ module.exports = {
                         const name = definitionParameters[i];
                         if (!parameterNames.includes(name)) pathParametersMissing.push(name);
                     }
-                    if (pathParametersMissing.length) child('Path missing defined parameters: ' + pathParametersMissing.join(', '));
+                    if (pathParametersMissing.length) child.message('Path missing defined parameters: ' + pathParametersMissing.join(', '));
 
                     const stringCount = parameterNames.length;
                     const definitionParametersMissing = [];
@@ -58,7 +58,7 @@ module.exports = {
                         const name = parameterNames[i];
                         if (!definitionParameters.includes(name)) definitionParametersMissing.push(name);
                     }
-                    if (definitionParametersMissing.length) child('Definition missing path parameters: ' + definitionParametersMissing.join(', '));
+                    if (definitionParametersMissing.length) child.message('Definition missing path parameters: ' + definitionParametersMissing.join(', '));
                 });
 
                 // build search regular expression
@@ -150,12 +150,14 @@ module.exports = {
             required: true,
             type: 'object',
             additionalProperties: EnforcerRef('PathItem'),
-            errors: ({ exception, definition }) => {
-                Object.keys(definition).forEach(key => {
+            errors: ({ exception, definition, warn }) => {
+                const paths = Object.keys(definition);
+                paths.forEach(key => {
                     if (key[0] !== '/' || key[1] === '/') {
                         exception.at(key).message('Path must begin with a single forward slash')
                     }
-                })
+                });
+                if (!paths.length) warn.message('No paths defined')
             }
         }
     }
