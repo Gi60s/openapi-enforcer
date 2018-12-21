@@ -256,13 +256,12 @@ describe('enforcer/schema', () => {
                         type: 'object',
                         properties: {
                             x: {
-                                type: 'boolean',
-                                format: 'date',
+                                type: 'taco'
                             }
                         }
                     }
                 });
-                expect(err).to.match(/Property not allowed: format/);
+                expect(err).to.match(/at: additionalProperties > properties > x > type\s+Value must be one of/);
             });
 
         });
@@ -676,7 +675,7 @@ describe('enforcer/schema', () => {
             it('warns for unknown format', () => {
                 const [ , err, warning ] = Enforcer.v2_0.Schema({ type: 'string', format: 'foo' });
                 expect(err).to.be.undefined;
-                expect(warning).to.match(/Non standard format used: foo/);
+                expect(warning).to.match(/at: format\s+Non standard format "foo" used for type "string"/);
             });
 
         });
@@ -3489,6 +3488,12 @@ describe('enforcer/schema', () => {
                         const schema = enforcer.definitions.Animal;
                         const errors = schema.validate({ animalType: 'Pet', petType: 'Dog', packSize: 2 });
                         expect(errors).to.be.undefined;
+                    });
+
+                    it('invalid Dog from Animal', () => {
+                        const schema = enforcer.definitions.Animal;
+                        const errors = schema.validate({ animalType: 'Pet', petType: 'Dog', packSize: 'big' });
+                        expect(errors).to.match(/packSize\s+Expected an integer/)
                     });
 
                 });

@@ -437,10 +437,11 @@ module.exports = {
                     errors: ({ exception, parent, warn }) => {
                         const format = parent.definition.format;
                         if (format) {
+                            const type = parent.definition.type;
                             const dataTypes = parent.staticData.dataTypes;
-                            const formats = dataTypes[parent.definition.type];
+                            const formats = dataTypes[type];
                             const enums = formats ? Object.keys(formats) : [];
-                            if (!enums.includes(format)) warn.message('Non standard format used: ' + format);
+                            if (!enums.includes(format)) warn.message('Non standard format "' + format + '" used for type "' +  type + '"');
                         }
                     }
                 },
@@ -528,13 +529,20 @@ module.exports = {
                         return !v.hasOwnProperty('allOf') && !v.hasOwnProperty('anyOf') &&
                             !v.hasOwnProperty('not') && !v.hasOwnProperty('oneOf');
                     },
-                    enum: major === 2
-                        ? ['array', 'boolean', 'file', 'integer', 'number', 'object', 'string']
-                        : ['array', 'boolean', 'integer', 'number', 'object', 'string'],
-                    errors: ({ definition, exception, parent }) => {
-                        if (definition === 'file' && parent.parent && parent.parent.parent && parent.parent.parent.validator === module.exports.validator) {
+                    enum: ({ definition, exception, parent }) => {
+                        const schemaValidator = module.exports.validator;
+                        let allowFile = major === 2;
+                        let node = parent.parent;
+                        while (allowFile && node) {
+                            if (node.validator === schemaValidator) allowFile = false;
+                            node = node.parent;
+                        }
+                        if (definition === 'file' && major === 2 && !allowFile) {
                             exception.message('Value can only be "file" for non-nested schemas')
                         }
+                        return allowFile
+                            ? ['array', 'boolean', 'file', 'integer', 'number', 'object', 'string']
+                            : ['array', 'boolean', 'integer', 'number', 'object', 'string'];
                     }
                 },
                 uniqueItems: {
