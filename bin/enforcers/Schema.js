@@ -260,7 +260,11 @@ module.exports = {
 
                 // store the definition
                 dataTypes[type][format] = Object.assign({}, definition, { type, format });
-            }
+            },
+
+            extractValue: Value.extract,
+
+            Value: Value
         }
     },
 
