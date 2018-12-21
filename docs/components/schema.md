@@ -20,9 +20,9 @@
 
     - [Schema.defineDataFormat()](#schemadefinedataformat)
 
-    - [Schema.extractValue](#schemaextractvalue)
+    - [Schema.extractValue()](#schemaextractvalue)
 
-    - [Schema.Value](#schemavalue)
+    - [Schema.Value()](#schemavalue)
 
 ### Schema.prototype.deserialize
 
