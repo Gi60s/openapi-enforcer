@@ -58,6 +58,61 @@ Schemas that use discriminators allow polymorphism or schema selection functiona
 
 **Returns:** The discriminator Schema instance if `details=false`, or and object with the properties `key` (discriminator property name), `name` (value property name), and `schema` (the Schema instance) if `details=true`.
 
+**Example**
+
+```js
+const Enforcer = require('openapi-enforcer')
+
+const definition = {
+    swagger: '2.0',
+    info: { title: '', version: '' },
+    paths: {},
+    definitions: {
+        Cat: {
+            allOf: [
+                { '$ref': '#/definitions/Pet' },
+                {
+                    type: 'object',
+                    additionalProperties: false,
+                    properties: {
+                        birthDate: { type: 'string' },
+                        huntingSkill: { type: 'string' },
+                    }
+                }
+            ]
+        },
+        Dog: {
+            allOf: [
+                { '$ref': '#/definitions/Pet' },
+                {
+                    type: 'object',
+                    additionalProperties: false,
+                    properties: {
+                        birthDate: { type: 'string', format: 'date' },
+                        packSize: { type: 'integer', minimum: 1 }
+                    }
+                }
+            ]
+        },
+        Pet: {
+            type: 'object',
+            required: ['petType'],
+            properties: {
+                petType: { type: 'string' }
+            },
+            discriminator: 'petType'
+        }
+    }
+}
+
+Enforcer(definition)
+    .then(enforcer => {
+        const schema = enforcer.definitions.Pet
+        const dogSchema = schema.discriminate({ petType: 'Dog' })
+        console.log(dogSchema === enforcer.definitions.Dog)  // true
+    })
+```
+
 ### Schema.prototype.populate
 
 This method is used to generate values using a combination of a parameters map and the schema definition.
@@ -274,7 +329,7 @@ class Decimal {
 const Schema = require('openapi-enforcer').v3_0.Schema
 Schema.defineDataFormat('string', 'decimal', {
     // define how to deserialize a value
-    deserialize (exception, value) => new Decimal(value),
+    deserialize: (exception, value) => new Decimal(value),
 
     // is numeric - allows schema maximum, minimum, exclusiveMaximum, etc.
     isNumeric: true,
@@ -283,10 +338,10 @@ Schema.defineDataFormat('string', 'decimal', {
     random: (exception) => new Decimal(String(Math.random() * 100)),
 
     // define how to serialize a value
-    serialize (exception, value) => value.toString(),
+    serialize: (exception, value) => value.toString(),
 
     // define validation function for deserialized value
-    validate (exception, value) {
+    validate: (exception, value) => {
         if (this.hasOwnProperty('minimum') && this.minimum > +value) {
             exception.message('Value must be above the minimum of ' + 
                 this.minimum + '. Received: ' + value)
