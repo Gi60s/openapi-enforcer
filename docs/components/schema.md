@@ -306,7 +306,7 @@ console.log(+value)                     // 2.49
 
 This class is used to provide more fine grained control over what parts of a value serialize, deserialize, validate, and populate.
 
-**Example 1**
+**Example 1: Using Defaults**
 
 ```js
 const Schema = require('openapi-enforcer').v3_0.Schema
@@ -327,7 +327,7 @@ const value = Schema.extractValue(schemaValue)
 console.log(value)  // 'hello'
 ```
 
-**Example 2**
+**Example 2: Partial Deserialization**
 
 ```js
 const Schema = require('openapi-enforcer').v3_0.Schema
