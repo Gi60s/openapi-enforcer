@@ -87,7 +87,6 @@ Object.assign(v2_0, {
     ExternalDocumentation: Super(v2_0, 'ExternalDocumentation'),
     Header: Super(v2_0, 'Header'),
     Info: Super(v2_0, 'Info'),
-    Items: Super(v2_0, 'Items'),
     License: Super(v2_0, 'License'),
     Operation: Super(v2_0, 'Operation'),
     Parameter: Super(v2_0, 'Parameter'),
@@ -138,11 +137,20 @@ Object.assign(v3_0, {
     Xml: Super(v3_0, 'Xml')
 });
 
+Enforcer.v2_0.Schema.defineDataTypeFormat('integer', 'int32', null);
+Enforcer.v2_0.Schema.defineDataTypeFormat('integer', 'int64', null);
+Enforcer.v2_0.Schema.defineDataTypeFormat('number', 'float', null);
+Enforcer.v2_0.Schema.defineDataTypeFormat('number', 'double', null);
+Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
 Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
 Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
 Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
 Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date-time', dataTypeFormats.dateTime);
 
+Enforcer.v3_0.Schema.defineDataTypeFormat('integer', 'int32', null);
+Enforcer.v3_0.Schema.defineDataTypeFormat('integer', 'int64', null);
+Enforcer.v3_0.Schema.defineDataTypeFormat('number', 'float', null);
+Enforcer.v3_0.Schema.defineDataTypeFormat('number', 'double', null);
 Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
 Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
 Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);

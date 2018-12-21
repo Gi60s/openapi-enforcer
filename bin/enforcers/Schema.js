@@ -251,20 +251,15 @@ module.exports = {
                 if (!dataTypes.hasOwnProperty(type)) throw Error('Invalid type specified. Must be one of: ' + Object.keys(dataTypes).join(', '));
                 if (!format || typeof format !== 'string') throw Error('Invalid format specified. Must be a non-empty string');
                 if (dataTypes.hasOwnProperty(format)) throw Error('Format "' + format + '" is already defined');
-                if (!definition || typeof definition !== 'object' ||
+                if (definition !== null &&
+                    (typeof definition !== 'object' ||
                     typeof definition.deserialize !== 'function' ||
                     typeof definition.serialize !== 'function' ||
                     typeof definition.validate !== 'function'
-                    || (definition.random &&  typeof definition.random !== 'function')) throw Error('Invalid data type definition. Must be an object that defines handlers for "deserialize", "serialize", and "validate" with optional "random" handler.');
+                    || (definition.random &&  typeof definition.random !== 'function'))) throw Error('Invalid data type definition. Must be an object that defines handlers for "deserialize", "serialize", and "validate" with optional "random" handler.');
 
                 // store the definition
                 dataTypes[type][format] = Object.assign({}, definition, { type, format });
-            },
-
-            extractValue: Value.extract,
-
-            value: function (value, config) {
-
             }
         }
     },
@@ -433,18 +428,14 @@ module.exports = {
                 externalDocs: EnforcerRef('ExternalDocumentation'),
                 format: {
                     weight: -9,
-                    allowed: ({ parent }) => ['integer', 'number', 'string'].includes(parent.definition.type),
+                    allowed: ({ parent }) => ['boolean', 'integer', 'number', 'string'].includes(parent.definition.type),
                     type: 'string',
                     errors: ({ exception, parent, warn }) => {
                         const format = parent.definition.format;
                         if (format) {
-                            const enums = [];
-                            // TODO: allow custom types
-                            switch (parent.definition.type) {
-                                case 'integer': enums.push('int32', 'int64'); break;
-                                case 'number': enums.push('float', 'double'); break;
-                                case 'string': enums.push('binary', 'byte', 'date', 'date-time', 'password');
-                            }
+                            const dataTypes = parent.staticData.dataTypes;
+                            const formats = dataTypes[parent.definition.type];
+                            const enums = formats ? Object.keys(formats) : [];
                             if (!enums.includes(format)) warn.message('Non standard format used: ' + format);
                         }
                     }
