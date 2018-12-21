@@ -73,7 +73,6 @@ const definition = {
                 { '$ref': '#/definitions/Pet' },
                 {
                     type: 'object',
-                    additionalProperties: false,
                     properties: {
                         birthDate: { type: 'string' },
                         huntingSkill: { type: 'string' },
@@ -86,7 +85,6 @@ const definition = {
                 { '$ref': '#/definitions/Pet' },
                 {
                     type: 'object',
-                    additionalProperties: false,
                     properties: {
                         birthDate: { type: 'string', format: 'date' },
                         packSize: { type: 'integer', minimum: 1 }
