@@ -20,12 +20,14 @@
   "keywords": [
     "openapi",
     "swagger",
+    "validate",
     "response",
     "build",
     "compose",
-    "validate",
     "parse",
-    "format"
+    "format",
+    "deserialize",
+    "serialize"
   ],
   "author": "James Speirs",
   "license": "Apache-2.0",
