@@ -976,14 +976,13 @@ describe('enforcer/schema', () => {
                             type: 'object',
                             properties: {
                                 y: {
-                                    type: 'boolean',
-                                    format: 'date'
+                                    type: 'taco'
                                 }
                             }
                         }
                     }
                 });
-                expect(err).to.match(/Property not allowed: format/);
+                expect(err).to.match(/at: properties > x > properties > y > type\s+Value must be one of/);
             });
 
         });
