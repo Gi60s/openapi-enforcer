@@ -312,7 +312,7 @@ This class is used to provide more fine grained control over what parts of a val
 const Schema = require('openapi-enforcer').v3_0.Schema
 
 // convert value to SchemaValue instance
-const schemaValue = Schema.value('hello', {
+const schemaValue = new Schema.Value('hello', {
     populate: true,   // default true
     serialize: true,  // default true
     validate: true    // default true
@@ -349,7 +349,7 @@ const [ schema ] = new Schema({
 // deserialize part of the object
 let [ value ] = schema.deserialize({
     x: '2000-01-01',
-    y: Schema.value('2001-01-01', { serialize: false })
+    y: new Schema.Value('2001-01-01', { serialize: false })
 })
 
 // convert the value back into a plain object
