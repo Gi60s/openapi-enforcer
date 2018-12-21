@@ -20,6 +20,8 @@
 
     - [Schema.defineDataFormat()](#schemadefinedataformat)
 
+    - [Schema.extractValue](#schemaextractvalue)
+
     - [Schema.Value](#schemavalue)
 
 ### Schema.prototype.deserialize
@@ -301,6 +303,16 @@ const [ value ] = schema.deserialize('2.49')
 console.log(value instanceof Decimal)   // true
 console.log(+value)                     // 2.49
 ```
+
+### Schema.extractValue
+
+This is an alias for the `Schema.Value.extract` function. It takes a [Schema Value](#schemavalue) instance and converts it into a plain value. Examples are in the [Schema Value](#schemavalue) section.
+
+**Parameters:**
+
+- *value* - The schema value to convert to a plain value.
+
+**Returns:** the extracted value.
 
 ### Schema.Value
 
