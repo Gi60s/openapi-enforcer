@@ -6,7 +6,6 @@
   "directories": {
     "test": "tests"
   },
-  "types": "index.d.ts",
   "scripts": {
     "test": "mocha --recursive test",
     "coverage": "nyc --reporter=html npm test",
