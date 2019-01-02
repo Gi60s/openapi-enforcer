@@ -235,6 +235,20 @@ describe('enforcer/parameter', () => {
 
     });
 
+    describe.only('enum', () => {
+
+        it('v2 can have enum', () => {
+            const [ , err ] = Enforcer.v2_0.Parameter({
+                name: 'hi',
+                in: 'query',
+                type: 'string',
+                enum: ['hero', 'normal', 'villain']
+            });
+            expect(err).to.be.undefined;
+        });
+
+    });
+
     describe('examples', () => {
 
         it('can be set', () => {
