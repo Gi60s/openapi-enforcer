@@ -34,11 +34,12 @@ const util                  = require('./bin/util');
  */
 async function Enforcer(definition, options) {
     let openapi;
-    let warnings;
+    let warnings = Exception('One or more warnings exist int he OpenAPI definition');
 
     // normalize options
     options = Object.assign({}, options);
     if (!options.hasOwnProperty('hideWarnings')) options.hideWarnings = false;
+    if (!options.hasOwnProperty('fullResult')) options.fullResult = false;
 
     const refParser = new RefParser();
     definition = util.copy(definition);
@@ -63,7 +64,8 @@ async function Enforcer(definition, options) {
         }
     }
 
-    if (!options.hideWarnings && warnings) console.warn(warnings.toString());
+    if (options.fullResult) return new Result(openapi, exception, warnings);
+    if (!options.hideWarnings && warnings && warnings.hasException) console.warn(warnings.toString());
     if (exception && exception.hasException) throw Error(exception.toString());
     return openapi;
 }
