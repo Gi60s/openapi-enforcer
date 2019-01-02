@@ -1,4 +1,4 @@
-# For full spec reference see https://github.com/byu-oit/repo-meta/blob/master/repo-meta-template.yml 
+# For full spec reference see https://github.com/byu-oit/repo-meta/blob/master/repo-meta-template.yml
 # This file was automatically generated. It is used for various integrations like creating and updating Software CIs in the CMDB.
 # You are required to maintain Software CI records in the CMDB for all of the deployable software artifacts you maintain.
 # You can fill in the information here and have the integration do that for you or you can do that yourself manually.
@@ -7,7 +7,7 @@ repo_url: https://github.com/byu-oit/openapi-enforcer  # optional
 software:
   - name: openapi-enforcer  # optional
     deploy_to_cmdb: true # optional
-    type: ''
+    type: 'library'
     aliases:  # optional
     short_description: # optional
     assignment_group: gro:OIT-App Dev Student Info Mgmt
@@ -35,7 +35,7 @@ software:
           product_page:
           physical_url:
           virtual_url:
-        hosting_location: ''
+        hosting_location: 'https://www.npmjs.com/package/openapi-enforcer'
         aws_account:  # optional
         relationships: # optional
           depends_on:  # optional
