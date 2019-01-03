@@ -24,7 +24,7 @@ module.exports = {
     init: function (data) {
         const { context, exception, major, warn } = data;
         if (major === 2) {
-            const def = base.extractSchemaDefinition(this);
+            const def = base.extractSchemaDefinition({}, this);
             const [schema, error, warning] = context.Schema(def);
             if (schema) this.schema = schema;
             if (error) exception.merge(error);
