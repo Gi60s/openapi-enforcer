@@ -235,16 +235,32 @@ describe('enforcer/parameter', () => {
 
     });
 
-    describe.only('enum', () => {
+    describe('enum', () => {
 
-        it('v2 can have enum', () => {
-            const [ , err ] = Enforcer.v2_0.Parameter({
-                name: 'hi',
-                in: 'query',
-                type: 'string',
-                enum: ['hero', 'normal', 'villain']
+        describe('v2', () => {
+
+            it('can have enum', () => {
+                const [ , err ] = Enforcer.v2_0.Parameter({
+                    name: 'hi',
+                    in: 'query',
+                    type: 'string',
+                    enum: ['hero', 'normal', 'villain']
+                });
+                expect(err).to.be.undefined;
             });
-            expect(err).to.be.undefined;
+
+            it('must have valid enum values', () => {
+                const [ , err ] = Enforcer.v2_0.Parameter({
+                    name: 'hi',
+                    in: 'query',
+                    type: 'string',
+                    enum: ['hero', true, 5]
+                });
+                expect(err).to.match(/at: 1\s+Value must be a string/);
+                expect(err).to.match(/at: 2\s+Value must be a string/);
+                expect(err.count).to.equal(2);
+            });
+
         });
 
     });
