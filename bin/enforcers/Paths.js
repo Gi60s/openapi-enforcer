@@ -25,9 +25,10 @@ module.exports = {
         const { exception, result, plugins } = data;
         const pathParsers = {};
         const pathEquivalencies = {};
+        const paramlessMap = {};
 
         plugins.push(() => {
-            Object.keys(result).forEach(pathKey => {
+            Object.keys(result).forEach((pathKey, index) => {
                 const path = result[pathKey];
                 const pathLength = pathKey.split('/').length - 1;
 
@@ -35,7 +36,7 @@ module.exports = {
                 const parameterNames = [];
                 const rxParamNames = new RegExp(rxPathParam, 'g');
                 let match;
-                while (match = rxParamNames.exec(pathKey)) {
+                while ((match = rxParamNames.exec(pathKey))) {
                     parameterNames.push(match[1]);
                 }
 
@@ -64,23 +65,35 @@ module.exports = {
                 // build search regular expression
                 const rxFind = /{([^}]+)}/g;
                 let subStr;
+                let paramlessStr = '';
                 let rxStr = '';
                 let offset = 0;
                 let equivalencyKey = '';
-                while (match = rxFind.exec(pathKey)) {
+                while ((match = rxFind.exec(pathKey))) {
                     subStr = pathKey.substring(offset, match.index);
                     equivalencyKey += '0'.repeat(subStr.split('/').length) + '1';
+                    paramlessStr += subStr + '{}';
                     rxStr += escapeRegExp(subStr) + '([\\s\\S]+?)';
                     offset = match.index + match[0].length;
                 }
                 subStr = pathKey.substr(offset);
-                if (subStr) equivalencyKey += '0'.repeat(subStr.split('/').length);
-                rxStr += escapeRegExp(subStr);
+                if (subStr) {
+                    equivalencyKey += '0'.repeat(subStr.split('/').length) + '0';
+                    rxStr += escapeRegExp(subStr);
+                    paramlessStr += subStr;
+                }
                 const rx = new RegExp('^' + rxStr + '$');
 
-                // store equivalency information
+                if (!paramlessMap[equivalencyKey]) paramlessMap[equivalencyKey] = [];
+                const paramless = paramlessMap[equivalencyKey];
+
                 if (!pathEquivalencies[equivalencyKey]) pathEquivalencies[equivalencyKey] = [];
-                pathEquivalencies[equivalencyKey].push(pathKey);
+                if (pathEquivalencies[equivalencyKey].length === 0) pathEquivalencies[equivalencyKey].push(pathKey);
+                if (!paramless.includes(paramlessStr)) {
+                    paramless.push(paramlessStr);
+                } else {
+                    pathEquivalencies[equivalencyKey].push(pathKey);
+                }
 
                 // define parser function
                 const parser = pathString => {
@@ -99,6 +112,8 @@ module.exports = {
                     };
                 };
 
+                parser.weight = equivalencyKey + index;
+
                 if (!pathParsers[pathLength]) pathParsers[pathLength] = [];
                 pathParsers[pathLength].push(parser);
             });
@@ -112,6 +127,9 @@ module.exports = {
                 }
             });
 
+            Object.keys(pathParsers).forEach(key => {
+                pathParsers[key].sort((a, b) => a.weight < b.weight ? -1 : 1);
+            });
             this.enforcerData.pathParsers = pathParsers;
         });
     },

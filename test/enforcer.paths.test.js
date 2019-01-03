@@ -17,7 +17,6 @@
 'use strict';
 const expect        = require('chai').expect;
 const Enforcer      = require('../');
-// const Paths         = require('../bin/definition-validators/paths');
 
 describe('enforcer/paths', () => {
 
@@ -61,6 +60,18 @@ describe('enforcer/paths', () => {
         expect(err).to.match(/Path must begin with a single forward slash/);
     });
 
+    it('allows different paths', () => {
+        const [ , err ] = Enforcer.v2_0.Paths({
+            '/a': validPathObject(),
+            '/b': validPathObject(),
+            '/a/{a}': validPathObject([
+                { name: 'a', in: 'path', required: true, type: 'string' }
+            ]),
+            '/a/b': validPathObject()
+        });
+        expect(err).to.be.undefined;
+    });
+
     it('will identify variable path duplications', () => {
         const [ , err ] = Enforcer.v2_0.Paths({
             '/a/b/{c}/d/{e}': validPathObject([
@@ -88,6 +99,21 @@ describe('enforcer/paths', () => {
         });
         expect(err).to.match(/Equivalent paths are not allowed/);
         expect(err.count).to.equal(5);
-    })
+    });
+
+    it('correctly prioritizes path selection', () => {
+        const [ paths ] = Enforcer.v2_0.Paths({
+            '/a/{a}': validPathObject([
+                { name: 'a', in: 'path', required: true, type: 'string' }
+            ]),
+            '/a/b': validPathObject()
+        });
+
+        const x = paths.findMatch('/a/b');
+        expect(x.path).to.equal(paths['/a/b']);
+
+        const y = paths.findMatch('/a/c');
+        expect(y.path).to.equal(paths['/a/{a}']);
+    });
 
 });
