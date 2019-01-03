@@ -37,7 +37,7 @@ module.exports = {
         if (major === 2 && definition.in !== 'body') {
 
             // TODO: type might be file which is not really supported in Schema - shouldn't be a problem but I need to test it
-            const def = Base.extractSchemaDefinition(this);
+            const def = Base.extractSchemaDefinition({}, this);
             if (def.type === 'file') def.type = 'string';
             const [ schema, err, warning ] = new context.Schema(def);
             if (schema) this.schema = schema;
