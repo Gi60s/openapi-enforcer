@@ -44,7 +44,11 @@ exports.validator = data => {
                 default: 'csv'
             },
             default: { allowed: true },
-            enum: { allowed: true, freeForm: true },
+            enum: {
+                allowed: true,
+                type: 'array',
+                items: { freeForm: true }
+            },
             exclusiveMaximum: { allowed: true },
             exclusiveMinimum: { allowed: true },
             format: { allowed: true },
@@ -86,7 +90,7 @@ exports.validator = data => {
             description: {
                 type: 'string'
             },
-            example: {},
+            example: EnforcerRef('Example'),
             examples: {
                 type: 'object',
                 additionalProperties: EnforcerRef('Example')
@@ -110,17 +114,18 @@ exports.validator = data => {
     return result;
 };
 
-function extractSchemaDefinition(definition) {
-    const result = {};
+function extractSchemaDefinition(result, definition) {
     schemaProperties.forEach(key => {
         if (definition.hasOwnProperty(key)) {
             const value = definition[key];
-            if (Array.isArray(value)) {
-                result[key] = value.map(extractSchemaDefinition)
-            } else if (value && typeof value === 'object') {
-                result[key] = extractSchemaDefinition(value);
-            } else {
-                result[key] = value;
+            switch (key) {
+                case 'items':
+                    result[key] = extractSchemaDefinition({}, value);
+                    break;
+
+                default:
+                    result[key] = value;
+                    break;
             }
         }
     });
