@@ -219,7 +219,6 @@ function isPlainObject (value) {
 
     // check for modified constructor or no constructor
     const constructor = value.constructor;
-    if (constructor === undefined) return true;
     if (typeof constructor !== 'function') return false;
 
     // check for modified prototype
