@@ -217,8 +217,9 @@ function isObject(v) {
 function isPlainObject (value) {
     if (!isObject(value)) return false;
 
-    // check for modified constructor
+    // check for modified constructor or no constructor
     const constructor = value.constructor;
+    if (constructor === undefined) return true;
     if (typeof constructor !== 'function') return false;
 
     // check for modified prototype
