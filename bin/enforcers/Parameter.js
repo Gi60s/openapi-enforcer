@@ -246,8 +246,8 @@ module.exports = {
                     allowed: ({parent}) => ['query', 'formData'].includes(parent.definition.in),
                     type: 'boolean',
                     default: false,
-                    errors: ({warn, major}) => {
-                        if (major === 3) {
+                    errors: ({warn, major, usedDefault}) => {
+                        if (major === 3 && !usedDefault) {
                             warn.message('Per OAS 3.0.2: "Use of this property is NOT RECOMMENDED, as it is likely to be removed in a later revision."')
                         }
                     }
