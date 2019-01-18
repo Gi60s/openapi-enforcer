@@ -58,18 +58,31 @@ module.exports = {
          */
         getResponseContentTypeMatches: function (code, accepts) {
             const exception = new Exception('Unable to determine acceptable response content types');
-            const response = this.responses[code];
+            const response = this.responses[code] || this.responses.default;
             let matches;
             if (!response) {
                 exception.message('Invalid response code');
+                exception.code = 'NO_CODE';
             } else if (this.produces) {
-                matches = util.findMediaMatch(accepts, this.produces);
-                if (!matches.length) exception.message('Operation does not produce acceptable type');
+                if (this.produces.length) {
+                    matches = util.findMediaMatch(accepts, this.produces);
+                    if (!matches.length) {
+                        exception.message('Operation does not produce acceptable type');
+                        exception.code = 'NO_MATCH';
+                    }
+                } else {
+                    exception.message('Response mime types not defined');
+                    exception.code = 'NO_TYPES_SPECIFIED';
+                }
             } else if (response.content) {
                 matches = util.findMediaMatch(accepts, Object.keys(response.content));
-                if (!matches.length) exception.message('Operation does not produce acceptable type');
+                if (!matches.length) {
+                    exception.message('Operation does not produce acceptable type');
+                    exception.code = 'NO_MATCH';
+                }
             } else {
                 exception.message('Response mime types not defined');
+                exception.code = 'NO_TYPES_SPECIFIED';
             }
             return new Result(matches, exception);
         },
