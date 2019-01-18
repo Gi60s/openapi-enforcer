@@ -53,6 +53,7 @@ function childData(parent, key, validator) {
         result,
         root: parent.root,
         staticData: null,
+        usedDefault: false,
         validator,
         warn: parent.warn.at(key),
     };
@@ -184,6 +185,7 @@ function normalize (data) {
                     // set default value
                     if (data.definition === undefined && allowed && keyValidator.hasOwnProperty('default')) {
                         data.definition = fn(keyValidator.default, data);
+                        data.usedDefault = true;
                         data.parent.definition[key] = data.definition;
                         data.definitionType = util.getDefinitionType(data.definition);
                     }
