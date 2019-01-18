@@ -38,6 +38,7 @@ module.exports = {
         path: function (method, path) {
             const exception = Exception('Request has one or more errors');
             path = util.edgeSlashes(path.split('?')[0], true, false);
+            method = method.toLowerCase();
 
             // find the path that matches the request
             const pathMatch = this.paths.findMatch(path);
