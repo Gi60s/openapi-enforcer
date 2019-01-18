@@ -20,7 +20,27 @@ For OpenAPI 3.x.x, the response body's definition is based on a mime type. This 
 
 - *accepts* - The [HTTP Accept](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept) string to compare response mime types to.
 
-**Returns:** An array of strings for each response mime type that matches the accept string.
+**Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to array of strings for each response mime type that matches the accept string in closest match order, also taking accept quality into account.
+
+If [EnforcerResult](../enforcer-result.md) has an error that it can be one of three errors, each with a `code` property specified on the [exception object](../enforcer-exception.md):
+
+- *NO_CODE* - Indicates that the response code specified is not specifically defined and no default exists.
+
+- *NO_MATCH* - Indicates that a `produces` for OpenAPI v2 or a `content` for OpenAPI v3 exists, but none of their mime types are a match for the accept string passed in.
+
+- *NO_TYPES_SPECIFIED* - Indicates that there is no specified `produces` for OpenAPI v2 or a `content` for OpenAPI v3.
+
+```js
+const [ operation ] = Enforcer.v2_0.Operation({
+    produces: ['application/json', 'text/html', 'text/plain'],
+    responses: {
+        200: { description: '' }
+    }
+})
+const [ matches ] = operation.getResponseContentTypeMatches(200, 'text/*')
+
+console.log(matches)  // ['text/html', 'text/plain']
+```
 
 ### Operation.prototype.request
 
