@@ -64,43 +64,90 @@ describe('enforcer/operation', () => {
 
     });
 
-    describe.only('get response content type matches', () => {
+    describe('get response content type matches', () => {
 
         describe('v2', () => {
 
-            it('has no produces defined returns empty array', () => {
-                const operation = Enforcer.v2_0.Operation({
-
+            it('has no produces defined returns exception with code NO_TYPES_SPECIFIED', () => {
+                const [ operation ] = Enforcer.v2_0.Operation({
+                    responses: { 200: { description: '' }}
                 });
-                throw Error('TODO')
+                const [ , err ] = operation.getResponseContentTypeMatches(200, 'application/json');
+                expect(err.code).to.equal('NO_TYPES_SPECIFIED')
             });
 
             it('will pull produces from root if not specified in operation', () => {
-                throw Error('TODO')
+                const [ swagger ] = Enforcer.v2_0.Swagger({
+                    swagger: '2.0',
+                    info: { title: '', version: '' },
+                    produces: ['application/json', 'application/xml', 'text/html'],
+                    paths: {
+                        '/': {
+                            get: {
+                                responses: { 200: { description: '' } }
+                            }
+                        }
+                    }
+                });
+                const [ matches ] = swagger.paths['/'].get.getResponseContentTypeMatches(200, 'application/*');
+                expect(matches).to.deep.equal(['application/json', 'application/xml'])
             });
 
-            it('will produce an exception if produces are set but none matches accept', () => {
-                throw Error('TODO')
-            });
-
-            it('will select correct produces', () => {
-                throw Error('TODO')
+            it('will produce an exception with code NO_MATCH if produces are set but none matches accept', () => {
+                const [ operation ] = Enforcer.v2_0.Operation({
+                    produces: ['text/html'],
+                    responses: { 200: { description: '' }}
+                });
+                const [ , err ] = operation.getResponseContentTypeMatches(200, 'application/json');
+                expect(err.code).to.equal('NO_MATCH')
             });
 
         });
 
         describe('v3', () => {
 
-            it('has no content defined returns empty array', () => {
-                throw Error('TODO')
+            it('has no content defined returns exception with code NO_TYPES_SPECIFIED', () => {
+                const [ operation ] = Enforcer.v3_0.Operation({
+                    responses: {
+                        200: {
+                            description: ''
+                        }
+                    }
+                });
+                const [ , err ] = operation.getResponseContentTypeMatches(200, 'application/json');
+                expect(err.code).to.equal('NO_TYPES_SPECIFIED')
             });
 
-            it('will produce an exception if content is set but none matches accept', () => {
-                throw Error('TODO')
+            it('will produce an exception with code NO_MATCH if content is set but none matches accept', () => {
+                const [ operation ] = Enforcer.v3_0.Operation({
+                    responses: {
+                        200: {
+                            description: '',
+                            content: {
+                                'text/html': {}
+                            }
+                        }
+                    }
+                });
+                const [ , err ] = operation.getResponseContentTypeMatches(200, 'application/json');
+                expect(err.code).to.equal('NO_MATCH')
             });
 
             it('will select correct content', () => {
-                throw Error('TODO')
+                const [ operation ] = Enforcer.v3_0.Operation({
+                    responses: {
+                        200: {
+                            description: '',
+                            content: {
+                                'application/json': {},
+                                'application/xml': {},
+                                'text/html': {}
+                            }
+                        }
+                    }
+                });
+                const [ matches ] = operation.getResponseContentTypeMatches(200, 'application/*');
+                expect(matches).to.deep.equal(['application/json', 'application/xml'])
             });
 
         });
