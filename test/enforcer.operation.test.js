@@ -64,6 +64,48 @@ describe('enforcer/operation', () => {
 
     });
 
+    describe.only('get response content type matches', () => {
+
+        describe('v2', () => {
+
+            it('has no produces defined returns empty array', () => {
+                const operation = Enforcer.v2_0.Operation({
+
+                });
+                throw Error('TODO')
+            });
+
+            it('will pull produces from root if not specified in operation', () => {
+                throw Error('TODO')
+            });
+
+            it('will produce an exception if produces are set but none matches accept', () => {
+                throw Error('TODO')
+            });
+
+            it('will select correct produces', () => {
+                throw Error('TODO')
+            });
+
+        });
+
+        describe('v3', () => {
+
+            it('has no content defined returns empty array', () => {
+                throw Error('TODO')
+            });
+
+            it('will produce an exception if content is set but none matches accept', () => {
+                throw Error('TODO')
+            });
+
+            it('will select correct content', () => {
+                throw Error('TODO')
+            });
+
+        });
+    });
+
     describe('request', () => {
         const arrSchema = { type: 'array', items: { type: 'number' } };
         const arrStrSchema = { type: 'array', items: { type: 'string' } };
