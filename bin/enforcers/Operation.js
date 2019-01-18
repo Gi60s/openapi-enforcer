@@ -27,7 +27,7 @@ const requestBodyAllowedMethods = { post: true, put: true, options: true, head: 
 
 module.exports = {
     init: function (data) {
-        const { parent, plugins } = data;
+        const { major, parent, plugins, root } = data;
 
         plugins.push(() => {
             if (!this.parameters) this.parameters = [];
@@ -45,6 +45,11 @@ module.exports = {
                     this.allParameters.push(atMap[name]);
                 });
             });
+
+            // if this doesn't have produces but root does then this has root produces
+            if (major === 2 && !this.produces && root.result.produces) {
+                this.produces = root.result.produces
+            }
         });
     },
 
@@ -64,15 +69,10 @@ module.exports = {
                 exception.message('Invalid response code');
                 exception.code = 'NO_CODE';
             } else if (this.produces) {
-                if (this.produces.length) {
-                    matches = util.findMediaMatch(accepts, this.produces);
-                    if (!matches.length) {
-                        exception.message('Operation does not produce acceptable type');
-                        exception.code = 'NO_MATCH';
-                    }
-                } else {
-                    exception.message('Response mime types not defined');
-                    exception.code = 'NO_TYPES_SPECIFIED';
+                matches = util.findMediaMatch(accepts, this.produces);
+                if (!matches.length) {
+                    exception.message('Operation does not produce acceptable type');
+                    exception.code = 'NO_MATCH';
                 }
             } else if (response.content) {
                 matches = util.findMediaMatch(accepts, Object.keys(response.content));
