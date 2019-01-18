@@ -488,16 +488,16 @@ describe('enforcer/parameter', () => {
             expect(err).to.match(/Value must be true/);
         });
 
-        it('defaults to true for path ', () => {
-            const [ param ] = Enforcer.v2_0.Parameter({
+        it('is required for path ', () => {
+            const [ , err ] = Enforcer.v2_0.Parameter({
                 type: 'string',
                 name: 'hi',
                 in: 'path'
             });
-            expect(param.required).to.equal(true);
+            expect(err).to.match(/Missing required property: required/);
         });
 
-        it('is optional for non path', () => {
+        it('is optional for non path and defaults to false', () => {
             const [ def ] = Enforcer.v2_0.Parameter({
                 type: 'string',
                 name: 'hi',

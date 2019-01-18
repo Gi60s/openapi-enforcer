@@ -33,6 +33,9 @@ module.exports = {
             warn.message('Header names are case insensitive and their lower case equivalent will be used');
         }
 
+        // set default values for any non path parameters
+        if (!this.hasOwnProperty('required') && this.in !== 'path') this.required = false
+
         // v2 - set schema for non-body parameters from schema-like attributes
         if (major === 2 && definition.in !== 'body') {
 
@@ -310,7 +313,8 @@ module.exports = {
                 required: {
                     required: ({parent}) => parent.definition.in === 'path',
                     type: 'boolean',
-                    default: ({parent}) => parent.definition.in === 'path',
+                    // default: ({parent}) => parent.definition.in === 'path',
+                    // default: false,
                     enum: ({parent}) => parent.definition.in === 'path' ? [true] : [true, false]
                 },
                 schema: EnforcerRef('Schema', {
