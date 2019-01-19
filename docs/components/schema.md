@@ -18,7 +18,7 @@
 
 - Static Methods
 
-    - [Schema.defineDataFormat()](#schemadefinedataformat)
+    - [Schema.defineDataTypeFormat()](#schemadefinedatatypeformat)
 
     - [Schema.extractValue()](#schemaextractvalue)
 
@@ -277,7 +277,7 @@ console.log(err)
 //   Expected a string. Received: 123
 ```
 
-### Schema.defineDataFormat
+### Schema.defineDataTypeFormat
 
 This is a static method that is used to define custom data formats, their serialization and deserialization, and their validation.
 
@@ -325,7 +325,7 @@ class Decimal {
 
 // define a "decimal" format
 const Schema = require('openapi-enforcer').v3_0.Schema
-Schema.defineDataFormat('string', 'decimal', {
+Schema.defineDataTypeFormat('string', 'decimal', {
     // define how to deserialize a value
     deserialize: (exception, value) => new Decimal(value),
 
