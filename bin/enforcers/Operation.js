@@ -95,7 +95,7 @@ module.exports = {
          * @param {object} [request.path={}] The path and query string
          * @param {string} [request.query=''] The request query string.
          * @param {object} [options]
-         * @param {boolean} [options.allowOtherQueryParameters=false] Allow query parameter data that is not specified in the OAS document
+         * @param {boolean,string[]} [options.allowOtherQueryParameters=false] Allow query parameter data that is not specified in the OAS document
          * @param {Object<string,string>} [options.pathParametersValueMap] A map of the already parsed out path parameters.
          */
         request: function (request, options) {
@@ -114,6 +114,19 @@ module.exports = {
             if (options && typeof options !== 'object') throw Error('Invalid options. Expected an object. Received: ' + options);
             options = Object.assign({}, options);
             if (!options.hasOwnProperty('allowOtherQueryParameters')) options.allowOtherQueryParameters = false;
+            if (options.allowOtherQueryParameters) {
+                if (Array.isArray(options.allowOtherQueryParameters)) {
+                    if (options.allowOtherQueryParameters.length === 0) {
+                        options.allowOtherQueryParameters = false;
+                    } else {
+                        options.allowOtherQueryParameters.forEach(item => {
+                            if (typeof item !== 'string') throw Error('Invalid option allowOtherQueryParameters. The value must be a boolean or an array of strings.')
+                        })
+                    }
+                } else if (typeof options.allowOtherQueryParameters !== 'boolean') {
+                    throw Error('Invalid option allowOtherQueryParameters. The value must be a boolean or an array of strings.'
+                }
+            }
 
             // build request objects
             const req = {
@@ -145,6 +158,8 @@ module.exports = {
             const inArray = ['cookie', 'header', 'path', 'query'];
             if (parameters.formData) inArray.push('formData');
             inArray.forEach(at => {
+                working here - allowOtherQueryParameters can specify which other parameters to allow
+
                 const isFormData = at === 'formData';
                 const allowUnknownParameters = at === 'cookie' || at === 'header' || (at === 'query' && options.allowOtherQueryParameters);
                 const child = isFormData ? exception.nest('In body') : exception.nest('In ' + at + ' parameters');
