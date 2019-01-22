@@ -671,6 +671,17 @@ describe('enforcer/operation', () => {
                 expect(err).to.match(/Received unexpected parameter: x/);
             });
 
+            it('does allow non defined parameter when specified as a value in allowOtherQueryParameters array', () => {
+                const def = {
+                    parameters: [],
+                    responses: { 200: { description: '' } }
+                };
+                const [ operation ] = Enforcer.v2_0.Operation(def);
+                const [ , err ] = operation.request({ query: 'x=1&y=2&z=3' }, { allowOtherQueryParameters: ['x', 'y'] });
+                expect(err.count).to.equal(1);
+                expect(err).to.match(/Received unexpected parameter: z/);
+            });
+
             it('allows empty value if specified to allow in document', () => {
                 const def = {
                     parameters: [{ name: 'color', in: 'query', type: 'string', allowEmptyValue: true }],
