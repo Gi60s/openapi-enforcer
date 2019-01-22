@@ -160,12 +160,11 @@ module.exports = {
             inArray.forEach(at => {
 
                 const isFormData = at === 'formData';
-                const allowUnknownParameters = at === 'cookie' || at === 'header' || (at === 'query' && options.allowOtherQueryParameters);
                 const child = isFormData ? exception.nest('In body') : exception.nest('In ' + at + ' parameters');
                 const reqKey = isFormData ? 'body' : at;
                 const input = req[reqKey] || {};
                 const missingRequired = [];
-
+                const potentialCausesForUnknownParameters = [];
                 const unknownParameters = (() => {
                     if (at === 'cookie' || at === 'header') return [];
                     const keys = Object.keys(input);
@@ -176,9 +175,6 @@ module.exports = {
                     }
                     return keys;
                 })();
-
-                // const unknownParameters = allowUnknownParameters ? [] : Object.keys(input);
-                const potentialCausesForUnknownParameters = [];
 
                 if (parameters[at]) {
                     const output = {};
