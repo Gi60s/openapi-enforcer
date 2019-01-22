@@ -62,7 +62,7 @@ Parse and validate an incoming request.
 
 - *options*- An `object`
 
-  - *allowOtherQueryParameters* - A `boolean` that indicates whether query parameters that are not specified in the OAS definition should be allowed. Defaults to `false`.
+  - *allowOtherQueryParameters* - A `boolean` or an array of `string` values that indicates whether query parameters that are not specified in the OAS definition should be allowed. If an array of `string` values is provided then the `string` values provided will be allowed. Defaults to `false`.
 
   - *pathParametersValueMap* - An `object` map containing already deserialized path parameters. Used internally for performance optimization. Defaults to `{}`.
 
