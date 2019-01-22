@@ -124,7 +124,7 @@ module.exports = {
                         })
                     }
                 } else if (typeof options.allowOtherQueryParameters !== 'boolean') {
-                    throw Error('Invalid option allowOtherQueryParameters. The value must be a boolean or an array of strings.'
+                    throw Error('Invalid option allowOtherQueryParameters. The value must be a boolean or an array of strings.');
                 }
             }
 
@@ -158,7 +158,6 @@ module.exports = {
             const inArray = ['cookie', 'header', 'path', 'query'];
             if (parameters.formData) inArray.push('formData');
             inArray.forEach(at => {
-                working here - allowOtherQueryParameters can specify which other parameters to allow
 
                 const isFormData = at === 'formData';
                 const allowUnknownParameters = at === 'cookie' || at === 'header' || (at === 'query' && options.allowOtherQueryParameters);
@@ -166,7 +165,19 @@ module.exports = {
                 const reqKey = isFormData ? 'body' : at;
                 const input = req[reqKey] || {};
                 const missingRequired = [];
-                const unknownParameters = allowUnknownParameters ? [] : Object.keys(input);
+
+                const unknownParameters = (() => {
+                    if (at === 'cookie' || at === 'header') return [];
+                    const keys = Object.keys(input);
+                    if (at === 'query') {
+                        const allowed = options.allowOtherQueryParameters;
+                        if (Array.isArray(allowed)) return keys.filter(item => !allowed.includes(item));
+                        return allowed ? [] : keys;
+                    }
+                    return keys;
+                })();
+
+                // const unknownParameters = allowUnknownParameters ? [] : Object.keys(input);
                 const potentialCausesForUnknownParameters = [];
 
                 if (parameters[at]) {
