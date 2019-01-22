@@ -71,7 +71,7 @@ module.exports = {
          * @param {string} [request.method='get']
          * @param {string} [request.path='/']
          * @param {object} [options]
-         * @param {boolean} [options.allowOtherQueryParameters=false] Allow query parameter data that is not specified in the OAS document
+         * @param {boolean,string[]} [options.allowOtherQueryParameters=false] Allow query parameter data that is not specified in the OAS document
          * @returns {EnforcerResult<{ body:*, cookie:object, headers:object, operation: Operation, path:object, query:object, response:function }>}
          */
         request: function (request, options) {
