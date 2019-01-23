@@ -258,7 +258,7 @@ module.exports = {
 
                 // v3 requestBody
                 } else if (this.requestBody) {
-                    const contentType = req.header['content-type'] || '*/*';
+                    const contentType = req.header.hasOwnProperty('content-type') ? req.header['content-type'].split(';')[0].trim() : '*/*';
                     const content = this.requestBody.content;
                     const mediaTypes = Object.keys(content);
                     const matches = util.findMediaMatch(contentType, mediaTypes);
@@ -342,7 +342,7 @@ module.exports = {
                             const definedTypes = Object.keys(content);
                             let contentType;
                             if (headers.hasOwnProperty('content-type')) {
-                                const type = headers['content-type'];
+                                const type = headers['content-type'].split(';')[0].trim();
                                 if (content.hasOwnProperty(type)) {
                                     contentType = type;
                                 } else {
