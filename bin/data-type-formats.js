@@ -209,7 +209,7 @@ exports.dateTime = {
 };
 
 function randomBuffer (divider) {
-    return function (schema, { randomNumber }) {
+    return function ({ schema }, { randomNumber }) {
         const hasMin = schema.hasOwnProperty('minLength');
         const hasMax = schema.hasOwnProperty('maxLength');
 
@@ -235,7 +235,7 @@ function randomBuffer (divider) {
     }
 }
 
-function randomDate(schema, { randomNumber }) {
+function randomDate({ schema }, { randomNumber }) {
     const fiveYears = 157248000000; // 5 years in milliseconds
     const hasMin = schema.hasOwnProperty('minimum');
     const hasMax = schema.hasOwnProperty('maximum');

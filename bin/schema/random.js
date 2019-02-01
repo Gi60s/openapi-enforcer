@@ -137,7 +137,7 @@ function runRandom(exception, warn, map, schema, parent, property, options, dept
         const dataType = dataTypes[schema.type][schema.format] || null;
 
         if (dataType) {
-            parent[property] = dataType.random(schema, { chooseOne, randomNumber, randomText });
+            parent[property] = dataType.random({ exception, schema }, { chooseOne, randomNumber, randomText });
 
         } else if (type === 'boolean') {
             parent[property] = chooseOne([true, false]);

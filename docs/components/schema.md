@@ -289,15 +289,15 @@ This is a static method that is used to define custom data formats, their serial
 
 - *configuration* [`object`] - An object defining how to serialize, deserialize, validate, etc.
 
-    - *deserialize* [`function`] - The function to call to deserialize the value. It receives two parameters: `exception` for reporting errors and `value` which contains the serialized value. This function should return the deserialized value. Within the function `this` is the schema instance.
+    - *deserialize* [`function`] - The function to call to deserialize the value. It receives one parameter, an object, with properties `exception`, `schema`, and `value` which contains the serialized value. This function should return the deserialized value.
     
     - *isNumeric* [`boolean`] - If this value is numeric then it allows the schema properties `maximum`, `minimum`, `exclusiveMaximum`, `exclusiveMinimum`, and `multipleOf`. Defaults to `true` if the type is `integer` or `number`, otherwise `false`.
 
-    - *random* [`function`] - The function to call to generate a random deserialized value. It receives one parameter, `exception` for reporting errors. The function should return the deserialized value. Within the function `this` is the schema instance.
+    - *random* [`function`] - The function to call to generate a random deserialized value. It receives one parameter, an object, with properties `exception` and `schema`. The function should return the deserialized value.
 
-    - *serialize* [`function`] - The function to call to serialize the value. It receives two parameters: `exception` for reporting errors and `value` which contains the deserialized value. This function should return the serialized value. Within the function `this` is the schema instance.
+    - *serialize* [`function`] - The function to call to serialize the value. It receives one parameter, an object, with properties `exception`, `schema`, and `value` which contains the deserialized value. This function should return the serialized value.
 
-    - *validate* [`function`] - The function to call to validate the deserialized value. It receives two parameters: `exception` for reporting errors and `value` which contains the deserialized value. This function does not need to return anything.
+    - *validate* [`function`] - The function to call to validate the deserialized value. It receives one parameter, and object, with the properties `exception`, `schema`, and `value` which contains the deserialized value. This function does not need to return anything and can report errors via the `exception` object.
 
 **Returns:** `undefined`.
 
