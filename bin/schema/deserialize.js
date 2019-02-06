@@ -99,7 +99,7 @@ function runDeserialize(exception, map, schema, originalValue) {
         const dataType = dataTypes[schema.type][schema.format] || null;
 
         if (type === 'boolean') {
-            if (dataType) {
+            if (dataType && dataType.deserialize) {
                 return dataType.deserialize({
                     exception,
                     schema,
@@ -112,7 +112,7 @@ function runDeserialize(exception, map, schema, originalValue) {
             }
 
         } else if (type === 'integer') {
-            if (dataType) {
+            if (dataType && dataType.deserialize) {
                 return dataType.deserialize({
                     exception,
                     schema,
@@ -125,7 +125,7 @@ function runDeserialize(exception, map, schema, originalValue) {
             }
 
         } else if (type === 'number') {
-            if (dataType) {
+            if (dataType && dataType.deserialize) {
                 return dataType.deserialize({
                     exception,
                     schema,
@@ -138,7 +138,7 @@ function runDeserialize(exception, map, schema, originalValue) {
             }
 
         } else if (type === 'string') {
-            if (dataType) {
+            if (dataType && dataType.deserialize) {
                 return dataType.deserialize({
                     exception,
                     schema,

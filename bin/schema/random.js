@@ -136,7 +136,7 @@ function runRandom(exception, warn, map, schema, parent, property, options, dept
         const dataTypes = schema.enforcerData.staticData.dataTypes;
         const dataType = dataTypes[schema.type][schema.format] || null;
 
-        if (dataType) {
+        if (dataType && dataType.random) {
             parent[property] = dataType.random({ exception, schema }, { chooseOne, randomNumber, randomText });
 
         } else if (type === 'boolean') {
