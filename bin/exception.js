@@ -45,6 +45,10 @@ EnforcerException.prototype.at = function (key) {
     return at[key];
 };
 
+EnforcerException.prototype.clearCache = function () {
+    return this;
+};
+
 EnforcerException.prototype[inspect] = function () {
     if (this.hasException) {
         return '[ EnforcerException: ' + toString(this, null, '  ') + ' ]';
