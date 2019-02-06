@@ -45,10 +45,6 @@ EnforcerException.prototype.at = function (key) {
     return at[key];
 };
 
-EnforcerException.prototype.clearCache = function () {
-    return this;
-};
-
 EnforcerException.prototype[inspect] = function () {
     if (this.hasException) {
         return '[ EnforcerException: ' + toString(this, null, '  ') + ' ]';
@@ -121,8 +117,6 @@ Object.defineProperties(EnforcerException.prototype, {
 
     hasException: {
         get: function () {
-            if (!this.cache) this.cache = {};
-
             const children = this.children;
 
             if (children.message.length) {
@@ -142,8 +136,6 @@ Object.defineProperties(EnforcerException.prototype, {
                 const length2 = keys.length;
                 for (let i = 0; i < length2; i++) {
                     if (children.at[keys[i]].hasException) {
-                        // cache.hasException = true;
-                        // break;
                         return true
                     }
                 }
