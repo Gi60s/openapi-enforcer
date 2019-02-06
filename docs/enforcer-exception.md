@@ -144,6 +144,8 @@ console.log(exception)
 
 ### EnforcerException.prototype.clearCache
 
+**This method has been deprecated due to caching being disabled.**
+
 You probably won't need to call this method as it is used internally, but if you care to know more then keep reading.
 
 Several properties are cached when creating, modifying, and reading EnforcerException instances. Obviously this is for performance enhancements, but caching can lead to stale data. Whenever a modification is made to an EnforcerException instance it clears it's own cache and notifies its parent EnforcerException objects. (That plural indicator is not a typo, an EnforcerException instance may have several parents.)
