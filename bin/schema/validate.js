@@ -221,11 +221,11 @@ function runValidate(exception, map, schema, originalValue, options) {
             } else {
                 const length = value.length;
                 if (schema.hasOwnProperty('maxLength') && length > schema.maxLength) {
-                    exception.message('String too long. ' + util.smart(value) + ' (' + length + ') exceeds maximum length of ' + schema.maxLength);
+                    exception.message('String too long. ' + util.smart(value) + ' (' + length + ') above maximum length of ' + schema.maxLength);
                 }
 
                 if (schema.hasOwnProperty('minLength') && length < schema.minLength) {
-                    exception.message('String too short. ' + util.smart(value) + ' (' + length + ') exceeds minimum length of ' + schema.minLength);
+                    exception.message('String too short. ' + util.smart(value) + ' (' + length + ') below minimum length of ' + schema.minLength);
                 }
 
                 if (schema.hasOwnProperty('pattern') && !schema.pattern.test(value)) {
