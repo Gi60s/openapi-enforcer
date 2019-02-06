@@ -44,6 +44,9 @@ exports.validator = data => {
                 default: 'csv'
             },
             default: { allowed: true },
+            description: {
+                type: 'string'
+            },
             enum: {
                 allowed: true,
                 type: 'array',
