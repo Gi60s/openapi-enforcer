@@ -47,12 +47,9 @@ const definition = {
 Enforcer(definition)
     .catch(err => {
         console.error(err)
-        // Error: One or more errors exist in the OpenApi definition
-        //   at: paths
-        //     at: /person/{id}
-        //       Path parameter definitions inconsistent
-        //         at: get
-        //           Definition missing path parameters: id
+        // One or more warnings exist in the OpenApi definition
+        //   at: paths > /person/{id}
+        //     No methods defined
     })
 ```
 
