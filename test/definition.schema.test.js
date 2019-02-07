@@ -352,6 +352,24 @@ describe('enforcer/schema', () => {
                 expect(err).to.match(/Expected number to be less than or equal to 5/)
             });
 
+            it('can allow null if x-nullable', () => {
+                const [, err] = Enforcer.v2_0.Schema({
+                    type: 'string',
+                    'x-nullable': true,
+                    default: null
+                });
+                expect(err).to.be.undefined;
+            });
+
+            it('can allow null if nullable', () => {
+                const [, err] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    nullable: true,
+                    default: null
+                });
+                expect(err).to.be.undefined;
+            });
+
         });
 
         describe('deprecated', () => {
@@ -636,6 +654,33 @@ describe('enforcer/schema', () => {
 
             });
 
+            it('can allow null if x-nullable', () => {
+                const [, err] = Enforcer.v2_0.Schema({
+                    type: 'string',
+                    'x-nullable': true,
+                    enum: ['a', 'b', null]
+                });
+                console.log(err)
+                expect(err).to.be.undefined;
+            });
+
+            it('can allow null if nullable', () => {
+                const [, err] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    nullable: true,
+                    enum: ['a', 'b', null]
+                });
+                expect(err).to.be.undefined;
+            });
+
+            it('cannot allow null if not nullable and not x-nullable', () => {
+                const [, err] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    enum: ['a', 'b', null]
+                });
+                expect(err).to.match(/Value must be a string. Received: null/);
+            });
+
         });
 
         describe('example', () => {
@@ -904,6 +949,20 @@ describe('enforcer/schema', () => {
 
         });
 
+        describe('nullable', () => {
+
+            it('is not allowed for v2', () => {
+                const [ , err ] = Enforcer.v2_0.Schema({ type: 'string', nullable: true });
+                expect(err).to.match(/Property not allowed: nullable/);
+            });
+
+            it('is allowed for v3', () => {
+                const [ , err ] = Enforcer.v3_0.Schema({ type: 'string', nullable: true });
+                expect(err).to.be.undefined;
+            });
+
+        });
+
         describe('oneOf', () => {
 
             it('is not allowed for v2', () => {
@@ -1134,6 +1193,19 @@ describe('enforcer/schema', () => {
     });
 
     describe('deserialize', () => {
+
+        describe('nullable', () => {
+
+            it('skips deserialization for null nullable values', () => {
+                const [schema] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    nullable: true
+                });
+                const [value] = schema.deserialize(null);
+                expect(value).to.equal(null);
+            });
+
+        });
 
         describe('array', () => {
 
@@ -2264,6 +2336,19 @@ describe('enforcer/schema', () => {
 
     describe('serialize', () => {
 
+        describe('nullable', () => {
+
+            it('skips serialization for null nullable values', () => {
+                const [schema] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    nullable: true
+                });
+                const [value] = schema.serialize(null);
+                expect(value).to.equal(null);
+            });
+
+        });
+
         describe('array', () => {
 
             it('serializes each item in the array', () => {
@@ -2700,6 +2785,19 @@ describe('enforcer/schema', () => {
     });
 
     describe('validate', () => {
+
+        describe('nullable', () => {
+
+            it('skips validation for null nullable values', () => {
+                const [schema] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    nullable: true
+                });
+                const errors = schema.validate(null);
+                expect(errors).to.be.undefined;
+            });
+
+        });
 
         describe('array', () => {
             const base = { type: 'array', items: { type: 'number' } };
