@@ -222,6 +222,7 @@ function normalize (data) {
         } else if (!freeForm) {
             switch (definitionType) {
                 case 'boolean':
+                case 'null':
                 case 'number':
                 case 'string':
                     data.result = definition;
@@ -295,7 +296,8 @@ function runChildValidator(data) {
 }
 
 function validateType(definitionType, data) {
-    const { definition, exception, validator } = data;
+    const { definition, exception } = data;
+    const validator = fn(data.validator, data);
     if (validator.type && definition !== undefined) {
         // get valid types
         let matches = fn(validator.type, data);
