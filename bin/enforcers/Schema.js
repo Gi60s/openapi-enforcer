@@ -339,7 +339,12 @@ module.exports = {
                     items: EnforcerRef('Schema')
                 },
                 default: {
-                    type: ({ parent }) => parent.definition.type
+                    type: ({ parent }) => {
+                        const def = parent.definition;
+                        const types = [ def.type ];
+                        if (def.nullable === true || def['x-nullable'] === true) types.push('null')
+                        return types;
+                    }
                 },
                 deprecated: {
                     allowed: ({major}) => major === 3,
@@ -419,7 +424,12 @@ module.exports = {
                     type: 'array',
                     items: {
                         allowed: ({ parent }) => !!(parent && parent.parent),
-                        type: ({ parent }) => parent.parent.definition.type,
+                        type: ({ parent }) => {
+                            const def = parent.parent.definition;
+                            const types = [ def.type ];
+                            if (def.nullable === true || def['x-nullable'] === true) types.push('null')
+                            return types;
+                        },
                         freeForm: true
                     }
                 },
