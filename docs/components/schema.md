@@ -1,5 +1,9 @@
 # Schema
 
+**Nullable Values**
+
+The Open API Specification v2 does not allow for nullable values in schemas, but to accommodate for that need a property `x-nullable` can be defined on any schema to allow the `null` value.
+
 ## API
 
 - Instance Methods
