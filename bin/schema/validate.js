@@ -40,7 +40,7 @@ function runValidate(exception, map, schema, originalValue, options) {
     }
 
     // if nullable and null then skip all other validation
-    if (schema.nullable && value === null) return;
+    if (value === null && (schema.nullable || schema['x-nullable'])) return;
 
     if (schema.allOf) {
         const child = exception.nest('Did not validate against all schemas');

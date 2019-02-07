@@ -37,6 +37,8 @@ function runSerialize(exception, map, schema, originalValue) {
         }
     }
 
+    if (value === null && (schema.nullable || schema['x-nullable'])) return value;
+
     if (schema.allOf) {
         const result = {};
         const allOfException = exception.nest('Unable to serialize allOf');

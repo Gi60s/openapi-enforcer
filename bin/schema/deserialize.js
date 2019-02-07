@@ -37,6 +37,8 @@ function runDeserialize(exception, map, schema, originalValue) {
         }
     }
 
+    if (value === null && (schema.nullable || schema['x-nullable'])) return value;
+
     if (schema.allOf) {
         const result = {};
         const exception2 = exception.at('allOf');
