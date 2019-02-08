@@ -18,11 +18,11 @@
 const expect = require('chai').expect;
 const Enforcer = require('../');
 
-describe.only('security definitions', () => {
+describe('security definitions', () => {
 
     describe('v2', () => {
 
-        it('works', () => {
+        it('can have a valid security definition', () => {
             const def = {
                 swagger: '2.0',
                 info: { title: '', version: '' },
