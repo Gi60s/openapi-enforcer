@@ -66,7 +66,7 @@ module.exports = {
                                     }
 
                                     definition.forEach(scope => {
-                                        if (scopes.includes(scope)) {
+                                        if (!scopes.includes(scope)) {
                                             const name = major === 2 ? 'securityDefinitions' : 'securitySchemes';
                                             exception.at(key).message('Oauth2 scope not defined in ' + name);
                                         }
