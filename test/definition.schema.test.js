@@ -669,7 +669,6 @@ describe('enforcer/schema', () => {
                     'x-nullable': true,
                     enum: ['a', 'b', null]
                 });
-                console.log(err)
                 expect(err).to.be.undefined;
             });
 
