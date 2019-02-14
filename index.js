@@ -139,6 +139,11 @@ Object.assign(v3_0, {
     Xml: Super(v3_0, 'Xml')
 });
 
+Object.defineProperty(Enforcer, 'version', {
+    configurable: false,
+    value: require('./package.json').version
+});
+
 Enforcer.v2_0.Schema.defineDataTypeFormat('integer', 'int32', null);
 Enforcer.v2_0.Schema.defineDataTypeFormat('integer', 'int64', null);
 Enforcer.v2_0.Schema.defineDataTypeFormat('number', 'float', null);
