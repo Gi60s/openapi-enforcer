@@ -701,6 +701,21 @@ describe('enforcer/schema', () => {
                 expect(err).to.be.undefined;
             });
 
+            it('can be a nested object', () => {
+                const [ , err, warning ] = Enforcer.v2_0.Schema({
+                    type: "object",
+                    required: [ "x" ],
+                    properties: {
+                        x: { type: "object" }
+                    },
+                    default: {
+                        x: {}
+                    }
+                });
+                expect(err).to.be.undefined;
+                expect(warning).to.be.undefined;
+            });
+
             it('warns of invalid value', () => {
                 const [ , , warning ] = Enforcer.v2_0.Schema({
                     type: 'object',

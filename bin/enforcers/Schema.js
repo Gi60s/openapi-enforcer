@@ -339,10 +339,11 @@ module.exports = {
                     items: EnforcerRef('Schema')
                 },
                 default: {
+                    freeForm: true,
                     type: ({ parent }) => {
                         const def = parent.definition;
                         const types = [ def.type ];
-                        if (def.nullable === true || def['x-nullable'] === true) types.push('null')
+                        if (def.nullable === true || def['x-nullable'] === true) types.push('null');
                         return types;
                     }
                 },
