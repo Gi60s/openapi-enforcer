@@ -22,8 +22,8 @@ describe('definition/response', () => {
 
     describe('v2', () => {
 
-        it('will warn of invalid example', () => {
-            const [ res, err, warn ] = Enforcer.v2_0.Response({
+        it('will produce an exception for an invalid example', () => {
+            const [ , err ] = Enforcer.v2_0.Response({
                 description: '',
                 schema: {
                     type: 'object',
@@ -39,8 +39,29 @@ describe('definition/response', () => {
                     }
                 }
             });
-            expect(warn).to.match(/Expected a number. Received: "1"/)
+            expect(err).to.match(/Expected a number. Received: "1"/)
         });
+
+        it('will allow a valid example', () => {
+            const [ res ] = Enforcer.v2_0.Response({
+                description: '',
+                schema: {
+                    type: 'object',
+                    properties: {
+                        a: { type: 'number' },
+                        b: { type: 'string' }
+                    }
+                },
+                examples: {
+                    'application/json': {
+                        a: 1,
+                        b: '2'
+                    }
+                }
+            });
+            expect(res).not.to.be.undefined
+        });
+
     });
 
 });

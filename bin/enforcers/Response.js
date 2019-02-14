@@ -23,7 +23,7 @@ const rxLinkName = /^[a-zA-Z0-9.\-_]+$/;
 
 module.exports = {
     init: function (data) {
-        const { warn } = data;
+        const { exception } = data;
 
         if (this.hasOwnProperty('examples') && this.hasOwnProperty('schema')) {
             Object.keys(this.examples)
@@ -33,7 +33,7 @@ module.exports = {
                     const example = this.examples[contentType];
                     [ value, error ] = this.schema.deserialize(example);
                     if (!error) error = this.schema.validate(example);
-                    if (error) warn.push(error);
+                    if (error) exception.at(contentType).push(error);
                     Object.defineProperty(this.examples, contentType, {
                         configurable: true,
                         enumerable: true,
