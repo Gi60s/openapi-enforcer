@@ -21,7 +21,7 @@ const expect        = require('chai').expect;
 const util          = require('../bin/util');
 const Value         = require('../bin/schema/value');
 
-describe('enforcer/schema', () => {
+describe('definition/schema', () => {
     const schemas = {
         Cat: {
             type: 'object',
