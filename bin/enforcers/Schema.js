@@ -26,6 +26,7 @@ const runValidate       = require('../schema/validate');
 const util              = require('../util');
 const Value             = require('../schema/value');
 
+const freeze = util.freeze;
 const rxHttp = /^https?:\/\//;
 const populateInjectors = {
     colon: buildInjector(() => /:([_$a-z][_$a-z0-9]*)/ig),
@@ -634,10 +635,6 @@ function buildInjector(rxGenerator) {
     };
 }
 
-function dateIsFrozen() {
-    throw Error('Date object cannot be modified');
-}
-
 function deserializeAndValidate(schema, exception, value, options) {
     let error;
     [ value, error ] = schema.deserialize(value);
@@ -647,30 +644,6 @@ function deserializeAndValidate(schema, exception, value, options) {
         if (exception.hasException) error = exception;
     }
     if (error) exception.push(error);
-    return value;
-}
-
-function freeze (value) {
-    if (!value || typeof value !== 'object') return value;
-    if (value instanceof Date) {
-        value.setDate = dateIsFrozen;
-        value.setFullYear= dateIsFrozen;
-        value.setHours= dateIsFrozen;
-        value.setMilliseconds= dateIsFrozen;
-        value.setMinutes= dateIsFrozen;
-        value.setMonth= dateIsFrozen;
-        value.setSeconds= dateIsFrozen;
-        value.setTime= dateIsFrozen;
-        value.setUTCDate= dateIsFrozen;
-        value.setUTCFullYear= dateIsFrozen;
-        value.setUTCHours= dateIsFrozen;
-        value.setUTCMilliseconds= dateIsFrozen;
-        value.setUTCMinutes= dateIsFrozen;
-        value.setUTCMonth= dateIsFrozen;
-        value.setUTCSeconds= dateIsFrozen;
-        value.setYear= dateIsFrozen;
-    }
-    Object.freeze(value);
     return value;
 }
 

@@ -32,6 +32,7 @@ module.exports = {
     },
     edgeSlashes,
     findMediaMatch,
+    freeze,
     getDateFromValidDateString,
     getDefinitionType,
     isDate,
@@ -89,6 +90,10 @@ function copy(map, value) {
     } else {
         return value;
     }
+}
+
+function dateIsFrozen() {
+    throw Error('Date object cannot be modified');
 }
 
 function edgeSlashes (value, start, end) {
@@ -168,6 +173,30 @@ function findMediaMatch(input, store) {
     });
 
     return unique;
+}
+
+function freeze (value) {
+    if (!value || typeof value !== 'object') return value;
+    if (value instanceof Date) {
+        value.setDate = dateIsFrozen;
+        value.setFullYear= dateIsFrozen;
+        value.setHours= dateIsFrozen;
+        value.setMilliseconds= dateIsFrozen;
+        value.setMinutes= dateIsFrozen;
+        value.setMonth= dateIsFrozen;
+        value.setSeconds= dateIsFrozen;
+        value.setTime= dateIsFrozen;
+        value.setUTCDate= dateIsFrozen;
+        value.setUTCFullYear= dateIsFrozen;
+        value.setUTCHours= dateIsFrozen;
+        value.setUTCMilliseconds= dateIsFrozen;
+        value.setUTCMinutes= dateIsFrozen;
+        value.setUTCMonth= dateIsFrozen;
+        value.setUTCSeconds= dateIsFrozen;
+        value.setYear= dateIsFrozen;
+    }
+    Object.freeze(value);
+    return value;
 }
 
 function getDateFromValidDateString (format, string) {
