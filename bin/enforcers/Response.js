@@ -16,13 +16,31 @@
  **/
 'use strict';
 const EnforcerRef  = require('../enforcer-ref');
+const { freeze } = require('../util');
 
 const rxContentType = /^content-type$/i;
 const rxLinkName = /^[a-zA-Z0-9.\-_]+$/;
 
 module.exports = {
     init: function (data) {
+        const { warn } = data;
 
+        if (this.hasOwnProperty('examples') && this.hasOwnProperty('schema')) {
+            Object.keys(this.examples)
+                .forEach(contentType => {
+                    let value;
+                    let error;
+                    const example = this.examples[contentType];
+                    [ value, error ] = this.schema.deserialize(example);
+                    if (!error) error = this.schema.validate(example);
+                    if (error) warn.push(error);
+                    Object.defineProperty(this.examples, contentType, {
+                        configurable: true,
+                        enumerable: true,
+                        value: freeze(value)
+                    });
+                });
+        }
     },
 
     prototype: {},
@@ -48,7 +66,9 @@ module.exports = {
                 examples: {
                     allowed: major === 2,
                     type: 'object',
-                    additionalProperties: true
+                    additionalProperties: {
+                        freeForm: true
+                    }
                 },
                 headers: {
                     type: 'object',
