@@ -1798,6 +1798,12 @@ describe('definition/schema', () => {
             ]);
         });
 
+        it('can populate a date', () => {
+            const [ schema ] = Enforcer.v2_0.Schema({ type: 'string', format: 'date', 'x-variable': 'myDate' });
+            const [ value ] = schema.populate({ myDate: new Date('2000-01-01T00:00:00.000Z')  });
+            expect(value).to.deep.equal(new Date('2000-01-01T00:00:00.000Z'))
+        });
+
         describe('object', () => {
 
             it('can populate an object', () => {
