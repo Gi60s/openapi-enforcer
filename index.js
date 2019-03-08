@@ -30,6 +30,7 @@ const util                  = require('./bin/util');
  * @param {string, object} definition
  * @param {object} [options]
  * @param {boolean} [options.hideWarnings=false] Set to true to hide warnings from the console.
+ * @param {boolean} [options.fullResult=false] Set to true to get back a full result object with the value, warnings, and errors.
  * @returns {Promise<OpenApiEnforcer>}
  */
 async function Enforcer(definition, options) {
