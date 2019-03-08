@@ -22,7 +22,9 @@ This function will dereference your OAS document, validate it, produce warnings 
 
 - *options* - Some options for building the enforcer instance
 
-    - *hideWarnings* - Log warning messages to the console when validating your OAS document.
+    - *fullResult* - Get back a full [Enforcer Result](./enforcer-result.md) object. Enabling this will also cause warnings not to output to the console.
+
+    - *hideWarnings* - Do not log warning messages to the console when validating your OAS document.
     
 **Throws:** A detailed error message with all errors in your OAS document. 
     
