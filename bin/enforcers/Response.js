@@ -32,7 +32,7 @@ module.exports = {
                     let error;
                     const example = this.examples[contentType];
                     [ value, error ] = this.schema.deserialize(example);
-                    if (!error) error = this.schema.validate(example);
+                    if (!error) error = this.schema.validate(value);
                     if (error) exception.at(contentType).push(error);
                     Object.defineProperty(this.examples, contentType, {
                         configurable: true,
