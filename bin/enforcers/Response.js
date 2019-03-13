@@ -26,6 +26,7 @@ module.exports = {
         const { exception } = data;
 
         if (this.hasOwnProperty('examples') && this.hasOwnProperty('schema')) {
+            const child = exception.at('examples');
             Object.keys(this.examples)
                 .forEach(contentType => {
                     let value;
@@ -33,7 +34,7 @@ module.exports = {
                     const example = this.examples[contentType];
                     [ value, error ] = this.schema.deserialize(example);
                     if (!error) error = this.schema.validate(value);
-                    if (error) exception.at(contentType).push(error);
+                    if (error) child.at(contentType).push(error);
                     Object.defineProperty(this.examples, contentType, {
                         configurable: true,
                         enumerable: true,
