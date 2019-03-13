@@ -226,6 +226,7 @@ function normalize (data) {
                 case 'number':
                 case 'string':
                     data.result = definition;
+                    map.set(definition, data.result);
                     break;
                 default:
                     exception.message('Unknown data type provided');
@@ -233,12 +234,14 @@ function normalize (data) {
             }
         } else {
             data.result = definition;
+            map.set(definition, data.result);
         }
 
         if (validator.deserialize) {
             const d = Object.assign({}, data);
             d.definition = data.result;
             data.result = validator.deserialize(d);
+            map.set(definition, data.result);
         }
 
         // run custom error validation check
