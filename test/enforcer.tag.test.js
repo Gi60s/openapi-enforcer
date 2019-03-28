@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const assert    = require('../bin/assert');
+const assert    = require('../src/assert');
 const expect    = require('chai').expect;
 const Tag       = require('../').v2_0.Tag;
 

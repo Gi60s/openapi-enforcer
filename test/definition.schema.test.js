@@ -15,11 +15,11 @@
  *    limitations under the License.
  **/
 'use strict';
-const assert        = require('../bin/assert');
+const assert        = require('../src/assert');
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
-const util          = require('../bin/util');
-const Value         = require('../bin/schema/value');
+const util          = require('../src/util');
+const Value         = require('../src/schema/value');
 
 describe('definition/schema', () => {
     const schemas = {

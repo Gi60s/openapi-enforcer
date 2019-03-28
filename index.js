@@ -18,12 +18,12 @@
 
 module.exports = Enforcer;
 
-const dataTypeFormats       = require('./bin/data-type-formats');
-const Exception             = require('./bin/exception');
+const dataTypeFormats       = require('./src/data-type-formats');
+const Exception             = require('./src/exception');
 const RefParser             = require('json-schema-ref-parser');
-const Result                = require('./bin/result');
-const Super                 = require('./bin/super');
-const util                  = require('./bin/util');
+const Result                = require('./src/result');
+const Super                 = require('./src/super');
+const util                  = require('./src/util');
 
 /**
  * Create an Enforcer instance.

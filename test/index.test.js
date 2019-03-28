@@ -15,8 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const assert            = require('../bin/assert');
-const DefinitionBuilder = require('../bin/definition-builder');
+const assert            = require('../src/assert');
+const DefinitionBuilder = require('../src/definition-builder');
 const Enforcer          = require('../index');
 const expect            = require('chai').expect;
 

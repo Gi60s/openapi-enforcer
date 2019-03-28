@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const assert        = require('../bin/assert');
+const assert        = require('../src/assert');
 const expect        = require('chai').expect;
 const Response2     = require('../').v2_0.Response;
 const Response3     = require('../').v3_0.Response;

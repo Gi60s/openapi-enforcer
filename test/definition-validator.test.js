@@ -16,8 +16,8 @@
  **/
 'use strict';
 const expect        = require('chai').expect;
-const EnforcerRef   = require('../bin/enforcer-ref');
-const Super         = require('../bin/super');
+const EnforcerRef   = require('../src/enforcer-ref');
+const Super         = require('../src/super');
 
 describe('definition-validator', () => {
 

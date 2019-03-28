@@ -15,7 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception     = require('../bin/exception');
+const Exception     = require('../src/exception');
 const expect        = require('chai').expect;
 
 describe('exception', () => {
