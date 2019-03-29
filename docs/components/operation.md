@@ -82,7 +82,7 @@ Validate and serialize response data.
 
 - *headers* - The response headers as an object of key value pairs. If you're using OpenAPI 3 and your response has multiple possible mime types then you can specify in the headers `content-type` property which mime type to use. Defaults to `{}`.
 
-**Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to an object with properties `body` and `header`. If the `body` passed in was an object then the `body` result will also be an object, not a JSON string.
+**Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to an object with properties `body`, `header`, and `schema`. If the `body` passed in was an object then the `body` result will also be an object, not a JSON string.
 
 **Example with Body and Headers**
 
@@ -120,6 +120,10 @@ const [ response ] = operation.response(200, 'hello', {
 console.log(response)
 // {
 //     body: 'hello',
+//     schema: {
+//         type: 'string',
+//         maxLength: 10
+//     },
 //     headers: {
 //         expires: '2000-01-01'
 //     }

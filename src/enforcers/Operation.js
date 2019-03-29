@@ -322,6 +322,7 @@ module.exports = {
                         if (!schema) {
                             result.body = body;
                         } else if (schema.type === 'file') {
+                            result.schema = schema;
                             result.body = body;
                         } else {
                             let err = schema.validate(body);
@@ -329,6 +330,7 @@ module.exports = {
                             if (err) {
                                 exception.at('body').merge(err);
                             } else {
+                                result.schema = schema;
                                 result.body = body;
                             }
                         }
@@ -361,6 +363,7 @@ module.exports = {
                                 if (err) {
                                     exception.at('body').merge(err);
                                 } else {
+                                    result.schema = schema;
                                     result.body = body;
                                 }
                             } else {
@@ -502,7 +505,7 @@ module.exports = {
         }
     },
 
-    parametersValidation: ({ exception, parent, root, validator, definition }) => {
+    parametersValidation: ({ exception, parent, root, definition }) => {
         const length = definition.length;
         const duplicates = [];
         let bodiesCount = 0;

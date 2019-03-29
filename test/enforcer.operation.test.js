@@ -1443,16 +1443,17 @@ describe('enforcer/operation', () => {
 
             describe('body', () => {
                 let operation;
+                const responseSchema = {
+                    type: 'string',
+                    format: 'date'
+                };
 
                 before(() => {
                     [ operation ] = new Enforcer.v2_0.Operation({
                         responses: {
                             200: {
                                 description: 'Success',
-                                schema: {
-                                    type: 'string',
-                                    format: 'date'
-                                }
+                                schema: responseSchema
                             },
                             default: {
                                 description: 'Success',
@@ -1468,6 +1469,7 @@ describe('enforcer/operation', () => {
                 it('can process via 200 response object', () => {
                     const date = new Date('2000-01-01T00:00:00.000Z');
                     const [ res ] = operation.response(200, date);
+                    expect(res.schema.toObject()).to.deep.equal(responseSchema);
                     expect(res.body).to.equal('2000-01-01');
                 });
 
@@ -1616,9 +1618,11 @@ describe('enforcer/operation', () => {
                     const date = new Date('2000-01-01T00:00:00.000Z');
 
                     const [ res1 ] = operation.response(200, date, { 'content-type': 'text/plain' });
+                    expect(res1.schema.format).to.equal('date');
                     expect(res1.body).to.equal('2000-01-01');
 
                     const [ res2 ] = operation.response(200, date, { 'content-type': 'text/other' });
+                    expect(res2.schema.format).to.equal('date-time');
                     expect(res2.body).to.equal('2000-01-01T00:00:00.000Z');
                 });
 
