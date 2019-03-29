@@ -42,9 +42,6 @@
     "nyc": "^13.3.0"
   },
   "dependencies": {
-    "commander": "^2.19.0",
-    "ejs": "^2.6.1",
-    "execa": "^1.0.0",
     "json-schema-ref-parser": "^6.0.1"
   }
 }
