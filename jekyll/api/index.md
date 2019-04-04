@@ -1,0 +1,232 @@
+---
+layout: page
+title: API Reference
+permalink: /api
+toc: true
+---
+
+## Enforcer
+
+`Enforcer ( definition [, options ] ) : Promise < OpenAPI | Swagger >`
+
+This function will dereference your OAS document, validate it, produce warnings where appropriate, and return a Promise that resolves to an [OpenAPI component](#) for an OAS 3.x.x document or a [Swagger component](#) for Swagger 2.0.
+
+**Parameters:**
+
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **definition** | The Open API document specification. If a `string` is provided then it is the file path to the OAS definition. If an `object` is provided then that will be used as the Open API document. | `string` or `object` | |
+| options | Configuration options. See below. | `object` | |
+
+**Options Parameter**
+
+| Property | Description | Type  | Default |
+| --------- | ----------- | ---- | ------- |
+| fullResult | Get back a full [Enforcer Result](#) object. Enabling this will also cause warnings not to output to the console. | `boolean` | `false` |
+| hideWarnings | Do not log warning messages to the console when validating your OAS document. If the `fullResult` option is set to `true` then warnings will not show regardless of this setting. | `boolean` | `false` |
+    
+**Returns:** A Promise
+
+  - that will resolve to an [OpenAPI component](#) for an OAS 3.x.x document or a [Swagger component](#) for Swagger 2.0
+  - or will reject with an [EnforcerException](#) Error.
+
+<details><summary bold>Example 1: Invalid Definition</summary>
+<p>
+
+```js
+const Enforcer = require('openapi-enforcer')
+
+const definition = {
+    openapi: '3.0.0',
+    info: {
+        title: 'My API',
+        version: '1.3.4'
+    },
+    paths: {
+        '/person/{id}': {}
+    }
+}
+
+Enforcer(definition)
+    .catch(err => {
+        console.error(err.message)
+        // One or more warnings exist in the OpenApi definition
+        //   at: paths > /person/{id}
+        //     No methods defined
+    })
+```
+
+</p>
+</details>
+
+<details><summary bold>Example 2: Valid Definition</summary>
+<p>
+
+```js
+const definition = {
+    openapi: '3.0.0',
+    info: {
+        title: 'My API',
+        version: '1.3.4'
+    },
+    paths: {
+        '/person/{id}': {
+            get: {
+                parameters: [
+                    {
+                        name: 'id',
+                        in: 'path',
+                        required: true,
+                        schema: {
+                            type: 'integer'
+                        }
+                    }
+                ],
+                responses: {
+                    200: {
+                        description: 'Success'
+                    }
+                }
+            },
+        }
+    }
+};
+
+Enforcer(definition)
+    .then(openapi => {
+        const isOpenApiInstance = openapi instanceof Enforcer.v3_0.OpenApi
+        console.log(isOpenApiInstance);  // true
+    })
+```
+
+</p>
+</details>
+
+## Enforcer.dereference
+
+`Enforcer.dereference ( definition ) : Promise <object>`
+
+Resolves all of the `$ref` values in a definition and returns the dereferenced object.
+
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **definition** | A `string` for the file path to the OAS definition or an `object` to dereference. | `string` or `object` | |
+
+**Parameters:**
+
+- *definition* - A `string` for the file path to the OAS definition or an `object` to dereference.
+
+**Returns:** A Promise that resolves to the dereferenced `object`.
+
+## Enforcer.Enforcer
+
+`Enforcer.Enforcer : Enforcer`
+
+A static reference to the [Enforcer function](#enforcer). This is helpful if you're using destructuring when you require this package.
+
+<details><summary bold>Destructure Example</summary>
+<p>
+
+```js
+const { Enforcer } = require('openapi-enforcer');
+```
+
+</p>
+</details>
+
+## Enforcer.Exception
+
+`Enforcer.Exception : EnforcerException`
+
+A static reference to the the [EnforcerException class](#).
+
+## Enforcer.Result
+
+`Enforcer.Result : EnforcerResult`
+
+A static reference to the the [EnforcerResult class](#).
+
+## Enforcer.v2_0
+
+`Enforcer.v2_0 : object`
+
+An object containing class constructors for all [components](#) that are part of the Swagger 2.0 specification:
+
+- Contact
+- Example
+- ExternalDocumentation
+- Header
+- Info
+- Items
+- License
+- [Operation](#)
+- Parameter
+- PathItem
+- Paths
+- Reference
+- Response
+- Responses
+- [Schema](#)
+- SecurityRequirement
+- SecurityScheme
+- [Swagger](#)
+- Tag
+- Xml
+
+<details><summary bold>Example: Creating Schema</summary>
+<p>
+
+```js
+const Enforcer = require('openapi-enforcer')
+const schema = new Enforcer.v2_0.Schema({ type: 'string' })
+```
+
+</p>
+</details>
+
+## Enforcer.v3_0
+
+`Enforcer.v3_0 : object`
+
+An object containing class constructors for all [components](#) that are part of the Open API Specification (OAS) 3 specification:
+
+- Callback
+- Components
+- Contact
+- Encoding
+- Example
+- ExternalDocumentation
+- Header
+- Info
+- License
+- Link
+- MediaType
+- OAuthFlow
+- OAuthFlows
+- [OpenApi](#)
+- [Operation](#)
+- Parameter
+- PathItem
+- Paths
+- Reference
+- RequestBody
+- Response
+- Responses
+- [Schema](#)
+- SecurityRequirement
+- SecurityScheme
+- Server
+- ServerVariable
+- Tag
+- Xml
+
+<details><summary bold>Example: Creating Schema</summary>
+<p>
+
+```js
+const Enforcer = require('openapi-enforcer')
+const schema = new Enforcer.v3_0.Schema({ type: 'string' })
+```
+
+</p>
+</details>

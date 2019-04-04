@@ -1,0 +1,32 @@
+<div class="nav-screen"></div>
+<nav>
+  <ul>
+    <li><a href="{{ "/" | prepend:site.baseurl }}">About</a></li>
+    <li>
+      <a href="{{ "/guide" | prepend:site.baseurl }}">Guide</a>
+      <ul>
+        <li><a href="{{ "/guide/enforcer-result" | prepend:site.baseurl }}">EnforcerResult Data</a></li>
+        <li><a href="{{ "/guide/plugins" | prepend:site.baseurl }}">Plugins</a></li>
+        <li><a href="{{ "/guide/validate-oas-document" | prepend:site.baseurl }}">Validate a Document</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="{{ "/api" | prepend:site.baseurl }}">API Reference</a>
+      <ul>
+        <li><a href="{{ "/api" | prepend:site.baseurl }}">Enforcer</a></li>
+        <li><a href="{{ "/api/enforcer-exception"  | prepend:site.baseurl }}">EnforcerException</a></li>
+        <li><a href="{{ "/api/enforcer-result"  | prepend:site.baseurl }}">EnforcerResult</a></li>
+        <li>
+          <a href="{{ "#" | prepend:site.baseurl }}">Components</a>
+          <ul>
+            <li><a href="{{ "#" | prepend:site.baseurl }}">OpenApi</a></li>
+            <li><a href="{{ "#" | prepend:site.baseurl }}">Operation</a></li>
+            <li><a href="{{ "#" | prepend:site.baseurl }}">Schema</a></li>
+            <li><a href="{{ "#" | prepend:site.baseurl }}">Swagger</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="{{ "/related" | prepend:site.baseurl }}">Related Projects</a></li>
+  </ul>
+</nav>

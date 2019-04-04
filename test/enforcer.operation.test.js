@@ -1485,7 +1485,7 @@ describe('enforcer/operation', () => {
                 });
 
                 it('does not validate or serialize for file', () => {
-                    [ operation ] = new Enforcer.v2_0.Operation({
+                    const [ operation ] = new Enforcer.v2_0.Operation({
                         responses: {
                             200: {
                                 description: 'Success',
@@ -1496,6 +1496,27 @@ describe('enforcer/operation', () => {
                     const file = Symbol('file');
                     const [ res ] = operation.response(200, file);
                     expect(res.body).to.equal(file);
+                });
+
+                describe.only('json', () => {
+                    let operation
+
+                    before(() => {
+                        [ operation ] = new Enforcer.v2_0.Operation({
+                            responses: {
+                                200: {
+                                    description: 'Success',
+                                    schema: { type: 'object' }
+                                }
+                            }
+                        });
+                    });
+
+                    it('serilizes string correctly', () => {
+                        const [ res, err ] = operation.response(200, 'hi');
+                        expect(res.body).to.deep.equal('"hi"')
+                    });
+
                 });
 
             });
