@@ -1498,27 +1498,6 @@ describe('enforcer/operation', () => {
                     expect(res.body).to.equal(file);
                 });
 
-                describe.only('json', () => {
-                    let operation
-
-                    before(() => {
-                        [ operation ] = new Enforcer.v2_0.Operation({
-                            responses: {
-                                200: {
-                                    description: 'Success',
-                                    schema: { type: 'object' }
-                                }
-                            }
-                        });
-                    });
-
-                    it('serilizes string correctly', () => {
-                        const [ res, err ] = operation.response(200, 'hi');
-                        expect(res.body).to.deep.equal('"hi"')
-                    });
-
-                });
-
             });
 
             describe('header', () => {
