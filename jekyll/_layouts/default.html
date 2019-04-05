@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+  {% include head.html %}
+
+  <body>
+
+    {% include header.html %}
+
+    <div class="page-content">
+      <div class="wrapper">
+        {% include nav.html %}
+        {{ content }}
+      </div>
+    </div>
+
+    {% include footer.html %}
+
+    <script>
+    ;(function () {
+      const wrapper = document.querySelector('.page-content > .wrapper')
+      const screen = document.querySelector('.page-content > .wrapper > .nav-screen')
+
+      screen
+        .addEventListener('click', function (e) {
+          if (wrapper.hasAttribute('show-nav')) {
+            wrapper.removeAttribute('show-nav')
+          }
+        })
+
+      document.querySelector('.menu-icon')
+        .addEventListener('click', function (e) {
+          if (wrapper.hasAttribute('show-nav')) {
+            wrapper.removeAttribute('show-nav')
+          } else {
+            wrapper.setAttribute('show-nav', '')
+          }
+        })
+    })()
+    </script>
+
+  </body>
+
+</html>
