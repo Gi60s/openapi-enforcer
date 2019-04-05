@@ -152,26 +152,7 @@ A static reference to the the [EnforcerResult class](#).
 
 An object containing class constructors for all [components](#) that are part of the Swagger 2.0 specification:
 
-- Contact
-- Example
-- ExternalDocumentation
-- Header
-- Info
-- Items
-- License
-- [Operation](#)
-- Parameter
-- PathItem
-- Paths
-- Reference
-- Response
-- Responses
-- [Schema](#)
-- SecurityRequirement
-- SecurityScheme
-- [Swagger](#)
-- Tag
-- Xml
+{% include v2_0-components.html %}
 
 <details><summary bold>Example: Creating Schema</summary>
 <p>
@@ -190,35 +171,7 @@ const schema = new Enforcer.v2_0.Schema({ type: 'string' })
 
 An object containing class constructors for all [components](#) that are part of the Open API Specification (OAS) 3 specification:
 
-- Callback
-- Components
-- Contact
-- Encoding
-- Example
-- ExternalDocumentation
-- Header
-- Info
-- License
-- Link
-- MediaType
-- OAuthFlow
-- OAuthFlows
-- [OpenApi](#)
-- [Operation](#)
-- Parameter
-- PathItem
-- Paths
-- Reference
-- RequestBody
-- Response
-- Responses
-- [Schema](#)
-- SecurityRequirement
-- SecurityScheme
-- Server
-- ServerVariable
-- Tag
-- Xml
+{% include v3_0-components.html %}
 
 <details><summary bold>Example: Creating Schema</summary>
 <p>
