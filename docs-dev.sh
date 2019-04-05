@@ -8,6 +8,6 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
-cd ${DIR}
+cd ${DIR}/jekyll
 
 bundle exec jekyll serve
