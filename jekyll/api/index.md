@@ -1,6 +1,7 @@
 ---
 layout: page
-title: API Reference
+title: Enforcer
+subtitle: API Reference
 permalink: /api
 toc: true
 ---

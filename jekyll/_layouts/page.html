@@ -5,7 +5,12 @@ layout: default
 
   {% if page.title %}
   <header class="post-header">
-    <h1 class="post-title">{{ page.title }}</h1>
+    {% if page.subtitle %}
+    <div class="post-subtitle">{{ page.subtitle }}</div>
+    {% endif %}
+    <h1 class="post-title">
+      {{ page.title }}
+    </h1>
   </header>
   {% endif %}
 

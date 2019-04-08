@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Validate Document
+subtitle: Guide
 permalink: /guide/validate-document
 toc: true
 ---

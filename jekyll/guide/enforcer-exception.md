@@ -1,11 +1,10 @@
 ---
 layout: page
-title: API Reference
+title: API Reference: EnforcerException
+subtitle: Guide
 permalink: /api/enforcer-exception
 toc: true
 ---
-
-# EnforcerException
 
 This class is used to generate detailed reports about what problems exist and where. Take this example.
 

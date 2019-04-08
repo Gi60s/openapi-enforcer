@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Component Plugins
+subtitle: Guide
 permalink: /guide/component-plugins
 toc: true
 ---

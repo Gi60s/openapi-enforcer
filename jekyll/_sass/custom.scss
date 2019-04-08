@@ -46,7 +46,7 @@ table {
       margin: 0;
       padding: 6px 13px;
     }
-    
+
     td {
       border: 1px solid #cccccc;
       text-align: left;
@@ -57,7 +57,7 @@ table {
     th :first-child, td :first-child {
       margin-top: 0;
     }
-    
+
     th :last-child, td :last-child {
       margin-bottom: 0;
     }
@@ -90,7 +90,7 @@ table {
 
     &[show-nav] {
 
-      > nav { 
+      > nav {
         transform: translateX(0);
       }
 
@@ -171,6 +171,11 @@ table {
   }
 }
 
+.post-subtitle {
+  font-size: 18px;
+  color: #777;
+}
+
 .site-icon {
   height: 30px;
   padding-right: 10px;
@@ -202,5 +207,5 @@ table {
 }
 
 @include media-query($on-laptop) {
-  
+
 }

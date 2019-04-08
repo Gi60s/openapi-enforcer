@@ -1,11 +1,12 @@
 ---
 layout: page
-title: EnforcerResult API
+title: EnforcerResult
+subtitle: API Reference
 permalink: /api/enforcer-result
 toc: false
 ---
 
-How do you read an EnforcerRead object? [Check out the guide.](../guide/enforcer-result)
+To learn how to read an EnforcerRead object [check out the guide](../guide/enforcer-result).
 
 ## Create an EnforcerResult Instance
 

@@ -1,6 +1,7 @@
 ---
 layout: page
-title: EnforcerResult Data
+title: EnforcerResult
+subtitle: Guide
 permalink: /guide/enforcer-result
 toc: true
 ---
