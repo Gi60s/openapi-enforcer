@@ -1,34 +1,38 @@
-# Operation
+---
+layout: page
+title: Operation
+subtitle: API Reference
+permalink: /api/components/operation
+toc: true
+---
 
-## API
+## getResponseContentTypeMatches
 
-- Instance Methods
-
-    - [Operation.prototype.getResponseContentTypeMatches()](#operationprototypegetresponsecontenttypematches)
-
-    - [Operation.prototype.request()](#operationprototyperequest)
-
-    - [Operation.prototype.response()](#operationprototyperesponse)
-
-### Operation.prototype.getResponseContentTypeMatches
+`getResponseContentTypeMatches ( code, accepts ) : EnforcerResult < string[] >`
 
 For OpenAPI 3.x.x, the response body's definition is based on a mime type. This function allow you to find an appropriate response mime type based on an [HTTP Accept](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept) string that is generally passed in with the request.
 
 **Parameters:**
 
-- *code* - A `string` or `number` of the response code to return.
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **code** | The response code to return. | `string` or `number` | |
+| **accepts** | The [HTTP Accept](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept) string to compare response mime types to. An accept string with multiple options and quality is supported. | `string` | |
 
-- *accepts* - The [HTTP Accept](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept) string to compare response mime types to.
+**Returns:** An [EnforcerResult](../enforcer-result.md) that 
 
-**Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to array of strings for each response mime type that matches the accept string in closest match order, also taking accept quality into account.
+- Resolves to array of strings for each response mime type that matches the accept string in closest match order, also taking accept quality into account.
 
-If [EnforcerResult](../enforcer-result.md) has an error that it can be one of three errors, each with a `code` property specified on the [exception object](../enforcer-exception.md):
+- Fails because of one of three errors, each with a `code` property specified on the [exception object](../enforcer-exception.md):
 
-- *NO_CODE* - Indicates that the response code specified is not specifically defined and no default exists.
+    - *NO_CODE* - Indicates that the response code specified is not specifically defined and no default exists.
+    
+    - *NO_MATCH* - Indicates that a `produces` for OpenAPI v2 or a `content` for OpenAPI v3 exists, but none of their mime types are a match for the accept string passed in.
+    
+    - *NO_TYPES_SPECIFIED* - Indicates that there is no specified `produces` for OpenAPI v2 or no `content` for OpenAPI v3.
 
-- *NO_MATCH* - Indicates that a `produces` for OpenAPI v2 or a `content` for OpenAPI v3 exists, but none of their mime types are a match for the accept string passed in.
-
-- *NO_TYPES_SPECIFIED* - Indicates that there is no specified `produces` for OpenAPI v2 or a `content` for OpenAPI v3.
+<details><summary>Example: Get Allowed Mime Types</summary>
+<div>
 
 ```js
 const [ operation ] = Enforcer.v2_0.Operation({
@@ -42,9 +46,31 @@ const [ matches ] = operation.getResponseContentTypeMatches(200, 'text/*')
 console.log(matches)  // ['text/html', 'text/plain']
 ```
 
-### Operation.prototype.request
+</div>
+</details>
 
-**This probably isn't the method you're looking for. Check out [OpenAPI.prototype.request()](./openapi.md#openapiprototyperequest)**
+<details><summary>Example: No Matching MIME Type</summary>
+<div>
+
+```js
+const [ operation ] = Enforcer.v3_0.Operation({
+    produces: ['text/html', 'text/plain'],
+    responses: {
+        200: { description: '' }
+    }
+})
+const [ matches, err ] = operation.getResponseContentTypeMatches(200, 'application/json')
+
+console.log(matches)  // undefined
+console.log(err.code) // NO_MATCH
+```
+
+</div>
+</details>
+
+## request
+
+**This probably isn't the method you're looking for. Check out [OpenAPI request](./openapi#request)**
 
 Parse and validate an incoming request.
 
@@ -68,7 +94,7 @@ Parse and validate an incoming request.
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the deserialized and validated request object.
 
-**This probably isn't the method you're looking for. Check out [OpenAPI.prototype.request()](./openapi.md#openapiprototyperequest)**
+**This probably isn't the method you're looking for. Check out [OpenAPI.prototype.request()](openapi.md#openapiprototyperequest)**
 
 ### Operation.prototype.response
 

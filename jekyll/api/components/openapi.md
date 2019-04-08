@@ -22,7 +22,7 @@ Get path parameters and operation from a method and path.
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to an `object` with two properties:
 
-- *operation* - The [Operation component](./operation.md) that is tied to this path.
+- *operation* - The [Operation component](operation.md) that is tied to this path.
 
 - *params* - An `object` of key value pairs for each path parameter and it's deserialized and validated value.
 
@@ -84,13 +84,13 @@ Deserialize and validate a request.
 
 - *header* - An `object` map of header names and deserialized and validated values.
 
-- *operation* - The [Operation component](./operation.md) object associated with the request.
+- *operation* - The [Operation component](operation.md) object associated with the request.
 
 - *path* - An `object` map of path parameter names and deserialized and validated values.
 
 - *query* - An `object` map of query parameter names and deserialized and validated values.
 
-- *response* - A small wrapper around the `function` [Operation.prototype.response()](./operation.md#operationprototyperesponse). This will automatically set the response header `content-type` based on the request `accept` header unless you specifically set a response `content-type`.
+- *response* - A small wrapper around the `function` [Operation.prototype.response()](operation.md#operationprototyperesponse). This will automatically set the response header `content-type` based on the request `accept` header unless you specifically set a response `content-type`.
 
 ```js
 const OpenAPI = require('openapi-enforcer').v3_0.OpenApi
