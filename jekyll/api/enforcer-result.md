@@ -8,18 +8,54 @@ toc: false
 
 To learn how to read an EnforcerRead object [check out the guide](../guide/enforcer-result).
 
-## Create an EnforcerResult Instance
+## EnforcerResult
 
-It's possible to create your own EnforcerResult instance, but you'll also want to read up about the [EnforcerException object](./enforcer-exception.md).
+`EnforcerResult ( value [, error [, warning ] ] ) : Promise < OpenAPI | Swagger >`
+
+Create an EnforcerResult instance.
+
+**Parameters:**
+
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **value** | The success value for the EnforcerResult instance. | any | |
+| error | An [EnforcerException](./enforcer-exception) instance that may or may not have any exceptions. If an exception (message) does exist for this object then the EnforcerResult value will be `undefined`. | [EnforcerException](./enforcer-exception) | undefined |
+| warning | An [EnforcerException](./enforcer-exception) instance that may or may not have any exceptions. | [EnforcerException](./enforcer-exception) | undefined |
+
+**Returns** an EnforcerResult instance.
+
+<details><summary bold>Example without Error</summary>
+<div>
 
 ```js
 const { Exception, Result } = require('openapi-enforcer')
 const error = new Exception('Exception header')
 const warning = new Exception('Exception header')
-const value = 'Hello'
 
-const [ val, err, warn ] = new Result(value, error, warning)
+const [ val, err, warn ] = new Result('Hello', error, warning)
 console.log(err)      // undefined
 console.log(val)      // 'Hello'
 console.log(warning)  // undefined
 ```
+
+</div>
+</details>
+
+<details><summary bold>Example with Error</summary>
+<div>
+
+```js
+const { Exception, Result } = require('openapi-enforcer')
+const error = new Exception('Exception header')
+error.message('An error')
+const warning = new Exception('Exception header')
+
+const [ val, err, warn ] = new Result('Hello', error, warning)
+console.log(err)      // Exception header
+                      //   An error
+console.log(val)      // undefined because the EnforcerException had a message
+console.log(warning)  // undefined
+```
+
+</div>
+</details>
