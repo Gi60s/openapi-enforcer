@@ -6,7 +6,7 @@ permalink: /api/enforcer-result
 toc: false
 ---
 
-To learn how to read an EnforcerRead object [check out the guide](../guide/enforcer-result).
+Related: [How to read an EnforcerResult object](../guide/enforcer-result)
 
 ## EnforcerResult
 
