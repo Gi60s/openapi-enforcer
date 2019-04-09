@@ -64,6 +64,44 @@ table {
   }
 }
 
+.alert-danger {
+  color: #a94442;
+  background-color: #f2dede;
+  border: 1px solid #ebccd1;
+  box-sizing: border-box;
+  padding: 10px 10px 10px 45px;
+  margin-bottom: 15px;
+  background-image: url(../icons/danger.svg);
+  background-repeat: no-repeat;
+  background-position: 10px 10px;
+  border-radius: 3px;
+
+  > p {
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.alert-info {
+  color: #31708f;
+  background-color: #d9edf7;
+  border: 1px solid #bce8f1;
+  box-sizing: border-box;
+  padding: 10px 10px 10px 45px;
+  margin-bottom: 15px;
+  background-image: url(../icons/info.svg);
+  background-repeat: no-repeat;
+  background-position: 10px 10px;
+  border-radius: 3px;
+
+  > p {
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
 .alert-warning {
   color: #8a6d3b;
   background-color: #fcf8e3;
