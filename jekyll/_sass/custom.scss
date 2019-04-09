@@ -64,6 +64,25 @@ table {
   }
 }
 
+.alert-warning {
+  color: #8a6d3b;
+  background-color: #fcf8e3;
+  border: 1px solid #faebcc;
+  box-sizing: border-box;
+  padding: 10px 10px 10px 45px;
+  margin-bottom: 15px;
+  background-image: url(../icons/warning.svg);
+  background-repeat: no-repeat;
+  background-position: 10px 10px;
+  border-radius: 3px;
+
+  > p {
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
 .openapi-enforcer-title {
   background-image: url(../icons/logo-125.png);
   background-repeat: no-repeat;
