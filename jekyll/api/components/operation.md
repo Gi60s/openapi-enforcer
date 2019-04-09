@@ -31,7 +31,23 @@ For OpenAPI 3.x.x, the response body's definition is based on a mime type. This 
     
     - *NO_TYPES_SPECIFIED* - Indicates that there is no specified `produces` for OpenAPI v2 or no `content` for OpenAPI v3.
 
-<details><summary>Example: Get Allowed Mime Types</summary>
+<details><summary bold>Example: Get Allowed Mime Types 1</summary>
+<div>
+
+```js
+Enforcer('/path/to/oas-doc.yml')
+    .then(enforcer => {
+        // get the operation of interest
+        const operation = enforcer.paths['/'].post
+        const [ matches ] = operation.getResponseContentTypeMatches(200, 'text/*')
+        console.log(matches)  // ['text/html', 'text/plain']
+    })
+```
+
+</div>
+</details>
+
+<details><summary bold>Example: Get Allowed Mime Types 2</summary>
 <div>
 
 ```js
@@ -49,7 +65,7 @@ console.log(matches)  // ['text/html', 'text/plain']
 </div>
 </details>
 
-<details><summary>Example: No Matching MIME Type</summary>
+<details><summary bold>Example: No Matching MIME Type</summary>
 <div>
 
 ```js
@@ -70,47 +86,65 @@ console.log(err.code) // NO_MATCH
 
 ## request
 
-**This probably isn't the method you're looking for. Check out [OpenAPI request](./openapi#request)**
+`request ( request, options ) : EnforcerResult < object >`
+
+<div class='alert-warning'>
+
+This probably isn't the method you're looking for. Check out [OpenAPI request](./openapi#request) that is easier to use and accomplishes the same thing.
+
+</div>
 
 Parse and validate an incoming request.
 
 **Parameters:**
 
-- *request* - The request object
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **request** | The request object. See below | `object` | |
+| **options** | An object. See below | `object` | |
 
-  - *body* - A `string` or `object` for the request body. If an object is provided then it should already be deserialized as far a `JSON.parse` would deserialize.
+**Request Parameter**
 
-  - *header* - An `object` of key value pairs where the key is the header name and the value is the header value.
+| Property | Description | Type  | Default |
+| --------- | ----------- | ---- | ------- |
+| body | The request body. If an object is provided then it should already be deserialized as far a `JSON.parse` would deserialize. | `string` or `object` | |
+| header | An `object` of key value pairs where the key is the header name and the value is the header value. | `object` | `{}` |
+| path | An `object` containing all of the path parameter names and values. The values should not be deserialized. | `object` | `{}` |
+| query | The full query string as a `string`. | `string` | |
 
-  - *path* - An `object` containing all of the path parameter names and values. The values should not be deserialized.
+**Options Parameter**
 
-  - *query* - The full query string as a `string`.
-
-- *options*- An `object`
-
-  - *allowOtherQueryParameters* - A `boolean` or an array of `string` values that indicates whether query parameters that are not specified in the OAS definition should be allowed. If an array of `string` values is provided then the `string` values provided will be allowed. Defaults to `false`.
-
-  - *pathParametersValueMap* - An `object` map containing already deserialized path parameters. Used internally for performance optimization. Defaults to `{}`.
+| Property | Description | Type  | Default |
+| --------- | ----------- | ---- | ------- |
+| allowOtherQueryParameters | A `boolean` or an array of `string` values that indicates whether query parameters that are not specified in the OAS definition should be allowed. If an array of `string` values is provided then the `string` values provided will be allowed. | `string` or `boolean` | `false` |
+| pathParametersValueMap | An `object` map containing already deserialized path parameters. Used internally for performance optimization. | `object` | `{}` |
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the deserialized and validated request object.
 
-**This probably isn't the method you're looking for. Check out [OpenAPI.prototype.request()](openapi.md#openapiprototyperequest)**
+<div class='alert-info'>
 
-### Operation.prototype.response
+No example will be shown here. Instead check out [OpenAPI request](./openapi#request) that is easier to use and accomplishes the same thing.
+
+</div>
+
+## response
+
+`response ( code [, body [, headers ] ] ) : EnforcerResult < object >`
 
 Validate and serialize response data.
 
 **Parameters:**
 
-- *code* - The response code. (This can also be `default` if a `default` is provided.)
-
-- *body* - The response body. If you do not want to provide a body use `undefined` or skip the parameter.
-
-- *headers* - The response headers as an object of key value pairs. If you're using OpenAPI 3 and your response has multiple possible mime types then you can specify in the headers `content-type` property which mime type to use. Defaults to `{}`.
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **code** | The response code. (This can also be `default` if a `default` is provided.) | `string` or `number` | |
+| body | The response body. If you do not want to provide a body use `undefined` or skip the parameter. | any | |
+| headers | The response headers as an object of key value pairs. If you're using OpenAPI 3 and your response has multiple possible mime types then you can specify in the headers `content-type` property which mime type to use. | `object` | `{}` |
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to an object with properties `body`, `header`, and `schema`. If the `body` passed in was an object then the `body` result will also be an object, not a JSON string.
 
-**Example with Body and Headers**
+<details><summary bold>Example with Body and Headers</summary>
+<div>
 
 ```js
 const Operation = require('openapi-enforcer').v3_0.Operation;
@@ -156,7 +190,11 @@ console.log(response)
 // }
 ```
 
-**Examples without Body**
+</div>
+</details>
+
+<details><summary bold>Examples without Body</summary>
+<div>
 
 ```js
 const [ response ] = operation.response(200, undefined, {
@@ -169,3 +207,6 @@ const [ response ] = operation.response(200, , {
     expires: new Date('2000-01-01T00:00:00.000Z')
 })
 ```
+
+</div>
+</details>
