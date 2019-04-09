@@ -1,24 +1,25 @@
-# OpenApi
+---
+layout: page
+title: Open API
+subtitle: API Reference
+permalink: /api/components/openapi
+toc: true
+---
 
-The top level class.
+This is the top level component that contains all other components within it.
 
-## API
+### path
 
-- Instance Methods
-
-  - [OpenApi.prototype.path()](#openapiprototypepath)
-
-  - [OpenApi.prototype.request()](#openapiprototyperequest)
-
-### OpenApi.prototype.path
+`OpenApi.prototype.path ( method, path ) : EnforcerResult < object >`
 
 Get path parameters and operation from a method and path.
 
 **Parameters:**
 
-- *method* - A `string` for the HTTP method to use.
-
-- *path* - A `string` for the request path.
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **method** | The HTTP method to use | `string` | |
+| **path** | The request path | `string` | |
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to an `object` with two properties:
 
@@ -26,10 +27,13 @@ Get path parameters and operation from a method and path.
 
 - *params* - An `object` of key value pairs for each path parameter and it's deserialized and validated value.
 
+<details open><summary bold>Example</summary>
+<div>
+
 ```js
 const OpenAPI = require('openapi-enforcer').v3_0.OpenApi
 
-const openapi = new OpenAPI({
+const [ openapi ] = OpenAPI({
   openapi: '3.0.0',
   info: { title: '', version: '' },
   paths: {
@@ -55,6 +59,9 @@ const openapi = new OpenAPI({
 const { operation, params } = openapi.path('get', '/2000-01-01')
 console.log(params.date) // Date object
 ```
+
+</div>
+</details>
 
 ### OpenApi.prototype.request
 
@@ -105,3 +112,5 @@ const req = openapi.request({
   path: '/path/abc?x=1',
 })
 ```
+
+{% include to-object.md %}
