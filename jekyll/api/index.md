@@ -31,8 +31,7 @@ This function will dereference your OAS document, validate it, produce warnings 
   - that will resolve to an [OpenAPI component](#) for an OAS 3.x.x document or a [Swagger component](#) for Swagger 2.0
   - or will reject with an [EnforcerException](#) Error.
 
-<details><summary bold>Example 1: Invalid Definition</summary>
-<p>
+**Example 1: Invalid Definition**
 
 ```js
 const Enforcer = require('openapi-enforcer')
@@ -57,11 +56,7 @@ Enforcer(definition)
     })
 ```
 
-</p>
-</details>
-
-<details><summary bold>Example 2: Valid Definition</summary>
-<p>
+**Example 2: Valid Definition**
 
 ```js
 const definition = {
@@ -100,9 +95,6 @@ Enforcer(definition)
     })
 ```
 
-</p>
-</details>
-
 ## Enforcer.dereference
 
 `Enforcer.dereference ( definition ) : Promise <object>`
@@ -125,15 +117,11 @@ Resolves all of the `$ref` values in a definition and returns the dereferenced o
 
 A static reference to the [Enforcer function](#enforcer). This is helpful if you're using destructuring when you require this package.
 
-<details><summary bold>Destructure Example</summary>
-<p>
+**Destructure Example**
 
 ```js
 const { Enforcer } = require('openapi-enforcer');
 ```
-
-</p>
-</details>
 
 ## Enforcer.Exception
 
@@ -155,16 +143,12 @@ An object containing class constructors for all [components](#) that are part of
 
 {% include v2_0-components.html %}
 
-<details><summary bold>Example: Creating Schema</summary>
-<p>
+**Example: Creating Schema**
 
 ```js
 const Enforcer = require('openapi-enforcer')
-const schema = new Enforcer.v2_0.Schema({ type: 'string' })
+const [ schema ] = Enforcer.v2_0.Schema({ type: 'string' })
 ```
-
-</p>
-</details>
 
 ## Enforcer.v3_0
 
@@ -174,13 +158,9 @@ An object containing class constructors for all [components](#) that are part of
 
 {% include v3_0-components.html %}
 
-<details><summary bold>Example: Creating Schema</summary>
-<p>
+**Example: Creating Schema**
 
 ```js
 const Enforcer = require('openapi-enforcer')
-const schema = new Enforcer.v3_0.Schema({ type: 'string' })
+const [ schema ] = Enforcer.v3_0.Schema({ type: 'string' })
 ```
-
-</p>
-</details>

@@ -8,7 +8,7 @@ toc: true
 
 ## getResponseContentTypeMatches
 
-`getResponseContentTypeMatches ( code, accepts ) : EnforcerResult < string[] >`
+`Operation.prototype.getResponseContentTypeMatches ( code, accepts ) : EnforcerResult < string[] >`
 
 For OpenAPI 3.x.x, the response body's definition is based on a mime type. This function allow you to find an appropriate response mime type based on an [HTTP Accept](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept) string that is generally passed in with the request.
 
@@ -31,8 +31,7 @@ For OpenAPI 3.x.x, the response body's definition is based on a mime type. This 
     
     - *NO_TYPES_SPECIFIED* - Indicates that there is no specified `produces` for OpenAPI v2 or no `content` for OpenAPI v3.
 
-<details><summary bold>Example: Get Allowed Mime Types 1</summary>
-<div>
+**Example: Get Allowed Mime Types 1**
 
 ```js
 Enforcer('/path/to/oas-doc.yml')
@@ -44,11 +43,7 @@ Enforcer('/path/to/oas-doc.yml')
     })
 ```
 
-</div>
-</details>
-
-<details><summary bold>Example: Get Allowed Mime Types 2</summary>
-<div>
+**Example: Get Allowed Mime Types 2**
 
 ```js
 const [ operation ] = Enforcer.v2_0.Operation({
@@ -62,11 +57,7 @@ const [ matches ] = operation.getResponseContentTypeMatches(200, 'text/*')
 console.log(matches)  // ['text/html', 'text/plain']
 ```
 
-</div>
-</details>
-
-<details><summary bold>Example: No Matching MIME Type</summary>
-<div>
+**Example: No Matching MIME Type**
 
 ```js
 const [ operation ] = Enforcer.v3_0.Operation({
@@ -81,12 +72,9 @@ console.log(matches)  // undefined
 console.log(err.code) // NO_MATCH
 ```
 
-</div>
-</details>
-
 ## request
 
-`request ( request, options ) : EnforcerResult < object >`
+`Operation.prototype.request ( request, options ) : EnforcerResult < object >`
 
 <div class='alert-warning'>
 
@@ -129,7 +117,7 @@ No example will be shown here. Instead check out [OpenAPI request](./openapi#req
 
 ## response
 
-`response ( code [, body [, headers ] ] ) : EnforcerResult < object >`
+`Operation.prototype.response ( code [, body [, headers ] ] ) : EnforcerResult < object >`
 
 Validate and serialize response data.
 
@@ -143,8 +131,7 @@ Validate and serialize response data.
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to an object with properties `body`, `header`, and `schema`. If the `body` passed in was an object then the `body` result will also be an object, not a JSON string.
 
-<details><summary bold>Example with Body and Headers</summary>
-<div>
+**Example with Body and Headers**
 
 ```js
 const Operation = require('openapi-enforcer').v3_0.Operation;
@@ -190,11 +177,7 @@ console.log(response)
 // }
 ```
 
-</div>
-</details>
-
-<details><summary bold>Examples without Body</summary>
-<div>
+**Examples without Body**
 
 ```js
 const [ response ] = operation.response(200, undefined, {
@@ -208,5 +191,4 @@ const [ response ] = operation.response(200, , {
 })
 ```
 
-</div>
-</details>
+{% include to-object.md %}

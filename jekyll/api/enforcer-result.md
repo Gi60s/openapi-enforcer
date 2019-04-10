@@ -24,8 +24,7 @@ Create an EnforcerResult instance.
 
 **Returns** an EnforcerResult instance.
 
-<details><summary bold>Example without Error</summary>
-<div>
+**Example without Error
 
 ```js
 const { Exception, Result } = require('openapi-enforcer')
@@ -38,11 +37,7 @@ console.log(val)      // 'Hello'
 console.log(warning)  // undefined
 ```
 
-</div>
-</details>
-
-<details><summary bold>Example with Error</summary>
-<div>
+**Example with Error**
 
 ```js
 const { Exception, Result } = require('openapi-enforcer')
@@ -56,6 +51,3 @@ console.log(err)      // Exception header
 console.log(val)      // undefined because the EnforcerException had a message
 console.log(warning)  // undefined
 ```
-
-</div>
-</details>

@@ -27,8 +27,7 @@ Get path parameters and operation from a method and path.
 
 - *params* - An `object` of key value pairs for each path parameter and it's deserialized and validated value.
 
-<details open><summary bold>Example</summary>
-<div>
+**Example**
 
 ```js
 const OpenAPI = require('openapi-enforcer').v3_0.OpenApi
@@ -59,9 +58,6 @@ const [ openapi ] = OpenAPI({
 const { operation, params } = openapi.path('get', '/2000-01-01')
 console.log(params.date) // Date object
 ```
-
-</div>
-</details>
 
 ### OpenApi.prototype.request
 

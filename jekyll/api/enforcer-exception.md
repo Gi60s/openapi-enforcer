@@ -38,8 +38,7 @@ console.log(exception)
 
 The number of *messages* added to an EnforcerException, including those added to any child EnforcerException instances.
 
-<details><summary bold>Example</summary>
-<p>
+**Example**
 
 ```js
 const { Exception } = require('openapi-enforcer')
@@ -54,17 +53,13 @@ console.log(parent.count) // 2
 console.log(child.count)  // 1
 ```
 
-</p>
-</details>
-
 ### EnforcerException.hasException
 
 `EnforcerException.hasException : boolean`
 
 Whether an EnforcerException instance has any messages or not.
 
-<details><summary bold>Example</summary>
-<p>
+**Example**
 
 ```js
 const { Exception } = require('openapi-enforcer')
@@ -75,9 +70,6 @@ console.log(exception.hasException) // false
 exception.message('Failed to compute')
 console.log(exception.hasException) // true
 ```
-
-</p>
-</details>
 
 ## Instance Methods
 
@@ -95,8 +87,7 @@ Use this method to create a child exception that indicates a sub path. This diff
 
 **Returns:** The child EnforcerException instance
 
-<details><summary bold>Example</summary>
-<p>
+**Example**
 
 
 ```js
@@ -112,9 +103,6 @@ console.log(exception)
 //     No soup for you
 ```
 
-</p>
-</details>
-
 ### EnforcerException.prototype.nest
 
 `EnforcerException.prototype.nest ( header: string ) : EnforcerException`
@@ -129,8 +117,7 @@ Use this method to create a child exception. Unlike the `at` function, this will
 
 **Returns:** The child EnforcerException instance
 
-<details><summary bold>Example</summary>
-<p>
+**Example**
 
 ```js
 const { Exception } = require('openapi-enforcer')
@@ -147,9 +134,6 @@ console.log(exception)
 //     Too busy to comply
 ```
 
-</p>
-</details>
-
 ### EnforcerException.prototype.merge
 
 `EnforcerException.prototype.merge ( exception: EnforcerException ) : EnforcerException`
@@ -164,8 +148,7 @@ Copy the child EnforcerInstances and messages from one EnforcerInstance into ano
 
 **Returns:** The EnforcerException instance that was copied into
 
-<details><summary bold>Example</summary>
-<p>
+**Example**
 
 ```js
 const { Exception } = require('openapi-enforcer')
@@ -184,9 +167,6 @@ console.log(exceptionA)
 //   Message b
 ```
 
-</p>
-</details>
-
 ### EnforcerException.prototype.message
 
 `EnforcerException.prototype.message ( message: string ) : EnforcerException`
@@ -201,8 +181,7 @@ Add a message to the EnforcerException instance. Once a message is added then th
 
 **Returns:** The EnforcerException instance that the message was added to
 
-<details><summary bold>Example</summary>
-<p>
+**Example**
 
 ```js
 const { Exception } = require('openapi-enforcer')
@@ -214,9 +193,6 @@ console.log(exception)
 // Header 1
 //   Message 1
 ```
-
-</p>
-</details>
 
 ### EnforcerException.prototype.push
 
@@ -232,8 +208,7 @@ This method can be used to add a message (`string`) or an EnforcerInstance objec
 
 **Returns:** The EnforcerException instance that the value was added to
 
-<details><summary bold>Example</summary>
-<p>
+**Example**
 
 ```js
 const { Exception } = require('openapi-enforcer')
@@ -251,9 +226,6 @@ console.log(exception)
 //     Message 2
 //   Message 1
 ```
-
-</p>
-</details>
 
 ### EnforcerException.prototype.toString
 
