@@ -82,28 +82,7 @@ Enforcer.Exception = Exception;
 
 Enforcer.Result = Result;
 
-/**
- * Convert a non plain object to a plain object.
- * @param value The value to convert.
- * @param {object} [options]
- * @param {boolean} [options.allowInheritedProperties=false]
- * @param {array} [options.preserve=[]]
- * @returns {object} The plain object.
- */
-Enforcer.toPlainObject = function (value, options) {
-    const map = new Map();
-    if (!options) options = {};
-    if (typeof options !== 'object') throw Error('Parameter "options" must be an object');
-    if (!options.hasOwnProperty('allowInheritedProperties')) options.allowInheritedProperties = false;
-    if (!options.hasOwnProperty('preserve')) options.preserve = [];
-
-    if (!Array.isArray(options.preserve)) throw Error('Option "preserve" must be an array');
-    options.preserve.push(Date);
-
-    const result = toPlainObject(value, options, map);
-    if (!result.set) throw Error('Unable to convert value to plain object');
-    return result.value;
-};
+Enforcer.toPlainObject = util.toPlainObject;
 
 const v2_0 = Enforcer.v2_0 = {};
 Object.defineProperty(v2_0, 'version', { value: '2.0' });
@@ -186,36 +165,3 @@ Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.bi
 Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
 Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
 Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'date-time', dataTypeFormats.dateTime);
-
-function toPlainObject (value, options, map) {
-    if (value && value.constructor && options.preserve.indexOf(value.constructor) !== -1) {
-        return { set: true, value };
-
-    } else if (Array.isArray(value)) {
-        if (map.has(value)) return map.get(value);
-        const result = [];
-        map.set(value, result);
-        value.forEach(v => {
-            const r = toPlainObject(v, options, map);
-            if (r.set) result.push(r.value);
-        });
-        return { set: true, value: result };
-
-    } else if (value && typeof value === 'object') {
-        if (map.has(value)) return map.get(value);
-        const result = {};
-        map.set(value, result);
-        for (let k in value) {
-            if (options.allowInheritedProperties || value.hasOwnProperty(k)) {
-                const r = toPlainObject(value[k], options, map);
-                if (r.set) result[k] = r.value;
-            }
-        }
-        return { set: true, value: result };
-
-    } else if (value instanceof Object) {
-        return { set: false };
-    } else {
-        return { set: true, value };
-    }
-}
