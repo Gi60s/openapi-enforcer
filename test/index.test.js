@@ -20,6 +20,83 @@ const DefinitionBuilder = require('../src/definition-builder');
 const Enforcer          = require('../index');
 const expect            = require('chai').expect;
 
+describe('index/toPlainObject', () => {
+
+    it('returns primitive as is', () => {
+        const result = Enforcer.toPlainObject('hello');
+        expect(result).to.equal('hello');
+    });
+
+    it('can handle plain object', () => {
+        const o = { a: 1, b: 2, c: [1, 2] };
+        const result = Enforcer.toPlainObject(o);
+        expect(result).to.deep.equal(o);
+    });
+
+    it('can handle array', () => {
+        const o = [1, 2, { a: 1, b: 2 }];
+        const result = Enforcer.toPlainObject(o);
+        expect(result).to.deep.equal(o);
+    });
+
+    describe('non plain object', () => {
+        const d = new Date();
+
+        function A () {
+            this.a = 1;
+            this.d = d;
+
+            Object.defineProperty(this, 'c', {
+                enumerable: true,
+                value: 'c'
+            })
+        }
+        A.prototype.f = function () { return 'function' };
+        A.prototype.s = 'string';
+        Object.defineProperty(A.prototype, 'b', { enumerable: true, value: true });
+
+        it('leaves Date alone', () => {
+            const o = { d: d };
+            const result = Enforcer.toPlainObject(o);
+            expect(result).to.deep.equal(o);
+            expect(result.d.constructor).to.equal(Date);
+        });
+
+        it('can convert non-plain object', () => {
+            const result = Enforcer.toPlainObject(new A());
+            expect(result).to.deep.equal({
+                a: 1,
+                d: d,
+                c: 'c'
+            });
+            expect(result.constructor).to.equal(Object);
+        });
+
+        it('can convert non-plain object including inherited', () => {
+            const result = Enforcer.toPlainObject(new A(), { allowInheritedProperties: true });
+            expect(result).to.deep.equal({
+                a: 1,
+                d: d,
+                c: 'c',
+                s: 'string',
+                b: true
+            });
+            expect(result.constructor).to.equal(Object);
+        });
+
+        it('can preserve non-plain object', () => {
+            const a = new A();
+            const o = { a: a };
+            const result = Enforcer.toPlainObject(o, { preserve: [ A ] });
+            expect(result).to.deep.equal({ a: a });
+            expect(result).not.to.equal(o);
+            expect(result.a.constructor).to.equal(A);
+        });
+
+    });
+
+});
+
 describe('index/request', () => {
 
     describe('path parameters', () => {
