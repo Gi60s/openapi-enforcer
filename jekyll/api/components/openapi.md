@@ -8,7 +8,7 @@ toc: true
 
 This is the top level component that contains all other components within it.
 
-### path
+## path
 
 `OpenApi.prototype.path ( method, path ) : EnforcerResult < object >`
 
@@ -59,25 +59,33 @@ const { operation, params } = openapi.path('get', '/2000-01-01')
 console.log(params.date) // Date object
 ```
 
-### OpenApi.prototype.request
+## request
+
+`OpenApi.prototype.request ( request [, options ] ) : EnforcerResult < object >`
 
 Deserialize and validate a request.
 
 **Parameters:**
 
-- *request* - The request `object`.
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **request** | The request configuration. See below. | `object` | |
+| options | The options configuration. See below | `object` | |
 
-  - *body* - A `string` or `object` for the request body. If an object is provided then it should already be deserialized as far a `JSON.parse` would deserialize.
+**Request Parameter**
 
-  - *header* - An `object` of key value pairs where the key is the header name and the value is the header value.
+| Property | Description | Type  | Default |
+| --------- | ----------- | ---- | ------- |
+| body | A `string` or `object` for the request body. If an object is provided then it should already be deserialized as far a `JSON.parse` would deserialize. | `string` or `object` | |
+| header | An `object` of key value pairs where the key is the header name and the value is the header value. | `object` | `{}` |
+| method | The HTTP method to use. | `string` | `'get'` |
+| path | The full path (after domain and port) including query parameter string. | `string` | `'/'` |
 
-  - *method* - A `string` for the HTTP method to use.
+**Options Parameter**
 
-  - *path* - A `string` that contains the full path (after domain and port) including query parameter string.
-
-- *options* - An `object`
-
-  - *allowOtherQueryParameters* - A `boolean` or an array of `string` values that indicates whether query parameters that are not specified in the OAS definition should be allowed. If an array of `string` values is provided then the `string` values provided will be allowed. Defaults to `false`.
+| Property | Description | Type  | Default |
+| --------- | ----------- | ---- | ------- |
+| allowOtherQueryParameters | A `boolean` or an array of `string` values that indicates whether query parameters that are not specified in the OAS definition should be allowed. If an array of `string` values is provided then the `string` values provided will be allowed. | `boolean` or `string` | `false` |
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to an `object` with these properties:
 
@@ -94,6 +102,8 @@ Deserialize and validate a request.
 - *query* - An `object` map of query parameter names and deserialized and validated values.
 
 - *response* - A small wrapper around the `function` [Operation.prototype.response()](operation.md#operationprototyperesponse). This will automatically set the response header `content-type` based on the request `accept` header unless you specifically set a response `content-type`.
+
+**Example**
 
 ```js
 const OpenAPI = require('openapi-enforcer').v3_0.OpenApi
