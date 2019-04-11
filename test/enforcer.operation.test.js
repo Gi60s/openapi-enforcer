@@ -1658,6 +1658,45 @@ describe('enforcer/operation', () => {
                     expect(warn).to.match(/Content type specified is not defined as a possible mime-type/)
                 });
 
+                it('can handle response with non-plain objects', () => {
+                    const [ operation ] = Enforcer.v3_0.Operation({
+                        responses: {
+                            200: {
+                                description: 'success',
+                                content: {
+                                    'application/json': {
+                                        schema: {
+                                            type: 'object',
+                                            properties: {
+                                                name: { type: 'string' },
+                                                birthdate: { type: 'string', format: 'date' }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    function Person (name, birthdate) {
+                        this.name = name;
+                        this.birthdate = birthdate;
+                    }
+
+                    Person.prototype.age = function () {
+                        const diff = Date.now() - +this.birthdate;
+                        const date = new Date(diff);
+                        return date.getUTCFullYear() - 1970;
+                    };
+
+                    const bob = new Person('Bob', new Date('2000-01-01T00:00:00.000Z'));
+                    const [ res ] = operation.response(200, bob);
+                    expect(res.body).to.deep.equal({
+                        name: 'Bob',
+                        birthdate: '2000-01-01'
+                    });
+                });
+
             });
 
             describe('headers', () => {
