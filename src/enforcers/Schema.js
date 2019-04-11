@@ -85,6 +85,15 @@ const prototype = {
     },
 
     /**
+     * Take a non plain object and convert it into a plain object far enough so that validation and serialization can occur.
+     * @param {*} value
+     * @returns {*}
+     */
+    formalize: function (value) {
+        return this.enforcerData.context.Schema.formalize(value);
+    },
+
+    /**
      * Populate a value from a list of parameters.
      * @param {object} [params]
      * @param {*} [value]
@@ -240,11 +249,16 @@ module.exports = {
     prototype,
 
     statics: function (scope) {
+        const warnings = {};
+        const constructors = new Set();
         const dataTypes = scope.dataTypes = {
             boolean: {},
             integer: {},
             number: {},
             string: {}
+        };
+        scope.dataTypeConstructors = function () {
+            return Array.from(constructors.values());
         };
         return {
             defineDataTypeFormat: function (type, format, definition) {
@@ -252,18 +266,39 @@ module.exports = {
                 if (!dataTypes.hasOwnProperty(type)) throw Error('Invalid type specified. Must be one of: ' + Object.keys(dataTypes).join(', '));
                 if (!format || typeof format !== 'string') throw Error('Invalid format specified. Must be a non-empty string');
                 if (dataTypes.hasOwnProperty(format)) throw Error('Format "' + format + '" is already defined');
-                if (definition !== null &&
-                    (typeof definition !== 'object' ||
-                    typeof definition.deserialize !== 'function' ||
-                    typeof definition.serialize !== 'function' ||
-                    typeof definition.validate !== 'function'
-                    || (definition.random &&  typeof definition.random !== 'function'))) throw Error('Invalid data type definition. Must be an object that defines handlers for "deserialize", "serialize", and "validate" with optional "random" handler.');
+
+                if (definition !== null) {
+                    if (typeof definition !== 'object' ||
+                        typeof definition.deserialize !== 'function' ||
+                        typeof definition.serialize !== 'function' ||
+                        typeof definition.validate !== 'function'
+                        || (definition.random &&  typeof definition.random !== 'function')) throw Error('Invalid data type definition. Must be an object that defines handlers for "deserialize", "serialize", and "validate" with optional "random" handler.');
+
+                    if (definition.constructors) {
+                        definition.constructors.forEach(fn => {
+                            if (typeof fn !== 'function') throw Error('Invalid constructor specified. Expected a function, received: ' + fn);
+                            constructors.add(fn);
+                        })
+                    } else {
+                        const key = type + '-' + format;
+                        if (!warnings[key]) {
+                            warnings[key] = true;
+                            console.warn('WARNING: Data type definition missing recommended "constructors" property for type "' + type + '" and format "' + format + '".');
+                        }
+                    }
+                }
 
                 // store the definition
                 dataTypes[type][format] = Object.assign({}, definition, { type, format });
             },
 
             extractValue: Value.extract,
+
+            formalize: function (value) {
+                return util.toPlainObject(value, {
+                    preserve: scope.dataTypeConstructors()
+                });
+            },
 
             Value: Value
         }
