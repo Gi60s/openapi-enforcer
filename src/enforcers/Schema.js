@@ -377,7 +377,7 @@ module.exports = {
                             type: 'object',
                             additionalProperties: {
                                 type: 'string',
-                                errors: ({ exception, key, parent, refParser, result }) => {
+                                errors: ({ exception, parent, refParser, result }) => {
                                     if (refParser) {
                                         let schema;
                                         try {
@@ -429,7 +429,7 @@ module.exports = {
                         type: ({ parent }) => {
                             const def = parent.parent.definition;
                             const types = [ def.type ];
-                            if (def.nullable === true || def['x-nullable'] === true) types.push('null')
+                            if (def.nullable === true || def['x-nullable'] === true) types.push('null');
                             return types;
                         },
                         freeForm: true
@@ -446,7 +446,7 @@ module.exports = {
                     weight: -9,
                     allowed: ({ parent }) => ['boolean', 'integer', 'number', 'string'].includes(parent.definition.type),
                     type: 'string',
-                    errors: ({ exception, parent, warn }) => {
+                    errors: ({ parent, warn }) => {
                         const format = parent.definition.format;
                         if (format) {
                             const type = parent.definition.type;
@@ -626,7 +626,7 @@ function buildInjector(rxGenerator) {
         let match;
         let result = '';
         let offset = 0;
-        while (match = rx.exec(value)) {
+        while ((match = rx.exec(value))) {
             const property = match[1];
             result += value.substring(offset, match.index) + (data[property] !== undefined ? data[property] : match[0]);
             offset = match.index + match[0].length;
