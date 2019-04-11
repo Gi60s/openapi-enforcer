@@ -21,6 +21,8 @@ const util      = require('./util');
 const zeros = '00000000';
 
 exports.binary = {
+    constructors: [ Buffer ],
+
     deserialize: function ({ exception, value }) {
         if (value instanceof Buffer) {
             return value;
@@ -69,6 +71,8 @@ exports.binary = {
 };
 
 exports.byte = {
+    constructors: [ Buffer ],
+
     deserialize: function ({ exception, value }) {
         if (value instanceof Buffer) {
             return value;
@@ -109,6 +113,8 @@ exports.byte = {
 };
 
 exports.date = {
+    constructors: [ Date ],
+
     deserialize: function ({ exception, value }) {
         if (value instanceof Date) {
             return value;
@@ -159,6 +165,8 @@ exports.date = {
 };
 
 exports.dateTime = {
+    constructors: [ Date ],
+
     deserialize: function ({ exception, value }) {
         if (value instanceof Date) {
             return value;
