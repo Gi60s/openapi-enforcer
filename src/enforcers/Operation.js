@@ -325,6 +325,7 @@ module.exports = {
                             result.schema = schema;
                             result.body = body;
                         } else {
+                            body = schema.formalize(body);
                             let err = schema.validate(body);
                             if (!err) [body, err] = schema.serialize(body);
                             if (err) {
@@ -358,6 +359,7 @@ module.exports = {
 
                             const schema = contentType && content[contentType] && content[contentType].schema;
                             if (schema) {
+                                body = schema.formalize(body);
                                 let err = schema.validate(body);
                                 if (!err) [body, err] = schema.serialize(body);
                                 if (err) {
@@ -389,6 +391,7 @@ module.exports = {
 
                         if (value !== undefined) {
                             util.arrayRemoveItem(headerKeys, key);
+                            value = schema.formalize(value);
                             let err = schema.validate(value);
                             if (!err) [value, err] = schema.serialize(value);
                             if (!err) [value, err] = header.stringify(value);
