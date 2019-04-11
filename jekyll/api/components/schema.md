@@ -1,34 +1,20 @@
-# Schema
+---
+layout: page
+title: Schema
+subtitle: API Reference
+permalink: /api/components/schema
+toc: true
+---
 
 **Nullable Values**
 
 The Open API Specification v2 does not allow for nullable values in schemas, but to accommodate for that need a property `x-nullable` can be defined on any schema to allow the `null` value.
+   
+# Instance Methods
 
-## API
+## deserialize
 
-- Instance Methods
-
-    - [Schema.prototype.deserialize()](#schemaprototypedeserialize)
-
-    - [Schema.prototype.discriminate()](#schemaprototypediscriminate)
-
-    - [Schema.prototype.populate()](#schemaprototypepopulate)
-
-    - [Schema.prototype.random()](#schemaprototyperandom)
-
-    - [Schema.prototype.serialize()](#schemaprototypeserialize)
-
-    - [Schema.prototype.validate()](#schemaprototypevalidate)
-
-- Static Methods
-
-    - [Schema.defineDataTypeFormat()](#schemadefinedatatypeformat)
-
-    - [Schema.extractValue()](#schemaextractvalue)
-
-    - [Schema.Value()](#schemavalue)
-
-### Schema.prototype.deserialize
+`Schema.prototype.deserialize ( value ) : EnforcerResult < any >`
 
 Schema instances can deserialize values. Deserialization is the process of extracting a data structure from a scalar value. For example, the string `2000-01-01` as a date string would be deserialized to `new Date('2000-01-01')` which gives you a date object instead of a date string.
 
@@ -36,9 +22,13 @@ Note that the deserialization process keeps validation to a minimum. It won't ca
 
 **Parameters:**
 
-- *value* - The value to deserialize
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **value** | The value to deserialize | any | |
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the deserialized value.
+
+**Example**
 
 ```js
 const Enforcer = require('openapi-enforcer')
@@ -50,15 +40,18 @@ console.log(value instanceof Date)  // true
 console.log(value.getFullYear())    // 2000
 ```
 
-### Schema.prototype.discriminate
+## discriminate
+ 
+`Schema.prototype.discriminate ( value [, details ]) : object`
 
 Schemas that use discriminators allow polymorphism or schema selection functionality. This function is used to get the Schema instance that is referenced through the discriminator.
 
 **Parameters:**
 
-- *value* - The object with discriminator property
-
-- *details* - Whether to get back just the Schema instance (`false`) or the Schema instance, property name, and property value (`true`). Defaults to `false`.
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **value** | The object containing the discriminator property | `object` | |
+| details | Whether to get back just the Schema instance (`false`) or the Schema instance, property name, and property value (`true`). | `boolean` | `false` |
 
 **Returns:** The discriminator Schema instance if `details=false`, or and object with the properties `key` (discriminator property name), `name` (value property name), and `schema` (the Schema instance) if `details=true`.
 
@@ -115,36 +108,36 @@ Enforcer(definition)
     })
 ```
 
-### Schema.prototype.populate
+## populate
+ 
+`Schema.prototype.populate ([ params [, value [, options ] ] ]) : EnforcerResult < any >`
 
 This method is used to generate values using a combination of a parameters map and the schema definition.
 
 **Parameters:**
 
-- *params* - An object map, tying key value pairs to locations in the schema definition. Defaults to `{}`.
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| params | An object map, tying key value pairs to locations in the schema definition. | `object` | `{}` |
+| value | An initial value to start with. Properties already defined in this value will not be overwritten during population. | any | |
+| options | Options to apply during population. See below. | `object` | |
 
-- *value* - An initial value to start with. Properties already defined in this value will not be overwritten during population. Parameter is optional.
+**Options Parameter**
 
-- *options* - Options to apply during population. Parameter is optional.
-
-    - *options.copy* - Whether to copy the initial value (`true`) or mutate the initial value (`false`). Defaults to `false`.
-
-    - *options.conditions* - Whether to check that the condition (`x-condition`) is met prior to population for a value. Defaults to `true`.
-
-    - *options.defaults* - Whether to apply default value (`x-default` then `default`) if no other value is specified. Defaults to `true`.
-
-    - *options.depth* - How deep to traverse an object that is being built. Defaults to `100`.
-
-    - *options.replacement* - The template replacement method to use. Options include `colon` (`:name`), `doubleHandlerBar` (`{{name}}`), or `handlebar` (`{name}`). Defaults to `handlebar`.
-
-    - *options.templateDefaults* - Whether to apply template replacement to default values. Defaults to `true`.
-
-    - *options.templates* - Whether to use templating (`x-template`) to populate the value. Defaults to `true`.
-
-    - *options.variables* - Whether to use variables (`x-variable`) to populate the value.
-
+| Property | Description | Type  | Default |
+| --------- | ----------- | ---- | ------- |
+| copy | Whether to copy the initial value (`true`) or mutate the initial value (`false`). | `boolean` | `false` |
+| conditions |  Whether to check that the condition (`x-condition`) is met prior to population for a value. | `boolean` | `true` |
+| defaults | Whether to apply default value (`x-default` then `default`) if no other value is specified. | `boolean` | `true` |
+| depth | How deep to traverse an object that is being built. | `number` | `100` |
+| replacement | The template replacement method to use. Options include `colon` (`:name`), `doubleHandlerBar` (`{{name}}`), or `handlebar` (`{name}`). | `string` | `'handlebar'` |
+| templateDefaults | Whether to apply template replacement to default values. | `boolean` | `true` |
+| templates | Whether to use templating (`x-template`) to populate the value. | `boolean` | `true` |
+| variables | Whether to use variables (`x-variable`) to populate the value. | `boolean` | `true` |
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the populated value.
+
+**Example**
 
 ```js
 const Enforcer = require('openapi-enforcer')
@@ -201,33 +194,35 @@ console.log(child)
 // }
 ```
 
-### Schema.prototype.random
+## Random
+
+`Schema.prototype.random ([ value [, options ] ]) : EnforcerResult < any >`
 
 Generate a random value that complies with the schema definition.
 
 **Parameters:**
 
-- *value* - An initial value to use to begin adding randomly generated values to. Parameter is optional.
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| value | An initial value to use to begin adding randomly generated values to. | any | |
+| options | Configuration options. See below. | `object` | |
 
-- *options* - The random value generation options. Parameter is optional.
+**Options Parameter**
 
-    - *options.additionalPropertiesPossibility* - A number between `0` and `1` that signifies the possibility of additional properties being added to objects that allow them. In cases where the definition's `minProperties` has not been reached or if a property is required but not defined as a known property then that additional property will be added, regardless of the `additionalPropertiesPossibility` value. Defaults to `0`.
-
-    - *options.arrayVariation* - The maximum random array size. This value will be overwritten if the schema defines `minItems` or `maxItems`. Defaults to `4`.
-
-    - *options.copy* - Whether the passed in value should be copied (`true`) or mutated (`false`). Defaults to `false`.
-
-    - *options.defaultPossibility* - A number between `0` and `1` that signifies the possibility of a default value being used when on exists. Defaults to `0.25`.
-
-    - *options.definedPropertyPossibility* - A number between `0` and `1` that signifies the possibility of setting a value for an object with a defined property. If the property is required then the random value will be set regardless of the `defaultPossibility` value. Defaults to `0.80`.
-
-    - *options.maxDepth* - How deep to build a random object or array. Defaults to `10`.
-
-    - *options.numberVariation* - The amount of variation to have between high and low numbers. This value will be overwritten if `minimum` and `maximum` are defined for the schema. Defaults to `1000`.
-
-    - *options.uniqueItemRetry* - The number of times to attempt to come up with a unique value for arrays that have `uniqueItems` set to `true`. Defaults to `5`.
+| Property | Description | Type  | Default |
+| --------- | ----------- | ---- | ------- |
+| additionalPropertiesPossibility | A number between `0` and `1` that signifies the possibility of additional properties being added to objects that allow them. In cases where the definition's `minProperties` has not been reached or if a property is required but not defined as a known property then that additional property will be added, regardless of the `additionalPropertiesPossibility` value. | `number` | `0` |
+| arrayVariation | The maximum random array size. This value may be overwritten if the schema defines `minItems` or `maxItems` that do not fit this value. | `number` | `4` |
+| copy | Whether the passed in value should be copied (`true`) or mutated (`false`). | `boolean`  | `false`  |
+| defaultPossibility | A number between `0` and `1` that signifies the possibility of a default value being used when one exists. | `number` | `0.25` |
+| definedPropertyPossibility | A number between `0` and `1` that signifies the possibility of setting a value for an object with a defined property. If the property is required then the random value will be set regardless of the `defaultPossibility` value. | `number` | `0.80`  |
+| maxDepth | Maximum depth to build to for a random object or array. | `number` | `10` |
+| numberVariation | The amount of variation to have between high and low numbers. This value will be overwritten if `minimum` and `maximum` are defined for the schema. | `number` | `1000` |
+| uniqueItemRetry | The number of times to attempt to come up with a unique value for arrays that have `uniqueItems` set to `true`. | `number` | `5` |
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the random value.
+
+**Example**
 
 ```js
 const Enforcer = require('openapi-enforcer')
@@ -242,13 +237,17 @@ const [ value ] = schema.random()
 console.log(value)  // 1.5
 ```
 
-### Schema.prototype.serialize
+## Serialize
+
+`Schema.prototype.serialize ( value ) : EnforcerResult < any >`
 
 Serialization is the process of converting a data structure to a scalar value. For example, the date object `new Date('2000-01-01')` would be serialized to the string `2000-01-01` if the `type=string` and `format=date`.
 
 **Parameters:**
 
-- *value* - The value to serialize
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **value** | The value to serialize. | `any` | |
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the serialized value.
 
@@ -280,6 +279,8 @@ console.log(err)
 // Invalid value
 //   Expected a string. Received: 123
 ```
+
+# Static Methods
 
 ### Schema.defineDataTypeFormat
 
