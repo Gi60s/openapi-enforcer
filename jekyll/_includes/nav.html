@@ -22,7 +22,12 @@
           <ul>
             <li><a href="{{ "/api/components/openapi" | prepend:site.baseurl }}">OpenApi</a></li>
             <li><a href="{{ "/api/components/operation" | prepend:site.baseurl }}">Operation</a></li>
-            <li><a href="{{ "/api/components/schema" | prepend:site.baseurl }}">Schema</a></li>
+            <li>
+              <a href="{{ "/api/components/schema" | prepend:site.baseurl }}">Schema</a>
+              <ul>
+                <li><a href="{{ "/api/schema-value" | prepend:site.baseurl }}">Schema Value</a></li>
+              </ul>
+            </li>
             <li><a href="{{ "/api/components/swagger" | prepend:site.baseurl }}">Swagger</a></li>
           </ul>
         </li>
