@@ -108,6 +108,12 @@ Enforcer(definition)
     })
 ```
 
+## formalize
+
+`Schema.prototype.formalize ( value ) : any`
+
+This is a convenience function that calls the static [Schema.formalize](#formalize-1) function. Please see the documentation for [Schema.formalize](#formalize-1) for usage and examples.  
+
 ## populate
  
 `Schema.prototype.populate ([ params [, value [, options ] ] ]) : EnforcerResult < any >`
@@ -194,7 +200,7 @@ console.log(child)
 // }
 ```
 
-## Random
+## random
 
 `Schema.prototype.random ([ value [, options ] ]) : EnforcerResult < any >`
 
@@ -237,7 +243,7 @@ const [ value ] = schema.random()
 console.log(value)  // 1.5
 ```
 
-## Serialize
+## serialize
 
 `Schema.prototype.serialize ( value ) : EnforcerResult < any >`
 
@@ -251,6 +257,8 @@ Serialization is the process of converting a data structure to a scalar value. F
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the serialized value.
 
+**Example**
+
 ```js
 const Enforcer = require('openapi-enforcer')
 const [ schema ] = new Enforcer.v3_0.Schema({ type: 'string', format: 'date' })
@@ -260,7 +268,9 @@ const [ value ] = schema.serialize(new Date('2000-01-01T00:00:00.000Z'))
 console.log(value)  // '2000-01-01'
 ```
 
-### Schema.prototype.validate
+## validate
+
+`Schema.prototype.validate ( value ) : EnforcerException | undefined`
 
 Validate a deserialized value against the schema.
 
@@ -269,6 +279,8 @@ Validate a deserialized value against the schema.
 - *value* - The deserialized value to validate
 
 **Returns:** An [EnforcerException](../enforcer-exception.md) object an the value is not valid, otherwise `undefined`.
+
+**Example**
 
 ```js
 const Enforcer = require('openapi-enforcer')
@@ -282,33 +294,38 @@ console.log(err)
 
 # Static Methods
 
-### Schema.defineDataTypeFormat
+### defineDataTypeFormat
 
-This is a static method that is used to define custom data formats, their serialization and deserialization, and their validation.
+`Schema.defineDataTypeFormat ( type, format, configuration ) : undefined`
+
+This is a static method that is used to define custom data formats, their serialization and deserialization, and their validation. If you have custom object classes that need special serialization, deserialization, and validation then this method is where you can define that.
+
+Built into the system already is support for type `'string'` for formats `'binary'`, `'byte'`, `'date'`, and `'date-time'`.
 
 **Parameters:**
 
-- *type* [`string`] - The type to assign the custom format to. This is the data type to use when the value is serialized and must be one of `boolean`, `integer`, `number`, or `string`.
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **type** | The type that this data format definition will apply to. This is directly tied to the Open API document schemas `type` property, therefore this value must be one of `'boolean'`, `'integer'`, `'number'`, or `'string'` as defined in the open api specification. | `string` | |
+| **format** | The name of the format that this type definition will apply to. | `string` | |
+| **configuration** | The configuration instructions for this type and format. See below. | `object` | |
 
-- *format* [`string`] - The name of the format.
+**Configuration Parameter**
 
-- *configuration* [`object`] - An object defining how to serialize, deserialize, validate, etc.
-
-    - *deserialize* [`function`] - The function to call to deserialize the value. It receives one parameter, an object, with properties `exception`, `schema`, and `value` which contains the serialized value. This function should return the deserialized value.
-    
-    - *isNumeric* [`boolean`] - If this value is numeric then it allows the schema properties `maximum`, `minimum`, `exclusiveMaximum`, `exclusiveMinimum`, and `multipleOf`. Defaults to `true` if the type is `integer` or `number`, otherwise `false`.
-
-    - *random* [`function`] - The function to call to generate a random deserialized value. It receives one parameter, an object, with properties `exception` and `schema`. The function should return the deserialized value.
-
-    - *serialize* [`function`] - The function to call to serialize the value. It receives one parameter, an object, with properties `exception`, `schema`, and `value` which contains the deserialized value. This function should return the serialized value.
-
-    - *validate* [`function`] - The function to call to validate the deserialized value. It receives one parameter, and object, with the properties `exception`, `schema`, and `value` which contains the deserialized value. This function does not need to return anything and can report errors via the `exception` object.
+| Property | Description | Type  | Default |
+| --------- | ----------- | ---- | ------- |
+| **constructors** | An array of functions to be recognized as constructors. | `Array < function >` |  |
+| **deserialize** | The function to call to deserialize the value. It receives one parameter, an object, with properties `exception`, `schema`, and `value` which contains the serialized value. This function should return the deserialized value. | `function` |  |
+| isNumeric | If this value is numeric then it allows the schema properties `maximum`, `minimum`, `exclusiveMaximum`, `exclusiveMinimum`, and `multipleOf`. Defaults to `true` if the type is `integer` or `number`, otherwise `false`. | `boolean` | See description |
+| random | The function to call to generate a random deserialized value. It receives one parameter, an object, with properties `exception` and `schema`. The function should return the deserialized value. | `function` |  |
+| **serialize** | The function to call to serialize the value. It receives one parameter, an object, with properties `exception`, `schema`, and `value` which contains the deserialized value. This function should return the serialized value. | `function` |  |
+| **validate** | The function to call to validate the deserialized value. It receives one parameter, and object, with the properties `exception`, `schema`, and `value` which contains the deserialized value. This function does not need to return anything and can report errors via the `exception` object. | `function` |  |
 
 **Returns:** `undefined`.
 
 **Example**
 
-This example shows how you might define a decimal type that uses exact decimal values. The example omits many validations and scenarios for simplicity sake.
+This example shows how you might define a decimal type that uses exact decimal values (instead of floating point). The example omits many validations and scenarios for simplicity sake.
 
 ```js
 // define the Decimal class
@@ -331,6 +348,8 @@ class Decimal {
 // define a "decimal" format
 const Schema = require('openapi-enforcer').v3_0.Schema
 Schema.defineDataTypeFormat('string', 'decimal', {
+    constructors: [ Decimal ],
+    
     // define how to deserialize a value
     deserialize: (exception, value) => new Decimal(value),
 
@@ -362,72 +381,48 @@ console.log(value instanceof Decimal)   // true
 console.log(+value)                     // 2.49
 ```
 
-### Schema.extractValue
+## extractValue
 
-This is an alias for the `Schema.Value.extract` function. It takes a [Schema Value](#schemavalue) instance and converts it into a plain value. Examples are in the [Schema Value](#schemavalue) section.
+`Schema.extractValue ( value )`
+
+This is an [alias for the `Schema.Value.extract` function](./schema-value).
+
+## formalize
+
+`Schema.formalize ( value ) : any`
+
+A schema instance's [serialize](#serialize) and [validate](#validate) functions require that objects meet one of two criteria:
+
+1. Objects must be plain objects, or
+2. Objects must have a [defined schema data type](#definedatatypeformat) that defines serialization and validation.
+
+To this end, `formalize` will correctly convert your non plain objects to a format that can be used by the [serialize](#serialize) and [validate](#validate) functions. In other words, this function will convert a non plain object to either a plain object equivalent or it maintain the defined type.
 
 **Parameters:**
 
-- *value* - The schema value to convert to a plain value.
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| value | The value to formalize | any | |
 
-**Returns:** the extracted value.
+**Returns** a formalized value.
 
-### Schema.Value
-
-This class is used to provide more fine grained control over what parts of a value serialize, deserialize, validate, and populate.
-
-**Example 1: Using Defaults**
+**Example**
 
 ```js
-const Schema = require('openapi-enforcer').v3_0.Schema
+function Person (name, birthdate) {
+    this.name = name;
+    this.birthdate = birthdate;
+}
 
-// convert value to SchemaValue instance
-const schemaValue = new Schema.Value('hello', {
-    populate: true,   // default true
-    serialize: true,  // default true
-    validate: true    // default true
-})
+const person = new Person('bob', new Date('2000-01-01T00:00:00.000Z'))
 
-// run your serialize, deserialize, validate, or populate here
-// ... do stuff
-
-// extract value from SchemaValue instance
-const value = Schema.extractValue(schemaValue)
-
-console.log(value)  // 'hello'
+const plainObject = Enforcer.v3_0.formalize(person)
 ```
 
-**Example 2: Partial Deserialization**
+## Value
 
-```js
-const Schema = require('openapi-enforcer').v3_0.Schema
+`Schema.value ( value, options ) : any`
 
-const [ schema ] = new Schema({
-    type: 'object',
-    properties: {
-        x: {
-            type: 'string',
-            format: 'date'
-        },
-        y: {
-            type: 'string',
-            format: 'date'
-        }
-    }
-})
+This is a sub class used only by the Schema and is used to provide more fine grained control over what parts of a value serialize, deserialize, validate, and populate.
 
-// deserialize part of the object
-let [ value ] = schema.deserialize({
-    x: '2000-01-01',
-    y: new Schema.Value('2001-01-01', { serialize: false })
-})
-
-// convert the value back into a plain object
-value = Schema.extractValue(value)
-
-console.log(value)
-// {
-//     x: [Date],
-//     y: '2001-01-01'
-// }
-```
+[Navigate to Schema.Value documentation](./schema-value)
