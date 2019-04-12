@@ -8,6 +8,8 @@ toc: true
 
 This is the top level component that contains all other components within it.
 
+# Instance Methods
+
 ## path
 
 `OpenApi.prototype.path ( method, path ) : EnforcerResult < object >`

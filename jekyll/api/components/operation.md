@@ -6,6 +6,8 @@ permalink: /api/components/operation
 toc: true
 ---
 
+# Instance Methods
+
 ## getResponseContentTypeMatches
 
 `Operation.prototype.getResponseContentTypeMatches ( code, accepts ) : EnforcerResult < string[] >`
