@@ -30,9 +30,9 @@ console.log(exception)
 //       Error 2
 ```
 
-## Instance Properties
+# Instance Properties
 
-### EnforcerException.count
+## count
 
 `EnforcerException.count : number`
 
@@ -53,7 +53,7 @@ console.log(parent.count) // 2
 console.log(child.count)  // 1
 ```
 
-### EnforcerException.hasException
+## hasException
 
 `EnforcerException.hasException : boolean`
 
@@ -71,9 +71,9 @@ exception.message('Failed to compute')
 console.log(exception.hasException) // true
 ```
 
-## Instance Methods
+# Instance Methods
 
-### EnforcerException.prototype.at
+## at
 
 `EnforcerException.prototype.at ( path: string ) : EnforcerException`
 
@@ -103,7 +103,7 @@ console.log(exception)
 //     No soup for you
 ```
 
-### EnforcerException.prototype.nest
+## nest
 
 `EnforcerException.prototype.nest ( header: string ) : EnforcerException`
 
@@ -134,7 +134,7 @@ console.log(exception)
 //     Too busy to comply
 ```
 
-### EnforcerException.prototype.merge
+## merge
 
 `EnforcerException.prototype.merge ( exception: EnforcerException ) : EnforcerException`
 
@@ -167,7 +167,7 @@ console.log(exceptionA)
 //   Message b
 ```
 
-### EnforcerException.prototype.message
+## message
 
 `EnforcerException.prototype.message ( message: string ) : EnforcerException`
 
@@ -194,7 +194,7 @@ console.log(exception)
 //   Message 1
 ```
 
-### EnforcerException.prototype.push
+## push
 
 `EnforcerException.prototype.push ( value: string|EnforcerException ) : EnforcerException`
 
@@ -227,7 +227,7 @@ console.log(exception)
 //   Message 1
 ```
 
-### EnforcerException.prototype.toString
+## toString
 
 `EnforcerException.prototype.toString () : string`
 
