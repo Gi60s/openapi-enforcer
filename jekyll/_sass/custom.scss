@@ -1,3 +1,7 @@
+article {
+  padding: 0 15px;
+}
+
 details {
   &:not([open]) {
     margin: 15px 0;
@@ -15,12 +19,6 @@ details {
 li.toc-entry {
   padding: 2px 0;
 }
-
-
-h2 {
-  border-bottom: 1px solid #ccc;
-}
-
 
 table, td, th {
   border-collapse: collapse;
@@ -140,10 +138,15 @@ table {
 }
 
 .page-content > .wrapper {
-  display: flex;
+  $side-padding: 30px;
 
+  display: flex;
+  padding-left: 0;
+  padding-right: 0;
 
   @include media-query($on-laptop) {
+    padding-left: 0;
+    padding-right: 0;
 
     &[show-nav] {
 
@@ -160,12 +163,44 @@ table {
 
   }
 
+  article {
+
+    flex: 1;
+    overflow: auto;
+    padding-left: $side-padding;
+    padding-right: $side-padding;
+
+    @include media-query($on-palm) {
+      padding-left: $side-padding / 2;
+      padding-right: $side-padding / 2;
+    }
+
+    h1:not(.post-title) {
+      background-color: $brand-light;
+      color: $brand-dark;
+      margin-left: $side-padding * -1;
+      margin-right: $side-padding * -1;
+      margin-top: 35px;
+      padding: 10px $side-padding;
+
+      @include media-query($on-palm) {
+        margin-left: $side-padding / -2;
+        padding-left: $side-padding / -2;
+      }
+    }
+
+    h2 {
+      border-bottom: 1px solid $grey-color-light;
+      margin-top: 35px;
+    }
+  }
+
   > nav {
     width: 250px;
     min-width: 250px;
-    margin-right: 25px;
     overflow-y: auto;
     border-right: 1px solid $grey-color-light;
+    padding-left: $side-padding;
 
     @include media-query($on-laptop) {
       position: fixed;
@@ -220,11 +255,6 @@ table {
     background: #000;
     opacity: 0;
     transition: all 300ms ease-in-out;
-  }
-
-  .post {
-    flex: 1;
-    overflow: auto;
   }
 }
 
