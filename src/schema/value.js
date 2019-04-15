@@ -72,7 +72,7 @@ SchemaValue.prototype.attributes = function () {
  * Create a new SchemaValue instance that keeps it's own configuration over a supplied secondary configuration.
  * @param {*} value
  * @param {object} [config]
- * @param {boolean} [config.populate] Whether the value should use strong type coercion.
+ * @param {boolean} [config.populate] Whether the value should be populated.
  * @param {boolean} [config.serialize] Whether the value should be serialized or deserialized.
  * @param {boolean} [config.validate] Whether the value should be validated.
  * @returns {SchemaValue}
