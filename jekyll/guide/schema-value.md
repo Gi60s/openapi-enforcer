@@ -99,7 +99,7 @@ Get the current attributes for the schema value instance.
 
 **Parameters:** None
 
-**Returns:** An object with the properties `populate`, `serialize`, `validate`, and `value`.
+**Returns** an object with the properties `populate`, `serialize`, `validate`, and `value`.
 
 **Example**
 
@@ -117,11 +117,56 @@ console.log(value.attributes())
 // }
 ```
 
-## inherit
+# Static Methods
 
 ## extract
 
-# Static Methods
+`Schema.Value.extract ( value ) : any`
+
+Extract a SchemaValue instance back to a regular value.
+
+**Parameters:**
+
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **value** | The value or SchemaValue instance to extract the original value from. | SchemaValue or any | |
+
+**Returns** the extracted value.
 
 ## getAttributes
+
+`Schema.Value.getAttributes ( value ) : object`
+
+Get SchemaValue attributes whether the value is actually an SchemaValue instance or a plain value.
+
+**Parameters:**
+
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **value** | The value to extract SchemaValue attributes from. | SchemaValue or any | |
+
+**Returns** an object with the properties `populate`, `serialize`, `validate`, and `value`.
+
+## inherit
+
+`Schema.Value.inherit ( value [, config ] ) : SchemaValue`
+
+Create a new SchemaValue instance that keeps it's own configuration over a supplied secondary configuration.
+
+**Parameters:**
+
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **value** | The value to merge SchemaValue attributes into. | SchemaValue or any | |
+| config | Configuration options. See below. | `object` | |
+
+**Options Parameter**
+
+| Property | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| populate | Whether to effect [population](./schema#populate) on the value. | `boolean` | `true` |
+| serialize | Whether to effect [serialization](./schema#serialize) or [deserialization](./schema#deserialize) on the value. | `boolean` | `true` |
+| validate | Whether to effect [validation](./schema#validate) on the value. | `boolean` | `true` |
+
+**Returns:** A SchemaValue instance.
 
