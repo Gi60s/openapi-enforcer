@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Operation</title>
+  <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
+">
+
+  <link rel="icon" href="/openapi-enforcer/favicon.png">
+
+  <link rel="stylesheet" href="/openapi-enforcer/css/main.css">
+  <link rel="canonical" href="https://byu-oit.github.io/openapi-enforcer/api/components/operation">
+  <link rel="alternate" type="application/rss+xml" title="Open API Enforcer" href="https://byu-oit.github.io/openapi-enforcer/feed.xml">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/openapi-enforcer/">
+      <img class="site-icon" src="/openapi-enforcer/icons/logo-50.png" alt="Open API Enforcer">Open API Enforcer
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="nav-screen"></div>
+<nav class="nav-list">
+  <ul>
+    <li><a href="/openapi-enforcer/">About</a></li>
+    <li>
+      <a href="/openapi-enforcer/guide">Guide</a>
+      <ul>
+        <li><a href="/openapi-enforcer/guide/create-api">Create an API</a></li>
+        <li><a href="/openapi-enforcer/guide/component-plugins">Component Plugins</a></li>
+        <li><a href="/openapi-enforcer/guide/enforcer-result">EnforcerResult</a></li>
+        <li><a href="/openapi-enforcer/guide/validate-document">Validate a Document</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="/openapi-enforcer/api">API Reference</a>
+      <ul>
+        <li><a href="/openapi-enforcer/api">Enforcer</a></li>
+        <li><a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a></li>
+        <li><a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a></li>
+        <li>
+          <a href="/openapi-enforcer/api/components">Components</a>
+          <ul>
+            <li><a href="/openapi-enforcer/api/components/openapi">OpenApi</a></li>
+            <li><a href="/openapi-enforcer/api/components/operation">Operation</a></li>
+            <li>
+              <a href="/openapi-enforcer/api/components/schema">Schema</a>
+              <ul>
+                <li><a href="/openapi-enforcer/api/schema-value">Schema Value</a></li>
+              </ul>
+            </li>
+            <li><a href="/openapi-enforcer/api/components/swagger">Swagger</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="/openapi-enforcer/related">Related Projects</a></li>
+  </ul>
+</nav>
+
+        <article class="post">
+
+  
+  <header class="post-header">
+    
+    <div class="post-subtitle">API Reference</div>
+    
+    <h1 class="post-title">
+      Operation
+    </h1>
+  </header>
+  
+
+  <div class="post-content">
+    
+    <p class="section-nav-title"><strong>Page Content</strong></p>
+    
+
+    <ul class="section-nav">
+<li class="toc-entry toc-h1"><a href="#instance-methods">Instance Methods</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#getresponsecontenttypematches">getResponseContentTypeMatches</a></li>
+<li class="toc-entry toc-h2"><a href="#request">request</a></li>
+<li class="toc-entry toc-h2"><a href="#response">response</a></li>
+<li class="toc-entry toc-h2"><a href="#toobject">toObject</a></li>
+</ul>
+</li>
+</ul><h1 id="instance-methods">
+<a class="anchor" href="#instance-methods" aria-hidden="true"><span class="octicon octicon-link"></span></a>Instance Methods</h1>
+<h2 id="getresponsecontenttypematches">
+<a class="anchor" href="#getresponsecontenttypematches" aria-hidden="true"><span class="octicon octicon-link"></span></a>getResponseContentTypeMatches</h2>
+<p><code>Operation.prototype.getResponseContentTypeMatches ( code, accepts ) : EnforcerResult &lt; string[] &gt;</code></p>
+<p>For OpenAPI 3.x.x, the response body’s definition is based on a mime type. This function allow you to find an appropriate response mime type based on an <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept">HTTP Accept</a> string that is generally passed in with the request.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>code</strong></td>
+<td>The response code to return.</td>
+<td>
+<code>string</code> or <code>number</code>
+</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>accepts</strong></td>
+<td>The <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept">HTTP Accept</a> string to compare response mime types to. An accept string with multiple options and quality is supported.</td>
+<td><code>string</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> An <a href="../enforcer-result.md">EnforcerResult</a> that</p>
+<ul>
+<li>
+<p>Resolves to array of strings for each response mime type that matches the accept string in closest match order, also taking accept quality into account.</p>
+</li>
+<li>
+<p>Fails because of one of three errors, each with a <code>code</code> property specified on the <a href="../enforcer-exception.md">exception object</a>:</p>
+<ul>
+<li>
+<p><em>NO_CODE</em> - Indicates that the response code specified is not specifically defined and no default exists.</p>
+</li>
+<li>
+<p><em>NO_MATCH</em> - Indicates that a <code>produces</code> for OpenAPI v2 or a <code>content</code> for OpenAPI v3 exists, but none of their mime types are a match for the accept string passed in.</p>
+</li>
+<li>
+<p><em>NO_TYPES_SPECIFIED</em> - Indicates that there is no specified <code>produces</code> for OpenAPI v2 or no <code>content</code> for OpenAPI v3.</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>Example: Get Allowed Mime Types 1</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">Enforcer</span><span class="p">(</span><span class="s1">'/path/to/oas-doc.yml'</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">enforcer</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="c1">// get the operation of interest</span>
+        <span class="kd">const</span> <span class="nx">operation</span> <span class="o">=</span> <span class="nx">enforcer</span><span class="p">.</span><span class="nx">paths</span><span class="p">[</span><span class="s1">'/'</span><span class="p">].</span><span class="nx">post</span>
+        <span class="kd">const</span> <span class="p">[</span> <span class="nx">matches</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">operation</span><span class="p">.</span><span class="nx">getResponseContentTypeMatches</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s1">'text/*'</span><span class="p">)</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">matches</span><span class="p">)</span>  <span class="c1">// ['text/html', 'text/plain']</span>
+    <span class="p">})</span>
+</code></pre></div></div>
+<p><strong>Example: Get Allowed Mime Types 2</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">[</span> <span class="nx">operation</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v2_0</span><span class="p">.</span><span class="nx">Operation</span><span class="p">({</span>
+    <span class="na">produces</span><span class="p">:</span> <span class="p">[</span><span class="s1">'application/json'</span><span class="p">,</span> <span class="s1">'text/html'</span><span class="p">,</span> <span class="s1">'text/plain'</span><span class="p">],</span>
+    <span class="na">responses</span><span class="p">:</span> <span class="p">{</span>
+        <span class="mi">200</span><span class="p">:</span> <span class="p">{</span> <span class="na">description</span><span class="p">:</span> <span class="s1">''</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">matches</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">operation</span><span class="p">.</span><span class="nx">getResponseContentTypeMatches</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s1">'text/*'</span><span class="p">)</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">matches</span><span class="p">)</span>  <span class="c1">// ['text/html', 'text/plain']</span>
+</code></pre></div></div>
+<p><strong>Example: No Matching MIME Type</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">[</span> <span class="nx">operation</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v3_0</span><span class="p">.</span><span class="nx">Operation</span><span class="p">({</span>
+    <span class="na">produces</span><span class="p">:</span> <span class="p">[</span><span class="s1">'text/html'</span><span class="p">,</span> <span class="s1">'text/plain'</span><span class="p">],</span>
+    <span class="na">responses</span><span class="p">:</span> <span class="p">{</span>
+        <span class="mi">200</span><span class="p">:</span> <span class="p">{</span> <span class="na">description</span><span class="p">:</span> <span class="s1">''</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">matches</span><span class="p">,</span> <span class="nx">err</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">operation</span><span class="p">.</span><span class="nx">getResponseContentTypeMatches</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s1">'application/json'</span><span class="p">)</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">matches</span><span class="p">)</span>  <span class="c1">// undefined</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">code</span><span class="p">)</span> <span class="c1">// NO_MATCH</span>
+</code></pre></div></div>
+<h2 id="request">
+<a class="anchor" href="#request" aria-hidden="true"><span class="octicon octicon-link"></span></a>request</h2>
+<p><code>Operation.prototype.request ( request, options ) : EnforcerResult &lt; object &gt;</code></p>
+<div class="alert-warning">
+<p>This probably isn’t the method you’re looking for. Check out <a href="./openapi#request">OpenAPI request</a> that is easier to use and accomplishes the same thing.</p>
+</div>
+<p>Parse and validate an incoming request.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>request</strong></td>
+<td>The request object. See below</td>
+<td><code>object</code></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>options</strong></td>
+<td>An object. See below</td>
+<td><code>object</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Request Parameter</strong></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>body</td>
+<td>The request body. If an object is provided then it should already be deserialized as far a <code>JSON.parse</code> would deserialize.</td>
+<td>
+<code>string</code> or <code>object</code>
+</td>
+<td></td>
+</tr>
+<tr>
+<td>header</td>
+<td>An <code>object</code> of key value pairs where the key is the header name and the value is the header value.</td>
+<td><code>object</code></td>
+<td><code>{}</code></td>
+</tr>
+<tr>
+<td>path</td>
+<td>An <code>object</code> containing all of the path parameter names and values. The values should not be deserialized.</td>
+<td><code>object</code></td>
+<td><code>{}</code></td>
+</tr>
+<tr>
+<td>query</td>
+<td>The full query string as a <code>string</code>.</td>
+<td><code>string</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Options Parameter</strong></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>allowOtherQueryParameters</td>
+<td>A <code>boolean</code> or an array of <code>string</code> values that indicates whether query parameters that are not specified in the OAS definition should be allowed. If an array of <code>string</code> values is provided then the <code>string</code> values provided will be allowed.</td>
+<td>
+<code>string</code> or <code>boolean</code>
+</td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td>pathParametersValueMap</td>
+<td>An <code>object</code> map containing already deserialized path parameters. Used internally for performance optimization.</td>
+<td><code>object</code></td>
+<td><code>{}</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> An <a href="../enforcer-result.md">EnforcerResult</a> that resolves to the deserialized and validated request object.</p>
+<div class="alert-info">
+<p>No example will be shown here. Instead check out <a href="./openapi#request">OpenAPI request</a> that is easier to use and accomplishes the same thing.</p>
+</div>
+<h2 id="response">
+<a class="anchor" href="#response" aria-hidden="true"><span class="octicon octicon-link"></span></a>response</h2>
+<p><code>Operation.prototype.response ( code [, body [, headers ] ] ) : EnforcerResult &lt; object &gt;</code></p>
+<p>Validate and serialize response data.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>code</strong></td>
+<td>The response code. (This can also be <code>default</code> if a <code>default</code> is provided.)</td>
+<td>
+<code>string</code> or <code>number</code>
+</td>
+<td></td>
+</tr>
+<tr>
+<td>body</td>
+<td>The response body. If you do not want to provide a body use <code>undefined</code> or skip the parameter.</td>
+<td>any</td>
+<td></td>
+</tr>
+<tr>
+<td>headers</td>
+<td>The response headers as an object of key value pairs. If you’re using OpenAPI 3 and your response has multiple possible mime types then you can specify in the headers <code>content-type</code> property which mime type to use.</td>
+<td><code>object</code></td>
+<td><code>{}</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> An <a href="../enforcer-result.md">EnforcerResult</a> that resolves to an object with properties <code>body</code>, <code>header</code>, and <code>schema</code>. If the <code>body</code> passed in was an object then the <code>body</code> result will also be an object, not a JSON string.</p>
+<p><strong>Example with Body and Headers</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Operation</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'openapi-enforcer'</span><span class="p">).</span><span class="nx">v3_0</span><span class="p">.</span><span class="nx">Operation</span><span class="p">;</span>
+<span class="kd">const</span> <span class="nx">operation</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Operation</span><span class="p">({</span>
+    <span class="na">responses</span><span class="p">:</span> <span class="p">{</span>
+        <span class="mi">200</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">description</span><span class="p">:</span> <span class="s1">'Success'</span><span class="p">,</span>
+            <span class="na">content</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">'text/plain'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="na">schema</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+                        <span class="na">maxLength</span><span class="p">:</span> <span class="mi">10</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="na">headers</span><span class="p">:</span> <span class="p">{</span>
+                <span class="na">expires</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="na">description</span><span class="p">:</span> <span class="s1">'When the content expires'</span><span class="p">,</span>
+                    <span class="na">schema</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+                        <span class="na">format</span><span class="p">:</span> <span class="s1">'date'</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">response</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">operation</span><span class="p">.</span><span class="nx">response</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s1">'hello'</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">expires</span><span class="p">:</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="s1">'2000-01-01T00:00:00.000Z'</span><span class="p">)</span>
+<span class="p">})</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">response</span><span class="p">)</span>
+<span class="c1">// {</span>
+<span class="c1">//     body: 'hello',</span>
+<span class="c1">//     schema: {</span>
+<span class="c1">//         type: 'string',</span>
+<span class="c1">//         maxLength: 10</span>
+<span class="c1">//     },</span>
+<span class="c1">//     headers: {</span>
+<span class="c1">//         expires: '2000-01-01'</span>
+<span class="c1">//     }</span>
+<span class="c1">// }</span>
+</code></pre></div></div>
+<p><strong>Examples without Body</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">[</span> <span class="nx">response</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">operation</span><span class="p">.</span><span class="nx">response</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="kc">undefined</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">expires</span><span class="p">:</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="s1">'2000-01-01T00:00:00.000Z'</span><span class="p">)</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">[</span> <span class="nx">response</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">operation</span><span class="p">.</span><span class="nx">response</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="p">,</span> <span class="p">{</span>
+    <span class="na">expires</span><span class="p">:</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="s1">'2000-01-01T00:00:00.000Z'</span><span class="p">)</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h2 id="toobject">
+<a class="anchor" href="#toobject" aria-hidden="true"><span class="octicon octicon-link"></span></a>toObject</h2>
+<p><code>&lt;Component&gt;prototype.toObject () : Object</code></p>
+<p>Convert a component into a plain object.</p>
+<p><strong>Parameters:</strong> None</p>
+<p><strong>Returns:</strong> A plain object</p>
+
+  </div>
+
+</article>
+
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Open API Enforcer</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li><code>npm install openapi-enforcer</code></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          <li><a href="https://github.com/byu-oit/openapi-enforcer">Github</a></li>
+          <li><a href="https://www.npmjs.com/package/openapi-enforcer">NPM</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>
+          Caught a mistake or want to contribute to the documentation?
+          <a href="https://github.com/byu-oit/openapi-enforcer/tree/master/jekyll/api/components/operation.md">Edit this page on Github</a>
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+    <script>
+    ;(function () {
+      const laptopWidth = 800;
+      const palmWidth = 600;
+
+      const footer = document.querySelector('footer.site-footer')
+      const header = document.querySelector('header.site-header')
+      const screen = document.querySelector('.page-content > .wrapper > .nav-screen')
+      const wrapper = document.querySelector('.page-content > .wrapper')
+
+      screen
+        .addEventListener('click', function (e) {
+          if (wrapper.hasAttribute('show-nav')) {
+            wrapper.removeAttribute('show-nav')
+          }
+        })
+
+      document.querySelector('.menu-icon')
+        .addEventListener('click', function (e) {
+          e.preventDefault()
+          if (wrapper.hasAttribute('show-nav')) {
+            wrapper.removeAttribute('show-nav')
+          } else {
+            wrapper.setAttribute('show-nav', '')
+          }
+        })
+
+      const topBarHeight = 92
+      let lastScroll = 0
+      window.addEventListener('scroll', handleScroll)
+      window.addEventListener('resize', handleScroll)
+
+      function handleScroll (e) {
+        const winTop = window.scrollY
+
+        const scrollNav = winTop >= topBarHeight && window.innerWidth > laptopWidth
+        toggleClass(wrapper, 'scroll-nav', scrollNav)
+        toggleClass(footer, 'scroll-nav', scrollNav)
+
+        // if there is enough scroll change in mobile then show or hide to nav bar
+        if (window.innerWidth <= laptopWidth && Math.abs(lastScroll - winTop) > 5) {
+          toggleClass(header, 'hide-header', winTop > lastScroll && winTop > topBarHeight && !wrapper.hasAttribute('show-nav'))
+        }
+
+        lastScroll = winTop
+      }
+
+      function toggleClass(el, className, has) {
+        const classes = el.className.split(/ +/)
+        className.split(/ +/).forEach(function (className) {
+          const index = classes.indexOf(className)
+          if (index === -1 && has !== false) {
+            classes.push(className)
+          } else if (index !== -1 && has !== true) {
+            classes.splice(index, 1)
+          }
+        })
+        el.className = classes.join(' ')
+      }
+    })()
+    </script>
+
+  </body>
+
+</html>

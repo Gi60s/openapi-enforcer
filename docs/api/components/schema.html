@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Schema</title>
+  <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
+">
+
+  <link rel="icon" href="/openapi-enforcer/favicon.png">
+
+  <link rel="stylesheet" href="/openapi-enforcer/css/main.css">
+  <link rel="canonical" href="https://byu-oit.github.io/openapi-enforcer/api/components/schema">
+  <link rel="alternate" type="application/rss+xml" title="Open API Enforcer" href="https://byu-oit.github.io/openapi-enforcer/feed.xml">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/openapi-enforcer/">
+      <img class="site-icon" src="/openapi-enforcer/icons/logo-50.png" alt="Open API Enforcer">Open API Enforcer
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="nav-screen"></div>
+<nav class="nav-list">
+  <ul>
+    <li><a href="/openapi-enforcer/">About</a></li>
+    <li>
+      <a href="/openapi-enforcer/guide">Guide</a>
+      <ul>
+        <li><a href="/openapi-enforcer/guide/create-api">Create an API</a></li>
+        <li><a href="/openapi-enforcer/guide/component-plugins">Component Plugins</a></li>
+        <li><a href="/openapi-enforcer/guide/enforcer-result">EnforcerResult</a></li>
+        <li><a href="/openapi-enforcer/guide/validate-document">Validate a Document</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="/openapi-enforcer/api">API Reference</a>
+      <ul>
+        <li><a href="/openapi-enforcer/api">Enforcer</a></li>
+        <li><a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a></li>
+        <li><a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a></li>
+        <li>
+          <a href="/openapi-enforcer/api/components">Components</a>
+          <ul>
+            <li><a href="/openapi-enforcer/api/components/openapi">OpenApi</a></li>
+            <li><a href="/openapi-enforcer/api/components/operation">Operation</a></li>
+            <li>
+              <a href="/openapi-enforcer/api/components/schema">Schema</a>
+              <ul>
+                <li><a href="/openapi-enforcer/api/schema-value">Schema Value</a></li>
+              </ul>
+            </li>
+            <li><a href="/openapi-enforcer/api/components/swagger">Swagger</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="/openapi-enforcer/related">Related Projects</a></li>
+  </ul>
+</nav>
+
+        <article class="post">
+
+  
+  <header class="post-header">
+    
+    <div class="post-subtitle">API Reference</div>
+    
+    <h1 class="post-title">
+      Schema
+    </h1>
+  </header>
+  
+
+  <div class="post-content">
+    
+    <p class="section-nav-title"><strong>Page Content</strong></p>
+    
+
+    <ul class="section-nav">
+<li class="toc-entry toc-h1"><a href="#instance-methods">Instance Methods</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#deserialize">deserialize</a></li>
+<li class="toc-entry toc-h2"><a href="#discriminate">discriminate</a></li>
+<li class="toc-entry toc-h2"><a href="#formalize">formalize</a></li>
+<li class="toc-entry toc-h2"><a href="#populate">populate</a></li>
+<li class="toc-entry toc-h2"><a href="#random">random</a></li>
+<li class="toc-entry toc-h2"><a href="#serialize">serialize</a></li>
+<li class="toc-entry toc-h2"><a href="#validate">validate</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h1"><a href="#static-methods">Static Methods</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#definedatatypeformat">defineDataTypeFormat</a></li>
+<li class="toc-entry toc-h2"><a href="#extractvalue">extractValue</a></li>
+<li class="toc-entry toc-h2"><a href="#formalize-1">formalize</a></li>
+<li class="toc-entry toc-h2"><a href="#value">Value</a></li>
+</ul>
+</li>
+</ul><p><strong>Nullable Values</strong></p>
+<p>The Open API Specification v2 does not allow for nullable values in schemas, but to accommodate for that need a property <code>x-nullable</code> can be defined on any schema to allow the <code>null</code> value.</p>
+<h1 id="instance-methods">
+<a class="anchor" href="#instance-methods" aria-hidden="true"><span class="octicon octicon-link"></span></a>Instance Methods</h1>
+<h2 id="deserialize">
+<a class="anchor" href="#deserialize" aria-hidden="true"><span class="octicon octicon-link"></span></a>deserialize</h2>
+<p><code>Schema.prototype.deserialize ( value ) : EnforcerResult &lt; any &gt;</code></p>
+<p>Schema instances can deserialize values. Deserialization is the process of extracting a data structure from a scalar value. For example, the string <code>2000-01-01</code> as a date string would be deserialized to <code>new Date('2000-01-01')</code> which gives you a date object instead of a date string.</p>
+<p>Note that the deserialization process keeps validation to a minimum. It won’t care if a decimal number was provided for an <code>integer</code> type, but it will care if <code>"hello"</code> is provided as an <code>integer</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>value</strong></td>
+<td>The value to deserialize</td>
+<td>any</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> An <a href="../enforcer-result.md">EnforcerResult</a> that resolves to the deserialized value.</p>
+<p><strong>Example</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Enforcer</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'openapi-enforcer'</span><span class="p">)</span>
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">schema</span> <span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v3_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span> <span class="na">format</span><span class="p">:</span> <span class="s1">'date-time'</span> <span class="p">})</span>
+
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">value</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">deserialize</span><span class="p">(</span><span class="s1">'2000-01-01T00:00:00.000Z'</span><span class="p">)</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span> <span class="k">instanceof</span> <span class="nb">Date</span><span class="p">)</span>  <span class="c1">// true</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span><span class="p">.</span><span class="nx">getFullYear</span><span class="p">())</span>    <span class="c1">// 2000</span>
+</code></pre></div></div>
+<h2 id="discriminate">
+<a class="anchor" href="#discriminate" aria-hidden="true"><span class="octicon octicon-link"></span></a>discriminate</h2>
+<p><code>Schema.prototype.discriminate ( value [, details ]) : object</code></p>
+<p>Schemas that use discriminators allow polymorphism or schema selection functionality. This function is used to get the Schema instance that is referenced through the discriminator.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>value</strong></td>
+<td>The object containing the discriminator property</td>
+<td><code>object</code></td>
+<td></td>
+</tr>
+<tr>
+<td>details</td>
+<td>Whether to get back just the Schema instance (<code>false</code>) or the Schema instance, property name, and property value (<code>true</code>).</td>
+<td><code>boolean</code></td>
+<td><code>false</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> The discriminator Schema instance if <code>details=false</code>, or and object with the properties <code>key</code> (discriminator property name), <code>name</code> (value property name), and <code>schema</code> (the Schema instance) if <code>details=true</code>.</p>
+<p><strong>Example</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Enforcer</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'openapi-enforcer'</span><span class="p">)</span>
+
+<span class="kd">const</span> <span class="nx">definition</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">swagger</span><span class="p">:</span> <span class="s1">'2.0'</span><span class="p">,</span>
+    <span class="na">info</span><span class="p">:</span> <span class="p">{</span> <span class="na">title</span><span class="p">:</span> <span class="s1">''</span><span class="p">,</span> <span class="na">version</span><span class="p">:</span> <span class="s1">''</span> <span class="p">},</span>
+    <span class="na">paths</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="na">definitions</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">Cat</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">allOf</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span> <span class="s1">'$ref'</span><span class="p">:</span> <span class="s1">'#/definitions/Pet'</span> <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="na">type</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
+                    <span class="na">properties</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="na">birthDate</span><span class="p">:</span> <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span> <span class="p">},</span>
+                        <span class="na">huntingSkill</span><span class="p">:</span> <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span> <span class="p">},</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">},</span>
+        <span class="na">Dog</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">allOf</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span> <span class="s1">'$ref'</span><span class="p">:</span> <span class="s1">'#/definitions/Pet'</span> <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="na">type</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
+                    <span class="na">properties</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="na">birthDate</span><span class="p">:</span> <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span> <span class="na">format</span><span class="p">:</span> <span class="s1">'date'</span> <span class="p">},</span>
+                        <span class="na">packSize</span><span class="p">:</span> <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'integer'</span><span class="p">,</span> <span class="na">minimum</span><span class="p">:</span> <span class="mi">1</span> <span class="p">}</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">},</span>
+        <span class="na">Pet</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">type</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
+            <span class="na">required</span><span class="p">:</span> <span class="p">[</span><span class="s1">'petType'</span><span class="p">],</span>
+            <span class="na">properties</span><span class="p">:</span> <span class="p">{</span>
+                <span class="na">petType</span><span class="p">:</span> <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span> <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="na">discriminator</span><span class="p">:</span> <span class="s1">'petType'</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nx">Enforcer</span><span class="p">(</span><span class="nx">definition</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">enforcer</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="kd">const</span> <span class="nx">schema</span> <span class="o">=</span> <span class="nx">enforcer</span><span class="p">.</span><span class="nx">definitions</span><span class="p">.</span><span class="nx">Pet</span>
+        <span class="kd">const</span> <span class="nx">dogSchema</span> <span class="o">=</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">discriminate</span><span class="p">({</span> <span class="na">petType</span><span class="p">:</span> <span class="s1">'Dog'</span> <span class="p">})</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">dogSchema</span> <span class="o">===</span> <span class="nx">enforcer</span><span class="p">.</span><span class="nx">definitions</span><span class="p">.</span><span class="nx">Dog</span><span class="p">)</span>  <span class="c1">// true</span>
+    <span class="p">})</span>
+</code></pre></div></div>
+<h2 id="formalize">
+<a class="anchor" href="#formalize" aria-hidden="true"><span class="octicon octicon-link"></span></a>formalize</h2>
+<p><code>Schema.prototype.formalize ( value ) : any</code></p>
+<p>This is a convenience function that calls the static <a href="#formalize-1">Schema.formalize</a> function. Please see the documentation for <a href="#formalize-1">Schema.formalize</a> for usage and examples.</p>
+<h2 id="populate">
+<a class="anchor" href="#populate" aria-hidden="true"><span class="octicon octicon-link"></span></a>populate</h2>
+<p><code>Schema.prototype.populate ([ params [, value [, options ] ] ]) : EnforcerResult &lt; any &gt;</code></p>
+<p>This method is used to generate values using a combination of a parameters map and the schema definition.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>params</td>
+<td>An object map, tying key value pairs to locations in the schema definition.</td>
+<td><code>object</code></td>
+<td><code>{}</code></td>
+</tr>
+<tr>
+<td>value</td>
+<td>An initial value to start with. Properties already defined in this value will not be overwritten during population.</td>
+<td>any</td>
+<td></td>
+</tr>
+<tr>
+<td>options</td>
+<td>Options to apply during population. See below.</td>
+<td><code>object</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Options Parameter</strong></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>copy</td>
+<td>Whether to copy the initial value (<code>true</code>) or mutate the initial value (<code>false</code>).</td>
+<td><code>boolean</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td>conditions</td>
+<td>Whether to check that the condition (<code>x-condition</code>) is met prior to population for a value.</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td>defaults</td>
+<td>Whether to apply default value (<code>x-default</code> then <code>default</code>) if no other value is specified.</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td>depth</td>
+<td>How deep to traverse an object that is being built.</td>
+<td><code>number</code></td>
+<td><code>100</code></td>
+</tr>
+<tr>
+<td>replacement</td>
+<td>The template replacement method to use. Options include <code>colon</code> (<code>:name</code>), <code>doubleHandlerBar</code> (``), or <code>handlebar</code> (`{name}`).</td>
+<td><code>string</code></td>
+<td><code>'handlebar'</code></td>
+</tr>
+<tr>
+<td>templateDefaults</td>
+<td>Whether to apply template replacement to default values.</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td>templates</td>
+<td>Whether to use templating (<code>x-template</code>) to populate the value.</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td>variables</td>
+<td>Whether to use variables (<code>x-variable</code>) to populate the value.</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> An <a href="../enforcer-result.md">EnforcerResult</a> that resolves to the populated value.</p>
+<p><strong>Example</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Enforcer</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'openapi-enforcer'</span><span class="p">)</span>
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">schema</span> <span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v3_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span>
+    <span class="na">type</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
+    <span class="na">properties</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">age</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">type</span><span class="p">:</span> <span class="s1">'integer'</span><span class="p">,</span>
+            <span class="s1">'x-variable'</span><span class="p">:</span> <span class="s1">'age'</span><span class="p">,</span>
+            <span class="s1">'x-condition'</span><span class="p">:</span> <span class="s1">'above18'</span>
+        <span class="p">},</span>
+        <span class="na">firstName</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+            <span class="s1">'x-variable'</span><span class="p">:</span> <span class="s1">'first'</span>
+        <span class="p">},</span>
+        <span class="na">fullName</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+            <span class="na">default</span><span class="p">:</span> <span class="s1">'{first} {last}'</span>
+        <span class="p">},</span>
+        <span class="na">lastName</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+            <span class="s1">'x-variable'</span><span class="p">:</span> <span class="s1">'last'</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">adult</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">populate</span><span class="p">({</span>
+    <span class="na">above18</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="na">age</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+    <span class="na">first</span><span class="p">:</span> <span class="s1">'Bob'</span><span class="p">,</span>
+    <span class="na">last</span><span class="p">:</span> <span class="s1">'Johnson'</span>
+<span class="p">})</span>
+
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">child</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">populate</span><span class="p">({</span>
+    <span class="na">above18</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="na">age</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="na">first</span><span class="p">:</span> <span class="s1">'Tim'</span><span class="p">,</span>
+    <span class="na">last</span><span class="p">:</span> <span class="s1">'Turner'</span>
+<span class="p">})</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">adult</span><span class="p">)</span>
+<span class="c1">// {</span>
+<span class="c1">//     age: 25,</span>
+<span class="c1">//     firstName: 'Bob',</span>
+<span class="c1">//     fullName: 'Bob Johnson',</span>
+<span class="c1">//     lastName: 'Johnson'</span>
+<span class="c1">// }</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">child</span><span class="p">)</span>
+<span class="c1">// {</span>
+<span class="c1">//     firstName: 'Tim',</span>
+<span class="c1">//     fullName: 'Tim Turner',</span>
+<span class="c1">//     lastName: 'Turner'</span>
+<span class="c1">// }</span>
+</code></pre></div></div>
+<h2 id="random">
+<a class="anchor" href="#random" aria-hidden="true"><span class="octicon octicon-link"></span></a>random</h2>
+<p><code>Schema.prototype.random ([ value [, options ] ]) : EnforcerResult &lt; any &gt;</code></p>
+<p>Generate a random value that complies with the schema definition.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>value</td>
+<td>An initial value to use to begin adding randomly generated values to.</td>
+<td>any</td>
+<td></td>
+</tr>
+<tr>
+<td>options</td>
+<td>Configuration options. See below.</td>
+<td><code>object</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Options Parameter</strong></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>additionalPropertiesPossibility</td>
+<td>A number between <code>0</code> and <code>1</code> that signifies the possibility of additional properties being added to objects that allow them. In cases where the definition’s <code>minProperties</code> has not been reached or if a property is required but not defined as a known property then that additional property will be added, regardless of the <code>additionalPropertiesPossibility</code> value.</td>
+<td><code>number</code></td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td>arrayVariation</td>
+<td>The maximum random array size. This value may be overwritten if the schema defines <code>minItems</code> or <code>maxItems</code> that do not fit this value.</td>
+<td><code>number</code></td>
+<td><code>4</code></td>
+</tr>
+<tr>
+<td>copy</td>
+<td>Whether the passed in value should be copied (<code>true</code>) or mutated (<code>false</code>).</td>
+<td><code>boolean</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td>defaultPossibility</td>
+<td>A number between <code>0</code> and <code>1</code> that signifies the possibility of a default value being used when one exists.</td>
+<td><code>number</code></td>
+<td><code>0.25</code></td>
+</tr>
+<tr>
+<td>definedPropertyPossibility</td>
+<td>A number between <code>0</code> and <code>1</code> that signifies the possibility of setting a value for an object with a defined property. If the property is required then the random value will be set regardless of the <code>defaultPossibility</code> value.</td>
+<td><code>number</code></td>
+<td><code>0.80</code></td>
+</tr>
+<tr>
+<td>maxDepth</td>
+<td>Maximum depth to build to for a random object or array.</td>
+<td><code>number</code></td>
+<td><code>10</code></td>
+</tr>
+<tr>
+<td>numberVariation</td>
+<td>The amount of variation to have between high and low numbers. This value will be overwritten if <code>minimum</code> and <code>maximum</code> are defined for the schema.</td>
+<td><code>number</code></td>
+<td><code>1000</code></td>
+</tr>
+<tr>
+<td>uniqueItemRetry</td>
+<td>The number of times to attempt to come up with a unique value for arrays that have <code>uniqueItems</code> set to <code>true</code>.</td>
+<td><code>number</code></td>
+<td><code>5</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> An <a href="../enforcer-result.md">EnforcerResult</a> that resolves to the random value.</p>
+<p><strong>Example</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Enforcer</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'openapi-enforcer'</span><span class="p">)</span>
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">schema</span> <span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v3_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span>
+    <span class="na">type</span><span class="p">:</span> <span class="s1">'number'</span><span class="p">,</span>
+    <span class="na">minimum</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="na">multipleOf</span><span class="p">:</span> <span class="mf">0.5</span>
+<span class="p">})</span>
+
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">value</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">random</span><span class="p">()</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>  <span class="c1">// 1.5</span>
+</code></pre></div></div>
+<h2 id="serialize">
+<a class="anchor" href="#serialize" aria-hidden="true"><span class="octicon octicon-link"></span></a>serialize</h2>
+<p><code>Schema.prototype.serialize ( value ) : EnforcerResult &lt; any &gt;</code></p>
+<p>Serialization is the process of converting a data structure to a scalar value. For example, the date object <code>new Date('2000-01-01')</code> would be serialized to the string <code>2000-01-01</code> if the <code>type=string</code> and <code>format=date</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>value</strong></td>
+<td>The value to serialize.</td>
+<td><code>any</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> An <a href="../enforcer-result.md">EnforcerResult</a> that resolves to the serialized value.</p>
+<p><strong>Example</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Enforcer</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'openapi-enforcer'</span><span class="p">)</span>
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">schema</span> <span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v3_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span> <span class="na">format</span><span class="p">:</span> <span class="s1">'date'</span> <span class="p">})</span>
+
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">value</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">serialize</span><span class="p">(</span><span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="s1">'2000-01-01T00:00:00.000Z'</span><span class="p">))</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>  <span class="c1">// '2000-01-01'</span>
+</code></pre></div></div>
+<h2 id="validate">
+<a class="anchor" href="#validate" aria-hidden="true"><span class="octicon octicon-link"></span></a>validate</h2>
+<p><code>Schema.prototype.validate ( value ) : EnforcerException | undefined</code></p>
+<p>Validate a deserialized value against the schema.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li>
+<em>value</em> - The deserialized value to validate</li>
+</ul>
+<p><strong>Returns:</strong> An <a href="../enforcer-exception.md">EnforcerException</a> object an the value is not valid, otherwise <code>undefined</code>.</p>
+<p><strong>Example</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Enforcer</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'openapi-enforcer'</span><span class="p">)</span>
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">schema</span> <span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v3_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span>  <span class="p">})</span>
+
+<span class="kd">const</span> <span class="nx">err</span> <span class="o">=</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">validate</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="c1">// Invalid value</span>
+<span class="c1">//   Expected a string. Received: 123</span>
+</code></pre></div></div>
+<h1 id="static-methods">
+<a class="anchor" href="#static-methods" aria-hidden="true"><span class="octicon octicon-link"></span></a>Static Methods</h1>
+<h3 id="definedatatypeformat">
+<a class="anchor" href="#definedatatypeformat" aria-hidden="true"><span class="octicon octicon-link"></span></a>defineDataTypeFormat</h3>
+<p><code>Schema.defineDataTypeFormat ( type, format, configuration ) : undefined</code></p>
+<p>This is a static method that is used to define custom data formats, their serialization and deserialization, and their validation. If you have custom object classes that need special serialization, deserialization, and validation then this method is where you can define that.</p>
+<p>Built into the system already is support for type <code>'string'</code> for formats <code>'binary'</code>, <code>'byte'</code>, <code>'date'</code>, and <code>'date-time'</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>type</strong></td>
+<td>The type that this data format definition will apply to. This is directly tied to the Open API document schemas <code>type</code> property, therefore this value must be one of <code>'boolean'</code>, <code>'integer'</code>, <code>'number'</code>, or <code>'string'</code> as defined in the open api specification.</td>
+<td><code>string</code></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>format</strong></td>
+<td>The name of the format that this type definition will apply to.</td>
+<td><code>string</code></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>configuration</strong></td>
+<td>The configuration instructions for this type and format. See below.</td>
+<td><code>object</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Configuration Parameter</strong></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>constructors</strong></td>
+<td>An array of functions to be recognized as constructors.</td>
+<td><code>Array &lt; function &gt;</code></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>deserialize</strong></td>
+<td>The function to call to deserialize the value. It receives one parameter, an object, with properties <code>exception</code>, <code>schema</code>, and <code>value</code> which contains the serialized value. This function should return the deserialized value.</td>
+<td><code>function</code></td>
+<td></td>
+</tr>
+<tr>
+<td>isNumeric</td>
+<td>If this value is numeric then it allows the schema properties <code>maximum</code>, <code>minimum</code>, <code>exclusiveMaximum</code>, <code>exclusiveMinimum</code>, and <code>multipleOf</code>. Defaults to <code>true</code> if the type is <code>integer</code> or <code>number</code>, otherwise <code>false</code>.</td>
+<td><code>boolean</code></td>
+<td>See description</td>
+</tr>
+<tr>
+<td>random</td>
+<td>The function to call to generate a random deserialized value. It receives one parameter, an object, with properties <code>exception</code> and <code>schema</code>. The function should return the deserialized value.</td>
+<td><code>function</code></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>serialize</strong></td>
+<td>The function to call to serialize the value. It receives one parameter, an object, with properties <code>exception</code>, <code>schema</code>, and <code>value</code> which contains the deserialized value. This function should return the serialized value.</td>
+<td><code>function</code></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>validate</strong></td>
+<td>The function to call to validate the deserialized value. It receives one parameter, and object, with the properties <code>exception</code>, <code>schema</code>, and <code>value</code> which contains the deserialized value. This function does not need to return anything and can report errors via the <code>exception</code> object.</td>
+<td><code>function</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>undefined</code>.</p>
+<p><strong>Example</strong></p>
+<p>This example shows how you might define a decimal type that uses exact decimal values (instead of floating point). The example omits many validations and scenarios for simplicity sake.</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// define the Decimal class</span>
+<span class="kd">class</span> <span class="nx">Decimal</span> <span class="p">{</span>
+  <span class="kd">constructor</span> <span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">array</span> <span class="o">=</span> <span class="nx">value</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s1">'.'</span><span class="p">)</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">characteristic</span> <span class="o">=</span> <span class="nx">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">mantissa</span> <span class="o">=</span> <span class="nx">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">||</span> <span class="s1">'0'</span>
+  <span class="p">}</span>
+
+  <span class="nx">valueOf</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="o">+</span><span class="k">this</span><span class="p">.</span><span class="nx">characteristic</span> <span class="o">+</span> <span class="o">+</span><span class="k">this</span><span class="p">.</span><span class="nx">mantissa</span> <span class="o">/</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">pow</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">mantissa</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span>
+  <span class="p">}</span>
+
+  <span class="nx">toString</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">characteristic</span> <span class="o">+</span> <span class="s1">'.'</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">mantissa</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// define a "decimal" format</span>
+<span class="kd">const</span> <span class="nx">Schema</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'openapi-enforcer'</span><span class="p">).</span><span class="nx">v3_0</span><span class="p">.</span><span class="nx">Schema</span>
+<span class="nx">Schema</span><span class="p">.</span><span class="nx">defineDataTypeFormat</span><span class="p">(</span><span class="s1">'string'</span><span class="p">,</span> <span class="s1">'decimal'</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">constructors</span><span class="p">:</span> <span class="p">[</span> <span class="nx">Decimal</span> <span class="p">],</span>
+    
+    <span class="c1">// define how to deserialize a value</span>
+    <span class="na">deserialize</span><span class="p">:</span> <span class="p">(</span><span class="nx">exception</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="nx">Decimal</span><span class="p">(</span><span class="nx">value</span><span class="p">),</span>
+
+    <span class="c1">// is numeric - allows schema maximum, minimum, exclusiveMaximum, etc.</span>
+    <span class="na">isNumeric</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+
+    <span class="c1">// generate a random value</span>
+    <span class="na">random</span><span class="p">:</span> <span class="p">(</span><span class="nx">exception</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="nx">Decimal</span><span class="p">(</span><span class="nb">String</span><span class="p">(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)),</span>
+
+    <span class="c1">// define how to serialize a value</span>
+    <span class="na">serialize</span><span class="p">:</span> <span class="p">(</span><span class="nx">exception</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">value</span><span class="p">.</span><span class="nx">toString</span><span class="p">(),</span>
+
+    <span class="c1">// define validation function for deserialized value</span>
+    <span class="na">validate</span><span class="p">:</span> <span class="p">(</span><span class="nx">exception</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s1">'minimum'</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="k">this</span><span class="p">.</span><span class="nx">minimum</span> <span class="o">&gt;</span> <span class="o">+</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">exception</span><span class="p">.</span><span class="nx">message</span><span class="p">(</span><span class="s1">'Value must be above the minimum of '</span> <span class="o">+</span> 
+                <span class="k">this</span><span class="p">.</span><span class="nx">minimum</span> <span class="o">+</span> <span class="s1">'. Received: '</span> <span class="o">+</span> <span class="nx">value</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c1">// create a schema that uses the "decimal" format</span>
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">schema</span> <span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Schema</span><span class="p">({</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span> <span class="na">format</span><span class="p">:</span> <span class="s1">'decimal'</span> <span class="p">})</span>
+
+<span class="c1">// deserialize a "decimal"</span>
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">value</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">deserialize</span><span class="p">(</span><span class="s1">'2.49'</span><span class="p">)</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span> <span class="k">instanceof</span> <span class="nx">Decimal</span><span class="p">)</span>   <span class="c1">// true</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="o">+</span><span class="nx">value</span><span class="p">)</span>                     <span class="c1">// 2.49</span>
+</code></pre></div></div>
+<h2 id="extractvalue">
+<a class="anchor" href="#extractvalue" aria-hidden="true"><span class="octicon octicon-link"></span></a>extractValue</h2>
+<p><code>Schema.extractValue ( value )</code></p>
+<p>This is an <a href="./schema-value">alias for the <code>Schema.Value.extract</code> function</a>.</p>
+<h2 id="formalize-1">
+<a class="anchor" href="#formalize-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>formalize</h2>
+<p><code>Schema.formalize ( value ) : any</code></p>
+<p>A schema instance’s <a href="#serialize">serialize</a> and <a href="#validate">validate</a> functions require that objects meet one of two criteria:</p>
+<ol>
+<li>Objects must be plain objects, or</li>
+<li>Objects must have a <a href="#definedatatypeformat">defined schema data type</a> that defines serialization and validation.</li>
+</ol>
+<p>To this end, <code>formalize</code> will correctly convert your non plain objects to a format that can be used by the <a href="#serialize">serialize</a> and <a href="#validate">validate</a> functions. In other words, this function will convert a non plain object to either a plain object equivalent or it maintain the defined type.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>value</td>
+<td>The value to formalize</td>
+<td>any</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong> a formalized value.</p>
+<p><strong>Example</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">Person</span> <span class="p">(</span><span class="nx">name</span><span class="p">,</span> <span class="nx">birthdate</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">birthdate</span> <span class="o">=</span> <span class="nx">birthdate</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">const</span> <span class="nx">person</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Person</span><span class="p">(</span><span class="s1">'bob'</span><span class="p">,</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="s1">'2000-01-01T00:00:00.000Z'</span><span class="p">))</span>
+
+<span class="kd">const</span> <span class="nx">plainObject</span> <span class="o">=</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v3_0</span><span class="p">.</span><span class="nx">formalize</span><span class="p">(</span><span class="nx">person</span><span class="p">)</span>
+</code></pre></div></div>
+<h2 id="value">
+<a class="anchor" href="#value" aria-hidden="true"><span class="octicon octicon-link"></span></a>Value</h2>
+<p><code>Schema.value ( value, options ) : any</code></p>
+<p>This is a sub class used only by the Schema and is used to provide more fine grained control over what parts of a value serialize, deserialize, validate, and populate.</p>
+<p><a href="./schema-value">Navigate to Schema.Value documentation</a></p>
+
+  </div>
+
+</article>
+
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Open API Enforcer</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li><code>npm install openapi-enforcer</code></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          <li><a href="https://github.com/byu-oit/openapi-enforcer">Github</a></li>
+          <li><a href="https://www.npmjs.com/package/openapi-enforcer">NPM</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>
+          Caught a mistake or want to contribute to the documentation?
+          <a href="https://github.com/byu-oit/openapi-enforcer/tree/master/jekyll/api/components/schema.md">Edit this page on Github</a>
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+    <script>
+    ;(function () {
+      const laptopWidth = 800;
+      const palmWidth = 600;
+
+      const footer = document.querySelector('footer.site-footer')
+      const header = document.querySelector('header.site-header')
+      const screen = document.querySelector('.page-content > .wrapper > .nav-screen')
+      const wrapper = document.querySelector('.page-content > .wrapper')
+
+      screen
+        .addEventListener('click', function (e) {
+          if (wrapper.hasAttribute('show-nav')) {
+            wrapper.removeAttribute('show-nav')
+          }
+        })
+
+      document.querySelector('.menu-icon')
+        .addEventListener('click', function (e) {
+          e.preventDefault()
+          if (wrapper.hasAttribute('show-nav')) {
+            wrapper.removeAttribute('show-nav')
+          } else {
+            wrapper.setAttribute('show-nav', '')
+          }
+        })
+
+      const topBarHeight = 92
+      let lastScroll = 0
+      window.addEventListener('scroll', handleScroll)
+      window.addEventListener('resize', handleScroll)
+
+      function handleScroll (e) {
+        const winTop = window.scrollY
+
+        const scrollNav = winTop >= topBarHeight && window.innerWidth > laptopWidth
+        toggleClass(wrapper, 'scroll-nav', scrollNav)
+        toggleClass(footer, 'scroll-nav', scrollNav)
+
+        // if there is enough scroll change in mobile then show or hide to nav bar
+        if (window.innerWidth <= laptopWidth && Math.abs(lastScroll - winTop) > 5) {
+          toggleClass(header, 'hide-header', winTop > lastScroll && winTop > topBarHeight && !wrapper.hasAttribute('show-nav'))
+        }
+
+        lastScroll = winTop
+      }
+
+      function toggleClass(el, className, has) {
+        const classes = el.className.split(/ +/)
+        className.split(/ +/).forEach(function (className) {
+          const index = classes.indexOf(className)
+          if (index === -1 && has !== false) {
+            classes.push(className)
+          } else if (index !== -1 && has !== true) {
+            classes.splice(index, 1)
+          }
+        })
+        el.className = classes.join(' ')
+      }
+    })()
+    </script>
+
+  </body>
+
+</html>

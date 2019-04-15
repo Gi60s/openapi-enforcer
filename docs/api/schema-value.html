@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Schema Value</title>
+  <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
+">
+
+  <link rel="icon" href="/openapi-enforcer/favicon.png">
+
+  <link rel="stylesheet" href="/openapi-enforcer/css/main.css">
+  <link rel="canonical" href="https://byu-oit.github.io/openapi-enforcer/api/schema-value">
+  <link rel="alternate" type="application/rss+xml" title="Open API Enforcer" href="https://byu-oit.github.io/openapi-enforcer/feed.xml">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/openapi-enforcer/">
+      <img class="site-icon" src="/openapi-enforcer/icons/logo-50.png" alt="Open API Enforcer">Open API Enforcer
+    </a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="nav-screen"></div>
+<nav class="nav-list">
+  <ul>
+    <li><a href="/openapi-enforcer/">About</a></li>
+    <li>
+      <a href="/openapi-enforcer/guide">Guide</a>
+      <ul>
+        <li><a href="/openapi-enforcer/guide/create-api">Create an API</a></li>
+        <li><a href="/openapi-enforcer/guide/component-plugins">Component Plugins</a></li>
+        <li><a href="/openapi-enforcer/guide/enforcer-result">EnforcerResult</a></li>
+        <li><a href="/openapi-enforcer/guide/validate-document">Validate a Document</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="/openapi-enforcer/api">API Reference</a>
+      <ul>
+        <li><a href="/openapi-enforcer/api">Enforcer</a></li>
+        <li><a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a></li>
+        <li><a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a></li>
+        <li>
+          <a href="/openapi-enforcer/api/components">Components</a>
+          <ul>
+            <li><a href="/openapi-enforcer/api/components/openapi">OpenApi</a></li>
+            <li><a href="/openapi-enforcer/api/components/operation">Operation</a></li>
+            <li>
+              <a href="/openapi-enforcer/api/components/schema">Schema</a>
+              <ul>
+                <li><a href="/openapi-enforcer/api/schema-value">Schema Value</a></li>
+              </ul>
+            </li>
+            <li><a href="/openapi-enforcer/api/components/swagger">Swagger</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="/openapi-enforcer/related">Related Projects</a></li>
+  </ul>
+</nav>
+
+        <article class="post">
+
+  
+  <header class="post-header">
+    
+    <div class="post-subtitle">API</div>
+    
+    <h1 class="post-title">
+      Schema Value
+    </h1>
+  </header>
+  
+
+  <div class="post-content">
+    
+    <p class="section-nav-title"><strong>Page Content</strong></p>
+    
+
+    <ul class="section-nav">
+<li class="toc-entry toc-h1"><a href="#create-a-schema-value">Create a Schema Value</a></li>
+<li class="toc-entry toc-h1"><a href="#instance-methods">Instance Methods</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#attributes">attributes</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h1"><a href="#static-methods">Static Methods</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#extract">extract</a></li>
+<li class="toc-entry toc-h2"><a href="#getattributes">getAttributes</a></li>
+<li class="toc-entry toc-h2"><a href="#inherit">inherit</a></li>
+</ul>
+</li>
+</ul><p>The <a href="./schema">Schema component</a> has functions for serialization, deserialization, and validation to name a few. Generally those functions affect the entire value passed in as a parameter, but that doesn’t have to be the case in all scenarios.</p>
+<p>The <a href="./schema#value">Schema component Value</a> is used to wrap a value and modify what parts should be excluded from serialization, deserialization, and validation.</p>
+<p><strong>Example with Partial Deserialization</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Enforcer</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'openapi-enforcer'</span><span class="p">)</span>
+<span class="kd">const</span> <span class="nx">Schema</span> <span class="o">=</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v3_0</span><span class="p">.</span><span class="nx">Schema</span>
+
+<span class="kd">const</span> <span class="p">[</span> <span class="nx">schema</span> <span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Schema</span><span class="p">({</span>
+    <span class="na">type</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
+    <span class="na">properties</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">x</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+            <span class="na">format</span><span class="p">:</span> <span class="s1">'date'</span>
+        <span class="p">},</span>
+        <span class="na">y</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+            <span class="na">format</span><span class="p">:</span> <span class="s1">'date'</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c1">// deserialize part of the object</span>
+<span class="kd">let</span> <span class="p">[</span> <span class="nx">value</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">deserialize</span><span class="p">({</span>
+    <span class="na">x</span><span class="p">:</span> <span class="s1">'2000-01-01'</span><span class="p">,</span>
+    <span class="na">y</span><span class="p">:</span> <span class="k">new</span> <span class="nx">Schema</span><span class="p">.</span><span class="nx">Value</span><span class="p">(</span><span class="s1">'2001-01-01'</span><span class="p">,</span> <span class="p">{</span> <span class="na">serialize</span><span class="p">:</span> <span class="kc">false</span> <span class="p">})</span>
+<span class="p">})</span>
+
+<span class="c1">// convert the value back into a plain object</span>
+<span class="nx">value</span> <span class="o">=</span> <span class="nx">Schema</span><span class="p">.</span><span class="nx">extractValue</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
+<span class="c1">// {</span>
+<span class="c1">//     x: [Date],</span>
+<span class="c1">//     y: '2001-01-01'</span>
+<span class="c1">// }</span>
+</code></pre></div></div>
+<h1 id="create-a-schema-value">
+<a class="anchor" href="#create-a-schema-value" aria-hidden="true"><span class="octicon octicon-link"></span></a>Create a Schema Value</h1>
+<p><code>Schema.Value ( value [, options ]) : SchemaValue</code></p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>value</strong></td>
+<td>The value to wrap</td>
+<td>any</td>
+<td></td>
+</tr>
+<tr>
+<td>options</td>
+<td>See below.</td>
+<td>any</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Options Parameter</strong></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>populate</td>
+<td>Whether to effect <a href="./schema#populate">population</a> on the value.</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td>serialize</td>
+<td>Whether to effect <a href="./schema#serialize">serialization</a> or <a href="./schema#deserialize">deserialization</a> on the value.</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td>validate</td>
+<td>Whether to effect <a href="./schema#validate">validation</a> on the value.</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong> the wrapped value.</p>
+<p><strong>Example</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Enforcer</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'openapi-enforcer'</span><span class="p">)</span>
+<span class="kd">const</span> <span class="nx">Schema</span> <span class="o">=</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v3_0</span><span class="p">.</span><span class="nx">Schema</span>
+
+<span class="c1">// convert value to SchemaValue instance</span>
+<span class="kd">const</span> <span class="nx">schemaValue</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Schema</span><span class="p">.</span><span class="nx">Value</span><span class="p">(</span><span class="s1">'hello'</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">populate</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>   <span class="c1">// default true</span>
+    <span class="na">serialize</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>  <span class="c1">// default true</span>
+    <span class="na">validate</span><span class="p">:</span> <span class="kc">true</span>    <span class="c1">// default true</span>
+<span class="p">})</span>
+
+<span class="c1">// run your serialize, deserialize, validate, or populate here</span>
+<span class="c1">// ... do stuff</span>
+
+<span class="c1">// extract value from SchemaValue instance</span>
+<span class="kd">const</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">Schema</span><span class="p">.</span><span class="nx">extractValue</span><span class="p">(</span><span class="nx">schemaValue</span><span class="p">)</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>  <span class="c1">// 'hello'</span>
+</code></pre></div></div>
+<h1 id="instance-methods">
+<a class="anchor" href="#instance-methods" aria-hidden="true"><span class="octicon octicon-link"></span></a>Instance Methods</h1>
+<h2 id="attributes">
+<a class="anchor" href="#attributes" aria-hidden="true"><span class="octicon octicon-link"></span></a>attributes</h2>
+<p><code>Schema.Value.prototype.attributes () : object</code></p>
+<p>Get the current attributes for the schema value instance.</p>
+<p><strong>Parameters:</strong> None</p>
+<p><strong>Returns</strong> an object with the properties <code>populate</code>, <code>serialize</code>, <code>validate</code>, and <code>value</code>.</p>
+<p><strong>Example</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Schema</span> <span class="o">=</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v2_0</span><span class="p">.</span><span class="nx">Schema</span>
+
+<span class="kd">const</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">Schema</span><span class="p">.</span><span class="nx">value</span><span class="p">(</span><span class="mi">1234</span><span class="p">,</span> <span class="p">{</span> <span class="na">validate</span><span class="p">:</span> <span class="kc">false</span> <span class="p">})</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span><span class="p">.</span><span class="nx">attributes</span><span class="p">())</span>
+<span class="c1">// {</span>
+<span class="c1">//     populate: true,</span>
+<span class="c1">//     serialize: true,</span>
+<span class="c1">//     validate: false,</span>
+<span class="c1">//     value: 1234</span>
+<span class="c1">// }</span>
+</code></pre></div></div>
+<h1 id="static-methods">
+<a class="anchor" href="#static-methods" aria-hidden="true"><span class="octicon octicon-link"></span></a>Static Methods</h1>
+<h2 id="extract">
+<a class="anchor" href="#extract" aria-hidden="true"><span class="octicon octicon-link"></span></a>extract</h2>
+<p><code>Schema.Value.extract ( value ) : any</code></p>
+<p>Extract a SchemaValue instance back to a regular value.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>value</strong></td>
+<td>The value or SchemaValue instance to extract the original value from.</td>
+<td>SchemaValue or any</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong> the extracted value.</p>
+<h2 id="getattributes">
+<a class="anchor" href="#getattributes" aria-hidden="true"><span class="octicon octicon-link"></span></a>getAttributes</h2>
+<p><code>Schema.Value.getAttributes ( value ) : object</code></p>
+<p>Get SchemaValue attributes whether the value is actually an SchemaValue instance or a plain value.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>value</strong></td>
+<td>The value to extract SchemaValue attributes from.</td>
+<td>SchemaValue or any</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong> an object with the properties <code>populate</code>, <code>serialize</code>, <code>validate</code>, and <code>value</code>.</p>
+<h2 id="inherit">
+<a class="anchor" href="#inherit" aria-hidden="true"><span class="octicon octicon-link"></span></a>inherit</h2>
+<p><code>Schema.Value.inherit ( value [, config ] ) : SchemaValue</code></p>
+<p>Create a new SchemaValue instance that keeps it’s own configuration over a supplied secondary configuration.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>value</strong></td>
+<td>The value to merge SchemaValue attributes into.</td>
+<td>SchemaValue or any</td>
+<td></td>
+</tr>
+<tr>
+<td>config</td>
+<td>Configuration options. See below.</td>
+<td><code>object</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Options Parameter</strong></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>populate</td>
+<td>Whether to effect <a href="./schema#populate">population</a> on the value.</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td>serialize</td>
+<td>Whether to effect <a href="./schema#serialize">serialization</a> or <a href="./schema#deserialize">deserialization</a> on the value.</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td>validate</td>
+<td>Whether to effect <a href="./schema#validate">validation</a> on the value.</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> A SchemaValue instance.</p>
+
+  </div>
+
+</article>
+
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Open API Enforcer</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li><code>npm install openapi-enforcer</code></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          <li><a href="https://github.com/byu-oit/openapi-enforcer">Github</a></li>
+          <li><a href="https://www.npmjs.com/package/openapi-enforcer">NPM</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>
+          Caught a mistake or want to contribute to the documentation?
+          <a href="https://github.com/byu-oit/openapi-enforcer/tree/master/jekyll/api/components/schema-value.md">Edit this page on Github</a>
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+    <script>
+    ;(function () {
+      const laptopWidth = 800;
+      const palmWidth = 600;
+
+      const footer = document.querySelector('footer.site-footer')
+      const header = document.querySelector('header.site-header')
+      const screen = document.querySelector('.page-content > .wrapper > .nav-screen')
+      const wrapper = document.querySelector('.page-content > .wrapper')
+
+      screen
+        .addEventListener('click', function (e) {
+          if (wrapper.hasAttribute('show-nav')) {
+            wrapper.removeAttribute('show-nav')
+          }
+        })
+
+      document.querySelector('.menu-icon')
+        .addEventListener('click', function (e) {
+          e.preventDefault()
+          if (wrapper.hasAttribute('show-nav')) {
+            wrapper.removeAttribute('show-nav')
+          } else {
+            wrapper.setAttribute('show-nav', '')
+          }
+        })
+
+      const topBarHeight = 92
+      let lastScroll = 0
+      window.addEventListener('scroll', handleScroll)
+      window.addEventListener('resize', handleScroll)
+
+      function handleScroll (e) {
+        const winTop = window.scrollY
+
+        const scrollNav = winTop >= topBarHeight && window.innerWidth > laptopWidth
+        toggleClass(wrapper, 'scroll-nav', scrollNav)
+        toggleClass(footer, 'scroll-nav', scrollNav)
+
+        // if there is enough scroll change in mobile then show or hide to nav bar
+        if (window.innerWidth <= laptopWidth && Math.abs(lastScroll - winTop) > 5) {
+          toggleClass(header, 'hide-header', winTop > lastScroll && winTop > topBarHeight && !wrapper.hasAttribute('show-nav'))
+        }
+
+        lastScroll = winTop
+      }
+
+      function toggleClass(el, className, has) {
+        const classes = el.className.split(/ +/)
+        className.split(/ +/).forEach(function (className) {
+          const index = classes.indexOf(className)
+          if (index === -1 && has !== false) {
+            classes.push(className)
+          } else if (index !== -1 && has !== true) {
+            classes.splice(index, 1)
+          }
+        })
+        el.className = classes.join(' ')
+      }
+    })()
+    </script>
+
+  </body>
+
+</html>
