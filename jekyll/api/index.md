@@ -10,7 +10,7 @@ toc: true
 
 `Enforcer ( definition [, options ] ) : Promise < OpenAPI | Swagger >`
 
-This function will dereference your OAS document, validate it, produce warnings where appropriate, and return a Promise that resolves to an [OpenAPI component](#) for an OAS 3.x.x document or a [Swagger component](#) for Swagger 2.0.
+This function will dereference your OAS document, validate it, produce warnings where appropriate, and return a Promise that resolves to an [OpenAPI component](./components/openapi) for an OAS 3.x.x document or a [Swagger component](#) for Swagger 2.0.
 
 **Parameters:**
 
@@ -23,13 +23,13 @@ This function will dereference your OAS document, validate it, produce warnings 
 
 | Property | Description | Type  | Default |
 | --------- | ----------- | ---- | ------- |
-| fullResult | Get back a full [Enforcer Result](#) object. Enabling this will also cause warnings not to output to the console. | `boolean` | `false` |
+| fullResult | Get back a full [Enforcer Result](./enforcer-result) object. Enabling this will also cause warnings not to output to the console. | `boolean` | `false` |
 | hideWarnings | Do not log warning messages to the console when validating your OAS document. If the `fullResult` option is set to `true` then warnings will not show regardless of this setting. | `boolean` | `false` |
     
 **Returns:** A Promise
 
-  - that will resolve to an [OpenAPI component](#) for an OAS 3.x.x document or a [Swagger component](#) for Swagger 2.0
-  - or will reject with an [EnforcerException](#) Error.
+  - that will resolve to an [OpenAPI component](./components/openapi) for an OAS 3.x.x document or a [Swagger component](./components/swagger) for Swagger 2.0
+  - or will reject with an [EnforcerException](./enforcer-exception) Error.
 
 **Example 1: Invalid Definition**
 
@@ -127,19 +127,19 @@ const { Enforcer } = require('openapi-enforcer');
 
 `Enforcer.Exception : EnforcerException`
 
-A static reference to the the [EnforcerException class](#).
+A static reference to the the [EnforcerException class](./enforcer-exception).
 
 ## Enforcer.Result
 
 `Enforcer.Result : EnforcerResult`
 
-A static reference to the the [EnforcerResult class](#).
+A static reference to the the [EnforcerResult class](./enforcer-result).
 
 ## Enforcer.v2_0
 
 `Enforcer.v2_0 : object`
 
-An object containing class constructors for all [components](#) that are part of the Swagger 2.0 specification:
+An object containing class constructors for all [components](./api/components) that are part of the Swagger 2.0 specification:
 
 {% include v2_0-components.html %}
 
@@ -154,7 +154,7 @@ const [ schema ] = Enforcer.v2_0.Schema({ type: 'string' })
 
 `Enforcer.v3_0 : object`
 
-An object containing class constructors for all [components](#) that are part of the Open API Specification (OAS) 3 specification:
+An object containing class constructors for all [components](./api/components) that are part of the Open API Specification (OAS) 3 specification:
 
 {% include v3_0-components.html %}
 
