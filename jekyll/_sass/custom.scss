@@ -191,6 +191,7 @@ table {
       overflow: auto;
       padding-left: $side-padding;
       padding-right: $side-padding;
+      padding-top: 10px;
 
       @include media-query($on-palm) {
         padding-left: $side-padding / 2;
@@ -223,6 +224,7 @@ table {
       overflow-y: auto;
       border-right: 1px solid $grey-color-light;
       padding-left: $side-padding;
+      padding-top: 10px;
 
       @include media-query($on-laptop) {
         position: fixed;
@@ -347,5 +349,6 @@ table {
 }
 
 .site-footer.scroll-nav {
-  margin-left: $left-nav-width + $side-padding
+  margin-left: $left-nav-width + $side-padding;
+  margin-bottom: 120px;
 }
