@@ -292,6 +292,8 @@ console.log(err)
 //   Expected a string. Received: 123
 ```
 
+{% include to-object.md %}
+
 # Static Methods
 
 ### defineDataTypeFormat
@@ -426,5 +428,3 @@ const plainObject = Enforcer.v3_0.formalize(person)
 This is a sub class used only by the Schema and is used to provide more fine grained control over what parts of a value serialize, deserialize, validate, and populate.
 
 [Navigate to Schema.Value documentation](./schema-value)
-
-{% include to-object.md %}
