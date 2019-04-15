@@ -387,7 +387,7 @@ console.log(+value)                     // 2.49
 
 `Schema.extractValue ( value )`
 
-This is an [alias for the `Schema.Value.extract` function](./schema-value).
+This is an [alias for the `Schema.Value.extract` function](../schema-value).
 
 ## formalize
 
@@ -427,4 +427,4 @@ const plainObject = Enforcer.v3_0.formalize(person)
 
 This is a sub class used only by the Schema and is used to provide more fine grained control over what parts of a value serialize, deserialize, validate, and populate.
 
-[Navigate to Schema.Value documentation](./schema-value)
+[Navigate to Schema.Value documentation](../schema-value)
