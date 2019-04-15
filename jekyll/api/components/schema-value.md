@@ -6,9 +6,9 @@ permalink: /api/schema-value
 toc: true
 ---
 
-The [Schema component](../api/components/schema) has functions for serialization, deserialization, and validation to name a few. Generally those functions affect the entire value passed in as a parameter, but that doesn't have to be the case in all scenarios.
+The [Schema component](./schema) has functions for serialization, deserialization, and validation to name a few. Generally those functions affect the entire value passed in as a parameter, but that doesn't have to be the case in all scenarios.
 
-The [Schema component Value](../api/components/schema#value) is used to wrap a value and modify what parts should be excluded from serialization, deserialization, and validation.
+The [Schema component Value](./schema#value) is used to wrap a value and modify what parts should be excluded from serialization, deserialization, and validation.
 
 **Example with Partial Deserialization**
 
