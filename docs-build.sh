@@ -10,4 +10,4 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 cd ${DIR}/jekyll
 
-bundle exec jekyll build -d ../docs-temp
+bundle exec jekyll build -d ../docs
