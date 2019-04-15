@@ -16,4 +16,4 @@ Tools for using the Open API Specification (OAS)
 
 ## Documentation
 
-https://github.com/byu-oit/openapi-enforcer/tree/master/docs
+https://byu-oit.github.io/openapi-enforcer/
