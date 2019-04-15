@@ -1,6 +1,6 @@
 ---
 layout: page
-title: API Reference: EnforcerException
+title: EnforcerException
 subtitle: Guide
 permalink: /api/enforcer-exception
 toc: true
