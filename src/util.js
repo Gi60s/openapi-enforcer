@@ -486,25 +486,25 @@ function toPlainObject (value, options, map) {
 
     } else if (Array.isArray(value)) {
         if (map.has(value)) return map.get(value);
-        const result = [];
+        const result = { set: true, value: [] };
         map.set(value, result);
         value.forEach(v => {
             const r = toPlainObject(v, options, map);
-            if (r.set) result.push(r.value);
+            if (r.set) result.value.push(r.value);
         });
-        return { set: true, value: result };
+        return result;
 
     } else if (value && typeof value === 'object') {
         if (map.has(value)) return map.get(value);
-        const result = {};
+        const result = { set: true, value: {} };
         map.set(value, result);
         for (let k in value) {
             if (options.allowInheritedProperties || value.hasOwnProperty(k)) {
                 const r = toPlainObject(value[k], options, map);
-                if (r.set) result[k] = r.value;
+                if (r.set) result.value[k] = r.value;
             }
         }
-        return { set: true, value: result };
+        return result;
 
     } else if (value instanceof Object) {
         return { set: false };
