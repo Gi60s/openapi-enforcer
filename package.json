@@ -80,5 +80,5 @@
     "test": "mocha --recursive test"
   },
   "types": "index.d.ts",
-  "version": "0.11.5"
+  "version": "0.11.6"
 }
