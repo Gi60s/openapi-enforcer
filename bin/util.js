@@ -184,7 +184,7 @@ exports.queryParamNames = function(value, objValue) {
     const boolean = !!objValue;
     value.split('&').forEach(pair => {
         const kv = pair.split('=');
-        const name = kv[0];
+        const name = decodeURIComponent(kv[0]);
         if (name) names[name] = boolean;
     });
     return retObject ? names : Object.keys(names);
