@@ -1,0 +1,12 @@
+
+.site-title {
+  background-image: url('../icons/logo-50.png');
+  background-repeat: no-repeat;
+  background-position: left center;
+  padding-left: 45px;
+  background-size: 36px 36px;
+}
+
+.page-content .wrapper > nav.nav-list .current-page {
+  background-color: rgba(29, 57, 73, .2);
+}
