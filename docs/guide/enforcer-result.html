@@ -1,300 +1,160 @@
-<!DOCTYPE html>
-<html>
 
-  <head>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>EnforcerResult</title>
-  <meta name="description" content="The Open API Enforcer is a library that provides tools that make it easy to work with the Open API Specification. It can validate your OAS documents; serialize, deserialize, and validate against OAS schemas; identify the operation associated with a request; parse, deserialize, and validate request parameters; facilitate response building; generate random valid values for a schema; and provides a plugin environment for custom document validation and extended functionality, including custom data type formats.
-">
+  <title>Open API Enforcer | EnforcerResult</title>
+  
 
   <link rel="icon" href="/openapi-enforcer/favicon.png">
 
+  <link rel="stylesheet" href="/openapi-enforcer/template-files/styles/main.css">
+  
+  
   <link rel="stylesheet" href="/openapi-enforcer/css/main.css">
-  <link rel="canonical" href="https://byu-oit.github.io/openapi-enforcer/guide/enforcer-result">
-  <link rel="alternate" type="application/rss+xml" title="Open API Enforcer" href="https://byu-oit.github.io/openapi-enforcer/feed.xml">
+  
+  
+  
 </head>
 
+<body>
+  <header class="site-header">
+    <div class="wrapper">
+      <a class="site-title" href="/openapi-enforcer">
+        Open API Enforcer
+      </a>
 
-  <body>
+      
+      <nav class="site-nav">
+        <a href="#" class="menu-icon">
+          <svg viewBox="0 0 18 15">
+            <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+            <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+            <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+          </svg>
+        </a>
+      </nav>
+      
+    </div>
+  </header>
 
-    <header class="site-header">
-
+<div class="page-content">
   <div class="wrapper">
 
-    <a class="site-title" href="/openapi-enforcer/">
-      <img class="site-icon" src="/openapi-enforcer/icons/logo-50.png" alt="Open API Enforcer">Open API Enforcer
-    </a>
-
-    <nav class="site-nav">
-      <a href="#" class="menu-icon">
-        <svg viewBox="0 0 18 15">
-          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
-          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
-          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
-        </svg>
-      </a>
-    </nav>
-
-  </div>
-
-</header>
-
-
-    <div class="page-content">
-      <div class="wrapper">
-        <div class="nav-screen"></div>
-<nav class="nav-list">
-  <ul>
-    <li><a href="/openapi-enforcer/">About</a></li>
-    <li>
-      <a href="/openapi-enforcer/guide">Guide</a>
-      <ul>
-        <li><a href="/openapi-enforcer/guide/create-api">Create an API</a></li>
-        <li><a href="/openapi-enforcer/guide/component-plugins">Component Plugins</a></li>
-        <li><a href="/openapi-enforcer/guide/enforcer-result">EnforcerResult</a></li>
-        <li><a href="/openapi-enforcer/guide/validate-document">Validate a Document</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="/openapi-enforcer/api">API Reference</a>
-      <ul>
-        <li><a href="/openapi-enforcer/api">Enforcer</a></li>
-        <li><a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a></li>
-        <li><a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a></li>
-        <li>
-          <a href="/openapi-enforcer/api/components">Components</a>
-          <ul>
-            <li><a href="/openapi-enforcer/api/components/openapi">OpenApi</a></li>
-            <li><a href="/openapi-enforcer/api/components/operation">Operation</a></li>
-            <li>
-              <a href="/openapi-enforcer/api/components/schema">Schema</a>
-              <ul>
-                <li><a href="/openapi-enforcer/api/schema-value">Schema Value</a></li>
-              </ul>
-            </li>
-            <li><a href="/openapi-enforcer/api/components/swagger">Swagger</a></li>
-          </ul>
-        </li>
-      </ul>
-    </li>
-    <li><a href="/openapi-enforcer/related">Related Projects</a></li>
-  </ul>
-</nav>
-
-        <article class="post">
-
-  
-  <header class="post-header">
     
-    <div class="post-subtitle">Guide</div>
-    
-    <h1 class="post-title">
-      EnforcerResult
-    </h1>
-  </header>
-  
-
-  <div class="post-content">
-    
-    <p class="section-nav-title"><strong>Page Content</strong></p>
+    <div class="nav-screen"></div>
+    <nav class="nav-list"><ul><ul><li><a href="/openapi-enforcer">Open API Enforcer</a></li><li><a href="/openapi-enforcer/api">Enforcer</a><ul><li><a href="/openapi-enforcer/api/components">Components</a><ul><li><a href="/openapi-enforcer/api/components/openapi">Open API</a></li><li><a href="/openapi-enforcer/api/components/operation">Operation</a></li><li><a href="/openapi-enforcer/api/components/schema">Schema</a></li><li><a href="/openapi-enforcer/api/components/schema-value">Schema Value</a><ul></ul></li><li><a href="/openapi-enforcer/api/components/swagger">Swagger</a></li></ul></li><li><a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a></li></ul></li><li><a href="/openapi-enforcer/guide">Guide</a><ul><li><a href="/openapi-enforcer/guide/component-plugins">Component Plugins</a></li><li><a href="/openapi-enforcer/guide/create-api">Create an API</a></li><li><a href="/openapi-enforcer/guide/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/guide/enforcer-result" class="current-page">EnforcerResult</a></li><li><a href="/openapi-enforcer/guide/validate-document">Validate Document</a></li></ul></li></ul></li></ul></nav>
     
 
-    <ul class="section-nav">
-<li class="toc-entry toc-h2"><a href="#read-entire-object">Read Entire Object</a></li>
-<li class="toc-entry toc-h2"><a href="#destructure-by-properties">Destructure by Properties</a></li>
-<li class="toc-entry toc-h2"><a href="#destructure-by-index">Destructure by Index</a></li>
-</ul><p>An EnforcerResult is an object that allows destructuring from an iterable or a plain object.</p>
+    <div class="page-content-main">
+      <article class="post">
+        <header class="post-header">
+          <div class="post-subtitle">Guide</div>
+          <h1 class="post-title">EnforcerResult</h1>
+        </header>
+
+        
+        <div>
+          <p><strong>Page Content</strong></p>
+          <div class="section-nav"><ul class="toc"><li><a href="#read-entire-object">Read Entire Object</a></li><li><a href="#destructure-by-properties">Destructure by Properties</a></li><li><a href="#destructure-by-index">Destructure by Index</a></li></ul></div>
+        </div>
+        
+
+        <div class="post-content"><p>An EnforcerResult is an object that allows destructuring from an iterable or a plain object. </p>
 <p>The object has the properties:</p>
 <ul>
-<li>
-<p><em>error</em> - An <a href="./enforcer-exception.md">EnforcerException object</a>. If there is no error then this value will be <code>undefined</code>.</p>
+<li><p><em>error</em> - An <a href="/openapi-enforcer/guide/enforcer-exception">EnforcerException object</a>. If there is no error then this value will be <code>undefined</code>.</p>
 </li>
-<li>
-<p><em>value</em> - The success value. This value will be <code>undefined</code> if an error occurred.</p>
+<li><p><em>value</em> - The success value. This value will be <code>undefined</code> if an error occurred.</p>
 </li>
-<li>
-<p><em>warning</em> - An <a href="./enforcer-exception.md">EnforcerException object</a> with warnings that do not prevent successful operation. If there is no warning exception then this value will be <code>undefined</code>.</p>
+<li><p><em>warning</em> - An <a href="/openapi-enforcer/guide/enforcer-exception">EnforcerException object</a> with warnings that do not prevent successful operation. If there is no warning exception then this value will be <code>undefined</code>.</p>
 </li>
 </ul>
 <p>The iterable has the same values as the object in order of:</p>
-<ol>
-<li>
-<p><em>value</em></p>
-</li>
-<li>
-<p><em>error</em></p>
-</li>
-<li>
-<p><em>warning</em></p>
-</li>
-</ol>
-<h2 id="read-entire-object">
-<a class="anchor" href="#read-entire-object" aria-hidden="true"><span class="octicon octicon-link"></span></a>Read Entire Object</h2>
+<p>1) <em>value</em></p>
+<p>2) <em>error</em></p>
+<p>3) <em>warning</em></p>
+<h2 id="read-entire-object">Read Entire Object</h2>
 <p>Probably the most well known method for reading a result, you can get the entire object and then access the properties off of that object.</p>
-<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">result</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v2_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span> <span class="p">})</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">error</span><span class="p">)</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">value</span><span class="p">)</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">warning</span><span class="p">)</span>
-</code></pre></div></div>
-<h2 id="destructure-by-properties">
-<a class="anchor" href="#destructure-by-properties" aria-hidden="true"><span class="octicon octicon-link"></span></a>Destructure by Properties</h2>
-<p>Default destructuring requires the original property names to be used. You can specify as many or as few properties as you’d like to extract. It is also possible to specify the name of the extracted property.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">new</span> Enforcer.v2_0.Schema({ <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span> })
+<span class="hljs-built_in">console</span>.log(result.error)
+<span class="hljs-built_in">console</span>.log(result.value)
+<span class="hljs-built_in">console</span>.log(result.warning)</code></pre>
+<h2 id="destructure-by-properties">Destructure by Properties</h2>
+<p>Default destructuring requires the original property names to be used. You can specify as many or as few properties as you&#39;d like to extract. It is also possible to specify the name of the extracted property.</p>
 <p><strong>Specify all Properties</strong></p>
-<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">{</span> <span class="nx">error</span><span class="p">,</span> <span class="nx">value</span><span class="p">,</span> <span class="nx">warning</span> <span class="p">}</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v2_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span> <span class="p">})</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">error</span><span class="p">)</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">warning</span><span class="p">)</span>
-</code></pre></div></div>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> { error, value, warning } = <span class="hljs-keyword">new</span> Enforcer.v2_0.Schema({ <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span> })
+<span class="hljs-built_in">console</span>.log(error)
+<span class="hljs-built_in">console</span>.log(value)
+<span class="hljs-built_in">console</span>.log(warning)</code></pre>
 <p><strong>Specify some Properties</strong></p>
-<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">{</span> <span class="nx">value</span> <span class="p">}</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v2_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span> <span class="p">})</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
-</code></pre></div></div>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> { value } = <span class="hljs-keyword">new</span> Enforcer.v2_0.Schema({ <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span> })
+<span class="hljs-built_in">console</span>.log(value)</code></pre>
 <p><strong>Specify Properties with Different Name</strong></p>
 <p>In this example:</p>
 <ul>
-<li>
-<code>error</code> is renamed to <code>e</code>
-</li>
-<li>
-<code>value</code> is renamed to <code>schema</code>
-</li>
-<li>
-<code>warning</code> is not renamed</li>
+<li><code>error</code> is renamed to <code>e</code></li>
+<li><code>value</code> is renamed to <code>schema</code></li>
+<li><code>warning</code> is not renamed</li>
 </ul>
-<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">{</span> <span class="na">error</span><span class="p">:</span> <span class="nx">e</span><span class="p">,</span> <span class="na">value</span><span class="p">:</span> <span class="nx">schema</span><span class="p">,</span> <span class="nx">warning</span> <span class="p">}</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v2_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span> <span class="p">})</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">schema</span><span class="p">)</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">warning</span><span class="p">)</span>
-</code></pre></div></div>
-<h2 id="destructure-by-index">
-<a class="anchor" href="#destructure-by-index" aria-hidden="true"><span class="octicon octicon-link"></span></a>Destructure by Index</h2>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> { <span class="hljs-attr">error</span>: e, <span class="hljs-attr">value</span>: schema, warning } = <span class="hljs-keyword">new</span> Enforcer.v2_0.Schema({ <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span> })
+<span class="hljs-built_in">console</span>.log(e)
+<span class="hljs-built_in">console</span>.log(schema)
+<span class="hljs-built_in">console</span>.log(warning)</code></pre>
+<h2 id="destructure-by-index">Destructure by Index</h2>
 <p>You can choose the names of the value, but the order is important. The order is 1) the value, 2) the error, 3) the warning.</p>
 <p>It is not a requirement to get all three values.</p>
 <p><strong>Get All Three Properties</strong></p>
-<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">[</span> <span class="nx">schema</span><span class="p">,</span> <span class="nx">err</span><span class="p">,</span> <span class="nx">warning</span> <span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v2_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span> <span class="p">})</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">schema</span><span class="p">)</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">warning</span><span class="p">)</span>
-</code></pre></div></div>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> [ schema, err, warning ] = <span class="hljs-keyword">new</span> Enforcer.v2_0.Schema({ <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span> })
+<span class="hljs-built_in">console</span>.log(err)
+<span class="hljs-built_in">console</span>.log(schema)
+<span class="hljs-built_in">console</span>.log(warning)</code></pre>
 <p><strong>Get Just the Value</strong></p>
-<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">[</span> <span class="nx">schema</span> <span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v2_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span> <span class="p">})</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">schema</span><span class="p">)</span>
-</code></pre></div></div>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> [ schema ] = <span class="hljs-keyword">new</span> Enforcer.v2_0.Schema({ <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span> })
+<span class="hljs-built_in">console</span>.log(schema)</code></pre>
 <p><strong>Get Just the Error</strong></p>
-<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">[</span> <span class="p">,</span> <span class="nx">err</span> <span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v2_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span> <span class="p">})</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
-</code></pre></div></div>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> [ , err ] = <span class="hljs-keyword">new</span> Enforcer.v2_0.Schema({ <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span> })
+<span class="hljs-built_in">console</span>.log(err)</code></pre>
 <p><strong>Get Just the Warning</strong></p>
-<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">[</span> <span class="p">,</span> <span class="p">,</span> <span class="nx">warning</span> <span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Enforcer</span><span class="p">.</span><span class="nx">v2_0</span><span class="p">.</span><span class="nx">Schema</span><span class="p">({</span> <span class="na">type</span><span class="p">:</span> <span class="s1">'string'</span> <span class="p">})</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">warning</span><span class="p">)</span>
-</code></pre></div></div>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> [ , , warning ] = <span class="hljs-keyword">new</span> Enforcer.v2_0.Schema({ <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span> })
+<span class="hljs-built_in">console</span>.log(warning)</code></pre>
+</div>
+      </article>
 
-  </div>
+      <footer class="site-footer">
 
-</article>
-
-
-      </div>
-    </div>
-
-    <footer class="site-footer">
-
-  <div class="wrapper">
-
-    <h2 class="footer-heading">Open API Enforcer</h2>
-
-    <div class="footer-col-wrapper">
-      <div class="footer-col footer-col-1">
-        <ul class="contact-list">
-          <li><code>npm install openapi-enforcer</code></li>
-        </ul>
-      </div>
-
-      <div class="footer-col footer-col-2">
-        <ul class="social-media-list">
-          <li><a href="https://github.com/byu-oit/openapi-enforcer">Github</a></li>
-          <li><a href="https://www.npmjs.com/package/openapi-enforcer">NPM</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-col footer-col-3">
+        
         <p>
           Caught a mistake or want to contribute to the documentation?
-          <a href="https://github.com/byu-oit/openapi-enforcer/tree/master/jekyll/guide/enforcer-result.md">Edit this page on Github</a>
+          <a href="https://github.com/byu-oit/openapi-enforcer/tree/master/docs-src/guide/enforcer-result.md" target="_blank">Edit this page on Github</a>
         </p>
-      </div>
+        
+
+        
+
+        
+        <div class="footer-links">
+          
+          <div><a href="https://byu-oit.github.io/openapi-enforcer" target="_blank">Github</a></div>
+          
+          <div><a href="https://www.npmjs.com/package/@byu-oit/openapi-enforcer" target="_blank">NPM</a></div>
+          
+        </div>
+        
+
+      </footer>
     </div>
 
   </div>
+</div>
 
-</footer>
 
+<script src="/openapi-enforcer/template-files/js/main.js"></script>
 
-    <script>
-    ;(function () {
-      const laptopWidth = 800;
-      const palmWidth = 600;
-
-      const footer = document.querySelector('footer.site-footer')
-      const header = document.querySelector('header.site-header')
-      const screen = document.querySelector('.page-content > .wrapper > .nav-screen')
-      const wrapper = document.querySelector('.page-content > .wrapper')
-
-      screen
-        .addEventListener('click', function (e) {
-          if (wrapper.hasAttribute('show-nav')) {
-            wrapper.removeAttribute('show-nav')
-          }
-        })
-
-      document.querySelector('.menu-icon')
-        .addEventListener('click', function (e) {
-          e.preventDefault()
-          if (wrapper.hasAttribute('show-nav')) {
-            wrapper.removeAttribute('show-nav')
-          } else {
-            wrapper.setAttribute('show-nav', '')
-          }
-        })
-
-      const topBarHeight = 92
-      let lastScroll = 0
-      window.addEventListener('scroll', handleScroll)
-      window.addEventListener('resize', handleScroll)
-
-      function handleScroll (e) {
-        const winTop = window.scrollY
-
-        const scrollNav = winTop >= topBarHeight && window.innerWidth > laptopWidth
-        toggleClass(wrapper, 'scroll-nav', scrollNav)
-        toggleClass(footer, 'scroll-nav', scrollNav)
-
-        // if there is enough scroll change in mobile then show or hide to nav bar
-        if (window.innerWidth <= laptopWidth && Math.abs(lastScroll - winTop) > 5) {
-          toggleClass(header, 'hide-header', winTop > lastScroll && winTop > topBarHeight && !wrapper.hasAttribute('show-nav'))
-        }
-
-        lastScroll = winTop
-      }
-
-      function toggleClass(el, className, has) {
-        const classes = el.className.split(/ +/)
-        className.split(/ +/).forEach(function (className) {
-          const index = classes.indexOf(className)
-          if (index === -1 && has !== false) {
-            classes.push(className)
-          } else if (index !== -1 && has !== true) {
-            classes.splice(index, 1)
-          }
-        })
-        el.className = classes.join(' ')
-      }
-    })()
-    </script>
-
-  </body>
+</body>
 
 </html>

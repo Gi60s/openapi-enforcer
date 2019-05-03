@@ -4,7 +4,7 @@ module.exports = {
     toc: true
   },
   site: {
-    editSourceUrl: 'https://github.com/byu-oit/openapi-enforcer/tree/master/docs',
+    editSourceUrl: 'https://github.com/byu-oit/openapi-enforcer/tree/master/docs-src',
     title: 'Open API Enforcer',
     url: 'https://byu-oit.github.io/openapi-enforcer',
   },
