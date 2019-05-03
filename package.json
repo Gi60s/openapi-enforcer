@@ -10,7 +10,9 @@
     "test": "mocha --recursive test",
     "coverage": "nyc --reporter=html npm test",
     "coverage:report": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
-    "coverage:watch": "chokidar 'test/**/*' 'bin/**/*' -c 'npm run coverage'"
+    "coverage:watch": "chokidar 'test/**/*' 'bin/**/*' -c 'npm run coverage'",
+    "docs:build": "markdown-docs build docs-src docs",
+    "docs:dev": "markdown-docs dev docs-src"
   },
   "repository": {
     "type": "git",
@@ -35,11 +37,12 @@
   },
   "homepage": "https://github.com/byu-oit/openapi-enforcer#readme",
   "devDependencies": {
+    "@gi60s/markdown-docs": "0.0.7",
     "chai": "^4.2.0",
     "chokidar-cli": "^1.2.2",
     "coveralls": "^3.0.2",
     "mocha": "^5.2.0",
-    "nyc": "^13.3.0"
+    "nyc": "^14.1.0"
   },
   "dependencies": {
     "json-schema-ref-parser": "^6.0.1"
