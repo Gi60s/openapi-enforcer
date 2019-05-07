@@ -17,10 +17,10 @@
 'use strict';
 
 const Enforcer = require('../');
-const errors = Enforcer.errors({
+
+Enforcer({
     openapi: '3.0.0',
     info: {
         title: "My API"
     }
-});
-console.log(errors);
+}).then(null,errors => {console.log(errors)});

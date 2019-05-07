@@ -33,9 +33,9 @@ function createConstructor(version, name, enforcer) {
 
     // build the named constructor
     const F = new Function('build',
-        `const F = function ${name} (definition, refParser) {
-            if (!(this instanceof F)) return new F(definition, refParser)
-            return build(this, definition, refParser)
+        `const F = function ${name} (definition, refParser, options) {
+            if (!(this instanceof F)) return new F(definition, refParser, options)
+            return build(this, definition, refParser, options)
         }
         return F`
     )(build);
@@ -91,7 +91,7 @@ function createConstructor(version, name, enforcer) {
         });
     }
 
-    function build (result, definition, refParser) {
+    function build (result, definition, refParser, options) {
         const isStart = !definitionValidator.isValidatorState(definition);
 
         // validate the definition
@@ -117,6 +117,7 @@ function createConstructor(version, name, enforcer) {
                 staticData,
                 validator: enforcer.validator,
                 warn: Exception('One or more warnings exist in the ' + name + ' definition'),
+                options: options
             };
             data.root = data;
 

@@ -25,12 +25,15 @@ const Result                = require('./src/result');
 const Super                 = require('./src/super');
 const util                  = require('./src/util');
 
+const requestBodyAllowedMethods = { post: true, put: true, options: true, head: true, patch: true };
+
 /**
  * Create an Enforcer instance.
  * @param {string, object} definition
  * @param {object} [options]
  * @param {boolean} [options.hideWarnings=false] Set to true to hide warnings from the console.
  * @param {boolean} [options.fullResult=false] Set to true to get back a full result object with the value, warnings, and errors.
+ * @param {object} [options.internalOptions]
  * @returns {Promise<OpenApiEnforcer>}
  */
 async function Enforcer(definition, options) {
@@ -41,6 +44,9 @@ async function Enforcer(definition, options) {
     options = Object.assign({}, options);
     if (!options.hasOwnProperty('hideWarnings')) options.hideWarnings = false;
     if (!options.hasOwnProperty('fullResult')) options.fullResult = false;
+    if (!options.hasOwnProperty('internalOptions')) options.internalOptions = {};
+
+    if (!options.internalOptions.hasOwnProperty('requestBodyAllowedMethods')) options.internalOptions['requestBodyAllowedMethods'] = requestBodyAllowedMethods;
 
     const refParser = new RefParser();
     definition = util.copy(definition);
@@ -61,7 +67,7 @@ async function Enforcer(definition, options) {
             const validator = major === 2
                 ? Enforcer.v2_0.Swagger
                 : Enforcer.v3_0.OpenApi;
-            [ openapi, exception, warnings ] = validator(definition, refParser);
+            [ openapi, exception, warnings ] = validator(definition, refParser, options.internalOptions);
         }
     }
 
