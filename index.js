@@ -46,7 +46,7 @@ async function Enforcer(definition, options) {
     if (!options.hasOwnProperty('fullResult')) options.fullResult = false;
     if (!options.hasOwnProperty('internalOptions')) options.internalOptions = {};
 
-    if (!options.internalOptions.hasOwnProperty('requestBodyAllowedMethods')) options.internalOptions['requestBodyAllowedMethods'] = requestBodyAllowedMethods;
+    if (!options.internalOptions.requestBodyAllowedMethods) options.internalOptions.requestBodyAllowedMethods = requestBodyAllowedMethods;
 
     const refParser = new RefParser();
     definition = util.copy(definition);
