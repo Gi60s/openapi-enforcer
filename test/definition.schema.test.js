@@ -1620,11 +1620,11 @@ describe('definition/schema', () => {
                 expect(value2.birthDate).to.be.a('string');
             });
 
-            it('cannot determine anyOf without discriminator', async () => {
+            it('will produce error for anyOf with too much ambiguity', async () => {
                 const enforcer = await Enforcer(anyOfDef);
                 const schema = enforcer.components.schemas.Pet;
                 const [ , err ] = schema.deserialize({ birthDate: '2000-01-01' });
-                expect(err).to.match(/Unable to discriminate to schema/);
+                expect(err).to.match(/too many schemas match/);
             });
 
             it('can determine anyOf with discriminator', async () => {
@@ -1637,6 +1637,13 @@ describe('definition/schema', () => {
 
                 const [ value2 ] = schema.deserialize({ petType: 'Cat', birthDate });
                 expect(value2.birthDate).to.be.a('string');
+            });
+
+            it('can guess for anyOf with more defined properties', async () => {
+                const enforcer = await Enforcer(anyOfDef);
+                const schema = enforcer.components.schemas.Pet;
+                const [ , err ] = schema.deserialize({ packSize: 5, birthDate: '2000-01-01' });
+                expect(err).to.equal(undefined);
             });
 
         });
@@ -2790,11 +2797,12 @@ describe('definition/schema', () => {
                 expect(err).to.match(/at: 1 > birthDate\s+Unable to serialize to a string/);
             });
 
-            it('cannot determine anyOf without discriminator', async () => {
+            it('will produce error for anyOf with too much ambiguity', async () => {
                 const enforcer = await Enforcer(anyOfDef);
                 const schema = enforcer.components.schemas.Pet;
+                schema.anyOf[0].properties.birthDate.format = 'date';
                 const [ , err ] = schema.serialize({ birthDate: new Date('2000-01-01') });
-                expect(err).to.match(/Unable to discriminate to schema/);
+                expect(err).to.match(/too many schemas match/);
             });
 
             it('can determine anyOf with discriminator', async () => {
@@ -2807,6 +2815,14 @@ describe('definition/schema', () => {
 
                 const [ , err ] = schema.serialize({ petType: 'Cat', birthDate });
                 expect(err).to.match(/at: birthDate\s+Unable to serialize to a string/);
+            });
+
+            it('can guess for anyOf with more defined properties', async () => {
+                const enforcer = await Enforcer(anyOfDef);
+                const schema = enforcer.components.schemas.Pet;
+                schema.anyOf[0].properties.birthDate.format = 'date';
+                const [ , err ] = schema.deserialize({ packSize: 5, birthDate: '2000-01-01' });
+                expect(err).to.equal(undefined);
             });
 
         });

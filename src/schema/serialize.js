@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const Exception = require('../exception');
 const util      = require('../util');
 const Value     = require('./value');
 
@@ -49,12 +50,52 @@ function runSerialize(exception, map, schema, originalValue) {
 
     } else if (schema.anyOf || schema.oneOf) {
         let subSchema;
-        if (!schema.discriminator) {
-            exception.message('Unable to serialize without discriminator');
-        } else if ((subSchema = schema.discriminate(value))) {
+        if (schema.discriminator && (subSchema = schema.discriminate(value))) {
             Object.assign(value, runSerialize(exception, map, subSchema, originalValue));
         } else {
-            exception.message('Unable to discriminate to schema');
+            const key = schema.anyOf ? 'anyOf' : 'oneOf';
+            const exceptions = [];
+            const matches = [];
+            schema[key].forEach(subSchema => {
+                const childException = new Exception('');
+                const mapCopy = new Map(map);
+                const result = runSerialize(childException, mapCopy, subSchema, originalValue);
+                if (childException.hasException) {
+                    exceptions.push(childException)
+                } else {
+                    let score = 1;
+                    if (subSchema.type === 'object') {
+                        const properties = subSchema.properties || {};
+                        const keys = Object.keys(value);
+                        const length = keys.length;
+                        for (let i = 0; i < length; i++) {
+                            const key = keys[i];
+                            if (properties.hasOwnProperty(key)) {
+                                score++;
+                            } else if (properties.additionalProperties === false) {
+                                score = 0;
+                                break;
+                            }
+                        }
+                    }
+                    if (score > 0) matches.push({ score, result })
+                }
+            });
+            if (matches.length > 1) {
+                matches.sort((a, b) => a.score > b.score ? -1 : 1);
+                const highScore = matches[0].score;
+                const highs = matches.filter(match => match.score === highScore);
+                if (highs.length > 1) {
+                    exception.message('Unable to determine serialization schema because too many schemas match. Use of a discriminator or making your schemas more specific would help this problem.')
+                } else {
+                    Object.assign(value, highs[0].result);
+                }
+            } else if (matches.length === 0) {
+                const child = exception.nest('No matching schemas');
+                exceptions.forEach(childException => child.push(childException));
+            } else {
+                Object.assign(value, matches[0].result);
+            }
         }
         return value;
 
