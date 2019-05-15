@@ -88,7 +88,6 @@ const v2_0 = Enforcer.v2_0 = {};
 Object.defineProperty(v2_0, 'version', { value: '2.0' });
 Object.assign(v2_0, {
     Contact: Super(v2_0, 'Contact'),
-    Example: Super(v2_0, 'Example'),
     ExternalDocumentation: Super(v2_0, 'ExternalDocumentation'),
     Header: Super(v2_0, 'Header'),
     Info: Super(v2_0, 'Info'),
