@@ -15,34 +15,71 @@
  *    limitations under the License.
  **/
 'use strict';
-const assert        = require('../src/assert');
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
-const util          = require('../src/util');
 
 describe('definition/example', () => {
 
-    describe('v2', () => {
-
-    });
-
     describe('summary', () => {
         it('can be a string', () => {
-            const def = { summary: 'a summary' }
-            const [ , err ] = Enforcer.v2_0.Example
+            const def = { summary: 'a summary' };
+            const [ , err ] = Enforcer.v3_0.Example(def);
+            expect(err).to.equal(undefined);
+        });
+
+        it('must be a string', () => {
+            const def = { summary: 5 };
+            const [ , err ] = Enforcer.v3_0.Example(def);
+            expect(err).to.match(/Value must be a string/);
         });
     });
 
     describe('description', () => {
+        it('can be a string', () => {
+            const def = { description: 'a description' };
+            const [ , err ] = Enforcer.v3_0.Example(def);
+            expect(err).to.equal(undefined);
+        });
 
+        it('must be a string', () => {
+            const def = { description: 5 };
+            const [ , err ] = Enforcer.v3_0.Example(def);
+            expect(err).to.match(/Value must be a string/);
+        });
     });
 
     describe('value', () => {
+        it('can be a string', () => {
+            const def = { value: 'hello' };
+            const [ , err ] = Enforcer.v3_0.Example(def);
+            expect(err).to.equal(undefined);
+        });
 
+        it('can be a number', () => {
+            const def = { value: 5 };
+            const [ , err ] = Enforcer.v3_0.Example(def);
+            expect(err).to.equal(undefined);
+        });
+
+        it('can be an object', () => {
+            const def = { value: { a: 1, b: 'two' } };
+            const [ , err ] = Enforcer.v3_0.Example(def);
+            expect(err).to.equal(undefined);
+        });
     });
 
     describe('externalValue', () => {
+        it('can be a string', () => {
+            const def = { externalValue: 'a string' };
+            const [ , err ] = Enforcer.v3_0.Example(def);
+            expect(err).to.equal(undefined);
+        });
 
+        it('must be a string', () => {
+            const def = { externalValue: 5 };
+            const [ , err ] = Enforcer.v3_0.Example(def);
+            expect(err).to.match(/Value must be a string/);
+        });
     });
 
 });

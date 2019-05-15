@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const EnforcerRef  = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
@@ -30,7 +29,7 @@ module.exports = {
             properties: {
                 summary: { type: 'string' },
                 description: { type: 'string' },
-                value: { allowed: true },
+                value: { allowed: true, freeForm: true },
                 externalValue: { type: 'string' }
             },
             errors: ({ exception, definition }) => {

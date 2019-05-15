@@ -30,6 +30,7 @@ module.exports = {
             if (error) exception.merge(error);
             if (warning) warn.merge(warning);
         }
+        util.validateExamples(this, exception);
     },
 
     prototype: {

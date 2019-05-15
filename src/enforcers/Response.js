@@ -16,7 +16,7 @@
  **/
 'use strict';
 const EnforcerRef  = require('../enforcer-ref');
-const { freeze } = require('../util');
+const util = require('../util');
 
 const rxContentType = /^content-type$/i;
 const rxLinkName = /^[a-zA-Z0-9.\-_]+$/;
@@ -24,24 +24,7 @@ const rxLinkName = /^[a-zA-Z0-9.\-_]+$/;
 module.exports = {
     init: function (data) {
         const { exception } = data;
-
-        if (this.hasOwnProperty('examples') && this.hasOwnProperty('schema')) {
-            const child = exception.at('examples');
-            Object.keys(this.examples)
-                .forEach(contentType => {
-                    let value;
-                    let error;
-                    const example = this.examples[contentType];
-                    [ value, error ] = this.schema.deserialize(example);
-                    if (!error) error = this.schema.validate(value);
-                    if (error) child.at(contentType).push(error);
-                    Object.defineProperty(this.examples, contentType, {
-                        configurable: true,
-                        enumerable: true,
-                        value: freeze(value)
-                    });
-                });
-        }
+        util.validateExamples(this, exception);
     },
 
     prototype: {},

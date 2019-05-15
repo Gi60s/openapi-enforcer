@@ -17,12 +17,14 @@
 'use strict';
 const EnforcerRef   = require('../enforcer-ref');
 const RequestBody   = require('./RequestBody');
+const util          = require('../util');
 
 const rxContentTypeMime = /(?:^multipart\/)|(?:^application\/x-www-form-urlencoded$)/;
 
 module.exports = {
     init: function (data) {
-
+        const { exception } = data;
+        util.validateExamples(this, exception);
     },
 
     prototype: {},
@@ -33,7 +35,7 @@ module.exports = {
             properties: {
                 encoding: {
                     type: 'object',
-                    allowed: ({ key, parent }) => parent.parent.parent.validator === RequestBody.validator,
+                    allowed: ({ parent }) => parent.parent.parent.validator === RequestBody.validator,
                     additionalProperties: EnforcerRef('Encoding'),
                     errors: ({ exception, key, parent }) => {
                         if (!rxContentTypeMime.test(parent.key)) {
@@ -41,7 +43,7 @@ module.exports = {
                         }
                     }
                 },
-                example: { allowed: true },
+                example: { allowed: true, freeForm: true },
                 examples: {
                     type: 'object',
                     additionalProperties: EnforcerRef('Example')

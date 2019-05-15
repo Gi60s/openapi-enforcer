@@ -19,6 +19,7 @@ const Base          = require('../validator-parameter-base');
 const EnforcerRef   = require('../enforcer-ref');
 const Exception     = require('../exception');
 const Result        = require('../result');
+const util          = require('../util');
 const Value         = require('../schema/value');
 
 const rxFalse = /^false/i;
@@ -34,7 +35,7 @@ module.exports = {
         }
 
         // set default values for any non path parameters
-        if (!this.hasOwnProperty('required') && this.in !== 'path') this.required = false
+        if (!this.hasOwnProperty('required') && this.in !== 'path') this.required = false;
 
         // v2 - set schema for non-body parameters from schema-like attributes
         if (major === 2 && definition.in !== 'body') {
@@ -52,6 +53,8 @@ module.exports = {
             const key = Object.keys(definition.content)[0];
             if (definition.content[key].schema) this.schema =  definition.content[key].schema;
         }
+
+        if (major === 3 && this.schema) util.validateExamples(this, exception);
     },
 
     prototype: {
@@ -284,7 +287,7 @@ module.exports = {
                     weight: -9,
                     allowed: ({ major, parent }) => major === 2 && ['file', 'integer', 'number', 'string'].includes(parent.definition.type),
                     type: 'string',
-                    errors: ({ exception, parent, warn }) => {
+                    errors: ({ parent, warn }) => {
                         const format = parent.definition.format;
                         if (format) {
                             const enums = [];

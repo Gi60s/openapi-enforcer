@@ -93,7 +93,7 @@ exports.validator = data => {
             description: {
                 type: 'string'
             },
-            example: EnforcerRef('Example'),
+            example: { allowed: true, freeForm: true },
             examples: {
                 type: 'object',
                 additionalProperties: EnforcerRef('Example')
