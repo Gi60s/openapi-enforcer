@@ -4,7 +4,6 @@ navMenu: false
 ---
 
 - Contact
-- Example
 - ExternalDocumentation
 - Header
 - Info
