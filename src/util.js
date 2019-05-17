@@ -147,7 +147,7 @@ function findMediaMatch(input, store) {
     // populate matches
     const results = [];
     accepts.forEach(accept => {
-        store.forEach(value => {
+        store.forEach((value, order) => {
             const match = rxMediaType.exec(value);
             if (match) {
                 const type = match[1];
@@ -159,6 +159,7 @@ function findMediaMatch(input, store) {
                 if (typeMatch) {
                     results.push({
                         index: accept.index,
+                        order,
                         quality: accept.quality,
                         score: (accept.type === type ? 1 : 0) + (accept.subType === subType ? 1 : 0) + (accept.extension === extension ? 1 : 0),
                         value
@@ -174,7 +175,9 @@ function findMediaMatch(input, store) {
         if (a.quality > b.quality) return -1;
         if (a.score < b.score) return 1;
         if (a.score > b.score) return -1;
-        return a.index < b.index ? 1 : -1;
+        if (a.index < b.index) return 1;
+        if (a.index > b.index) return -1;
+        return a.order < b.order ? -1 : 1;
     });
 
     // make results unique
