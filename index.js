@@ -51,7 +51,7 @@ async function Enforcer(definition, options) {
     let exception = Exception('One or more errors exist in the OpenAPI definition');
     const hasSwagger = definition.hasOwnProperty('swagger');
     if (!hasSwagger && !definition.hasOwnProperty('openapi')) {
-        exception('Missing required "openapi" or "swagger" property');
+        exception.message('Missing required "openapi" or "swagger" property');
 
     } else {
         const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
