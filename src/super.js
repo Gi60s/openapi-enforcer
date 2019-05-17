@@ -22,6 +22,8 @@ const Exception             = require('./exception');
 const Result                = require('./result');
 const util                  = require('./util');
 
+const requestBodyAllowedMethods = { post: true, put: true, options: true, head: true, patch: true };
+
 function Super (version, name, enforcer) {
     if (!enforcer) enforcer = require('./enforcers/' + name);
     return createConstructor(version, name, enforcer);
@@ -93,6 +95,12 @@ function createConstructor(version, name, enforcer) {
 
     function build (result, definition, refParser, options) {
         const isStart = !definitionValidator.isValidatorState(definition);
+
+        // normalize options
+        if (!options) options = {};
+        if (!options.requestBodyAllowedMethods) {
+            options.requestBodyAllowedMethods = requestBodyAllowedMethods;
+        }
 
         // validate the definition
         let data;

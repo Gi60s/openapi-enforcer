@@ -25,8 +25,6 @@ const Result                = require('./src/result');
 const Super                 = require('./src/super');
 const util                  = require('./src/util');
 
-const requestBodyAllowedMethods = { post: true, put: true, options: true, head: true, patch: true };
-
 /**
  * Create an Enforcer instance.
  * @param {string, object} definition
@@ -45,10 +43,6 @@ async function Enforcer(definition, options) {
     if (!options.hasOwnProperty('hideWarnings')) options.hideWarnings = false;
     if (!options.hasOwnProperty('fullResult')) options.fullResult = false;
     if (!options.hasOwnProperty('internalOptions')) options.internalOptions = {};
-
-    if (!options.internalOptions.requestBodyAllowedMethods) {
-        options.internalOptions.requestBodyAllowedMethods = requestBodyAllowedMethods;
-    }
 
     const refParser = new RefParser();
     definition = util.copy(definition);
