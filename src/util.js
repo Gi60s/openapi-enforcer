@@ -30,6 +30,7 @@ module.exports = {
         const map = new Map();
         return copy(map, value);
     },
+    getDefinitionMapping,
     edgeSlashes,
     findMediaMatch,
     freeze,
@@ -110,6 +111,33 @@ function copy(map, value) {
 
 function dateIsFrozen() {
     throw Error('Date object cannot be modified');
+}
+
+/**
+ *
+ * @param data
+ * @param [result]
+ * @returns {{ result: *, validator: object }}
+ */
+function getDefinitionMapping (data, result) {
+    const { definition, map, validator } = data;
+    let match = map.get(definition);
+
+    if (!match) {
+        match = [];
+        map.set(definition, match);
+    }
+
+    let item = match.find(v => v.validator === validator);
+    if (item) {
+        item.existing = true;
+    } else {
+        item = { existing: false, validator };
+        if (arguments.length > 1) item.result = result;
+        match.push(item)
+    }
+
+    return item;
 }
 
 function edgeSlashes (value, start, end) {

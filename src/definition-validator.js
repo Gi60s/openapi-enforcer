@@ -73,9 +73,8 @@ function normalize (data) {
 
         // if the value has already been processed then we are in a circular reference and we should return the known value
         if (definition && typeof definition === 'object') {
-            const existing = map.get(definition);
-            if (existing) return existing;
-            map.set(definition, result);
+            const item = util.getDefinitionMapping(data, result);
+            if (item.existing) return item.result;
         }
 
         // if enum is invalid then exit
@@ -225,29 +224,27 @@ function normalize (data) {
                 case 'null':
                 case 'number':
                 case 'string':
-                    data.result = definition;
-                    map.set(definition, data.result);
+                    util.getDefinitionMapping(data, definition);
                     break;
                 default:
                     exception.message('Unknown data type provided');
                     break;
             }
         } else {
-            data.result = definition;
-            map.set(definition, data.result);
+            util.getDefinitionMapping(data, definition);
         }
 
+        let deserialized = data.definition;
         if (validator.deserialize) {
             const d = Object.assign({}, data);
-            d.definition = data.result;
-            data.result = validator.deserialize(d);
-            map.set(definition, data.result);
+            deserialized = validator.deserialize(d);
+            util.getDefinitionMapping(d, deserialized);
         }
 
         // run custom error validation check
         if (validator.errors) {
             const d = Object.assign({}, data);
-            d.definition = data.result;
+            d.definition = deserialized;
             fn(validator.errors, d);
         }
 
