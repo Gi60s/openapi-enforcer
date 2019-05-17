@@ -23,7 +23,6 @@ const Value         = require('../schema/value');
 
 const rxInteger = /^\d+$/;
 const rxNumber = /^\d+(?:\.\d+)?$/;
-const requestBodyAllowedMethods = { post: true, put: true, options: true, head: true, patch: true };
 
 module.exports = {
     init: function (data) {
@@ -420,7 +419,7 @@ module.exports = {
         }
     },
 
-    validator: function ({ major }) {
+    validator: function ({ major, options }) {
         return {
             type: 'object',
             properties: {
@@ -470,7 +469,7 @@ module.exports = {
                 },
                 requestBody: EnforcerRef('RequestBody', {
                     // for easy unit testing default key to post if there is no parent key
-                    allowed: ({ parent }) => major === 3 && !!requestBodyAllowedMethods[parent.key || 'post']
+                    allowed: ({ parent }) => major === 3 && !!options.requestBodyAllowedMethods[parent.key || 'post']
                 }),
                 responses: EnforcerRef('Responses', { required: true }),
                 schemes: {
