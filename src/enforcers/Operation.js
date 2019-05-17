@@ -469,7 +469,7 @@ module.exports = {
                 },
                 requestBody: EnforcerRef('RequestBody', {
                     // for easy unit testing default key to post if there is no parent key
-                    allowed: ({ parent }) => major === 3 && !!options.requestBodyAllowedMethods[parent.key || 'post']
+                    allowed: ({ options, parent }) => major === 3 && !!options.requestBodyAllowedMethods[parent.key || 'post']
                 }),
                 responses: EnforcerRef('Responses', { required: true }),
                 schemes: {
