@@ -31,7 +31,8 @@ const util                  = require('./src/util');
  * @param {object} [options]
  * @param {boolean} [options.hideWarnings=false] Set to true to hide warnings from the console.
  * @param {boolean} [options.fullResult=false] Set to true to get back a full result object with the value, warnings, and errors.
- * @returns {Promise<OpenApiEnforcer>}
+ * @param {object} [options.componentOptions] Options that get sent along to components.
+ * @returns {Promise<OpenApi|Swagger>|Promise<Result<OpenApi|Swagger>>}
  */
 async function Enforcer(definition, options) {
     let openapi;
@@ -41,6 +42,7 @@ async function Enforcer(definition, options) {
     options = Object.assign({}, options);
     if (!options.hasOwnProperty('hideWarnings')) options.hideWarnings = false;
     if (!options.hasOwnProperty('fullResult')) options.fullResult = false;
+    if (!options.hasOwnProperty('componentOptions')) options.componentOptions = {};
 
     const refParser = new RefParser();
     definition = util.copy(definition);
@@ -49,7 +51,7 @@ async function Enforcer(definition, options) {
     let exception = Exception('One or more errors exist in the OpenAPI definition');
     const hasSwagger = definition.hasOwnProperty('swagger');
     if (!hasSwagger && !definition.hasOwnProperty('openapi')) {
-        exception('Missing required "openapi" or "swagger" property');
+        exception.message('Missing required "openapi" or "swagger" property');
 
     } else {
         const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
@@ -61,7 +63,7 @@ async function Enforcer(definition, options) {
             const validator = major === 2
                 ? Enforcer.v2_0.Swagger
                 : Enforcer.v3_0.OpenApi;
-            [ openapi, exception, warnings ] = validator(definition, refParser);
+            [ openapi, exception, warnings ] = validator(definition, refParser, options.componentOptions);
         }
     }
 

@@ -22,6 +22,13 @@ This function will dereference your OAS document, validate it, produce warnings 
 | --------- | ----------- | ---- | ------- |
 | fullResult | Get back a full [Enforcer Result](./enforcer-result.md) object. Enabling this will also cause warnings not to output to the console. | `boolean` | `false` |
 | hideWarnings | Do not log warning messages to the console when validating your OAS document. If the `fullResult` option is set to `true` then warnings will not show regardless of this setting. | `boolean` | `false` |
+| componentOptions | Options to pass along to the enforcer components | `object` | See [Component Option](#component-options) |
+
+**Component Options**
+
+| Property | Description | Type  | Default |
+| --------- | ----------- | ---- | ------- |
+| requestBodyAllowedMethods | An `object` specifying which request methods to allow (or disallow) a request body for. The object you provide here will merge with the default value. | `object` | ` { post: true, put: true, options: true, head: true, patch: true } `
     
 **Returns:** A Promise
 

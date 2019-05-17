@@ -112,6 +112,29 @@
 <td><code>boolean</code></td>
 <td><code>false</code></td>
 </tr>
+<tr>
+<td>componentOptions</td>
+<td>Options to pass along to the enforcer components</td>
+<td><code>object</code></td>
+<td>See <a href="/openapi-enforcer/api#component-options">Component Option</a></td>
+</tr>
+</tbody></table>
+<p><strong>Component Options</strong></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>requestBodyAllowedMethods</td>
+<td>An <code>object</code> specifying which request methods to allow (or disallow) a request body for. The object you provide here will merge with the default value.</td>
+<td><code>object</code></td>
+<td><code>{ post: true, put: true, options: true, head: true, patch: true }</code></td>
+</tr>
 </tbody></table>
 <p><strong>Returns:</strong> A Promise</p>
 <ul>

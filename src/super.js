@@ -22,6 +22,8 @@ const Exception             = require('./exception');
 const Result                = require('./result');
 const util                  = require('./util');
 
+const requestBodyAllowedMethods = { post: true, put: true, options: true, head: true, patch: true };
+
 function Super (version, name, enforcer) {
     if (!enforcer) enforcer = require('./enforcers/' + name);
     return createConstructor(version, name, enforcer);
@@ -33,9 +35,9 @@ function createConstructor(version, name, enforcer) {
 
     // build the named constructor
     const F = new Function('build',
-        `const F = function ${name} (definition, refParser) {
-            if (!(this instanceof F)) return new F(definition, refParser)
-            return build(this, definition, refParser)
+        `const F = function ${name} (definition, refParser, options) {
+            if (!(this instanceof F)) return new F(definition, refParser, options)
+            return build(this, definition, refParser, options)
         }
         return F`
     )(build);
@@ -91,8 +93,14 @@ function createConstructor(version, name, enforcer) {
         });
     }
 
-    function build (result, definition, refParser) {
+    function build (result, definition, refParser, options) {
         const isStart = !definitionValidator.isValidatorState(definition);
+
+        // normalize options
+        if (!options) options = {};
+        options.requestBodyAllowedMethods = options.hasOwnProperty('requestBodyAllowedMethods')
+            ? Object.assign({}, requestBodyAllowedMethods, options.requestBodyAllowedMethods)
+            : requestBodyAllowedMethods;
 
         // validate the definition
         let data;
@@ -117,6 +125,7 @@ function createConstructor(version, name, enforcer) {
                 staticData,
                 validator: enforcer.validator,
                 warn: Exception('One or more warnings exist in the ' + name + ' definition'),
+                options: options
             };
             data.root = data;
 
