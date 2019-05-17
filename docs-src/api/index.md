@@ -22,7 +22,7 @@ This function will dereference your OAS document, validate it, produce warnings 
 | --------- | ----------- | ---- | ------- |
 | fullResult | Get back a full [Enforcer Result](./enforcer-result.md) object. Enabling this will also cause warnings not to output to the console. | `boolean` | `false` |
 | hideWarnings | Do not log warning messages to the console when validating your OAS document. If the `fullResult` option is set to `true` then warnings will not show regardless of this setting. | `boolean` | `false` |
-| componentOptions | Options to pass along to the enforcer components | `object` | See [Component Option](#component-options) |
+| componentOptions | Options to pass along to the enforcer components | `object` | See Component Options below. |
 
 **Component Options**
 
