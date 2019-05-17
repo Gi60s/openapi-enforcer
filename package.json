@@ -12,7 +12,8 @@
     "coverage:report": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
     "coverage:watch": "chokidar 'test/**/*' 'bin/**/*' -c 'npm run coverage'",
     "docs:build": "markdown-docs build docs-src docs",
-    "docs:dev": "markdown-docs dev docs-src"
+    "docs:dev": "markdown-docs dev docs-src",
+    "prepublishOnly": "npm test"
   },
   "repository": {
     "type": "git",
