@@ -46,6 +46,7 @@ function childData(parent, key, validator) {
         major: parent.major,
         map: parent.map,
         minor: parent.minor,
+        options: parent.options,
         parent,
         patch: parent.patch,
         plugins: parent.plugins,

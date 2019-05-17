@@ -52,6 +52,56 @@ describe('enforcer/request-body', () => {
         expect(err).to.match(/Property not allowed: requestBody/);
     });
 
+    it('can overwrite options to allow for GET method', () => {
+        const [ , err ] = Enforcer.v3_0.PathItem({
+            get: {
+                requestBody: {
+                    content: {
+                        'application/json': {
+
+                        }
+                    }
+                },
+                responses: {
+                    default: {
+                        description: ''
+                    }
+                }
+            }
+        }, null, { requestBodyAllowedMethods: { get: true } });
+        expect(err).to.equal(undefined)
+    });
+
+    it('can overwrite options to allow for GET method through root instantiation', async () => {
+        const defintion = {
+            openapi: '3.0.0',
+            info: { title: '', version: '' },
+            paths: {
+                '/': {
+                    get: {
+                        requestBody: {
+                            content: {
+                                'application/json': {}
+                            }
+                        },
+                        responses: {
+                            default: {
+                                description: ''
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        const [ , err ] = await Enforcer(defintion, {
+            fullResult: true,
+            componentOptions: {
+                requestBodyAllowedMethods: { get: true }
+            }
+        });
+        expect(err).to.equal(undefined)
+    });
+
     describe('encoding', () => {
 
         it('is allowed with multipart mimetype', () => {

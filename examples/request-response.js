@@ -94,8 +94,8 @@ const req = enforcer.request({
     path: '/shapes/square?color=red,blue'
 });
 
-const schema = req.operation.
+const schema = req.operation;
 const responseObject = req.operation.responses[200]
 .populate('application/json', {
-    headers:
-})
+    headers: ""
+});
