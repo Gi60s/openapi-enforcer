@@ -98,9 +98,9 @@ function createConstructor(version, name, enforcer) {
 
         // normalize options
         if (!options) options = {};
-        if (!options.requestBodyAllowedMethods) {
-            options.requestBodyAllowedMethods = requestBodyAllowedMethods;
-        }
+        options.requestBodyAllowedMethods = options.hasOwnProperty('requestBodyAllowedMethods')
+            ? Object.assign({}, requestBodyAllowedMethods, options.requestBodyAllowedMethods)
+            : requestBodyAllowedMethods;
 
         // validate the definition
         let data;
