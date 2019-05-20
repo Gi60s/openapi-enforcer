@@ -17,6 +17,7 @@
 'use strict';
 const expect        = require('chai').expect;
 const EnforcerRef   = require('../src/enforcer-ref');
+const Enforcer      = require('../index');
 const Super         = require('../src/super');
 
 describe('definition-validator', () => {
@@ -639,6 +640,45 @@ describe('definition-validator', () => {
         });
 
     });
+
+    it('properly handles divergent schema re-validation', async () => {
+        const def = {
+            openapi: '3.0.0',
+            info: { title: '', version: '' },
+            paths: {
+                '/': {
+                    get: {
+                        parameters: [{
+                            in: 'query',
+                            name: 'offset',
+                            schema: {
+                                $ref: '#/components/parameters/offsetParam'
+                            }
+                        }],
+                        responses: {
+                            200: { description: 'ok' }
+                        }
+                    }
+                }
+            },
+            components: {
+                parameters: {
+                    offsetParam: {
+                        name: 'offset',
+                        in: 'query',
+                        required: false,
+                        foo: 'bar',
+                        schema: { type: 'integer', minimum: 0, default: 0 }
+                    }
+                }
+            }
+        };
+        const [ , err ] = await Enforcer(def, { fullResult: true });
+        expect(err.count).to.equal(3);
+        expect(err).to.match(/Property not allowed: foo/);
+        expect(err).to.match(/Properties not allowed:/);
+        expect(err).to.match(/Missing required property: type/);
+    })
 
 });
 

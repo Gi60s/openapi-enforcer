@@ -136,12 +136,11 @@ function createConstructor(version, name, enforcer) {
             data.result = result;
         }
 
-        const existing = data.definition && typeof definition === 'object'
-            ? data.map.get(data.definition)
-            : undefined;
+        const matches = data.map.get(data.definition);
+        const existing = matches ? matches.find(v => v.validator === data.validator) : undefined;
 
         if (existing) {
-            data.result = result = existing;
+            data.result = result = existing.value;
             definitionValidator(data)
         } else {
             // store the full set of enforcer data
