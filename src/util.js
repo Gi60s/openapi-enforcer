@@ -30,7 +30,6 @@ module.exports = {
         const map = new Map();
         return copy(map, value);
     },
-    getDefinitionMapping,
     edgeSlashes,
     findMediaMatch,
     freeze,
@@ -113,33 +112,6 @@ function dateIsFrozen() {
     throw Error('Date object cannot be modified');
 }
 
-/**
- *
- * @param data
- * @param [result]
- * @returns {{ result: *, validator: object }}
- */
-function getDefinitionMapping (data, result) {
-    const { definition, map, validator } = data;
-    let match = map.get(definition);
-
-    if (!match) {
-        match = [];
-        map.set(definition, match);
-    }
-
-    let item = match.find(v => v.validator === validator);
-    if (item) {
-        item.existing = true;
-    } else {
-        item = { existing: false, validator };
-        if (arguments.length > 1) item.result = result;
-        match.push(item)
-    }
-
-    return item;
-}
-
 function edgeSlashes (value, start, end) {
     value = value.replace(/^\//, '').replace(/\/$/, '');
     if (value.length === 0 && (start || end)) return '/';
@@ -175,7 +147,7 @@ function findMediaMatch(input, store) {
     // populate matches
     const results = [];
     accepts.forEach(accept => {
-        store.forEach(value => {
+        store.forEach((value, order) => {
             const match = rxMediaType.exec(value);
             if (match) {
                 const type = match[1];
@@ -187,6 +159,7 @@ function findMediaMatch(input, store) {
                 if (typeMatch) {
                     results.push({
                         index: accept.index,
+                        order,
                         quality: accept.quality,
                         score: (accept.type === type ? 1 : 0) + (accept.subType === subType ? 1 : 0) + (accept.extension === extension ? 1 : 0),
                         value
@@ -202,7 +175,9 @@ function findMediaMatch(input, store) {
         if (a.quality > b.quality) return -1;
         if (a.score < b.score) return 1;
         if (a.score > b.score) return -1;
-        return a.index < b.index ? 1 : -1;
+        if (a.index < b.index) return 1;
+        if (a.index > b.index) return -1;
+        return a.order < b.order ? -1 : 1;
     });
 
     // make results unique
