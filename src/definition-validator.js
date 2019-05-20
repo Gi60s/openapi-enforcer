@@ -61,7 +61,7 @@ function childData(parent, key, validator) {
 }
 
 function normalize (data) {
-    const { definitionType, exception, map, result } = data;
+    const { definitionType, exception, result } = data;
     let definition = data.definition;
 
     try {
@@ -74,9 +74,9 @@ function normalize (data) {
 
         // if the value has already been processed then we are in a circular reference and we should return the known value
         if (definition && typeof definition === 'object') {
-            const existing = map.get(definition);
-            if (existing) return existing;
-            map.set(definition, result);
+            const item = mapGetResult(data);
+            if (item) return item.value;
+            mapSetResult(data, result);
         }
 
         // if enum is invalid then exit
@@ -227,7 +227,7 @@ function normalize (data) {
                 case 'number':
                 case 'string':
                     data.result = definition;
-                    map.set(definition, data.result);
+                    mapSetResult(data, definition);
                     break;
                 default:
                     exception.message('Unknown data type provided');
@@ -235,20 +235,21 @@ function normalize (data) {
             }
         } else {
             data.result = definition;
-            map.set(definition, data.result);
+            mapSetResult(data, definition);
         }
 
+        let deserialized = data.definition;
         if (validator.deserialize) {
             const d = Object.assign({}, data);
-            d.definition = data.result;
-            data.result = validator.deserialize(d);
-            map.set(definition, data.result);
+            deserialized = validator.deserialize(d);
+            data.result = deserialized;
+            mapSetResult(data, definition);
         }
 
         // run custom error validation check
         if (validator.errors) {
             const d = Object.assign({}, data);
-            d.definition = data.result;
+            d.definition = deserialized;
             fn(validator.errors, d);
         }
 
@@ -278,6 +279,32 @@ function fn(value, params) {
         }
     } else {
         return value;
+    }
+}
+
+function mapGetResult (data) {
+    const { definition, map, validator } = data;
+    const match = map.get(definition);
+    if (!match) return undefined;
+
+    let item = match.find(v => v.validator === validator);
+    return item ? item.value : undefined;
+}
+
+function mapSetResult (data, value) {
+    const { definition, map, validator } = data;
+    let match = map.get(definition);
+
+    if (!match) {
+        match = [];
+        map.set(definition, match);
+    }
+
+    const item = match.find(v => v.validator === validator);
+    if (item) {
+        item.value = value;
+    } else {
+        match.push({ validator, value });
     }
 }
 
