@@ -126,7 +126,7 @@ function OpenApiEnforcer(definition, options) {
 
                 // get path parameter strings
                 const pathParams = {};
-                parameterNames.forEach((name, index) => pathParams[name] = match[index + 1]);
+                parameterNames.forEach((name, index) => decodeURIComponent(pathParams[name] = match[index + 1]));
                 return pathParams;
             };
 
