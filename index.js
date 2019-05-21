@@ -56,7 +56,7 @@ async function Enforcer(definition, options) {
     } else {
         const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
         if (!match) {
-            exception.at(hasSwagger ? 'swagger' : 'openapi')('Invalid value');
+            exception.at(hasSwagger ? 'swagger' : 'openapi').message('Invalid value');
 
         } else {
             const major = +match[1];
