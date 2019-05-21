@@ -104,7 +104,7 @@ module.exports = {
 
                     // get path parameter strings
                     const pathParams = {};
-                    parameterNames.forEach((name, index) => pathParams[name] = match[index + 1]);
+                    parameterNames.forEach((name, index) => pathParams[name] = decodeURIComponent(match[index + 1]));
 
                     return {
                         params: pathParams,
