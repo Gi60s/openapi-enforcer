@@ -6,6 +6,7 @@ module.exports = {
   site: {
     editSourceUrl: 'https://github.com/byu-oit/openapi-enforcer/tree/master/docs-src',
     title: 'Open API Enforcer',
+    description: 'A library that makes it easy to validate and use your Open API documents.',
     url: 'https://byu-oit.github.io/openapi-enforcer',
   },
   template: {
