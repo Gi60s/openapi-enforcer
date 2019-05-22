@@ -1,9 +1,12 @@
 ---
-title: Open API Enforcer
+title: Open API Enforcer 
+navOrder: guide api
+toc: false
 ---
 
 The Open API Enforcer is a library that provides tools that make it easy to work with the Open API Specification.
 
+- [Create an API](./guide/create-api.md).
 - [Validate](./guide/validate-document.md) your OAS documents.
 - [Serialize](./api/components/schema.md#serialize), [deserialize](./api/components/schema.md#deserialize), and [validate values](./api/components/schema.md#validate) against OAS [schemas](./api/components/schema.md).
 - Identify the [operation](./api/components/operation.md) associated with a [request](./api/components/openapi.md#request).
