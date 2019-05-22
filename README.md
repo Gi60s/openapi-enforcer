@@ -6,6 +6,7 @@ Tools for using the Open API Specification (OAS)
 
 ## Features
 
+- Create an API.
 - Validate your OAS documents.
 - Serialize, deserialize, and validate values against OAS schemas.
 - Identify the operation associated with a request.
