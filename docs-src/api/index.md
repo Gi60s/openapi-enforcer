@@ -1,6 +1,5 @@
 ---
-title: Enforcer
-subtitle: API Reference
+title: API
 ---
 
 ## Enforcer
