@@ -1,5 +1,5 @@
 ---
-title: Validate Document
+title: Validate a Document
 subtitle: Guide
 ---
 
@@ -48,7 +48,7 @@ Enforcer(doc, { fullResult: true })
 
 This example WILL NOT resolve `$ref`s, so if you need to do that be sure to use the [Enforcer.dereference](../api/index.md#enforcerdereference) function first.
 
-This example also requires that you know which version of the Open API Specification your document it.
+This example also requires that you know which version of the Open API Specification your document uses.
 
 ```js
 const Enforcer = require('openapi-enforcer')
