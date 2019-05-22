@@ -38,7 +38,7 @@
   },
   "homepage": "https://github.com/byu-oit/openapi-enforcer#readme",
   "devDependencies": {
-    "@gi60s/markdown-docs": "0.0.7",
+    "@gi60s/markdown-docs": "0.0.10",
     "chai": "^4.2.0",
     "chokidar-cli": "^1.2.2",
     "coveralls": "^3.0.2",
