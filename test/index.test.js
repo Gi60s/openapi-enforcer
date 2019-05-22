@@ -99,6 +99,31 @@ describe('index/toPlainObject', () => {
 
 describe('index/request', () => {
 
+    describe('bad request', () => {
+
+        it('can properly handler 404 (bad path)', async () => {
+            const def = new DefinitionBuilder(2)
+                .addPath('/', 'get')
+                .build();
+            const enforcer = await Enforcer(def);
+            const [ , err ] = enforcer.request({ path: '/dne' });
+            expect(err).to.match(/Path not found/);
+            expect(err.statusCode).to.equal(404);
+        });
+
+        it('can properly handler 405 (bad method)', async () => {
+            const def = new DefinitionBuilder(2)
+                .addPath('/', 'get')
+                .build();
+            const enforcer = await Enforcer(def);
+            const [ , err ] = enforcer.request({ path: '/', method: 'post' });
+            expect(err).to.match(/Method not allowed/);
+            expect(err.statusCode).to.equal(405);
+            expect(err.headers).to.deep.equal({ Allow: 'GET' });
+        });
+
+    });
+
     describe('path parameters', () => {
 
         describe('variations', () => {
