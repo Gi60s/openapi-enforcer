@@ -1697,6 +1697,29 @@ describe('enforcer/operation', () => {
                     });
                 });
 
+                it('will not convert buffer to string is Schema.Value has serialize false', () => {
+                    const [ operation ] = Enforcer.v3_0.Operation({
+                        responses: {
+                            200: {
+                                description: 'success',
+                                content: {
+                                    'image/jpeg': {
+                                        schema: {
+                                            type: 'string',
+                                            format: 'binary'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    const buffer = Buffer.from('hello');
+                    const [ res1 ] = operation.response(200, buffer);
+                    const [ res2 ] = operation.response(200, new Enforcer.v3_0.Schema.Value(buffer, { serialize: false }));
+                    expect(typeof res1.body).to.equal('string');
+                    expect(res2.body).to.equal(buffer);
+                })
+
             });
 
             describe('headers', () => {
