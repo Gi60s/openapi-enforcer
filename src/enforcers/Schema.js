@@ -295,9 +295,16 @@ module.exports = {
             extractValue: Value.extract,
 
             formalize: function (value) {
-                return util.toPlainObject(value, {
-                    preserve: scope.dataTypeConstructors()
-                });
+                if (value instanceof this.constructor.Value) {
+                    value.value = util.toPlainObject(value.value, {
+                        preserve: scope.dataTypeConstructors()
+                    });
+                    return value;
+                } else {
+                    return util.toPlainObject(value, {
+                        preserve: scope.dataTypeConstructors()
+                    });
+                }
             },
 
             Value: Value
