@@ -415,6 +415,14 @@ module.exports = {
                 exception.message('Invalid response code: ' + code);
             }
 
+            // extract SchemaValue values
+            if (result.hasOwnProperty('body')) result.body = Value.extract(result.body);
+            if (result.headers) {
+                Object.keys(result.headers).forEach(key => {
+                    result.headers[key] = Value.extract(result.headers[key]);
+                });
+            }
+
             return new Result(result, exception, warning);
         }
     },
