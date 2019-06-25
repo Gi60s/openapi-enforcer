@@ -304,6 +304,326 @@ describe('definition/schema', () => {
                 expect(err).to.match(/Property not allowed: maximum/);
             });
 
+            it('validates that items are of the same type', () => {
+                const [ , err ] = Enforcer.v2_0.Schema({
+                    allOf: [{ type: 'string' }, { type: 'number' }]
+                });
+                expect(err).to.match(/at: allOf\s +All items must be of the same type/);
+            });
+
+            it('validates that items are of the same format', () => {
+                const [ , err ] = Enforcer.v2_0.Schema({
+                    allOf: [{ type: 'string', format: 'date' }, { type: 'string', format: 'date-time' }]
+                });
+                expect(err).to.match(/at: allOf\s +All items must be of the same format/);
+            });
+
+            it('allows missing formats', () => {
+                const [ , err ] = Enforcer.v2_0.Schema({
+                    allOf: [{ type: 'string', format: 'date' }, { type: 'string' }]
+                });
+                expect(err).to.equal(null);
+            });
+
+            describe.only('merges', () => {
+
+                it('chooses first default', () => {
+                    const [ schema, , warning ] = Enforcer.v2_0.Schema({
+                        allOf: [
+                            { type: 'string' },
+                            { type: 'string', default: 'a' },
+                            { type: 'string', default: 'b' },
+                            { type: 'string' },
+                        ]
+                    });
+                    expect(schema.allOfMerged.default).to.equal('a');
+                    expect(warning).to.match(/Using first default/);
+                });
+
+                describe('enum', () => {
+
+                    it('will limit enum to matching set', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'string', enum: ['a', 'b', 'c', 'd'] },
+                                { type: 'string', enum: ['b', 'c'] },
+                                { type: 'string' }
+                            ]
+                        });
+                        expect(schema.allOfMerged.enum).to.deep.equal(['b', 'c']);
+                    });
+
+                    it('will limit enum to matching set for dates', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'string', format: 'date', enum: ['2000-01-01', '2000-01-02', '2000-01-03', '2000-01-04'] },
+                                { type: 'string', format: 'date', enum: ['2000-01-02', '2000-01-03'] },
+                                { type: 'string' }
+                            ]
+                        });
+                        expect(schema.allOfMerged.enum).to.deep.equal([new Date('2000-01-02'), new Date('2000-01-03')]);
+                    });
+
+                    it('will produce an error if no enums overlap', () => {
+                        const [ , err ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'string', enum: ['a', 'b', 'c', 'd'] },
+                                { type: 'string', enum: ['e', 'f'] },
+                                { type: 'string' }
+                            ]
+                        });
+                        expect(err).to.match(/Enum values across schemas have nothing in common/);
+                    });
+
+                });
+
+                it('chooses first example', () => {
+                    const [ schema, , warning ] = Enforcer.v2_0.Schema({
+                        allOf: [
+                            { type: 'string' },
+                            { type: 'string', example: 'a' },
+                            { type: 'string', example: 'b' },
+                            { type: 'string' },
+                        ]
+                    });
+                    expect(schema.allOfMerged.example).to.equal('a');
+                    expect(warning).to.match(/Using first example/);
+                });
+
+                describe('array', () => {
+
+                    it('merges maxItems', () => {
+                        const [ schema, err ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'array', items: { type: 'string' }, maxItems: 5 },
+                                { type: 'array', items: { type: 'string' }, maxItems: 2 },
+                                { type: 'array', items: { type: 'string' } },
+                                { type: 'array', items: { type: 'string' }, maxItems: 8 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.maxItems).to.equal(2);
+                    });
+
+                    it('merges minItems', () => {
+                        const items = { type: 'string' };
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'array', items, minItems: 5 },
+                                { type: 'array', items, minItems: 2 },
+                                { type: 'array', items },
+                                { type: 'array', items, minItems: 8 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.minItems).to.equal(8);
+                    });
+
+                    it('merges uniqueItems', () => {
+                        const items = { type: 'string' };
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'array', items },
+                                { type: 'array', items, uniqueItems: true },
+                                { type: 'array', items },
+                                { type: 'array', items }
+                            ]
+                        });
+                        expect(schema.allOfMerged.uniqueItems).to.equal(true);
+                    });
+
+                });
+
+                describe('numeric', () => {
+
+                    it('merges maximum', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'integer', maximum: 5 },
+                                { type: 'integer', maximum: 2 },
+                                { type: 'integer' },
+                                { type: 'integer', maximum: 8 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.maximum).to.equal(2);
+                    });
+
+                    it('merges maximum date string', () => {
+                        const [ schema, err ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'string', format: 'date', maximum: '2000-01-05' },
+                                { type: 'string', format: 'date', maximum: '2000-01-02' },
+                                { type: 'string', format: 'date' },
+                                { type: 'string', format: 'date', maximum: '2000-01-08' }
+                            ]
+                        });
+                        // console.error(err.stack);
+                        expect(schema.allOfMerged.maximum.toISOString().substring(0, 10)).to.equal('2000-01-02');
+                    });
+
+                    it('merges minimum', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'integer', minimum: 5 },
+                                { type: 'integer', minimum: 2 },
+                                { type: 'integer' },
+                                { type: 'integer', minimum: 8 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.minimum).to.equal(8);
+                    });
+
+                    it('merges exclusive maximum (ignored)', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'integer', maximum: 5, exclusiveMaximum: true },
+                                { type: 'integer', maximum: 2 },
+                                { type: 'integer' },
+                                { type: 'integer', maximum: 8 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.maximum).to.equal(2);
+                        expect(schema.allOfMerged.exclusiveMaximum).not.to.equal(true)
+                    });
+
+                    it('merges exclusive maximum (applied)', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'integer', maximum: 5 },
+                                { type: 'integer', maximum: 2, exclusiveMaximum: true },
+                                { type: 'integer' },
+                                { type: 'integer', maximum: 8 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.maximum).to.equal(2);
+                        expect(schema.allOfMerged.exclusiveMaximum).to.equal(true)
+                    });
+
+                    it('merges exclusive minimum (ignored)', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'integer', minimum: 5, exclusiveMinimum: true },
+                                { type: 'integer', minimum: 2 },
+                                { type: 'integer' },
+                                { type: 'integer', minimum: 8 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.minimum).to.equal(8);
+                        expect(schema.allOfMerged.exclusiveMinimum).not.to.equal(true)
+                    });
+
+                    it('merges exclusive minimum (applied)', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'integer', minimum: 5 },
+                                { type: 'integer', minimum: 2 },
+                                { type: 'integer' },
+                                { type: 'integer', minimum: 8, exclusiveMinimum: true }
+                            ]
+                        });
+                        expect(schema.allOfMerged.minimum).to.equal(8);
+                        expect(schema.allOfMerged.exclusiveMinimum).to.equal(true)
+                    });
+
+                    it('merges multiple of number', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'integer', multipleOf: 4 },
+                                { type: 'integer', multipleOf: 2 },
+                                { type: 'integer' },
+                                { type: 'integer', multipleOf: 6 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.multipleOf).to.equal(12);
+                    });
+
+                });
+
+                describe('object', () => {
+
+                    describe('additionalProperties', () => {
+
+                        it('merges true and object to object', () => {
+                            const [ schema ] = Enforcer.v2_0.Schema({
+                                allOf: [
+                                    {
+                                        type: 'object',
+                                        additionalProperties: true
+                                    },
+                                    {
+                                        type: 'object',
+                                        additionalProperties: {
+                                            type: 'string'
+                                        }
+                                    }
+                                ]
+                            });
+                            expect(schema.allOfMerged.additionalProperties.toObject()).to.deep.equal({ type: 'string' });
+                        });
+
+                        it('merges two objects', () => {
+                            const [ schema ] = Enforcer.v2_0.Schema({
+                                allOf: [
+                                    {
+                                        type: 'object',
+                                        additionalProperties: {
+                                            type: 'number',
+                                            minimum: 0
+                                        }
+                                    },
+                                    {
+                                        type: 'object',
+                                        additionalProperties: {
+                                            type: 'number',
+                                            maximum: 10
+                                        }
+                                    }
+                                ]
+                            });
+                            const additional = schema.allOfMerged.additionalProperties;
+                            expect(additional.type).to.equal('number');
+                            expect(additional.maximum).to.equal(10);
+                            expect(additional.minimum).to.equal(0);
+                        });
+
+                        it('cannot merges false and true', () => {
+                            const [ , err ] = Enforcer.v2_0.Schema({
+                                allOf: [
+                                    {
+                                        type: 'object',
+                                        additionalProperties: false
+                                    },
+                                    {
+                                        type: 'object',
+                                        additionalProperties: true
+                                    }
+                                ]
+                            });
+                            expect(err).to.match(/Conflict with additionalProperties/);
+                        });
+
+                        it('cannot merges false and object', () => {
+                            const [ , err ] = Enforcer.v2_0.Schema({
+                                allOf: [
+                                    {
+                                        type: 'object',
+                                        additionalProperties: false
+                                    },
+                                    {
+                                        type: 'object',
+                                        additionalProperties: {
+                                            type: 'string'
+                                        }
+                                    }
+                                ]
+                            });
+                            expect(err).to.match(/Conflict with additionalProperties/);
+                        });
+
+                    });
+
+                });
+
+            })
+
         });
 
         describe('anyOf', () => {
@@ -2321,8 +2641,49 @@ describe('definition/schema', () => {
             });
 
             it('cannot produce allOf object', () => {
-                const [ schema ] = Enforcer.v3_0.Schema({ allOf: [{ type: 'string' }] });
-                const [ , , warn ] = schema.random();
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    "allOf": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "a": {
+                                    "type": "object",
+                                    "properties": {
+                                        "b": {
+                                            "type": "object",
+                                            "properties": {
+                                                "c": { "type": "integer", "minimum": 0 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "a": {
+                                    "type": "object",
+                                    "properties": {
+                                        "b": {
+                                            "type": "object",
+                                            "properties": {
+                                                "c": { "type": "integer", "maximum": 10 }
+                                            }
+                                        },
+                                        "x": {
+                                            "type": "object",
+                                            "properties": {
+                                                "c": { "type": "string" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                });
+                const [ value, error, warn ] = schema.random();
                 expect(warn).to.match(/Cannot generate random value for schema with allOf/);
             });
 

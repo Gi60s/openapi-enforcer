@@ -244,6 +244,31 @@ module.exports = {
                 });
             });
         }
+
+        if (this.allOf) {
+            const mergeException = new Exception('Unable to merge allOf schemas');
+            const mergeWarning = new Exception('One or more warnings produced while merging allOf schemas');
+            const allOfDef = merge(mergeException, mergeWarning, this.allOf, dataTypes);
+
+            if (mergeWarning.hasException) warn.at('allOf').push(mergeWarning);
+            if (mergeException.hasException) {
+                exception.at('allOf').push(mergeException);
+            } else {
+                const serializedException = new Exception('Unable to serialize merged schemas');
+                const serialized = serializeSchema(allOfDef, serializedException, dataTypes);
+                if (serializedException.hasException) {
+                    exception.at('allOf').push(serializedException);
+                } else {
+                    const [ schema, err ] = new data.context.Schema(serialized);
+                    if (err) {
+                        err.title = 'One or more error exist when all schemas are considered';
+                        exception.at('allOf').push(err)
+                    } else {
+                        this.allOfMerged = schema;
+                    }
+                }
+            }
+        }
     },
 
     prototype,
@@ -374,7 +399,24 @@ module.exports = {
                 }),
                 allOf: {
                     type: 'array',
-                    items: EnforcerRef('Schema')
+                    items: EnforcerRef('Schema'),
+                    errors: ({ exception, definition }) => {
+                        const types = {};
+                        const formats = {};
+                        let formatKey = '';
+                        definition.forEach(def => {
+                            if (!types[def.type]) types[def.type] = true;
+                            if (def.hasOwnProperty('format')) {
+                                formatKey = def.format;
+                                formats[def.format] = formats[def.format] ? formats[def.format] + 1 : 1;
+                            }
+                        });
+
+                        const formatCount = Object.keys(formats).length;
+                        if (definition.length === 0) exception.message('Must have at least one item');
+                        if (Object.keys(types).length > 1) exception.message('All items must be of the same type');
+                        if (formatCount > 1) exception.message('All items must be of the same format');
+                    }
                 },
                 anyOf: {
                     allowed: ({major}) => major === 3,
@@ -657,6 +699,17 @@ module.exports = {
     }
 };
 
+function allOfMergeExclusiveNumberDefault (allOf, key) {
+    const exclusiveKey = 'exclusive' + key[0].toUpperCase() + key.substring(1);
+    const object = {};
+    object[exclusiveKey] = false;
+    return allOf.map(schema => {
+        return schema.hasOwnProperty(key) && !schema.hasOwnProperty(exclusiveKey)
+            ? Object.assign({}, object, schema)
+            : schema;
+    });
+}
+
 /**
  * Accepts a function that returns a regular expression. Uses the regular expression to extract parameter names from strings.
  * @param {function} rxGenerator
@@ -694,6 +747,227 @@ function isSchemaProperty({ parent }) {
         parent.parent.parent && parent.parent.parent.validator === module.exports.validator;
 }
 
+function merge (exception, warning, schemas, dataTypes) {
+    const types = Array.from(new Set(schemas.map(schema => schema.type)));
+    const formats = Array.from(new Set(schemas.filter(schema => schema.format).map(schema => schema.format)));
+    if (types.length > 1) return exception.message('All items must be of the same type. Found: ' + types.join(', '));
+    if (formats.length > 1) return exception.message('All items must be of the same format. Found: ' + formats.join(', '));
+
+    const type = types[0];
+    const format = formats[0];
+    const dataType = formats.length > 0 ? dataTypes[type][formats[0]] : null;
+    const isNumeric = dataType ? dataType.isNumeric : false;
+    const result = { type };
+    if (format) result.format = format;
+
+    // set default
+    const defaults = Array.from(new Set(schemas.filter(schema => schema.hasOwnProperty('default')).map(schema => schema.default)));
+    if (defaults.length > 1) warning.message('Two or more defaults found. Using first default.');
+    if (defaults.length > 0) result.default = defaults[0];
+
+    // set enum
+    let enumMapsCount = 0;
+    const enumException = new Exception('Unable to merge enum values');
+    const enumArrays = schemas
+        .filter(schema => schema.hasOwnProperty('enum'))
+        .map(schema => {
+            enumMapsCount++;
+            if (dataType && dataType.serialize) {
+                return schema.enum.map(value => dataType.serialize({ exception: enumException, schema, value }));
+            } else {
+                return schema.enum;
+            }
+        });
+    const enumMap = {};
+    enumArrays.forEach(values => {
+        values.forEach(value => {
+            if (!enumMap[value]) {
+                enumMap[value] = 1;
+            } else {
+                enumMap[value]++;
+            }
+        })
+    });
+    const enumMapKeys = Object.keys(enumMap);
+    const enumValues = enumMapKeys.filter(key => enumMap[key] === enumMapsCount);
+    if (enumMapsCount) {
+        if (enumValues.length === 0) {
+            exception.message('Enum values across schemas have nothing in common');
+        } else {
+            result.enum = enumValues;
+        }
+    }
+
+    // set example
+    const examples = Array.from(new Set(schemas.filter(schema => schema.hasOwnProperty('example')).map(schema => schema.example)));
+    if (examples.length > 1) warning.message('Two or more examples found. Using first example.');
+    if (examples.length > 0) result.example = examples[0];
+
+    if (type === 'array') {
+        const itemsArray = schemas
+            .filter(schema => schema.hasOwnProperty('items'))
+            .map(schema =>  schema.items);
+        result.items = merge(exception.at('items'), warning.at('items'), itemsArray, dataTypes);
+
+        mergeProperty(result, schemas, 'maxItems', (a, b) => {
+            return { value: a < b ? a : b };
+        });
+        mergeProperty(result, schemas, 'minItems', (a, b) => {
+            return { value: a > b ? a : b };
+        });
+        mergeProperty(result, schemas, 'uniqueItems', (a, b) => {
+            return { value: a === true || b === true };
+        });
+
+    } else if (type === 'integer' || type === 'number' || isNumeric) {
+        mergeProperty(result, schemas, 'maximum', (a, b) => {
+            return { value: a < b ? a : b };
+        });
+        mergeProperty(result, schemas, 'minimum', (a, b) => {
+            return { value: a > b ? a : b };
+        });
+        mergeProperty(result, schemas, 'multipleOf', (a, b) => {
+            return { value: util.leastCommonMultiple(a, b) };
+        });
+        mergeProperty(result, allOfMergeExclusiveNumberDefault(schemas, 'maximum'), 'exclusiveMaximum',(a, b, ai, bi, items) => {
+            const valueA = items[ai].maximum;
+            const valueB = items[bi].maximum;
+            if (a === true && valueA <= valueB) return { index: ai, value: true };
+            if (b === true && valueB <= valueA) return { index: bi, value: true };
+            return valueA <= valueB
+                ? { index: ai, value: false }
+                : { index: bi, value: false }
+        });
+        mergeProperty(result, allOfMergeExclusiveNumberDefault(schemas, 'minimum'), 'exclusiveMinimum', (a, b, ai, bi, items) => {
+            const valueA = items[ai].minimum;
+            const valueB = items[bi].minimum;
+            if (a === true && valueA >= valueB) return { index: ai, value: true };
+            if (b === true && valueB >= valueA) return { index: bi, value: true };
+            return valueA >= valueB
+                ? { index: ai, value: false }
+                : { index: bi, value: false }
+        });
+
+    } else if (type === 'object') {
+        // merge additional properties
+        const additionalPropertiesHas = { 'true': false, 'false': false };
+        const additionalPropertyObjects = schemas
+            .filter(schema => {
+                const additional = schema.additionalProperties;
+                if (!schema.hasOwnProperty('additionalProperties')) return false;
+                if (additional === false) additionalPropertiesHas.false = true;
+                if (additional === true) additionalPropertiesHas.true = true;
+                return typeof additional === 'object';
+            })
+            .map(schema => schema.additionalProperties);
+        if (additionalPropertiesHas.false && (additionalPropertiesHas.true || additionalPropertyObjects.length)) {
+            exception.message('Conflict with additionalProperties');
+        } else if (additionalPropertyObjects.length === 1) {
+            result.additionalProperties = additionalPropertyObjects[0];
+        } else if (additionalPropertyObjects.length > 1) {
+            result.additionalProperties = merge(exception.at('additionalProperties'), warning.at('additionalProperties'), additionalPropertyObjects, dataTypes);
+        }
+
+        // gather data for defined properties and required properties
+        const propsException = exception.at('properties');
+        const propsWarning = exception.at('properties');
+        const propsArrays = {};
+        const requiredMap = {};
+        schemas.forEach(schema => {
+            if (schema.hasOwnProperty('properties')) {
+                Object.keys(schema.properties)
+                    .forEach(key => {
+                        if (!propsArrays[key]) propsArrays[key] = [];
+                        propsArrays[key].push(schema.properties[key]);
+                    });
+            }
+            if (schema.hasOwnProperty('required')) {
+                schema.required.forEach(name => {
+                    requiredMap[name] = true;
+                })
+            }
+        });
+
+        // merge individual properties
+        Object.keys(propsArrays).forEach(key => {
+            const items = propsArrays[key];
+            if (items.length > 0) {
+                if (!result.properties) result.properties = {};
+                if (items.length === 1) {
+                    result.properties[key] = items[0];
+                } else {
+                    result.properties[key] = merge(propsException.at(key), propsWarning.at(key), items, dataTypes);
+                }
+            }
+        });
+
+        // merge required
+        const required = Object.keys(requiredMap);
+        if (required.length) result.required = required;
+
+        mergeProperty(result, schemas, 'maxProperties', (a, b) => {
+            return { value: a < b ? a : b };
+        });
+        mergeProperty(result, schemas, 'minProperties', (a, b) => {
+            return { value: a > b ? a : b };
+        });
+
+
+    } else if (type === 'string') {
+        const patterns = schemas.filter(schema => schema.hasOwnProperty('pattern'));
+        if (patterns.length === 1) {
+            result.patterns = patterns[0];
+        } else if (patterns.length > 1) {
+            warning.message('Unable to merge multiple patterns');
+        }
+
+        mergeProperty(result, schemas, 'maxLength', (a, b) => {
+            return { value: a < b ? a : b };
+        });
+        mergeProperty(result, schemas, 'minLength', (a, b) => {
+            return { value: a > b ? a : b };
+        });
+    }
+
+    // serialize appropriate values
+    // if (type === 'string' && dataType) {
+    //     const schema = { type, format };
+    //     ['default', 'maximum', 'minimum', 'multipleOf'].forEach(key => {
+    //         if (result.hasOwnProperty(key)) {
+    //             result[key] = dataType.serialize({ exception, schema, value: result[key] });
+    //         }
+    //     });
+    // }
+
+    return result;
+}
+
+function mergeProperty (store, items, property, evaluator) {
+    const length = items.length;
+    const matches = [];
+    for (let i = 0; i < length; i++) {
+        if (items[i].hasOwnProperty(property)) {
+            const value = items[i][property];
+            matches.push({ index: i, value: value });
+        }
+    }
+    if (matches.length === 1) {
+        store[property] = matches[0].value;
+    } else if (matches.length > 1) {
+        const length = matches.length;
+        let result = matches[0].value;
+        let index = matches[0].index;
+        for (let i = 1; i < length; i++) {
+            const data = evaluator(result, matches[i].value, index, matches[i].index, items);
+            if (data !== undefined) {
+                result = data.value;
+                index = data.index;
+            }
+        }
+        store[property] = result;
+    }
+}
+
 function minMaxValid(minimum, maximum, exclusiveMinimum, exclusiveMaximum) {
     if (minimum === undefined || maximum === undefined) return true;
     minimum = +minimum;
@@ -725,6 +999,39 @@ function numericType (schema) {
     } else {
         return 'number';
     }
+}
+
+function serializeSchema (schema, exception, dataTypes) {
+    if (schema.type === 'array' && schema.items) {
+        schema.items = serializeSchema(schema.items, exception.at('items'), dataTypes);
+    } else if (schema.type === 'object') {
+        if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+            schema.additionalProperties = serializeSchema(schema.additionalProperties, exception.at('additionalProperties'), dataTypes)
+        }
+        if (schema.properties) {
+            const childException = exception.at('properties');
+            schema.properties = Object.keys(schema.properties)
+                .map(key => {
+                    return serializeSchema(schema.properties[key], childException.at(key), dataTypes)
+                })
+        }
+    } else {
+        const dataType = dataTypes.hasOwnProperty(schema.type) &&
+            dataTypes[schema.type].hasOwnProperty(schema.format) &&
+            dataTypes[schema.type][schema.format];
+        if (dataType && dataType.serialize) {
+            ['default', 'maximum', 'minimum', 'multipleOf'].forEach(key => {
+                if (schema.hasOwnProperty(key)) {
+                    schema[key] = dataType.serialize({
+                        exception: exception.at(key),
+                        schema,
+                        value: schema[key]
+                    })
+                }
+            })
+        }
+    }
+    return schema;
 }
 
 function setProperty(object, property, value) {
