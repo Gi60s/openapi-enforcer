@@ -82,10 +82,12 @@ describe('definitions/open-api', () => {
                     components: {
                         callbacks: {
                             abc: {
-                                get: {
-                                    responses: {
-                                        200: {
-                                            description: 'ok'
+                                '{$request.body#/something}': {
+                                    get: {
+                                        responses: {
+                                            200: {
+                                                description: 'ok'
+                                            }
                                         }
                                     }
                                 }
@@ -101,7 +103,9 @@ describe('definitions/open-api', () => {
                     components: {
                         callbacks: {
                             abc: {
-                                get: {}
+                                '{$request.body#/something}': {
+                                    get: {}
+                                }
                             }
                         }
                     }
