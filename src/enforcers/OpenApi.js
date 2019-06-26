@@ -130,49 +130,7 @@ module.exports = {
                         if (definition[0] !== '/') exception.message('Value must start with a forward slash');
                     }
                 },
-                components: {
-                    weight: -1,
-                    allowed: major === 3,
-                    type: 'object',
-                    properties: {
-                        callbacks: {
-                            type: 'object',
-                            additionalProperties: EnforcerRef('Callback')
-                        },
-                        examples: {
-                            type: 'object',
-                            additionalProperties: EnforcerRef('Example')
-                        },
-                        headers: {
-                            type: 'object',
-                            additionalProperties: EnforcerRef('Header')
-                        },
-                        links: {
-                            type: 'object',
-                            additionalProperties: EnforcerRef('Link')
-                        },
-                        parameters: {
-                            type: 'object',
-                            additionalProperties: EnforcerRef('Parameter')
-                        },
-                        requestBodies: {
-                            type: 'object',
-                            additionalProperties: EnforcerRef('RequestBody')
-                        },
-                        responses: {
-                            type: 'object',
-                            additionalProperties: EnforcerRef('Response')
-                        },
-                        schemas: {
-                            type: 'object',
-                            additionalProperties: EnforcerRef('Schema')
-                        },
-                        securitySchemes: {
-                            type: 'object',
-                            additionalProperties: EnforcerRef('SecurityScheme')
-                        },
-                    }
-                },
+                components: EnforcerRef('Components', { weight: -1, allowed: major === 3 }),
                 consumes: {
                     allowed: major === 2,
                     type: 'array',
