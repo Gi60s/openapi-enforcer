@@ -29,7 +29,10 @@ module.exports = {
             allowed: major === 3,
             type: 'object',
             properties: {
-                callbacks: EnforcerRef('Callback'),
+                callbacks: {
+                    type: 'object',
+                    additionalProperties: EnforcerRef('Callback')
+                },
                 examples: {
                     type: 'object',
                     additionalProperties: EnforcerRef('Example')
