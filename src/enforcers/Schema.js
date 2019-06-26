@@ -742,17 +742,29 @@ function deserializeAndValidate(schema, exception, value, options) {
     return value;
 }
 
+function getMergeTypes (schemas, types = {}, formats = {}) {
+    schemas.forEach(schema => {
+        if (schema.hasOwnProperty('formats')) formats[schema.formats] = true;
+        if (schema.hasOwnProperty('type')) types[schema.type] = true;
+        if (schema.hasOwnProperty('allOf')) getMergeTypes(schema.allOf, types, formats);
+    });
+    return {
+        formats: Object.keys(formats),
+        types: Object.keys(types)
+    }
+}
+
 function isSchemaProperty({ parent }) {
     return parent && parent.parent && parent.parent.key === 'properties' &&
         parent.parent.parent && parent.parent.parent.validator === module.exports.validator;
 }
 
 function merge (exception, warning, schemas, dataTypes) {
-    const types = Array.from(new Set(schemas.map(schema => schema.type)));
-    const formats = Array.from(new Set(schemas.filter(schema => schema.format).map(schema => schema.format)));
+    const { types, formats } = getMergeTypes(schemas);
     if (types.length > 1) return exception.message('All items must be of the same type. Found: ' + types.join(', '));
     if (formats.length > 1) return exception.message('All items must be of the same format. Found: ' + formats.join(', '));
 
+    const major = schemas[0].enforcerData.major;
     const type = types[0];
     const format = formats[0];
     const dataType = formats.length > 0 ? dataTypes[type][formats[0]] : null;
@@ -803,6 +815,75 @@ function merge (exception, warning, schemas, dataTypes) {
     if (examples.length > 1) warning.message('Two or more examples found. Using first example.');
     if (examples.length > 0) result.example = examples[0];
 
+    // allOf, oneOf, anyOf, not, nullable
+    const allOf = [];
+    const oneOf = [];
+    const anyOf = [];
+    const not = [];
+    const nullable = { hasTrue: false, hasFalse: false };
+    schemas.forEach(schema => {
+        if (schema.allOf) allOf.push.apply(allOf, schema.allOf);
+        if (schema.oneOf) allOf.push.apply(oneOf, schema.oneOf);
+        if (schema.anyOf) allOf.push.apply(anyOf, schema.anyOf);
+        if (schema.not) not.push(not);
+        if (schema.hasOwnProperty('nullable')) {
+            nullable[schema.nullable ? 'hasTrue' : 'hasFalse'] = true;
+        }
+    });
+    if (allOf.length) Object.assign(result, merge(exception.at('allOf'), warning.at('allOf'), allOf, dataTypes));
+    if (oneOf.length) result.oneOf = oneOf;
+    if (anyOf.length) result.anyOf = anyOf;
+    if (not.length === 1) result.not = not[0];
+    if (not.length > 1) result.not = merge(exception.at('not'), warning.at('not'), not, dataTypes);
+    if (nullable.hasTrue && nullable.hasFalse) {
+        exception.message('Unable to merge conflicting nullable values');
+    } else if (nullable.hasTrue) {
+        result.nullable = true;
+    } else if (nullable.hasFalse) {
+        result.nullable = false;
+    }
+
+    mergeProperty(result, schemas, 'readOnly', mergeTendToTrue);
+    mergeProperty(result, schemas, 'writeOnly', mergeTendToTrue);
+
+    // discriminator
+    if (major === 2) {
+        const namesMap = {};
+        schemas.forEach(schema => {
+            if (schema.discriminator) namesMap[schema.discriminator] = true;
+        });
+        const names = Object.keys(namesMap);
+        if (names.length === 1) result.discriminator = names[0];
+        if (names.length > 1) exception.message('Unable to merge multiple discriminator values into one');
+
+    } else if (major === 3) {
+        const namesMap = {};
+        const mappings = {};
+        const mappingConflicts = [];
+        schemas.forEach(schema => {
+            if (schema.discriminator) {
+                const discriminator = schema.discriminator;
+                namesMap[discriminator.propertyName] = true;
+                if (discriminator.mapping) {
+                    Object.keys(discriminator.mapping).forEach(key => {
+                        const value = discriminator.mapping[key];
+                        if (mappings.hasOwnProperty(key)) {
+                            if (mappings[key] !== value) {
+                                mappingConflicts.push(key);
+                            }
+                        } else {
+                            mappings[key] = value;
+                        }
+                    })
+                }
+            }
+        });
+        const names = Object.keys(namesMap);
+        if (names.length === 1) result.discriminator = names[0];
+        if (names.length > 1) exception.message('Unable to merge multiple discriminator values into one');
+        if (mappingConflicts.length > 0) exception.message('Conflicting discriminator mappings attempt to map different values to same name');
+    }
+
     if (type === 'array') {
         const itemsArray = schemas
             .filter(schema => schema.hasOwnProperty('items'))
@@ -815,9 +896,7 @@ function merge (exception, warning, schemas, dataTypes) {
         mergeProperty(result, schemas, 'minItems', (a, b) => {
             return { value: a > b ? a : b };
         });
-        mergeProperty(result, schemas, 'uniqueItems', (a, b) => {
-            return { value: a === true || b === true };
-        });
+        mergeProperty(result, schemas, 'uniqueItems', mergeTendToTrue);
 
     } else if (type === 'integer' || type === 'number' || isNumeric) {
         mergeProperty(result, schemas, 'maximum', (a, b) => {
@@ -968,6 +1047,10 @@ function mergeProperty (store, items, property, evaluator) {
     }
 }
 
+function mergeTendToTrue (a, b) {
+    return { value: a === true || b === true };
+}
+
 function minMaxValid(minimum, maximum, exclusiveMinimum, exclusiveMaximum) {
     if (minimum === undefined || maximum === undefined) return true;
     minimum = +minimum;
@@ -1010,9 +1093,10 @@ function serializeSchema (schema, exception, dataTypes) {
         }
         if (schema.properties) {
             const childException = exception.at('properties');
-            schema.properties = Object.keys(schema.properties)
-                .map(key => {
-                    return serializeSchema(schema.properties[key], childException.at(key), dataTypes)
+            schema.properties = {};
+            Object.keys(schema.properties)
+                .forEach(key => {
+                    schema.properties[key] = serializeSchema(schema.properties[key], childException.at(key), dataTypes)
                 })
         }
     } else {

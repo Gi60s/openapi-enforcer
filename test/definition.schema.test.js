@@ -471,6 +471,18 @@ describe('definition/schema', () => {
                         expect(schema.allOfMerged.minimum).to.equal(8);
                     });
 
+                    it('warns of exclusive maximum without maximum', () => {
+                        const [ schema, , warning ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'integer', exclusiveMaximum: true },
+                                { type: 'integer', maximum: 2 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.maximum).to.equal(2);
+                        expect(schema.allOfMerged.exclusiveMaximum).not.to.equal(true);
+                        expect(warning).to.match(/asdf/);
+                    });
+
                     it('merges exclusive maximum (ignored)', () => {
                         const [ schema ] = Enforcer.v2_0.Schema({
                             allOf: [
@@ -533,6 +545,34 @@ describe('definition/schema', () => {
                             ]
                         });
                         expect(schema.allOfMerged.multipleOf).to.equal(12);
+                    });
+
+                });
+
+                describe('string', () => {
+
+                    it('merges maxLength', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'string', maxLength: 5 },
+                                { type: 'string', maxLength: 2 },
+                                { type: 'string' },
+                                { type: 'string', maxLength: 8 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.maxLength).to.equal(2);
+                    });
+
+                    it('merges minLength', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'string', minLength: 5 },
+                                { type: 'string', minLength: 2 },
+                                { type: 'string' },
+                                { type: 'string', minLength: 8 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.minLength).to.equal(8);
                     });
 
                 });
@@ -620,6 +660,73 @@ describe('definition/schema', () => {
 
                     });
 
+                    it('required property conflict tends to true', () => {
+                        const properties = {
+                            a: { type: 'string' },
+                            b: { type: 'string' },
+                            c: { type: 'string' },
+                            d: { type: 'string' }
+                        };
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'object', properties, required: ['a'] },
+                                { type: 'object', properties },
+                                { type: 'object' },
+                                { type: 'object', properties, required: ['b', 'c'] }
+                            ]
+                        });
+                        expect(schema.allOfMerged.required).to.deep.equal(['a', 'b', 'c']);
+                    });
+
+                    it('merges maxProperties', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'object', maxProperties: 5 },
+                                { type: 'object', maxProperties: 2 },
+                                { type: 'object' },
+                                { type: 'object', maxProperties: 8 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.maxProperties).to.equal(2);
+                    });
+
+                    it('merges minProperties', () => {
+                        const [ schema ] = Enforcer.v2_0.Schema({
+                            allOf: [
+                                { type: 'object', minProperties: 5 },
+                                { type: 'object', minProperties: 2 },
+                                { type: 'object' },
+                                { type: 'object', minProperties: 8 }
+                            ]
+                        });
+                        expect(schema.allOfMerged.minProperties).to.equal(8);
+                    });
+
+
+                });
+
+                it.only('handles nested allOf', () => {
+                    const [ schema, err ] = Enforcer.v2_0.Schema({
+                        allOf: [
+                            {
+                                allOf: [
+                                    { type: 'number' },
+                                    { type: 'number', minimum: 0 }
+                                ]
+                            },
+                            {
+                                allOf: [
+                                    { type: 'number', maximum: 10 },
+                                    { type: 'number', multipleOf: 2.5 }
+                                ]
+                            },
+                            { type: 'number', multipleOf: 5 }
+                        ]
+                    });
+                    expect(schema.allOfMerged.type).to.equal('number');
+                    expect(schema.allOfMerged.minimum).to.equal(0);
+                    expect(schema.allOfMerged.maximum).to.equal(10);
+                    expect(schema.allOfMerged.multipleOf).to.equal(5);
                 });
 
             })
