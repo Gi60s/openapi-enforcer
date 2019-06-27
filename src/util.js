@@ -35,14 +35,18 @@ module.exports = {
     freeze,
     getDateFromValidDateString,
     getDefinitionType,
+    greatestCommonDenominator,
     isDate,
     isNumber,
     isInteger,
     isPlainObject,
     isObject,
     isObjectStringMap,
+    leastCommonMultiple,
+    leastOf,
     lowerCaseObjectProperties,
     mapObject,
+    mostOf,
     parseCookieString,
     parseQueryString,
     randomNumber,
@@ -246,6 +250,17 @@ function getDefinitionType (definition) {
     return type === 'object' ? 'decoratedObject' : type;
 }
 
+function greatestCommonDenominator(x, y) {
+    x = Math.abs(x);
+    y = Math.abs(y);
+    while (y) {
+        const t = y;
+        y = x % y;
+        x = t;
+    }
+    return x;
+}
+
 function isDate (value) {
     return value && !isNaN(value) && value instanceof Date;
 }
@@ -288,6 +303,20 @@ function isObjectStringMap (obj) {
     return true;
 }
 
+function leastCommonMultiple (x, y) {
+    if ((typeof x !== 'number') || (typeof y !== 'number')) return false;
+    return (!x || !y) ? 0 : Math.abs((x * y) / greatestCommonDenominator(x, y));
+}
+
+function leastOf (numberArray) {
+    const length = numberArray.length;
+    let least = numberArray[0];
+    for (let i = 1; i < length; i++) {
+        if (numberArray[i] < least) least = numberArray[i];
+    }
+    return least;
+}
+
 // create shallow copy of the object but make all property names lower case
 function lowerCaseObjectProperties (obj) {
     const result = {};
@@ -303,6 +332,15 @@ function mapObject (object, callback) {
         result[key] = callback(object[key], key);
     });
     return result;
+}
+
+function mostOf (numberArray) {
+    const length = numberArray.length;
+    let most = numberArray[0];
+    for (let i = 1; i < length; i++) {
+        if (numberArray[i] > most) most = numberArray[i];
+    }
+    return most;
 }
 
 function parseCookieString(str) {
@@ -328,9 +366,13 @@ function randomNumber ({ min, max, multipleOf, exclusiveMin = false, exclusiveMa
     const minIsNumber = isNumber(min);
     const maxIsNumber = isNumber(max);
 
-    if (typeof multipleOf === 'number' && multipleOf > 0) {
-        min = Math.ceil(min / multipleOf);
-        max = Math.floor(max / multipleOf);
+    if (isNumber(multipleOf) && multipleOf > 0) {
+        const modMin = min % multipleOf;
+        if (modMin !== 0) min += multipleOf - modMin;
+        max -= max % multipleOf;
+
+        if (max === min) return max;
+
         const index = Math.round(Math.random() * (max - min) / multipleOf);
         return index * multipleOf;
 
@@ -339,13 +381,7 @@ function randomNumber ({ min, max, multipleOf, exclusiveMin = false, exclusiveMa
         let num = Math.random() * multiplier;
         if (minIsNumber) num += min;
 
-        decimalPlaces = Math.round(decimalPlaces);
-        if (decimalPlaces === 0) {
-            num = Math.round(num);
-        } else if (decimalPlaces > 0) {
-            const dec = Math.pow(10, decimalPlaces);
-            if (dec > 1) num = Math.round(num * dec) / dec;
-        }
+        num = round(num, decimalPlaces);
 
         if (minIsNumber) {
             if (num < min) num = min;
@@ -402,6 +438,11 @@ function randomText ({ minLength = 1, maxLength = 250 } = {}) {
 
 function reject (message) {
     return Promise.reject(typeof message === 'string' ? Error(message) : Error(message.toString()));
+}
+
+function round (number, decimalPlaces = 0) {
+    const multiplier = Math.pow(10, decimalPlaces);
+    return Math.round(number * multiplier) / multiplier;
 }
 
 function rxStringToRx (value) {

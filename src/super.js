@@ -59,24 +59,7 @@ function createConstructor(version, name, enforcer) {
 
     // define a method to turn the complex object into a plain object
     F.prototype.toObject = function () {
-        const result = {};
-        Object.keys(this).forEach(key => {
-            const value = this[key];
-            if (Array.isArray(value)) {
-                result[key] = value.map(item => {
-                    return item && typeof item === 'object' && typeof item.toObject === 'function'
-                        ? item.toObject()
-                        : item;
-                });
-            } else if (value && typeof value === 'object' && typeof value.toObject === 'function') {
-                result[key] = value.toObject();
-            } else if (value && typeof value === 'object') {
-                result[key] = Object.assign({}, value);
-            } else {
-                result[key] = value;
-            }
-        });
-        return result;
+        return toObjectCopy(this, new Map());
     };
 
     // add extension to the class - these callbacks will execute as plugins when the entire tree has been built
@@ -184,6 +167,27 @@ function createConstructor(version, name, enforcer) {
         return isStart
             ? new Result(result, data.exception, data.warn)
             : result;
+    }
+
+    function toObjectCopy (object, map) {
+        if (Array.isArray(object)) {
+            const existing = map.get(object);
+            if (existing) return existing;
+            const result = object.map(v => toObjectCopy(v, map));
+            map.set(object, result);
+            return result;
+        } else if (util.isPlainObject(object)) {
+            const existing = map.get(object);
+            if (existing) return existing;
+            const result = {};
+            Object.keys(object).forEach(key => {
+                result[key] = toObjectCopy(object[key], map);
+            });
+            map.set(object, result);
+            return result;
+        } else {
+            return object;
+        }
     }
 
     return F;
