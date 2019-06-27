@@ -366,9 +366,13 @@ function randomNumber ({ min, max, multipleOf, exclusiveMin = false, exclusiveMa
     const minIsNumber = isNumber(min);
     const maxIsNumber = isNumber(max);
 
-    if (typeof multipleOf === 'number' && multipleOf > 0) {
-        min = Math.ceil(min / multipleOf);
-        max = Math.floor(max / multipleOf);
+    if (isNumber(multipleOf) && multipleOf > 0) {
+        const modMin = min % multipleOf;
+        if (modMin !== 0) min += multipleOf - modMin;
+        max -= max % multipleOf;
+
+        if (max === min) return max;
+
         const index = Math.round(Math.random() * (max - min) / multipleOf);
         return index * multipleOf;
 
@@ -377,13 +381,7 @@ function randomNumber ({ min, max, multipleOf, exclusiveMin = false, exclusiveMa
         let num = Math.random() * multiplier;
         if (minIsNumber) num += min;
 
-        decimalPlaces = Math.round(decimalPlaces);
-        if (decimalPlaces === 0) {
-            num = Math.round(num);
-        } else if (decimalPlaces > 0) {
-            const dec = Math.pow(10, decimalPlaces);
-            if (dec > 1) num = Math.round(num * dec) / dec;
-        }
+        num = round(num, decimalPlaces);
 
         if (minIsNumber) {
             if (num < min) num = min;
@@ -440,6 +438,11 @@ function randomText ({ minLength = 1, maxLength = 250 } = {}) {
 
 function reject (message) {
     return Promise.reject(typeof message === 'string' ? Error(message) : Error(message.toString()));
+}
+
+function round (number, decimalPlaces = 0) {
+    const multiplier = Math.pow(10, decimalPlaces);
+    return Math.round(number * multiplier) / multiplier;
 }
 
 function rxStringToRx (value) {
