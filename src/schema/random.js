@@ -40,7 +40,12 @@ function runRandom(exception, warn, map, schema, parent, property, options, dept
         parent[property] = copy(chooseOne(schema.enum));
 
     } else if (schema.allOf) {
-        runRandom(exception, warn, map, schema.allOfMerged, parent, property, options, depth);
+        const [ allOf, err ] = schema.allOfMerged;
+        if (err) {
+            warn.nest('Cannot generate random value for schema with allOf').push(err);
+        } else {
+            runRandom(exception, warn, map, allOf, parent, property, options, depth);
+        }
 
     } else if (schema.anyOf || schema.oneOf) {
         const mode = schema.anyOf ? 'anyOf' : 'oneOf';
