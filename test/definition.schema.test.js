@@ -318,14 +318,14 @@ describe('definition/schema', () => {
                 expect(err).to.match(/at: allOf\s +All items must be of the same format/);
             });
 
-            it.only('allows missing formats', () => {
-                const err = Enforcer.v2_0.Schema({
+            it('allows missing formats', () => {
+                const [ , err ] = Enforcer.v2_0.Schema({
                     allOf: [
                         { type: 'string', format: 'date' },
                         { type: 'string' }
                     ]
                 });
-                expect(err).to.equal(null);
+                expect(err).to.equal(undefined);
             });
 
             describe('merges', () => {
@@ -2837,51 +2837,31 @@ describe('definition/schema', () => {
                 expect(value).to.haveOwnProperty('a');
             });
 
-            it('cannot produce allOf object', () => {
+            it('can produce allOf object', () => {
                 const [ schema ] = Enforcer.v3_0.Schema({
-                    "allOf": [
+                    allOf: [
                         {
-                            "type": "object",
-                            "properties": {
-                                "a": {
-                                    "type": "object",
-                                    "properties": {
-                                        "b": {
-                                            "type": "object",
-                                            "properties": {
-                                                "c": { "type": "integer", "minimum": 0 }
-                                            }
-                                        }
-                                    }
+                            type: "object",
+                            required: ['a'],
+                            properties: {
+                                a: {
+                                    allOf: [
+                                        { type: "integer", minimum: 1 },
+                                        { type: "integer", multipleOf: 2 }
+                                    ]
                                 }
                             }
                         },
                         {
-                            "type": "object",
-                            "properties": {
-                                "a": {
-                                    "type": "object",
-                                    "properties": {
-                                        "b": {
-                                            "type": "object",
-                                            "properties": {
-                                                "c": { "type": "integer", "maximum": 10 }
-                                            }
-                                        },
-                                        "x": {
-                                            "type": "object",
-                                            "properties": {
-                                                "c": { "type": "string" }
-                                            }
-                                        }
-                                    }
-                                }
+                            type: 'object',
+                            properties: {
+                                a: { type: "integer", maximum: 3 }
                             }
                         }
                     ]
                 });
-                const [ value, error, warn ] = schema.random();
-                expect(warn).to.match(/Cannot generate random value for schema with allOf/);
+                const [ value ] = schema.random();
+                expect(value.a).to.equal(2);
             });
 
             it('can produce oneOf or anyOf object', () => {
@@ -4281,6 +4261,21 @@ describe('definition/schema', () => {
 
         });
 
+    });
+
+    it('using toObject converts nested components too', () => {
+        const [ schema ] = new Enforcer.v3_0.Schema({
+            type: 'object',
+            properties: {
+                x: { type: 'string' }
+            }
+        });
+        expect(schema).to.be.instanceOf(Enforcer.v3_0.Schema);
+        expect(schema.properties.x).to.be.instanceOf(Enforcer.v3_0.Schema);
+
+        const obj = schema.toObject();
+        expect(obj).not.to.be.instanceOf(Enforcer.v3_0.Schema);
+        expect(obj.properties.x).not.to.be.instanceOf(Enforcer.v3_0.Schema);
     });
 
 });
