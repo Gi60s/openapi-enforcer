@@ -43,6 +43,20 @@ describe('util', () => {
             expect(num).to.equal(0)
         });
 
+        describe('multipleOf', () => {
+
+            it('can handle whole numbers', () => {
+                const num = randomNumber({ min: 1, max: 3, multipleOf: 2 });
+                expect(num).to.equal(2);
+            });
+
+            it('can handle decimal numbers', () => {
+                const num = randomNumber({ min: 1, max: 3, multipleOf: .5 });
+                expect(num % .5).to.equal(0);
+            });
+
+        })
+
     });
 
 });
