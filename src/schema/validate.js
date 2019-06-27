@@ -75,7 +75,7 @@ function runValidate(exception, map, schema, originalValue, options) {
 
     } else if (schema.oneOf) {
         if (schema.discriminator) {
-            const data = schema.getDiscriminator(value);
+            const data = schema.discriminate(value, true);
             const subSchema = data.schema;
             const key = data.key;
             if (!subSchema) {
