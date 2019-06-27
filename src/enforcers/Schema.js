@@ -248,7 +248,7 @@ module.exports = {
         if (this.allOf) {
             const mergeException = new Exception('Unable to merge allOf schemas');
             const mergeWarning = new Exception('One or more warnings produced while merging allOf schemas');
-            const allOfDef = merge(mergeException, mergeWarning, this.allOf, dataTypes, major);
+            const allOfDef = merge(mergeException, mergeWarning, this.allOf.map(v => v.toObject()), dataTypes, major);
             const allOfData = {
                 exception: mergeException,
                 warning: mergeWarning
