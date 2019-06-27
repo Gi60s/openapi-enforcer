@@ -248,26 +248,31 @@ module.exports = {
         if (this.allOf) {
             const mergeException = new Exception('Unable to merge allOf schemas');
             const mergeWarning = new Exception('One or more warnings produced while merging allOf schemas');
-            const allOfDef = merge(mergeException, mergeWarning, this.allOf, dataTypes);
+            const allOfDef = merge(mergeException, mergeWarning, this.allOf, dataTypes, major);
+            const allOfData = {
+                exception: mergeException,
+                warning: mergeWarning
+            };
 
-            if (mergeWarning.hasException) warn.at('allOf').push(mergeWarning);
-            if (mergeException.hasException) {
-                exception.at('allOf').push(mergeException);
-            } else {
+            if (!mergeException.hasException) {
                 const serializedException = new Exception('Unable to serialize merged schemas');
                 const serialized = serializeSchema(allOfDef, serializedException, dataTypes);
                 if (serializedException.hasException) {
-                    exception.at('allOf').push(serializedException);
+                    mergeException.push(serializedException);
                 } else {
                     const [ schema, err ] = new data.context.Schema(serialized);
                     if (err) {
                         err.title = 'One or more error exist when all schemas are considered';
-                        exception.at('allOf').push(err)
+                        mergeException.push(err)
                     } else {
-                        this.allOfMerged = schema;
+                        allOfData.value = schema;
                     }
                 }
             }
+
+            Object.defineProperty(this, 'allOfMerged', {
+                get: () => new Result(allOfData.value, allOfData.exception, allOfData.warning)
+            });
         }
     },
 
@@ -339,13 +344,6 @@ module.exports = {
     validator: function (data) {
         const { major } = data;
 
-        const exclusive = {
-            allowed: ({ parent }) => {
-                return numericish(parent.result);
-            },
-            type: 'boolean'
-        };
-
         const maxOrMin = {
             weight: -8,
             allowed: ({ parent }) => numericish(parent.result),
@@ -405,10 +403,12 @@ module.exports = {
                         const formats = {};
                         let formatKey = '';
                         definition.forEach(def => {
-                            if (!types[def.type]) types[def.type] = true;
-                            if (def.hasOwnProperty('format')) {
-                                formatKey = def.format;
-                                formats[def.format] = formats[def.format] ? formats[def.format] + 1 : 1;
+                            if (def.hasOwnProperty('type')) {
+                                if (!types[def.type]) types[def.type] = true;
+                                if (def.hasOwnProperty('format')) {
+                                    formatKey = def.format;
+                                    formats[def.format] = formats[def.format] ? formats[def.format] + 1 : 1;
+                                }
                             }
                         });
 
@@ -523,8 +523,24 @@ module.exports = {
                     allowed: true,
                     freeForm: true
                 },
-                exclusiveMaximum: exclusive,
-                exclusiveMinimum: exclusive,
+                exclusiveMaximum: {
+                    allowed: ({ parent }) => numericish(parent.result),
+                    type: 'boolean',
+                    errors: ({ exception, definition, parent }) => {
+                        if (definition && !parent.definition.hasOwnProperty('maximum')) {
+                            exception.message('Cannot use exclusiveMaximum without defining a maximum');
+                        }
+                    }
+                },
+                exclusiveMinimum: {
+                    allowed: ({ parent }) => numericish(parent.result),
+                    type: 'boolean',
+                    errors: ({ exception, definition, parent }) => {
+                        if (definition && !parent.definition.hasOwnProperty('minimum')) {
+                            exception.message('Cannot use exclusiveMinimum without defining a minimum');
+                        }
+                    }
+                },
                 externalDocs: EnforcerRef('ExternalDocumentation'),
                 format: {
                     weight: -9,
@@ -744,7 +760,7 @@ function deserializeAndValidate(schema, exception, value, options) {
 
 function getMergeTypes (schemas, types = {}, formats = {}) {
     schemas.forEach(schema => {
-        if (schema.hasOwnProperty('formats')) formats[schema.formats] = true;
+        if (schema.hasOwnProperty('format')) formats[schema.format] = true;
         if (schema.hasOwnProperty('type')) types[schema.type] = true;
         if (schema.hasOwnProperty('allOf')) getMergeTypes(schema.allOf, types, formats);
     });
@@ -759,17 +775,17 @@ function isSchemaProperty({ parent }) {
         parent.parent.parent && parent.parent.parent.validator === module.exports.validator;
 }
 
-function merge (exception, warning, schemas, dataTypes) {
+function merge (exception, warning, schemas, dataTypes, major) {
     const { types, formats } = getMergeTypes(schemas);
     if (types.length > 1) return exception.message('All items must be of the same type. Found: ' + types.join(', '));
     if (formats.length > 1) return exception.message('All items must be of the same format. Found: ' + formats.join(', '));
 
-    const major = schemas[0].enforcerData.major;
     const type = types[0];
     const format = formats[0];
     const dataType = formats.length > 0 ? dataTypes[type][formats[0]] : null;
     const isNumeric = dataType ? dataType.isNumeric : false;
-    const result = { type };
+    const result = {};
+    if (type) result.type = type;
     if (format) result.format = format;
 
     // set default
@@ -779,17 +795,23 @@ function merge (exception, warning, schemas, dataTypes) {
 
     // set enum
     let enumMapsCount = 0;
-    const enumException = new Exception('Unable to merge enum values');
-    const enumArrays = schemas
-        .filter(schema => schema.hasOwnProperty('enum'))
-        .map(schema => {
+    const enumException = exception.at('enum');
+    const enumArrays = [];
+    schemas.forEach((schema, index) => {
+        if (schema.hasOwnProperty('enum')) {
             enumMapsCount++;
             if (dataType && dataType.serialize) {
-                return schema.enum.map(value => dataType.serialize({ exception: enumException, schema, value }));
+                const data = schema.enum.map(value => dataType.serialize({
+                    exception: enumException.at(index),
+                    schema,
+                    value
+                }));
+                enumArrays.push(data);
             } else {
-                return schema.enum;
+                enumArrays.push(schema.enum);
             }
-        });
+        }
+    });
     const enumMap = {};
     enumArrays.forEach(values => {
         values.forEach(value => {
@@ -825,16 +847,16 @@ function merge (exception, warning, schemas, dataTypes) {
         if (schema.allOf) allOf.push.apply(allOf, schema.allOf);
         if (schema.oneOf) allOf.push.apply(oneOf, schema.oneOf);
         if (schema.anyOf) allOf.push.apply(anyOf, schema.anyOf);
-        if (schema.not) not.push(not);
+        if (schema.not) not.push(schema.not);
         if (schema.hasOwnProperty('nullable')) {
             nullable[schema.nullable ? 'hasTrue' : 'hasFalse'] = true;
         }
     });
-    if (allOf.length) Object.assign(result, merge(exception.at('allOf'), warning.at('allOf'), allOf, dataTypes));
+    if (allOf.length) Object.assign(result, merge(exception.at('allOf'), warning.at('allOf'), allOf, dataTypes, major));
     if (oneOf.length) result.oneOf = oneOf;
     if (anyOf.length) result.anyOf = anyOf;
     if (not.length === 1) result.not = not[0];
-    if (not.length > 1) result.not = merge(exception.at('not'), warning.at('not'), not, dataTypes);
+    if (not.length > 1) result.not = merge(exception.at('not'), warning.at('not'), not, dataTypes, major);
     if (nullable.hasTrue && nullable.hasFalse) {
         exception.message('Unable to merge conflicting nullable values');
     } else if (nullable.hasTrue) {
@@ -888,7 +910,7 @@ function merge (exception, warning, schemas, dataTypes) {
         const itemsArray = schemas
             .filter(schema => schema.hasOwnProperty('items'))
             .map(schema =>  schema.items);
-        result.items = merge(exception.at('items'), warning.at('items'), itemsArray, dataTypes);
+        result.items = merge(exception.at('items'), warning.at('items'), itemsArray, dataTypes, major);
 
         mergeProperty(result, schemas, 'maxItems', (a, b) => {
             return { value: a < b ? a : b };
@@ -944,7 +966,7 @@ function merge (exception, warning, schemas, dataTypes) {
         } else if (additionalPropertyObjects.length === 1) {
             result.additionalProperties = additionalPropertyObjects[0];
         } else if (additionalPropertyObjects.length > 1) {
-            result.additionalProperties = merge(exception.at('additionalProperties'), warning.at('additionalProperties'), additionalPropertyObjects, dataTypes);
+            result.additionalProperties = merge(exception.at('additionalProperties'), warning.at('additionalProperties'), additionalPropertyObjects, dataTypes, major);
         }
 
         // gather data for defined properties and required properties
@@ -975,7 +997,7 @@ function merge (exception, warning, schemas, dataTypes) {
                 if (items.length === 1) {
                     result.properties[key] = items[0];
                 } else {
-                    result.properties[key] = merge(propsException.at(key), propsWarning.at(key), items, dataTypes);
+                    result.properties[key] = merge(propsException.at(key), propsWarning.at(key), items, dataTypes, major);
                 }
             }
         });
@@ -997,7 +1019,7 @@ function merge (exception, warning, schemas, dataTypes) {
         if (patterns.length === 1) {
             result.patterns = patterns[0];
         } else if (patterns.length > 1) {
-            warning.message('Unable to merge multiple patterns');
+            exception.message('Unable to merge multiple patterns');
         }
 
         mergeProperty(result, schemas, 'maxLength', (a, b) => {
@@ -1093,11 +1115,10 @@ function serializeSchema (schema, exception, dataTypes) {
         }
         if (schema.properties) {
             const childException = exception.at('properties');
-            schema.properties = {};
             Object.keys(schema.properties)
                 .forEach(key => {
                     schema.properties[key] = serializeSchema(schema.properties[key], childException.at(key), dataTypes)
-                })
+                });
         }
     } else {
         const dataType = dataTypes.hasOwnProperty(schema.type) &&
