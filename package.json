@@ -36,7 +36,7 @@
   "bugs": {
     "url": "https://github.com/byu-oit/openapi-enforcer/issues"
   },
-  "homepage": "https://github.com/byu-oit/openapi-enforcer#readme",
+  "homepage": "https://byu-oit.github.io/openapi-enforcer/",
   "devDependencies": {
     "@gi60s/markdown-docs": "0.0.10",
     "chai": "^4.2.0",
