@@ -49,11 +49,16 @@ module.exports = {
                     additionalProperties: EnforcerRef('Example')
                 },
                 schema: EnforcerRef('Schema')
+            },
+            errors: ({ parent, key, warn }) => {
+                if (parent && parent.key === 'content') {
+                    if (!module.exports.rx.mediaType.test(key)) warn.message('Media type appears invalid');
+                }
             }
         }
     },
 
     rx: {
-        mediaType: /^(application|audio|example|font|image|message|model|multipart|text|video)\/(?:([a-z.\-]+)\+)?([a-z.\-]+)(?:; (.+))?$/
+        mediaType: /^(application|audio|example|font|image|message|model|multipart|text|video|x-\S+)\/(?:([a-z.\-]+)\+)?([a-z.\-]+)(?:; *(.+))?$/
     }
 };
