@@ -30,7 +30,6 @@ module.exports = {
     prototype: {},
 
     validator: function ({ major }) {
-        const MediaType = require('./MediaType');
         return {
             type: 'object',
             properties: {
@@ -41,11 +40,7 @@ module.exports = {
                 content: {
                     allowed: major === 3,
                     type: 'object',
-                    additionalProperties: EnforcerRef('MediaType', {
-                        errors: function({ key, warn }) {
-                            if (!MediaType.rx.mediaType.test(key)) warn.message('Media type appears invalid');
-                        }
-                    })
+                    additionalProperties: EnforcerRef('MediaType')
                 },
                 examples: {
                     allowed: major === 2,
