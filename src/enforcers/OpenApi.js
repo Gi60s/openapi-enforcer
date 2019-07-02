@@ -37,7 +37,9 @@ module.exports = {
          */
         path: function (method, path) {
             const exception = Exception('Request has one or more errors');
-            path = util.edgeSlashes(path.split('?')[0], true, false);
+            path = this.enforcerData.options.disablePathNormalization
+                ? path.split('?')[0]
+                : util.edgeSlashes(path.split('?')[0], true, false);
             method = method.toLowerCase();
 
             // find the path that matches the request
@@ -90,7 +92,9 @@ module.exports = {
 
             const method = request.hasOwnProperty('method') ? request.method.toLowerCase() : 'get';
             const [ pathString, query ] = request.path.split('?');
-            const path = util.edgeSlashes(pathString, true, false);
+            const path = this.enforcerData.options.disablePathNormalization
+                ? pathString
+                : util.edgeSlashes(pathString, true, false);
             const [ pathObject, error ] = this.path(method, path);
             if (error) return new Result(undefined, error);
 

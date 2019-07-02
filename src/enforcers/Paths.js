@@ -27,6 +27,17 @@ module.exports = {
         const pathEquivalencies = {};
         const paramlessMap = {};
 
+        if (!data.options.disablePathNormalization) {
+            const keys = Object.keys(result);
+            keys.forEach(key => {
+                const normalized = util.edgeSlashes(key, true, false);
+                if (normalized !== key) {
+                    result[normalized] = result[key];
+                    delete result[key];
+                }
+            });
+        }
+
         plugins.push(() => {
             Object.keys(result).forEach((pathKey, index) => {
                 const path = result[pathKey];
@@ -144,7 +155,7 @@ module.exports = {
             const { pathParsers } = this.enforcerData;
 
             // normalize the path
-            pathString = util.edgeSlashes(pathString.split('?')[0], true, false);
+            pathString = pathString.split('?')[0]; // util.edgeSlashes(pathString.split('?')[0], true, false);
 
             // get all parsers that fit the path length
             const pathLength = pathString.split('/').length - 1;
@@ -164,18 +175,47 @@ module.exports = {
     },
 
     validator: function (data) {
+        const disablePathNormalization = data.options.disablePathNormalization;
+
         return {
             required: true,
             type: 'object',
             additionalProperties: EnforcerRef('PathItem'),
             errors: ({ exception, definition, warn }) => {
+                const normalizeException = exception.nest('These duplicate paths exist due to path normalization:');
                 const paths = Object.keys(definition);
+                const map = {};
+                const includesTrailingSlashes = [];
+                const omitsTrainingSlashes = [];
+
                 paths.forEach(key => {
                     if (key[0] !== '/' || key[1] === '/') {
                         exception.at(key).message('Path must begin with a single forward slash')
                     }
+
+                    if (!disablePathNormalization) {
+                        const normalizedKey = util.edgeSlashes(key, true, false);
+                        if (map[normalizedKey]) normalizeException.message(key + ' --> ' + normalizedKey);
+                        if (normalizedKey !== key) warn.at(key).message('Path normalized from ' + key + ' to ' + normalizedKey);
+                        map[key] = normalizedKey;
+                    }
+
+                    if (key[key.length - 1] === '/') {
+                        includesTrailingSlashes.push(key);
+                    } else {
+                        omitsTrainingSlashes.push(key);
+                    }
                 });
-                if (!paths.length) warn.message('No paths defined')
+
+                if (!paths.length) warn.message('No paths defined');
+
+                if (includesTrailingSlashes.length > 0 && omitsTrainingSlashes.length > 0) {
+                    const child = warn.nest('Some defined paths end with slashes while some do not. This inconsistency may confuse users of your API.');
+                    const clean = child.nest('Paths without trailing slashes:');
+                    const trailing = child.nest('Paths with trailing slashes:');
+                    omitsTrainingSlashes.forEach(key => clean.message(key));
+                    includesTrailingSlashes.forEach(key => trailing.message(key));
+                }
             }
         }
     }
