@@ -116,4 +116,57 @@ describe('enforcer/paths', () => {
         expect(y.path).to.equal(paths['/a/{a}']);
     });
 
+    it('produces warnings for trailing slash inconsistency', () => {
+        const [ , err, warning ] = Enforcer.v2_0.Paths({
+            '/a/': validPathObject(),
+            '/b': validPathObject()
+        });
+
+        expect(err).to.equal(undefined);
+        expect(warning).to.match(/Some defined paths end with slashes while some do not/);
+    });
+
+    it('path normalization will identify conflicting paths', () => {
+        const [ , err ] = Enforcer.v2_0.Paths({
+            '/a': validPathObject(),
+            '/a/': validPathObject()
+        });
+        expect(err).to.match(/These duplicate paths exist/);
+    });
+
+    it('path without normalization allows near conflicting paths', () => {
+        const [ paths ] = Enforcer.v2_0.Paths({
+            '/a': validPathObject(),
+            '/a/': validPathObject()
+        }, null, { disablePathNormalization: true });
+
+        const x = paths.findMatch('/a');
+        expect(x.path).to.equal(paths['/a']);
+
+        const y = paths.findMatch('/a/');
+        expect(y.path).to.equal(paths['/a/']);
+    });
+
+    it('removes trailing slashes from path definitions when using path normalization', () => {
+        const [ paths ] = Enforcer.v2_0.Paths({
+            '/a': validPathObject(),
+            '/b/': validPathObject()
+        });
+
+        expect(paths).to.haveOwnProperty('/a');
+        expect(paths).to.haveOwnProperty('/b');
+        expect(paths).not.to.haveOwnProperty('/b/');
+    });
+
+    it('keeps trailing slashes on path definitions when not using path normalization', () => {
+        const [ paths ] = Enforcer.v2_0.Paths({
+            '/a': validPathObject(),
+            '/b/': validPathObject()
+        }, null, { disablePathNormalization: true });
+
+        expect(paths).to.haveOwnProperty('/a');
+        expect(paths).not.to.haveOwnProperty('/b');
+        expect(paths).to.haveOwnProperty('/b/');
+    });
+
 });
