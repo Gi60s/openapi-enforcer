@@ -27,6 +27,7 @@ This function will dereference your OAS document, validate it, produce warnings 
 
 | Property | Description | Type  | Default |
 | --------- | ----------- | ---- | ------- |
+| disablePathNormalization | Set to `true` to stop removing trailing slashes for incoming requests and from your paths definitions. | `boolean` | `false` | 
 | requestBodyAllowedMethods | An `object` specifying which request methods to allow (or disallow) a request body for. The object you provide here will merge with the default value. | `object` | ` { post: true, put: true, options: true, head: true, patch: true } `
     
 **Returns:** A Promise
