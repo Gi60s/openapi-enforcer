@@ -16,7 +16,7 @@
  **/
 'use strict';
 
-const store = new WeakMap();
+const map = [ 'value', 'error', 'warning' ];
 
 module.exports = EnforcerResult;
 
@@ -38,7 +38,7 @@ function EnforcerResult(value, exception, warn) {
     this.value = value;
     this.warning = warn;
 
-    this.__iterableValues = [ value, exception, warn ];
+    this.__iterableIndex = -1;
 }
 
 EnforcerResult.prototype[Symbol.iterator] = function() {
@@ -46,10 +46,10 @@ EnforcerResult.prototype[Symbol.iterator] = function() {
 };
 
 EnforcerResult.prototype.next = function() {
-    const data = this.__iterableValues;
-    if (data.length === 0) {
-        return { done: true }
-    } else {
-        return { done: false, value: data.shift() };
-    }
+    this.__iterableIndex++;
+    if (this.__iterableIndex > 2) this.__iterableIndex = 0;
+    return {
+        done: false,
+        value: this[map[this.__iterableIndex]]
+    };
 };
