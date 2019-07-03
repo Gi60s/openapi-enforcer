@@ -102,3 +102,14 @@ console.log(err)
 const [ , , warning ] = new Enforcer.v2_0.Schema({ type: 'string' })
 console.log(warning)
 ```
+
+**Run the Iterator Multiple Times**
+
+The iterator loops, allowing you to destructure by index indefinitely.
+
+```js
+const [ schema, error, warning, schema2, error2, warning2, schema3 ] = new Enforcer.v2_0.Schema({ type: 'string' })
+console.log(schema === schema2 && schema === schema3) // true
+console.log(error === error2) // true
+console.log(warning === warning2) // true
+```
