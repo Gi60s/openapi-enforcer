@@ -47,7 +47,7 @@
 
     
     <div class="nav-screen"></div>
-    <nav class="nav-list"><ul><li><a href="/openapi-enforcer">Open API Enforcer</a></li><li><a href="/openapi-enforcer/guide">Guide</a><ul><li><a href="/openapi-enforcer/guide/component-plugins">Component Plugins</a></li><li><a href="/openapi-enforcer/guide/create-api">Create an API</a></li><li><a href="/openapi-enforcer/guide/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/guide/enforcer-result" class="current-page">EnforcerResult</a></li><li><a href="/openapi-enforcer/guide/validate-document">Validate a Document</a></li></ul></li><li><a href="/openapi-enforcer/api">API</a><ul><li><a href="/openapi-enforcer/api/components">Components</a><ul><li><a href="/openapi-enforcer/api/components/openapi">Open API</a></li><li><a href="/openapi-enforcer/api/components/operation">Operation</a></li><li><a href="/openapi-enforcer/api/components/schema">Schema</a></li><li><a href="/openapi-enforcer/api/components/schema-value">Schema Value</a><ul></ul></li><li><a href="/openapi-enforcer/api/components/swagger">Swagger</a></li></ul></li><li><a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a></li></ul></li></ul></li></nav>
+    <nav class="nav-list"><ul><li><a href="/openapi-enforcer">Open API Enforcer</a></li><li><a href="/openapi-enforcer/guide">Guide</a><ul><li><a href="/openapi-enforcer/guide/component-plugins">Component Plugins</a></li><li><a href="/openapi-enforcer/guide/create-api">Create an API</a></li><li><a href="/openapi-enforcer/guide/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/guide/enforcer-result" class="current-page">EnforcerResult</a></li><li><a href="/openapi-enforcer/guide/validate-document">Validate a Document</a></li></ul></li><li><a href="/openapi-enforcer/api">API</a><ul><li><a href="/openapi-enforcer/api/openapi-enforcer">Open API Enforcer</a></li><li><a href="/openapi-enforcer/api/components">Components</a><ul><li><a href="/openapi-enforcer/api/components/openapi">Open API</a></li><li><a href="/openapi-enforcer/api/components/operation">Operation</a></li><li><a href="/openapi-enforcer/api/components/schema">Schema</a></li><li><a href="/openapi-enforcer/api/components/schema-value">Schema Value</a><ul></ul></li><li><a href="/openapi-enforcer/api/components/swagger">Swagger</a></li></ul></li><li><a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a></li></ul></li><li><a href="/openapi-enforcer/contributing">Contributing</a><ul><li><a href="/openapi-enforcer/contributing/enforcer-components">Enforcer Components</a><ul></ul></li></ul></li></ul></li></nav>
     
 
     <div class="page-content-main">
@@ -122,6 +122,12 @@
 <p><strong>Get Just the Warning</strong></p>
 <pre><code class="language-js"><span class="hljs-keyword">const</span> [ , , warning ] = <span class="hljs-keyword">new</span> Enforcer.v2_0.Schema({ <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span> })
 <span class="hljs-built_in">console</span>.log(warning)</code></pre>
+<p><strong>Run the Iterator Multiple Times</strong></p>
+<p>The iterator loops, allowing you to destructure by index indefinitely.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> [ schema, error, warning, schema2, error2, warning2, schema3 ] = <span class="hljs-keyword">new</span> Enforcer.v2_0.Schema({ <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span> })
+<span class="hljs-built_in">console</span>.log(schema === schema2 &amp;&amp; schema === schema3) <span class="hljs-comment">// true</span>
+<span class="hljs-built_in">console</span>.log(error === error2) <span class="hljs-comment">// true</span>
+<span class="hljs-built_in">console</span>.log(warning === warning2) <span class="hljs-comment">// true</span></code></pre>
 </div>
       </article>
 

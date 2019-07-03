@@ -6,9 +6,11 @@ description: Enforcer components validate the parts of your Open API documents a
 
 Enforcer components validate the parts of your Open API documents and define additional functionality. There are many enforcer component types and together they work to validate an entire Open API document.
 
-1. Each enforcer component is tied to an Open API schema component for [version 2](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) and [version 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema).
+1. Each enforcer component is modeled after the Open API specification, including [version 2](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) and [version 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema).
 
-2. Each enforcer component is capable of supporting all versions of the Open API. Current [version 2](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) and [version 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema) are supported, but this can be expanded for future specifications.
+2. Each enforcer component is capable of supporting all versions of the Open API.
+
+    Currently [version 2](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) and [version 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema) are supported, but this can be expanded when future specifications are created.
 
 3. Each enforcer component is made up of four parts:
 
@@ -20,15 +22,21 @@ Enforcer components validate the parts of your Open API documents and define add
     
     4. [Statics](#statics) are properties or functions that get attached to the constructor and do not need an instance of the component to be accessed.
     
-4. Each enforcer component exists in the `srcs/enforcers` directory.
+4. Each enforcer component is defined in the `srcs/enforcers` directory.
 
 ### Example Enforcer Component 
 
 The following example is derived solely as generic example of what an enforcer component could look like. It is not built for a schema that currently exists in the Open API specification.
 
-If a specification required, 1) an object, 2. with the required `title` property as a string, and 3. with no additional properties, then a value that matches that schema would look something like this:
+**Example Specification**
 
-**Example Value Following Schema**
+1. The value must be an object.
+
+2. The value must have a `title` property that is a string.
+
+3. The value must not allow any other properties.
+
+**Example Value**
 
 ```json
 {
@@ -36,22 +44,13 @@ If a specification required, 1) an object, 2. with the required `title` property
 }
 ```
 
-**Example Enforcer Component Definition**
-
-The following enforcer component example:
-
-1. Validates that the value matches the schema requirements we've defined.
-
-2. Adds functionality for an implemented instance
-
-3. Has a single static method
-
-4. Has a constructor (the init function)
+**Example Enforcer Component**
 
 ```js
 module.exports = {
     // constructor
     init: function (data) {
+        // Runs if there are no validator errors.
         // Can be used for late validations, to
         // add, modify, delete properties, etc.
     },
@@ -81,13 +80,14 @@ module.exports = {
                     required: true,
                     type: 'string'
                 }
-            }
+            },
+            additionalProperties: false
         }
     }
 };
 ``` 
 
-# The Component Validator
+## The Component Validator
 
 The component validator is a function that validates a part of your Open API specification document.
 
@@ -137,7 +137,7 @@ module.exports = {
 };
 ```
 
-## Creating a Component Validator
+### Creating a Component Validator
 
 A component validator follows all the same [validator rules](#validator-rules) as a normal validator definition with the exception that a component validator must be an object at the root level.
 
@@ -149,7 +149,7 @@ validator: function () {
 }
 ```
 
-## Validator Rules
+### Validator Rules
 
 A validator is an object that defines the validation rules to apply against an Open API specification's component.
 
@@ -162,7 +162,7 @@ All validators must define a type property or the value will not be validated. T
 - `'object'`
 - `'string'`
 
-## Processor Function
+### Processor Function
 
 Many validator rules accept a processor function in place of static values. A processor function receives the [data object](#validator-data-object) and must return a value that is valid for that validator rule.
 
@@ -185,7 +185,7 @@ module.exports = {
 }
 ```
 
-## Validator Data Object
+### Validator Data Object
 
 This object is passed in wherever a validator processor function exists.
 
@@ -235,11 +235,41 @@ The Open API definition object is a definition composed of sub definitions that 
 
 - *warn* - The [EnforcerException](../../api/enforcer-exception.md) instance for this node in the tree that is used to generate warning messages for this node.
 
-# The Init Function
+### EnforcerRef
 
-# The Prototype
+This function is used to allow a validator to reference another component as a child of the current component. [See the component validator section for an example.](#the-component-validator).
 
-# Statics
+`EnforcerRef ( value [, config ] ) : EnforcerRef`
 
+**Parameters:**
+
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **value** | The name of the enforcer to use. This must match the name of the enforcer component's file name (minus extension). | `string` | |
+| config | An optional validator configuration to apply to the child component in addition to the child component's own validator. | `object` | |
+
+## The Init Function
+
+The init function is the constructor function for the component. The init function:
+
+- Will not execute unless a schema passes [the component validator](#the-component-validator) without errors.
+
+- Runs immediately before any plugins for the component.
+
+- Receives the [validator data object](#validator-data-object) as its only parameter. 
+
+- Allows you to modify the component's properties using `this`.
+
+- Allows you to run additional error checking and report errors or warnings using the`exception` or `warn` property in the [the component validator](#the-component-validator).
+
+## The Prototype
+
+The object you provide as the prototype will be the object applied as the prototype of the constructed component. If you are unfamiliar with JavaScript prototypes [please read up on it](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes).
+
+## Statics
+
+Statics are used to attach properties to the components that are accessible only when the component is not instantiated. [Read about statics.](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/static)
+
+The statics property is called as a function and receives the `scope` parameter that is the same object as the `staticData` in the [validator data object](#validator-data-object). This function should return an object and that object's properties become the static properties for the defined component.
 
 

@@ -46,7 +46,7 @@ Enforcer(doc, { fullResult: true })
 
 ### Validate Part of a Document
 
-This example WILL NOT resolve `$ref`s, so if you need to do that be sure to use the [Enforcer.dereference](../api/index.md#enforcerdereference) function first.
+This example WILL NOT resolve `$ref`s, so if you need to do that be sure to use the [Enforcer.dereference](../api/openapi-enforcer.md#enforcerdereference) function first.
 
 This example also requires that you know which version of the Open API Specification your document uses.
 
