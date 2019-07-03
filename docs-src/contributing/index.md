@@ -1,6 +1,7 @@
 ---
 title: Contributing
 description: Details about how the enforcer components work to validate your Open API documents and provide functionality.
+navMenu: false
 ---
 
 This section of the documentation is for those interested in contributing to the Open API Enforcer. This may include
