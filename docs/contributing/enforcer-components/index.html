@@ -1,0 +1,378 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Open API Enforcer | Enforcer Components</title>
+  <meta name="description" content="A library that makes it easy to validate and use your Open API documents.">
+
+  <link rel="icon" href="/openapi-enforcer/favicon.png">
+
+  <link rel="stylesheet" href="/openapi-enforcer/template-files/styles/main.css" media="all">
+  
+  
+  <link rel="stylesheet" href="/openapi-enforcer/css/main.css" media="all">
+  
+  
+  
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="wrapper">
+      <a class="site-title" href="/openapi-enforcer">
+        Open API Enforcer
+      </a>
+
+      
+      <nav class="site-nav">
+        <a href="#" class="menu-icon" aria-label="Menu">
+          <svg viewBox="0 0 18 15">
+            <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+            <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+            <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+          </svg>
+        </a>
+      </nav>
+      
+    </div>
+  </header>
+
+<div class="page-content">
+  <div class="wrapper">
+
+    
+    <div class="nav-screen"></div>
+    <nav class="nav-list"><ul><li><a href="/openapi-enforcer">Open API Enforcer</a></li><li><a href="/openapi-enforcer/guide">Guide</a><ul><li><a href="/openapi-enforcer/guide/component-plugins">Component Plugins</a></li><li><a href="/openapi-enforcer/guide/create-api">Create an API</a></li><li><a href="/openapi-enforcer/guide/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/guide/enforcer-result">EnforcerResult</a></li><li><a href="/openapi-enforcer/guide/validate-document">Validate a Document</a></li></ul></li><li><a href="/openapi-enforcer/api">API</a><ul><li><a href="/openapi-enforcer/api/openapi-enforcer">Open API Enforcer</a></li><li><a href="/openapi-enforcer/api/components">Components</a><ul><li><a href="/openapi-enforcer/api/components/openapi">Open API</a></li><li><a href="/openapi-enforcer/api/components/operation">Operation</a></li><li><a href="/openapi-enforcer/api/components/schema">Schema</a></li><li><a href="/openapi-enforcer/api/components/schema-value">Schema Value</a><ul></ul></li><li><a href="/openapi-enforcer/api/components/swagger">Swagger</a></li></ul></li><li><a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a></li></ul></li><li><a href="/openapi-enforcer/contributing">Contributing</a><ul><li><a href="/openapi-enforcer/contributing/enforcer-components" class="current-page">Enforcer Components</a><ul></ul></li></ul></li></ul></li></nav>
+    
+
+    <div class="page-content-main">
+      <article class="post">
+        <header class="post-header">
+          <div class="post-subtitle">Contributing</div>
+          <h1 class="post-title">Enforcer Components</h1>
+        </header>
+
+        
+        <div>
+          <p><strong>Page Content</strong></p>
+          <div class="section-nav"><ul class="toc"><li><a href="#example-enforcer-component">Example Enforcer Component</a></li><li><a href="#the-component-validator">The Component Validator</a><ul><li><a href="#creating-a-component-validator">Creating a Component Validator</a></li><li><a href="#validator-rules">Validator Rules</a></li><li><a href="#processor-function">Processor Function</a></li><li><a href="#validator-data-object">Validator Data Object</a></li><li><a href="#enforcerref">EnforcerRef</a></li></ul></li><li><a href="#the-init-function">The Init Function</a></li><li><a href="#the-prototype">The Prototype</a></li><li><a href="#statics">Statics</a></li></ul></div>
+        </div>
+        
+
+        <div class="post-content"><p>Enforcer components validate the parts of your Open API documents and define additional functionality. There are many enforcer component types and together they work to validate an entire Open API document.</p>
+<ol>
+<li><p>Each enforcer component is modeled after the Open API specification, including <a href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md">version 2</a> and <a href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema">version 3</a>.</p>
+</li>
+<li><p>Each enforcer component is capable of supporting all versions of the Open API.</p>
+<p> Currently <a href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md">version 2</a> and <a href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema">version 3</a> are supported, but this can be expanded when future specifications are created.</p>
+</li>
+<li><p>Each enforcer component is made up of four parts:</p>
+<ol>
+<li><p><a href="/openapi-enforcer/contributing/enforcer-components#the-component-validator">The component validator</a> validates your Open API document for this component.</p>
+</li>
+<li><p><a href="/openapi-enforcer/contributing/enforcer-components#the-init-function">The init function</a> will run after the Open API document passes validation and will generate an instance of the component.</p>
+</li>
+<li><p><a href="/openapi-enforcer/contributing/enforcer-components#the-prototype">The prototype</a> adds functionality to each instance of the component.</p>
+</li>
+<li><p><a href="/openapi-enforcer/contributing/enforcer-components#statics">Statics</a> are properties or functions that get attached to the constructor and do not need an instance of the component to be accessed.</p>
+</li>
+</ol>
+</li>
+<li><p>Each enforcer component is defined in the <code>srcs/enforcers</code> directory.</p>
+</li>
+</ol>
+<h3 id="example-enforcer-component">Example Enforcer Component</h3>
+<p>The following example is derived solely as generic example of what an enforcer component could look like. It is not built for a schema that currently exists in the Open API specification.</p>
+<p><strong>Example Specification</strong></p>
+<ol>
+<li><p>The value must be an object.</p>
+</li>
+<li><p>The value must have a <code>title</code> property that is a string.</p>
+</li>
+<li><p>The value must not allow any other properties.</p>
+</li>
+</ol>
+<p><strong>Example Value</strong></p>
+<pre><code class="language-json">{
+  <span class="hljs-attr">"title"</span>: <span class="hljs-string">"my title"</span>
+}</code></pre>
+<p><strong>Example Enforcer Component</strong></p>
+<pre><code class="language-js"><span class="hljs-built_in">module</span>.exports = {
+    <span class="hljs-comment">// constructor</span>
+    init: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{
+        <span class="hljs-comment">// Runs if there are no validator errors.</span>
+        <span class="hljs-comment">// Can be used for late validations, to</span>
+        <span class="hljs-comment">// add, modify, delete properties, etc.</span>
+    },
+
+    <span class="hljs-comment">// instance specific properties</span>
+    prototype: {
+        <span class="hljs-attr">upperCaseTitle</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.title.toUpperCase()
+        }
+    },
+
+    <span class="hljs-comment">// function that returns static properties</span>
+    statics: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope</span>) </span>{
+        <span class="hljs-keyword">return</span> {
+            <span class="hljs-attr">isUpperCase</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">value</span>) </span>{
+                <span class="hljs-keyword">return</span> value.toUpperCase() === value
+            }
+        }
+    },
+
+    <span class="hljs-comment">// schema validator</span>
+    validator: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{
+        <span class="hljs-keyword">return</span> {
+            <span class="hljs-attr">type</span>: <span class="hljs-string">'object'</span>,
+            <span class="hljs-attr">properties</span>: {
+                <span class="hljs-attr">title</span>: {
+                    <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span>,
+                    <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span>
+                }
+            },
+            <span class="hljs-attr">additionalProperties</span>: <span class="hljs-literal">false</span>
+        }
+    }
+};</code></pre>
+<h2 id="the-component-validator">The Component Validator</h2>
+<p>The component validator is a function that validates a part of your Open API specification document.</p>
+<p>For example, the Open API defines an Info Object for both <a href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#infoObject">version 2</a> and <a href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#infoObject">version 3</a> define the info object like this:</p>
+<table>
+<thead>
+<tr>
+<th>Field Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>title</td>
+<td>string</td>
+<td><strong>Required.</strong> The title of the application.</td>
+</tr>
+<tr>
+<td>description</td>
+<td>string</td>
+<td>A short description of the application.</td>
+</tr>
+<tr>
+<td>termsOfService</td>
+<td>string</td>
+<td>The Terms of Service for the API.</td>
+</tr>
+<tr>
+<td>contact</td>
+<td><em>Contact Object</em></td>
+<td>The contact information for the exposed API.</td>
+</tr>
+<tr>
+<td>license</td>
+<td><em>License Object</em></td>
+<td>The license information for the exposed API.</td>
+</tr>
+<tr>
+<td>version</td>
+<td>string</td>
+<td><strong>Required.</strong> The version of the application API.</td>
+</tr>
+</tbody></table>
+<p>The validator function that matches this definition looks like this:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> EnforcerRef  = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../enforcer-ref'</span>);
+
+<span class="hljs-built_in">module</span>.exports = {
+    <span class="hljs-attr">init</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{},
+    <span class="hljs-attr">prototype</span>: {},
+
+    <span class="hljs-attr">validator</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+        <span class="hljs-keyword">return</span> {
+            <span class="hljs-attr">type</span>: <span class="hljs-string">'object'</span>,
+            <span class="hljs-attr">properties</span>: {
+                <span class="hljs-attr">title</span>: {
+                    <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span>,
+                    <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span>
+                },
+                <span class="hljs-attr">description</span>: {
+                    <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span>
+                },
+                <span class="hljs-attr">termsOfService</span>: {
+                    <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span>
+                },
+                <span class="hljs-attr">contact</span>: EnforcerRef(<span class="hljs-string">'Contact'</span>),
+                <span class="hljs-attr">license</span>: EnforcerRef(<span class="hljs-string">'License'</span>),
+                <span class="hljs-attr">version</span>: {
+                    <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span>,
+                    <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span>
+                }
+            }
+        }
+    }
+};</code></pre>
+<h3 id="creating-a-component-validator">Creating a Component Validator</h3>
+<p>A component validator follows all the same <a href="/openapi-enforcer/contributing/enforcer-components#validator-rules">validator rules</a> as a normal validator definition with the exception that a component validator must be an object at the root level.</p>
+<pre><code class="language-js">validator: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">return</span> {
+        <span class="hljs-attr">type</span>: <span class="hljs-string">'object'</span>
+    }
+}</code></pre>
+<h3 id="validator-rules">Validator Rules</h3>
+<p>A validator is an object that defines the validation rules to apply against an Open API specification&#39;s component.</p>
+<p>All validators must define a type property or the value will not be validated. The value can be a <code>string</code>, an <code>array of strings</code>, or a <a href="/openapi-enforcer/contributing/enforcer-components#processor-function">processor function</a>. Acceptable type string values are:</p>
+<ul>
+<li><code>&#39;array&#39;</code></li>
+<li><code>&#39;boolean&#39;</code></li>
+<li><code>&#39;null&#39;</code></li>
+<li><code>&#39;number&#39;</code></li>
+<li><code>&#39;object&#39;</code></li>
+<li><code>&#39;string&#39;</code></li>
+</ul>
+<h3 id="processor-function">Processor Function</h3>
+<p>Many validator rules accept a processor function in place of static values. A processor function receives the <a href="/openapi-enforcer/contributing/enforcer-components#validator-data-object">data object</a> and must return a value that is valid for that validator rule.</p>
+<p>For example in the Open API specification there is a concept of a schema object. In <a href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#schema-object">version 2</a> the <code>discriminator</code> property must be a <code>string</code>, but in <a href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#schema-object">version 3</a> it must be an <code>object</code>. To accommodate both types of data, the validator is defined like this:</p>
+<pre><code class="language-js"><span class="hljs-built_in">module</span>.exports = {
+    <span class="hljs-attr">validator</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+        <span class="hljs-keyword">return</span> {
+            <span class="hljs-attr">type</span>: <span class="hljs-string">'object'</span>,
+            <span class="hljs-attr">properties</span>: {
+                <span class="hljs-attr">discriminator</span>: {
+                    <span class="hljs-attr">type</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{
+                        <span class="hljs-keyword">return</span> data.major === <span class="hljs-number">2</span> ? <span class="hljs-string">'string'</span> : <span class="hljs-string">'object'</span>
+                    }
+                }
+            }
+        }
+    }
+}</code></pre>
+<h3 id="validator-data-object">Validator Data Object</h3>
+<p>This object is passed in wherever a validator processor function exists.</p>
+<p><strong>For the validator data object it is essential to understand the concept of a Node.</strong></p>
+<p>The Open API definition object is a definition composed of sub definitions that are also composed of sub definitions that are also composed of sub definitions, etc. This creates a tree structure where each branch in the tree is a <em>node</em>. When we speak of <em>nodes</em> in the properties below we&#39;re speaking of the position it occupies within that tree.</p>
+<p><strong>Data Object Properties</strong></p>
+<ul>
+<li><p><em>context</em> - This is an object that has a reference to all of the enforcer component constructor functions for that specific major version. These can be used to instantiate new component instance or to access the static properties for the constructor function.</p>
+</li>
+<li><p><em>definition</em> - The definition object for this node in the tree.</p>
+</li>
+<li><p><em>definitionType</em> - This node&#39;s definition value&#39;s type. This is not the same as the Open API types. Potential values include: <code>array</code>, <code>boolean</code>, <code>decoratedObject</code>, <code>null</code>, <code>number</code>, <code>string</code>, <code>object</code>, <code>undefined</code>. Most of these types are common to JavaScript, but in this case an <code>object</code> is a plain object and a <code>decoratedObject</code> is a non plain object.</p>
+</li>
+<li><p><em>defToInstanceMap</em> - A data map that can be used to get the component instance that was created from a definition component.</p>
+</li>
+<li><p><em>exception</em> - The <a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a> instance for this node in the tree. Use this object to add error messages at the current node.</p>
+</li>
+<li><p><em>key</em> - The name of the property (or array index value) that this node exists at within the parent node.</p>
+</li>
+<li><p><em>major</em> - The Open API specification major version number. Currently this can be the value <code>2</code> or <code>3</code>.</p>
+</li>
+<li><p><em>map</em> - A map from all definition values to an array of validators and component instances tied to it. Internally this is used to recursively validate the definition while avoiding endless loops.</p>
+</li>
+<li><p><em>minor</em> - The Open API specification minor version number.</p>
+</li>
+<li><p><em>options</em> - Configuration options passed in to create the component instance.</p>
+</li>
+<li><p><em>parent</em> - The parent node&#39;s data object.</p>
+</li>
+<li><p><em>patch</em> - The Open API specification patch version number.</p>
+</li>
+<li><p><em>plugins</em> - An array of functions that will all be called in turn after this node&#39;s instance is built. Each function will receive an object with these properties: <em>enforcers</em> (same object as the <em>context</em> property above), <em>exception</em>, <em>key</em>, <em>major</em>, <em>minor</em>, <em>parent</em>, <em>patch</em>, <em>root</em>, <em>warn</em>.</p>
+</li>
+<li><p><em>refParser</em> - The ref parser used to dereference the definition.</p>
+</li>
+<li><p><em>result</em> - The result object that is being generated for the node&#39;s instance. For example, the root of the Open API definition will become either a <a href="/openapi-enforcer/api/components/swagger">Swagger</a> or an <a href="/openapi-enforcer/api/components/openapi">OpenAPI</a> instance.</p>
+</li>
+<li><p><em>root</em> - The root node&#39;s data object.</p>
+</li>
+<li><p><em>staticData</em> - This object stores data that is defined by and used by <a href="/openapi-enforcer/contributing/enforcer-components#statics">statics</a>.</p>
+</li>
+<li><p><em>usedDefault</em> - A boolean that indicates whether the value for this node was explicitly provided or if it came from a default value.</p>
+</li>
+<li><p><em>validator</em> - The validator function that is specifically be used for this node.</p>
+</li>
+<li><p><em>warn</em> - The <a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a> instance for this node in the tree that is used to generate warning messages for this node.</p>
+</li>
+</ul>
+<h3 id="enforcerref">EnforcerRef</h3>
+<p>This function is used to allow a validator to reference another component as a child of the current component. <a href="/openapi-enforcer/contributing/enforcer-components#the-component-validator">See the component validator section for an example.</a>.</p>
+<p><code>EnforcerRef ( value [, config ] ) : EnforcerRef</code></p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>value</strong></td>
+<td>The name of the enforcer to use. This must match the name of the enforcer component&#39;s file name (minus extension).</td>
+<td><code>string</code></td>
+<td></td>
+</tr>
+<tr>
+<td>config</td>
+<td>An optional validator configuration to apply to the child component in addition to the child component&#39;s own validator.</td>
+<td><code>object</code></td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="the-init-function">The Init Function</h2>
+<p>The init function is the constructor function for the component. The init function:</p>
+<ul>
+<li><p>Will not execute unless a schema passes <a href="/openapi-enforcer/contributing/enforcer-components#the-component-validator">the component validator</a> without errors.</p>
+</li>
+<li><p>Runs immediately before any plugins for the component.</p>
+</li>
+<li><p>Receives the <a href="/openapi-enforcer/contributing/enforcer-components#validator-data-object">validator data object</a> as its only parameter. </p>
+</li>
+<li><p>Allows you to modify the component&#39;s properties using <code>this</code>.</p>
+</li>
+<li><p>Allows you to run additional error checking and report errors or warnings using the<code>exception</code> or <code>warn</code> property in the <a href="/openapi-enforcer/contributing/enforcer-components#the-component-validator">the component validator</a>.</p>
+</li>
+</ul>
+<h2 id="the-prototype">The Prototype</h2>
+<p>The object you provide as the prototype will be the object applied as the prototype of the constructed component. If you are unfamiliar with JavaScript prototypes <a href="https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes">please read up on it</a>.</p>
+<h2 id="statics">Statics</h2>
+<p>Statics are used to attach properties to the components that are accessible only when the component is not instantiated. <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/static">Read about statics.</a></p>
+<p>The statics property is called as a function and receives the <code>scope</code> parameter that is the same object as the <code>staticData</code> in the <a href="/openapi-enforcer/contributing/enforcer-components#validator-data-object">validator data object</a>. This function should return an object and that object&#39;s properties become the static properties for the defined component.</p>
+</div>
+      </article>
+
+      <footer class="site-footer">
+
+        
+        <p>
+          Caught a mistake or want to contribute to the documentation?
+          <a href="https://github.com/byu-oit/openapi-enforcer/tree/master/docs-src/contributing/enforcer-components/index.md" target="_blank" rel="noopener">Edit this page on Github</a>
+        </p>
+        
+
+        
+
+        
+        <div class="footer-links">
+          
+          <div><a href="https://byu-oit.github.io/openapi-enforcer" target="_blank" rel="noopener">Github</a></div>
+          
+          <div><a href="https://www.npmjs.com/package/@byu-oit/openapi-enforcer" target="_blank" rel="noopener">NPM</a></div>
+          
+        </div>
+        
+
+      </footer>
+    </div>
+
+  </div>
+</div>
+
+
+<script src="/openapi-enforcer/template-files/js/main.js"></script>
+
+</body>
+
+</html>
