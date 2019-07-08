@@ -126,12 +126,32 @@ describe('enforcer/paths', () => {
         expect(warning).to.match(/Some defined paths end with slashes while some do not/);
     });
 
+    it('does not consider path / and path /foo to have trailing slash inconsistency', () => {
+        const [ , err, warning ] = Enforcer.v2_0.Paths({
+            '/': validPathObject(),
+            '/foo': validPathObject()
+        });
+
+        expect(err).to.equal(undefined);
+        expect(warning).to.equal(undefined);
+    });
+
+    it('does not consider path / and path /foo/ to have trailing slash inconsistency', () => {
+        const [ , err, warning ] = Enforcer.v2_0.Paths({
+            '/': validPathObject(),
+            '/foo/': validPathObject()
+        });
+
+        expect(err).to.equal(undefined);
+        expect(warning).not.to.match(/Some defined paths end with slashes while some do not/);
+    });
+
     it('path normalization will identify conflicting paths', () => {
         const [ , err ] = Enforcer.v2_0.Paths({
             '/a': validPathObject(),
             '/a/': validPathObject()
         });
-        expect(err).to.match(/These duplicate paths exist/);
+        expect(err).to.match(/These paths are defined more than once/);
     });
 
     it('path without normalization allows near conflicting paths', () => {

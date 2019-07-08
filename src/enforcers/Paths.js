@@ -182,7 +182,7 @@ module.exports = {
             type: 'object',
             additionalProperties: EnforcerRef('PathItem'),
             errors: ({ exception, definition, warn }) => {
-                const normalizeException = exception.nest('These duplicate paths exist due to path normalization:');
+                const normalizeException = exception.nest('These paths are defined more than once exist due to path normalization:');
                 const paths = Object.keys(definition);
                 const map = {};
                 const includesTrailingSlashes = [];
@@ -200,10 +200,12 @@ module.exports = {
                         map[key] = normalizedKey;
                     }
 
-                    if (key[key.length - 1] === '/') {
-                        includesTrailingSlashes.push(key);
-                    } else {
-                        omitsTrainingSlashes.push(key);
+                    if (key !== '/') {
+                        if (key[key.length - 1] === '/') {
+                            includesTrailingSlashes.push(key);
+                        } else {
+                            omitsTrainingSlashes.push(key);
+                        }
                     }
                 });
 
