@@ -1768,6 +1768,27 @@ describe('index/request', () => {
                 expect(req.body).to.equal(1);
             });
 
+            it('requestBody can be required', async () => {
+                const def = new DefinitionBuilder(3)
+                    .addPath('/', 'post')
+                    .build();
+                def.paths['/'].post.requestBody = {
+                    required: true,
+                    content: {
+                        'text/plain': {
+                            schema: { type: 'string' }
+                        }
+                    }
+                };
+                const enforcer = await Enforcer(def);
+
+                const [ req ] = enforcer.request({ path: '/', method: 'post', body: 'hello world' });
+                expect(req.body).to.equal('hello world');
+
+                const [ , err ] = enforcer.request({ path: '/', method: 'post' });
+                expect(err).to.match(/Missing required request body/);
+            });
+
         });
 
     });
