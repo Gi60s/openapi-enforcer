@@ -104,7 +104,7 @@ Parse and validate an incoming request.
 | Property | Description | Type  | Default |
 | --------- | ----------- | ---- | ------- |
 | allowOtherQueryParameters | A `boolean` or an array of `string` values that indicates whether query parameters that are not specified in the OAS definition should be allowed. If an array of `string` values is provided then the `string` values provided will be allowed. | `string` or `boolean` | `false` |
-| pathParametersValueMap | An `object` map containing already deserialized path parameters. Used internally for performance optimization. | `object` | `{}` |
+| pathParametersProcessed | If path parameters have already been parsed, deserialized, and validated then set this value to `true` | `boolean` | `false` |
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the deserialized and validated request object.
 

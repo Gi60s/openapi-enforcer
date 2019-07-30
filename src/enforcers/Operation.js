@@ -95,20 +95,10 @@ module.exports = {
          * @param {string} [request.query=''] The request query string.
          * @param {object} [options]
          * @param {boolean,string[]} [options.allowOtherQueryParameters=false] Allow query parameter data that is not specified in the OAS document
-         * @param {Object<string,string>} [options.pathParametersValueMap] A map of the already parsed out path parameters.
+         * @param {boolean} [options.pathParametersProcessed=false] Set to true if the path parameters have already been parsed, deserialized, and validated
          */
         request: function (request, options) {
-
-            // validate input parameters
-            if (!request || typeof request !== 'object') throw Error('Invalid request. Expected a non-null object. Received: ' + request);
-            request = Object.assign({}, request);
-            if (!request.hasOwnProperty('headers')) request.headers = {};
-            if (!request.hasOwnProperty('path')) request.path = {};
-            if (!request.hasOwnProperty('query')) request.query = '';
-            if (!util.isObjectStringMap(request.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
-            if (!util.isObjectStringMap(request.path)) throw Error('Invalid request path. Expected an object with string keys and string values');
-            if (typeof request.query !== 'string') throw Error('Invalid request query. Expected a string');
-
+            // process options
             if (!options) options = {};
             if (options && typeof options !== 'object') throw Error('Invalid options. Expected an object. Received: ' + options);
             options = Object.assign({}, options);
@@ -126,6 +116,16 @@ module.exports = {
                     throw Error('Invalid option allowOtherQueryParameters. The value must be a boolean or an array of strings.');
                 }
             }
+
+            // validate input parameters
+            if (!request || typeof request !== 'object') throw Error('Invalid request. Expected a non-null object. Received: ' + request);
+            request = Object.assign({}, request);
+            if (!request.hasOwnProperty('headers')) request.headers = {};
+            if (!request.hasOwnProperty('path')) request.path = {};
+            if (!request.hasOwnProperty('query')) request.query = '';
+            if (!util.isObjectStringMap(request.headers)) throw Error('Invalid request headers. Expected an object with string keys and string values');
+            if (!options.pathParametersProcessed && !util.isObjectStringMap(request.path)) throw Error('Invalid request path. Expected an object with string keys and string values');
+            if (typeof request.query !== 'string') throw Error('Invalid request query. Expected a string');
 
             // build request objects
             const req = {
@@ -146,15 +146,30 @@ module.exports = {
             const result = {
                 cookie: {},
                 headers: {},
-                path: {},
+                path: request.path,
                 query: {}
             };
 
             // if formData is expected for the body then make sure that the body is a non-null object
             if (parameters.formData && (!request.body || typeof request.body !== 'object')) throw Error('Parameters in "formData" require that the provided body be a non-null object');
 
+            // check for unknown path parameters
+            if (options.pathParametersProcessed) {
+                const unknownPathParameters = [];
+                Object.keys(request.path).forEach(key => {
+                    if (!parameters.path.hasOwnProperty(key)) unknownPathParameters.push(key)
+                });
+                if (unknownPathParameters.length) {
+                    const message = 'Received unexpected parameter' +
+                        (unknownPathParameters.length === 1 ? '' : 's') + ': ' +
+                        unknownPathParameters.join(', ');
+                    exception.nest('In path parameters').message(message);
+                }
+            }
+
             // begin processing parameters
-            const inArray = ['cookie', 'header', 'path', 'query'];
+            const inArray = ['cookie', 'header', 'query'];
+            if (!options.pathParametersProcessed) inArray.push('path');
             if (parameters.formData) inArray.push('formData');
             inArray.forEach(at => {
 
