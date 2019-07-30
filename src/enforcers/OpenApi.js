@@ -59,9 +59,31 @@ module.exports = {
                 return new Result(undefined, exception);
             }
 
+            // parse and validate path parameters
+            const operation = pathEnforcer[method];
+            const pathParams = operation.parametersMap.path;
+            const params = pathMatch.params;
+            if (pathParams) {
+                const child = exception.nest('Error in one or more path parameters');
+                Object.keys(pathParams).forEach(name => {
+                    const parameter = pathParams[name];
+                    const schema = pathParams[name].schema;
+
+                    let data = parameter.parse(params[name]);
+                    if (!data.error) data = schema.deserialize(data.value);
+                    if (!data.error) data.error = schema.validate(data.value);
+                    if (data.error) {
+                        child.at(name).push(data.error);
+                    } else {
+                        params[name] = data.value;
+                    }
+                })
+            }
+
+            if (exception.hasException) return new Result(undefined, exception);
             return new Result({
-                operation: pathEnforcer[method],
-                params: pathMatch.params
+                operation,
+                params
             });
         },
 
@@ -89,6 +111,7 @@ module.exports = {
             if (typeof options !== 'object') throw Error('Invalid options. Expected an object. Received: ' + options);
             options = Object.assign({}, options);
             if (!options.hasOwnProperty('allowOtherQueryParameters')) options.allowOtherQueryParameters = false;
+            options.pathParametersProcessed = true;
 
             const method = request.hasOwnProperty('method') ? request.method.toLowerCase() : 'get';
             const [ pathString, query ] = request.path.split('?');
