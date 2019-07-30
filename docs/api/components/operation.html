@@ -218,10 +218,10 @@
 <td><code>false</code></td>
 </tr>
 <tr>
-<td>pathParametersValueMap</td>
-<td>An <code>object</code> map containing already deserialized path parameters. Used internally for performance optimization.</td>
-<td><code>object</code></td>
-<td><code>{}</code></td>
+<td>pathParametersProcessed</td>
+<td>If path parameters have already been parsed, deserialized, and validated then set this value to <code>true</code></td>
+<td><code>boolean</code></td>
+<td><code>false</code></td>
 </tr>
 </tbody></table>
 <p><strong>Returns:</strong> An <a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a> that resolves to the deserialized and validated request object.</p>
