@@ -34,7 +34,6 @@ module.exports = {
                     type: 'string'
                 },
                 refreshUrl: {
-                    required: true,
                     type: 'string'
                 },
                 scopes: {
