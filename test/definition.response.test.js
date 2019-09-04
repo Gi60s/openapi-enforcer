@@ -62,6 +62,102 @@ describe('definition/response', () => {
             expect(res).not.to.be.undefined
         });
 
+        it('will suggest that the location header is provided for a 201 post response', () => {
+            const [ value, err, warning ] = Enforcer.v2_0.PathItem({
+                post: {
+                    responses: {
+                        201: {
+                            description: ''
+                        }
+                    }
+                }
+            });
+            expect(warning).to.match(/A 201 response for a POST request should return a location header/)
+        });
+
+        it('will not suggest that the location header is provided for a 201 post response if it is included', () => {
+            const [ value, err, warning ] = Enforcer.v2_0.PathItem({
+                post: {
+                    responses: {
+                        201: {
+                            description: '',
+                            headers: { location: { type: 'string' } }
+                        }
+                    }
+                }
+            });
+            expect(err).to.be.undefined;
+            expect(warning).to.be.undefined;
+        });
+
+        it('will suggest that a 204 response should have no schema', () => {
+            const [ value, err, warning ] = Enforcer.v2_0.PathItem({
+                post: {
+                    responses: {
+                        204: {
+                            description: '',
+                            schema: { type: 'string' }
+                        }
+                    }
+                }
+            });
+            expect(warning).to.match(/A 204 response must not contain a body/)
+        });
+
+    });
+
+    describe('v3', () => {
+
+        it('will suggest that the location header is provided for a 201 post response', () => {
+            const [ value, err, warning ] = Enforcer.v3_0.PathItem({
+                post: {
+                    responses: {
+                        201: {
+                            description: ''
+                        }
+                    }
+                }
+            });
+            expect(warning).to.match(/A 201 response for a POST request should return a location header/)
+        });
+
+        it('will not suggest that the location header is provided for a 201 post response if it is included', () => {
+            const [ value, err, warning ] = Enforcer.v3_0.PathItem({
+                post: {
+                    responses: {
+                        201: {
+                            description: '',
+                            headers: {
+                                location: {
+                                    description: '',
+                                    schema: { type: 'string' }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            expect(err).to.be.undefined;
+            expect(warning).to.be.undefined;
+        });
+
+        it('will suggest that a 204 response should have no schema', () => {
+            const [ value, err, warning ] = Enforcer.v3_0.PathItem({
+                post: {
+                    responses: {
+                        204: {
+                            description: '',
+                            content: {
+                                'application/json': {
+                                    schema: { type: 'string' }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            expect(warning).to.match(/A 204 response must not contain a body/)
+        });
     });
 
 });

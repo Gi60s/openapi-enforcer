@@ -85,6 +85,7 @@ function createConstructor(version, name, enforcer) {
             ? Object.assign({}, requestBodyAllowedMethods, options.requestBodyAllowedMethods)
             : requestBodyAllowedMethods;
         options.disablePathNormalization = options.hasOwnProperty('disablePathNormalization') ? !!options.disablePathNormalization : false;
+        options.apiSuggestions = options.hasOwnProperty('apiSuggestions') ? !!options.apiSuggestions : true;
 
         // validate the definition
         let data;
