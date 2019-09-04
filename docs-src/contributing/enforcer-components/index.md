@@ -1,22 +1,22 @@
 ---
 title: Enforcer Components
 subtitle: Contributing
-description: Enforcer components validate the parts of your Open API documents and define additional functionality.
+description: Enforcer components validate the parts of your OpenAPI documents and define additional functionality.
 ---
 
-Enforcer components validate the parts of your Open API documents and define additional functionality. There are many enforcer component types and together they work to validate an entire Open API document.
+Enforcer components validate the parts of your OpenAPI documents and define additional functionality. There are many enforcer component types and together they work to validate an entire OpenAPI document.
 
-1. Each enforcer component is modeled after the Open API specification, including [version 2](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) and [version 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema).
+1. Each enforcer component is modeled after the OpenAPI specification, including [version 2](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) and [version 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema).
 
-2. Each enforcer component is capable of supporting all versions of the Open API.
+2. Each enforcer component is capable of supporting all versions of the OpenAPI.
 
     Currently [version 2](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) and [version 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema) are supported, but this can be expanded when future specifications are created.
 
 3. Each enforcer component is made up of four parts:
 
-    1. [The component validator](#the-component-validator) validates your Open API document for this component.
+    1. [The component validator](#the-component-validator) validates your OpenAPI document for this component.
     
-    2. [The init function](#the-init-function) will run after the Open API document passes validation and will generate an instance of the component.
+    2. [The init function](#the-init-function) will run after the OpenAPI document passes validation and will generate an instance of the component.
     
     3. [The prototype](#the-prototype) adds functionality to each instance of the component.
     
@@ -26,7 +26,7 @@ Enforcer components validate the parts of your Open API documents and define add
 
 ### Example Enforcer Component 
 
-The following example is derived solely as generic example of what an enforcer component could look like. It is not built for a schema that currently exists in the Open API specification.
+The following example is derived solely as generic example of what an enforcer component could look like. It is not built for a schema that currently exists in the OpenAPI specification.
 
 **Example Specification**
 
@@ -89,9 +89,9 @@ module.exports = {
 
 ## The Component Validator
 
-The component validator is a function that validates a part of your Open API specification document.
+The component validator is a function that validates a part of your OpenAPI specification document.
 
-For example, the Open API defines an Info Object for both [version 2](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#infoObject) and [version 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#infoObject) define the info object like this:
+For example, the OpenAPI defines an Info Object for both [version 2](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#infoObject) and [version 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#infoObject) define the info object like this:
 
 | Field Name | Type | Description |
 | ----- | ---- | ----------- |
@@ -151,7 +151,7 @@ validator: function () {
 
 ### Validator Rules
 
-A validator is an object that defines the validation rules to apply against an Open API specification's component.
+A validator is an object that defines the validation rules to apply against an OpenAPI specification's component.
 
 All validators must define a type property or the value will not be validated. The value can be a `string`, an `array of strings`, or a [processor function](#processor-function). Acceptable type string values are:
 
@@ -166,7 +166,7 @@ All validators must define a type property or the value will not be validated. T
 
 Many validator rules accept a processor function in place of static values. A processor function receives the [data object](#validator-data-object) and must return a value that is valid for that validator rule.
 
-For example in the Open API specification there is a concept of a schema object. In [version 2](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#schema-object) the `discriminator` property must be a `string`, but in [version 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#schema-object) it must be an `object`. To accommodate both types of data, the validator is defined like this:
+For example in the OpenAPI specification there is a concept of a schema object. In [version 2](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#schema-object) the `discriminator` property must be a `string`, but in [version 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#schema-object) it must be an `object`. To accommodate both types of data, the validator is defined like this:
 
 ```js
 module.exports = {
@@ -191,7 +191,7 @@ This object is passed in wherever a validator processor function exists.
 
 **For the validator data object it is essential to understand the concept of a Node.**
 
-The Open API definition object is a definition composed of sub definitions that are also composed of sub definitions that are also composed of sub definitions, etc. This creates a tree structure where each branch in the tree is a *node*. When we speak of *nodes* in the properties below we're speaking of the position it occupies within that tree.
+The OpenAPI definition object is a definition composed of sub definitions that are also composed of sub definitions that are also composed of sub definitions, etc. This creates a tree structure where each branch in the tree is a *node*. When we speak of *nodes* in the properties below we're speaking of the position it occupies within that tree.
  
 **Data Object Properties**
 
@@ -199,7 +199,7 @@ The Open API definition object is a definition composed of sub definitions that 
 
 - *definition* - The definition object for this node in the tree.
 
-- *definitionType* - This node's definition value's type. This is not the same as the Open API types. Potential values include: `array`, `boolean`, `decoratedObject`, `null`, `number`, `string`, `object`, `undefined`. Most of these types are common to JavaScript, but in this case an `object` is a plain object and a `decoratedObject` is a non plain object.
+- *definitionType* - This node's definition value's type. This is not the same as the OpenAPI types. Potential values include: `array`, `boolean`, `decoratedObject`, `null`, `number`, `string`, `object`, `undefined`. Most of these types are common to JavaScript, but in this case an `object` is a plain object and a `decoratedObject` is a non plain object.
 
 - *defToInstanceMap* - A data map that can be used to get the component instance that was created from a definition component.
 
@@ -207,23 +207,23 @@ The Open API definition object is a definition composed of sub definitions that 
 
 - *key* - The name of the property (or array index value) that this node exists at within the parent node.
 
-- *major* - The Open API specification major version number. Currently this can be the value `2` or `3`.
+- *major* - The OpenAPI specification major version number. Currently this can be the value `2` or `3`.
 
 - *map* - A map from all definition values to an array of validators and component instances tied to it. Internally this is used to recursively validate the definition while avoiding endless loops.
 
-- *minor* - The Open API specification minor version number.
+- *minor* - The OpenAPI specification minor version number.
 
 - *options* - Configuration options passed in to create the component instance.
 
 - *parent* - The parent node's data object.
 
-- *patch* - The Open API specification patch version number.
+- *patch* - The OpenAPI specification patch version number.
 
 - *plugins* - An array of functions that will all be called in turn after this node's instance is built. Each function will receive an object with these properties: *enforcers* (same object as the *context* property above), *exception*, *key*, *major*, *minor*, *parent*, *patch*, *root*, *warn*.
 
 - *refParser* - The ref parser used to dereference the definition.
 
-- *result* - The result object that is being generated for the node's instance. For example, the root of the Open API definition will become either a [Swagger](../../api/components/swagger.md) or an [OpenAPI](../../api/components/openapi.md) instance.
+- *result* - The result object that is being generated for the node's instance. For example, the root of the OpenAPI definition will become either a [Swagger](../../api/components/swagger.md) or an [OpenAPI](../../api/components/openapi.md) instance.
 
 - *root* - The root node's data object.
 

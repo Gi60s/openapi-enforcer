@@ -6,11 +6,11 @@ subtitle: Guide
 The OpenAPI Enforcer is built from components and each component can be extended to have additional functionality and validation.
     
 <details>
-<summary bold>OAS 2.0 (formerly Swagger) Components</summary>
+<summary bold>OpenAPI Specification 2.0 (formerly Swagger) Components</summary>
 <div>{% import ../api/components/v2_0-components.md %}</div>
 </details>
 
-<details><summary bold>OAS 3.x.x Components</summary>
+<details><summary bold>OpenAPI Specification 3.x.x Components</summary>
 <div>
 {% import ../api/components/v3_0-components.md %}
 </div>
@@ -33,10 +33,10 @@ To customize a components behavior:
     | enforcers | An object containing all other components for the version being used. If your using v2 components then this is the same object as `Enforcer.v2_0` and if you're using v3 components then this is the same object as `Enforcer.v3_0`. |
     | exception | An [EnforcerException](../api/enforcer-exception.md) object for reporting critical errors. |
     | key | The object property name or array index used to get to this instance of the object from the parent component. |
-    | major | The OAS major version number being used. For v2 components this will be `2` and for v3 components it will be `3`. |
-    | minor | The OAS minor version number being used. |
+    | major | The OpenAPI specification major version number being used. For v2 components this will be `2` and for v3 components it will be `3`. |
+    | minor | The OpenAPI specification minor version number being used. |
     | parent | The parent component instance that this component is a child of. |
-    | patch | The OAS patch version number being used. |
+    | patch | The OpenAPI specification patch version number being used. |
     | root | The root component instance. |
     | warn | An [EnforcerException](../api/enforcer-exception.md) object for reporting non critical warnings.
     

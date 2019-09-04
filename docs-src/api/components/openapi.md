@@ -1,5 +1,5 @@
 ---
-title: Open API
+title: OpenAPI
 subtitle: API Reference
 ---
 
@@ -84,7 +84,7 @@ Deserialize and validate a request.
 
 | Property | Description | Type  | Default |
 | --------- | ----------- | ---- | ------- |
-| allowOtherQueryParameters | A `boolean` or an array of `string` values that indicates whether query parameters that are not specified in the OAS definition should be allowed. If an array of `string` values is provided then the `string` values provided will be allowed. | `boolean` or `string` | `false` |
+| allowOtherQueryParameters | A `boolean` or an array of `string` values that indicates whether query parameters that are not specified in the OpenAPI definition should be allowed. If an array of `string` values is provided then the `string` values provided will be allowed. | `boolean` or `string` | `false` |
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to an `object` with these properties:
 

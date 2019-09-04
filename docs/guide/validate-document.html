@@ -7,8 +7,8 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Open API Enforcer | Validate a Document</title>
-  <meta name="description" content="A library that makes it easy to validate and use your Open API documents.">
+  <title>OpenAPI Enforcer | Validate a Document</title>
+  <meta name="description" content="A library that makes it easy to validate and use your OpenAPI documents.">
 
   <link rel="icon" href="/openapi-enforcer/favicon.png">
 
@@ -25,7 +25,7 @@
   <header class="site-header">
     <div class="wrapper">
       <a class="site-title" href="/openapi-enforcer">
-        Open API Enforcer
+        OpenAPI Enforcer
       </a>
 
       
@@ -47,7 +47,7 @@
 
     
     <div class="nav-screen"></div>
-    <nav class="nav-list"><ul><li><a href="/openapi-enforcer">Open API Enforcer</a></li><li><a href="/openapi-enforcer/guide">Guide</a><ul><li><a href="/openapi-enforcer/guide/component-plugins">Component Plugins</a></li><li><a href="/openapi-enforcer/guide/create-api">Create an API</a></li><li><a href="/openapi-enforcer/guide/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/guide/enforcer-result">EnforcerResult</a></li><li><a href="/openapi-enforcer/guide/validate-document" class="current-page">Validate a Document</a></li></ul></li><li><a href="/openapi-enforcer/api">API</a><ul><li><a href="/openapi-enforcer/api/openapi-enforcer">Open API Enforcer</a></li><li><a href="/openapi-enforcer/api/components">Components</a><ul><li><a href="/openapi-enforcer/api/components/openapi">Open API</a></li><li><a href="/openapi-enforcer/api/components/operation">Operation</a></li><li><a href="/openapi-enforcer/api/components/schema">Schema</a></li><li><a href="/openapi-enforcer/api/components/schema-value">Schema Value</a><ul></ul></li><li><a href="/openapi-enforcer/api/components/swagger">Swagger</a></li></ul></li><li><a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a></li></ul></li><li><a href="/openapi-enforcer/contributing">Contributing</a><ul><li><a href="/openapi-enforcer/contributing/enforcer-components">Enforcer Components</a><ul></ul></li></ul></li></ul></li></nav>
+    <nav class="nav-list"><ul><li><a href="/openapi-enforcer">OpenAPI Enforcer</a></li><li><a href="/openapi-enforcer/guide">Guide</a><ul><li><a href="/openapi-enforcer/guide/component-plugins">Component Plugins</a></li><li><a href="/openapi-enforcer/guide/create-api">Create an API</a></li><li><a href="/openapi-enforcer/guide/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/guide/enforcer-result">EnforcerResult</a></li><li><a href="/openapi-enforcer/guide/validate-document" class="current-page">Validate a Document</a></li></ul></li><li><a href="/openapi-enforcer/api">API</a><ul><li><a href="/openapi-enforcer/api/openapi-enforcer">OpenAPI Enforcer</a></li><li><a href="/openapi-enforcer/api/components">Components</a><ul><li><a href="/openapi-enforcer/api/components/openapi">OpenAPI</a></li><li><a href="/openapi-enforcer/api/components/operation">Operation</a></li><li><a href="/openapi-enforcer/api/components/schema">Schema</a></li><li><a href="/openapi-enforcer/api/components/schema-value">Schema Value</a><ul></ul></li><li><a href="/openapi-enforcer/api/components/swagger">Swagger</a></li></ul></li><li><a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a></li></ul></li><li><a href="/openapi-enforcer/contributing">Contributing</a><ul><li><a href="/openapi-enforcer/contributing/enforcer-components">Enforcer Components</a><ul></ul></li></ul></li></ul></li></nav>
     
 
     <div class="page-content-main">
@@ -64,7 +64,7 @@
         </div>
         
 
-        <div class="post-content"><p>It is possible to validate an entire Open API document or just parts of it. Errors and warnings are returned through an <a href="/openapi-enforcer/guide/enforcer-result">EnforcerResult object</a></p>
+        <div class="post-content"><p>It is possible to validate an entire OpenAPI document or just parts of it. Errors and warnings are returned through an <a href="/openapi-enforcer/guide/enforcer-result">EnforcerResult object</a></p>
 <h3 id="validate-from-a-file">Validate from a File</h3>
 <p>This example will read a file, resolve all <code>$ref</code>s, and produce an <a href="/openapi-enforcer/guide/enforcer-result">EnforcerResult object</a>. This is an asynchronous operation.</p>
 <pre><code class="language-js"><span class="hljs-keyword">const</span> Enforcer = <span class="hljs-built_in">require</span>(<span class="hljs-string">'openapi-enforcer'</span>)
@@ -96,7 +96,7 @@ Enforcer(doc, { <span class="hljs-attr">fullResult</span>: <span class="hljs-lit
     })</code></pre>
 <h3 id="validate-part-of-a-document">Validate Part of a Document</h3>
 <p>This example WILL NOT resolve <code>$ref</code>s, so if you need to do that be sure to use the <a href="/openapi-enforcer/api/openapi-enforcer#enforcerdereference">Enforcer.dereference</a> function first.</p>
-<p>This example also requires that you know which version of the Open API Specification your document uses.</p>
+<p>This example also requires that you know which version of the OpenAPI specification your document uses.</p>
 <pre><code class="language-js"><span class="hljs-keyword">const</span> Enforcer = <span class="hljs-built_in">require</span>(<span class="hljs-string">'openapi-enforcer'</span>)
 <span class="hljs-keyword">const</span> doc = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./oas-doc.json'</span>)
 

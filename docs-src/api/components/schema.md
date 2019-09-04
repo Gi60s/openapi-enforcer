@@ -5,7 +5,7 @@ subtitle: API Reference
 
 **Nullable Values**
 
-The Open API Specification v2 does not allow for nullable values in schemas, but to accommodate for that need a property `x-nullable` can be defined on any schema to allow the `null` value.
+The OpenAPI specification v2 does not allow for nullable values in schemas, but to accommodate for that need a property `x-nullable` can be defined on any schema to allow the `null` value.
    
 # Instance Methods
 
@@ -305,7 +305,7 @@ Built into the system already is support for type `'string'` for formats `'binar
 
 | Parameter | Description | Type | Default |
 | --------- | ----------- | ---- | ------- |
-| **type** | The type that this data format definition will apply to. This is directly tied to the Open API document schemas `type` property, therefore this value must be one of `'boolean'`, `'integer'`, `'number'`, or `'string'` as defined in the open api specification. | `string` | |
+| **type** | The type that this data format definition will apply to. This is directly tied to the OpenAPI document schemas `type` property, therefore this value must be one of `'boolean'`, `'integer'`, `'number'`, or `'string'` as defined in the OpenAPI specification. | `string` | |
 | **format** | The name of the format that this type definition will apply to. | `string` | |
 | **configuration** | The configuration instructions for this type and format. See below. | `object` | |
 

@@ -7,8 +7,8 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Open API Enforcer | Open API Enforcer</title>
-  <meta name="description" content="A library that makes it easy to validate and use your Open API documents.">
+  <title>OpenAPI Enforcer | OpenAPI Enforcer</title>
+  <meta name="description" content="A library that makes it easy to validate and use your OpenAPI documents.">
 
   <link rel="icon" href="/openapi-enforcer/favicon.png">
 
@@ -25,7 +25,7 @@
   <header class="site-header">
     <div class="wrapper">
       <a class="site-title" href="/openapi-enforcer">
-        Open API Enforcer
+        OpenAPI Enforcer
       </a>
 
       
@@ -47,14 +47,14 @@
 
     
     <div class="nav-screen"></div>
-    <nav class="nav-list"><ul><li><a href="/openapi-enforcer">Open API Enforcer</a></li><li><a href="/openapi-enforcer/guide">Guide</a><ul><li><a href="/openapi-enforcer/guide/component-plugins">Component Plugins</a></li><li><a href="/openapi-enforcer/guide/create-api">Create an API</a></li><li><a href="/openapi-enforcer/guide/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/guide/enforcer-result">EnforcerResult</a></li><li><a href="/openapi-enforcer/guide/validate-document">Validate a Document</a></li></ul></li><li><a href="/openapi-enforcer/api">API</a><ul><li><a href="/openapi-enforcer/api/openapi-enforcer" class="current-page">Open API Enforcer</a></li><li><a href="/openapi-enforcer/api/components">Components</a><ul><li><a href="/openapi-enforcer/api/components/openapi">Open API</a></li><li><a href="/openapi-enforcer/api/components/operation">Operation</a></li><li><a href="/openapi-enforcer/api/components/schema">Schema</a></li><li><a href="/openapi-enforcer/api/components/schema-value">Schema Value</a><ul></ul></li><li><a href="/openapi-enforcer/api/components/swagger">Swagger</a></li></ul></li><li><a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a></li></ul></li><li><a href="/openapi-enforcer/contributing">Contributing</a><ul><li><a href="/openapi-enforcer/contributing/enforcer-components">Enforcer Components</a><ul></ul></li></ul></li></ul></li></nav>
+    <nav class="nav-list"><ul><li><a href="/openapi-enforcer">OpenAPI Enforcer</a></li><li><a href="/openapi-enforcer/guide">Guide</a><ul><li><a href="/openapi-enforcer/guide/component-plugins">Component Plugins</a></li><li><a href="/openapi-enforcer/guide/create-api">Create an API</a></li><li><a href="/openapi-enforcer/guide/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/guide/enforcer-result">EnforcerResult</a></li><li><a href="/openapi-enforcer/guide/validate-document">Validate a Document</a></li></ul></li><li><a href="/openapi-enforcer/api">API</a><ul><li><a href="/openapi-enforcer/api/openapi-enforcer" class="current-page">OpenAPI Enforcer</a></li><li><a href="/openapi-enforcer/api/components">Components</a><ul><li><a href="/openapi-enforcer/api/components/openapi">OpenAPI</a></li><li><a href="/openapi-enforcer/api/components/operation">Operation</a></li><li><a href="/openapi-enforcer/api/components/schema">Schema</a></li><li><a href="/openapi-enforcer/api/components/schema-value">Schema Value</a><ul></ul></li><li><a href="/openapi-enforcer/api/components/swagger">Swagger</a></li></ul></li><li><a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a></li><li><a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a></li></ul></li><li><a href="/openapi-enforcer/contributing">Contributing</a><ul><li><a href="/openapi-enforcer/contributing/enforcer-components">Enforcer Components</a><ul></ul></li></ul></li></ul></li></nav>
     
 
     <div class="page-content-main">
       <article class="post">
         <header class="post-header">
           <div class="post-subtitle">API</div>
-          <h1 class="post-title">Open API Enforcer</h1>
+          <h1 class="post-title">OpenAPI Enforcer</h1>
         </header>
 
         
@@ -66,7 +66,7 @@
 
         <div class="post-content"><h2 id="enforcer">Enforcer</h2>
 <p><code>Enforcer ( definition [, options ] ) : Promise &lt; OpenAPI | Swagger &gt;</code></p>
-<p>This function will dereference your OAS document, validate it, produce warnings where appropriate, and return a Promise that resolves to an <a href="/openapi-enforcer/api/components/openapi">OpenAPI component</a> for an OAS 3.x.x document or a <a href="/openapi-enforcer/api/components/swagger">Swagger component</a> for Swagger 2.0.</p>
+<p>This function will dereference your OpenAPI document, validate it, produce warnings where appropriate, and return a Promise that resolves to an <a href="/openapi-enforcer/api/components/openapi">OpenAPI component</a> for an OpenAPI specification 3.x.x document or a <a href="/openapi-enforcer/api/components/swagger">Swagger component</a> for Swagger 2.0.</p>
 <p><strong>Parameters:</strong></p>
 <table>
 <thead>
@@ -79,7 +79,7 @@
 </thead>
 <tbody><tr>
 <td><strong>definition</strong></td>
-<td>The Open API document specification. If a <code>string</code> is provided then it is the file path to the OAS definition. If an <code>object</code> is provided then that will be used as the Open API document.</td>
+<td>The OpenAPI document specification. If a <code>string</code> is provided then it is the file path to the OpenAPI definition. If an <code>object</code> is provided then that will be used as the OpenAPI document.</td>
 <td><code>string</code> or <code>object</code></td>
 <td></td>
 </tr>
@@ -108,7 +108,7 @@
 </tr>
 <tr>
 <td>hideWarnings</td>
-<td>Do not log warning messages to the console when validating your OAS document. If the <code>fullResult</code> option is set to <code>true</code> then warnings will not show regardless of this setting.</td>
+<td>Do not log warning messages to the console when validating your OpenAPI document. If the <code>fullResult</code> option is set to <code>true</code> then warnings will not show regardless of this setting.</td>
 <td><code>boolean</code></td>
 <td><code>false</code></td>
 </tr>
@@ -144,7 +144,7 @@
 </tbody></table>
 <p><strong>Returns:</strong> A Promise</p>
 <ul>
-<li>that will resolve to an <a href="/openapi-enforcer/api/components/openapi">OpenAPI component</a> for an OAS 3.x.x document or a <a href="/openapi-enforcer/api/components/swagger">Swagger component</a> for Swagger 2.0</li>
+<li>that will resolve to an <a href="/openapi-enforcer/api/components/openapi">OpenAPI component</a> for an OpenAPI specification 3.x.x document or a <a href="/openapi-enforcer/api/components/swagger">Swagger component</a> for Swagger 2.0</li>
 <li>or will reject with an <a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a> Error.</li>
 </ul>
 <p><strong>Example 1: Invalid Definition</strong></p>
@@ -217,14 +217,14 @@ Enforcer(definition)
 </thead>
 <tbody><tr>
 <td><strong>definition</strong></td>
-<td>A <code>string</code> for the file path to the OAS definition or an <code>object</code> to dereference.</td>
+<td>A <code>string</code> for the file path to the OpenAPI definition or an <code>object</code> to dereference.</td>
 <td><code>string</code> or <code>object</code></td>
 <td></td>
 </tr>
 </tbody></table>
 <p><strong>Parameters:</strong></p>
 <ul>
-<li><em>definition</em> - A <code>string</code> for the file path to the OAS definition or an <code>object</code> to dereference.</li>
+<li><em>definition</em> - A <code>string</code> for the file path to the OpenAPI definition or an <code>object</code> to dereference.</li>
 </ul>
 <p><strong>Returns:</strong> A Promise that resolves to the dereferenced <code>object</code>.</p>
 <h2 id="enforcerenforcer">Enforcer.Enforcer</h2>
@@ -247,7 +247,7 @@ Enforcer(definition)
 <span class="hljs-keyword">const</span> [ schema ] = Enforcer.v2_0.Schema({ <span class="hljs-attr">type</span>: <span class="hljs-string">'string'</span> })</code></pre>
 <h2 id="enforcerv3_0">Enforcer.v3_0</h2>
 <p><code>Enforcer.v3_0 : object</code></p>
-<p>An object containing class constructors for all <a href="/openapi-enforcer/api/components">components</a> that are part of the Open API Specification (OAS) 3 specification:</p>
+<p>An object containing class constructors for all <a href="/openapi-enforcer/api/components">components</a> that are part of the OpenAPI specification (OAS) 3 specification:</p>
 <p>{% include v3_0-components.html %}</p>
 <p><strong>Example: Creating Schema</strong></p>
 <pre><code class="language-js"><span class="hljs-keyword">const</span> Enforcer = <span class="hljs-built_in">require</span>(<span class="hljs-string">'openapi-enforcer'</span>)

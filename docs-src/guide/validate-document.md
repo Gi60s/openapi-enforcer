@@ -3,7 +3,7 @@ title: Validate a Document
 subtitle: Guide
 ---
 
-It is possible to validate an entire Open API document or just parts of it. Errors and warnings are returned through an [EnforcerResult object](./enforcer-result.md)
+It is possible to validate an entire OpenAPI document or just parts of it. Errors and warnings are returned through an [EnforcerResult object](./enforcer-result.md)
 
 ### Validate from a File
 
@@ -48,7 +48,7 @@ Enforcer(doc, { fullResult: true })
 
 This example WILL NOT resolve `$ref`s, so if you need to do that be sure to use the [Enforcer.dereference](../api/openapi-enforcer.md#enforcerdereference) function first.
 
-This example also requires that you know which version of the Open API Specification your document uses.
+This example also requires that you know which version of the OpenAPI specification your document uses.
 
 ```js
 const Enforcer = require('openapi-enforcer')

@@ -1,5 +1,5 @@
 ---
-title: Open API Enforcer
+title: OpenAPI Enforcer
 subtitle: API
 
 ---
@@ -9,13 +9,13 @@ subtitle: API
 
 `Enforcer ( definition [, options ] ) : Promise < OpenAPI | Swagger >`
 
-This function will dereference your OAS document, validate it, produce warnings where appropriate, and return a Promise that resolves to an [OpenAPI component](./components/openapi.md) for an OAS 3.x.x document or a [Swagger component](./components/swagger.md) for Swagger 2.0.
+This function will dereference your OpenAPI document, validate it, produce warnings where appropriate, and return a Promise that resolves to an [OpenAPI component](./components/openapi.md) for an OpenAPI specification 3.x.x document or a [Swagger component](./components/swagger.md) for Swagger 2.0.
 
 **Parameters:**
 
 | Parameter | Description | Type | Default |
 | --------- | ----------- | ---- | ------- |
-| **definition** | The Open API document specification. If a `string` is provided then it is the file path to the OAS definition. If an `object` is provided then that will be used as the Open API document. | `string` or `object` | |
+| **definition** | The OpenAPI document specification. If a `string` is provided then it is the file path to the OpenAPI definition. If an `object` is provided then that will be used as the OpenAPI document. | `string` or `object` | |
 | options | Configuration options. See below. | `object` | |
 
 **Options Parameter**
@@ -23,7 +23,7 @@ This function will dereference your OAS document, validate it, produce warnings 
 | Property | Description | Type  | Default |
 | --------- | ----------- | ---- | ------- |
 | fullResult | Get back a full [Enforcer Result](./enforcer-result.md) object. Enabling this will also cause warnings not to output to the console. | `boolean` | `false` |
-| hideWarnings | Do not log warning messages to the console when validating your OAS document. If the `fullResult` option is set to `true` then warnings will not show regardless of this setting. | `boolean` | `false` |
+| hideWarnings | Do not log warning messages to the console when validating your OpenAPI document. If the `fullResult` option is set to `true` then warnings will not show regardless of this setting. | `boolean` | `false` |
 | componentOptions | Options to pass along to the enforcer components | `object` | See Component Options below. |
 
 **Component Options**
@@ -35,7 +35,7 @@ This function will dereference your OAS document, validate it, produce warnings 
     
 **Returns:** A Promise
 
-  - that will resolve to an [OpenAPI component](./components/openapi.md) for an OAS 3.x.x document or a [Swagger component](./components/swagger.md) for Swagger 2.0
+  - that will resolve to an [OpenAPI component](./components/openapi.md) for an OpenAPI specification 3.x.x document or a [Swagger component](./components/swagger.md) for Swagger 2.0
   - or will reject with an [EnforcerException](./enforcer-exception.md) Error.
 
 **Example 1: Invalid Definition**
@@ -110,11 +110,11 @@ Resolves all of the `$ref` values in a definition and returns the dereferenced o
 
 | Parameter | Description | Type | Default |
 | --------- | ----------- | ---- | ------- |
-| **definition** | A `string` for the file path to the OAS definition or an `object` to dereference. | `string` or `object` | |
+| **definition** | A `string` for the file path to the OpenAPI definition or an `object` to dereference. | `string` or `object` | |
 
 **Parameters:**
 
-- *definition* - A `string` for the file path to the OAS definition or an `object` to dereference.
+- *definition* - A `string` for the file path to the OpenAPI definition or an `object` to dereference.
 
 **Returns:** A Promise that resolves to the dereferenced `object`.
 
@@ -161,7 +161,7 @@ const [ schema ] = Enforcer.v2_0.Schema({ type: 'string' })
 
 `Enforcer.v3_0 : object`
 
-An object containing class constructors for all [components](./components/index.md) that are part of the Open API Specification (OAS) 3 specification:
+An object containing class constructors for all [components](./components/index.md) that are part of the OpenAPI specification (OAS) 3 specification:
 
 {% include v3_0-components.html %}
 
