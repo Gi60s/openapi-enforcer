@@ -18,6 +18,7 @@
 const EnforcerRef  = require('../enforcer-ref');
 
 const rxCode = /^[1-5]\d{2}$/;
+const rxLocation = /^location$/i;
 const rxRange = /^[1-5]X{2}$/;
 
 module.exports = {
@@ -32,7 +33,30 @@ module.exports = {
         return {
             type: 'object',
             additionalProperties: EnforcerRef('Response', {
-                allowed: ({ key }) => key === 'default' || rxCode.test(key) || (major === 3 && rxRange.test(key))
+                allowed: ({ key }) => key === 'default' || rxCode.test(key) || (major === 3 && rxRange.test(key)),
+                errors: ({ key, parent, warn, definition, major, options }) => {
+                    if (options.apiSuggestions) {
+                        if (rxCode.test(key) && parent && parent.parent && parent.parent.key) {
+                            const method = parent.parent.key.toLowerCase();
+                            if (method === 'post' && key === '201') {
+                                const key = definition.headers
+                                    ? Object.keys(definition.headers)
+                                        .filter(v => rxLocation.test(v))
+                                        .map(v => v.toLowerCase())[0]
+                                    : null;
+                                if (!key || !definition.headers[key]) {
+                                    warn.message('A 201 response for a POST request should return a location header (https://tools.ietf.org/html/rfc7231#section-4.3.3) and this is not documented in your OpenAPI document.')
+                                }
+                            } else if (key === '204') {
+                                if (major === 2 && definition.schema) {
+                                    warn.message('A 204 response must not contain a body (https://tools.ietf.org/html/rfc7231#section-6.3.5) but this response has a defined schema.')
+                                } else if (major === 3 && definition.content) {
+                                    warn.message('A 204 response must not contain a body (https://tools.ietf.org/html/rfc7231#section-6.3.5) but this response has a defined content.')
+                                }
+                            }
+                        }
+                    }
+                }
             }),
             errors: ({ exception, definition }) => {
                 if (Object.keys(definition).length === 0 && !exception.hasException) {
