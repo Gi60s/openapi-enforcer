@@ -210,7 +210,7 @@ function runValidate(exception, map, schema, originalValue, options) {
                 if (options.maxMin !== false) {
                     maxMin(exception, schema, 'number', 'maximum', 'minimum', true, value, schema.maximum, schema.minimum);
                 }
-                if (schema.multipleOf && value % schema.multipleOf !== 0) {
+                if (schema.multipleOf && !Number.isInteger(value / schema.multipleOf)) {
                     exception.message('Expected a multiple of ' + schema.multipleOf + '. Received: ' + util.smart(value));
                 }
             }
