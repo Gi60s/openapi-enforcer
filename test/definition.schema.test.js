@@ -1955,7 +1955,13 @@ describe('definition/schema', () => {
                 expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
             });
 
-            it('allows a date-time string', () => {
+            it('allows a date-time string with Z', () => {
+                const [value] = schema.deserialize(iso);
+                expect(value).to.deep.equal(new Date(iso));
+            });
+
+            it('allows a date-time string with +- offset', () => {
+                const iso = '2000-01-01T00:00:00.000+00:00';
                 const [value] = schema.deserialize(iso);
                 expect(value).to.deep.equal(new Date(iso));
             });
