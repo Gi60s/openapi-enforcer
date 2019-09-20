@@ -2165,6 +2165,36 @@ describe('definition/schema', () => {
 
         });
 
+        it('oneOf any type', async () => {
+            const definition = {
+                type: 'object',
+                "properties": {
+                    "value": {
+                        "oneOf": [
+                            { "type": "string" },
+                            { "type": "number" },
+                            { "type": "boolean" },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "oneOf": [
+                                        { "type": "string" },
+                                        { "type": "number" },
+                                        { "type": "boolean" },
+                                        { "type": "object" }
+                                    ]
+                                }
+                            },
+                            { "type": "object" }
+                        ]
+                    }
+                }
+            };
+            const [ schema ] = Enforcer.v3_0.Schema(definition);
+            const deserialized = schema.deserialize('hello');
+            expect(deserialized.value).to.equal('hello')
+        });
+
     });
 
     describe('discriminate', () => {
