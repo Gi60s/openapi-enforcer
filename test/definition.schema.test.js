@@ -2171,6 +2171,62 @@ describe('definition/schema', () => {
 
         });
 
+        describe('allOf', () => {
+
+            it('number', () => {
+                const [ schema, err ] = Enforcer.v3_0.Schema({
+                    allOf: [
+                        { type: 'number' },
+                        { type: 'number', minimum: 0 }
+                    ]
+                });
+                const deserialized = schema.deserialize(1);
+                expect(deserialized.value).to.equal(1)
+            })
+
+        });
+
+        describe('oneOf', () => {
+            const anyTypeDef = {
+                "oneOf": [
+                    { "type": "string" },
+                    { "type": "number" },
+                    { "type": "boolean" },
+                    {
+                        "type": "array",
+                        "items": {
+                            "oneOf": [
+                                { "type": "string" },
+                                { "type": "number" },
+                                { "type": "boolean" },
+                                { "type": "object" }
+                            ]
+                        }
+                    },
+                    { "type": "object" }
+                ]
+            };
+
+            it('oneOf any type as string', async () => {
+                const [ schema ] = Enforcer.v3_0.Schema(anyTypeDef);
+                const deserialized = schema.deserialize('hello');
+                expect(deserialized.value).to.equal('hello')
+            });
+
+            it('oneOf any type as number', async () => {
+                const [ schema ] = Enforcer.v3_0.Schema(anyTypeDef);
+                const deserialized = schema.deserialize(1);
+                expect(deserialized.value).to.equal(1)
+            });
+
+            it('oneOf any type as boolean', async () => {
+                const [ schema ] = Enforcer.v3_0.Schema(anyTypeDef);
+                const deserialized = schema.deserialize(true);
+                expect(deserialized.value).to.equal(true)
+            });
+
+        });
+
     });
 
     describe('discriminate', () => {
@@ -3367,6 +3423,22 @@ describe('definition/schema', () => {
                 schema.anyOf[0].properties.birthDate.format = 'date';
                 const [ , err ] = schema.deserialize({ packSize: 5, birthDate: '2000-01-01' });
                 expect(err).to.equal(undefined);
+            });
+
+        });
+
+        describe('oneOf', () => {
+
+            it('can serialize number or boolean', () => {
+                const [schema, err] = Enforcer.v3_0.Schema({
+                    oneOf: [
+                        { type: 'number' },
+                        { type: 'boolean' }
+                    ]
+                });
+                console.log(err);
+                const [value] = schema.serialize(1);
+                expect(value).to.equal(1);
             });
 
         });
