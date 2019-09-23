@@ -43,16 +43,21 @@ function runDeserialize(exception, map, schema, originalValue) {
     if (schema.allOf) {
         const result = {};
         const exception2 = exception.at('allOf');
-        schema.allOf.forEach((schema, index) => {
-            const v = runDeserialize(exception2.at(index), map, schema, originalValue);
-            Object.assign(result, v)
-        });
-        return Object.assign(value, result);
+        if (schema.allOf[0].type === 'object') {
+            schema.allOf.forEach((schema, index) => {
+                const v = runDeserialize(exception2.at(index), map, schema, originalValue);
+                Object.assign(result, v)
+            });
+            return Object.assign(value, result);
+        } else {
+            return runDeserialize(exception2.at('0'), map, schema.allOf[0], originalValue);
+        }
 
     } else if (schema.anyOf || schema.oneOf) {
+        let result;
         let subSchema;
         if (schema.discriminator && (subSchema = schema.discriminate(value))) {
-            Object.assign(value, runDeserialize(exception, map, subSchema, originalValue));
+            result = Object.assign(value, runDeserialize(exception, map, subSchema, originalValue));
         } else {
             const key = schema.anyOf ? 'anyOf' : 'oneOf';
             const exceptions = [];
@@ -89,16 +94,20 @@ function runDeserialize(exception, map, schema, originalValue) {
                 if (highs.length > 1) {
                     exception.message('Unable to determine deserialization schema because too many schemas match. Use of a discriminator or making your schemas more specific would help this problem.')
                 } else {
-                    Object.assign(value, highs[0].result);
+                    result = typeofValue === 'object'
+                        ? Object.assign(value, highs[0].result)
+                        : highs[0].result;
                 }
             } else if (matches.length === 0) {
                 const child = exception.nest('No matching schemas');
                 exceptions.forEach(childException => child.push(childException));
             } else {
-                Object.assign(value, matches[0].result);
+                result = typeofValue === 'object'
+                    ? Object.assign(value, matches[0].result)
+                    : matches[0].result;
             }
         }
-        return value;
+        return result;
 
     } else if (type === 'array') {
         if (Array.isArray(value)) {
