@@ -3459,6 +3459,26 @@ describe('definition/schema', () => {
 
     describe('validate', () => {
 
+        describe('skip codes', () => {
+
+            it('shows warning for unknown format', () => {
+                const [, , warning] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    format: 'email'
+                });
+                expect(warning).to.match(/Non standard format "email" used for type "string"/)
+            });
+
+            it('can skip warning for unknown format', () => {
+                const [, , warning] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    format: 'email'
+                }, null, { exceptionSkipCodes: ['WSCH001'] });
+                expect(warning).to.equal(undefined);
+            });
+
+        });
+
         describe('nullable', () => {
 
             it('skips validation for null nullable values', () => {
