@@ -30,6 +30,7 @@ module.exports = {
     prototype: {},
 
     validator: function (data) {
+        const skipCodes = data.options.exceptionSkipCodes;
         return {
             type: 'object',
             properties: {
@@ -37,7 +38,7 @@ module.exports = {
                     type: 'object',
                     allowed: ({ parent }) => parent.parent.parent.validator === RequestBody.validator,
                     additionalProperties: EnforcerRef('Encoding'),
-                    errors: ({ exception, key, parent }) => {
+                    errors: ({ exception, parent }) => {
                         if (!rxContentTypeMime.test(parent.key)) {
                             exception.message('Mime type must be multipart/* or application/x-www-form-urlencoded. Found: ' + parent.key);
                         }
@@ -52,7 +53,9 @@ module.exports = {
             },
             errors: ({ parent, key, warn }) => {
                 if (parent && parent.key === 'content') {
-                    if (!module.exports.rx.mediaType.test(key)) warn.message('Media type appears invalid');
+                    if (!module.exports.rx.mediaType.test(key) && !skipCodes.WMED001) {
+                        warn.message('Media type appears invalid. [WMED001]');
+                    }
                 }
             }
         }

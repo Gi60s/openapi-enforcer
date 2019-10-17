@@ -176,6 +176,7 @@ module.exports = {
 
     validator: function (data) {
         const disablePathNormalization = data.options.disablePathNormalization;
+        const skipCodes = data.options.exceptionSkipCodes;
 
         return {
             required: true,
@@ -196,7 +197,7 @@ module.exports = {
                     if (!disablePathNormalization) {
                         const normalizedKey = util.edgeSlashes(key, true, false);
                         if (map[normalizedKey]) normalizeException.message(key + ' --> ' + normalizedKey);
-                        if (normalizedKey !== key) warn.at(key).message('Path normalized from ' + key + ' to ' + normalizedKey);
+                        if (normalizedKey !== key && !skipCodes.WPAS001) warn.at(key).message('Path normalized from ' + key + ' to ' + normalizedKey + '. [WPAS001]');
                         map[key] = normalizedKey;
                     }
 
@@ -209,14 +210,18 @@ module.exports = {
                     }
                 });
 
-                if (!paths.length) warn.message('No paths defined');
+                if (!paths.length && !skipCodes.WPAS002) warn.message('No paths defined. [WPAS002]');
 
                 if (includesTrailingSlashes.length > 0 && omitsTrainingSlashes.length > 0) {
                     const child = warn.nest('Some defined paths end with slashes while some do not. This inconsistency may confuse users of your API.');
                     const clean = child.nest('Paths without trailing slashes:');
                     const trailing = child.nest('Paths with trailing slashes:');
-                    omitsTrainingSlashes.forEach(key => clean.message(key));
-                    includesTrailingSlashes.forEach(key => trailing.message(key));
+                    omitsTrainingSlashes.forEach(key => {
+                        if (!skipCodes.WPAS003) clean.message(key + ' [WPAS003]');
+                    });
+                    includesTrailingSlashes.forEach(key => {
+                        if (!skipCodes.WPAS003) trailing.message(key + ' [WPAS003]')
+                    });
                 }
             }
         }

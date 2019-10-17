@@ -1073,8 +1073,13 @@ describe('definition/schema', () => {
 
                 it('requires mapping to resolve to schema instance', async () => {
                     const def = util.copy(allOf3Def);
+                    const options = {
+                        componentOptions: {
+                            exceptionSkipCodes: ['WPAS002']
+                        }
+                    };
                     def.components.schemas.Pet.discriminator.mapping.cow = '#/components/schemas/Cow';
-                    await assert.willReject(() => Enforcer(def), /Reference cannot be resolved: #\/components\/schemas\/Cow/)
+                    await assert.willReject(() => Enforcer(def, options), /Reference cannot be resolved: #\/components\/schemas\/Cow/)
                 });
 
                 it('must match one of the anyOf options', async () => {
@@ -2174,7 +2179,7 @@ describe('definition/schema', () => {
         describe('allOf', () => {
 
             it('number', () => {
-                const [ schema, err ] = Enforcer.v3_0.Schema({
+                const [ schema ] = Enforcer.v3_0.Schema({
                     allOf: [
                         { type: 'number' },
                         { type: 'number', minimum: 0 }
@@ -2230,6 +2235,14 @@ describe('definition/schema', () => {
     });
 
     describe('discriminate', () => {
+
+        describe('dereference mapping', () => {
+
+            it('can dereference mapped values', () => {
+
+            })
+
+        });
 
         describe('anyOf', () => {
 
@@ -3430,13 +3443,12 @@ describe('definition/schema', () => {
         describe('oneOf', () => {
 
             it('can serialize number or boolean', () => {
-                const [schema, err] = Enforcer.v3_0.Schema({
+                const [schema] = Enforcer.v3_0.Schema({
                     oneOf: [
                         { type: 'number' },
                         { type: 'boolean' }
                     ]
                 });
-                console.log(err);
                 const [value] = schema.serialize(1);
                 expect(value).to.equal(1);
             });
@@ -3446,6 +3458,26 @@ describe('definition/schema', () => {
     });
 
     describe('validate', () => {
+
+        describe('skip codes', () => {
+
+            it('shows warning for unknown format', () => {
+                const [, , warning] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    format: 'email'
+                });
+                expect(warning).to.match(/Non standard format "email" used for type "string"/)
+            });
+
+            it('can skip warning for unknown format', () => {
+                const [, , warning] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    format: 'email'
+                }, null, { exceptionSkipCodes: ['WSCH001'] });
+                expect(warning).to.equal(undefined);
+            });
+
+        });
 
         describe('nullable', () => {
 
