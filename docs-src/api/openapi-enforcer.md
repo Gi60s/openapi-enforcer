@@ -32,6 +32,7 @@ This function will dereference your OpenAPI document, validate it, produce warni
 | --------- | ----------- | ---- | ------- |
 | apiSuggestions | Set to `false` to disable API suggestions. When enabled, warnings will be generated where your API goes against standards, indicating what the standard is along with a source reference. | `boolean` | `true` |
 | disablePathNormalization | Set to `true` to stop removing trailing slashes for incoming requests and from your paths definitions. | `boolean` | `false` | 
+| exceptionSkipCodes | An array of `string` values for all exception and warning codes to ignore. See the [Guide for Exceptions and Warnings](../guide/exceptions.md) for more details. | `string[]` | `[]` |
 | requestBodyAllowedMethods | An `object` specifying which request methods to allow (or disallow) a request body for. The object you provide here will merge with the default value. | `object` | ` { post: true, put: true, options: true, head: true, patch: true } `
     
 **Returns:** A Promise
