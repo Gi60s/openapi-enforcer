@@ -77,7 +77,7 @@ const options = {
         exceptionSkipCodes: ['WSCH001', 'WOPE003']
     }
 }
-Enforcer('./temp.yml', options)
+Enforcer('./openapi.yml', options)
 ```
 
 Only those exceptions / warnings we specified will now no longer show up:
