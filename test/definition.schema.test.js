@@ -3443,13 +3443,12 @@ describe('definition/schema', () => {
         describe('oneOf', () => {
 
             it('can serialize number or boolean', () => {
-                const [schema, err] = Enforcer.v3_0.Schema({
+                const [schema] = Enforcer.v3_0.Schema({
                     oneOf: [
                         { type: 'number' },
                         { type: 'boolean' }
                     ]
                 });
-                console.log(err);
                 const [value] = schema.serialize(1);
                 expect(value).to.equal(1);
             });
