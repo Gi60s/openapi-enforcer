@@ -29,7 +29,8 @@ module.exports = {
     prototype: {},
 
     validator: function (data) {
-        const { major } = data;
+        const { major, options } = data;
+        const skipCodes = options.exceptionSkipCodes;
         return {
             type: 'object',
             additionalProperties: EnforcerRef('Response', {
@@ -44,14 +45,14 @@ module.exports = {
                                         .filter(v => rxLocation.test(v))
                                         .map(v => v.toLowerCase())[0]
                                     : null;
-                                if (!key || !definition.headers[key]) {
-                                    warn.message('A 201 response for a POST request should return a location header (https://tools.ietf.org/html/rfc7231#section-4.3.3) and this is not documented in your OpenAPI document.')
+                                if ((!key || !definition.headers[key]) && !skipCodes.WRES001) {
+                                    warn.message('A 201 response for a POST request should return a location header (https://tools.ietf.org/html/rfc7231#section-4.3.3) and this is not documented in your OpenAPI document. [WRES001]')
                                 }
                             } else if (key === '204') {
-                                if (major === 2 && definition.schema) {
-                                    warn.message('A 204 response must not contain a body (https://tools.ietf.org/html/rfc7231#section-6.3.5) but this response has a defined schema.')
-                                } else if (major === 3 && definition.content) {
-                                    warn.message('A 204 response must not contain a body (https://tools.ietf.org/html/rfc7231#section-6.3.5) but this response has a defined content.')
+                                if (major === 2 && definition.schema && !skipCodes.WRES002) {
+                                    warn.message('A 204 response must not contain a body (https://tools.ietf.org/html/rfc7231#section-6.3.5) but this response has a defined schema. [WRES002]')
+                                } else if (major === 3 && definition.content && !skipCodes.WRES003) {
+                                    warn.message('A 204 response must not contain a body (https://tools.ietf.org/html/rfc7231#section-6.3.5) but this response has a defined content. [WRES003]')
                                 }
                             }
                         }

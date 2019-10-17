@@ -325,6 +325,7 @@ module.exports = {
             const response = this.responses[code] || this.responses.default;
             const result = { headers: {} };
             const major = this.enforcerData.major;
+            const skipCodes = this.enforcerData.options.exceptionSkipCodes;
 
             if (!util.isPlainObject(headers)) throw Error('Invalid headers input parameter. Must be a plain object');
             headers = util.lowerCaseObjectProperties(headers);
@@ -362,8 +363,8 @@ module.exports = {
                                 const type = headers['content-type'].split(';')[0].trim();
                                 if (content.hasOwnProperty(type)) {
                                     contentType = type;
-                                } else {
-                                    warning.message('Content type specified is not defined as a possible mime-type: ' + type);
+                                } else if (!skipCodes.WOPE001) {
+                                    warning.message('Content type specified is not defined as a possible mime-type: ' + type + '. [WOPE001]');
                                 }
                             } else if (definedTypes.length === 1) {
                                 contentType = definedTypes[0];
@@ -421,8 +422,8 @@ module.exports = {
                 }
                 headerKeys.forEach(key => {
                     const value = headers[key];
-                    if (typeof value !== 'string') {
-                        warning.at('headers').at(key).message('Value has no schema and is not a string');
+                    if (typeof value !== 'string' && !skipCodes.WOPE002) {
+                        warning.at('headers').at(key).message('Value has no schema and is not a string. [WOPE002]');
                     }
                 });
 
@@ -442,7 +443,7 @@ module.exports = {
         }
     },
 
-    validator: function ({ major, options }) {
+    validator: function ({ major }) {
         return {
             type: 'object',
             properties: {
@@ -514,9 +515,9 @@ module.exports = {
                 },
                 summary: {
                     type: 'string',
-                    errors: ({ definition, warn }) => {
-                        if (definition.length >= 120) {
-                            warn.message('Value should be less than 120 characters');
+                    errors: ({ definition, warn, options }) => {
+                        if (definition.length >= 120 && !options.exceptionSkipCodes.WOPE003) {
+                            warn.message('Value should be less than 120 characters. [WOPE003]');
                         }
                     }
                 },

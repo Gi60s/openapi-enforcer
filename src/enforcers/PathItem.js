@@ -27,8 +27,9 @@ module.exports = {
 
     prototype: {},
 
-    validator: function ({ major }) {
+    validator: function ({ major, options }) {
         const Operation = require('./Operation');
+        const skipCodes = options.exceptionSkipCodes;
         return {
             type: 'object',
             properties: {
@@ -67,7 +68,7 @@ module.exports = {
                         break;
                     }
                 }
-                if (!hasMethod) warn.message('No methods defined')
+                if (!hasMethod && !skipCodes.WPAT001) warn.message('No methods defined. [WPAT001]')
             }
         }
     }

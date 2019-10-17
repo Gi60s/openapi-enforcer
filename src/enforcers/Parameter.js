@@ -28,10 +28,10 @@ const rxLabel = /^\./;
 
 module.exports = {
     init: function (data) {
-        const { context, definition, exception, major, warn } = data;
+        const { context, definition, exception, major, warn, options } = data;
 
-        if (definition.in === 'header' && definition.name !== definition.name.toLowerCase()) {
-            warn.message('Header names are case insensitive and their lower case equivalent will be used');
+        if (definition.in === 'header' && definition.name !== definition.name.toLowerCase() && !options.exceptionSkipCodes.WPAR001) {
+            warn.message('Header names are case insensitive and their lower case equivalent will be used. [WPAR001]');
         }
 
         // set default values for any non path parameters
@@ -233,7 +233,7 @@ module.exports = {
                     } else {
                         parsed = parsePrimitive(this, schema, exception, parsed)
                     }
-                } else if (parsed === undefined) {
+                } else {
                     exception.message('The value is not formatted properly');
                 }
 
@@ -243,8 +243,9 @@ module.exports = {
     },
 
     validator: function (data) {
-        const { major } = data;
+        const { major, options } = data;
         const base = Base.validator(data);
+        const skipCodes = options.exceptionSkipCodes;
         return {
             type: 'object',
             properties: Object.assign({}, base.properties, {
@@ -253,8 +254,8 @@ module.exports = {
                     type: 'boolean',
                     default: false,
                     errors: ({warn, major, usedDefault}) => {
-                        if (major === 3 && !usedDefault) {
-                            warn.message('Per OAS 3.0.2: "Use of this property is NOT RECOMMENDED, as it is likely to be removed in a later revision."')
+                        if (major === 3 && !usedDefault && !skipCodes.WPAR002) {
+                            warn.message('Per OAS 3.0.2: "Use of this property is NOT RECOMMENDED, as it is likely to be removed in a later revision." [WPAR002]')
                         }
                     }
                 },
@@ -297,7 +298,9 @@ module.exports = {
                                 case 'number': enums.push('float', 'double'); break;
                                 case 'string': enums.push('binary', 'byte', 'date', 'date-time', 'password'); break;
                             }
-                            if (!enums.includes(format)) warn.message('Non standard format used: ' + format);
+                            if (!enums.includes(format) && !skipCodes.WPAR003) {
+                                warn.message('Non standard format used: ' + format + '. [WPAR003]');
+                            }
                         }
                     }
                 },
