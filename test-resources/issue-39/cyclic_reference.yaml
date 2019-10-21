@@ -1,0 +1,46 @@
+openapi: 3.0.1
+info:
+  title: Cyclic Reference Test
+  description: >
+    Demonstrate an Open API document using a JSON Schema that contains a type
+    with a cyclic reference.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+  version: 0.0.1
+paths:
+  /cyclic_reference:
+    get:
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElementOrCollection'
+components:
+  schemas:
+    Common:
+      type: object
+      properties:
+        tag:
+          type: string
+          enum: [ red, blue, green ]
+    Element:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Common'
+    Collection:
+      allOf:
+        - type: object
+          properties:
+            elements:
+              type: array
+              items:
+                $ref: '#/components/schemas/ElementOrCollection'
+          required: [ elements ]
+        - $ref: '#/components/schemas/Common'
+    ElementOrCollection:
+      oneOf:
+        - $ref: '#/components/schemas/Element'
+        - $ref: '#/components/schemas/Collection'
