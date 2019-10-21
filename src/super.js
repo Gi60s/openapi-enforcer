@@ -181,17 +181,20 @@ function createConstructor(version, name, enforcer) {
         if (Array.isArray(object)) {
             const existing = map.get(object);
             if (existing) return existing;
-            const result = object.map(v => toObjectCopy(v, map));
+            const result = [];
             map.set(object, result);
+            object.forEach(v => {
+                result.push(toObjectCopy(v, map));
+            });
             return result;
         } else if (util.isPlainObject(object)) {
             const existing = map.get(object);
             if (existing) return existing;
             const result = {};
+            map.set(object, result);
             Object.keys(object).forEach(key => {
                 result[key] = toObjectCopy(object[key], map);
             });
-            map.set(object, result);
             return result;
         } else {
             return object;
