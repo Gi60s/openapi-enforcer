@@ -76,7 +76,7 @@ Deserialize and validate a request.
 | Property | Description | Type  | Default |
 | --------- | ----------- | ---- | ------- |
 | body | A `string` or `object` for the request body. If an object is provided then it should already be deserialized as far a `JSON.parse` would deserialize. | `string` or `object` | |
-| header | An `object` of key value pairs where the key is the header name and the value is the header value. | `object` | `{}` |
+| headers | An `object` of key value pairs where the key is the header name and the value is the header value. | `object` | `{}` |
 | method | The HTTP method to use. | `string` | `'get'` |
 | path | The full path (after domain and port) including query parameter string. | `string` | `'/'` |
 
@@ -92,7 +92,7 @@ Deserialize and validate a request.
 
 - *cookie* - An `object` map of cookie names and deserialized and validated values. 
 
-- *header* - An `object` map of header names and deserialized and validated values.
+- *headers* - An `object` map of header names and deserialized and validated values.
 
 - *operation* - The [Operation component](operation.md) object associated with the request.
 
