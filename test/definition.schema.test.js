@@ -18,6 +18,7 @@
 const assert        = require('../src/assert');
 const Enforcer      = require('../index');
 const expect        = require('chai').expect;
+const path          = require('path');
 const util          = require('../src/util');
 const Value         = require('../src/schema/value');
 
@@ -1080,6 +1081,13 @@ describe('definition/schema', () => {
                     };
                     def.components.schemas.Pet.discriminator.mapping.cow = '#/components/schemas/Cow';
                     await assert.willReject(() => Enforcer(def, options), /Reference cannot be resolved: #\/components\/schemas\/Cow/)
+                });
+
+                it('properly maps external references', async () => {
+                    const docPath = path.resolve(__dirname, '..', 'test-resources', 'discriminator-mapping', 'openapi.yml');
+                    const [ enforcer, err ] = await Enforcer(docPath, { fullResult: true })
+                    console.log(err);
+                    throw Error('working here');
                 });
 
                 it('must match one of the anyOf options', async () => {

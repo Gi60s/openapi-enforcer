@@ -1,0 +1,7 @@
+Person:
+  type: object
+  property:
+    name:
+      type: string
+    age:
+      type: integer

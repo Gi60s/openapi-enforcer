@@ -46,7 +46,7 @@ async function Enforcer(definition, options) {
 
     const refParser = new RefParser();
     definition = util.copy(definition);
-    definition = await refParser.dereference(definition);
+    // definition = await refParser.dereference(definition);
 
     let exception = Exception('One or more errors exist in the OpenAPI definition');
     const hasSwagger = definition.hasOwnProperty('swagger');

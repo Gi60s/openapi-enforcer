@@ -1,0 +1,28 @@
+Cat:
+  allOf:
+    - $ref: '#/Pet'
+    - type: object
+      properties:
+        lives:
+          type: integer
+Dog:
+  allOf:
+    - $ref: '#/Pet'
+    - type: object
+      properties:
+        lives:
+          type: integer
+Pet:
+  type: object
+  required:
+    - type
+  properties:
+    name:
+      type: string
+    type:
+      type: string
+  discriminator:
+    propertyName: petType
+    mapping:
+      cat: '#/Cat'
+      dog: 'Dog'

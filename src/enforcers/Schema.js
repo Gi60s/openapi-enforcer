@@ -17,6 +17,7 @@
 'use strict';
 const EnforcerRef       = require('../enforcer-ref');
 const Exception         = require('../exception');
+const path              = require('path');
 const Result            = require('../result');
 const runDeserialize    = require('../schema/deserialize');
 const runPopulate       = require('../schema/populate');
