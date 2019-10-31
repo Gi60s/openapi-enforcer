@@ -49,7 +49,6 @@ async function RefParser (source, exception, warning) {
     } else {
         obj = {
             path: process.cwd(),
-            root: source,
             value: source
         }
     }
@@ -68,6 +67,15 @@ function childData (data, key, path) {
     }
 }
 
+function defer () {
+    const deferred = {};
+    deferred.promise = new Promise((resolve, reject) => {
+        deferred.resolve = resolve;
+        deferred.reject = reject;
+    });
+    return deferred;
+}
+
 async function parse (obj, data) {
     const { map } = data.shared;
 
@@ -78,8 +86,7 @@ async function parse (obj, data) {
         const result = [];
         map.set(obj, result);
         const promises = obj.map(async (item, index) => {
-            const value = await parse(item, childData(data, index));
-            result.push(value);
+            result[index] = await parse(item, childData(data, index));
         });
         await Promise.all(promises);
         return result;
@@ -88,18 +95,22 @@ async function parse (obj, data) {
         const existing = map.get(obj);
         if (existing) return existing;
 
-        const result = {};
-        map.set(obj, result);
-        const promises = Object.keys(obj).map(async key => {
-            if (key === '$ref') {
-                const loaded = await load(data.path, obj.$ref, data.exception, data.shared.refs);
-                result[data.key] = await parse(loaded.value, childData(data, key, loaded.path))
-            } else {
-                result[key] = await parse(obj[key], childData(data, key));
+        if (obj.hasOwnProperty('$ref')) {
+            const loaded = await load(data.path, obj.$ref, data.exception, data.shared.refs);
+            if (loaded) {
+                const [, internalPath] = obj.$ref.split('#');
+                const value = traverse(loaded.value, internalPath, data.exception);
+                return parse(value, Object.assign({}, data, { path: loaded.path }))
             }
-        });
-        await Promise.all(promises);
-        return result;
+        } else {
+            let result = {};
+            map.set(obj, result);
+            const promises = Object.keys(obj).map(async key => {
+                result[key] = await parse(obj[key], childData(data, key));
+            });
+            await Promise.all(promises);
+            return result;
+        }
 
     } else {
         return obj;
@@ -112,29 +123,41 @@ async function parse (obj, data) {
  * @param {string} ref
  * @param {EnforcerException} exception
  * @param {object} refs
- * @returns {Promise<{path: string, root: object, value: *}|undefined>}
+ * @returns {Promise<{path: string, value: *}|undefined>}
  */
 async function load (basePath, ref, exception, refs) {
-    const [refPath, internalPath] = ref.split('#');
-    let data;
-    let loadedPath;
+    const [refPath] = ref.split('#');
 
-    // http path
+    // determine load path and method
+    let loadPath;
+    let loadMethod;
     if (rxHttp.test(basePath) || rxHttp.test(ref)) {
-        loadedPath = url.resolve(basePath, refPath);
-        if (!refs[loadedPath]) refs[loadedPath] = httpLoad(loadedPath, exception);
-        data = await refs[loadedPath];
-
-    // file path
+        loadPath = url.resolve(basePath, refPath);
+        loadMethod = httpLoad;
+    } else if (refPath) {
+        loadPath = path.resolve(path.dirname(basePath), refPath);
+        loadMethod = fileLoad;
     } else {
-        loadedPath = path.resolve(basePath, refPath);
-        refs[loadedPath] = fileLoad(loadedPath, exception);
-        data = await refs[loadedPath];
+        loadPath = path.resolve(basePath);
+        loadMethod = fileLoad;
     }
 
+    // if already loaded or loading then return that promise
+    if (refs[loadPath]) {
+        return refs[loadPath];
+    }
+
+    // store deferred promise
+    const deferred = defer();
+    refs[loadPath] = deferred.promise;
+
+    // load content
+    const data = await loadMethod(loadPath, exception);
+
+    // determine content type
     let type = data ? data.type : undefined;
-    if (!type && rxYaml.test(loadedPath)) type = 'yaml';
-    if (!type && rxJson.test(loadedPath)) type = 'json';
+    if (!type && rxYaml.test(loadPath)) type = 'yaml';
+    if (!type && rxJson.test(loadPath)) type = 'json';
 
     let obj;
     if (data) {
@@ -146,14 +169,12 @@ async function load (basePath, ref, exception, refs) {
             try {
                 obj = yaml.safeLoad(data.content);
                 type = 'yaml';
-            } catch (err) {
-            }
+            } catch (err) {}
             if (!type) {
                 try {
                     obj = JSON.parse(data.content);
                     type = 'json';
-                } catch (err) {
-                }
+                } catch (err) {}
             }
             if (!type) {
                 exception.message('Unable to parse document "' + refPath + '". Please verify that it is either a YAML or JSON document.');
@@ -161,17 +182,16 @@ async function load (basePath, ref, exception, refs) {
         }
     }
 
-    const value = obj
-        ? traverse(obj, internalPath, exception)
-        : null;
-
     if (!exception.hasException) {
-        return {
-            path: loadedPath,
-            root: obj,
-            value: value
-        }
+        deferred.resolve({
+            path: loadPath,
+            value: obj
+        });
+    } else {
+        deferred.resolve();
     }
+
+    return deferred.promise;
 }
 
 /**
@@ -205,7 +225,7 @@ function httpLoad (url, exception) {
                 resolve({
                     content: rawData,
                     type: type
-                })
+                });
             });
         });
         req.on('error', err => {
@@ -224,10 +244,12 @@ function httpLoad (url, exception) {
 function fileLoad (filePath, exception) {
     return new Promise((resolve) => {
         fs.readFile(filePath, 'utf8', (err, data) => {
-            if (err && err.code === "ENOENT") {
+            if (err && (err.code === "ENOENT" || err.code === 'ENOTDIR')) {
                 exception.message('Unable to find referenced file: ' + filePath);
+                resolve();
             } else if (err) {
-                exception.message('Unable to read file "' + filePath + '": ' + err.toString())
+                exception.message('Unable to read file "' + filePath + '": ' + err.toString());
+                resolve();
             } else {
                 resolve({
                     content: data,

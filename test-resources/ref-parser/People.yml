@@ -1,4 +1,5 @@
 Person:
+  x-key: Person
   type: object
   property:
     name:

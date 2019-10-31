@@ -6,7 +6,7 @@ module.exports = function () {
     return new Promise ((resolve, reject) => {
         try {
             const server = http.createServer((req, res) => {
-                const filePath = path.resolve(__dirname, req.url);
+                const filePath = path.resolve(__dirname, req.url.substring(1));
                 fs.readFile(filePath, 'utf8', (err, content) => {
                     if (err) {
                         res.statusCode = 404;
@@ -26,7 +26,7 @@ module.exports = function () {
             let intervalId = setInterval(() => {
                 if (server.listening) {
                     clearTimeout(intervalId);
-                    resolve(server.close);
+                    resolve(server.close.bind(server));
                 }
             }, 10);
         } catch (err) {

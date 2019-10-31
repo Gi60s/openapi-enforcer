@@ -13,6 +13,7 @@ Dog:
         lives:
           type: integer
 Pet:
+  x-key: Pet
   type: object
   required:
     - type
