@@ -29,7 +29,14 @@
     "parse",
     "format",
     "deserialize",
-    "serialize"
+    "serialize",
+    "request validation",
+    "request parsing",
+    "response validation",
+    "response serializing",
+    "utility",
+    "utils",
+    "plugable"
   ],
   "author": "James Speirs",
   "license": "Apache-2.0",
