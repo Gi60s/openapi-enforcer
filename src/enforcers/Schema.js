@@ -473,7 +473,11 @@ module.exports = {
                                                 : '#/components/schemas/' + result;
                                             schema = refParser.$refs.get(ref)
                                         } catch (err) {
-                                            exception.message('Reference cannot be resolved: ' + result);
+                                            const extra = '. If you are using multiple files to define your OpenAPI document then this ' +
+                                                'may be a limitation of the original dereference function. You can try the ' +
+                                                'experimental dereference function to see if this resolves the issue. Look for ' +
+                                                'the "dereferencer" component option in the constructor documentation at https://byu-oit.github.io/openapi-enforcer/api/openapi-enforcer';
+                                            exception.message('Reference cannot be resolved: ' + result + extra);
                                         }
 
                                         if (schema) {

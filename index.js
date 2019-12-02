@@ -31,6 +31,7 @@ const util                  = require('./src/util');
  * @param {object} [options]
  * @param {boolean} [options.hideWarnings=false] Set to true to hide warnings from the console.
  * @param {boolean} [options.fullResult=false] Set to true to get back a full result object with the value, warnings, and errors.
+ * @param {boolean} [options.experimentalDereference=false] A soon to be default option for improved dereferencing.
  * @param {object} [options.componentOptions] Options that get sent along to components.
  * @returns {Promise<OpenApi|Swagger>|Promise<Result<OpenApi|Swagger>>}
  */
@@ -42,6 +43,7 @@ async function Enforcer(definition, options) {
     options = Object.assign({}, options);
     if (!options.hasOwnProperty('hideWarnings')) options.hideWarnings = false;
     if (!options.hasOwnProperty('fullResult')) options.fullResult = false;
+    if (!options.hasOwnProperty('dereferenceV2')) options.dereferenceV2 = false;
     if (!options.hasOwnProperty('componentOptions')) options.componentOptions = {};
 
     const refParser = new RefParser();
