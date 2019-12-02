@@ -1109,18 +1109,25 @@ function numericType (schema) {
     }
 }
 
-function serializeSchema (schema, exception, dataTypes) {
+function serializeSchema (schema, exception, dataTypes, serializedSchemas) {
+    if (!serializedSchemas) {
+        serializedSchemas = [schema];
+    } else if (!serializedSchemas.includes(schema)) {
+        serializedSchemas.push(schema);
+    } else {
+        return schema;
+    }
     if (schema.type === 'array' && schema.items) {
-        schema.items = serializeSchema(schema.items, exception.at('items'), dataTypes);
+        schema.items = serializeSchema(schema.items, exception.at('items'), dataTypes, serializedSchemas);
     } else if (schema.type === 'object') {
         if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
-            schema.additionalProperties = serializeSchema(schema.additionalProperties, exception.at('additionalProperties'), dataTypes)
+            schema.additionalProperties = serializeSchema(schema.additionalProperties, exception.at('additionalProperties'), dataTypes, serializedSchemas)
         }
         if (schema.properties) {
             const childException = exception.at('properties');
             Object.keys(schema.properties)
                 .forEach(key => {
-                    schema.properties[key] = serializeSchema(schema.properties[key], childException.at(key), dataTypes)
+                    schema.properties[key] = serializeSchema(schema.properties[key], childException.at(key), dataTypes, serializedSchemas)
                 });
         }
     } else {

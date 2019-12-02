@@ -104,6 +104,44 @@ describe('definition/schema', () => {
             }
         }
     };
+    const allOfCircular = {
+        openapi: '3.0.0',
+        info: {title: '', version: ''},
+        paths: {
+            '/MatryoshkaSouvenir': {
+                get: {
+                    responses: {
+                        200: {
+                            description: 'Returns MatryoshkaSouvenir',
+                            content: {
+                                'application/json': {
+                                    schema: {$ref: '#/components/schemas/MatryoshkaSouvenir'}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        components: {
+            schemas: {
+                GiftCard: {
+                    properties: {text: {type: 'string'}},
+                    type: 'object'
+                },
+                Matryoshka: {
+                    properties: {matryoshka: {'$ref': '#/components/schemas/Matryoshka'}},
+                    type: 'object'
+                },
+                MatryoshkaSouvenir: {
+                    allOf: [
+                        {'$ref': '#/components/schemas/GiftCard'},
+                        {'$ref': '#/components/schemas/Matryoshka'}
+                    ]
+                }
+            }
+        }
+    };
     const anyOfDef = {
         openapi: '3.0.0',
         info: { title: '', version: '' },
@@ -326,6 +364,10 @@ describe('definition/schema', () => {
                     ]
                 });
                 expect(err).to.equal(undefined);
+            });
+
+            it('allows circular references at schemas', async () => {
+                await assert.wontReject(() => Enforcer(util.copy(allOfCircular)), /Maximum call stack size exceeded/);
             });
 
             describe('merges', () => {
