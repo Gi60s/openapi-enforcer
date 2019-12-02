@@ -23,8 +23,8 @@ module.exports = EnforcerResult;
 /**
  * Produce an EnforcerResult
  * @param {*} value
- * @param {Exception} [exception]
- * @param {Exception} [warn]
+ * @param {EnforcerException} [exception]
+ * @param {EnforcerException} [warn]
  * @constructor
  */
 function EnforcerResult(value, exception, warn) {
