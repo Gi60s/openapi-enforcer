@@ -231,7 +231,8 @@ function getDateFromValidDateString (format, string) {
     const hour = +match[4] || 0;
     const minute = +match[5] || 0;
     const second = +match[6] || 0;
-    const millisecond = +match[7] || 0;
+    const millisecondStr = convertFractionToMilliseconds(match[7]);
+    const millisecond = +millisecondStr || 0;
     return date.getUTCFullYear() === year &&
     date.getUTCMonth() === month &&
     date.getUTCDate() === day &&
@@ -239,6 +240,23 @@ function getDateFromValidDateString (format, string) {
     date.getUTCMinutes() === minute &&
     date.getUTCSeconds() === second &&
     date.getUTCMilliseconds() === millisecond ? date : null;
+}
+
+function convertFractionToMilliseconds(fraction) {
+    if (fraction === undefined) {
+        return undefined;
+    }
+    var milliseconds = fraction;
+    const lengthDiff = 3 - fraction.length;
+    if (lengthDiff > 0) {
+        // Need to add "0" to get 3 digits
+        milliseconds = fraction + "0".repeat(lengthDiff);
+    }
+    else if (lengthDiff < 0) {
+        // Need to truncate to get 3 digits
+        milliseconds = fraction.substr(0, 3);
+    }
+    return milliseconds;
 }
 
 function getDefinitionType (definition) {
