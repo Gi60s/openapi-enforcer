@@ -2012,6 +2012,18 @@ describe('definition/schema', () => {
                 const [value] = schema.deserialize(iso);
                 expect(value).to.deep.equal(new Date(iso));
             });
+            
+            it('allows a date-time string with deci-seconds', () => {
+                const iso = '2000-01-01T00:00:00.1Z';
+                const [value] = schema.deserialize(iso);
+                expect(value).to.deep.equal(new Date(iso));
+            });
+            
+            it('allows a date-time string with nano-seconds', () => {
+                const iso = '2000-01-01T00:00:00.123456789Z';
+                const [value] = schema.deserialize(iso);
+                expect(value).to.deep.equal(new Date(iso));
+            });
 
             it('does not allow a number', () => {
                 const [, err] = schema.deserialize(1);
