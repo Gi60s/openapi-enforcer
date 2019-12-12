@@ -2025,6 +2025,12 @@ describe('definition/schema', () => {
                 expect(value).to.deep.equal(new Date(iso));
             });
 
+            it('allows a date-time string with - offset', () => {
+                const iso = '2000-02-03T23:13:10.000-05:30';
+                const [value] = schema.deserialize(iso);
+                expect(value).to.deep.equal(new Date(iso));
+            });
+
             it('does not allow a number', () => {
                 const [, err] = schema.deserialize(1);
                 expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
