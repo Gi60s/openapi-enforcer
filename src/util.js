@@ -225,7 +225,9 @@ function freeze (value) {
 function getDateFromValidDateString (format, string) {
     const date = new Date(string);
     const isoDate = date.toISOString();
-    const match = rx[format].exec(isoDate);
+    const match = format === 'date'
+        ? rx.date.exec(isoDate.substring(0,10))
+        : rx['date-time'].exec(isoDate);
     const year = +match[1];
     const month = +match[2] - 1;
     const day = +match[3];
