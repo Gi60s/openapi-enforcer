@@ -153,7 +153,6 @@ Enforcer.v2_0.Schema.defineDataTypeFormat('integer', 'int64', null);
 Enforcer.v2_0.Schema.defineDataTypeFormat('number', 'float', null);
 Enforcer.v2_0.Schema.defineDataTypeFormat('number', 'double', null);
 Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
-Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
 Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
 Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
 Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date-time', dataTypeFormats.dateTime);
