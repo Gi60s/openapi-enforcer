@@ -1999,7 +1999,7 @@ describe('definition/schema', () => {
 
             it('does not allow a date string', () => {
                 const [,err] = schema.deserialize(iso.substr(0, 10));
-                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ/);
             });
 
             it('allows a date-time string with Z', () => {
@@ -2015,22 +2015,22 @@ describe('definition/schema', () => {
 
             it('does not allow a number', () => {
                 const [, err] = schema.deserialize(1);
-                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ/);
             });
 
             it('does not allow a boolean', () => {
                 const [, err] = schema.deserialize(true);
-                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ/);
             });
 
             it('does not allow an object', () => {
                 const [, err] = schema.deserialize({});
-                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ/);
             });
 
             it('does not allow null', () => {
                 const [, err] = schema.deserialize(null);
-                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ/);
             });
 
         });

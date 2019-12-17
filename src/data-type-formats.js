@@ -171,11 +171,11 @@ exports.dateTime = {
         if (value instanceof Date) {
             return value;
         } else if (typeof value !== 'string' || !rx.dateTime.test(value)) {
-            exception.message('Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
+            exception.message('Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ');
         } else {
             const date = util.getDateFromValidDateString('date-time', value);
             if (!date) {
-                exception.message('Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
+                exception.message('Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ');
             } else {
                 return date;
             }
