@@ -1929,6 +1929,16 @@ describe('definition/schema', () => {
                 expect(err).to.match(/Expected a base64 string/);
             });
 
+            it('does allow line returns', () => {
+                const [value] = schema.deserialize("TQ\n==\n");
+                expect(value).to.be.an.instanceof(Buffer);
+            });
+
+            it('does allow spaces and tabs', () => {
+                const [value] = schema.deserialize("\tTQ \t==");
+                expect(value).to.be.an.instanceof(Buffer);
+            });
+
         });
 
         describe('date', () => {
