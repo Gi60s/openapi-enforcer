@@ -540,7 +540,7 @@ function smart (value) {
         return result;
     }
     if (value && type === 'object') {
-        const name = value.constructor.name;
+        const name = value.constructor ? value.constructor.name : '';
         return '[object' + (name ? ' ' + name : '') + ']';
     }
     return String(value);
