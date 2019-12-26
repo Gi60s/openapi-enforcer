@@ -110,9 +110,9 @@ const prototype = {
      */
     populate: function(params, value, options = {}) {
         if (params === undefined || params === null) params = {};
-        if (!params || !util.isPlainObject(params)) throw Error('Invalid params specified. Must be a plain object');
+        if (!params || !util.isObject(params)) throw Error('Invalid params specified. Must be a plain object');
 
-        if (!options || !util.isPlainObject(options)) throw Error('Invalid options specified. Must be a plain object');
+        if (!options || !util.isObject(options)) throw Error('Invalid options specified. Must be a plain object');
         if (!options.hasOwnProperty('copy')) options.copy = false;
         if (!options.hasOwnProperty('conditions')) options.conditions = true;
         if (!options.hasOwnProperty('defaults')) options.defaults = true;
@@ -157,7 +157,7 @@ const prototype = {
      * @returns {EnforcerResult<*>}
      */
     random: function (value, options = {}) {
-        if (!options || !util.isPlainObject(options)) throw Error('Invalid options specified. Must be a plain object');
+        if (!options || !util.isObject(options)) throw Error('Invalid options specified. Must be a plain object');
         if (!options.hasOwnProperty('additionalPropertiesPossibility')) options.additionalPropertiesPossibility = 0;
         if (!options.hasOwnProperty('arrayVariation')) options.arrayVariation = 4;
         if (!options.hasOwnProperty('copy')) options.copy = false;

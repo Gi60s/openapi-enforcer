@@ -122,7 +122,7 @@ function runDeserialize(exception, map, schema, originalValue) {
         }
 
     } else if (type === 'object') { // TODO: make sure that serialize and deserialze properly throw errors for invalid object properties
-        if (util.isPlainObject(value)) {
+        if (util.isObject(value)) {
             const additionalProperties = schema.additionalProperties;
             const properties = schema.properties || {};
             Object.keys(value).forEach(key => {

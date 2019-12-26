@@ -83,7 +83,7 @@ function runRandom(exception, warn, map, schema, parent, property, options, dept
         }
 
     } else if (type === 'object') {
-        if (depth > 0 && parent.hasOwnProperty(property) && !util.isPlainObject(parent[property])) {
+        if (depth > 0 && parent.hasOwnProperty(property) && !util.isObject(parent[property])) {
             exception.message('Provided value is not a plain object');
         } else {
             const definedProperties = schema.properties ? Object.keys(schema.properties) : [];

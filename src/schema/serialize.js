@@ -112,7 +112,7 @@ function runSerialize(exception, map, schema, originalValue) {
         }
 
     } else if (type === 'object') {
-        if (util.isPlainObject(value)) {
+        if (util.isObject(value)) {
             const additionalProperties = schema.additionalProperties;
             const properties = schema.properties || {};
             Object.keys(value).forEach(key => {

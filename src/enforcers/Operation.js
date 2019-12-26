@@ -327,7 +327,8 @@ module.exports = {
             const major = this.enforcerData.major;
             const skipCodes = this.enforcerData.options.exceptionSkipCodes;
 
-            if (!util.isPlainObject(headers)) throw Error('Invalid headers input parameter. Must be a plain object');
+            if (!util.isPlainObject(headers) && util.isObject(headers)) headers = Object.create({}, headers);
+            if (!util.isObject(headers)) throw Error('Invalid headers input parameter. Must be a plain object');
             headers = util.lowerCaseObjectProperties(headers);
 
             if (response) {
