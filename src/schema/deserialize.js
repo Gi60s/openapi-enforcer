@@ -41,9 +41,9 @@ function runDeserialize(exception, map, schema, originalValue) {
     if (value === null && (schema.nullable || schema['x-nullable'])) return value;
 
     if (schema.allOf) {
-        const result = {};
         const exception2 = exception.at('allOf');
         if (schema.allOf[0].type === 'object') {
+            const result = {};
             schema.allOf.forEach((schema, index) => {
                 const v = runDeserialize(exception2.at(index), map, schema, originalValue);
                 Object.assign(result, v)
