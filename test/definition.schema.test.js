@@ -1882,6 +1882,12 @@ describe('definition/schema', () => {
                 expect(err).to.match(/Expected a boolean/);
             });
 
+            it('does allow number if not strict', () => {
+                const [value, err] = schema.deserialize(1, { strict: false });
+                expect(value).to.equal(true);
+                expect(err).to.equal(undefined);
+            });
+
         });
 
         describe('byte', () => {
@@ -2022,13 +2028,13 @@ describe('definition/schema', () => {
                 const [value] = schema.deserialize(iso);
                 expect(value).to.deep.equal(new Date(iso));
             });
-            
+
             it('allows a date-time string with deci-seconds', () => {
                 const iso = '2000-01-01T00:00:00.1Z';
                 const [value] = schema.deserialize(iso);
                 expect(value).to.deep.equal(new Date(iso));
             });
-            
+
             it('allows a date-time string with nano-seconds', () => {
                 const iso = '2000-01-01T00:00:00.123456789Z';
                 const [value] = schema.deserialize(iso);
@@ -2085,6 +2091,12 @@ describe('definition/schema', () => {
                 expect(err).to.match(/Expected an integer/);
             });
 
+            it('does allow string integer when not strict', () => {
+                const [value, err] = schema.deserialize('123', { strict: false });
+                expect(value).to.equal(123);
+                expect(err).to.equal(undefined);
+            });
+
             it('does not allow string decimal', () => {
                 const [, err] = schema.deserialize('123.7');
                 expect(err).to.match(/Expected an integer/);
@@ -2128,6 +2140,12 @@ describe('definition/schema', () => {
             it('does not allow string number', () => {
                 const [, err] = schema.deserialize('123.7');
                 expect(err).to.match(/Expected a number/);
+            });
+
+            it('does allow string number when not strict', () => {
+                const [value, err] = schema.deserialize('123.7', { strict: false });
+                expect(value).to.equal(123.7);
+                expect(err).to.equal(undefined);
             });
 
             it('does not allow date object', () => {

@@ -19,9 +19,14 @@ const Exception = require('../exception');
 const util      = require('../util');
 const Value     = require('./value');
 
+const rxTrue = /^\s*true\s*$/i;
+const rxFalse = /^\s*false\s*$/i;
+const rxInteger = /^\s*\d+\s*$/;
+const rxNumber = /^\s*(?:\d+(?:\.\d+)?)|(?:\.\d+)\s*$/;
+
 module.exports = runDeserialize;
 
-function runDeserialize(exception, map, schema, originalValue) {
+function runDeserialize(exception, map, schema, originalValue, options) {
     const { serialize, value } = Value.getAttributes(originalValue);
     if (!serialize) return originalValue;
 
@@ -45,19 +50,19 @@ function runDeserialize(exception, map, schema, originalValue) {
         if (schema.allOf[0].type === 'object') {
             const result = {};
             schema.allOf.forEach((schema, index) => {
-                const v = runDeserialize(exception2.at(index), map, schema, originalValue);
+                const v = runDeserialize(exception2.at(index), map, schema, originalValue, options);
                 Object.assign(result, v)
             });
             return Object.assign(value, result);
         } else {
-            return runDeserialize(exception2.at('0'), map, schema.allOf[0], originalValue);
+            return runDeserialize(exception2.at('0'), map, schema.allOf[0], originalValue, options);
         }
 
     } else if (schema.anyOf || schema.oneOf) {
         let result;
         let subSchema;
         if (schema.discriminator && (subSchema = schema.discriminate(value))) {
-            result = Object.assign(value, runDeserialize(exception, map, subSchema, originalValue));
+            result = Object.assign(value, runDeserialize(exception, map, subSchema, originalValue, options));
         } else {
             const key = schema.anyOf ? 'anyOf' : 'oneOf';
             const exceptions = [];
@@ -65,7 +70,7 @@ function runDeserialize(exception, map, schema, originalValue) {
             schema[key].forEach(subSchema => {
                 const childException = new Exception('');
                 const mapCopy = new Map(map);
-                const result = runDeserialize(childException, mapCopy, subSchema, originalValue);
+                const result = runDeserialize(childException, mapCopy, subSchema, originalValue, options);
                 if (childException.hasException) {
                     exceptions.push(childException)
                 } else {
@@ -113,7 +118,7 @@ function runDeserialize(exception, map, schema, originalValue) {
         if (Array.isArray(value)) {
             if (schema.items) {
                 value.forEach((v, i) => {
-                    value[i] = runDeserialize(exception.at(i), map, schema.items, Value.inherit(v, { serialize }));
+                    value[i] = runDeserialize(exception.at(i), map, schema.items, Value.inherit(v, { serialize }), options);
                 });
             }
             return value;
@@ -127,16 +132,16 @@ function runDeserialize(exception, map, schema, originalValue) {
             const properties = schema.properties || {};
             Object.keys(value).forEach(key => {
                 if (properties.hasOwnProperty(key)) {
-                    value[key] = runDeserialize(exception.at(key), map, properties[key], Value.inherit(value[key], { serialize }));
+                    value[key] = runDeserialize(exception.at(key), map, properties[key], Value.inherit(value[key], { serialize }), options);
                 } else if (additionalProperties) {
-                    value[key] = runDeserialize(exception.at(key), map, additionalProperties, Value.inherit(value[key], { serialize }));
+                    value[key] = runDeserialize(exception.at(key), map, additionalProperties, Value.inherit(value[key], { serialize }), options);
                 }
             });
 
             if (schema.discriminator) {
                 const subSchema = schema.discriminate(value);
                 if (subSchema) {
-                    Object.assign(value, runDeserialize(exception, map, subSchema, originalValue));
+                    Object.assign(value, runDeserialize(exception, map, subSchema, originalValue, options));
                 } else {
                     exception.message('Unable to discriminate to schema');
                 }
@@ -152,15 +157,24 @@ function runDeserialize(exception, map, schema, originalValue) {
 
         if (type === 'boolean') {
             if (dataType && dataType.deserialize) {
+                // although this will never run right now, it is here in case a custom type definition for booleans is created
                 return dataType.deserialize({
                     exception,
                     schema,
                     value
                 });
             } else if (typeofValue !== 'boolean') {
+                if (!options.strict) {
+                    if (typeofValue === 'string') {
+                        if (rxTrue.test(value)) return true;
+                        if (rxFalse.test(value)) return false;
+                    } else if (typeofValue === 'number') {
+                        return !!value;
+                    }
+                }
                 exception.message('Expected a boolean. Received: ' + util.smart(value));
             } else {
-                return typeofValue === 'string' ? value.toLowerCase() === 'false' : !!value;
+                return value;
             }
 
         } else if (type === 'integer') {
@@ -171,6 +185,9 @@ function runDeserialize(exception, map, schema, originalValue) {
                     value
                 });
             } else if (typeofValue !== 'number' || !util.isInteger(value)) {
+                if (!options.strict && typeofValue === 'string' && rxInteger.test(value)) {
+                    return +value;
+                }
                 exception.message('Expected an integer. Received: ' + util.smart(value));
             } else {
                 return value;
@@ -184,6 +201,9 @@ function runDeserialize(exception, map, schema, originalValue) {
                     value: value
                 });
             } else if (typeofValue !== 'number') {
+                if (!options.strict && typeofValue === 'string' && rxNumber.test(value)) {
+                    return +value;
+                }
                 exception.message('Expected a number. Received: ' + util.smart(value));
             } else {
                 return value;

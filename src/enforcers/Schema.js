@@ -40,11 +40,15 @@ const prototype = {
      * Take a serialized (ready for HTTP transmission) value and deserialize it.
      * Converts strings of binary, byte, date, and date-time to JavaScript equivalents.
      * @param {*} value
+     * @param {object} [options]
+     * @param {boolean} [options.strict=true] Whether to be strict on input when deserializing.
      * @returns {EnforcerResult<*>}
      */
-    deserialize: function(value) {
+    deserialize: function(value, options) {
+        if (!options) options = {};
+        if (!options.hasOwnProperty('strict')) options.strict = true;
         const exception = Exception('Unable to deserialize value');
-        const result = runDeserialize(exception, new Map(), this, util.copy(value));
+        const result = runDeserialize(exception, new Map(), this, util.copy(value), options);
         return new Result(result, exception);
     },
 
