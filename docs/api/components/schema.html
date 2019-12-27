@@ -68,7 +68,7 @@
 <p>The OpenAPI specification v2 does not allow for nullable values in schemas, but to accommodate for that need a property <code>x-nullable</code> can be defined on any schema to allow the <code>null</code> value.</p>
 <h1 id="instance-methods">Instance Methods</h1>
 <h2 id="deserialize">deserialize</h2>
-<p><code>Schema.prototype.deserialize ( value ) : EnforcerResult &lt; any &gt;</code></p>
+<p><code>Schema.prototype.deserialize ( value [, options ] ) : EnforcerResult &lt; any &gt;</code></p>
 <p>Schema instances can deserialize values. Deserialization is the process of extracting a data structure from a scalar value. For example, the string <code>2000-01-01</code> as a date string would be deserialized to <code>new Date(&#39;2000-01-01&#39;)</code> which gives you a date object instead of a date string.</p>
 <p>Note that the deserialization process keeps validation to a minimum. It won&#39;t care if a decimal number was provided for an <code>integer</code> type, but it will care if <code>&quot;hello&quot;</code> is provided as an <code>integer</code>.</p>
 <p><strong>Parameters:</strong></p>
@@ -86,6 +86,29 @@
 <td>The value to deserialize</td>
 <td>any</td>
 <td></td>
+</tr>
+<tr>
+<td>options</td>
+<td>Deserialization options. See the options table below for details.</td>
+<td>object</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>Deserialization Options</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>strict</td>
+<td>Whether to enable strict deserialization. Setting to <code>false</code> will allow strings to deserialize for booleans, integers, and numbers. It will also allow booleans to deserialize from numbers. Keeping <code>true</code> will reduce false positives.</td>
+<td>boolean</td>
+<td><code>true</code></td>
 </tr>
 </tbody></table>
 <p><strong>Returns:</strong> An <a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a> that resolves to the deserialized value.</p>
