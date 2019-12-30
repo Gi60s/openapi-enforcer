@@ -210,6 +210,7 @@ module.exports = {
     init: function (data) {
         const { exception, major, plugins, refParser, staticData, warn, options } = data;
         const skipCodes = options.exceptionSkipCodes;
+        const escalateCodes = options.exceptionEscalateCodes;
 
         // deserialize and validate enum, default, and example
         if (this.hasOwnProperty('enum')) {
@@ -253,7 +254,7 @@ module.exports = {
         if (this.allOf) {
             const mergeException = new Exception('Unable to merge allOf schemas');
             const mergeWarning = new Exception('One or more warnings produced while merging allOf schemas');
-            const allOfDef = merge(mergeException, mergeWarning, this.allOf.map(v => v.toObject()), dataTypes, major, skipCodes);
+            const allOfDef = merge(mergeException, mergeWarning, this.allOf.map(v => v.toObject()), dataTypes, major, skipCodes, escalateCodes);
             const allOfData = {
                 exception: mergeException,
                 warning: mergeWarning
@@ -349,6 +350,7 @@ module.exports = {
     validator: function (data) {
         const { major, options } = data;
         const skipCodes = options.exceptionSkipCodes;
+        const escalateCodes = options.exceptionEscalateCodes;
 
         const maxOrMin = {
             weight: -8,
@@ -552,14 +554,16 @@ module.exports = {
                     weight: -9,
                     allowed: ({ parent }) => ['boolean', 'integer', 'number', 'string'].includes(parent.definition.type),
                     type: 'string',
-                    errors: ({ parent, warn }) => {
+                    errors: ({ exception, parent, warn }) => {
                         const format = parent.definition.format;
                         if (format) {
                             const type = parent.definition.type;
                             const dataTypes = parent.staticData.dataTypes;
                             const formats = dataTypes[type];
                             const enums = formats ? Object.keys(formats) : [];
-                            if (!enums.includes(format) && !skipCodes.WSCH001) warn.message('Non standard format "' + format + '" used for type "' +  type + '". [WSCH001]');
+                            if (!enums.includes(format) && !skipCodes.WSCH001) {
+                                (escalateCodes.WSCH001 ? exception : warn).message('Non standard format "' + format + '" used for type "' +  type + '". [WSCH001]');
+                            }
                         }
                     }
                 },
@@ -620,7 +624,7 @@ module.exports = {
                     errors: ({ major, parent, definition }) => {
                         if (major === 2 && definition && parent && parent.parent && parent.parent.parent && parent.parent.parent.definition.required && parent.parent.parent.definition.required.includes(parent.key) && !skipCodes.WSCH002) {
                             // note, this restriction is only in place for major version 2
-                            parent.warn.message('Property should not be marked as both read only and required. [WSCH002]');
+                            parent[escalateCodes.WSCH002 ? 'exception' : 'warn'].message('Property should not be marked as both read only and required. [WSCH002]');
                         }
                     }
                 },
@@ -782,7 +786,7 @@ function isSchemaProperty({ parent }) {
         parent.parent.parent && parent.parent.parent.validator === module.exports.validator;
 }
 
-function merge (exception, warning, schemas, dataTypes, major, skipCodes) {
+function merge (exception, warning, schemas, dataTypes, major, skipCodes, escalateCodes) {
     const { types, formats } = getMergeTypes(schemas);
     if (types.length > 1) return exception.message('All items must be of the same type. Found: ' + types.join(', '));
     if (formats.length > 1) return exception.message('All items must be of the same format. Found: ' + formats.join(', '));
@@ -797,7 +801,9 @@ function merge (exception, warning, schemas, dataTypes, major, skipCodes) {
 
     // set default
     const defaults = Array.from(new Set(schemas.filter(schema => schema.hasOwnProperty('default')).map(schema => schema.default)));
-    if (defaults.length > 1 && !skipCodes.WSCH003) warning.message('Two or more defaults found. Using first default. [WSCH003]');
+    if (defaults.length > 1 && !skipCodes.WSCH003) {
+        (escalateCodes.WSCH003 ? exception : warning).message('Two or more defaults found. Using first default. [WSCH003]');
+    }
     if (defaults.length > 0) result.default = defaults[0];
 
     // set enum
@@ -841,7 +847,9 @@ function merge (exception, warning, schemas, dataTypes, major, skipCodes) {
 
     // set example
     const examples = Array.from(new Set(schemas.filter(schema => schema.hasOwnProperty('example')).map(schema => schema.example)));
-    if (examples.length > 1 && !skipCodes.WSCH004) warning.message('Two or more examples found. Using first example. [WSCH004]');
+    if (examples.length > 1 && !skipCodes.WSCH004) {
+        (escalateCodes.WSCH004 ? exception : warning).message('Two or more examples found. Using first example. [WSCH004]');
+    }
     if (examples.length > 0) result.example = examples[0];
 
     // allOf, oneOf, anyOf, not, nullable
@@ -859,11 +867,11 @@ function merge (exception, warning, schemas, dataTypes, major, skipCodes) {
             nullable[schema.nullable ? 'hasTrue' : 'hasFalse'] = true;
         }
     });
-    if (allOf.length) Object.assign(result, merge(exception.at('allOf'), warning.at('allOf'), allOf, dataTypes, major, skipCodes));
+    if (allOf.length) Object.assign(result, merge(exception.at('allOf'), warning.at('allOf'), allOf, dataTypes, major, skipCodes, escalateCodes));
     if (oneOf.length) result.oneOf = oneOf;
     if (anyOf.length) result.anyOf = anyOf;
     if (not.length === 1) result.not = not[0];
-    if (not.length > 1) result.not = merge(exception.at('not'), warning.at('not'), not, dataTypes, major, skipCodes);
+    if (not.length > 1) result.not = merge(exception.at('not'), warning.at('not'), not, dataTypes, major, skipCodes, escalateCodes);
     if (nullable.hasTrue && nullable.hasFalse) {
         exception.message('Unable to merge conflicting nullable values');
     } else if (nullable.hasTrue) {
@@ -917,7 +925,7 @@ function merge (exception, warning, schemas, dataTypes, major, skipCodes) {
         const itemsArray = schemas
             .filter(schema => schema.hasOwnProperty('items'))
             .map(schema =>  schema.items);
-        result.items = merge(exception.at('items'), warning.at('items'), itemsArray, dataTypes, major, skipCodes);
+        result.items = merge(exception.at('items'), warning.at('items'), itemsArray, dataTypes, major, skipCodes, escalateCodes);
 
         mergeProperty(result, schemas, 'maxItems', (a, b) => {
             return { value: a < b ? a : b };
@@ -973,7 +981,7 @@ function merge (exception, warning, schemas, dataTypes, major, skipCodes) {
         } else if (additionalPropertyObjects.length === 1) {
             result.additionalProperties = additionalPropertyObjects[0];
         } else if (additionalPropertyObjects.length > 1) {
-            result.additionalProperties = merge(exception.at('additionalProperties'), warning.at('additionalProperties'), additionalPropertyObjects, dataTypes, major, skipCodes);
+            result.additionalProperties = merge(exception.at('additionalProperties'), warning.at('additionalProperties'), additionalPropertyObjects, dataTypes, major, skipCodes, escalateCodes);
         }
 
         // gather data for defined properties and required properties
@@ -1004,7 +1012,7 @@ function merge (exception, warning, schemas, dataTypes, major, skipCodes) {
                 if (items.length === 1) {
                     result.properties[key] = items[0];
                 } else {
-                    result.properties[key] = merge(propsException.at(key), propsWarning.at(key), items, dataTypes, major, skipCodes);
+                    result.properties[key] = merge(propsException.at(key), propsWarning.at(key), items, dataTypes, major, skipCodes, escalateCodes);
                 }
             }
         });

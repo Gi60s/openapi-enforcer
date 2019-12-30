@@ -20,7 +20,7 @@ const EnforcerRef  = require('../enforcer-ref');
 const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
 
 module.exports = {
-    init: function (data) {
+    init: function () {
         // an array of all methods used by this path
         this.methods = methods.filter(method => !!this[method]);
     },
@@ -30,6 +30,7 @@ module.exports = {
     validator: function ({ major, options }) {
         const Operation = require('./Operation');
         const skipCodes = options.exceptionSkipCodes;
+        const escalateCodes = options.exceptionEscalateCodes;
         return {
             type: 'object',
             properties: {
@@ -59,7 +60,7 @@ module.exports = {
                     type: 'string'
                 },
             },
-            errors: ({ definition, warn }) => {
+            errors: ({ exception, definition, warn }) => {
                 const length = methods.length;
                 let hasMethod = false;
                 for (let i = 0; i < length; i++) {
@@ -68,7 +69,9 @@ module.exports = {
                         break;
                     }
                 }
-                if (!hasMethod && !skipCodes.WPAT001) warn.message('No methods defined. [WPAT001]')
+                if (!hasMethod && !skipCodes.WPAT001) {
+                    (escalateCodes.WPAT001 ? exception : warn).message('No methods defined. [WPAT001]')
+                }
             }
         }
     }

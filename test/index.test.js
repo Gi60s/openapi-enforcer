@@ -1307,6 +1307,23 @@ describe('index/request', () => {
             expect(req.headers.value).to.equal('abc');
         });
 
+        it('can escalate a warning', async () => {
+            const def = new DefinitionBuilder(2)
+                .addParameter('/', 'get', {
+                    name: 'vALUe',
+                    in: 'header',
+                    type: 'string'
+                })
+                .build();
+            const results = await Enforcer(def, {
+                fullResult: true,
+                componentOptions: {
+                    exceptionEscalateCodes: ['WPAR001']
+                }
+            });
+            expect(results.error).to.match(/Header names are case insensitive/);
+        });
+
         it('cannot have property allowEmptyValue', async () => {
             const def = new DefinitionBuilder(2)
                 .addParameter('/', 'get', {
