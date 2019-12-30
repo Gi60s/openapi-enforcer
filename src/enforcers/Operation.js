@@ -326,6 +326,7 @@ module.exports = {
             const result = { headers: {} };
             const major = this.enforcerData.major;
             const skipCodes = this.enforcerData.options.exceptionSkipCodes;
+            const escalateCodes = this.enforcerData.options.exceptionEscalateCodes;
 
             if (!util.isPlainObject(headers) && util.isObject(headers)) headers = Object.create({}, headers);
             if (!util.isObject(headers)) throw Error('Invalid headers input parameter. Must be a plain object');
@@ -365,7 +366,7 @@ module.exports = {
                                 if (content.hasOwnProperty(type)) {
                                     contentType = type;
                                 } else if (!skipCodes.WOPE001) {
-                                    warning.message('Content type specified is not defined as a possible mime-type: ' + type + '. [WOPE001]');
+                                    (escalateCodes.WOPE001 ? exception : warning).message('Content type specified is not defined as a possible mime-type: ' + type + '. [WOPE001]');
                                 }
                             } else if (definedTypes.length === 1) {
                                 contentType = definedTypes[0];
@@ -424,7 +425,10 @@ module.exports = {
                 headerKeys.forEach(key => {
                     const value = headers[key];
                     if (typeof value !== 'string' && !skipCodes.WOPE002) {
-                        warning.at('headers').at(key).message('Value has no schema and is not a string. [WOPE002]');
+                        (escalateCodes.WOPE002 ? exception : warning)
+                            .at('headers')
+                            .at(key)
+                            .message('Value has no schema and is not a string. [WOPE002]');
                     }
                 });
 
@@ -518,7 +522,7 @@ module.exports = {
                     type: 'string',
                     errors: ({ definition, warn, options }) => {
                         if (definition.length >= 120 && !options.exceptionSkipCodes.WOPE003) {
-                            warn.message('Value should be less than 120 characters. [WOPE003]');
+                            (options.exceptionEscalateCodes.WOPE003 ? exception : warn).message('Value should be less than 120 characters. [WOPE003]');
                         }
                     }
                 },

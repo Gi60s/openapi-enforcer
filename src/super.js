@@ -92,6 +92,12 @@ function createConstructor(version, name, enforcer) {
                 return p;
             }, {})
             : {};
+        options.exceptionEscalateCodes = options.hasOwnProperty('exceptionEscalateCodes')
+            ? options.exceptionEscalateCodes.reduce((p, c) => {
+                p[c] = true;
+                return p;
+            }, {})
+            : {};
 
         // validate the definition
         let data;

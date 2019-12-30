@@ -177,6 +177,7 @@ module.exports = {
     validator: function (data) {
         const disablePathNormalization = data.options.disablePathNormalization;
         const skipCodes = data.options.exceptionSkipCodes;
+        const escalateCodes = data.options.exceptionEscalateCodes;
 
         return {
             required: true,
@@ -197,7 +198,9 @@ module.exports = {
                     if (!disablePathNormalization) {
                         const normalizedKey = util.edgeSlashes(key, true, false);
                         if (map[normalizedKey]) normalizeException.message(key + ' --> ' + normalizedKey);
-                        if (normalizedKey !== key && !skipCodes.WPAS001) warn.at(key).message('Path normalized from ' + key + ' to ' + normalizedKey + '. [WPAS001]');
+                        if (normalizedKey !== key && !skipCodes.WPAS001) {
+                            (escalateCodes.WPAS001 ? exception : warn).at(key).message('Path normalized from ' + key + ' to ' + normalizedKey + '. [WPAS001]');
+                        }
                         map[key] = normalizedKey;
                     }
 
@@ -210,10 +213,12 @@ module.exports = {
                     }
                 });
 
-                if (!paths.length && !skipCodes.WPAS002) warn.message('No paths defined. [WPAS002]');
+                if (!paths.length && !skipCodes.WPAS002) {
+                    (escalateCodes.WPAS002 ? exception : warn).message('No paths defined. [WPAS002]');
+                }
 
                 if (includesTrailingSlashes.length > 0 && omitsTrainingSlashes.length > 0) {
-                    const child = warn.nest('Some defined paths end with slashes while some do not. This inconsistency may confuse users of your API.');
+                    const child = (escalateCodes.WPAS003 ? exception : warn).nest('Some defined paths end with slashes while some do not. This inconsistency may confuse users of your API.');
                     const clean = child.nest('Paths without trailing slashes:');
                     const trailing = child.nest('Paths with trailing slashes:');
                     omitsTrainingSlashes.forEach(key => {
