@@ -71,6 +71,10 @@ module.exports = {
 
             const exception = Exception('Unable to parse value');
 
+            if (this.in === 'path' || this.in === 'query') {
+                value = decodeURIComponent(value);
+            }
+
             if (major === 2) {
                 if (this.collectionFormat === 'multi') {
                     if (!query) query = util.parseQueryString(value);
