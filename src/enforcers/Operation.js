@@ -131,7 +131,7 @@ module.exports = {
             const req = {
                 header: util.lowerCaseObjectProperties(request.headers),
                 path: request.path,
-                query: util.parseQueryString(request.query)
+                query: util.parseQueryString(decodeURI(request.query))
             };
             if (request.body !== undefined) req.body = request.body;
             const cookie = req.header.cookie || '';
