@@ -199,6 +199,14 @@ describe('enforcer/operation', () => {
                 expect(err.count).to.equal(3);
             });
 
+            it('does not decode uri', () => {
+                const body = encodeURIComponent('hello world');
+                def.parameters[0].schema = { type: 'string' };
+                const [ operation ] = Enforcer.v2_0.Operation(def);
+                const [ req ] = operation.request({ body });
+                expect(req.body).to.equal(body);
+            });
+
             it('validates missing required body', () => {
                 def.parameters[0].required = true;
                 def.parameters[0].schema = numSchema;
@@ -293,6 +301,14 @@ describe('enforcer/operation', () => {
                         expect(req.cookie.user).to.deep.equal({ R: 50, G: 100, B: 150 });
                     });
 
+                    it('does not run uri decode', () => {
+                        const cookieValue = encodeURIComponent('bob smith');
+                        def.parameters[0].schema = { type: 'string' };
+                        const [ operation, err ] = Enforcer.v3_0.Operation(def);
+                        const [ req ] = operation.request({ headers: { cookie: 'user=' + cookieValue } });
+                        expect(req.cookie.user).to.equal(cookieValue);
+                    });
+
                 });
             });
 
@@ -336,6 +352,13 @@ describe('enforcer/operation', () => {
                 expect(err).to.match(/Missing required parameter: user/);
             });
 
+            it('does not run uri decode', () => {
+                const user = encodeURIComponent('Bob Smith');
+                const [ operation ] = Enforcer.v2_0.Operation(def);
+                const [ req ] = operation.request({ body: { user } });
+                expect(req.body.user).to.equal(user);
+            });
+
         });
 
         describe('in header', () => {
@@ -360,6 +383,17 @@ describe('enforcer/operation', () => {
                     const [ operation ] = Enforcer.v2_0.Operation(def);
                     const [ req ] = operation.request({ headers: { 'x-date': '2000-01-01' } });
                     expect(+req.headers['x-date']).to.equal(+new Date('2000-01-01'));
+                });
+
+                it('does not run uri decode', () => {
+                    const value = encodeURIComponent('a value');
+                    const def = {
+                        parameters: [{ name: 'x-value', in: 'header', type: 'string' }],
+                        responses: { 200: { description: '' } }
+                    };
+                    const [ operation ] = Enforcer.v2_0.Operation(def);
+                    const [ req ] = operation.request({ headers: { 'x-value': value } });
+                    expect(req.headers['x-value']).to.equal(value);
                 });
 
             });
@@ -431,6 +465,14 @@ describe('enforcer/operation', () => {
                         expect(req.headers['x-value']).to.deep.equal({ R: 50, G: 100, B: 200 });
                     });
 
+                    it('does not run uri decode', () => {
+                        const value = encodeURIComponent('a value');
+                        def.parameters[0].type = 'string';
+                        const [ operation ] = Enforcer.v2_0.Operation(def);
+                        const [ req ] = operation.request({ headers: { 'x-value': value } });
+                        expect(req.headers['x-value']).to.equal(value);
+                    });
+
                 });
 
             });
@@ -461,6 +503,14 @@ describe('enforcer/operation', () => {
                     const [ operation ] = Enforcer.v2_0.Operation(def);
                     const [ req ] = operation.request({ path: { x: '1' } });
                     expect(req.path.x).to.equal(1);
+                });
+
+                it('does run uri decode', () => {
+                    const value = 'a value';
+                    def.parameters[0].type = 'string';
+                    const [ operation ] = Enforcer.v2_0.Operation(def);
+                    const [ req ] = operation.request({ path: { x: encodeURIComponent(value) } });
+                    expect(req.path.x).to.equal(value);
                 });
 
             });
@@ -515,6 +565,14 @@ describe('enforcer/operation', () => {
                         const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: 'R,50,G,100,B,150' } });
                         expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
+                    });
+
+                    it('does run uri decode', () => {
+                        const value = 'a value';
+                        def.parameters[0].schema = { type: 'string' };
+                        const [ operation, err ] = Enforcer.v3_0.Operation(def);
+                        const [ req ] = operation.request({ path: { x: encodeURIComponent(value) } });
+                        expect(req.path.x).to.equal(value);
                     });
 
                 });
@@ -575,6 +633,21 @@ describe('enforcer/operation', () => {
                         expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
                     });
 
+                    it('does run uri decode', () => {
+                        const value = 'a value';
+                        def.parameters[0].style = 'label';
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = {
+                            type: 'object',
+                            properties: {
+                                a: { type: 'string' }
+                            }
+                        };
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
+                        const [ req ] = operation.request({ path: { x: '.a,' + encodeURIComponent(value) } });
+                        expect(req.path.x).to.deep.equal({ a: value });
+                    });
+
                 });
 
                 describe('matrix', () => {
@@ -631,6 +704,21 @@ describe('enforcer/operation', () => {
                         const [ operation ] = Enforcer.v3_0.Operation(def);
                         const [ req ] = operation.request({ path: { x: ';x=R,50,G,100,B,150' } });
                         expect(req.path.x).to.deep.equal({ R: 50, G: 100, B: 150 });
+                    });
+
+                    it('does run uri decode', () => {
+                        const value = 'a value';
+                        def.parameters[0].style = 'matrix';
+                        def.parameters[0].explode = false;
+                        def.parameters[0].schema = {
+                            type: 'object',
+                            properties: {
+                                a: { type: 'string' }
+                            }
+                        };
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
+                        const [ req ] = operation.request({ path: { x: ';x=a,' + encodeURIComponent(value) } });
+                        expect(req.path.x).to.deep.equal({ a: value });
                     });
 
                 });
@@ -703,39 +791,104 @@ describe('enforcer/operation', () => {
                     };
                 });
 
-                it('can deserialize a csv collection', () => {
-                    def.parameters[0].collectionFormat = 'csv';
-                    const [ operation ] = Enforcer.v2_0.Operation(def);
-                    const [ req ] = operation.request({ query: 'x=1,2,3' });
-                    expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
+                describe('csv collection', () => {
+
+                    it('can deserialize a csv collection', () => {
+                        def.parameters[0].collectionFormat = 'csv';
+                        const [ operation ] = Enforcer.v2_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'x=1,2,3' });
+                        expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
+                    });
+
+                    it('does run uri decode', () => {
+                        const value = 'a value';
+                        def.parameters[0].collectionFormat = 'csv';
+                        def.parameters[0].items.type = 'string';
+                        const [ operation ] = Enforcer.v2_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'x=foo,' + encodeURIComponent(value) });
+                        expect(req.query.x[1]).to.equal(value);
+                    });
+
                 });
 
-                it('can deserialize an ssv collection', () => {
-                    def.parameters[0].collectionFormat = 'ssv';
-                    const [ operation ] = Enforcer.v2_0.Operation(def);
-                    const [ req ] = operation.request({ query: 'x=1%202%203' });
-                    expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
+                describe('ssv collection', () => {
+
+                    it('can deserialize an ssv collection', () => {
+                        def.parameters[0].collectionFormat = 'ssv';
+                        const [ operation ] = Enforcer.v2_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'x=1%202%203' });
+                        expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
+                    });
+
+                    it('does run uri decode', () => {
+                        const value = 'a%value';
+                        def.parameters[0].collectionFormat = 'ssv';
+                        def.parameters[0].items.type = 'string';
+                        const [ operation ] = Enforcer.v2_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'x=foo%20' + encodeURIComponent(value) });
+                        expect(req.query.x[1]).to.equal(value);
+                    });
+
                 });
 
-                it('can deserialize a tsv collection', () => {
-                    def.parameters[0].collectionFormat = 'tsv';
-                    const [ operation ] = Enforcer.v2_0.Operation(def);
-                    const [ req ] = operation.request({ query: 'x=1%092%093' });
-                    expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
+                describe('tsv collection', () => {
+
+                    it('can deserialize a tsv collection', () => {
+                        def.parameters[0].collectionFormat = 'tsv';
+                        const [ operation ] = Enforcer.v2_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'x=1%092%093' });
+                        expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
+                    });
+
+                    it('does run uri decode', () => {
+                        const value = 'a value';
+                        def.parameters[0].collectionFormat = 'tsv';
+                        def.parameters[0].items.type = 'string';
+                        const [ operation ] = Enforcer.v2_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'x=foo%09' + encodeURIComponent(value) });
+                        expect(req.query.x[1]).to.equal(value);
+                    });
+
                 });
 
-                it('can deserialize a pipes collection', () => {
-                    def.parameters[0].collectionFormat = 'pipes';
-                    const [ operation ] = Enforcer.v2_0.Operation(def);
-                    const [ req ] = operation.request({ query: 'x=1|2|3' });
-                    expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
+                describe('pipes collection', () => {
+
+                    it('can deserialize a pipes collection', () => {
+                        def.parameters[0].collectionFormat = 'pipes';
+                        const [ operation ] = Enforcer.v2_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'x=1|2|3' });
+                        expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
+                    });
+
+                    it('does run uri decode', () => {
+                        const value = 'a value';
+                        def.parameters[0].collectionFormat = 'pipes';
+                        def.parameters[0].items.type = 'string';
+                        const [ operation ] = Enforcer.v2_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'x=foo|' + encodeURIComponent(value) });
+                        expect(req.query.x[1]).to.equal(value);
+                    });
+
                 });
 
-                it('can deserialize a multi collection', () => {
-                    def.parameters[0].collectionFormat = 'multi';
-                    const [ operation ] = Enforcer.v2_0.Operation(def);
-                    const [ req ] = operation.request({ query: 'x=1&x=2&x=3' });
-                    expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
+                describe('multi collection', () => {
+
+                    it('can deserialize a multi collection', () => {
+                        def.parameters[0].collectionFormat = 'multi';
+                        const [ operation ] = Enforcer.v2_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'x=1&x=2&x=3' });
+                        expect(req.query.x).to.deep.equal([ 1, 2, 3 ]);
+                    });
+
+                    it('does run uri decode', () => {
+                        const value = 'a value';
+                        def.parameters[0].collectionFormat = 'multi';
+                        def.parameters[0].items.type = 'string';
+                        const [ operation ] = Enforcer.v2_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'x=foo&x=' + encodeURIComponent(value) });
+                        expect(req.query.x[1]).to.equal(value);
+                    });
+
                 });
 
             });
@@ -789,6 +942,14 @@ describe('enforcer/operation', () => {
                         expect(req.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
                     });
 
+                    it('does run uri decode', () => {
+                        def.parameters[0].schema = { type: 'string' };
+                        const value = 'red and blue';
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'color=' + encodeURIComponent(value) }, { allowOtherQueryParameters: true });
+                        expect(req.query.color).to.equal(value);
+                    });
+
                 });
 
                 describe('spaceDelimited', () => {
@@ -801,9 +962,18 @@ describe('enforcer/operation', () => {
                         expect(req.query.color).to.deep.equal(['blue', 'black', 'brown']);
                     });
 
+                    it('does run uri decode', () => {
+                        def.parameters[0].style = 'spaceDelimited';
+                        def.parameters[0].schema = { type: 'array', items: { type: 'string' } };
+                        const value = 'blue black & brown';
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'color=' + encodeURIComponent(value) }, { allowOtherQueryParameters: true });
+                        expect(req.query.color).to.deep.equal(['blue', 'black', '&', 'brown']);
+                    });
+
                 });
 
-                describe('pipeDelimited\t', () => {
+                describe('pipeDelimited', () => {
 
                     it('can deserialize array', () => {
                         def.parameters[0].style = 'pipeDelimited';
@@ -813,14 +983,43 @@ describe('enforcer/operation', () => {
                         expect(req.query.color).to.deep.equal(['blue', 'black', 'brown']);
                     });
 
+                    it('does run uri decode', () => {
+                        def.parameters[0].style = 'pipeDelimited';
+                        def.parameters[0].schema = { type: 'array', items: { type: 'string' } };
+                        const value = 'blue|black and brown';
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'color=' + encodeURIComponent(value) }, { allowOtherQueryParameters: true });
+                        expect(req.query.color).to.deep.equal(['blue', 'black and brown']);
+                    });
+
                 });
 
-                it('can deserialize deepObject style', () => {
-                    def.parameters[0].style = 'deepObject';
-                    def.parameters[0].schema = objSchema;
-                    const [ operation ] = Enforcer.v3_0.Operation(def);
-                    const [ req ] = operation.request({ query: 'color[R]=100&color[G]=200&color[B]=150' });
-                    expect(req.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                describe('deepObject', () => {
+
+                    it('can deserialize deepObject style', () => {
+                        def.parameters[0].style = 'deepObject';
+                        def.parameters[0].schema = objSchema;
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
+                        const [ req ] = operation.request({ query: 'color[R]=100&color[G]=200&color[B]=150' });
+                        expect(req.query.color).to.deep.equal({ R: 100, G: 200, B: 150 });
+                    });
+
+                    it('does run uri decode', () => {
+                        def.parameters[0].style = 'deepObject';
+                        def.parameters[0].schema = {
+                            type: 'object',
+                            properties: {
+                                a: { type: 'string' },
+                                b: { type: 'string' }
+                            }
+                        };
+                        const value = 'color[a]=hello&color[b]=to you';
+                        const [ operation ] = Enforcer.v3_0.Operation(def);
+                        const [ req, err ] = operation.request({ query: encodeURI('?' + value).substring(1) });
+                        console.log(err)
+                        expect(req.query.color).to.deep.equal({ a: 'hello', b: 'to you' });
+                    });
+
                 });
 
             });
