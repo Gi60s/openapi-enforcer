@@ -88,13 +88,13 @@ function runSerialize(exception, map, schema, originalValue) {
                 if (highs.length > 1) {
                     exception.message('Unable to determine serialization schema because too many schemas match. Use of a discriminator or making your schemas more specific would help this problem.')
                 } else {
-                    Object.assign(value, highs[0].result);
+                    return util.merge(value, highs[0].result);
                 }
             } else if (matches.length === 0) {
                 const child = exception.nest('No matching schemas');
                 exceptions.forEach(childException => child.push(childException));
             } else {
-                Object.assign(value, matches[0].result);
+                return util.merge(value, matches[0].result);
             }
         }
         return value;

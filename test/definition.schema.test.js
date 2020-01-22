@@ -3541,6 +3541,25 @@ describe('definition/schema', () => {
                 expect(value).to.equal(1);
             });
 
+            it('can deserialize a number or an object', () => {
+                const [schema] = Enforcer.v3_0.Schema({
+                    oneOf: [
+                        { type: 'string' },
+                        {
+                            type: 'object',
+                            properties: {
+                                x: { type: 'string' }
+                            }
+                        }
+                    ]
+                });
+                const [value1] = schema.serialize({ x: '123' });
+                expect(value1).to.deep.equal({ x: '123' });
+
+                const [value2] = schema.serialize('123');
+                expect(value2).to.equal('123');
+            });
+
         });
 
     });

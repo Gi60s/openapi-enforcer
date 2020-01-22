@@ -99,17 +99,13 @@ function runDeserialize(exception, map, schema, originalValue, options) {
                 if (highs.length > 1) {
                     exception.message('Unable to determine deserialization schema because too many schemas match. Use of a discriminator or making your schemas more specific would help this problem.')
                 } else {
-                    result = typeofValue === 'object'
-                        ? Object.assign(value, highs[0].result)
-                        : highs[0].result;
+                    result = util.merge(value, highs[0].result);
                 }
             } else if (matches.length === 0) {
                 const child = exception.nest('No matching schemas');
                 exceptions.forEach(childException => child.push(childException));
             } else {
-                result = typeofValue === 'object'
-                    ? Object.assign(value, matches[0].result)
-                    : matches[0].result;
+                result = util.merge(value, matches[0].result);
             }
         }
         return result;
