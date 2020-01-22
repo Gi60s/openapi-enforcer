@@ -46,6 +46,7 @@ module.exports = {
     leastOf,
     lowerCaseObjectProperties,
     mapObject,
+    merge,
     mostOf,
     parseCookieString,
     parseQueryString,
@@ -353,6 +354,33 @@ function mapObject (object, callback) {
         result[key] = callback(object[key], key);
     });
     return result;
+}
+
+function merge (target, source, mapping = '') {
+    if (isPlainObject(target)) {
+        if (!isObject(source)) throw Error(mapping + ': Unable to merge non-object into plain object.');
+        Object.keys(source).forEach(key => {
+            target[key] = target.hasOwnProperty(key)
+                ? merge(target[key], source[key], mapping + '> ' + key)
+                : source[key];
+        });
+        return target;
+    } else if (Array.isArray(target)) {
+        if (!Array.isArray(source)) throw Error(mapping + ': Unable to merge non-array into array');
+        const tLength = target.length;
+        const length = tLength > source.length
+            ? tLength
+            : source.length;
+        for (let i = 0; i < length; i++) {
+            if (i >= tLength) {
+                target[i] = source[i];
+            } else {
+                target[i] = merge(target[i], source[i], '> ' + i);
+            }
+        }
+    } else {
+        return source;
+    }
 }
 
 function mostOf (numberArray) {
