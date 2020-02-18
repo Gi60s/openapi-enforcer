@@ -83,7 +83,8 @@ module.exports = {
             if (exception.hasException) return new Result(undefined, exception);
             return new Result({
                 operation,
-                params
+                params,
+                pathKey: pathMatch.pathKey
             });
         },
 
@@ -122,7 +123,7 @@ module.exports = {
             if (error) return new Result(undefined, error);
 
             // set up request input
-            const { operation, params } = pathObject;
+            const { operation, params, pathKey } = pathObject;
             const req = {
                 headers: request.headers || {},
                 path: params,
@@ -141,6 +142,7 @@ module.exports = {
                     }
                     return operation.response(code, body, headers)
                 }
+                result.value.pathKey = pathKey;
             }
             return result;
         }
