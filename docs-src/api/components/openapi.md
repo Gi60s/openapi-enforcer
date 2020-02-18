@@ -26,6 +26,8 @@ Get path parameters and operation from a method and path.
 
 - *params* - An `object` of key value pairs for each path parameter and it's deserialized and validated value.
 
+- *pathKey* - The `string` value for the path item as written in the OpenAPI document.
+
 **Example**
 
 ```js
@@ -97,6 +99,8 @@ Deserialize and validate a request.
 - *operation* - The [Operation component](operation.md) object associated with the request.
 
 - *path* - An `object` map of path parameter names and deserialized and validated values.
+
+- *pathKey* - The `string` value for the path item as written in the OpenAPI document.
 
 - *query* - An `object` map of query parameter names and deserialized and validated values.
 
