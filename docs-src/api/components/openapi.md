@@ -100,7 +100,7 @@ Deserialize and validate a request.
 
 - *path* - An `object` map of path parameter names and deserialized and validated values.
 
-- *pathKey* - The `string` value for the path item as written in the OpenAPI document.
+- *pathKey* - The path item's key value as written in the OpenAPI document.
 
 - *query* - An `object` map of query parameter names and deserialized and validated values.
 
