@@ -84,10 +84,12 @@ module.exports = RefParser;
 const map = new WeakMap();
 
 function RefParser (source) {
+    this.$refs = {};
     map.set(this, {
         bundled: null,
         dereferenced: null,
         loads: {},
+        refs: this.$refs,
         source
     });
 }
@@ -103,32 +105,16 @@ RefParser.prototype.dereference = async function () {
         ? path.dirname(source)
         : process.cwd();
 
-    const loaded = typeof source === 'string'
-        ? await load(basePath, source, exception, loads)
-        : {
-            exception: exception.nest('Within the source object'),
-            value: source
-        };
-
-    const value = loaded.exception.hasException
-        ? null
-        : await parse(loaded, data);
-
-    this.$refs.root = value;
-    return Result(value, exception, warning);
-};
-
-function childData (data, key, path) {
-    return {
-        exception: data.exception.at(key),
-        key: key,
-        path: path || data.path,
-        parent: data,
-        root: data.root,
-        shared: data.shared,
-        warning: data.warning.at(key)
+    const parseMap = new Map();
+    if (typeof source === 'string') {
+        const loaded = await load(basePath, source, exception, loads);
+        this.$refs.root = await parse(path.dirname(loaded.path), loaded.value, loaded.value, that, parseMap, exception.at(loaded.path));
+    } else {
+        this.$refs.root = await parse(basePath, source, source, that, parseMap, exception.at('root object'));
     }
-}
+
+    return new Result(this.$refs.root, exception);
+};
 
 function defer () {
     const deferred = {};
@@ -139,51 +125,46 @@ function defer () {
     return deferred;
 }
 
-async function parse (obj, data) {
-    const { map } = data.shared;
-
-    if (Array.isArray(obj)) {
-        const existing = map.get(obj);
+async function parse (basePath, source, value, that, map, exception) {
+    if (Array.isArray(value)) {
+        const existing = map.get(value);
         if (existing) return existing;
 
         const result = [];
-        map.set(obj, result);
-        const promises = obj.map(async (item, index) => {
-            result[index] = await parse(item, childData(data, index));
+        map.set(value, result);
+        const promises = value.map(async (item, index) => {
+            result[index] = await parse(basePath, source, item, that, map, exception.at(String(index)));
         });
         await Promise.all(promises);
         return result;
 
-    } else if (typeof obj === 'object') {
-        const existing = map.get(obj);
+    } else if (typeof value === 'object') {
+        const existing = map.get(value);
         if (existing) return existing;
 
-        if (obj.hasOwnProperty('$ref')) {
-            let loaded;
-            console.log('$ref: ' + data.path + ' ' + obj.$ref);
-            if (obj.$ref.startsWith('#/')) {
-                loaded = await load(data.path, obj.$ref, data.exception, data.shared.refs);
+        if (value.hasOwnProperty('$ref')) {
+            const [, internalPath] = value.$ref.split('#');
+            if (value.$ref.startsWith('#/')) {
+                return traverse(source, internalPath, exception);
             } else {
-
-            }
-            if (loaded) {
-                console.log('Loaded: ' + data.path);
-                const [, internalPath] = obj.$ref.split('#');
-                const value = traverse(loaded.value, internalPath, data.exception.at(loaded.path));
-                return parse(value, Object.assign({}, data, { path: loaded.path }))
+                const loaded = await load(basePath, value.$ref, exception, that.loads);
+                const childException = exception.at(loaded.path);
+                const source = await parse(path.dirname(loaded.path), source, loaded.value, that, map, childException);
+                this.$refs[loaded.path] = source;
+                return traverse(source, internalPath, childException);
             }
         } else {
             let result = {};
-            map.set(obj, result);
-            const promises = Object.keys(obj).map(async key => {
-                result[key] = await parse(obj[key], childData(data, key));
+            map.set(value, result);
+            const promises = Object.keys(value).map(async key => {
+                result[key] = await parse(basePath, source, value[key], that, map, exception.at(key));
             });
             await Promise.all(promises);
             return result;
         }
 
     } else {
-        return obj;
+        return value;
     }
 }
 
@@ -191,10 +172,11 @@ async function parse (obj, data) {
  * Load a file or URL and parse to object.
  * @param {string} basePath
  * @param {string} ref
- * @param {ParserData} data
+ * @param {EnforcerException} exception
+ * @param {object} loads
  * @returns {Promise<{path: string, value: *}|undefined>}
  */
-async function load (basePath, ref, parentException, loads) {
+async function load (basePath, ref, exception, loads) {
     // determine the load path and method
     const { loadPath, loadMethod } = resolvePath(basePath, ref);
 
@@ -206,9 +188,11 @@ async function load (basePath, ref, parentException, loads) {
     loads[loadPath] = deferred.promise;
 
     // load content
-    const exception = parentException.nest('Unable to dereference file: ' + loadPath);
-    const value = await loadMethod(loadPath, exception);
-    deferred.resolve({ exception, value });
+    const value = await loadMethod(loadPath, exception.at(loadPath));
+    deferred.resolve({
+        path: loadPath,
+        value
+    });
 
     return deferred.promise;
 }
@@ -217,38 +201,35 @@ async function load (basePath, ref, parentException, loads) {
  * Load a URL.
  * @param {string} url
  * @param {EnforcerException} exception
- * @returns {Promise<{ content: string, type: string }|undefined>}
+ * @returns {Promise<*|undefined>}
  */
-async function httpLoad (url, exception) {
-    try {
-        const res = await axios.get(url);
-        const contentType = res.headers['content-type'];
-        if (res.status < 200 || res.status >= 400) {
-            exception.message('Unable to load resource: ' + url);
-        } else {
-            let type;
-            if (/^application\/json/.test(contentType)) type = 'json';
-            if (/^(?:text|application)\/(?:x-)?yaml/.test(contentType)) type = 'yaml';
+function httpLoad (url, exception) {
+    const transformResponse = [res => res]; // stop response body from being parsed
+    return axios.get(url, { transformResponse })
+        .then(res => {
+            const contentType = res.headers['content-type'];
+            if (res.status < 200 || res.status >= 300) {
+                exception.message('Unable to load resource due to unexpected response status code ' + res.status + ' for URL: ' + url );
+            } else {
+                let type;
+                if (/^application\/json/.test(contentType)) type = 'json';
+                if (/^(?:text|application)\/(?:x-)?yaml/.test(contentType)) type = 'yaml';
 
-            if (type === 'yaml') {
-
+                const result = parseString(res.data, type, exception.nest('Unable to parse resource: ' + url));
+                res.data = result.value;
             }
-
-            return {
-                content: res.data,
-                type: type
-            };
-        }
-    } catch (err) {
-        exception.message('Unexpected error: ' + err.message);
-    }
+            return res.data
+        })
+        .catch(err => {
+            exception.message('Unexpected error: ' + err.message);
+        });
 }
 
 /**
  * Load a file.
  * @param {string} filePath
  * @param {EnforcerException} exception
- * @returns {Promise<{ content: string, type: string }|undefined>}
+ * @returns {Promise<{ type: string, value: object }|undefined>}
  */
 function fileLoad (filePath, exception) {
     return new Promise((resolve) => {
@@ -260,13 +241,48 @@ function fileLoad (filePath, exception) {
                 exception.message('Unable to read file "' + filePath + '": ' + err.toString());
                 resolve();
             } else {
-                resolve({
-                    content: data,
-                    type: undefined
-                });
+                let type;
+                if (rxJson.test(filePath)) type = 'json';
+                if (rxYaml.test(filePath)) type = 'yaml';
+
+                const result = parseString(data, type, exception.nest('Unable to parse file: ' + filePath));
+                resolve(result.value);
             }
         })
     })
+}
+
+function parseString (content, type, exception) {
+    let value;
+    if (type === 'json') {
+        try {
+            value = JSON.parse(content);
+        } catch (err) {
+            exception.message(err.toString());
+        }
+    } else if (type === 'yaml') {
+        try {
+            value = yaml.safeLoad(content);
+        } catch (err) {
+            exception.message(err.toString());
+        }
+    } else {
+        try {
+            value = JSON.parse(content);
+            type = 'json';
+        } catch (err) {
+            try {
+                value = yaml.safeLoad(content);
+                type = 'yaml';
+            } catch (err) {
+                exception.message('Not valid JSON or YAML');
+            }
+        }
+    }
+    return {
+        type,
+        value
+    }
 }
 
 function resolvePath (basePath, ref) {
