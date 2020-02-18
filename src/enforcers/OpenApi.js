@@ -141,7 +141,7 @@ module.exports = {
                         if (matches.length) headers['content-type'] = matches[0];
                     }
                     return operation.response(code, body, headers)
-                }
+                };
                 result.value.pathKey = pathKey;
             }
             return result;
