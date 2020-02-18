@@ -16,10 +16,9 @@
  **/
 'use strict';
 
+const axios     = require('axios').default;
 const Exception = require('./exception');
 const fs        = require('fs');
-const http      = require('http');
-const https     = require('https');
 const path      = require('path');
 const Result    = require('./result');
 const url       = require('url');
@@ -29,20 +28,15 @@ const rxHttp = /^https?:\/\//i;
 const rxYaml = /\.ya?ml$/i;
 const rxJson = /\.json$/i;
 
-module.exports = dereference;
+module.exports = RefParser;
 
 /**
  * @typedef ParserData
  * @property {EnforcerException} exception The exception object at the current node.
  * @property {string|number|undefined} key The key of the parent that arrived to this node.
  * @property {object} loads A map of HTTP or file paths that have been loaded.
- * @property {WeakMap} map A map of references, used to handle circular referencing.
  * @property {ParserData} parent The parent parse data object.
- * @property {string} path The HTTP or file path to the root node for this node.
- * @property {string|object} source The source object or string.
- * @property {object} result The result object.
- * @property {ParserData} root The root parser data object.
- * @property {EnforcerException} warning The exception object at the current node.
+ * @property {object} refs A map of file paths to their results.
  */
 
 /**
@@ -51,7 +45,7 @@ module.exports = dereference;
  * @returns {Promise<EnforcerResult>}
  */
 
-async function dereference (source) {
+/*async function dereference (source) {
     const data = {
         exception: new Exception('Unable to dereference definition for one or more reasons'),
         key: undefined,
@@ -85,32 +79,41 @@ async function dereference (source) {
         };
         return Result(factory, data.exception, data.warning);
     }
+}*/
+
+const map = new WeakMap();
+
+function RefParser (source) {
+    map.set(this, {
+        bundled: null,
+        dereferenced: null,
+        loads: {},
+        source
+    });
 }
 
-RefParser.prototype.dereference = async function (source) {
+RefParser.prototype.dereference = async function () {
+    const that = map.get(this);
+    if (that.dereferenced) return that.dereferenced;
+
     const exception = new Exception('Unable to dereference definition for one or more reasons');
-    const warning = new Exception('One or more warnings encountered while while dereferencing definition');
+    const { loads, source } = that;
 
-    const data = {
-        exception: exception,
-        key: undefined,
-        path: typeof source === 'string' ? source : process.cwd(),
-        parent: null,
-        shared: this.$refs,
-        warning: warning
-    };
+    const basePath = typeof source === 'string'
+        ? path.dirname(source)
+        : process.cwd();
 
-    let obj;
-    if (typeof source === 'string') {
-        obj = await load(data.path, source, exception, data.shared.refs)
-    } else {
-        obj = {
-            path: process.cwd(),
+    const loaded = typeof source === 'string'
+        ? await load(basePath, source, exception, loads)
+        : {
+            exception: exception.nest('Within the source object'),
             value: source
-        }
-    }
+        };
 
-    const value = await parse(obj && obj.value, data);
+    const value = loaded.exception.hasException
+        ? null
+        : await parse(loaded, data);
+
     this.$refs.root = value;
     return Result(value, exception, warning);
 };
@@ -186,57 +189,26 @@ async function parse (obj, data) {
 
 /**
  * Load a file or URL and parse to object.
- * @param {string} resourcePath
+ * @param {string} basePath
+ * @param {string} ref
  * @param {ParserData} data
  * @returns {Promise<{path: string, value: *}|undefined>}
  */
-async function load (resourcePath, { exception, loads }) {
+async function load (basePath, ref, parentException, loads) {
+    // determine the load path and method
+    const { loadPath, loadMethod } = resolvePath(basePath, ref);
+
     // if already loaded or loading then return that promise
-    if (loads[resourcePath]) return loads[resourcePath];
+    if (loads[loadPath]) return loads[loadPath];
 
     // store deferred promise
     const deferred = defer();
-    loads[resourcePath] = deferred.promise;
+    loads[loadPath] = deferred.promise;
 
     // load content
-    const loadMethod = rxHttp.test(resourcePath) ? httpLoad : fileLoad;
-    const data = await loadMethod(resourcePath, exception);
-
-    // determine content type
-    let type = data ? data.type : undefined;
-    if (!type && rxYaml.test(resourcePath)) type = 'yaml';
-    if (!type && rxJson.test(resourcePath)) type = 'json';
-
-    try {
-        if (data) {
-            if (type === 'yaml') {
-                deferred.resolve(yaml.safeLoad(data.content));
-            } else if (type === 'json') {
-                deferred.resolve(JSON.parse(data.content));
-            } else if (!type) {
-                let obj;
-                try {
-                    obj = yaml.safeLoad(data.content);
-                    type = 'yaml';
-                } catch (err) {}
-                if (!type) {
-                    try {
-                        obj = JSON.parse(data.content);
-                        type = 'json';
-                    } catch (err) {}
-                }
-                if (!type) {
-                    exception.message('Unable to parse document "' + resourcePath + '". Please verify that it is either a YAML or JSON document.');
-                    deferred.resolve();
-                } else {
-                    deferred.resolve(obj);
-                }
-            }
-        }
-    } catch (err) {
-        exception.message(err.toString());
-        deferred.resolve();
-    }
+    const exception = parentException.nest('Unable to dereference file: ' + loadPath);
+    const value = await loadMethod(loadPath, exception);
+    deferred.resolve({ exception, value });
 
     return deferred.promise;
 }
@@ -247,39 +219,29 @@ async function load (resourcePath, { exception, loads }) {
  * @param {EnforcerException} exception
  * @returns {Promise<{ content: string, type: string }|undefined>}
  */
-function httpLoad (url, exception) {
-    return new Promise((resolve, reject) => {
-        const protocol = url.toLowerCase().startsWith('https') ? https : http;
-        const req = protocol.get(url, res => {
-            const { statusCode } = res;
-            const contentType = res.headers['content-type'];
-
-            if (statusCode !== 200) {
-                exception.message('Unable to load resource: ' + url);
-                res.resume();
-                resolve();
-                return
-            }
-
+async function httpLoad (url, exception) {
+    try {
+        const res = await axios.get(url);
+        const contentType = res.headers['content-type'];
+        if (res.status < 200 || res.status >= 400) {
+            exception.message('Unable to load resource: ' + url);
+        } else {
             let type;
             if (/^application\/json/.test(contentType)) type = 'json';
             if (/^(?:text|application)\/(?:x-)?yaml/.test(contentType)) type = 'yaml';
 
-            res.setEncoding('utf8');
-            let rawData = '';
-            res.on('data', (chunk) => { rawData += chunk; });
-            res.on('end', () => {
-                resolve({
-                    content: rawData,
-                    type: type
-                });
-            });
-        });
-        req.on('error', err => {
-            exception.message(err.toString());
-            resolve();
-        })
-    })
+            if (type === 'yaml') {
+
+            }
+
+            return {
+                content: res.data,
+                type: type
+            };
+        }
+    } catch (err) {
+        exception.message('Unexpected error: ' + err.message);
+    }
 }
 
 /**
