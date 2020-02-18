@@ -1,6 +1,6 @@
 const Exception = require('../src/exception');
 const expect = require('chai').expect;
-const RefParser = require('../src/json-schema-ref-parser');
+const RefParser = require('../src/ref-parser');
 const path = require('path');
 const server = require('../test-resources/ref-parser/server');
 
@@ -10,15 +10,9 @@ const resourcesDir = path.resolve(__dirname, '..', 'test-resources', 'ref-parser
 
 describe.only('ref-parser', () => {
     let close;
-    let parser;
 
     before(async () => {
         close = await server()
-    });
-
-    beforeEach(() => {
-        const p = new RefParser();
-        parser = p.dereference.bind(p);
     });
 
     after(() => {
@@ -26,23 +20,29 @@ describe.only('ref-parser', () => {
     });
 
     it('can load file', async () => {
-        const [ result ] = await parser(path.resolve(resourcesDir, 'People.yml'));
+        const parser = new RefParser(path.resolve(resourcesDir, 'People.yml'));
+        const [ result ] = await parser.dereference();
         expect(result).to.haveOwnProperty('Person');
+        expect(result.Person['x-key']).to.equal('Person');
     });
 
     it('can load from a url', async () => {
-        const [ result ] = await parser('http://localhost:18088/People.yml');
+        const parser = new RefParser('http://localhost:18088/People.yml');
+        const [ result ] = await parser.dereference();
         expect(result).to.haveOwnProperty('Person');
+        expect(result.Person['x-key']).to.equal('Person');
     });
 
     it('can map internal references', async () => {
-        const [ result ] = await parser(path.resolve(resourcesDir, 'Pets.yaml'));
+        const parser = new RefParser(path.resolve(resourcesDir, 'Pets.yaml'));
+        const [ result ] = await parser.dereference();
         expect(result.Cat.allOf[0]).to.equal(result.Pet);
         expect(result.Dog.allOf[0]).to.equal(result.Pet);
     });
 
     it('can map external references', async () => {
-        const [ result ] = await parser(path.resolve(resourcesDir, 'Household.json'));
+        const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
+        const [ result ] = await parser.dereference();
         expect(result.People.items['x-key']).to.equal('Person');
         expect(result.Pets.items['x-key']).to.equal('Pet');
     });
@@ -53,7 +53,8 @@ describe.only('ref-parser', () => {
                 $ref: path.resolve(resourcesDir, './Pets.yaml#/Pet')
             }
         };
-        const [ result ] = await parser(obj);
+        const parser = new RefParser(obj);
+        const [ result ] = await parser.dereference();
         expect(result.MyPet['x-key']).to.equal('Pet');
     });
 
@@ -63,7 +64,8 @@ describe.only('ref-parser', () => {
                 $ref: path.resolve(resourcesDir, './Pets.yaml')
             }
         };
-        const [ result ] = await parser(obj);
+        const parser = new RefParser(obj);
+        const [ result ] = await parser.dereference();
         expect(result.MyPet.Pet['x-key']).to.equal('Pet');
     });
 
@@ -71,16 +73,25 @@ describe.only('ref-parser', () => {
         const obj = {
             $ref: path.resolve(resourcesDir, './Pets.yaml')
         };
-        const [ result ] = await parser(obj);
+        const parser = new RefParser(obj);
+        const [ result ] = await parser.dereference();
         expect(result.Pet['x-key']).to.equal('Pet');
     });
 
     it('can map from root element file', async () => {
-        const [ result ] = await parser(path.resolve(resourcesDir, './FromRoot.yml'));
+        const parser = new RefParser(path.resolve(resourcesDir, './FromRoot.yml'));
+        const [ result ] = await parser.dereference();
         expect(result.Pet['x-key']).to.equal('Pet');
     });
 
-    it.only('can handle circular references in same document', async () => {
+    it('can load a non object', async () => {
+        const parser = new RefParser(path.resolve(resourcesDir, 'Value.yaml'));
+        const [ result ] = await parser.dereference();
+        expect(result.Value['x-key']).to.equal('Value');
+        expect(result.Value.properties.value.type).to.equal('integer');
+    });
+
+    it('can handle circular references in same document', async () => {
         const obj = {
             A: {
                 title: 'A',
