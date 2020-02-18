@@ -119,7 +119,8 @@ module.exports = {
 
                     return {
                         params: pathParams,
-                        path
+                        path,
+                        pathKey
                     };
                 };
 
