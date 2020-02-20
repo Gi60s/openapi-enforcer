@@ -168,7 +168,9 @@ console.log(response)
 //     body: 'hello',
 //     schema: {
 //         type: 'string',
-//         maxLength: 10
+//         deprecated: false,
+//         maxLength: 10,
+//         nullable: false
 //     },
 //     headers: {
 //         expires: '2000-01-01'
