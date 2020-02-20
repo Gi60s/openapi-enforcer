@@ -134,7 +134,7 @@ Validate and serialize response data.
 
 ```js
 const Operation = require('openapi-enforcer').v3_0.Operation;
-const operation = new Operation({
+const [ operation ] = new Operation({
     responses: {
         200: {
             description: 'Success',

@@ -265,7 +265,7 @@
 <p><strong>Returns:</strong> An <a href="/openapi-enforcer/api/enforcer-result">EnforcerResult</a> that resolves to an object with properties <code>body</code>, <code>header</code>, and <code>schema</code>. If the <code>body</code> passed in was an object then the <code>body</code> result will also be an object, not a JSON string.</p>
 <p><strong>Example with Body and Headers</strong></p>
 <pre><code class="language-js"><span class="hljs-keyword">const</span> Operation = <span class="hljs-built_in">require</span>(<span class="hljs-string">'openapi-enforcer'</span>).v3_0.Operation;
-<span class="hljs-keyword">const</span> operation = <span class="hljs-keyword">new</span> Operation({
+<span class="hljs-keyword">const</span> [ operation ] = <span class="hljs-keyword">new</span> Operation({
     <span class="hljs-attr">responses</span>: {
         <span class="hljs-number">200</span>: {
             <span class="hljs-attr">description</span>: <span class="hljs-string">'Success'</span>,
