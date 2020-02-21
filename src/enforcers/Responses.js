@@ -43,8 +43,7 @@ module.exports = {
                             if (method === 'post' && key === '201') {
                                 const key = definition.headers
                                     ? Object.keys(definition.headers)
-                                        .filter(v => rxLocation.test(v))
-                                        .map(v => v.toLowerCase())[0]
+                                        .filter(v => rxLocation.test(v))[0]
                                     : null;
                                 if ((!key || !definition.headers[key]) && !skipCodes.WRES001) {
                                     (escalateCodes.WRES001 ? exception : warn).message('A 201 response for a POST request should return a location header (https://tools.ietf.org/html/rfc7231#section-4.3.3) and this is not documented in your OpenAPI document. [WRES001]')

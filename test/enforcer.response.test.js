@@ -16,7 +16,9 @@
  **/
 'use strict';
 const assert        = require('../src/assert');
+const Enforcer      = require('../');
 const expect        = require('chai').expect;
+const path          = require('path');
 const Response2     = require('../').v2_0.Response;
 const Response3     = require('../').v3_0.Response;
 
@@ -119,6 +121,12 @@ describe('enforcer/response', () => {
                 }
             });
             expect(err).to.be.undefined;
+        });
+
+        it('does not care about header case', async () => {
+            const [ openapi, , warn ] = await Enforcer(path.resolve(__dirname, '..', 'test-resources', 'issue-60', 'openapi.yml'), { fullResult: true });
+            expect(warn).to.equal(undefined);
+            expect(openapi.paths['/cased'].post.responses[201].headers).to.haveOwnProperty('Location');
         });
 
         it('has style limited to "simple"', () => {

@@ -1,0 +1,32 @@
+openapi: '3.0.2'
+info:
+  title: Hello
+  version: yes
+paths:
+  /lowercase:
+    post:
+      responses:
+        201:
+          description: lowercase
+          headers:
+            location:
+              schema:
+                type: string
+  /cased:
+    post:
+      responses:
+        201:
+          description: cased
+          headers:
+            Location:
+              schema:
+                type: string
+  /uppercase:
+    post:
+      responses:
+        201:
+          description: uppercase
+          headers:
+            LOCATION:
+              schema:
+                type: string
