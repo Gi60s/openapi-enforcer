@@ -304,6 +304,7 @@ module.exports = {
 
                     } else {
                         exception.message('Content-Type not accepted');
+                        exception.statusCode = 415;
                     }
 
                 } else if (!parameters.formData) {

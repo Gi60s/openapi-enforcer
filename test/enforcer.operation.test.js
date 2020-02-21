@@ -1109,6 +1109,20 @@ describe('enforcer/operation', () => {
                 expect(err).to.match(/For Content-Type \*\/\*/);
             });
 
+            it('can produce 415 status code error if content type unsupported', () => {
+                const [ operation ] = Enforcer.v3_0.Operation(def = {
+                    requestBody: {
+                        content: {
+                            'text/plain': textPlain
+                        }
+                    },
+                    responses: { 200: { description: '' } }
+                });
+                const [ , err ] = operation.request({ body: { number: 50 }, headers: { 'content-type': 'application/json' } });
+                expect(err).to.match(/Content-Type not accepted/);
+                expect(err.statusCode).to.equal(415);
+            });
+
         });
 
     });
