@@ -100,6 +100,8 @@ module.exports = {
          * @returns {EnforcerResult<{ body:*, cookie:object, headers:object, operation: Operation, path:object, query:object, response:function }>}
          */
         request: function (request, options) {
+            request = Object.assign({}, request);
+
             // validate input parameters
             if (!request || typeof request !== 'object') throw Error('Invalid request. Expected a non-null object. Received: ' + request);
             if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || typeof request.body === 'object')) throw Error('Invalid body provided');
