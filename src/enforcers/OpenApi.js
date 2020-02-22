@@ -18,6 +18,7 @@
 const EnforcerRef   = require('../enforcer-ref');
 const Exception     = require('../exception');
 const Result        = require('../result');
+const Operation     = require('./Operation');
 const util          = require('../util');
 
 const rxHostParts = /^((?:https?|wss?):\/\/)?(.+?)(\/.+)?$/;
@@ -100,7 +101,7 @@ module.exports = {
          * @returns {EnforcerResult<{ body:*, cookie:object, headers:object, operation: Operation, path:object, query:object, response:function }>}
          */
         request: function (request, options) {
-            request = Object.assign({}, request);
+            request = this.toRequestObject(request);
 
             // validate input parameters
             if (!request || typeof request !== 'object') throw Error('Invalid request. Expected a non-null object. Received: ' + request);
@@ -147,7 +148,9 @@ module.exports = {
                 result.value.pathKey = pathKey;
             }
             return result;
-        }
+        },
+
+        toRequestObject: Operation.prototype.toRequestObject
     },
 
     validator: function ({ major }) {

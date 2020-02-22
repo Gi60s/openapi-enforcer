@@ -21,6 +21,7 @@ const Result        = require('../result');
 const util          = require('../util');
 const Value         = require('../schema/value');
 
+const requestKeys = ['body', 'headers', 'method', 'path', 'query'];
 const rxInteger = /^\d+$/;
 const rxNumber = /^\d+(?:\.\d+)?$/;
 
@@ -119,7 +120,7 @@ module.exports = {
 
             // validate input parameters
             if (!request || typeof request !== 'object') throw Error('Invalid request. Expected a non-null object. Received: ' + request);
-            request = Object.assign({}, request);
+            request = this.toRequestObject(request);
             if (!request.hasOwnProperty('headers')) request.headers = {};
             if (!request.hasOwnProperty('path')) request.path = {};
             if (!request.hasOwnProperty('query')) request.query = '';
@@ -446,6 +447,14 @@ module.exports = {
             }
 
             return new Result(result, exception, warning);
+        },
+
+        toRequestObject: function (req) {
+            const result = {};
+            requestKeys.forEach(key => {
+                if (key in req) result[key] = req[key]
+            });
+            return result;
         }
     },
 
