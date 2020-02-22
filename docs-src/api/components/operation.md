@@ -95,7 +95,7 @@ Parse and validate an incoming request.
 | Property | Description | Type  | Default |
 | --------- | ----------- | ---- | ------- |
 | body | The request body. If an object is provided then it should already be deserialized as far a `JSON.parse` would deserialize. | `string` or `object` | |
-| header | An `object` of key value pairs where the key is the header name and the value is the header value. | `object` | `{}` |
+| headers | An `object` of key value pairs where the key is the header name and the value is the header value. | `object` | `{}` |
 | path | An `object` containing all of the path parameter names and values. The values should not be deserialized. | `object` | `{}` |
 | query | The full query string as a `string`. | `string` | |
 
