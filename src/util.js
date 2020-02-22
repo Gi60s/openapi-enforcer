@@ -378,6 +378,7 @@ function merge (target, source, mapping = '') {
                 target[i] = merge(target[i], source[i], '> ' + i);
             }
         }
+        return target;
     } else {
         return source;
     }
@@ -556,7 +557,7 @@ function smart (value) {
     if (type === 'string') return '"' + value.replace(/"/g, '\\"') + '"';
     if (value instanceof Date) return isNaN(value) ? 'invalid date object' : value.toISOString();
     if (Array.isArray(value)) {
-        let result = '[' + value.toString() + ']';
+        let result = '[' + String(value) + ']';
         const length = result.length;
         if (length > 15) {
             const excess = length - 15;
