@@ -33,7 +33,7 @@ describe.only('ref-parser', () => {
         expect(result.Person['x-key']).to.equal('Person');
     });
 
-    it('can map internal references', async () => {
+    it.only('can map internal references', async () => {
         const parser = new RefParser(path.resolve(resourcesDir, 'Pets.yaml'));
         const [ result ] = await parser.dereference();
         expect(result.Cat.allOf[0]).to.equal(result.Pet);
