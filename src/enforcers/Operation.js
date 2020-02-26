@@ -235,6 +235,10 @@ module.exports = {
                         } else if (parameter.required) {
                             missingRequired.push(key);
                         }
+
+                        if (!output.hasOwnProperty(key) && parameter.schema.hasOwnProperty('default')) {
+                            output[key] = util.copy(parameter.schema.default);
+                        }
                     });
 
                     result[reqKey === 'header' ? 'headers' : reqKey] = Value.extract(output);
@@ -273,10 +277,7 @@ module.exports = {
 
                 // v3 requestBody
                 } else if (this.requestBody) {
-                    const contentType = req.header.hasOwnProperty('content-type') ? req.header['content-type'].split(';')[0].trim() : '*/*';
-                    const content = this.requestBody.content;
-                    const mediaTypes = Object.keys(content);
-                    const matches = util.findMediaMatch(contentType, mediaTypes);
+                    const { content, contentType, matches } = findRequestBodyMediaTypeMatches(this, req);
                     const length = matches.length;
 
                     // one or more potential matches
@@ -315,6 +316,23 @@ module.exports = {
                 exception.message('Missing required parameter: body');
             } else if (this.requestBody && this.requestBody.required) {
                 exception.message('Missing required request body');
+            } else {
+                let bodySchema;
+                if (parameters.body) {
+                    bodySchema = getBodyParameter(parameters).schema
+                } else if (this.requestBody) {
+                    const { content, matches } = findRequestBodyMediaTypeMatches(this, req);
+                    const length = matches.length;
+                    for (let i = 0; i < length; i++) {
+                        const type = matches[i];
+                        const schema = content[type].schema;
+                        if (schema && schema.hasOwnProperty('default')) {
+                            bodySchema = schema;
+                            break;
+                        }
+                    }
+                }
+                if (bodySchema && bodySchema.hasOwnProperty('default')) result.body = util.copy(bodySchema.default)
             }
 
             return new Result(result, exception);
@@ -632,6 +650,18 @@ function deserializeAndValidate(exception, schema, data, success) {
         if (exception) exception.push(data.error);
     } else {
         success(data.value);
+    }
+}
+
+function findRequestBodyMediaTypeMatches (context, req) {
+    const contentType = req.header.hasOwnProperty('content-type') ? req.header['content-type'].split(';')[0].trim() : '*/*';
+    const content = context.requestBody.content;
+    const mediaTypes = Object.keys(content);
+    const matches = util.findMediaMatch(contentType, mediaTypes);
+    return {
+        content,
+        contentType,
+        matches
     }
 }
 
