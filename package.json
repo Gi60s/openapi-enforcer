@@ -1,6 +1,6 @@
 {
   "name": "openapi-enforcer",
-  "version": "1.8.8",
+  "version": "1.9.0",
   "description": "Library for validating, parsing, and formatting data against open api schemas.",
   "main": "index.js",
   "directories": {
