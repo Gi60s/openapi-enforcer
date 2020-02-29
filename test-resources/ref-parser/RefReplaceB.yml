@@ -1,0 +1,5 @@
+B:
+  a:
+    $ref: './RefReplaceA.yml'
+  b:
+    $ref: './RefReplaceA.yml#/A/b'
