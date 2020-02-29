@@ -33,7 +33,7 @@ describe.only('ref-parser', () => {
         expect(result.Person['x-key']).to.equal('Person');
     });
 
-    it.only('can map internal references', async () => {
+    it('can map internal references', async () => {
         const parser = new RefParser(path.resolve(resourcesDir, 'Pets.yaml'));
         const [ result ] = await parser.dereference();
         expect(result.Cat.allOf[0]).to.equal(result.Pet);
@@ -42,7 +42,7 @@ describe.only('ref-parser', () => {
 
     it('can map external references', async () => {
         const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
-        const [ result ] = await parser.dereference();
+        const [ result, err ] = await parser.dereference();
         expect(result.People.items['x-key']).to.equal('Person');
         expect(result.Pets.items['x-key']).to.equal('Pet');
     });
@@ -104,25 +104,54 @@ describe.only('ref-parser', () => {
                 pair: {
                     $ref: '#/A/title'
                 },
+            },
+            Aa: {
+                $ref: '#/A'
             }
         };
-        const [ result ] = await parser(obj);
-        expect(result.MyPet['x-key']).to.equal('Pet');
+        const parser = new RefParser(obj);
+        const [ result ] = await parser.dereference();
+        expect(result.A.pair).to.equal('B');
+        expect(result.B.pair).to.equal('A');
+        expect(result.Aa).to.equal(result.A);
     });
 
     it('can handle circular references in file', async () => {
-        const [ result ] = await parser(path.resolve(resourcesDir, './CircleA.yml'));
-        expect(result.MyPet['x-key']).to.equal('Pet');
+        const parser = new RefParser(path.resolve(resourcesDir, './CircleA.yml'));
+        const [ result ] = await parser.dereference();
+        expect(result.A.y.B.x).to.equal('B');
+        expect(result.A.y.B.y).to.equal(result);
+    });
+
+    it('can handle circular reference to reference', async () => {
+        const parser = new RefParser(path.resolve(resourcesDir, './RefReplaceA.yml'));
+        const [ result, err ] = await parser.dereference();
+        expect(result.A.a).to.equal(result);
+        expect(result).to.equal(result.A.b.B.a);
+        expect(result.A.b).to.equal(parser.$refs[path.resolve(resourcesDir, './RefReplaceB.yml')]);
+    });
+
+    it('will produce error for reference to self', async () => {
+        const obj = {
+            A: {
+                $ref: '#/A'
+            }
+        };
+        const parser = new RefParser(obj);
+        const [ , err ] = await parser.dereference();
+        expect(err).to.match(/Unresolvable infinite loop/);
     });
 
     it('will produce error for missing root file', async () => {
-        const [, exception ] = await parser(path.resolve(resourcesDir, 'dne.yml'));
+        const parser = new RefParser(path.resolve(resourcesDir, './dne.yml'));
+        const [ , exception ] = await parser.dereference();
         expect(exception).to.match(/Unable to find referenced file.+dne\.yml$/);
     });
 
     it('will produce error for non reachable http endpoint', async () => {
-        const [, exception ] = await parser('http://localhost:18088/dne.yml');
-        expect(exception).to.match(/Unable to load resource.+dne\.yml$/);
+        const parser = new RefParser('http://localhost:18088/dne.yml');
+        const [ , err ] = await parser.dereference();
+        expect(err).to.match(/Request failed with status code 404$/);
     });
 
     it('will produce exception for missing nested file', async () => {
@@ -131,8 +160,9 @@ describe.only('ref-parser', () => {
                 $ref: path.resolve(resourcesDir, './dne.yml#/Foo')
             }
         };
-        const [, exception ] = await parser(obj);
-        expect(exception).to.match(/Unable to find referenced file.+dne\.yml$/);
+        const parser = new RefParser(obj);
+        const [ , err ] = await parser.dereference();
+        expect(err).to.match(/Unable to find referenced file.+dne\.yml$/);
     });
 
     it('will produce error for existing file with missing resource', async () => {
@@ -141,14 +171,22 @@ describe.only('ref-parser', () => {
                 $ref: path.resolve(resourcesDir, './Pets.yaml#/Dne')
             }
         };
-        const [, exception ] = await parser(obj);
-        expect(exception).to.match(/Cannot resolve reference: #\/Dne$/);
+        const parser = new RefParser(obj);
+        const [ , err ] = await parser.dereference();
+        expect(err).to.match(/Cannot resolve reference: #\/Dne$/);
     });
 
-    it('can look up nodes based on references', async () => {
-        const p = new RefParser();
-        const [ result ] = await p.dereference(path.resolve(resourcesDir, 'Pets.yaml'));
-        p.$refs.get('#/Cat', )
+    it('can identify source from node', async () => {
+        const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
+        const [ result ] = await parser.dereference();
+        expect(parser.getSource(result.People)).to.equal(path.resolve(resourcesDir, 'Household.json'))
+        expect(parser.getSource(result.People.items.))
+    });
+
+    it.skip('can look up nodes based on references', async () => {
+        const parser = new RefParser(path.resolve(resourcesDir, 'Pets.yaml'));
+        const [ result ] = await parser.dereference();
+        parser.$refs.get('#/Cat', )
         expect(result.Cat.allOf[0]).to.equal(result.Pet);
         expect(result.Dog.allOf[0]).to.equal(result.Pet);
     });

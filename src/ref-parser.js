@@ -22,6 +22,7 @@ const fs        = require('fs');
 const path      = require('path');
 const Result    = require('./result');
 const url       = require('url');
+const util      = require('./util');
 const yaml      = require('js-yaml');
 
 const rxHttp = /^https?:\/\//i;
@@ -44,42 +45,6 @@ module.exports = RefParser;
  * @param {string|object} source
  * @returns {Promise<EnforcerResult>}
  */
-
-/*async function dereference (source) {
-    const data = {
-        exception: new Exception('Unable to dereference definition for one or more reasons'),
-        key: undefined,
-        loads: Object.create(null),
-        map: new WeakMap(),
-        parent: null,
-        path: typeof source === 'string' ? source : process.cwd(),
-        source: source,
-        result: null,
-        warning: new Exception('One or more warnings encountered while while dereferencing definition')
-    };
-    data.root = data;
-
-    // if the source is a string the load the content
-    if (typeof source === 'string') {
-        const [ refPath, ref ] = source.split('#/');
-        const obj = await load(refPath, data);
-        data.source = obj
-            ? traverse(obj, ref, data.exception)
-            : null;
-    }
-
-    if (data.source) await parse(data);
-
-    if (data.exception.hasException) {
-        return Result(null, data.exception, data.warning);
-    } else {
-        const factory = {
-
-            value: data.result
-        };
-        return Result(factory, data.exception, data.warning);
-    }
-}*/
 
 const map = new WeakMap();
 
@@ -105,12 +70,12 @@ RefParser.prototype.dereference = async function () {
         ? path.dirname(source)
         : process.cwd();
 
-    const parseMap = new Map();
     if (typeof source === 'string') {
         const loaded = await load(basePath, source, exception, loads);
-        this.$refs.root = await parse(path.dirname(loaded.path), loaded.value, loaded.value, that, parseMap, exception.at(loaded.path));
+        that.refs.root = await parse(path.dirname(loaded.path), loaded.value, loaded.value, that, new Map(), [], exception.at(loaded.path));
     } else {
-        this.$refs.root = await parse(basePath, source, source, that, parseMap, exception.at('root object'));
+        const copy = util.copy(source);
+        that.refs.root = await parse(basePath, copy, copy, that, new Map(), [], exception.at('root object'));
     }
 
     return new Result(this.$refs.root, exception);
@@ -125,42 +90,57 @@ function defer () {
     return deferred;
 }
 
-async function parse (basePath, source, value, that, map, exception) {
+async function parse (basePath, source, value, that, map, chain, exception) {
+    // console.log('Parse:\n  B: ' + basePath + '\n  S: ' + Object.keys(source));
     if (Array.isArray(value)) {
-        const existing = map.get(value);
+        const existing = map.has(value);
         if (existing) return existing;
+        map.set(value, value);
 
-        const result = [];
-        map.set(value, result);
         const promises = value.map(async (item, index) => {
-            result[index] = await parse(basePath, source, item, that, map, exception.at(String(index)));
+            value[index] = await parse(basePath, source, item, that, map, chain, exception.at(String(index)));
         });
         await Promise.all(promises);
-        return result;
+        return value;
 
     } else if (typeof value === 'object') {
-        const existing = map.get(value);
-        if (existing) return existing;
-
         if (value.hasOwnProperty('$ref')) {
+            const infiniteLoop = chain.includes(value);
+            if (infiniteLoop) {
+                exception.message('Unresolvable infinite loop');
+                return;
+            }
+
             const [, internalPath] = value.$ref.split('#');
+            let newBasePath = basePath;
+            let newSource = source;
+            let result;
+
             if (value.$ref.startsWith('#/')) {
-                return traverse(source, internalPath, exception);
+                result = traverse(source, internalPath, exception);
             } else {
                 const loaded = await load(basePath, value.$ref, exception, that.loads);
                 const childException = exception.at(loaded.path);
-                const source = await parse(path.dirname(loaded.path), source, loaded.value, that, map, childException);
-                this.$refs[loaded.path] = source;
-                return traverse(source, internalPath, childException);
+                newBasePath = path.dirname(loaded.path);
+                newSource = await parse(newBasePath, loaded.value, loaded.value, that, map, chain, childException);
+                that.refs[loaded.path] = newSource;
+                result = newSource
+                    ? traverse(newSource, internalPath, childException)
+                    : undefined;
             }
+
+            return parse(newBasePath, newSource, result, that, map, chain.concat([ value ]), exception);
+
         } else {
-            let result = {};
-            map.set(value, result);
+            const existing = map.get(value);
+            if (existing) return existing;
+            map.set(value, value);
+
             const promises = Object.keys(value).map(async key => {
-                result[key] = await parse(basePath, source, value[key], that, map, exception.at(key));
+                value[key] = await parse(basePath, source, value[key], that, map, chain, exception.at(key));
             });
             await Promise.all(promises);
-            return result;
+            return value;
         }
 
     } else {
@@ -179,6 +159,7 @@ async function parse (basePath, source, value, that, map, exception) {
 async function load (basePath, ref, exception, loads) {
     // determine the load path and method
     const { loadPath, loadMethod } = resolvePath(basePath, ref);
+    // console.log('load:\n  B: ' + basePath + '\n  R: ' + ref + '\n  L: ' + loadPath);
 
     // if already loaded or loading then return that promise
     if (loads[loadPath]) return loads[loadPath];
@@ -285,6 +266,14 @@ function parseString (content, type, exception) {
     }
 }
 
+function pendingRefListener (refObj) {
+
+}
+
+function pendingRefUpdate (refObj, replacementObj) {
+
+}
+
 function resolvePath (basePath, ref) {
     const [refPath] = ref.split('#');
     if (rxHttp.test(basePath) || rxHttp.test(ref)) {
@@ -292,14 +281,9 @@ function resolvePath (basePath, ref) {
             loadPath: url.resolve(basePath, refPath),
             loadMethod: httpLoad
         };
-    } else if (refPath) {
-        return {
-            loadPath: path.resolve(path.dirname(basePath), refPath),
-            loadMethod: fileLoad
-        };
     } else {
         return {
-            loadPath: path.resolve(basePath),
+            loadPath: path.resolve(basePath, refPath),
             loadMethod: fileLoad
         };
     }
@@ -318,7 +302,7 @@ function traverse (obj, path, exception) {
     while (keys.length) {
         const key = keys.shift();
         if (key !== '#') {
-            if (o.hasOwnProperty(key)) {
+            if (o && typeof o === 'object' && key in o) {
                 o = o[key];
             } else {
                 exception.message('Cannot resolve reference: #' + path);
