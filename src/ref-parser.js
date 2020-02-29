@@ -52,9 +52,10 @@ function RefParser (source) {
     this.$refs = {};
     map.set(this, {
         bundled: null,
-        dereferenced: null,
-        loads: {},
+        dereferenced: null,     // will hold dereference() returned EnforcerResult
+        loads: {},              // a map of loaded resources
         refs: this.$refs,
+        sourceMap: { '': [] },  // a map of source paths to nodes within the source
         source
     });
 }
@@ -64,21 +65,35 @@ RefParser.prototype.dereference = async function () {
     if (that.dereferenced) return that.dereferenced;
 
     const exception = new Exception('Unable to dereference definition for one or more reasons');
-    const { loads, source } = that;
+    const { source } = that;
 
     const basePath = typeof source === 'string'
         ? path.dirname(source)
         : process.cwd();
 
     if (typeof source === 'string') {
-        const loaded = await load(basePath, source, exception, loads);
-        that.refs.root = await parse(path.dirname(loaded.path), loaded.value, loaded.value, that, new Map(), [], exception.at(loaded.path));
+        const loaded = await load(basePath, source, exception, that);
+        that.refs.root = await parse(path.dirname(loaded.path), loaded.path, loaded.value, loaded.value, that, new Map(), [], exception.at(loaded.path));
     } else {
         const copy = util.copy(source);
-        that.refs.root = await parse(basePath, copy, copy, that, new Map(), [], exception.at('root object'));
+        that.refs.root = await parse(basePath, '', copy, copy, that, new Map(), [], exception.at('root object'));
     }
 
-    return new Result(this.$refs.root, exception);
+    that.dereferenced = new Result(this.$refs.root, exception);
+    return that.dereferenced;
+};
+
+RefParser.prototype.getSourcePath = function (node) {
+    const that = map.get(this);
+    if (!that.dereferenced) throw Error('You must first call the dereference function before looking up node source paths.');
+    if (that.dereferenced.error) throw Error('Cannot get source path for a node when dereference has failed.');
+
+    const sourceMap = that.sourceMap;
+    const keys = Object.keys(sourceMap);
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        if (sourceMap[key].includes(node)) return key;
+    }
 };
 
 function defer () {
@@ -90,15 +105,16 @@ function defer () {
     return deferred;
 }
 
-async function parse (basePath, source, value, that, map, chain, exception) {
+async function parse (basePath, fullPath, source, value, that, map, chain, exception) {
     // console.log('Parse:\n  B: ' + basePath + '\n  S: ' + Object.keys(source));
     if (Array.isArray(value)) {
         const existing = map.has(value);
         if (existing) return existing;
         map.set(value, value);
+        that.sourceMap[fullPath].push(value);
 
         const promises = value.map(async (item, index) => {
-            value[index] = await parse(basePath, source, item, that, map, chain, exception.at(String(index)));
+            value[index] = await parse(basePath, fullPath, source, item, that, map, chain, exception.at(String(index)));
         });
         await Promise.all(promises);
         return value;
@@ -113,31 +129,34 @@ async function parse (basePath, source, value, that, map, chain, exception) {
 
             const [, internalPath] = value.$ref.split('#');
             let newBasePath = basePath;
+            let newFullPath = fullPath;
             let newSource = source;
             let result;
 
             if (value.$ref.startsWith('#/')) {
                 result = traverse(source, internalPath, exception);
             } else {
-                const loaded = await load(basePath, value.$ref, exception, that.loads);
+                const loaded = await load(basePath, value.$ref, exception, that);
                 const childException = exception.at(loaded.path);
-                newBasePath = path.dirname(loaded.path);
-                newSource = await parse(newBasePath, loaded.value, loaded.value, that, map, chain, childException);
+                newFullPath = loaded.path;
+                newBasePath = path.dirname(newFullPath);
+                newSource = await parse(newBasePath, newFullPath, loaded.value, loaded.value, that, map, chain, childException);
                 that.refs[loaded.path] = newSource;
                 result = newSource
                     ? traverse(newSource, internalPath, childException)
                     : undefined;
             }
 
-            return parse(newBasePath, newSource, result, that, map, chain.concat([ value ]), exception);
+            return parse(newBasePath, newFullPath, newSource, result, that, map, chain.concat([ value ]), exception);
 
         } else {
             const existing = map.get(value);
             if (existing) return existing;
             map.set(value, value);
 
+            that.sourceMap[fullPath].push(value);
             const promises = Object.keys(value).map(async key => {
-                value[key] = await parse(basePath, source, value[key], that, map, chain, exception.at(key));
+                value[key] = await parse(basePath, fullPath, source, value[key], that, map, chain, exception.at(key));
             });
             await Promise.all(promises);
             return value;
@@ -153,10 +172,12 @@ async function parse (basePath, source, value, that, map, chain, exception) {
  * @param {string} basePath
  * @param {string} ref
  * @param {EnforcerException} exception
- * @param {object} loads
+ * @param {object} that
  * @returns {Promise<{path: string, value: *}|undefined>}
  */
-async function load (basePath, ref, exception, loads) {
+async function load (basePath, ref, exception, that) {
+    const { loads, sourceMap } = that;
+
     // determine the load path and method
     const { loadPath, loadMethod } = resolvePath(basePath, ref);
     // console.log('load:\n  B: ' + basePath + '\n  R: ' + ref + '\n  L: ' + loadPath);
@@ -170,6 +191,7 @@ async function load (basePath, ref, exception, loads) {
 
     // load content
     const value = await loadMethod(loadPath, exception.at(loadPath));
+    sourceMap[loadPath] = [];
     deferred.resolve({
         path: loadPath,
         value
