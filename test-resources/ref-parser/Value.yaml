@@ -4,4 +4,4 @@ Value:
   properties:
     value:
       type:
-        $ref: './People.yml#/Person/property/age/type
+        $ref: './People.yml#/Person/property/age/type'
