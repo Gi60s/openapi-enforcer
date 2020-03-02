@@ -20,7 +20,8 @@ module.exports = Enforcer;
 
 const dataTypeFormats       = require('./src/data-type-formats');
 const Exception             = require('./src/exception');
-const RefParser             = require('json-schema-ref-parser');
+const NewRefParser          = require('./src/ref-parser');
+const OldRefParser          = require('json-schema-ref-parser');
 const Result                = require('./src/result');
 const Super                 = require('./src/super');
 const util                  = require('./src/util');
@@ -43,12 +44,12 @@ async function Enforcer(definition, options) {
     options = Object.assign({}, options);
     if (!options.hasOwnProperty('hideWarnings')) options.hideWarnings = false;
     if (!options.hasOwnProperty('fullResult')) options.fullResult = false;
-    if (!options.hasOwnProperty('dereferenceV2')) options.dereferenceV2 = false;
     if (!options.hasOwnProperty('componentOptions')) options.componentOptions = {};
 
-    const refParser = new RefParser();
     definition = util.copy(definition);
-    // definition = await refParser.dereference(definition);
+    const useNewRefParser = Enforcer.config.useNewRefParser;
+    const refParser = useNewRefParser ? new NewRefParser(definition) : new OldRefParser();
+    definition = useNewRefParser ? await refParser.dereference() : await refParser.dereference(definition);
 
     let exception = Exception('One or more errors exist in the OpenAPI definition');
     const hasSwagger = definition.hasOwnProperty('swagger');
@@ -75,9 +76,18 @@ async function Enforcer(definition, options) {
     return openapi;
 }
 
+Enforcer.config = {
+    useNewRefParser: false
+};
+
 Enforcer.dereference = function (definition) {
-    const refParser = new RefParser();
-    return refParser.dereference(definition);
+    if (Enforcer.config.useNewRefParser) {
+        const refParser = new NewRefParser(definition);
+        return refParser.dereference();
+    } else {
+        const refParser = new OldRefParser();
+        return refParser.dereference(definition);
+    }
 };
 
 Enforcer.Enforcer = Enforcer;
