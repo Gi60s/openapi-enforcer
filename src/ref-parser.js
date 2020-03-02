@@ -71,22 +71,29 @@ RefParser.prototype.dereference = async function () {
         ? path.dirname(source)
         : process.cwd();
 
+    let result;
     if (typeof source === 'string') {
         const loaded = await load(basePath, source, exception, that);
-        that.refs.root = await parse(path.dirname(loaded.path), loaded.path, loaded.value, loaded.value, that, new Map(), [], exception.at(loaded.path));
+        result = await parse(path.dirname(loaded.path), loaded.path, loaded.value, loaded.value, that, new Map(), [], exception.at(loaded.path));
+        that.refs[loaded.path] = result;
     } else {
         const copy = util.copy(source);
-        that.refs.root = await parse(basePath, '', copy, copy, that, new Map(), [], exception.at('root object'));
+        result = await parse(basePath, '', copy, copy, that, new Map(), [], exception.at('root object'));
+        that.refs[''] = result;
     }
 
-    that.dereferenced = new Result(this.$refs.root, exception);
+    that.dereferenced = new Result(result, exception);
     return that.dereferenced;
+};
+
+RefParser.prototype.getSourceNode = function (node) {
+    const fullPath = this.getSourcePath(node);
+    return this.$refs[fullPath];
 };
 
 RefParser.prototype.getSourcePath = function (node) {
     const that = map.get(this);
-    if (!that.dereferenced) throw Error('You must first call the dereference function before looking up node source paths.');
-    if (that.dereferenced.error) throw Error('Cannot get source path for a node when dereference has failed.');
+    ensureDereferenced(that);
 
     const sourceMap = that.sourceMap;
     const keys = Object.keys(sourceMap);
@@ -96,6 +103,37 @@ RefParser.prototype.getSourcePath = function (node) {
     }
 };
 
+RefParser.prototype.resolvePath = function (node, ref) {
+    const that = map.get(this);
+    ensureDereferenced(that);
+
+    const exception = new Exception('Could not resolve path from node');
+    const [externalPath, internalPath] = ref.split('#');
+
+    let result;
+    if (!externalPath) {
+        result = traverse(node, internalPath, exception);
+    } else {
+        const sourcePath = this.getSourcePath(node);
+        if (!sourcePath) {
+            exception.message('Unable to resolve source path for provided node.')
+        } else {
+            const dirPath = path.dirname(sourcePath);
+            const newPath = rxHttp.test(dirPath)
+                ? url.resolve(dirPath, externalPath)
+                : path.resolve(dirPath, externalPath);
+            if (this.$refs.hasOwnProperty(newPath)) {
+                result = traverse(this.$refs[newPath], internalPath, exception);
+            } else {
+                exception.message('Unable to resolve paths that were not already resolved during dereference.')
+            }
+        }
+    }
+
+    if (exception.hasException) throw Error(exception.toString());
+    return result;
+};
+
 function defer () {
     const deferred = {};
     deferred.promise = new Promise((resolve, reject) => {
@@ -103,6 +141,11 @@ function defer () {
         deferred.reject = reject;
     });
     return deferred;
+}
+
+function ensureDereferenced (that) {
+    if (!that.dereferenced) throw Error('You must first call the dereference function before looking up node source.');
+    if (that.dereferenced.error) throw Error('Cannot get source for a node when dereference has failed.');
 }
 
 async function parse (basePath, fullPath, source, value, that, map, chain, exception) {
@@ -286,14 +329,6 @@ function parseString (content, type, exception) {
         type,
         value
     }
-}
-
-function pendingRefListener (refObj) {
-
-}
-
-function pendingRefUpdate (refObj, replacementObj) {
-
 }
 
 function resolvePath (basePath, ref) {
