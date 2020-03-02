@@ -8,7 +8,7 @@ const resourcesDir = path.resolve(__dirname, '..', 'test-resources', 'ref-parser
 
 // TODO: add a message to discriminator not found mapping at root document message indicating that experimental parser should be used
 
-describe.only('ref-parser', () => {
+describe('ref-parser', () => {
     let close;
 
     before(async () => {
@@ -176,19 +176,162 @@ describe.only('ref-parser', () => {
         expect(err).to.match(/Cannot resolve reference: #\/Dne$/);
     });
 
-    it('can identify source from node', async () => {
-        const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
-        const [ result ] = await parser.dereference();
-        expect(parser.getSource(result.People)).to.equal(path.resolve(resourcesDir, 'Household.json'))
-        expect(parser.getSource(result.People.items.))
+    describe('getSourcePath', () => {
+        let parser;
+        let result;
+
+        it('will throw an error if not dereferenced', () => {
+            parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
+            expect(() => parser.getSourcePath(null)).to.throw(/You must first call the dereference function/);
+        });
+
+        it('will throw an error if dereference failed', async () => {
+            parser = new RefParser(path.resolve(resourcesDir, 'Dne.json'));
+            await parser.dereference();
+            expect(() => parser.getSourcePath(null)).to.throw(/dereference has failed/);
+        });
+
+        describe('from file input', () => {
+            before(async () => {
+                parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
+                result = (await parser.dereference()).value;
+            });
+
+            it('can identify root node source', async () => {
+                const source = parser.getSourcePath(result);
+                expect(source).to.equal(path.resolve(resourcesDir, 'Household.json'));
+            });
+
+            it('can identify node source for child http resource', async () => {
+                const source = parser.getSourcePath(result.People.items.property);
+                expect(source).to.equal('http://localhost:18088/People.yml');
+            });
+
+            it('can identify node source for child file', () => {
+                const source = parser.getSourcePath(result.Pets.items.properties);
+                expect(source).to.equal(path.resolve(resourcesDir, 'Pets.yaml'));
+            });
+
+            it('cannot identify source from leaf', () => {
+                const source = parser.getSourcePath(result.People.type);
+                expect(source).to.equal(undefined);
+            });
+        });
+
+        describe('from object input', () => {
+
+            before(async () => {
+                parser = new RefParser({
+                    a: {
+                        b: 1
+                    },
+                    file: {
+                        $ref: path.resolve(resourcesDir, 'People.yml')
+                    },
+                    http: {
+                        $ref: 'http://localhost:18088/People.yml#/Person'
+                    }
+                });
+                result = (await parser.dereference()).value;
+            });
+
+            it('can identify root node source', async () => {
+                const source = parser.getSourcePath(result.a);
+                expect(source).to.equal('');
+            });
+
+            it('can identify node source for child http resource', async () => {
+                const source = parser.getSourcePath(result.http);
+                expect(source).to.equal('http://localhost:18088/People.yml');
+            });
+
+            it('can identify node source for child file', () => {
+                const source = parser.getSourcePath(result.file);
+                expect(source).to.equal(path.resolve(resourcesDir, 'People.yml'));
+            });
+
+            it('cannot identify source from leaf', () => {
+                const source = parser.getSourcePath(result.a.b);
+                expect(source).to.equal(undefined);
+            });
+        });
     });
 
-    it.skip('can look up nodes based on references', async () => {
-        const parser = new RefParser(path.resolve(resourcesDir, 'Pets.yaml'));
-        const [ result ] = await parser.dereference();
-        parser.$refs.get('#/Cat', )
-        expect(result.Cat.allOf[0]).to.equal(result.Pet);
-        expect(result.Dog.allOf[0]).to.equal(result.Pet);
+    describe('getSourceNode', () => {
+
+        it('can get the root node from file source', async () => {
+            const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
+            const [ value ] = await parser.dereference();
+            const source = parser.getSourceNode(value.People);
+            expect(source).to.equal(value);
+        });
+
+        it('can get the child root node from file source', async () => {
+            const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
+            const [ value ] = await parser.dereference();
+            const source = parser.getSourceNode(value.People.items.property);
+            expect(source).to.haveOwnProperty('Person');
+            expect(source.Person['x-key']).to.equal('Person');
+        });
+
+    });
+
+    describe('resolvePath', () => {
+
+        it('can resolve internal path to value', async () => {
+            const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
+            const [ value ] = await parser.dereference();
+            const result = parser.resolvePath(value, '#/Pets/type');
+            expect(result).to.equal('array');
+        });
+
+        it('can resolve internal path to node', async () => {
+            const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
+            const [ value ] = await parser.dereference();
+            const result = parser.resolvePath(value, '#/Pets/items');
+            expect(result).to.equal(value.Pets.items);
+        });
+
+        it('can resolve to external relative local path', async () => {
+            const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
+            const [ value ] = await parser.dereference();
+            const result = parser.resolvePath(value, './Pets.yaml#/Pet');
+            expect(result).to.equal(value.Pets.items);
+        });
+
+        it('can resolve to external absolute local path', async () => {
+            const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
+            const [ value ] = await parser.dereference();
+            const result = parser.resolvePath(value, path.resolve(resourcesDir, 'Pets.yaml#/Pet'));
+            expect(result).to.equal(value.Pets.items);
+        });
+
+        it('can resolve relative http path', async () => {
+            const parser = new RefParser('http://localhost:18088/Household.json');
+            const [ value ] = await parser.dereference();
+            const result = parser.resolvePath(value, './People.yml#/Person');
+            expect(result).to.equal(value.People.items);
+        });
+
+        it('can resolve base http path', async () => {
+            const parser = new RefParser('http://localhost:18088/Household.json');
+            const [ value ] = await parser.dereference();
+            const result = parser.resolvePath(value, '/People.yml#/Person');
+            expect(result).to.equal(value.People.items);
+        });
+
+        it('can resolve absolute http path', async () => {
+            const parser = new RefParser('http://localhost:18088/Household.json');
+            const [ value ] = await parser.dereference();
+            const result = parser.resolvePath(value, 'http://localhost:18088/People.yml#/Person');
+            expect(result).to.equal(value.People.items);
+        });
+
+        it('cannot resolve path that was not part of deref', async () => {
+            const parser = new RefParser('http://localhost:18088/Household.json');
+            const [ value ] = await parser.dereference();
+            expect(() => parser.resolvePath(value, 'http://localhost:18088/Value.yml')).to.throw(/paths that were not already resolved/);
+        });
     });
 
 });
