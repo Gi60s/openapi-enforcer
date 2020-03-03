@@ -60,7 +60,7 @@
         
         <div>
           <p><strong>Page Content</strong></p>
-          <div class="section-nav"><ul class="toc"><li><a href="#enforcer">Enforcer</a></li><li><a href="#enforcerdereference">Enforcer.dereference</a></li><li><a href="#enforcerenforcer">Enforcer.Enforcer</a></li><li><a href="#enforcerexception">Enforcer.Exception</a></li><li><a href="#enforcerresult">Enforcer.Result</a></li><li><a href="#enforcerv2_0">Enforcer.v2_0</a></li><li><a href="#enforcerv3_0">Enforcer.v3_0</a></li></ul></div>
+          <div class="section-nav"><ul class="toc"><li><a href="#enforcer">Enforcer</a></li><li><a href="#enforcerconfig">Enforcer.config</a></li><li><a href="#enforcerdereference">Enforcer.dereference</a></li><li><a href="#enforcerenforcer">Enforcer.Enforcer</a></li><li><a href="#enforcerexception">Enforcer.Exception</a></li><li><a href="#enforcerresult">Enforcer.Result</a></li><li><a href="#enforcerv2_0">Enforcer.v2_0</a></li><li><a href="#enforcerv3_0">Enforcer.v3_0</a></li></ul></div>
         </div>
         
 
@@ -215,6 +215,25 @@ Enforcer(definition)
         <span class="hljs-keyword">const</span> isOpenApiInstance = openapi <span class="hljs-keyword">instanceof</span> Enforcer.v3_0.OpenApi
         <span class="hljs-built_in">console</span>.log(isOpenApiInstance);  <span class="hljs-comment">// true</span>
     })</code></pre>
+<h2 id="enforcerconfig">Enforcer.config</h2>
+<p>Set global configuration options for all Enforcer instances.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>useNewRefParser</td>
+<td>Use the custom built ref parser to resolve multi file discriminator references. This feature is currently in beta. Please report issues on github. <a href="https://github.com/byu-oit/openapi-enforcer/issues">https://github.com/byu-oit/openapi-enforcer/issues</a></td>
+<td><code>false</code></td>
+</tr>
+</tbody></table>
+<p><strong>Example</strong></p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> Enforcer = <span class="hljs-built_in">require</span>(<span class="hljs-string">'openapi-enforcer'</span>);
+Enforcer.config.useNewRefParser = <span class="hljs-literal">true</span>; <span class="hljs-comment">// use custom ref parser</span></code></pre>
 <h2 id="enforcerdereference">Enforcer.dereference</h2>
 <p><code>Enforcer.dereference ( definition ) : Promise &lt;object&gt;</code></p>
 <p>Resolves all of the <code>$ref</code> values in a definition and returns the dereferenced object.</p>

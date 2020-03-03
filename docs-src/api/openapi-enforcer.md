@@ -104,6 +104,21 @@ Enforcer(definition)
     })
 ```
 
+## Enforcer.config
+
+Set global configuration options for all Enforcer instances.
+
+| Option | Description | Default |
+| ------ | ----------- | ------- |
+| useNewRefParser | Use the custom built ref parser to resolve multi file discriminator references. This feature is currently in beta. Please report issues on github. https://github.com/byu-oit/openapi-enforcer/issues | `false` |
+
+**Example**
+
+```js
+const Enforcer = require('openapi-enforcer');
+Enforcer.config.useNewRefParser = true; // use custom ref parser
+```
+
 ## Enforcer.dereference
 
 `Enforcer.dereference ( definition ) : Promise <object>`
