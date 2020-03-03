@@ -1083,11 +1083,29 @@ describe('definition/schema', () => {
                     await assert.willReject(() => Enforcer(def, options), /Reference cannot be resolved: #\/components\/schemas\/Cow/)
                 });
 
-                it('properly maps external references', async () => {
+                it('fails to map external references using the old ref parser', async () => {
                     const docPath = path.resolve(__dirname, '..', 'test-resources', 'discriminator-mapping', 'openapi.yml');
-                    const [ enforcer, err ] = await Enforcer(docPath, { fullResult: true })
-                    console.log(err);
-                    throw Error('working here');
+                    const [ , err ] = await Enforcer(docPath, { fullResult: true });
+                    expect(err).to.match(/try the custom reference parser/);
+                });
+
+                it('properly maps external references using the new ref parser', async () => {
+                    Enforcer.config.useNewRefParser = true;
+                    try {
+                        const docPath = path.resolve(__dirname, '..', 'test-resources', 'discriminator-mapping', 'openapi.yml');
+                        const [ openapi, err ] = await Enforcer(docPath, {fullResult: true});
+                        expect(err).to.equal(undefined);
+
+                        const catSchema = openapi.paths['/cats'].get.responses[200].content['application/json'].schema;
+                        const petSchema = openapi.paths['/pets'].get.responses[200].content['application/json'].schema;
+                        expect(catSchema).to.equal(petSchema.discriminator.mapping.cat);
+                        expect(catSchema).to.equal(petSchema.oneOf[0]);
+                        expect(petSchema.oneOf[1]).to.equal(petSchema.discriminator.mapping.dog);
+                        Enforcer.config.useNewRefParser = false;
+                    } catch (err) {
+                        Enforcer.config.useNewRefParser = false;
+                        throw err;
+                    }
                 });
 
                 it('must match one of the anyOf options', async () => {
