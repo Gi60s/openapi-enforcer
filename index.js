@@ -46,27 +46,36 @@ async function Enforcer(definition, options) {
     if (!options.hasOwnProperty('fullResult')) options.fullResult = false;
     if (!options.hasOwnProperty('componentOptions')) options.componentOptions = {};
 
+    let exception;
     definition = util.copy(definition);
     const useNewRefParser = Enforcer.config.useNewRefParser;
     const refParser = useNewRefParser ? new NewRefParser(definition) : new OldRefParser();
-    definition = useNewRefParser ? await refParser.dereference() : await refParser.dereference(definition);
-
-    let exception = Exception('One or more errors exist in the OpenAPI definition');
-    const hasSwagger = definition.hasOwnProperty('swagger');
-    if (!hasSwagger && !definition.hasOwnProperty('openapi')) {
-        exception.message('Missing required "openapi" or "swagger" property');
-
+    if (useNewRefParser) {
+        const [ dereferenceValue, dereferenceErr ] = await refParser.dereference();
+        definition = dereferenceValue;
+        exception = dereferenceErr;
     } else {
-        const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
-        if (!match) {
-            exception.at(hasSwagger ? 'swagger' : 'openapi').message('Invalid value');
+        definition = await refParser.dereference(definition);
+    }
+
+    if (!exception) {
+        exception = Exception('One or more errors exist in the OpenAPI definition');
+        const hasSwagger = definition.hasOwnProperty('swagger');
+        if (!hasSwagger && !definition.hasOwnProperty('openapi')) {
+            exception.message('Missing required "openapi" or "swagger" property');
 
         } else {
-            const major = +match[1];
-            const validator = major === 2
-                ? Enforcer.v2_0.Swagger
-                : Enforcer.v3_0.OpenApi;
-            [ openapi, exception, warnings ] = validator(definition, refParser, options.componentOptions);
+            const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
+            if (!match) {
+                exception.at(hasSwagger ? 'swagger' : 'openapi').message('Invalid value');
+
+            } else {
+                const major = +match[1];
+                const validator = major === 2
+                    ? Enforcer.v2_0.Swagger
+                    : Enforcer.v3_0.OpenApi;
+                [ openapi, exception, warnings ] = validator(definition, refParser, options.componentOptions);
+            }
         }
     }
 
