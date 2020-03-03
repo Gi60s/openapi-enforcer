@@ -17,7 +17,7 @@
 'use strict';
 const EnforcerRef       = require('../enforcer-ref');
 const Exception         = require('../exception');
-const path              = require('path');
+const NewRefParser      = require('../ref-parser');
 const Result            = require('../result');
 const runDeserialize    = require('../schema/deserialize');
 const runPopulate       = require('../schema/populate');
@@ -234,14 +234,25 @@ module.exports = {
         // if there is a discriminator with mappings then resolve those references
         const discriminator = this.discriminator;
         if (major === 3 && refParser && discriminator && discriminator.mapping) {
+            const useNewRefParser = refParser instanceof NewRefParser;
+            const schemaDef = data.definition;
             plugins.push(() => {
                 const instanceMap = this.enforcerData.defToInstanceMap;
                 Object.keys(discriminator.mapping).forEach(key => {
                     const value = discriminator.mapping[key];
-                    const ref = rxHttp.test(value) || value.indexOf('/') !== -1
-                        ? value
-                        : '#/components/schemas/' + value;
-                    const definition = refParser.$refs.get(ref);
+                    let definition;
+                    if (useNewRefParser) {
+                        const ref = rxHttp.test(value) || value.indexOf('/') !== -1
+                            ? value
+                            : '#/components/schemas/' + value;
+                        const sourceNode = refParser.getSourceNode(schemaDef);
+                        definition = refParser.resolvePath(sourceNode, ref);
+                    } else {
+                        const ref = rxHttp.test(value) || value.indexOf('/') !== -1
+                            ? value
+                            : '#/components/schemas/' + value;
+                        definition = refParser.$refs.get(ref);
+                    }
                     setProperty(discriminator.mapping, key, instanceMap.get(definition));
                 });
             });
@@ -467,17 +478,28 @@ module.exports = {
                                 errors: ({ exception, parent, refParser, result }) => {
                                     if (refParser) {
                                         let schema;
-                                        try {
-                                            const ref = rxHttp.test(result) || result.indexOf('/') !== -1
-                                                ? result
-                                                : '#/components/schemas/' + result;
-                                            schema = refParser.$refs.get(ref)
-                                        } catch (err) {
-                                            const extra = '. If you are using multiple files to define your OpenAPI document then this ' +
-                                                'may be a limitation of the original dereference function. You can try the ' +
-                                                'experimental dereference function to see if this resolves the issue. Look for ' +
-                                                'the "dereferencer" component option in the constructor documentation at https://byu-oit.github.io/openapi-enforcer/api/openapi-enforcer';
-                                            exception.message('Reference cannot be resolved: ' + result + extra);
+                                        if (refParser instanceof NewRefParser) {
+                                            try {
+                                                const ref = rxHttp.test(result) || result.indexOf('/') !== -1
+                                                    ? result
+                                                    : '#/components/schemas/' + result;
+                                                const sourceNode = refParser.getSourceNode(parent.definition);
+                                                schema = refParser.resolvePath(sourceNode, ref);
+                                            } catch (err) {
+                                                exception.message('Reference cannot be resolved: ' + result);
+                                            }
+                                        } else {
+                                            try {
+                                                const ref = rxHttp.test(result) || result.indexOf('/') !== -1
+                                                    ? result
+                                                    : '#/components/schemas/' + result;
+                                                schema = refParser.$refs.get(ref)
+                                            } catch (err) {
+                                                const extra = '. If you are using multiple files to define your OpenAPI document then this ' +
+                                                    'may be a limitation of the original dereference function. You can try the ' +
+                                                    'custom reference parser (in beta) to see if this resolves the issue.';
+                                                exception.message('Reference cannot be resolved: ' + result + extra);
+                                            }
                                         }
 
                                         if (schema) {
