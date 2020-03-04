@@ -178,7 +178,7 @@ describe('index/production', () => {
             '\nDevelopment: ' + Math.round(t.dev / count) +
             '\nProduction is ' + (decrease < 0 ?  (-1*decrease) + '% slower than development' : decrease + '% faster than development'));
 
-        expect(decrease).to.be.greaterThan(20);
+        expect(decrease).to.be.greaterThan(0);
     });
 
 });
