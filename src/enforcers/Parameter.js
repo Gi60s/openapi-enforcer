@@ -31,7 +31,7 @@ module.exports = {
         const { context, definition, exception, major, warn, options } = data;
 
         if (definition.in === 'header' && definition.name !== definition.name.toLowerCase() && !options.exceptionSkipCodes.WPAR001) {
-            warn.message('Header names are case insensitive and their lower case equivalent will be used. [WPAR001]');
+            (options.exceptionEscalateCodes.WPAR001 ? exception : warn).message('Header names are case insensitive and their lower case equivalent will be used. [WPAR001]');
         }
 
         // set default values for any non path parameters
@@ -70,6 +70,10 @@ module.exports = {
             const type = schema && schema.type;
 
             const exception = Exception('Unable to parse value');
+
+            if (this.in === 'path' || this.in === 'query') {
+                value = decodeURIComponent(value);
+            }
 
             if (major === 2) {
                 if (this.collectionFormat === 'multi') {
@@ -246,6 +250,7 @@ module.exports = {
         const { major, options } = data;
         const base = Base.validator(data);
         const skipCodes = options.exceptionSkipCodes;
+        const escalateCodes = data.options.exceptionEscalateCodes;
         return {
             type: 'object',
             properties: Object.assign({}, base.properties, {
@@ -253,9 +258,9 @@ module.exports = {
                     allowed: ({parent}) => ['query', 'formData'].includes(parent.definition.in),
                     type: 'boolean',
                     default: false,
-                    errors: ({warn, major, usedDefault}) => {
+                    errors: ({ exception, warn, major, usedDefault }) => {
                         if (major === 3 && !usedDefault && !skipCodes.WPAR002) {
-                            warn.message('Per OAS 3.0.2: "Use of this property is NOT RECOMMENDED, as it is likely to be removed in a later revision." [WPAR002]')
+                            (escalateCodes.WPAR002 ? exception : warn).message('Per OAS 3.0.2: "Use of this property is NOT RECOMMENDED, as it is likely to be removed in a later revision." [WPAR002]')
                         }
                     }
                 },
@@ -288,7 +293,7 @@ module.exports = {
                     weight: -9,
                     allowed: ({ major, parent }) => major === 2 && ['file', 'integer', 'number', 'string'].includes(parent.definition.type),
                     type: 'string',
-                    errors: ({ parent, warn }) => {
+                    errors: ({ exception, parent, warn }) => {
                         const format = parent.definition.format;
                         if (format) {
                             const enums = [];
@@ -299,7 +304,7 @@ module.exports = {
                                 case 'string': enums.push('binary', 'byte', 'date', 'date-time', 'password'); break;
                             }
                             if (!enums.includes(format) && !skipCodes.WPAR003) {
-                                warn.message('Non standard format used: ' + format + '. [WPAR003]');
+                                (escalateCodes.WPAR003 ? exception : warn).message('Non standard format used: ' + format + '. [WPAR003]');
                             }
                         }
                     }

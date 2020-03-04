@@ -36,3 +36,16 @@ exports.willReject = async function(callback, error) {
             }
         )
 };
+
+exports.wontReject = function(callback, error) {
+    return callback()
+        .catch(
+            err => {
+                if (!error) {
+                    throw new Error('Expected no rejection')
+                } else {
+                    expect(err.toString()).to.not.match(error)
+                }
+            }
+        )
+};

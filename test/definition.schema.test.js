@@ -105,6 +105,44 @@ describe('definition/schema', () => {
             }
         }
     };
+    const allOfCircular = {
+        openapi: '3.0.0',
+        info: {title: '', version: ''},
+        paths: {
+            '/MatryoshkaSouvenir': {
+                get: {
+                    responses: {
+                        200: {
+                            description: 'Returns MatryoshkaSouvenir',
+                            content: {
+                                'application/json': {
+                                    schema: {$ref: '#/components/schemas/MatryoshkaSouvenir'}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        components: {
+            schemas: {
+                GiftCard: {
+                    properties: {text: {type: 'string'}},
+                    type: 'object'
+                },
+                Matryoshka: {
+                    properties: {matryoshka: {'$ref': '#/components/schemas/Matryoshka'}},
+                    type: 'object'
+                },
+                MatryoshkaSouvenir: {
+                    allOf: [
+                        {'$ref': '#/components/schemas/GiftCard'},
+                        {'$ref': '#/components/schemas/Matryoshka'}
+                    ]
+                }
+            }
+        }
+    };
     const anyOfDef = {
         openapi: '3.0.0',
         info: { title: '', version: '' },
@@ -327,6 +365,10 @@ describe('definition/schema', () => {
                     ]
                 });
                 expect(err).to.equal(undefined);
+            });
+
+            it('allows circular references at schemas', async () => {
+                await assert.wontReject(() => Enforcer(util.copy(allOfCircular)), /Maximum call stack size exceeded/);
             });
 
             describe('merges', () => {
@@ -1866,6 +1908,12 @@ describe('definition/schema', () => {
                 expect(err).to.match(/Expected a boolean/);
             });
 
+            it('does allow number if not strict', () => {
+                const [value, err] = schema.deserialize(1, { strict: false });
+                expect(value).to.equal(true);
+                expect(err).to.equal(undefined);
+            });
+
         });
 
         describe('byte', () => {
@@ -1911,6 +1959,16 @@ describe('definition/schema', () => {
             it('does not allow null', () => {
                 const [, err] = schema.deserialize(null);
                 expect(err).to.match(/Expected a base64 string/);
+            });
+
+            it('does allow line returns', () => {
+                const [value] = schema.deserialize("TQ\n==\n");
+                expect(value).to.be.an.instanceof(Buffer);
+            });
+
+            it('does allow spaces and tabs', () => {
+                const [value] = schema.deserialize("\tTQ \t==");
+                expect(value).to.be.an.instanceof(Buffer);
             });
 
         });
@@ -1983,7 +2041,7 @@ describe('definition/schema', () => {
 
             it('does not allow a date string', () => {
                 const [,err] = schema.deserialize(iso.substr(0, 10));
-                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ/);
             });
 
             it('allows a date-time string with Z', () => {
@@ -1997,24 +2055,42 @@ describe('definition/schema', () => {
                 expect(value).to.deep.equal(new Date(iso));
             });
 
+            it('allows a date-time string with deci-seconds', () => {
+                const iso = '2000-01-01T00:00:00.1Z';
+                const [value] = schema.deserialize(iso);
+                expect(value).to.deep.equal(new Date(iso));
+            });
+
+            it('allows a date-time string with nano-seconds', () => {
+                const iso = '2000-01-01T00:00:00.123456789Z';
+                const [value] = schema.deserialize(iso);
+                expect(value).to.deep.equal(new Date(iso));
+            });
+
+            it('allows a date-time string with - offset', () => {
+                const iso = '2000-02-03T23:13:10.000-05:30';
+                const [value] = schema.deserialize(iso);
+                expect(value).to.deep.equal(new Date(iso));
+            });
+
             it('does not allow a number', () => {
                 const [, err] = schema.deserialize(1);
-                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ/);
             });
 
             it('does not allow a boolean', () => {
                 const [, err] = schema.deserialize(true);
-                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ/);
             });
 
             it('does not allow an object', () => {
                 const [, err] = schema.deserialize({});
-                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ/);
             });
 
             it('does not allow null', () => {
                 const [, err] = schema.deserialize(null);
-                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ/);
+                expect(err).to.match(/Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ/);
             });
 
         });
@@ -2039,6 +2115,12 @@ describe('definition/schema', () => {
             it('does not allow string integer', () => {
                 const [, err] = schema.deserialize('123');
                 expect(err).to.match(/Expected an integer/);
+            });
+
+            it('does allow string integer when not strict', () => {
+                const [value, err] = schema.deserialize('123', { strict: false });
+                expect(value).to.equal(123);
+                expect(err).to.equal(undefined);
             });
 
             it('does not allow string decimal', () => {
@@ -2084,6 +2166,12 @@ describe('definition/schema', () => {
             it('does not allow string number', () => {
                 const [, err] = schema.deserialize('123.7');
                 expect(err).to.match(/Expected a number/);
+            });
+
+            it('does allow string number when not strict', () => {
+                const [value, err] = schema.deserialize('123.7', { strict: false });
+                expect(value).to.equal(123.7);
+                expect(err).to.equal(undefined);
             });
 
             it('does not allow date object', () => {
@@ -3477,6 +3565,25 @@ describe('definition/schema', () => {
                 });
                 const [value] = schema.serialize(1);
                 expect(value).to.equal(1);
+            });
+
+            it('can deserialize a number or an object', () => {
+                const [schema] = Enforcer.v3_0.Schema({
+                    oneOf: [
+                        { type: 'string' },
+                        {
+                            type: 'object',
+                            properties: {
+                                x: { type: 'string' }
+                            }
+                        }
+                    ]
+                });
+                const [value1] = schema.serialize({ x: '123' });
+                expect(value1).to.deep.equal({ x: '123' });
+
+                const [value2] = schema.serialize('123');
+                expect(value2).to.equal('123');
             });
 
         });

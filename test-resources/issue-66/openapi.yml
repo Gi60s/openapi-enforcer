@@ -1,0 +1,25 @@
+openapi: '3.0.0'
+info:
+  title: Warning for valid example with oneOf
+  version: v1
+paths:
+  /:
+    get:
+      responses:
+        200:
+          description: array
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Array'
+components:
+  schemas:
+    Array:
+      type: array
+      items:
+        oneOf:
+          - type: integer
+          - type: array
+            items:
+              type: integer
+      example: [-1, [2, 3]]

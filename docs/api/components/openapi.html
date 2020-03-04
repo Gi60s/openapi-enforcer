@@ -98,6 +98,8 @@
 </li>
 <li><p><em>params</em> - An <code>object</code> of key value pairs for each path parameter and it&#39;s deserialized and validated value.</p>
 </li>
+<li><p><em>pathKey</em> - The <code>string</code> value for the path item as written in the OpenAPI document.</p>
+</li>
 </ul>
 <p><strong>Example</strong></p>
 <pre><code class="language-js"><span class="hljs-keyword">const</span> OpenAPI = <span class="hljs-built_in">require</span>(<span class="hljs-string">'openapi-enforcer'</span>).v3_0.OpenApi
@@ -216,6 +218,8 @@
 <li><p><em>operation</em> - The <a href="/openapi-enforcer/api/components/operation">Operation component</a> object associated with the request.</p>
 </li>
 <li><p><em>path</em> - An <code>object</code> map of path parameter names and deserialized and validated values.</p>
+</li>
+<li><p><em>pathKey</em> - The path item&#39;s key value as written in the OpenAPI document.</p>
 </li>
 <li><p><em>query</em> - An <code>object</code> map of query parameter names and deserialized and validated values.</p>
 </li>

@@ -76,10 +76,15 @@ exports.byte = {
     deserialize: function ({ exception, value }) {
         if (value instanceof Buffer) {
             return value;
-        } else if (typeof value !== 'string' || !rx.byte.test(value) || value.length % 4 !== 0) {
-            exception.message('Expected a base64 string');
+        } else if (typeof value === 'string') {
+            value = value.replace(/(\s)/gm, "");
+            if (!rx.byte.test(value) || value.length % 4 !== 0) {
+                exception.message('Expected a base64 string');
+            } else {
+                return Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64');
+            }
         } else {
-            return Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64');
+            exception.message('Expected a base64 string');
         }
     },
 
@@ -171,11 +176,11 @@ exports.dateTime = {
         if (value instanceof Date) {
             return value;
         } else if (typeof value !== 'string' || !rx.dateTime.test(value)) {
-            exception.message('Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
+            exception.message('Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ');
         } else {
             const date = util.getDateFromValidDateString('date-time', value);
             if (!date) {
-                exception.message('Expected a date-time string of the format YYYY-MM-DDTmm:hh:ss.sssZ');
+                exception.message('Expected a date-time string of the format YYYY-MM-DDThh:mm:ss.sssZ');
             } else {
                 return date;
             }

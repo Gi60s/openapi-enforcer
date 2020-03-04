@@ -18,6 +18,7 @@
 const EnforcerRef   = require('../enforcer-ref');
 const Exception     = require('../exception');
 const Result        = require('../result');
+const Operation     = require('./Operation');
 const util          = require('../util');
 
 const rxHostParts = /^((?:https?|wss?):\/\/)?(.+?)(\/.+)?$/;
@@ -83,7 +84,8 @@ module.exports = {
             if (exception.hasException) return new Result(undefined, exception);
             return new Result({
                 operation,
-                params
+                params,
+                pathKey: pathMatch.pathKey
             });
         },
 
@@ -99,6 +101,8 @@ module.exports = {
          * @returns {EnforcerResult<{ body:*, cookie:object, headers:object, operation: Operation, path:object, query:object, response:function }>}
          */
         request: function (request, options) {
+            request = this.toRequestObject(request);
+
             // validate input parameters
             if (!request || typeof request !== 'object') throw Error('Invalid request. Expected a non-null object. Received: ' + request);
             if (request.hasOwnProperty('body') && !(typeof request.body === 'string' || typeof request.body === 'object')) throw Error('Invalid body provided');
@@ -122,7 +126,7 @@ module.exports = {
             if (error) return new Result(undefined, error);
 
             // set up request input
-            const { operation, params } = pathObject;
+            const { operation, params, pathKey } = pathObject;
             const req = {
                 headers: request.headers || {},
                 path: params,
@@ -140,10 +144,13 @@ module.exports = {
                         if (matches.length) headers['content-type'] = matches[0];
                     }
                     return operation.response(code, body, headers)
-                }
+                };
+                result.value.pathKey = pathKey;
             }
             return result;
-        }
+        },
+
+        toRequestObject: Operation.prototype.toRequestObject
     },
 
     validator: function ({ major }) {

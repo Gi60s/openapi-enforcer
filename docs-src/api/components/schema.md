@@ -11,7 +11,7 @@ The OpenAPI specification v2 does not allow for nullable values in schemas, but 
 
 ## deserialize
 
-`Schema.prototype.deserialize ( value ) : EnforcerResult < any >`
+`Schema.prototype.deserialize ( value [, options ] ) : EnforcerResult < any >`
 
 Schema instances can deserialize values. Deserialization is the process of extracting a data structure from a scalar value. For example, the string `2000-01-01` as a date string would be deserialized to `new Date('2000-01-01')` which gives you a date object instead of a date string.
 
@@ -22,6 +22,13 @@ Note that the deserialization process keeps validation to a minimum. It won't ca
 | Parameter | Description | Type | Default |
 | --------- | ----------- | ---- | ------- |
 | **value** | The value to deserialize | any | |
+| options | Deserialization options. See the options table below for details. | object | |
+
+**Deserialization Options**
+
+| Option | Description | Type | Default |
+| ------ | ----------- | ---- | ------- |
+| strict | Whether to enable strict deserialization. Setting to `false` will allow strings to deserialize for booleans, integers, and numbers. It will also allow booleans to deserialize from numbers. Keeping `true` will reduce false positives. | boolean | `true` |
 
 **Returns:** An [EnforcerResult](../enforcer-result.md) that resolves to the deserialized value.
 

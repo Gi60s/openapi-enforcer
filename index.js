@@ -169,21 +169,13 @@ Object.defineProperty(Enforcer, 'version', {
     value: require('./package.json').version
 });
 
-Enforcer.v2_0.Schema.defineDataTypeFormat('integer', 'int32', null);
-Enforcer.v2_0.Schema.defineDataTypeFormat('integer', 'int64', null);
-Enforcer.v2_0.Schema.defineDataTypeFormat('number', 'float', null);
-Enforcer.v2_0.Schema.defineDataTypeFormat('number', 'double', null);
-Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
-Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
-Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
-Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
-Enforcer.v2_0.Schema.defineDataTypeFormat('string', 'date-time', dataTypeFormats.dateTime);
-
-Enforcer.v3_0.Schema.defineDataTypeFormat('integer', 'int32', null);
-Enforcer.v3_0.Schema.defineDataTypeFormat('integer', 'int64', null);
-Enforcer.v3_0.Schema.defineDataTypeFormat('number', 'float', null);
-Enforcer.v3_0.Schema.defineDataTypeFormat('number', 'double', null);
-Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
-Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
-Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
-Enforcer.v3_0.Schema.defineDataTypeFormat('string', 'date-time', dataTypeFormats.dateTime);
+[Enforcer.v2_0.Schema, Enforcer.v3_0.Schema].forEach(Schema => {
+    Schema.defineDataTypeFormat('integer', 'int32', null);
+    Schema.defineDataTypeFormat('integer', 'int64', null);
+    Schema.defineDataTypeFormat('number', 'float', null);
+    Schema.defineDataTypeFormat('number', 'double', null);
+    Schema.defineDataTypeFormat('string', 'binary', dataTypeFormats.binary);
+    Schema.defineDataTypeFormat('string', 'byte', dataTypeFormats.byte);
+    Schema.defineDataTypeFormat('string', 'date', dataTypeFormats.date);
+    Schema.defineDataTypeFormat('string', 'date-time', dataTypeFormats.dateTime);
+});

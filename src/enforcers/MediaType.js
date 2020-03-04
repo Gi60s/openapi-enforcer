@@ -30,6 +30,7 @@ module.exports = {
     prototype: {},
 
     validator: function (data) {
+        const escalateCodes = data.options.exceptionEscalateCodes;
         const skipCodes = data.options.exceptionSkipCodes;
         return {
             type: 'object',
@@ -51,10 +52,10 @@ module.exports = {
                 },
                 schema: EnforcerRef('Schema')
             },
-            errors: ({ parent, key, warn }) => {
+            errors: ({ parent, key, exception, warn }) => {
                 if (parent && parent.key === 'content') {
                     if (!module.exports.rx.mediaType.test(key) && !skipCodes.WMED001) {
-                        warn.message('Media type appears invalid. [WMED001]');
+                        (escalateCodes.WMED001 ? exception : warn).message('Media type appears invalid. [WMED001]');
                     }
                 }
             }
@@ -62,6 +63,6 @@ module.exports = {
     },
 
     rx: {
-        mediaType: /^(application|audio|example|font|image|message|model|multipart|text|video|x-\S+)\/(?:([\w.\-]+)\+)?([\w.\-]+)(?:; *(.+))?$/
+        mediaType: /^(?:\*|(application|audio|example|font|image|message|model|multipart|text|video|x-\S+))\/(?:\*|(?:([\w.\-]+)\+)?([\w.\-]+)(?:; *(.+))?)$/
     }
 };

@@ -139,7 +139,7 @@ function runValidate(exception, map, schema, originalValue, options) {
         }
 
     } else if (type === 'object') {
-        if (!util.isPlainObject(value)) {
+        if (!util.isObject(value)) {
             exception.message('Expected a non-null object. Received: ' + util.smart(value));
         } else {
             const properties = schema.properties || {};

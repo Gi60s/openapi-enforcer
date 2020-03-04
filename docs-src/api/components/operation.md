@@ -95,7 +95,7 @@ Parse and validate an incoming request.
 | Property | Description | Type  | Default |
 | --------- | ----------- | ---- | ------- |
 | body | The request body. If an object is provided then it should already be deserialized as far a `JSON.parse` would deserialize. | `string` or `object` | |
-| header | An `object` of key value pairs where the key is the header name and the value is the header value. | `object` | `{}` |
+| headers | An `object` of key value pairs where the key is the header name and the value is the header value. | `object` | `{}` |
 | path | An `object` containing all of the path parameter names and values. The values should not be deserialized. | `object` | `{}` |
 | query | The full query string as a `string`. | `string` | |
 
@@ -134,7 +134,7 @@ Validate and serialize response data.
 
 ```js
 const Operation = require('openapi-enforcer').v3_0.Operation;
-const operation = new Operation({
+const [ operation ] = new Operation({
     responses: {
         200: {
             description: 'Success',
@@ -168,7 +168,9 @@ console.log(response)
 //     body: 'hello',
 //     schema: {
 //         type: 'string',
-//         maxLength: 10
+//         deprecated: false,
+//         maxLength: 10,
+//         nullable: false
 //     },
 //     headers: {
 //         expires: '2000-01-01'

@@ -12,4 +12,10 @@ describe('documented issues fixes', () => {
         expect(error).to.equal(undefined)
     });
 
+    it('issue 66 - oneOf example undefined value warning', async () => {
+        const openApiDocPath = path.resolve(resourcesPath, 'issue-66', 'openapi.yml');
+        const { warning } = await Enforcer(openApiDocPath, { fullResult: true });
+        expect(warning).to.equal(undefined)
+    })
+
 });

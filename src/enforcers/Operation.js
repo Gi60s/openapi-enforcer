@@ -21,6 +21,7 @@ const Result        = require('../result');
 const util          = require('../util');
 const Value         = require('../schema/value');
 
+const requestKeys = ['body', 'headers', 'method', 'path', 'query'];
 const rxInteger = /^\d+$/;
 const rxNumber = /^\d+(?:\.\d+)?$/;
 
@@ -119,7 +120,7 @@ module.exports = {
 
             // validate input parameters
             if (!request || typeof request !== 'object') throw Error('Invalid request. Expected a non-null object. Received: ' + request);
-            request = Object.assign({}, request);
+            request = this.toRequestObject(request);
             if (!request.hasOwnProperty('headers')) request.headers = {};
             if (!request.hasOwnProperty('path')) request.path = {};
             if (!request.hasOwnProperty('query')) request.query = '';
@@ -131,7 +132,7 @@ module.exports = {
             const req = {
                 header: util.lowerCaseObjectProperties(request.headers),
                 path: request.path,
-                query: util.parseQueryString(request.query)
+                query: util.parseQueryString(decodeURI(request.query))
             };
             if (request.body !== undefined) req.body = request.body;
             const cookie = req.header.cookie || '';
@@ -234,6 +235,10 @@ module.exports = {
                         } else if (parameter.required) {
                             missingRequired.push(key);
                         }
+
+                        if (!output.hasOwnProperty(key) && parameter.schema.hasOwnProperty('default')) {
+                            output[key] = util.copy(parameter.schema.default);
+                        }
                     });
 
                     result[reqKey === 'header' ? 'headers' : reqKey] = Value.extract(output);
@@ -272,10 +277,7 @@ module.exports = {
 
                 // v3 requestBody
                 } else if (this.requestBody) {
-                    const contentType = req.header.hasOwnProperty('content-type') ? req.header['content-type'].split(';')[0].trim() : '*/*';
-                    const content = this.requestBody.content;
-                    const mediaTypes = Object.keys(content);
-                    const matches = util.findMediaMatch(contentType, mediaTypes);
+                    const { content, contentType, matches } = findRequestBodyMediaTypeMatches(this, req);
                     const length = matches.length;
 
                     // one or more potential matches
@@ -304,6 +306,7 @@ module.exports = {
 
                     } else {
                         exception.message('Content-Type not accepted');
+                        exception.statusCode = 415;
                     }
 
                 } else if (!parameters.formData) {
@@ -313,6 +316,23 @@ module.exports = {
                 exception.message('Missing required parameter: body');
             } else if (this.requestBody && this.requestBody.required) {
                 exception.message('Missing required request body');
+            } else {
+                let bodySchema;
+                if (parameters.body) {
+                    bodySchema = getBodyParameter(parameters).schema
+                } else if (this.requestBody) {
+                    const { content, matches } = findRequestBodyMediaTypeMatches(this, req);
+                    const length = matches.length;
+                    for (let i = 0; i < length; i++) {
+                        const type = matches[i];
+                        const schema = content[type].schema;
+                        if (schema && schema.hasOwnProperty('default')) {
+                            bodySchema = schema;
+                            break;
+                        }
+                    }
+                }
+                if (bodySchema && bodySchema.hasOwnProperty('default')) result.body = util.copy(bodySchema.default)
             }
 
             return new Result(result, exception);
@@ -326,8 +346,10 @@ module.exports = {
             const result = { headers: {} };
             const major = this.enforcerData.major;
             const skipCodes = this.enforcerData.options.exceptionSkipCodes;
+            const escalateCodes = this.enforcerData.options.exceptionEscalateCodes;
 
-            if (!util.isPlainObject(headers)) throw Error('Invalid headers input parameter. Must be a plain object');
+            if (!util.isPlainObject(headers) && util.isObject(headers)) headers = Object.create({}, headers);
+            if (!util.isObject(headers)) throw Error('Invalid headers input parameter. Must be a plain object');
             headers = util.lowerCaseObjectProperties(headers);
 
             if (response) {
@@ -364,7 +386,7 @@ module.exports = {
                                 if (content.hasOwnProperty(type)) {
                                     contentType = type;
                                 } else if (!skipCodes.WOPE001) {
-                                    warning.message('Content type specified is not defined as a possible mime-type: ' + type + '. [WOPE001]');
+                                    (escalateCodes.WOPE001 ? exception : warning).message('Content type specified is not defined as a possible mime-type: ' + type + '. [WOPE001]');
                                 }
                             } else if (definedTypes.length === 1) {
                                 contentType = definedTypes[0];
@@ -423,7 +445,10 @@ module.exports = {
                 headerKeys.forEach(key => {
                     const value = headers[key];
                     if (typeof value !== 'string' && !skipCodes.WOPE002) {
-                        warning.at('headers').at(key).message('Value has no schema and is not a string. [WOPE002]');
+                        (escalateCodes.WOPE002 ? exception : warning)
+                            .at('headers')
+                            .at(key)
+                            .message('Value has no schema and is not a string. [WOPE002]');
                     }
                 });
 
@@ -440,6 +465,14 @@ module.exports = {
             }
 
             return new Result(result, exception, warning);
+        },
+
+        toRequestObject: function (req) {
+            const result = {};
+            requestKeys.forEach(key => {
+                if (key in req) result[key] = req[key]
+            });
+            return result;
         }
     },
 
@@ -517,7 +550,7 @@ module.exports = {
                     type: 'string',
                     errors: ({ definition, warn, options }) => {
                         if (definition.length >= 120 && !options.exceptionSkipCodes.WOPE003) {
-                            warn.message('Value should be less than 120 characters. [WOPE003]');
+                            (options.exceptionEscalateCodes.WOPE003 ? exception : warn).message('Value should be less than 120 characters. [WOPE003]');
                         }
                     }
                 },
@@ -617,6 +650,18 @@ function deserializeAndValidate(exception, schema, data, success) {
         if (exception) exception.push(data.error);
     } else {
         success(data.value);
+    }
+}
+
+function findRequestBodyMediaTypeMatches (context, req) {
+    const contentType = req.header.hasOwnProperty('content-type') ? req.header['content-type'].split(';')[0].trim() : '*/*';
+    const content = context.requestBody.content;
+    const mediaTypes = Object.keys(content);
+    const matches = util.findMediaMatch(contentType, mediaTypes);
+    return {
+        content,
+        contentType,
+        matches
     }
 }
 

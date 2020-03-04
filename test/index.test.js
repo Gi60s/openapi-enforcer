@@ -686,6 +686,22 @@ describe('index/request', () => {
                 expect(req.query.value).to.equal('');
             });
 
+            it('will apply default if not provided', async () => {
+                const def = new DefinitionBuilder(2)
+                    .addParameter('/', 'get', {
+                        name: 'item',
+                        in: 'query',
+                        type: 'array',
+                        collectionFormat: 'multi',
+                        items: { type: 'number' },
+                        default: [1,2,3]
+                    })
+                    .build();
+                const enforcer = await Enforcer(def);
+                const [ req ] = enforcer.request({ path: '/' });
+                expect(req.query.item).to.deep.equal([1, 2, 3]);
+            });
+
         });
 
         describe('v3', () => {
@@ -1288,6 +1304,22 @@ describe('index/request', () => {
 
             });
 
+            it('will apply default if not provided', async () => {
+                const def = new DefinitionBuilder(3)
+                    .addParameter('/', 'get', {
+                        name: 'foo',
+                        in: 'query',
+                        schema: {
+                            type: 'string',
+                            default: 'bar'
+                        }
+                    })
+                    .build();
+                const enforcer = await Enforcer(def);
+                const [ req ] = enforcer.request({ path: '/' });
+                expect(req.query.foo).to.equal('bar');
+            });
+
         });
 
     });
@@ -1305,6 +1337,23 @@ describe('index/request', () => {
             const enforcer = await Enforcer(def);
             const [ req ] = enforcer.request({ path: '/', headers: { VAlue: 'abc' } });
             expect(req.headers.value).to.equal('abc');
+        });
+
+        it('can escalate a warning', async () => {
+            const def = new DefinitionBuilder(2)
+                .addParameter('/', 'get', {
+                    name: 'vALUe',
+                    in: 'header',
+                    type: 'string'
+                })
+                .build();
+            const results = await Enforcer(def, {
+                fullResult: true,
+                componentOptions: {
+                    exceptionEscalateCodes: ['WPAR001']
+                }
+            });
+            expect(results.error).to.match(/Header names are case insensitive/);
         });
 
         it('cannot have property allowEmptyValue', async () => {
@@ -1334,6 +1383,20 @@ describe('index/request', () => {
 
 
         describe('v2', () => {
+
+            it('will apply default if not provided', async () => {
+                const def = new DefinitionBuilder(2)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'header',
+                        type: 'string',
+                        default: 'hello'
+                    })
+                    .build();
+                const enforcer = await Enforcer(def);
+                const [ req ] = enforcer.request({ path: '/' });
+                expect(req.headers.value).to.equal('hello');
+            });
 
             it('will deserialize date value', async () => {
                 const def = new DefinitionBuilder(2)
@@ -1379,6 +1442,19 @@ describe('index/request', () => {
         });
 
         describe('v3', () => {
+
+            it('will apply default if not provided', async () => {
+                const def = new DefinitionBuilder(3)
+                    .addParameter('/', 'get', {
+                        name: 'value',
+                        in: 'header',
+                        schema: { type: 'number', default: 5 }
+                    })
+                    .build();
+                const enforcer = await Enforcer(def);
+                const [ req ] = enforcer.request({ path: '/' });
+                expect(req.headers.value).to.equal(5);
+            });
 
             it('primitive', async () => {
                 const def = new DefinitionBuilder(3)
@@ -1500,6 +1576,20 @@ describe('index/request', () => {
         });
 
         describe('v3', () => {
+
+            it('will apply default if not provided', async () => {
+                const def = new DefinitionBuilder(3)
+                    .addParameter('/', {
+                        name: 'value',
+                        in: 'cookie',
+                        schema: { type: 'number', default: 1 }
+                    })
+                    .addPath('/', 'get')
+                    .build();
+                const enforcer = await Enforcer(def);
+                const [ req ] = enforcer.request({ path: '/' });
+                expect(req.cookie.value).to.equal(1);
+            });
 
             it('primitive', async () => {
                 const def = new DefinitionBuilder(3)
@@ -1653,6 +1743,22 @@ describe('index/request', () => {
                     expect(req.body).to.equal(1);
                 });
 
+                it('will apply default if not provided', async () => {
+                    const def = new DefinitionBuilder(2)
+                        .addParameter('/', 'post', {
+                            name: 'body',
+                            in: 'body',
+                            schema: {
+                                type: 'string',
+                                default: 'hello'
+                            }
+                        })
+                        .build();
+                    const enforcer = await Enforcer(def);
+                    const [ req ] = enforcer.request({ path: '/', method: 'post' });
+                    expect(req.body).to.equal('hello');
+                });
+
             });
 
             describe('in formData', () => {
@@ -1716,6 +1822,22 @@ describe('index/request', () => {
         });
 
         describe('v3', () => {
+
+            it('will apply default if not provided', async () => {
+                const def = new DefinitionBuilder(3)
+                    .addParameter('/', 'post')
+                    .build();
+                def.paths['/'].post.requestBody = {
+                    content: {
+                        'text/plain': {
+                            schema: { type: 'string', default: 'hello' }
+                        }
+                    }
+                };
+                const enforcer = await Enforcer(def);
+                const [ req ] = enforcer.request({ path: '/', method: 'post' });
+                expect(req.body).to.equal('hello');
+            });
 
             it('uses content-type headers to determine media type', async () => {
                 const def = new DefinitionBuilder(3).addPath('/', 'post').build();

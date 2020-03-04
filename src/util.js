@@ -46,6 +46,7 @@ module.exports = {
     leastOf,
     lowerCaseObjectProperties,
     mapObject,
+    merge,
     mostOf,
     parseCookieString,
     parseQueryString,
@@ -224,14 +225,18 @@ function freeze (value) {
 
 function getDateFromValidDateString (format, string) {
     const date = new Date(string);
-    const match = rx[format].exec(string);
+    const isoDate = date.toISOString();
+    const match = format === 'date'
+        ? rx.date.exec(isoDate.substring(0,10))
+        : rx['date-time'].exec(isoDate);
     const year = +match[1];
     const month = +match[2] - 1;
     const day = +match[3];
     const hour = +match[4] || 0;
     const minute = +match[5] || 0;
     const second = +match[6] || 0;
-    const millisecond = +match[7] || 0;
+    const millisecondStr = convertFractionToMilliseconds(match[7]);
+    const millisecond = +millisecondStr || 0;
     return date.getUTCFullYear() === year &&
     date.getUTCMonth() === month &&
     date.getUTCDate() === day &&
@@ -239,6 +244,23 @@ function getDateFromValidDateString (format, string) {
     date.getUTCMinutes() === minute &&
     date.getUTCSeconds() === second &&
     date.getUTCMilliseconds() === millisecond ? date : null;
+}
+
+function convertFractionToMilliseconds(fraction) {
+    if (fraction === undefined) {
+        return undefined;
+    }
+    var milliseconds = fraction;
+    const lengthDiff = 3 - fraction.length;
+    if (lengthDiff > 0) {
+        // Need to add "0" to get 3 digits
+        milliseconds = fraction + "0".repeat(lengthDiff);
+    }
+    else if (lengthDiff < 0) {
+        // Need to truncate to get 3 digits
+        milliseconds = fraction.substr(0, 3);
+    }
+    return milliseconds;
 }
 
 function getDefinitionType (definition) {
@@ -332,6 +354,34 @@ function mapObject (object, callback) {
         result[key] = callback(object[key], key);
     });
     return result;
+}
+
+function merge (target, source, mapping = '') {
+    if (isPlainObject(target)) {
+        if (!isObject(source)) throw Error(mapping + ': Unable to merge non-object into plain object.');
+        Object.keys(source).forEach(key => {
+            target[key] = target.hasOwnProperty(key)
+                ? merge(target[key], source[key], mapping + '> ' + key)
+                : source[key];
+        });
+        return target;
+    } else if (Array.isArray(target)) {
+        if (!Array.isArray(source)) throw Error(mapping + ': Unable to merge non-array into array');
+        const tLength = target.length;
+        const length = tLength > source.length
+            ? tLength
+            : source.length;
+        for (let i = 0; i < length; i++) {
+            if (i >= tLength) {
+                target[i] = source[i];
+            } else {
+                target[i] = merge(target[i], source[i], '> ' + i);
+            }
+        }
+        return target;
+    } else {
+        return source;
+    }
 }
 
 function mostOf (numberArray) {
@@ -507,7 +557,7 @@ function smart (value) {
     if (type === 'string') return '"' + value.replace(/"/g, '\\"') + '"';
     if (value instanceof Date) return isNaN(value) ? 'invalid date object' : value.toISOString();
     if (Array.isArray(value)) {
-        let result = '[' + value.toString() + ']';
+        let result = '[' + String(value) + ']';
         const length = result.length;
         if (length > 15) {
             const excess = length - 15;
@@ -519,7 +569,7 @@ function smart (value) {
         return result;
     }
     if (value && type === 'object') {
-        const name = value.constructor.name;
+        const name = value.constructor ? value.constructor.name : '';
         return '[object' + (name ? ' ' + name : '') + ']';
     }
     return String(value);
