@@ -18,7 +18,9 @@
 const assert            = require('../src/assert');
 const DefinitionBuilder = require('../src/definition-builder');
 const Enforcer          = require('../index');
+const Exception         = require('../src/exception');
 const expect            = require('chai').expect;
+const path              = require('path');
 
 describe('index/toPlainObject', () => {
 
@@ -93,6 +95,90 @@ describe('index/toPlainObject', () => {
             expect(result.a.constructor).to.equal(A);
         });
 
+    });
+
+});
+
+describe('index/production', () => {
+
+    describe('production and development instances have the same structure', () => {
+
+        it('openapi 2', async () => {
+            await compare(path.resolve(__dirname, '../test-resources/v2-petstore.yml'));
+        });
+
+        it('openapi 3', async () => {
+            await compare(path.resolve(__dirname, '../test-resources/v3-petstore.yml'));
+        });
+
+        async function compare(filePath) {
+            const def = await Enforcer.dereference(filePath);
+            const dev = await Enforcer(def, { hideWarnings: true, componentOptions: { production: false } });
+            const prod = await Enforcer(def, { hideWarnings: true, componentOptions: { production: true } });
+            const exception = new Exception('Structures do not match');
+            traverse(dev, prod, exception);
+            if (exception.hasException) console.error(exception);
+            expect(exception.hasException).to.equal(false);
+        }
+
+        function traverse(a, b, exception) {
+            const type = typeof a;
+            if (type !== typeof b) return exception.message('Type mismatch. Expected type ' + type + ' but received type ' + typeof b);
+
+            if (type === 'object') {
+                if (a === null && b === null) return; // null check
+                if (a === null && b !== null) return exception.message('Value mismatch. Expected null but received non-null');
+                if (a !== null && b === null) return exception.message('Value mismatch. Expected not-null but received null');
+                if (a.constructor !== b.constructor) return exception.message('Constructor mismatch: Expected constructor ' + a.constructor.name + ' but received constructor ' + b.constructor.name);
+                if (Array.isArray(a)) {
+                    const length = a.length;
+                    if (length !== b.length) return exception.message('Array length mismatch. Expected length ' + length + ' but received length ' + b.length);
+                    for (let i = 0; i < length; i++) {
+                        traverse(a[i], b[i], exception.at(i));
+                    }
+                } else {
+                    const keys = Object.keys(a);
+                    const length = keys.length;
+
+                    if (length !== Object.keys(b).length) {
+                        return exception.message('Objects have different number of properties');
+                    }
+
+                    for (let i = 0; i < length; i++) {
+                        const key = keys[i];
+                        if (!b.hasOwnProperty(key)) return exception.message('Missing property: ' + key);
+                        traverse(a[key], b[key], exception.at(key));
+                    }
+                }
+            } else if (a !== b) {
+                return exception.message('Value mismatch. Expected ' + a + ' but received ' + b);
+            }
+        }
+    });
+
+    it('production vs development time test', async function () {
+        this.timeout(30000);
+        const t = { production: 0, dev: 0 };
+        const count =  50;
+        const total = count * 2;
+        const def = await Enforcer.dereference(path.resolve(__dirname, '../test-resources/splack.yml'));
+        for (let i = 0; i < total; i++) {
+            const key = i % 2 === 0 ? 'production' : 'dev';
+            const start = Date.now();
+            await Enforcer(def, {
+                hideWarnings: true,
+                componentOptions: { production: key === 'production' }
+            });
+            t[key] += Date.now() - start;
+        }
+
+        const diff = t.dev - t.production;
+        const decrease = Math.round(10000 * diff / t.dev) / 100;
+        console.log('Production: ' + Math.round(t.production / count) +
+            '\nDevelopment: ' + Math.round(t.dev / count) +
+            '\nProduction is ' + (decrease < 0 ?  (-1*decrease) + '% slower than development' : decrease + '% faster than development'));
+
+        expect(decrease).to.be.greaterThan(20);
     });
 
 });
