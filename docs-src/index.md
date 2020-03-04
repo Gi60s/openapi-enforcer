@@ -1,6 +1,6 @@
 ---
 title: OpenAPI Enforcer 
-navOrder: guide api
+navOrder: guide api contributing changes
 toc: false
 ---
 
