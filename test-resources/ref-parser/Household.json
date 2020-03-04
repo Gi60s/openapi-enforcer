@@ -1,0 +1,14 @@
+{
+  "People": {
+    "type": "array",
+    "items": {
+      "$ref": "http://localhost:18088/People.yml#/Person"
+    }
+  },
+  "Pets": {
+    "type": "array",
+    "items": {
+      "$ref": "./Pets.yaml#/Pet"
+    }
+  }
+}

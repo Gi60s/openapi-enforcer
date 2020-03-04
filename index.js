@@ -20,7 +20,8 @@ module.exports = Enforcer;
 
 const dataTypeFormats       = require('./src/data-type-formats');
 const Exception             = require('./src/exception');
-const RefParser             = require('json-schema-ref-parser');
+const NewRefParser          = require('./src/ref-parser');
+const OldRefParser          = require('json-schema-ref-parser');
 const Result                = require('./src/result');
 const Super                 = require('./src/super');
 const util                  = require('./src/util');
@@ -31,6 +32,7 @@ const util                  = require('./src/util');
  * @param {object} [options]
  * @param {boolean} [options.hideWarnings=false] Set to true to hide warnings from the console.
  * @param {boolean} [options.fullResult=false] Set to true to get back a full result object with the value, warnings, and errors.
+ * @param {boolean} [options.experimentalDereference=false] A soon to be default option for improved dereferencing.
  * @param {object} [options.componentOptions] Options that get sent along to components.
  * @returns {Promise<OpenApi|Swagger>|Promise<Result<OpenApi|Swagger>>}
  */
@@ -44,26 +46,36 @@ async function Enforcer(definition, options) {
     if (!options.hasOwnProperty('fullResult')) options.fullResult = false;
     if (!options.hasOwnProperty('componentOptions')) options.componentOptions = {};
 
-    const refParser = new RefParser();
+    let exception;
     definition = util.copy(definition);
-    definition = await refParser.dereference(definition);
-
-    let exception = Exception('One or more errors exist in the OpenAPI definition');
-    const hasSwagger = definition.hasOwnProperty('swagger');
-    if (!hasSwagger && !definition.hasOwnProperty('openapi')) {
-        exception.message('Missing required "openapi" or "swagger" property');
-
+    const useNewRefParser = Enforcer.config.useNewRefParser;
+    const refParser = useNewRefParser ? new NewRefParser(definition) : new OldRefParser();
+    if (useNewRefParser) {
+        const [ dereferenceValue, dereferenceErr ] = await refParser.dereference();
+        definition = dereferenceValue;
+        exception = dereferenceErr;
     } else {
-        const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
-        if (!match) {
-            exception.at(hasSwagger ? 'swagger' : 'openapi').message('Invalid value');
+        definition = await refParser.dereference(definition);
+    }
+
+    if (!exception) {
+        exception = Exception('One or more errors exist in the OpenAPI definition');
+        const hasSwagger = definition.hasOwnProperty('swagger');
+        if (!hasSwagger && !definition.hasOwnProperty('openapi')) {
+            exception.message('Missing required "openapi" or "swagger" property');
 
         } else {
-            const major = +match[1];
-            const validator = major === 2
-                ? Enforcer.v2_0.Swagger
-                : Enforcer.v3_0.OpenApi;
-            [ openapi, exception, warnings ] = validator(definition, refParser, options.componentOptions);
+            const match = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/.exec(definition.swagger || definition.openapi);
+            if (!match) {
+                exception.at(hasSwagger ? 'swagger' : 'openapi').message('Invalid value');
+
+            } else {
+                const major = +match[1];
+                const validator = major === 2
+                    ? Enforcer.v2_0.Swagger
+                    : Enforcer.v3_0.OpenApi;
+                [ openapi, exception, warnings ] = validator(definition, refParser, options.componentOptions);
+            }
         }
     }
 
@@ -73,9 +85,18 @@ async function Enforcer(definition, options) {
     return openapi;
 }
 
+Enforcer.config = {
+    useNewRefParser: false
+};
+
 Enforcer.dereference = function (definition) {
-    const refParser = new RefParser();
-    return refParser.dereference(definition);
+    if (Enforcer.config.useNewRefParser) {
+        const refParser = new NewRefParser(definition);
+        return refParser.dereference();
+    } else {
+        const refParser = new OldRefParser();
+        return refParser.dereference(definition);
+    }
 };
 
 Enforcer.Enforcer = Enforcer;

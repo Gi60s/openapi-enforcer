@@ -1,0 +1,23 @@
+openapi: '3.0.0'
+info:
+  title: My Title
+  version: '1.0'
+paths:
+  /cats:
+    get:
+      responses:
+        200:
+          description: Get a pet
+          content:
+            application/json:
+              schema:
+                $ref: './schemas.yml#/components/schemas/Cat'
+  /pets:
+    get:
+      responses:
+        200:
+          description: Get a pet
+          content:
+            application/json:
+              schema:
+                $ref: './schemas.yml#/components/schemas/Pet'

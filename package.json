@@ -53,6 +53,7 @@
     "nyc": "^14.1.0"
   },
   "dependencies": {
+    "axios": "^0.19.2",
     "json-schema-ref-parser": "^6.0.1"
   }
 }

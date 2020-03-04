@@ -1,0 +1,4 @@
+A:
+  x: A
+  y:
+    $ref: './CircleB.yml'

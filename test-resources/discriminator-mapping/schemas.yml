@@ -1,0 +1,35 @@
+components:
+  schemas:
+    Cat:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - cat
+        lives:
+          type: integer
+          minimum: 1
+          maximum: 9
+    Dog:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - dog
+        packSize:
+          type: integer
+    Pet:
+      oneOf:
+        - $ref: '#/components/schemas/Cat'
+        - $ref: '#/components/schemas/Dog'
+      discriminator:
+        propertyName: type
+        mapping:
+          cat: 'Cat'
+          dog: '#/components/schemas/Dog'

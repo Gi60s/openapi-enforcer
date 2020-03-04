@@ -1,0 +1,7 @@
+Value:
+  x-key: Value
+  type: object
+  properties:
+    value:
+      type:
+        $ref: './People.yml#/Person/property/age/type'
