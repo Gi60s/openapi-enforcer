@@ -76,8 +76,9 @@ function createConstructor(version, name, enforcer) {
         });
     }
 
-    function build (result, definition, refParser, options) {
+    function build (result, definition, refParser, options = {}) {
         const isStart = !definitionValidator.isValidatorState(definition);
+        const needsValidation = true;
 
         // normalize options
         if (!options) options = {};
@@ -86,6 +87,7 @@ function createConstructor(version, name, enforcer) {
             : requestBodyAllowedMethods;
         options.disablePathNormalization = options.hasOwnProperty('disablePathNormalization') ? !!options.disablePathNormalization : false;
         options.apiSuggestions = options.hasOwnProperty('apiSuggestions') ? !!options.apiSuggestions : true;
+        options.production = !!options.production;
         options.exceptionSkipCodes = options.hasOwnProperty('exceptionSkipCodes')
             ? options.exceptionSkipCodes.reduce((p, c) => {
                 p[c] = true;
@@ -117,6 +119,7 @@ function createConstructor(version, name, enforcer) {
                 parent: null,
                 patch: +(match[3] || 0),
                 plugins: [],
+                production: options.production,
                 refParser,
                 result,
                 staticData,
@@ -145,6 +148,7 @@ function createConstructor(version, name, enforcer) {
             if (data.definition && typeof data.definition === 'object') data.defToInstanceMap.set(data.definition, result);
 
             if (util.isPlainObject(data.definition)) {
+                if (!needsValidation) data.validator = true;
                 definitionValidator(data);
             } else {
                 data.exception.message('Value must be a plain object');

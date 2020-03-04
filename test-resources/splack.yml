@@ -1,0 +1,469 @@
+openapi: 3.0.2
+info:
+  title: Splack
+  description: The lacking slack API
+  version: '1.0'
+paths:
+  /channels:
+    get:
+      summary: Get a list of channels and stuff.
+      x-controller: channels
+      x-operation: getChannelsList
+      tags:
+        - Channels
+      parameters:
+        - $ref: '#/components/parameters/ChannelFieldsets'
+      responses:
+        200:
+          description: A list of channels.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Channel'
+        default:
+          description: Unexpected
+    post:
+      summary: Create a new channel.
+      tags:
+        - Channels
+      requestBody:
+        $ref: '#/components/requestBodies/Channel'
+      responses:
+        201:
+          description: Channel created
+          headers:
+            Location:
+              $ref: '#/components/headers/PostLocation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChannelBasic'
+        default:
+          description: Unexpected
+  /channels/{channelId}:
+    parameters:
+      - $ref: '#/components/parameters/ChannelId'
+    get:
+      summary: Get a single channel.
+      tags:
+        - Channels
+      parameters:
+        - $ref: '#/components/parameters/ChannelFieldsets'
+      responses:
+        200:
+          description: Channel retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+        default:
+          description: Unexpected
+    put:
+      summary: Update a channel's basic information.
+      tags:
+        - Channels
+      requestBody:
+        $ref: '#/components/requestBodies/Channel'
+      responses:
+        200:
+          description: Channel data set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChannelBasic'
+        default:
+          description: Unexpected
+  /channels/{channelId}/messages:
+    parameters:
+      - $ref: '#/components/parameters/ChannelId'
+    get:
+      summary: Get a list of messages from a channel.
+      tags:
+        - Messages
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/MessageFieldsets'
+      responses:
+        200:
+          description: A list of messages.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+        default:
+          description: Unexpected
+    post:
+      summary: Post a message to the channel.
+      tags:
+        - Messages
+      requestBody:
+        $ref: '#/components/requestBodies/Message'
+      responses:
+        201:
+          description: Message posted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageBasic'
+        default:
+          description: Unexpected
+  /channels/{channelId}/members:
+    parameters:
+      - $ref: '#/components/parameters/ChannelId'
+    get:
+      summary: Get a list of channel members.
+      tags:
+        - Users
+      responses:
+        200:
+          description: A list of members.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        default:
+          description: Unexpected
+  /channels/{channelId}/members/{memberId}:
+    parameters:
+      - $ref: '#/components/parameters/ChannelId'
+      - $ref: '#/components/parameters/MemberId'
+    put:
+      summary: Make user a member of the channel.
+      tags:
+        - Users
+      responses:
+        200:
+          description: User is now a member of the channel.
+        default:
+          description: Unexpected
+    delete:
+      summary: Remove user from being a member of the channel.
+      tags:
+        - Users
+      responses:
+        200:
+          description: User is not a member of the channel.
+        default:
+          description: Unexpected
+  /messages/{messageId}:
+    parameters:
+      - $ref: '#/components/parameters/MessageId'
+    put:
+      summary: Set a message's content.
+      tags:
+        - Messages
+      requestBody:
+        $ref: '#/components/requestBodies/Message'
+      responses:
+        200:
+          description: Message content set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageBasic'
+        default:
+          description: Unexpected
+    delete:
+      summary: Delete a message and its comments.
+      tags:
+        - Messages
+      responses:
+        204:
+          description: Message deleted
+        default:
+          description: Unexpected
+  /messages/{messageId}/comments:
+    parameters:
+      - $ref: '#/components/parameters/MessageId'
+    get:
+      summary: Get a list of comments associated with this message.
+      tags:
+        - Comments
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        200:
+          description: A list of comments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        default:
+          description: Unexpected
+    post:
+      summary: Add a comment to a message.
+      tags:
+        - Comments
+      requestBody:
+        $ref: '#/components/requestBodies/Message'
+      responses:
+        201:
+          description: Comment posted
+          headers:
+            Location:
+              $ref: '#/components/headers/PostLocation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        default:
+          description: Unexpected
+  /comments/{commentId}:
+    parameters:
+      - $ref: '#/components/parameters/CommentId'
+    put:
+      summary: Set a comment's text.
+      tags:
+        - Comments
+      requestBody:
+        $ref: '#/components/requestBodies/Message'
+      responses:
+        200:
+          description: Comment text set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        default:
+          description: Unexpected
+    delete:
+      summary: Delete a comment.
+      tags:
+        - Comments
+      responses:
+        204:
+          description: Comment removed.
+        default:
+          description: Unexpected
+  /users:
+    post:
+      summary: Create a user
+      tags:
+        - Users
+      requestBody:
+        $ref: '#/components/requestBodies/UserLogin'
+      responses:
+        201:
+          description: User created.
+        default:
+          description: Unexpected
+    put:
+      summary: Log in
+      tags:
+        - Users
+      requestBody:
+        $ref: '#/components/requestBodies/UserLogin'
+      responses:
+        200:
+          description: Log in successful.
+        default:
+          description: Unexpected
+    delete:
+      summary: Log out
+      tags:
+        - Users
+      responses:
+        204:
+          description: Logged out.
+        default:
+          description: Unexpected
+components:
+  parameters:
+    ChannelId:
+      name: channelId
+      in: path
+      required: true
+      schema:
+        type: string
+    ChannelFieldsets:
+      name: fieldsets
+      in: query
+      schema:
+        type: array
+        default: ['basic']
+        items:
+          type: string
+          enum:
+            - basic
+            - metadata
+    CommentId:
+      name: commentId
+      in: path
+      required: true
+      schema:
+        type: string
+    EndDate:
+      name: endDate
+      in: query
+      schema:
+        type: string
+        format: date-time
+    MemberId:
+      name: memberId
+      in: path
+      required: true
+      schema:
+        type: string
+    MessageId:
+      name: messageId
+      in: path
+      required: true
+      schema:
+        type: string
+    MessageFieldsets:
+      name: fieldsets
+      in: query
+      schema:
+        type: array
+        default: ['basic']
+        items:
+          type: string
+          enum:
+            - basic
+            - comments
+    StartDate:
+      name: startDate
+      in: query
+      schema:
+        type: string
+        format: date-time
+  headers:
+    PostLocation:
+      description: The URL to retrieve the created resource from.
+      schema:
+        type: string
+  requestBodies:
+    Channel:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ChannelBasic'
+    Message:
+      content:
+        application/json:
+          schema:
+            type: string
+    UserLogin:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserLogin'
+  schemas:
+    Channel:
+      type: object
+      properties:
+        basic:
+          $ref: '#/components/schemas/ChannelBasic'
+        metadata:
+          type: object
+          properties:
+            memberCount:
+              type: integer
+              readOnly: true
+    ChannelBasic:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          description: A unique identifier.
+          type: string
+        name:
+          description: The channel's name
+          type: string
+        description:
+          description: A description of the channel's purpose.
+          type: string
+          default: ''
+    Comment:
+      allOf:
+        - $ref: '#/components/schemas/MessageBase'
+        - type: object
+          properties:
+            messageId:
+              description: The message that this comment belongs to.
+              type: string
+              readOnly: true
+    Message:
+      type: object
+      properties:
+        basic:
+          $ref: '#/components/schemas/MessageBasic'
+        comments:
+          description: The first 25 comments on a message.
+          type: array
+          maxItems: 25
+          items:
+            $ref: '#/components/schemas/Comment'
+    MessageBase:
+      type: object
+      required:
+        - id
+        - text
+        - postedBy
+        - datePosted
+        - dateUpdated
+      properties:
+        id:
+          description: A unique identifier.
+          type: string
+          readOnly: true
+        text:
+          description: The text in the message or comment.
+          type: string
+          minLength: 1
+        postedBy:
+          description: The user id of the user who posted this.
+          type: string
+        datePosted:
+          description: The date-time that this was first posted.
+          type: string
+          format: date-time
+        dateUpdated:
+          description: The date-time that this was last modified.
+          type: string
+          format: date-time
+    MessageBasic:
+      allOf:
+        - $ref: '#/components/schemas/MessageBase'
+        - type: object
+          required:
+            - channelId
+          properties:
+            channelId:
+              description: The channel ID that this message belong to.
+              type: string
+              readOnly: true
+    User:
+      type: object
+      properties:
+        email:
+          description: The user's email address.
+          type: string
+        name:
+          description: The user name, displayed on messages.
+          type: string
+        avatar:
+          description: The URL to the user's avatar.
+          type: string
+    UserLogin:
+      type: object
+      properties:
+        email:
+          description: The user's email address.
+          type: string
+        password:
+          description: The user's password.
+          type: string
+          format: password
