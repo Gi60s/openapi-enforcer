@@ -156,12 +156,10 @@ describe('index/production', () => {
         }
     });
 
-
-
-    it.skip('production vs development time test', async function () {
+    it('production vs development time test', async function () {
         this.timeout(30000);
         const t = { production: 0, dev: 0 };
-        const count =  500;
+        const count =  50;
         const total = count * 2;
         const def = await Enforcer.dereference(path.resolve(__dirname, '../test-resources/splack.yml'));
         for (let i = 0; i < total; i++) {
@@ -179,6 +177,8 @@ describe('index/production', () => {
         console.log('Production: ' + Math.round(t.production / count) +
             '\nDevelopment: ' + Math.round(t.dev / count) +
             '\nProduction is ' + (decrease < 0 ?  (-1*decrease) + '% slower than development' : decrease + '% faster than development'));
+
+        expect(decrease).to.be.greaterThan(20);
     });
 
 });
