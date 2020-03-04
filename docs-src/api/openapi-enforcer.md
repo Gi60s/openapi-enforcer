@@ -35,7 +35,7 @@ This function will dereference your OpenAPI document, validate it, produce warni
 | exceptionSkipCodes | An array of `string` values for all exception and warning codes to ignore. See the [Guide for Exceptions and Warnings](../guide/exceptions.md) for more details. | `string[]` | `[]` |
 | exceptionEscalateCodes | An array of `string` values for all exception warning codes that should be escalated to errors. See the [Guide for Exceptions and Warnings](../guide/exceptions.md) for more details. | `string[]` | `[]` |
 | requestBodyAllowedMethods | An `object` specifying which request methods to allow (or disallow) a request body for. The object you provide here will merge with the default value. | `object` | ` { post: true, put: true, options: true, head: true, patch: true } `
-| production | A `boolean` that when set to `true` will reduce the number of validations run on your OpenAPI document. This will allow you app to load a little faster for production. Do not use this setting if you are not sure that the OpenAPI document is valid otherwise other runtime errors are sure to occur. | `boolean` | `false` |   
+| production | A `boolean` that when set to `true` will reduce the number of validations run on your OpenAPI document. This will allow your app to load a little faster for production. Do not use this setting if you are not sure that the OpenAPI document is valid otherwise other runtime errors are sure to occur. | `boolean` | `false` |   
     
 **Returns:** A Promise
 
