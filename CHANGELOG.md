@@ -1,21 +1,26 @@
----
-title: Change History
-toc: 2
----
+# Change Log
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.10.0
 
-- **Added a custom ref parser to provide sufficient context to OpenAPI v3 discriminator mappings.**
+### Added
+
+- **A custom ref parser to provide sufficient context to OpenAPI v3 discriminator mappings.**
 
     The previous parser had limitations when discriminators existed outside the primary OpenAPI definition file.
     
-- **Added a production option to improve load times for production.**
+- **A production option to improve load times for production.**
 
     This is accomplished by performing fewer validations on your OpenAPI definition, but your definition must still be valid otherwise runtime errors will occur.
     
 ## 1.9.0
 
-- **Add default values to request inputs.**
+### Added
+
+- **Default values to request inputs.**
 
     Previous versions incorrectly forgot to add default data to the request object. For example, now:
      
