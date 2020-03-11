@@ -16,6 +16,54 @@ describe('documented issues fixes', () => {
         const openApiDocPath = path.resolve(resourcesPath, 'issue-66', 'openapi.yml');
         const { warning } = await Enforcer(openApiDocPath, { fullResult: true });
         expect(warning).to.equal(undefined)
+    });
+
+    describe('issue 69 - oneOf additionalProperties = false', () => {
+        const def = {
+            oneOf: [
+                {
+                    properties: {
+                        one: { type: "string" }
+                    },
+                    required: [ "one" ],
+                    additionalProperties: false,
+                    type: "object"
+                },
+                {
+                    properties: {
+                        one: { type: "string" },
+                        two: { type: "string" }
+                    },
+                    required: [ "one", "two" ],
+                    additionalProperties: false,
+                    type: "object"
+                }
+            ]
+        };
+
+        let schema;
+        before(() => {
+            const result = new Enforcer.v3_0.Schema(def);
+            schema = result.value;
+        });
+
+        it('can identify schema with one value', () => {
+            const [ value, err, warn ] = schema.deserialize({ one: "value" });
+            expect(err).to.equal(undefined);
+            expect(value).to.deep.equal({ one: 'value' });
+        });
+
+        it('can identify schema with two values', () => {
+            const [ value, err, warn ] = schema.deserialize({ one: 'one', two: 'two' });
+            expect(err).to.equal(undefined);
+            expect(value).to.deep.equal({ one: 'one', two: 'two' });
+        });
+
+        it('can identify invalid input', () => {
+            const [ value, err, warn ] = schema.deserialize({ one: 1 });
+            expect(err).to.match(/Expected a string/);
+        });
+
     })
 
 });

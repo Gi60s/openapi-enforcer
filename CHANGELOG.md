@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.10.1
+
+### Changed
+
+- **Fixed bug with oneOf discriminator.**
+
+    The serialize and deserialize through the `oneOf` or `anyOf` was not providing sufficient validations. This has been fixed.
+
 ## 1.10.0
 
 ### Added

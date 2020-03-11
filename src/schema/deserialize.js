@@ -15,9 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
-const Exception = require('../exception');
-const util      = require('../util');
-const Value     = require('./value');
+const schemaUtil    = require('./util');
+const util          = require('../util');
+const Value         = require('./value');
 
 const rxTrue = /^\s*true\s*$/i;
 const rxFalse = /^\s*false\s*$/i;
@@ -64,49 +64,8 @@ function runDeserialize(exception, map, schema, originalValue, options) {
         if (schema.discriminator && (subSchema = schema.discriminate(value))) {
             result = Object.assign(value, runDeserialize(exception, map, subSchema, originalValue, options));
         } else {
-            const key = schema.anyOf ? 'anyOf' : 'oneOf';
-            const exceptions = [];
-            const matches = [];
-            schema[key].forEach(subSchema => {
-                const childException = new Exception('');
-                const mapCopy = new Map(map);
-                const result = runDeserialize(childException, mapCopy, subSchema, originalValue, options);
-                if (childException.hasException) {
-                    exceptions.push(childException)
-                } else {
-                    let score = 1;
-                    if (subSchema.type === 'object') {
-                        const properties = subSchema.properties || {};
-                        const keys = Object.keys(value);
-                        const length = keys.length;
-                        for (let i = 0; i < length; i++) {
-                            const key = keys[i];
-                            if (properties.hasOwnProperty(key)) {
-                                score++;
-                            } else if (properties.additionalProperties === false) {
-                                score = 0;
-                                break;
-                            }
-                        }
-                    }
-                    if (score > 0) matches.push({ score, result })
-                }
-            });
-            if (matches.length > 1) {
-                matches.sort((a, b) => a.score > b.score ? -1 : 1);
-                const highScore = matches[0].score;
-                const highs = matches.filter(match => match.score === highScore);
-                if (highs.length > 1) {
-                    exception.message('Unable to determine deserialization schema because too many schemas match. Use of a discriminator or making your schemas more specific would help this problem.')
-                } else {
-                    result = util.merge(value, highs[0].result);
-                }
-            } else if (matches.length === 0) {
-                const child = exception.nest('No matching schemas');
-                exceptions.forEach(childException => child.push(childException));
-            } else {
-                result = util.merge(value, matches[0].result);
-            }
+            result = schemaUtil.anyOneOf(schema,
+                originalValue, exception, map, runDeserialize, false, options);
         }
         return result;
 
