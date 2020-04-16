@@ -1,0 +1,72 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Swagger Petstore
+paths:
+  /pets/{petId}:
+    get:
+      summary: Info for a specific pet
+      operationId: showPetById
+      tags:
+        - pets
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          description: The id of the pet to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A pet
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Dog'
+                  - $ref: '#/components/schemas/Cat'
+                discriminator:
+                  propertyName: petType
+                  mapping:
+                    dog: "#/components/schemas/Dog"
+                    cat: "#/components/schemas/Cat"
+              examples:
+                cat:
+                  #$ref: "nina-kitty.yml"
+                  summary: A dog example
+                  value: {"id": 0, "name": "nina", "petType": "dog"}
+                dog:
+                  #    $ref: "bullet-bull-dog.yml"
+                  summary: A dog example
+                  value: {"id": 0, "name": "nina", "petType": "dog"}
+
+components:
+  schemas:
+    Dog:
+      type: object
+      required:
+        - id
+        - name
+        - petType
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        petType:
+          type: string
+    Cat:
+      type: object
+      required:
+        - id
+        - name
+        - petType
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        petType:
+          type: string

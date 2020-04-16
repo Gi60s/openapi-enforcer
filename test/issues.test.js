@@ -66,4 +66,19 @@ describe('documented issues fixes', () => {
 
     })
 
+    describe('issue-70 - discriminator mappings must be resolved prior to example validation', () => {
+
+        it('can validate examples with discriminator mappings', async () => {
+            const openApiDocPath = path.resolve(resourcesPath, 'issue-70', 'openapi.yml');
+            const [ openapi, error, warning ] = await Enforcer(openApiDocPath, { fullResult: true });
+
+            expect(error).to.equal(undefined);
+            expect(warning).to.equal(undefined);
+
+            const examples = openapi.paths['/pets/{petId}'].get.responses['200'].content['application/json'].examples;
+            expect(examples.cat.value.id).to.be.a('number')
+        });
+
+    });
+
 });
