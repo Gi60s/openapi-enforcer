@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.10.2
+
+### Changed
+
+- **Fixed bug discriminator mapping with examples.**
+
+    Examples were being validated before discriminator mappings were resolved. This fix ensures that examples are validated after discriminator mappings are resolved.
+
 ## 1.10.1
 
 ### Changed
