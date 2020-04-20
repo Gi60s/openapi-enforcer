@@ -82,6 +82,7 @@ function createConstructor(version, name, enforcer) {
 
         // normalize options
         if (!options) options = {};
+        if (isStart) options = Object.assign({}, options)
         options.requestBodyAllowedMethods = options.hasOwnProperty('requestBodyAllowedMethods')
             ? Object.assign({}, requestBodyAllowedMethods, options.requestBodyAllowedMethods)
             : requestBodyAllowedMethods;
