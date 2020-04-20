@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.10.3
+
+### Changed
+
+- **Passed in options no longer modified.**
+
+    When creating an Enforcer instance options can be provided. The options object was being altered. This has been fixed to now create a copy of the options prior to altering.
+
 ## 1.10.2
 
 ### Changed
