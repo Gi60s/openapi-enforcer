@@ -99,6 +99,56 @@ describe('index/toPlainObject', () => {
 
 });
 
+describe('index/options', () => {
+    const def = {
+        openapi: '3.0.0',
+        info: { title: '', version: '' },
+        paths: {
+            '/': {
+                post: {
+                    responses: {
+                        '201': {
+                            description: ''
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    describe.only('skipCodes', () => {
+
+        it('accepts an array', async () => {
+            const options = {
+                fullResult: true,
+                componentOptions: {
+                    exceptionSkipCodes: [ 'WRES001' ]
+                }
+            };
+            const [ , error, warning ] = await Enforcer(def, options);
+            expect(error).to.equal(undefined);
+            expect(warning).to.equal(undefined);
+        });
+
+        it('allows option reuse', async () => {
+            const options = {
+                fullResult: true,
+                componentOptions: {
+                    exceptionSkipCodes: [ 'WRES001' ]
+                }
+            };
+            const [ , error1, warning1 ] = await Enforcer(def, options);
+            const [ , error2, warning2 ] = await Enforcer(def, options);
+            expect(error1).to.equal(undefined);
+            expect(warning1).to.equal(undefined);
+            expect(error2).to.equal(undefined);
+            expect(warning2).to.equal(undefined);
+        });
+
+    });
+
+});
+
 describe('index/production', () => {
 
     describe('production and development instances have the same structure', () => {
