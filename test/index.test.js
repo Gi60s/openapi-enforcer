@@ -116,7 +116,7 @@ describe('index/options', () => {
         }
     }
 
-    describe.only('skipCodes', () => {
+    describe('skipCodes', () => {
 
         it('accepts an array', async () => {
             const options = {
@@ -125,7 +125,7 @@ describe('index/options', () => {
                     exceptionSkipCodes: [ 'WRES001' ]
                 }
             };
-            const [ , error, warning ] = await Enforcer(def, options);
+            const [, error, warning ] = await Enforcer(def, options);
             expect(error).to.equal(undefined);
             expect(warning).to.equal(undefined);
         });
