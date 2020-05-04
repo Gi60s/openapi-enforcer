@@ -110,6 +110,7 @@ module.exports = {
             if (request.hasOwnProperty('method') && typeof request.method !== 'string') throw Error('Invalid request method. Expected a string');
             if (!request.hasOwnProperty('path')) throw Error('Missing required request path');
             if (typeof request.path !== 'string') throw Error('Invalid request path. Expected a string');
+            if (request.hasOwnProperty('query') && !util.isObjectStringMap(request.query)) throw Error('Invalid request query. Expected an object with string keys and string values');
 
             if (!options) options = {};
             if (typeof options !== 'object') throw Error('Invalid options. Expected an object. Received: ' + options);
@@ -119,6 +120,7 @@ module.exports = {
 
             const method = request.hasOwnProperty('method') ? request.method.toLowerCase() : 'get';
             const [ pathString, query ] = request.path.split('?');
+            if(!query && request.hasOwnProperty('query')) query = util.toQueryString(request.query);
             const path = this.enforcerData.options.disablePathNormalization
                 ? pathString
                 : util.edgeSlashes(pathString, true, false);
