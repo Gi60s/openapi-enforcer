@@ -119,7 +119,7 @@ module.exports = {
             options.pathParametersProcessed = true;
 
             const method = request.hasOwnProperty('method') ? request.method.toLowerCase() : 'get';
-            const [ pathString, query ] = request.path.split('?');
+            let [ pathString, query ] = request.path.split('?');
             if(!query && request.hasOwnProperty('query')) query = util.toQueryString(request.query);
             const path = this.enforcerData.options.disablePathNormalization
                 ? pathString
