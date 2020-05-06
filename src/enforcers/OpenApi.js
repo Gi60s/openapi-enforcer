@@ -96,6 +96,7 @@ module.exports = {
          * @param {Object<string,string>} [request.headers={}] The request headers
          * @param {string} [request.method='get']
          * @param {string} [request.path='/']
+         * @param {Object<string,string>} [request.query] Will be overwritten if the path includes query string parameters.
          * @param {object} [options]
          * @param {boolean,string[]} [options.allowOtherQueryParameters=false] Allow query parameter data that is not specified in the OAS document
          * @returns {EnforcerResult<{ body:*, cookie:object, headers:object, operation: Operation, path:object, query:object, response:function }>}
@@ -120,7 +121,7 @@ module.exports = {
 
             const method = request.hasOwnProperty('method') ? request.method.toLowerCase() : 'get';
             let [ pathString, query ] = request.path.split('?');
-            if(!query && request.hasOwnProperty('query')) query = util.toQueryString(request.query);
+            if (!query && request.hasOwnProperty('query')) query = util.toQueryString(request.query);
             const path = this.enforcerData.options.disablePathNormalization
                 ? pathString
                 : util.edgeSlashes(pathString, true, false);
