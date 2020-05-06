@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.10.4
+
+### Changed
+
+- **OpenAPI#request can accept query object.**
+
+    The OpenAPI `request` function will now also accept a separate `query` property as input.
+
 ## 1.10.3
 
 ### Changed

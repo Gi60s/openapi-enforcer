@@ -72,6 +72,7 @@ module.exports = {
         if (!result.set) throw Error('Unable to convert value to plain object');
         return result.value;
     },
+    toQueryString,
     ucFirst,
     validateExamples,
     validateMaxMin
@@ -606,6 +607,10 @@ function toPlainObject (value, options, map) {
     } else {
         return { set: true, value };
     }
+}
+
+function toQueryString (obj) {
+    return queryString.stringify(obj);
 }
 
 function ucFirst (value) {
