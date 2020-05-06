@@ -86,4 +86,49 @@ describe('enforcer/openapi', () => {
 
     });
 
+    describe('request', () => {
+
+        describe('query parameters', () => {
+            let openapi
+
+            before(() => {
+                let error
+                [ openapi, error ] = Enforcer.v3_0.OpenApi({
+                    openapi: '3.0.0',
+                    info: { title: '', version: '' },
+                    paths: {
+                        '/': {
+                            get: {
+                                parameters: [{name: 'q', in: 'query', schema: {type: 'string'}}],
+                                responses: {
+                                    '200': {
+                                        description: ''
+                                    }
+                                }
+                            }
+                        }
+                    }
+                })
+                if (error) throw error
+            })
+
+            it('allows query parameter in path', () => {
+                const [ req ] = openapi.request({ method: 'get', path: '/?q=hello' })
+                expect(req.query).to.deep.equal({ q: 'hello' })
+            });
+
+            it('allows query parameter object', () => {
+                const [ req ] = openapi.request({ method: 'get', path: '/', query: { q: 'hello' } })
+                expect(req.query).to.deep.equal({ q: 'hello' })
+            });
+
+            it('ignores query parameter object if path includes query string', () => {
+                const [ req ] = openapi.request({ method: 'get', path: '/?q=one', query: { q: 'two' } })
+                expect(req.query).to.deep.equal({ q: 'one' })
+            });
+
+        });
+
+    })
+
 });
