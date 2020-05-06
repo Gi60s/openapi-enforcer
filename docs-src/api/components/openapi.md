@@ -81,6 +81,7 @@ Deserialize and validate a request.
 | headers | An `object` of key value pairs where the key is the header name and the value is the header value. | `object` | `{}` |
 | method | The HTTP method to use. | `string` | `'get'` |
 | path | The full path (after domain and port) including query parameter string. | `string` | `'/'` |
+| query | An `object` of key value pairs where the key is the query parameter name and the value is the query parameter value. If a query string is included on the `path` property then this object will be ignored. | `object` | |
 
 **Options Parameter**
 
