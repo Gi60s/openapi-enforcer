@@ -32,7 +32,7 @@ exports.binary = {
             const length = value.length;
             const array = [];
             for (let i = 0; i < length; i += 8) array.push(parseInt(value.substr(i, 8), 2))
-            return Buffer.from ? Buffer.from(array, 'binary') : new Buffer(array, 'binary');
+            return Buffer.from(array, 'binary');
         }
     },
 
@@ -81,7 +81,7 @@ exports.byte = {
             if (!rx.byte.test(value) || value.length % 4 !== 0) {
                 exception.message('Expected a base64 string');
             } else {
-                return Buffer.from ? Buffer.from(value, 'base64') : new Buffer(value, 'base64');
+                return Buffer.from(value, 'base64');
             }
         } else {
             exception.message('Expected a base64 string');
