@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.10.5
+
+### Removed
+
+- **Removed Buffer constructors**
+
+   Adjusted for the deprecation of Buffer constructors. https://nodejs.org/en/docs/guides/buffer-constructor-deprecation/
+   
+   This change removes support for NodeJS versions 5.9.x and earlier.
+
 ## 1.10.4
 
 ### Changed
