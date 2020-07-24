@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const EnforcerRef  = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
@@ -24,15 +23,21 @@ module.exports = {
 
     prototype: {},
 
-    validator: function (data) {
+    validator: function () {
         return {
             type: 'object',
             properties: {
                 name: 'string',
                 namespace: 'string',
                 prefix: 'string',
-                attribute: 'boolean',
-                wrapped: 'boolean'
+                attribute: {
+                    type: 'boolean',
+                    default: false
+                },
+                wrapped: {
+                    type: 'boolean',
+                    default: false
+                }
             }
         }
     }
