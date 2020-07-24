@@ -1,4 +1,3 @@
-const Exception = require('../src/exception');
 const expect = require('chai').expect;
 const RefParser = require('../src/ref-parser');
 const path = require('path');
@@ -42,7 +41,7 @@ describe('ref-parser', () => {
 
     it('can map external references', async () => {
         const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
-        const [ result, err ] = await parser.dereference();
+        const [ result ] = await parser.dereference();
         expect(result.People.items['x-key']).to.equal('Person');
         expect(result.Pets.items['x-key']).to.equal('Pet');
     });
@@ -50,7 +49,7 @@ describe('ref-parser', () => {
     it('can map from intro object', async () => {
         const obj = {
             MyPet: {
-                $ref: path.resolve(resourcesDir, './Pets.yaml#/Pet')
+                $ref: path.resolve(resourcesDir, './Pets.yaml') + '#/Pet'
             }
         };
         const parser = new RefParser(obj);
@@ -125,7 +124,7 @@ describe('ref-parser', () => {
 
     it('can handle circular reference to reference', async () => {
         const parser = new RefParser(path.resolve(resourcesDir, './RefReplaceA.yml'));
-        const [ result, err ] = await parser.dereference();
+        const [ result ] = await parser.dereference();
         expect(result.A.a).to.equal(result);
         expect(result).to.equal(result.A.b.B.a);
         expect(result.A.b).to.equal(parser.$refs[path.resolve(resourcesDir, './RefReplaceB.yml')]);
@@ -168,7 +167,7 @@ describe('ref-parser', () => {
     it('will produce error for existing file with missing resource', async () => {
         const obj = {
             Pet: {
-                $ref: path.resolve(resourcesDir, './Pets.yaml#/Dne')
+                $ref: path.resolve(resourcesDir, './Pets.yaml') + '#/Dne'
             }
         };
         const parser = new RefParser(obj);
@@ -302,7 +301,7 @@ describe('ref-parser', () => {
         it('can resolve to external absolute local path', async () => {
             const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
             const [ value ] = await parser.dereference();
-            const result = parser.resolvePath(value, path.resolve(resourcesDir, 'Pets.yaml#/Pet'));
+            const result = parser.resolvePath(value, path.resolve(resourcesDir, 'Pets.yaml') + '#/Pet');
             expect(result).to.equal(value.Pets.items);
         });
 
