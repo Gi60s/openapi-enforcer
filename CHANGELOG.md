@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.10.6
+
+### Changed
+
+- **Use valueOf evaluation for minimum and maximum comparison.**
+
+    Previously this was casting to number using `+value`, but that leads to casting failures in some instances. Using `valueOf()` will provide more flexibility while also providing proper consistency.
+
 ## 1.10.5
 
 ### Removed
