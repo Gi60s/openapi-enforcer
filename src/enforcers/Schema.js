@@ -1117,8 +1117,8 @@ function mergeTendToTrue (a, b) {
 
 function minMaxValid(minimum, maximum, exclusiveMinimum, exclusiveMaximum) {
     if (minimum === undefined || maximum === undefined) return true;
-    minimum = +minimum;
-    maximum = +maximum;
+    minimum = minimum.valueOf();
+    maximum = maximum.valueOf();
     return minimum < maximum || (!exclusiveMinimum && !exclusiveMaximum && minimum === maximum);
 }
 
