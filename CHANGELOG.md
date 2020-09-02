@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.10.7
+
+### Changed
+
+- **Same paths with different verbs should not be considered in conflict.**
+
+    If you have two paths that define the same endpoint then this is identified as a conflict. Previously, this applied across HTTP methods too. This patch fixes misidentifying conflicting paths that use different HTTP methods.
+    
+    Thanks to [ideadapt](https://github.com/ideadapt) for the PR fix and tests.
+
 ## 1.10.6
 
 ### Changed
