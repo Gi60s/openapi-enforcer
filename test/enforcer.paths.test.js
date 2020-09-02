@@ -20,9 +20,9 @@ const Enforcer      = require('../');
 
 describe('enforcer/paths', () => {
 
-    function validPathObject (parameters) {
+    function validPathObject (parameters, verb = 'get') {
         const result = {
-            get: {
+            [verb]: {
                 responses: {
                     default: {
                         description: ''
@@ -99,6 +99,19 @@ describe('enforcer/paths', () => {
         });
         expect(err).to.match(/Equivalent paths are not allowed/);
         expect(err.count).to.equal(5);
+    });
+
+    it('allows duplicate paths, if verbs differ', () => {
+        const [ , err, warning ] = Enforcer.v2_0.Paths({
+            '/a/{e}': validPathObject([
+                { name: 'e', in: 'path', required: true, type: 'string' }
+            ]),
+            '/a/{y}': validPathObject([
+                { name: 'y', in: 'path', required: true, type: 'string' }
+            ], 'put')
+        });
+        expect(err).to.equal(undefined);
+        expect(warning).to.equal(undefined);
     });
 
     it('correctly prioritizes path selection', () => {

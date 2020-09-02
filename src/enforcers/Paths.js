@@ -93,18 +93,23 @@ module.exports = {
                     rxStr += escapeRegExp(subStr);
                     paramlessStr += subStr;
                 }
+
+                path.methods.forEach(method => {
+                    equivalencyKey += method + equivalencyKey;
+
+                    if (!paramlessMap[equivalencyKey]) paramlessMap[equivalencyKey] = [];
+                    const paramless = paramlessMap[equivalencyKey];
+
+                    if (!pathEquivalencies[equivalencyKey]) pathEquivalencies[equivalencyKey] = [];
+                    if (pathEquivalencies[equivalencyKey].length === 0) pathEquivalencies[equivalencyKey].push(pathKey);
+                    if (!paramless.includes(paramlessStr)) {
+                        paramless.push(paramlessStr);
+                    } else {
+                        pathEquivalencies[equivalencyKey].push(pathKey);
+                    }
+                });
+
                 const rx = new RegExp('^' + rxStr + '$');
-
-                if (!paramlessMap[equivalencyKey]) paramlessMap[equivalencyKey] = [];
-                const paramless = paramlessMap[equivalencyKey];
-
-                if (!pathEquivalencies[equivalencyKey]) pathEquivalencies[equivalencyKey] = [];
-                if (pathEquivalencies[equivalencyKey].length === 0) pathEquivalencies[equivalencyKey].push(pathKey);
-                if (!paramless.includes(paramlessStr)) {
-                    paramless.push(paramlessStr);
-                } else {
-                    pathEquivalencies[equivalencyKey].push(pathKey);
-                }
 
                 // define parser function
                 const parser = pathString => {
