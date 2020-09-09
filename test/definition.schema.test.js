@@ -26,7 +26,6 @@ describe('definition/schema', () => {
     const schemas = {
         Cat: {
             type: 'object',
-            additionalProperties: false,
             properties: {
                 birthDate: { type: 'string' },
                 huntingSkill: { type: 'string' },
@@ -34,7 +33,6 @@ describe('definition/schema', () => {
         },
         Dog: {
             type: 'object',
-            additionalProperties: false,
             properties: {
                 birthDate: { type: 'string', format: 'date' },
                 packSize: { type: 'integer', minimum: 1 }
@@ -1112,6 +1110,59 @@ describe('definition/schema', () => {
                         required: ['a']
                     });
                     expect(err).to.match(/> x\n +Value must be a string/);
+                });
+
+                describe('discriminator examples', function () {
+
+                    it('will deserialize a valid discriminator example', async () => {
+                        const options = {
+                            fullResult: true,
+                            componentOptions: {
+                                exceptionSkipCodes: ['WPAS002']
+                            }
+                        };
+                        const def = util.copy(allOf3Def);
+                        def.components.schemas.Cat.allOf[1].properties.birthDate.format = 'date'
+                        def.components.schemas.Pet.example = {
+                            petType: 'cat',
+                            birthDate: '2000-01-01',
+                            huntingSkill: 'stealth'
+                        };
+                        const [ value, error, warning ] = await Enforcer(def, options)
+                        expect(error).to.equal(undefined)
+                        expect(warning).to.equal(undefined)
+                        expect(value.components.schemas.Pet.example).to.deep.equal({
+                            petType: 'cat',
+                            birthDate: new Date('2000-01-01'),
+                            huntingSkill: 'stealth'
+                        })
+
+                        const def2 = util.copy(allOf3Def);
+                        def2.components.schemas.Pet.example = {
+                            petType: 'cat',
+                            birthDate: 25,
+                            huntingSkill: 'stealth'
+                        };
+                        const result2 = await Enforcer(def2, options)
+                        expect(result2.warning).to.match(/Expected a string\. Received: 25/i)
+                    });
+
+                    it('will warn of an invalid discriminator example', async () => {
+                        const options = {
+                            fullResult: true,
+                            componentOptions: {
+                                exceptionSkipCodes: ['WPAS002']
+                            }
+                        };
+                        const def = util.copy(allOf3Def);
+                        def.components.schemas.Pet.example = {
+                            petType: 'cat',
+                            birthDate: 25,
+                            huntingSkill: 'stealth'
+                        };
+                        const [ , , warning ] = await Enforcer(def, options)
+                        expect(warning).to.match(/Expected a string\. Received: 25/i)
+                    });
                 });
 
                 it('requires mapping to resolve to schema instance', async () => {
@@ -2352,7 +2403,7 @@ describe('definition/schema', () => {
 
         describe('dereference mapping', () => {
 
-            it('can dereference mapped values', () => {
+            it.skip('can dereference mapped values', () => {
 
             })
 

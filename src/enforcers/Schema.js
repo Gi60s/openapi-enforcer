@@ -213,55 +213,10 @@ module.exports = {
         const skipCodes = options.exceptionSkipCodes;
         const escalateCodes = options.exceptionEscalateCodes;
 
-        // deserialize and validate enum, default, and example
-        if (this.hasOwnProperty('enum')) {
-            const child = exception.at('enum');
-            const value = this.enum.map((value, index) => {
-                return deserializeAndValidate(this, child.at(index), value, { enum: false });
-            });
-            Object.freeze(value);
-            setProperty(this, 'enum', value);
-        }
-        if (this.hasOwnProperty('default')) {
-            const value = deserializeAndValidate(this, exception.at('default'), this.default, {});
-            setProperty(this, 'default', freeze(value));
-        }
-        if (this.hasOwnProperty('example')) {
-            const value = deserializeAndValidate(this, warn.at('example'), this.example, {});
-            setProperty(this, 'example', freeze(value));
-        }
-
         // run data type validator
         const dataTypes = staticData.dataTypes;
         const dataType = (dataTypes && dataTypes[this.type] && dataTypes[this.type][this.format]) || null;
         if (dataType && dataType.validator) dataType.validator.call(this, data);
-
-        // if there is a discriminator with mappings then resolve those references
-        const discriminator = this.discriminator;
-        if (major === 3 && refParser && discriminator && discriminator.mapping) {
-            const useNewRefParser = refParser instanceof NewRefParser;
-            const schemaDef = data.definition;
-            plugins.push(() => {
-                const instanceMap = this.enforcerData.defToInstanceMap;
-                Object.keys(discriminator.mapping).forEach(key => {
-                    const value = discriminator.mapping[key];
-                    let definition;
-                    if (useNewRefParser) {
-                        const ref = rxHttp.test(value) || value.indexOf('/') !== -1
-                            ? value
-                            : '#/components/schemas/' + value;
-                        const sourceNode = refParser.getSourceNode(schemaDef);
-                        definition = refParser.resolvePath(sourceNode, ref);
-                    } else {
-                        const ref = rxHttp.test(value) || value.indexOf('/') !== -1
-                            ? value
-                            : '#/components/schemas/' + value;
-                        definition = refParser.$refs.get(ref);
-                    }
-                    setProperty(discriminator.mapping, key, instanceMap.get(definition));
-                });
-            });
-        }
 
         if (this.allOf) {
             const mergeException = new Exception('Unable to merge allOf schemas');
@@ -292,6 +247,52 @@ module.exports = {
                 get: () => new Result(allOfData.value, allOfData.exception, allOfData.warning)
             });
         }
+
+        plugins.push(() => {
+            // if there is a discriminator with mappings then resolve those references
+            const discriminator = this.discriminator;
+            if (major === 3 && refParser && discriminator && discriminator.mapping) {
+                const useNewRefParser = refParser instanceof NewRefParser;
+                const schemaDef = data.definition;
+                const instanceMap = this.enforcerData.defToInstanceMap;
+                Object.keys(discriminator.mapping).forEach(key => {
+                    const value = discriminator.mapping[key];
+                    let definition;
+                    if (useNewRefParser) {
+                        const ref = rxHttp.test(value) || value.indexOf('/') !== -1
+                            ? value
+                            : '#/components/schemas/' + value;
+                        const sourceNode = refParser.getSourceNode(schemaDef);
+                        definition = refParser.resolvePath(sourceNode, ref);
+                    } else {
+                        const ref = rxHttp.test(value) || value.indexOf('/') !== -1
+                            ? value
+                            : '#/components/schemas/' + value;
+                        definition = refParser.$refs.get(ref);
+                    }
+                    setProperty(discriminator.mapping, key, instanceMap.get(definition));
+                });
+            }
+
+            // deserialize and validate enum, default, and example
+            if (this.hasOwnProperty('enum')) {
+                const child = exception.at('enum');
+                const value = this.enum.map((value, index) => {
+                    return deserializeAndValidate(this, child.at(index), value, { enum: false });
+                });
+                Object.freeze(value);
+                setProperty(this, 'enum', value);
+            }
+            if (this.hasOwnProperty('default')) {
+                const value = deserializeAndValidate(this, exception.at('default'), this.default, {});
+                setProperty(this, 'default', freeze(value));
+            }
+            if (this.hasOwnProperty('example')) {
+                // TODO: should this produce an error or a warning? It's currently set to warn.
+                const value = deserializeAndValidate(this, warn.at('example'), this.example, {});
+                setProperty(this, 'example', freeze(value));
+            }
+        });
     },
 
     prototype,
