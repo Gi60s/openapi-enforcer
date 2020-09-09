@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+
+validate enums, defaults, and examples after discriminator dereference
+
+## 1.10.8
+
+### Changed
+
+- **Validate enums, defaults, and examples after discriminator dereference.**
+
+    When using an example in a discriminator a error would occur because discriminator references weren't being resolved until later in the process. You can't validate a value against a schema that has not yet been resolved.
+
 ## 1.10.7
 
 ### Changed
