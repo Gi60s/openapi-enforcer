@@ -15,6 +15,14 @@ validate enums, defaults, and examples after discriminator dereference
 
     When using an example in a discriminator a error would occur because discriminator references weren't being resolved until later in the process. You can't validate a value against a schema that has not yet been resolved.
 
+## 1.11.0
+
+### Added
+
+- **Definition Bundler**
+
+    Created a custom built bundler that bundles and references nodes in a format that follows the OpenAPI specification.
+
 ## 1.10.7
 
 ### Changed
