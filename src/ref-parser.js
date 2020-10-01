@@ -60,9 +60,75 @@ function RefParser (source) {
     });
 }
 
+RefParser.prototype.bundle = async function () {
+    const that = map.get(this);
+    if (that.bundled) {
+        const { value, error, warning } = that.bundled;
+        return new Result(value, error, warning);
+    }
+
+    const exception = new Exception('Unable to bundle definition for one or more reasons');
+    const warning = new Exception('One ore more warnings encountered while bundling');
+
+    const [ dereferenced, error ] = await this.dereference();
+    const bundled = util.copy(dereferenced)
+    if (error) {
+        exception.push(error);
+    } else {
+        const map = mapNodesAndPaths(bundled, null, '', '#', [])
+        const duplicates = Array.from(map.keys())
+            .map(key => {
+                const data = map.get(key)
+                return { node: key, refs: data }
+            })
+            .filter(v => v.refs.length > 1)
+
+        // get the optimal references
+        const version = getVersion(bundled)
+        const priorities = version === 2
+            ? ['definitions', 'parameters', 'responses', 'securityDefinitions', 'security', 'tags', 'externalDocs']
+            : ['components/schemas', 'components/responses', 'components/parameters', 'components/examples', 'components/requestBodies', 'components/headers', 'components/securitySchemes', 'components/links', 'components/callbacks', 'components', 'security', 'servers', 'tags', 'externalDocs']
+        duplicates.forEach(dup => {
+            const refs = dup.refs
+            refs.sort((a, b) => {
+                const pathA = a.path
+                const pathB = b.path
+                let priorityA = priorities.findIndex(p => pathA.startsWith('#/' + p))
+                let priorityB = priorities.findIndex(p => pathB.startsWith('#/' + p))
+                if (priorityA === -1) priorityA = Number.MAX_SAFE_INTEGER
+                if (priorityB === -1) priorityB = Number.MAX_SAFE_INTEGER
+
+                if (priorityA < priorityB) {
+                    return -1;
+                } else if (priorityA > priorityB) {
+                    return 1;
+                } else {
+                    return pathA.split('/').length < pathB.split('/').length ? -1 : 1;
+                }
+            })
+            dup.ref = refs[0]
+        })
+
+        duplicates.forEach(dup => {
+            const refs = dup.refs;
+            const length = refs.length;
+            for (let i = 1; i < length; i++) {
+                const ref = refs[i]
+                ref.parent[ref.key] = dup.ref.path
+            }
+        })
+    }
+
+    that.bundled = new Result(bundled, exception);
+    return that.bundled;
+}
+
 RefParser.prototype.dereference = async function () {
     const that = map.get(this);
-    if (that.dereferenced) return that.dereferenced;
+    if (that.dereferenced) {
+        const { value, error, warning } = that.dereferenced
+        return new Result(value, error, warning)
+    }
 
     const exception = new Exception('Unable to dereference definition for one or more reasons');
     const { source } = that;
@@ -97,7 +163,8 @@ RefParser.prototype.getSourcePath = function (node) {
 
     const sourceMap = that.sourceMap;
     const keys = Object.keys(sourceMap);
-    for (let i = 0; i < keys.length; i++) {
+    const length = keys.length;
+    for (let i = 0; i < length; i++) {
         const key = keys[i];
         if (sourceMap[key].includes(node)) return key;
     }
@@ -146,6 +213,52 @@ function defer () {
 function ensureDereferenced (that) {
     if (!that.dereferenced) throw Error('You must first call the dereference function before looking up node source.');
     if (that.dereferenced.error) throw Error('Cannot get source for a node when dereference has failed.');
+}
+
+function mapNodesAndPaths (node, parent, key, path, chain, map = new Map()) {
+    if (node && typeof node === 'object') {
+        // if we're in an endless loop then exit
+        if (chain.includes(node)) return
+
+        // add to loop watching chain
+        chain = chain.slice();
+        chain.push(node);
+
+        const data = {
+            key,
+            parent,
+            path
+        }
+
+        // store where this node resides in the tree
+        const existing = map.get(node);
+        if (existing) {
+            existing.push(data);
+        } else {
+            map.set(node, [data]);
+        }
+
+        if (Array.isArray(node)) {
+            node.forEach((n, i) => {
+                mapNodesAndPaths(n, node, i, path + '/' + i, chain, map);
+            });
+        } else {
+            Object.keys(node).forEach(key => {
+                mapNodesAndPaths(node[key], node, key, path + '/' + key, chain, map);
+            });
+        }
+    }
+    return map;
+}
+
+function getVersion (spec) {
+    if (spec) {
+        if (spec.swagger) return 2;
+        if (spec.openapi) {
+            const v = spec.openapi.split('.')[0];
+            if (/^\d$/.test(v)) return +v;
+        }
+    }
 }
 
 async function parse (basePath, fullPath, source, value, that, map, chain, exception) {

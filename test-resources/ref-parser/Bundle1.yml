@@ -1,0 +1,16 @@
+a:
+  name: 'foo'
+b:
+  a:
+    $ref: '#/a'
+  b: 'b'
+c:
+  a:
+    $ref: '#/a'
+  b:
+    $ref: '#/b'
+  c:
+    $ref: './Bundle2.yml#/c'
+d:
+  c:
+    $ref: './Bundle2.yml#/c'

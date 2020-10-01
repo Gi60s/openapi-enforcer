@@ -333,4 +333,55 @@ describe('ref-parser', () => {
         });
     });
 
+    describe('bundle', () => {
+        it('can bundle multiple files', async function () {
+            const parser = new RefParser(path.resolve(resourcesDir, 'Bundle1.yml'));
+            const [ bundled ] = await parser.bundle();
+            expect(bundled.b.a).to.equal('#/a');
+            expect(bundled.c.a).to.equal('#/a');
+            expect(bundled.c.b).to.equal('#/b');
+            expect(bundled.d.c).to.equal('#/c/c');
+        })
+
+        // this test proves that bundling will prioritize references
+        // to follow the OpenAPI specification
+        it('will smartly reference duplicates', async function () {
+            const doc = {
+                openapi: '3.0.0',
+                info: { title: '', version: '' },
+                paths: {
+                    '/': {
+                        responses: {
+                            '200': {
+                                description: '',
+                                content: {
+                                    'application/json': {
+                                        schema: {
+                                            $ref: '#/components/schemas/x'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                components: {
+                    schemas: {
+                        x: {
+                            $ref: '#/schemas/x'
+                        }
+                    }
+                },
+                schemas: {
+                  x: {
+                      type: 'string'
+                  }
+                }
+            }
+
+            const parser = new RefParser(doc);
+            const [ bundled ] = await parser.bundle();
+            expect(bundled.components.schemas.x).to.deep.equal({ type: 'string' })
+        });
+    })
 });
