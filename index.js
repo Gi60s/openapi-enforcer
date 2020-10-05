@@ -89,7 +89,7 @@ Enforcer.config = {
     useNewRefParser: false
 };
 
-Enforcer.bundler = function (definition) {
+Enforcer.bundle = function (definition) {
     if (Enforcer.config.useNewRefParser) {
         const refParser = new NewRefParser(definition);
         return refParser.bundle();
