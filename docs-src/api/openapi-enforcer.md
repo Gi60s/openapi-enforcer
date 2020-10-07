@@ -121,6 +121,22 @@ const Enforcer = require('openapi-enforcer');
 Enforcer.config.useNewRefParser = true; // use custom ref parser
 ```
 
+## Enforcer.bundle
+
+`Enforcer.bundle ( definition ) : Promise <object>`
+
+Resolves all of the `$ref` values in a definition, reorganizes `$ref` values to meet the OpenAPI specification, and returns an object that can be stringified with `JSON.stringify`.
+
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **definition** | A `string` for the file path to the OpenAPI definition or an `object` to bundle. | `string` or `object` | |
+
+**Parameters:**
+
+- *definition* - A `string` for the file path to the OpenAPI definition or an `object` to bundle.
+
+**Returns:** A Promise that resolves to the bundled `object`.
+
 ## Enforcer.dereference
 
 `Enforcer.dereference ( definition ) : Promise <object>`

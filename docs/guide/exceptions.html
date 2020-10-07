@@ -74,20 +74,20 @@
 <p><strong>openapi.yml</strong></p>
 <pre><code class="language-yaml"><span class="hljs-attr">openapi:</span> <span class="hljs-string">"3.0.0"</span>
 <span class="hljs-attr">info:</span>
-<span class="hljs-attr">  title:</span> <span class="hljs-string">My</span> <span class="hljs-string">API</span>
-<span class="hljs-attr">  version:</span> <span class="hljs-string">"1.0.0"</span>
+  <span class="hljs-attr">title:</span> <span class="hljs-string">My</span> <span class="hljs-string">API</span>
+  <span class="hljs-attr">version:</span> <span class="hljs-string">"1.0.0"</span>
 <span class="hljs-attr">paths:</span>
   <span class="hljs-string">/emails:</span>
-<span class="hljs-attr">    post:</span>
-<span class="hljs-attr">      summary:</span> <span class="hljs-string">Save</span> <span class="hljs-string">an</span> <span class="hljs-string">email</span> <span class="hljs-string">address</span> <span class="hljs-string">to</span> <span class="hljs-string">the</span> <span class="hljs-string">server</span> <span class="hljs-string">if</span> <span class="hljs-string">it</span> <span class="hljs-string">does</span> <span class="hljs-string">not</span> <span class="hljs-string">already</span> <span class="hljs-string">exist</span> <span class="hljs-string">and</span> <span class="hljs-string">it</span> <span class="hljs-string">is</span> <span class="hljs-string">also</span> <span class="hljs-string">a</span> <span class="hljs-string">corperate</span> <span class="hljs-string">email</span> <span class="hljs-string">address,</span> <span class="hljs-string">as</span> <span class="hljs-string">identified</span> <span class="hljs-string">by</span> <span class="hljs-string">the</span> <span class="hljs-string">domain.</span>
-<span class="hljs-attr">      responses:</span>
-        <span class="hljs-number">201</span><span class="hljs-string">:</span>
-<span class="hljs-attr">          description:</span> <span class="hljs-string">Saved</span>
-<span class="hljs-attr">          content:</span>
-            <span class="hljs-string">application/json:</span>
-<span class="hljs-attr">              schema:</span>
-<span class="hljs-attr">                type:</span> <span class="hljs-string">string</span>
-<span class="hljs-attr">                format:</span> <span class="hljs-string">email</span></code></pre>
+    <span class="hljs-attr">post:</span>
+      <span class="hljs-attr">summary:</span> <span class="hljs-string">Save</span> <span class="hljs-string">an</span> <span class="hljs-string">email</span> <span class="hljs-string">address</span> <span class="hljs-string">to</span> <span class="hljs-string">the</span> <span class="hljs-string">server</span> <span class="hljs-string">if</span> <span class="hljs-string">it</span> <span class="hljs-string">does</span> <span class="hljs-string">not</span> <span class="hljs-string">already</span> <span class="hljs-string">exist</span> <span class="hljs-string">and</span> <span class="hljs-string">it</span> <span class="hljs-string">is</span> <span class="hljs-string">also</span> <span class="hljs-string">a</span> <span class="hljs-string">corperate</span> <span class="hljs-string">email</span> <span class="hljs-string">address,</span> <span class="hljs-string">as</span> <span class="hljs-string">identified</span> <span class="hljs-string">by</span> <span class="hljs-string">the</span> <span class="hljs-string">domain.</span>
+      <span class="hljs-attr">responses:</span>
+        <span class="hljs-attr">201:</span>
+          <span class="hljs-attr">description:</span> <span class="hljs-string">Saved</span>
+          <span class="hljs-attr">content:</span>
+            <span class="hljs-attr">application/json:</span>
+              <span class="hljs-attr">schema:</span>
+                <span class="hljs-attr">type:</span> <span class="hljs-string">string</span>
+                <span class="hljs-attr">format:</span> <span class="hljs-string">email</span></code></pre>
 <p><strong>index.js</strong></p>
 <pre><code class="language-js"><span class="hljs-keyword">const</span> Enforcer = <span class="hljs-built_in">require</span>(<span class="hljs-string">'openapi-enforcer'</span>)
 
@@ -149,8 +149,8 @@ Enforcer(<span class="hljs-string">'./openapi.yml'</span>, options)</code></pre>
   </div>
 </div>
 
-
 <script src="/openapi-enforcer/template-files/js/main.js"></script>
+
 
 </body>
 

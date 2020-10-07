@@ -160,8 +160,8 @@ value = Schema.extractValue(value)
 <span class="hljs-comment">// convert value to SchemaValue instance</span>
 <span class="hljs-keyword">const</span> schemaValue = <span class="hljs-keyword">new</span> Schema.Value(<span class="hljs-string">'hello'</span>, {
     <span class="hljs-attr">populate</span>: <span class="hljs-literal">true</span>,   <span class="hljs-comment">// default true</span>
-    serialize: <span class="hljs-literal">true</span>,  <span class="hljs-comment">// default true</span>
-    validate: <span class="hljs-literal">true</span>    <span class="hljs-comment">// default true</span>
+    <span class="hljs-attr">serialize</span>: <span class="hljs-literal">true</span>,  <span class="hljs-comment">// default true</span>
+    <span class="hljs-attr">validate</span>: <span class="hljs-literal">true</span>    <span class="hljs-comment">// default true</span>
 })
 
 <span class="hljs-comment">// run your serialize, deserialize, validate, or populate here</span>
@@ -318,8 +318,8 @@ value = Schema.extractValue(value)
   </div>
 </div>
 
-
 <script src="/openapi-enforcer/template-files/js/main.js"></script>
+
 
 </body>
 

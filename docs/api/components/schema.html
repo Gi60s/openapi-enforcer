@@ -60,7 +60,7 @@
         
         <div>
           <p><strong>Page Content</strong></p>
-          <div class="section-nav"><ul class="toc"><li><a href="#instance-methods">Instance Methods</a><ul><li><a href="#deserialize">deserialize</a></li><li><a href="#discriminate">discriminate</a></li><li><a href="#formalize">formalize</a></li><li><a href="#populate">populate</a></li><li><a href="#random">random</a></li><li><a href="#serialize">serialize</a></li><li><a href="#validate">validate</a></li><li><a href="#toobject">toObject</a></li></ul></li><li><a href="#static-methods">Static Methods</a><ul><li><a href="#definedatatypeformat">defineDataTypeFormat</a></li></ul></li><li><a href="#extractvalue">extractValue</a></li><li><a href="#formalize-1">formalize</a></li><li><a href="#value">Value</a></li></ul></div>
+          <div class="section-nav"><ul class="toc"><li><a href="#instance-methods">Instance Methods</a><ul><li><a href="#deserialize">deserialize</a></li><li><a href="#discriminate">discriminate</a></li><li><a href="#formalize">formalize</a></li><li><a href="#populate">populate</a></li><li><a href="#random">random</a></li><li><a href="#serialize">serialize</a></li><li><a href="#validate">validate</a></li><li><a href="#toobject">toObject</a></li></ul></li><li><a href="#static-methods">Static Methods</a><ul><li><a href="#definedatatypeformat">defineDataTypeFormat</a></li><li><a href="#extractvalue">extractValue</a></li><li><a href="#formalize-1">formalize</a></li><li><a href="#value">Value</a></li></ul></li></ul></div>
         </div>
         
 
@@ -597,19 +597,19 @@ Schema.defineDataTypeFormat(<span class="hljs-string">'string'</span>, <span cla
     <span class="hljs-attr">constructors</span>: [ Decimal ],
 
     <span class="hljs-comment">// define how to deserialize a value</span>
-    deserialize: <span class="hljs-function">(<span class="hljs-params">exception, value</span>) =&gt;</span> <span class="hljs-keyword">new</span> Decimal(value),
+    <span class="hljs-attr">deserialize</span>: <span class="hljs-function">(<span class="hljs-params">exception, value</span>) =&gt;</span> <span class="hljs-keyword">new</span> Decimal(value),
 
     <span class="hljs-comment">// is numeric - allows schema maximum, minimum, exclusiveMaximum, etc.</span>
-    isNumeric: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">isNumeric</span>: <span class="hljs-literal">true</span>,
 
     <span class="hljs-comment">// generate a random value</span>
-    random: <span class="hljs-function">(<span class="hljs-params">exception</span>) =&gt;</span> <span class="hljs-keyword">new</span> Decimal(<span class="hljs-built_in">String</span>(<span class="hljs-built_in">Math</span>.random() * <span class="hljs-number">100</span>)),
+    <span class="hljs-attr">random</span>: <span class="hljs-function">(<span class="hljs-params">exception</span>) =&gt;</span> <span class="hljs-keyword">new</span> Decimal(<span class="hljs-built_in">String</span>(<span class="hljs-built_in">Math</span>.random() * <span class="hljs-number">100</span>)),
 
     <span class="hljs-comment">// define how to serialize a value</span>
-    serialize: <span class="hljs-function">(<span class="hljs-params">exception, value</span>) =&gt;</span> value.toString(),
+    <span class="hljs-attr">serialize</span>: <span class="hljs-function">(<span class="hljs-params">exception, value</span>) =&gt;</span> value.toString(),
 
     <span class="hljs-comment">// define validation function for deserialized value</span>
-    validate: <span class="hljs-function">(<span class="hljs-params">exception, value</span>) =&gt;</span> {
+    <span class="hljs-attr">validate</span>: <span class="hljs-function">(<span class="hljs-params">exception, value</span>) =&gt;</span> {
         <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.hasOwnProperty(<span class="hljs-string">'minimum'</span>) &amp;&amp; <span class="hljs-keyword">this</span>.minimum &gt; +value) {
             exception.message(<span class="hljs-string">'Value must be above the minimum of '</span> + 
                 <span class="hljs-keyword">this</span>.minimum + <span class="hljs-string">'. Received: '</span> + value)
@@ -697,8 +697,8 @@ Schema.defineDataTypeFormat(<span class="hljs-string">'string'</span>, <span cla
   </div>
 </div>
 
-
 <script src="/openapi-enforcer/template-files/js/main.js"></script>
+
 
 </body>
 

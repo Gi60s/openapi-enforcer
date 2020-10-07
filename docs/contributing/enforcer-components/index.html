@@ -104,21 +104,21 @@
 <p><strong>Example Enforcer Component</strong></p>
 <pre><code class="language-js"><span class="hljs-built_in">module</span>.exports = {
     <span class="hljs-comment">// constructor</span>
-    init: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{
+    <span class="hljs-attr">init</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{
         <span class="hljs-comment">// Runs if there are no validator errors.</span>
         <span class="hljs-comment">// Can be used for late validations, to</span>
         <span class="hljs-comment">// add, modify, delete properties, etc.</span>
     },
 
     <span class="hljs-comment">// instance specific properties</span>
-    prototype: {
+    <span class="hljs-attr">prototype</span>: {
         <span class="hljs-attr">upperCaseTitle</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.title.toUpperCase()
         }
     },
 
     <span class="hljs-comment">// function that returns static properties</span>
-    statics: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope</span>) </span>{
+    <span class="hljs-attr">statics</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope</span>) </span>{
         <span class="hljs-keyword">return</span> {
             <span class="hljs-attr">isUpperCase</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">value</span>) </span>{
                 <span class="hljs-keyword">return</span> value.toUpperCase() === value
@@ -127,7 +127,7 @@
     },
 
     <span class="hljs-comment">// schema validator</span>
-    validator: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{
+    <span class="hljs-attr">validator</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{
         <span class="hljs-keyword">return</span> {
             <span class="hljs-attr">type</span>: <span class="hljs-string">'object'</span>,
             <span class="hljs-attr">properties</span>: {
@@ -370,8 +370,8 @@
   </div>
 </div>
 
-
 <script src="/openapi-enforcer/template-files/js/main.js"></script>
+
 
 </body>
 

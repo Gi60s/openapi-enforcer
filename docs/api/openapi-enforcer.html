@@ -60,7 +60,7 @@
         
         <div>
           <p><strong>Page Content</strong></p>
-          <div class="section-nav"><ul class="toc"><li><a href="#enforcer">Enforcer</a></li><li><a href="#enforcerconfig">Enforcer.config</a></li><li><a href="#enforcerdereference">Enforcer.dereference</a></li><li><a href="#enforcerenforcer">Enforcer.Enforcer</a></li><li><a href="#enforcerexception">Enforcer.Exception</a></li><li><a href="#enforcerresult">Enforcer.Result</a></li><li><a href="#enforcerv2_0">Enforcer.v2_0</a></li><li><a href="#enforcerv3_0">Enforcer.v3_0</a></li></ul></div>
+          <div class="section-nav"><ul class="toc"><li><a href="#enforcer">Enforcer</a></li><li><a href="#enforcerconfig">Enforcer.config</a></li><li><a href="#enforcerbundle">Enforcer.bundle</a></li><li><a href="#enforcerdereference">Enforcer.dereference</a></li><li><a href="#enforcerenforcer">Enforcer.Enforcer</a></li><li><a href="#enforcerexception">Enforcer.Exception</a></li><li><a href="#enforcerresult">Enforcer.Result</a></li><li><a href="#enforcerv2_0">Enforcer.v2_0</a></li><li><a href="#enforcerv3_0">Enforcer.v3_0</a></li></ul></div>
         </div>
         
 
@@ -246,6 +246,30 @@ Enforcer(definition)
 <p><strong>Example</strong></p>
 <pre><code class="language-js"><span class="hljs-keyword">const</span> Enforcer = <span class="hljs-built_in">require</span>(<span class="hljs-string">'openapi-enforcer'</span>);
 Enforcer.config.useNewRefParser = <span class="hljs-literal">true</span>; <span class="hljs-comment">// use custom ref parser</span></code></pre>
+<h2 id="enforcerbundle">Enforcer.bundle</h2>
+<p><code>Enforcer.bundle ( definition ) : Promise &lt;object&gt;</code></p>
+<p>Resolves all of the <code>$ref</code> values in a definition, reorganizes <code>$ref</code> values to meet the OpenAPI specification, and returns an object that can be stringified with <code>JSON.stringify</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>definition</strong></td>
+<td>A <code>string</code> for the file path to the OpenAPI definition or an <code>object</code> to bundle.</td>
+<td><code>string</code> or <code>object</code></td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><em>definition</em> - A <code>string</code> for the file path to the OpenAPI definition or an <code>object</code> to bundle.</li>
+</ul>
+<p><strong>Returns:</strong> A Promise that resolves to the bundled <code>object</code>.</p>
 <h2 id="enforcerdereference">Enforcer.dereference</h2>
 <p><code>Enforcer.dereference ( definition ) : Promise &lt;object&gt;</code></p>
 <p>Resolves all of the <code>$ref</code> values in a definition and returns the dereferenced object.</p>
@@ -325,8 +349,8 @@ Enforcer.config.useNewRefParser = <span class="hljs-literal">true</span>; <span 
   </div>
 </div>
 
-
 <script src="/openapi-enforcer/template-files/js/main.js"></script>
+
 
 </body>
 
