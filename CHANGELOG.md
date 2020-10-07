@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 validate enums, defaults, and examples after discriminator dereference
 
+## 1.11.0
+
+### Added
+
+- **Definition Bundler**
+
+    Created a custom-built bundler that bundles and references nodes in a format that follows the OpenAPI specification.
+    
+### Fixed
+
+- **Custom Ref Parser**
+
+    The custom ref parser had a bug where is failed to check for null values when processing objects. That has been resolved.
+
 ## 1.10.8
 
 ### Changed
@@ -14,14 +28,6 @@ validate enums, defaults, and examples after discriminator dereference
 - **Validate enums, defaults, and examples after discriminator dereference.**
 
     When using an example in a discriminator a error would occur because discriminator references weren't being resolved until later in the process. You can't validate a value against a schema that has not yet been resolved.
-
-## 1.11.0
-
-### Added
-
-- **Definition Bundler**
-
-    Created a custom built bundler that bundles and references nodes in a format that follows the OpenAPI specification.
 
 ## 1.10.7
 
