@@ -68,7 +68,6 @@ RefParser.prototype.bundle = async function () {
     }
 
     const exception = new Exception('Unable to bundle definition for one or more reasons');
-    const warning = new Exception('One ore more warnings encountered while bundling');
 
     const [ dereferenced, error ] = await this.dereference();
     const bundled = util.copy(dereferenced)
@@ -275,7 +274,7 @@ async function parse (basePath, fullPath, source, value, that, map, chain, excep
         await Promise.all(promises);
         return value;
 
-    } else if (typeof value === 'object') {
+    } else if (value && typeof value === 'object') {
         if (value.hasOwnProperty('$ref')) {
             const infiniteLoop = chain.includes(value);
             if (infiniteLoop) {
