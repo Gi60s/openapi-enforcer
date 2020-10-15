@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 validate enums, defaults, and examples after discriminator dereference
 
+## 1.11.1
+
+### Fixed
+
+- **Date-time numoffset optional colon**
+
+    Fixed the date-time regular expression to allow the colon to be optional per [RFC3339 Appendix-A](https://tools.ietf.org/html/rfc3339#appendix-A).
+
 ## 1.11.0
 
 ### Added
