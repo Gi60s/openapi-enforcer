@@ -1,0 +1,74 @@
+openapi: 3.0.1
+info:
+  title: Canyon
+  version: 1.0.0
+  description: '-'
+paths:
+  /waterfall:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/waterfall'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: integer
+          description: '-'
+      operationId: waterfall
+      summary: waterfall
+      description: '-'
+components:
+  schemas:
+    ag:
+      description: '-'
+      type: object
+      properties:
+        ta:
+          description: '-'
+          type: integer
+    waterfall:
+      description: '-'
+      type: object
+      properties:
+        pn:
+          $ref: 'elements.yaml#/components/schemas/chun'
+        tr:
+          $ref: 'elements.yaml#/components/schemas/lllu'
+        td:
+          $ref: 'elements.yaml#/components/schemas/pebn'
+        st:
+          $ref: 'elements.yaml#/components/schemas/wyan'
+        tt:
+          $ref: 'elements.yaml#/components/schemas/allo'
+        tl:
+          $ref: 'elements.yaml#/components/schemas/kum'
+        to:
+          $ref: 'elements.yaml#/components/schemas/wims'
+        rr:
+          $ref: 'elements.yaml#/components/schemas/feun'
+        tf:
+          $ref: 'elements.yaml#/components/schemas/lllu1'
+        mq:
+          $ref: 'elements.yaml#/components/schemas/lllu2'
+        cc:
+          $ref: 'elements.yaml#/components/schemas/lllu9'
+        ag:
+          $ref: '#/components/schemas/ag'
+        aj:
+          $ref: 'elements.yaml#/components/schemas/kum7'
+        ej:
+          $ref: 'elements.yaml#/components/schemas/kum8'
+        bw:
+          $ref: 'elements.yaml#/components/schemas/qond8'
+        ys:
+          $ref: 'elements.yaml#/components/schemas/veni'
+        hh:
+          type: object
+          properties:
+            th:
+              $ref: 'elements.yaml#/components/schemas/jiga'

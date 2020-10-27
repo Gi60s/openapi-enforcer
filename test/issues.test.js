@@ -81,4 +81,31 @@ describe('documented issues fixes', () => {
 
     });
 
+    describe('issue-86 - custom bundler issues', () => {
+        let useNew
+
+        before(() => {
+            useNew = Enforcer.config.useNewRefParser
+            Enforcer.config.useNewRefParser = true
+        })
+
+        after(() => {
+            Enforcer.config.useNewRefParser = useNew
+        })
+
+        it('can produce a valid openapi file', async () => {
+            const openApiDocPath = path.resolve(resourcesPath, 'issue-86', 'oas.yaml')
+            const [ bundled, error ] = await Enforcer.bundle(openApiDocPath)
+            if (error) {
+                throw Error(error)
+            } else {
+                const [, err, warn] = await Enforcer(bundled, {
+                    fullResult: true
+                })
+                if (err) throw Error(err)
+            }
+        })
+
+    })
+
 });

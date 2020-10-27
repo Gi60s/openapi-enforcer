@@ -1,0 +1,38 @@
+openapi: 3.0.1
+info:
+  title: Elements
+  version: 1.0.0
+components:
+  schemas:
+    chun:
+      type: string
+    lllu:
+      type: integer
+    pebn:
+      type: string
+    wyan:
+      type: integer
+    allo:
+      type: string
+    kum:
+      type: string
+    wims:
+      type: string
+    feun:
+      type: string
+    lllu1:
+      type: string
+    lllu2:
+      type: string
+    lllu9:
+      type: string
+    kum7:
+      type: string
+    kum8:
+      type: string
+    qond8:
+      type: string
+    veni:
+      type: string
+    jiga:
+      type: string

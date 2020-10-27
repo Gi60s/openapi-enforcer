@@ -108,12 +108,17 @@ RefParser.prototype.bundle = async function () {
             dup.ref = refs[0]
         })
 
+        duplicates.sort((a, b) => {
+            return a.ref.pathLength > b.ref.pathLength ? -1 : 1
+        })
+
         duplicates.forEach(dup => {
             const refs = dup.refs;
+            // console.log(dup.ref.path + ' <-- ' + refs.map(r => r.path).join(' && '))
             const length = refs.length;
             for (let i = 1; i < length; i++) {
                 const ref = refs[i]
-                ref.parent[ref.key] = dup.ref.path
+                ref.parent[ref.key] = { $ref: dup.ref.path }
             }
         })
     }
@@ -226,13 +231,15 @@ function mapNodesAndPaths (node, parent, key, path, chain, map = new Map()) {
         const data = {
             key,
             parent,
-            path
+            path,
+            pathLength: chain.length
         }
 
         // store where this node resides in the tree
         const existing = map.get(node);
         if (existing) {
             existing.push(data);
+            return map;
         } else {
             map.set(node, [data]);
         }

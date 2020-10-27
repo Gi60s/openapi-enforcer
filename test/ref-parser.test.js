@@ -337,10 +337,10 @@ describe('ref-parser', () => {
         it('can bundle multiple files', async function () {
             const parser = new RefParser(path.resolve(resourcesDir, 'Bundle1.yml'));
             const [ bundled ] = await parser.bundle();
-            expect(bundled.b.a).to.equal('#/a');
-            expect(bundled.c.a).to.equal('#/a');
-            expect(bundled.c.b).to.equal('#/b');
-            expect(bundled.d.c).to.equal('#/c/c');
+            expect(bundled.b.a.$ref).to.equal('#/a');
+            expect(bundled.c.a.$ref).to.equal('#/a');
+            expect(bundled.c.b.$ref).to.equal('#/b');
+            expect(bundled.d.c.$ref).to.equal('#/c/c');
         })
 
         // this test proves that bundling will prioritize references
