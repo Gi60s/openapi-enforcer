@@ -4,8 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.11.2
 
-validate enums, defaults, and examples after discriminator dereference
+### Fixed
+
+- **Bundler**
+
+    Bundler had a few bugs that made it not work in most cases. Oops. Now fixed to work much better.
 
 ## 1.11.1
 
