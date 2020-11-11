@@ -198,11 +198,38 @@ describe('definition/schema', () => {
             expect(err).to.be.undefined;
         });
 
-        describe('type', () => {
+        describe.only('type', () => {
 
-            it('requires the "type" property', () => {
-                const [ , err ] = Enforcer.v2_0.Schema({});
-                expect(err).to.match(/Missing required property: type/);
+            it('will warn of the missing "type" property', () => {
+                const [ v, err, warn ] = Enforcer.v2_0.Schema({});
+                expect(err).to.be.undefined;
+                expect(warn).to.match(/Schemas with an indeterminable type/);
+            });
+
+            it('will allow escalation of the missing "type" property', async () => {
+                const def = {
+                    openapi: '3.0.0',
+                    info: { title: '', version: '' },
+                    paths: {
+                        '/': {
+                            get: {
+                                responses: {
+                                    '200': {
+                                        description: 'OK',
+                                        content: {
+                                            'application/json': {
+                                                schema: {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                const [ openapi, err, warn ] = await Enforcer(def, { fullResult: true, componentOptions: { exceptionEscalateCodes: ['WSCH005'] }})
+                expect(err).to.match(/Schemas with an indeterminable type/);
+                expect(warn).to.be.undefined;
             });
 
             it('requires a valid type', () => {
@@ -819,7 +846,7 @@ describe('definition/schema', () => {
                 });
 
                 it('handles nested allOf', () => {
-                    const [ schema ] = Enforcer.v2_0.Schema({
+                    const [ schema, err ] = Enforcer.v2_0.Schema({
                         allOf: [
                             {
                                 allOf: [

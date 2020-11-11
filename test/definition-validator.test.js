@@ -674,10 +674,9 @@ describe('definition-validator', () => {
             }
         };
         const [ , err ] = await Enforcer(def, { fullResult: true });
-        expect(err.count).to.equal(3);
+        expect(err.count).to.equal(2);
         expect(err).to.match(/Property not allowed: foo/);
         expect(err).to.match(/Properties not allowed:/);
-        expect(err).to.match(/Missing required property: type/);
     })
 
 });

@@ -310,17 +310,6 @@ describe('definitions/open-api', () => {
                 expect(err).to.be.undefined;
             });
 
-            it('must be an object of schemas', () => {
-                const [ , err ] = oas(3, {
-                    components: {
-                        schemas: {
-                            schemaA: {}
-                        }
-                    }
-                });
-                expect(err).to.match(/Missing required property: type/);
-            });
-
         });
 
         describe('securitySchemes', () => {
@@ -408,15 +397,6 @@ describe('definitions/open-api', () => {
                 definitions: []
             });
             expect(err).to.match(/Value must be a plain object/);
-        });
-
-        it('must have valid schemas per key', () => {
-            const [ , err ] = oas(2, {
-                definitions: {
-                    def1: {}
-                }
-            });
-            expect(err).to.match(/Missing required property: type/);
         });
 
     });
