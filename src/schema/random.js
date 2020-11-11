@@ -139,7 +139,7 @@ function runRandom(exception, warn, map, schema, parent, property, options, dept
 
     } else if (!parent.hasOwnProperty(property) || depth === 0) {
         const dataTypes = schema.enforcerData.staticData.dataTypes;
-        const dataType = dataTypes[schema.type][schema.format] || null;
+        const dataType = (dataTypes[schema.type] && dataTypes[schema.type][schema.format]) || null;
 
         if (dataType && dataType.random) {
             parent[property] = dataType.random({ exception, schema }, { chooseOne, randomNumber, randomText });

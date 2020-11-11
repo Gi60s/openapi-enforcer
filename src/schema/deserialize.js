@@ -108,7 +108,7 @@ function runDeserialize(exception, map, schema, originalValue, options) {
 
     } else if (schema !== true) {
         const dataTypes = schema.enforcerData.staticData.dataTypes;
-        const dataType = dataTypes[schema.type][schema.format] || null;
+        const dataType = (dataTypes[schema.type] && dataTypes[schema.type][schema.format]) || null;
 
         if (type === 'boolean') {
             if (dataType && dataType.deserialize) {
