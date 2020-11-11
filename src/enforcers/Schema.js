@@ -35,6 +35,13 @@ const populateInjectors = {
     handlebar: buildInjector(() => /{([_$a-z][_$a-z0-9]*)}/ig)
 };
 
+const typeProperties = [
+    { type: 'array', properties: ['items', 'maxItems', 'minItems', 'uniqueItems'] },
+    { type: 'number', properties: ['exclusiveMaximum', 'exclusiveMinimum', 'maximum', 'minimum', 'multpleOf'] },
+    { type: 'object', properties: ['additionProperties', 'maxProperties', 'minProperties', 'properties'] },
+    { type: 'string', properties: ['maxLength', 'minLength', 'pattern'] }
+]
+
 const prototype = {
 
     /**
@@ -675,10 +682,46 @@ module.exports = {
                 type: {
                     weight: -10,
                     type: 'string',
-                    required: ({ parent }) => {
-                        const v = parent.definition;
-                        return !v.hasOwnProperty('allOf') && !v.hasOwnProperty('anyOf') &&
-                            !v.hasOwnProperty('not') && !v.hasOwnProperty('oneOf');
+                    // required: ({ parent }) => {
+                    //     const v = parent.definition;
+                    //     return !v.hasOwnProperty('allOf') && !v.hasOwnProperty('anyOf') &&
+                    //         !v.hasOwnProperty('not') && !v.hasOwnProperty('oneOf');
+                    // },
+                    default: ({ parent }) => {
+                        const def = parent.definition
+
+                        // attempt to use sibling properties to determine type
+                        for (let i = typeProperties.length; i--; i >= 0) {
+                            const type = typeProperties[i].type
+                            const props = typeProperties[i].properties
+                            for (let j = props.length; j--; j >= 0) {
+                                if (props[j] in def) return type
+                            }
+                        }
+
+                        // attempt to use default value to determine type
+                        if ('default' in def) {
+                            const value = def.default
+                            if (Array.isArray(value)) return 'array'
+                            switch (typeof value) {
+                                case 'boolean': return 'boolean'
+                                case 'number': return 'number'
+                                case 'object': return 'object'
+                                case 'string': return 'string'
+                            }
+                        }
+
+                        // attempt to use enum to determine type
+                        if ('enum' in def) {
+                            const first = def.enum[0]
+                            if (Array.isArray(first)) return 'array'
+                            switch (typeof first) {
+                                case 'boolean': return 'boolean'
+                                case 'number': return 'number'
+                                case 'object': return 'object'
+                                case 'string': return 'string'
+                            }
+                        }
                     },
                     enum: ({ definition, exception, parent }) => {
                         const schemaValidator = module.exports.validator;
@@ -709,7 +752,16 @@ module.exports = {
             },
 
             errors: (data) => {
-                const { exception, result } = data;
+                const { exception, definition, result, warn } = data;
+
+                // warn if type is not defined and should be
+                if (!definition.hasOwnProperty('allOf') && !definition.hasOwnProperty('anyOf') &&
+                    !definition.hasOwnProperty('not') && !definition.hasOwnProperty('oneOf')) {
+
+                    if (!('type' in definition) && !skipCodes.WSCH005) {
+                        (escalateCodes.WSCH005 ? exception : warn).message('Schemas with an indeterminable type cannot serialize, deserialize, or validate values. [WSCH005]');
+                    }
+                }
 
                 if (!minMaxValid(result.minItems, result.maxItems)) {
                     exception.message('Property "minItems" must be less than or equal to "maxItems"');
