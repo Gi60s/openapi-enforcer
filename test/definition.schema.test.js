@@ -198,7 +198,7 @@ describe('definition/schema', () => {
             expect(err).to.be.undefined;
         });
 
-        describe.only('type', () => {
+        describe('type', () => {
 
             it('will warn of the missing "type" property', () => {
                 const [ v, err, warn ] = Enforcer.v2_0.Schema({});
