@@ -682,13 +682,12 @@ module.exports = {
                 type: {
                     weight: -10,
                     type: 'string',
-                    // required: ({ parent }) => {
-                    //     const v = parent.definition;
-                    //     return !v.hasOwnProperty('allOf') && !v.hasOwnProperty('anyOf') &&
-                    //         !v.hasOwnProperty('not') && !v.hasOwnProperty('oneOf');
-                    // },
                     default: ({ parent }) => {
                         const def = parent.definition
+
+                        // if schema has allOf, anyOf, not, or oneOf then dont set a type
+                        if (def.hasOwnProperty('allOf') || def.hasOwnProperty('anyOf') ||
+                            def.hasOwnProperty('not') || def.hasOwnProperty('oneOf')) return
 
                         // attempt to use sibling properties to determine type
                         for (let i = typeProperties.length; i--; i >= 0) {
