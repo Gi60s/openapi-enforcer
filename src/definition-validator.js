@@ -176,10 +176,13 @@ function normalize (data) {
 
                         // set default value
                         if (data.definition === undefined && allowed && keyValidator.hasOwnProperty('default')) {
-                            data.definition = fn(keyValidator.default, data);
-                            data.usedDefault = true;
-                            data.parent.definition[key] = data.definition;
-                            data.definitionType = util.getDefinitionType(data.definition);
+                            const defaultValue = fn(keyValidator.default, data);
+                            if (defaultValue !== undefined) {
+                                data.definition = defaultValue
+                                data.usedDefault = true;
+                                data.parent.definition[key] = data.definition;
+                                data.definitionType = util.getDefinitionType(data.definition);
+                            }
                         }
 
                         if (data.definition !== undefined) {

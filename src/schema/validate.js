@@ -183,7 +183,7 @@ function runValidate(exception, map, schema, originalValue, options) {
 
     } else {
         const dataTypes = schema.enforcerData.staticData.dataTypes;
-        const dataType = dataTypes[schema.type][schema.format] || { validate: null };
+        const dataType = (dataTypes[schema.type] && dataTypes[schema.type][schema.format]) || { validate: null };
 
         if (dataType.validate) {
             dataType.validate({ exception, schema, value });

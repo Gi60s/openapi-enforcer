@@ -96,7 +96,7 @@ function runSerialize(exception, map, schema, originalValue) {
 
     } else if (schema !== true) {
         const dataTypes = schema.enforcerData.staticData.dataTypes;
-        const dataType = dataTypes[schema.type][schema.format] || {};
+        const dataType = (dataTypes[schema.type] && dataTypes[schema.type][schema.format]) || {};
         if (!dataType.serialize) dataType.serialize = function({ value }) { return value };
 
         if (type === 'boolean') {

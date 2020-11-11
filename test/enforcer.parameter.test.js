@@ -163,11 +163,15 @@ describe('enforcer/parameter', () => {
                     in: 'query',
                     content: {
                         'application/json': {
-                            schema: {}
+                            schema: {
+                                minimum: 5,
+                                maximum: 10,
+                                default: 1
+                            }
                         }
                     }
                 });
-                expect(err).to.match(/Missing required property: type/);
+                expect(err).to.match(/Expected number to be greater than or equal to 5/);
             });
 
             it('can not set encoding for parameters', () => {
@@ -535,15 +539,6 @@ describe('enforcer/parameter', () => {
                 schema: []
             });
             expect(err).to.match(/at: schema\s+Value must be a plain object/);
-        });
-
-        it('must be a valid schema', () => {
-            const [ , err ] = Enforcer.v3_0.Parameter({
-                name: 'hi',
-                in: 'query',
-                schema: {}
-            });
-            expect(err).to.match(/at: schema/);
         });
 
         it('cannot accompany content property', () => {
