@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.12.0
+
+### Changed
+
+- **Schema type not required**
+
+    Previous versions have required the `type` property to be specified for schemas (except in the case where one of `allOf`, `anyOf`, `oneOf`, and `not` are defined).
+    
+    This update no longer requires `type` to be specified. If `type` is not specified then the OpenAPI Enforcer will attempt to auto determine type. If the type cannot be determined and should exist then warning `WSCH005` ("Schemas with an indeterminable type cannot serialize, deserialize, or validate values.") will be generated.
+
 ## 1.11.2
 
 ### Fixed
