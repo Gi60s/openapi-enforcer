@@ -32,7 +32,6 @@ function EnforcerResult(value, exception, warn) {
 
     if (!exception || !exception.hasException) exception = undefined;
     if (!warn || !warn.hasException) warn = undefined;
-    if (exception) value = undefined;
 
     this.error = exception;
     this.value = value;

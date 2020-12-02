@@ -81,12 +81,11 @@ module.exports = {
                 })
             }
 
-            if (exception.hasException) return new Result(undefined, exception);
             return new Result({
                 operation,
                 params,
                 pathKey: pathMatch.pathKey
-            });
+            }, exception);
         },
 
         /**
