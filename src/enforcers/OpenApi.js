@@ -80,11 +80,12 @@ module.exports = {
                         params[name] = data.value;
                     }
                 })
-                if (exception.hasException) {
-                    exception.statusCode = 400;
-                    exception.operation = operation;
-                    exception.pathKey = pathMatch.pathKey
-                }
+            }
+
+            if (exception.hasException) {
+                exception.statusCode = 400;
+                exception.operation = operation;
+                exception.pathKey = pathMatch.pathKey
             }
 
             return new Result({
@@ -155,6 +156,12 @@ module.exports = {
                 };
                 result.value.pathKey = pathKey;
             }
+            if (result.error && result.error.hasException) {
+                result.error.statusCode = 400;
+                result.error.operation = operation;
+                result.error.pathKey = pathObject.pathKey
+            }
+
             return result;
         },
 
