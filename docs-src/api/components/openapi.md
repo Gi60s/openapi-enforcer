@@ -28,6 +28,10 @@ Get path parameters and operation from a method and path.
 
 - *pathKey* - The `string` value for the path item as written in the OpenAPI document.
 
+If an exception occurs the exception may contain the `pathItem` property for the PathItem component that matched or it
+may contain the `operation` property with the Operation component and the `pathKey` property with the value of the
+matching path as defined in your OpenAPI document. 
+
 **Example**
 
 ```js
@@ -56,7 +60,8 @@ const [ openapi ] = OpenAPI({
   }
 })
 
-const { operation, params } = openapi.path('get', '/2000-01-01')
+const [ value ] = openapi.path('get', '/2000-01-01')
+const { operation, params } = value
 console.log(params.date) // Date object
 ```
 
@@ -107,6 +112,10 @@ Deserialize and validate a request.
 
 - *response* - A small wrapper around the `function` [Operation.prototype.response()](operation.md#response). This will automatically set the response header `content-type` based on the request `accept` header unless you specifically set a response `content-type`.
 
+If an exception occurs the exception may contain the `pathItem` property for the PathItem component that matched or it
+may contain the `operation` property with the Operation component and the `pathKey` property with the value of the
+matching path as defined in your OpenAPI document.
+
 **Example**
 
 ```js
@@ -117,7 +126,7 @@ const openapi = new OpenAPI({
   ... 
 })
 
-const req = openapi.request({
+const [ req ] = openapi.request({
   method: 'get',
   path: '/path/abc?x=1',
 })
