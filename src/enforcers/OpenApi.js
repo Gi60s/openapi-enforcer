@@ -56,6 +56,7 @@ module.exports = {
             if (!pathEnforcer.methods.includes(method)) {
                 exception.message('Method not allowed: ' + method.toUpperCase());
                 exception.statusCode = 405;
+                exception.pathItem = pathEnforcer
                 exception.headers = { Allow: pathEnforcer.methods.map(v => v.toUpperCase()).join(', ') };
                 return new Result(undefined, exception);
             }
@@ -79,14 +80,18 @@ module.exports = {
                         params[name] = data.value;
                     }
                 })
+                if (exception.hasException) {
+                    exception.statusCode = 400;
+                    exception.operation = operation;
+                    exception.pathKey = pathMatch.pathKey
+                }
             }
 
-            if (exception.hasException) return new Result(undefined, exception);
             return new Result({
                 operation,
                 params,
                 pathKey: pathMatch.pathKey
-            });
+            }, exception);
         },
 
         /**
