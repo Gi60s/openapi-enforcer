@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.12.1
+
+### Added
+
+- **OpenAPI component path and request details**
+
+    The `request` and `path` functions may produce an exception if an invalid request is made. This code adds either the `pathItem` component or `operation` component and `pathKey` properties to the exception object when possible. 
+
 ## 1.12.0
 
 ### Changed
