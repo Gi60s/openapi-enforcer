@@ -101,6 +101,9 @@
 <li><p><em>pathKey</em> - The <code>string</code> value for the path item as written in the OpenAPI document.</p>
 </li>
 </ul>
+<p>If an exception occurs the exception may contain the <code>pathItem</code> property for the PathItem component that matched or it
+may contain the <code>operation</code> property with the Operation component and the <code>pathKey</code> property with the value of the
+matching path as defined in your OpenAPI document. </p>
 <p><strong>Example</strong></p>
 <pre><code class="language-js"><span class="hljs-keyword">const</span> OpenAPI = <span class="hljs-built_in">require</span>(<span class="hljs-string">'openapi-enforcer'</span>).v3_0.OpenApi
 
@@ -127,7 +130,8 @@
   }
 })
 
-<span class="hljs-keyword">const</span> { operation, params } = openapi.path(<span class="hljs-string">'get'</span>, <span class="hljs-string">'/2000-01-01'</span>)
+<span class="hljs-keyword">const</span> [ value ] = openapi.path(<span class="hljs-string">'get'</span>, <span class="hljs-string">'/2000-01-01'</span>)
+<span class="hljs-keyword">const</span> { operation, params } = value
 <span class="hljs-built_in">console</span>.log(params.date) <span class="hljs-comment">// Date object</span></code></pre>
 <h2 id="request">request</h2>
 <p><code>OpenApi.prototype.request ( request [, options ] ) : EnforcerResult &lt; object &gt;</code></p>
@@ -232,6 +236,9 @@
 <li><p><em>response</em> - A small wrapper around the <code>function</code> <a href="/openapi-enforcer/api/components/operation#response">Operation.prototype.response()</a>. This will automatically set the response header <code>content-type</code> based on the request <code>accept</code> header unless you specifically set a response <code>content-type</code>.</p>
 </li>
 </ul>
+<p>If an exception occurs the exception may contain the <code>pathItem</code> property for the PathItem component that matched or it
+may contain the <code>operation</code> property with the Operation component and the <code>pathKey</code> property with the value of the
+matching path as defined in your OpenAPI document.</p>
 <p><strong>Example</strong></p>
 <pre><code class="language-js"><span class="hljs-keyword">const</span> OpenAPI = <span class="hljs-built_in">require</span>(<span class="hljs-string">'openapi-enforcer'</span>).v3_0.OpenApi
 
@@ -240,7 +247,7 @@
   ... 
 })
 
-<span class="hljs-keyword">const</span> req = openapi.request({
+<span class="hljs-keyword">const</span> [ req ] = openapi.request({
   <span class="hljs-attr">method</span>: <span class="hljs-string">'get'</span>,
   <span class="hljs-attr">path</span>: <span class="hljs-string">'/path/abc?x=1'</span>,
 })</code></pre>
