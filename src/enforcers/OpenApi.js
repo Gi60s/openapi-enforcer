@@ -155,8 +155,7 @@ module.exports = {
                     return operation.response(code, body, headers)
                 };
                 result.value.pathKey = pathKey;
-            }
-            if (result.error && result.error.hasException) {
+            } else {
                 result.error.statusCode = 400;
                 result.error.operation = operation;
                 result.error.pathKey = pathObject.pathKey
