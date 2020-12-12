@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.12.4
+
+### Fixed
+
+- **Bundle Paths with / or ~**
+
+  Bundled paths that included a `/` or `~` were incorrectly being converted when generating $ref values.
+
+
 ## 1.12.3
 
 ### Fixed

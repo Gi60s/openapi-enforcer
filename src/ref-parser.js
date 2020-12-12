@@ -248,7 +248,7 @@ function mapNodesAndPaths (node, parent, key, path, chain, map = new Map()) {
             });
         } else {
             Object.keys(node).forEach(key => {
-                mapNodesAndPaths(node[key], node, key, path + '/' + key, chain, map);
+                mapNodesAndPaths(node[key], node, key, path + '/' + key.replace(/~/g, '~0').replace(/\//g, '~1'), chain, map);
             });
         }
     }
@@ -474,7 +474,7 @@ function traverse (obj, path, exception) {
     const keys = path.substring(1).split('/');
     let o = obj;
     while (keys.length) {
-        const key = keys.shift();
+        const key = keys.shift().replace(/~1/g, '/').replace(/~0/g, '~');
         if (key !== '#') {
             if (o && typeof o === 'object' && key in o) {
                 o = o[key];
