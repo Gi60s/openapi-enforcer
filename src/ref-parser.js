@@ -137,9 +137,7 @@ RefParser.prototype.dereference = async function () {
     const exception = new Exception('Unable to dereference definition for one or more reasons');
     const { source } = that;
 
-    const basePath = typeof source === 'string'
-        ? path.dirname(source)
-        : process.cwd();
+    const basePath = process.cwd();
 
     let result;
     if (typeof source === 'string') {

@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.12.3
+
+### Fixed
+
+- **Dereference Path Resolution**
+
+  Path resolution was not always correctly determining the source path.
+
+## 1.12.2
+
+### Fixed
+
+- **OpenAPI component path and request details**
+
+  The `request` and `path` did not always add `pathItem`, `operation`, and `pathKeys` properties that were added in `1.12.1`.
+
 ## 1.12.1
 
 ### Added
