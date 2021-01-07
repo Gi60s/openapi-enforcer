@@ -383,5 +383,11 @@ describe('ref-parser', () => {
             const [ bundled ] = await parser.bundle();
             expect(bundled.components.schemas.x).to.deep.equal({ type: 'string' })
         });
+
+        it('can bundle parameters', async function () {
+            const parser = new RefParser(path.resolve(resourcesDir, 'openapi.yml'));
+            const [ bundled, err ] = await parser.bundle();
+            expect(err).to.be.undefined;
+        });
     })
 });

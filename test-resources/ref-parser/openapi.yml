@@ -1,0 +1,37 @@
+openapi: '3.0.0'
+info:
+  title: ''
+  version: ''
+paths:
+  /foo/{id}:
+    parameters:
+      - $ref: './params.yml#/PathId'
+    get:
+      responses:
+        200:
+          description: Foo
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './Bundle1.yml#/a'
+                  - $ref: './People.yml#/Person'
+                  - $ref: '#/paths/~1foo~1{id}~1bar~1{bar}/get/responses/200/content/application~1json/schema/oneOf/2'
+  /foo/{id}/bar/{bar}:
+      parameters:
+        - $ref: './params.yml#/PathId'
+        - $ref: './params.yml#/PathBar'
+      get:
+        responses:
+          200:
+            description: Bar
+            content:
+              application/json:
+                schema:
+                  oneOf:
+                    - $ref: './Bundle1.yml#/a'
+                    - $ref: './Bundle2.yml#/c'
+                    - type: object
+                      properties:
+                        name:
+                          $ref: './People.yml#/Person/property/name'

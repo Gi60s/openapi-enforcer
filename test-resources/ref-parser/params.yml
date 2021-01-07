@@ -1,0 +1,12 @@
+PathId:
+  in: path
+  name: id
+  required: true
+  schema:
+    type: string
+PathBar:
+  in: path
+  name: id
+  required: true
+  schema:
+    type: string
