@@ -1,7 +1,0 @@
-A:
-  a:
-    $ref: './RefReplaceB.yml#/B/a'
-  b:
-    $ref: './RefReplaceB.yml'
-  c:
-    type: string

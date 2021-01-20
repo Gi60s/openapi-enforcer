@@ -1,5 +1,6 @@
 .idea
 .vscode
+.nyc_output
 node_modules
 
 ### macOS template

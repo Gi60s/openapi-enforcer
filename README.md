@@ -1,20 +1,91 @@
-# OpenAPI-Enforcer
+# Component Template
 
-Tools for using the Open API Specification (OAS)
+When making a new component, use the following as a template.
 
-**Supports OAS 2.0 (formerly Swagger) and OAS 3.x.x**
+1. Copy this code into a new typescript file named the same as the component.
+2. Replace `<Namespace>` with the name of your component
+3. Update `readonly` properties, add functions, etc.
+4. Update the buildSchema function, defining properties, and mapping nested component classes.
 
-## Features
+```ts
+import { BaseComponent, BaseComponentContext } from './Super'
+import * as Interfaces from '../Interfaces'
 
-- Create an API.
-- Validate your OAS documents.
-- Serialize, deserialize, and validate values against OAS schemas.
-- Identify the operation associated with a request.
-- Parse, deserialize, and validate request parameters.
-- Facilitated response building.
-- Generate random valid values for a schema.
-- Plugin environment for custom document validation and extended functionality including custom data type formats.
+export default function (data: Interfaces.ComponentFactoryData): Interfaces.<Namespace>.Class {
+    const schema = buildSchema()
+    const components = data.components
 
-## Documentation
+    class <Namespace> extends BaseComponent implements Interfaces.<Namespace>.Object {
+        // TODO: update this to have component's properties
+        readonly title!: string;                        // required property
+        readonly description?: string                   // optional property
+        readonly nested?: Interfaces.<Nested>.Object    // nested component property
 
-https://byu-oit.github.io/openapi-enforcer/
+        constructor (definition: Interfaces.<Namespace>.Definition) {
+            super(definition)
+        }
+
+        static [BaseComponentContext]: Interfaces.Super.Context = {
+            components,
+            Exception: data.Exception,
+            options: data.options,
+            validatorSchema: schema
+        }
+    }
+
+    // TODO: update properties to match validator
+    function buildSchema () : Interfaces.Validator.Type {
+        return {
+            type: 'object',
+            required: ['title', 'version'],
+            properties: {
+                title: {
+                    type: 'string'
+                },
+                description: {
+                    type: 'string'
+                },
+                nested: {
+                    type: 'object',
+                    component: components.<Nested>  // component for this property
+                }
+            }
+        }
+    }
+
+    return <Namespace>
+}
+```
+
+# Interface Template
+
+```ts
+export namespace <Namespace> {
+    export interface Class extends Super.Class<Definition,Object> {
+        new (definition: Definition): Object
+    }
+
+    export interface Definition extends Super.Definition {
+        encoding?: Components.Map<Encoding.Definition>
+        example?: any
+        examples?: Components.Map<Example.Definition>
+        schema?: Schema.Definition
+    }
+    
+    export interface Object extends Super.Object {
+        readonly encoding?: Components.Map<Encoding.Object>
+        readonly example?: any
+        readonly examples?: Components.Map<Example.Object>
+        readonly schema?: Schema.Object
+    }
+}
+```
+
+# Exception Codes
+
+| Code | Type | Description |
+| ---- | ---- | ----------- |
+| `DVE-ENUM` | Definition validator error | The definition does not equal one of the enumerated values. |
+| `DVE-PNAL` | Definition validator error | The definition has one or more properties that are not allowed. |
+| `DVE-PREQ` | Definition validator error | The definition is missing one or more required properties. |
+| `DVE-TYPE` | Definition validator error | The definition is of the wrong type. |

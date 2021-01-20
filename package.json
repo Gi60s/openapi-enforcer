@@ -1,59 +1,46 @@
 {
   "name": "openapi-enforcer",
-  "version": "1.10.3",
-  "description": "Library for validating, parsing, and formatting data against open api schemas.",
+  "private": true,
+  "version": "2.0.0",
+  "description": "",
   "main": "index.js",
   "directories": {
-    "test": "tests"
-  },
-  "scripts": {
-    "test": "mocha --recursive test",
-    "coverage": "nyc --reporter=html npm test",
-    "coverage:report": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
-    "coverage:watch": "chokidar 'test/**/*' 'bin/**/*' -c 'npm run coverage'",
-    "docs:build": "markdown-docs build docs-src docs",
-    "docs:dev": "markdown-docs dev docs-src",
-    "prepublishOnly": "npm test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/byu-oit/openapi-enforcer.git"
-  },
-  "keywords": [
-    "openapi",
-    "swagger",
-    "validate",
-    "response",
-    "build",
-    "compose",
-    "parse",
-    "format",
-    "deserialize",
-    "serialize",
-    "request validation",
-    "request parsing",
-    "response validation",
-    "response serializing",
-    "utility",
-    "utils",
-    "plugable"
-  ],
-  "author": "James Speirs",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/byu-oit/openapi-enforcer/issues"
-  },
-  "homepage": "https://byu-oit.github.io/openapi-enforcer/",
-  "devDependencies": {
-    "@gi60s/markdown-docs": "0.0.10",
-    "chai": "^4.2.0",
-    "chokidar-cli": "^1.2.2",
-    "coveralls": "^3.0.2",
-    "mocha": "^5.2.0",
-    "nyc": "^14.1.0"
+    "test": "test"
   },
   "dependencies": {
-    "axios": "^0.19.2",
-    "json-schema-ref-parser": "^6.0.1"
-  }
+    "@types/chai": "^4.2.11",
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^13.13.2",
+    "axios": "^0.21.1",
+    "exception-tree": "^1.0.3",
+    "json-to-ast": "^2.1.0",
+    "result-value-exception": "^1.0.3",
+    "yaml-ast-parser": "0.0.43"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.13.0",
+    "chai": "^4.2.0",
+    "eslint": "^7.17.0",
+    "eslint-config-standard-with-typescript": "^19.0.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.1.0",
+    "mocha": "^7.1.1",
+    "ts-loader": "^8.0.2",
+    "ts-standard": "^10.0.0",
+    "typedoc": "^0.17.6",
+    "typescript": "^3.9.5",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  },
+  "scripts": {
+    "build:": "tsc",
+    "build:browser": "webpack --config ./browser.webpack.config.js",
+    "build:node": "typescript",
+    "dev": "tsc --watch",
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "Apache-2.0"
 }
