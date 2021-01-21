@@ -204,7 +204,7 @@ module.exports = {
                                 : at === 'cookie'
                                     ? parameter.parse(cookie, input)
                                     : parameter.parse(input[key]);
-                            deserializeAndValidate(child.at(key), parameter.schema, data, v => output[key] = v);
+                            deserializeAndValidate(child.at(key), parameter.schema, data, '', v => output[key] = v);
 
                         } else if (parameter.in === 'query' && parameter.style === 'form' && parameter.explode && type === 'object') {
                             const data = parameter.parse(query, input);
@@ -213,7 +213,7 @@ module.exports = {
                                 exception.message(data.error);
                                 potentialCausesForUnknownParameters.push(exception);
                             } else {
-                                deserializeAndValidate(child.at(key), parameter.schema, data, value => {
+                                deserializeAndValidate(child.at(key), parameter.schema, data, '', value => {
                                     Object.keys(value).forEach(key => util.arrayRemoveItem(unknownParameters, key));
                                     output[key] = value;
                                 })
@@ -226,7 +226,7 @@ module.exports = {
                                 exception.push(data.error);
                                 potentialCausesForUnknownParameters.push(exception);
                             } else {
-                                deserializeAndValidate(child.at(key), parameter.schema, data, value => {
+                                deserializeAndValidate(child.at(key), parameter.schema, data, '', value => {
                                     Object.keys(value).forEach(k => util.arrayRemoveItem(unknownParameters, key + '[' + k + ']'));
                                     output[key] = value;
                                 });
@@ -271,7 +271,7 @@ module.exports = {
                 if (parameters.body) {
                     const parameter = getBodyParameter(parameters);
                     value = primitiveBodyDeserialization(value, parameter.schema);
-                    deserializeAndValidate(exception.nest('In body'), parameter.schema, { value }, value => {
+                    deserializeAndValidate(exception.nest('In body'), parameter.schema, { value }, 'write',value => {
                         result.body = Value.extract(value);
                     });
 
@@ -291,7 +291,7 @@ module.exports = {
                             const media = content[mediaType];
                             if (media.schema) {
                                 value = primitiveBodyDeserialization(value, media.schema);
-                                deserializeAndValidate(child.nest('For Content-Type ' + mediaType), media.schema, { value }, value => {
+                                deserializeAndValidate(child.nest('For Content-Type ' + mediaType), media.schema, { value }, 'write', value => {
                                     result.body = Value.extract(value);
                                     passed = true;
                                 });
@@ -643,9 +643,9 @@ function getBodyParameter(parameters) {
     return parameters.body[key];
 }
 
-function deserializeAndValidate(exception, schema, data, success) {
+function deserializeAndValidate(exception, schema, data, readWriteMode, success) {
     if (!data.error) data = schema.deserialize(data.value);
-    if (!data.error) data.error = schema.validate(data.value);
+    if (!data.error) data.error = schema.validate(data.value, { readWriteMode });
     if (data.error) {
         if (exception) exception.push(data.error);
     } else {
