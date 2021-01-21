@@ -274,13 +274,22 @@ console.log(value)  // '2000-01-01'
 
 ## validate
 
-`Schema.prototype.validate ( value ) : EnforcerException | undefined`
+`Schema.prototype.validate ( value [, options ] ) : EnforcerException | undefined`
 
 Validate a deserialized value against the schema.
 
 **Parameters:**
 
-- *value* - The deserialized value to validate
+| Parameter | Description | Type | Default |
+| --------- | ----------- | ---- | ------- |
+| **value** | The deserialized value to validate. | `any` | |
+| options | Configuration options. See below. | `object` | |
+
+**Options Parameter**
+
+| Property | Description | Type  | Default |
+| --------- | ----------- | ---- | ------- |
+| readWriteMode | If this value is set to `read` then any properties in the value that are listed as `writeOnly: true` will produce an error. If the value is set to `"write"` then any properties in the value listed as `readOnly: true` will produce an error. | `string` | `undefined` |
 
 **Returns:** An [EnforcerException](../enforcer-exception.md) object an the value is not valid, otherwise `undefined`.
 

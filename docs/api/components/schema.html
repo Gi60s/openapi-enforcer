@@ -470,12 +470,48 @@ Enforcer(definition)
 
 <span class="hljs-built_in">console</span>.log(value)  <span class="hljs-comment">// '2000-01-01'</span></code></pre>
 <h2 id="validate">validate</h2>
-<p><code>Schema.prototype.validate ( value ) : EnforcerException | undefined</code></p>
+<p><code>Schema.prototype.validate ( value [, options ] ) : EnforcerException | undefined</code></p>
 <p>Validate a deserialized value against the schema.</p>
 <p><strong>Parameters:</strong></p>
-<ul>
-<li><em>value</em> - The deserialized value to validate</li>
-</ul>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>value</strong></td>
+<td>The deserialized value to validate.</td>
+<td><code>any</code></td>
+<td></td>
+</tr>
+<tr>
+<td>options</td>
+<td>Configuration options. See below.</td>
+<td><code>object</code></td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>Options Parameter</strong></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>readWriteMode</td>
+<td>If this value is set to <code>read</code> then any properties in the value that are listed as <code>writeOnly: true</code> will produce an error. If the value is set to <code>&quot;write&quot;</code> then any properties in the value listed as <code>readOnly: true</code> will produce an error.</td>
+<td><code>string</code></td>
+<td><code>undefined</code></td>
+</tr>
+</tbody></table>
 <p><strong>Returns:</strong> An <a href="/openapi-enforcer/api/enforcer-exception">EnforcerException</a> object an the value is not valid, otherwise <code>undefined</code>.</p>
 <p><strong>Example</strong></p>
 <pre><code class="language-js"><span class="hljs-keyword">const</span> Enforcer = <span class="hljs-built_in">require</span>(<span class="hljs-string">'openapi-enforcer'</span>)
