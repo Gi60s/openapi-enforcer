@@ -143,19 +143,35 @@ function runValidate(exception, map, schema, originalValue, options) {
             exception.message('Expected a non-null object. Received: ' + util.smart(value));
         } else {
             const properties = schema.properties || {};
-            const required = schema.required ? schema.required.concat() : [];
+            const readWriteMode = options.readWriteMode;
+            const readWriteOnly = [];
+            const required = schema.required ?
+                schema.required.filter(name => {
+                    if (!options.readWriteMode) return true
+                    const prop = properties[name]
+                    if (options.readWriteMode === 'write' && !prop.readOnly) return true
+                    if (options.readWriteMode === 'read' && !prop.writeOnly) return true
+                    return false
+                })
+                : [];
             const keys = Object.keys(value);
 
             // validate each property in the value
             keys.forEach(key => {
+                // remove item for required remaining array
                 const index = required.indexOf(key);
                 if (index !== -1) required.splice(index, 1);
+
                 if (properties.hasOwnProperty(key)) {
-                    runValidate(exception.at(key), map, properties[key], value[key], options);
+                    const prop = properties[key]
+                    if ((readWriteMode === 'write' && prop.readOnly) || (readWriteMode === 'read' && prop.writeOnly)) readWriteOnly.push(key)
+                    runValidate(exception.at(key), map, prop, value[key], options);
                 } else {
                     if (schema.additionalProperties === false) {
                         exception.at(key).message('Property not allowed');
                     } else if (typeof schema.additionalProperties === 'object') {
+                        const prop = schema.additionalProperties
+                        if ((readWriteMode === 'write' && prop.readOnly) || (readWriteMode === 'read' && prop.writeOnly)) readWriteOnly.push(key)
                         runValidate(exception.at(key), map, schema.additionalProperties, value[key], options);
                     }
                 }
@@ -164,6 +180,15 @@ function runValidate(exception, map, schema, originalValue, options) {
             // validate that all required are present
             if (required.length > 0) {
                 exception.message('One or more required properties missing: ' + required.join(', '));
+            }
+
+            // validate that we only have readable or writable properties
+            if (readWriteOnly.length > 0) {
+                if (readWriteMode === 'write') {
+                    exception.message('Cannot read from write only properties: ' + readWriteOnly.join(', '));
+                } else if (readWriteMode === 'read') {
+                    exception.message('Cannot write to read only properties: ' + readWriteOnly.join(', '));
+                }
             }
 
             // validate number of properties
