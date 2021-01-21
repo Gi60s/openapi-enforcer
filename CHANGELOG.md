@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.12.6
+
+### Fixed
+
+- **ReadOnly and WriteOnly**
+
+The library was incorrectly not accounting for readOnly and writeOnly when using schema validation. This functionality has been added.
+
 ## 1.12.5
 
 ### Changed
