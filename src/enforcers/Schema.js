@@ -205,11 +205,14 @@ const prototype = {
     /**
      * Check to see if the value is valid for this schema.
      * @param {*} value
+     * @param {object} [options]
+     * @param {string} [options.readWriteMode] Can be undefined, "read", or "write"
      * @returns {EnforcerException|undefined}
      */
-    validate: function(value) {
+    validate: function(value, options) {
         const exception = Exception('Invalid value');
-        runValidate(exception, new Map(), this, value, {});
+        if (!options) options = {}
+        runValidate(exception, new Map(), this, value, options);
         if (exception.hasException) return exception;
     }
 };
