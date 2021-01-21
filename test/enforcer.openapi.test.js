@@ -129,6 +129,59 @@ describe('enforcer/openapi', () => {
 
         });
 
+        describe('required readOnly properties', () => {
+            it('does not require readOnly properties when making a request', async () => {
+                const definition = {
+                    openapi: '3.0.0',
+                    info: { title: '', version: '' },
+                    paths: {
+                        '/': {
+                            post: {
+                                requestBody: {
+                                    content: {
+                                        'application/json': {
+                                            schema: {
+                                                $ref: '#/components/schemas/Pet'
+                                            }
+                                        }
+                                    }
+                                },
+                                responses: {
+                                    200: { description: '' }
+                                }
+                            }
+                        }
+                    },
+                    components: {
+                        schemas: {
+                            Pet: {
+                                type: 'object',
+                                required: ['id', 'name'],
+                                properties: {
+                                    id: {
+                                        type: 'string',
+                                        readOnly: true
+                                    },
+                                    name: {
+                                        type: 'string'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                const openapi = await Enforcer(definition)
+                const result = openapi.request({
+                    method: 'post',
+                    path: '/',
+                    body: { name: 'Bob' }
+                })
+                console.log(result.error)
+                expect(result.error).to.be.undefined
+            })
+        })
+
     })
 
 });
