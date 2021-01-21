@@ -4381,6 +4381,50 @@ describe('definition/schema', () => {
 
             });
 
+            describe('readOnly and writeOnly', () => {
+                let schema
+                
+                before(() => {
+                    const def = Object.assign({}, base, {
+                        properties: {
+                            any: {
+                                type: 'boolean'
+                            },
+                            read: {
+                                type: 'boolean',
+                                readOnly: true
+                            },
+                            write: {
+                                type: 'boolean',
+                                writeOnly: true
+                            }
+                        }
+                    });
+                    [ schema ] = Enforcer.v3_0.Schema(def);
+                });
+
+                it('will not allow writing to properties that are readOnly', () => {
+                    const errors = schema.validate({ any: true, read: true, write: true }, { readWriteMode: 'write' });
+                    expect(errors).to.match(/Cannot read from write only properties: read/)
+                });
+
+                it('will allow writing to properties that are not readOnly', () => {
+                    const errors = schema.validate({ any: true, write: true }, { readWriteMode: 'write' });
+                    expect(errors).to.be.undefined;
+                });
+
+                it('will not allow reading from properties that are writeOnly', () => {
+                    const errors = schema.validate({ any: true, read: true, write: true }, { readWriteMode: 'read' });
+                    expect(errors).to.match(/Cannot write to read only properties: write/)
+                });
+
+                it('will allow reading from properties that are not writeOnly', () => {
+                    const errors = schema.validate({ any: true, read: true }, { readWriteMode: 'read' });
+                    expect(errors).to.be.undefined;
+                });
+
+            });
+
             describe('allOf', () => {
                 before(() => {
                     [ schema ] = Enforcer.v2_0.Schema({
