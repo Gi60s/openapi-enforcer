@@ -1933,6 +1933,36 @@ describe('enforcer/operation', () => {
                     expect(res2.body).to.equal(buffer);
                 })
 
+                it('will not allow sending write only properties', () => {
+                    const [ operation ] = Enforcer.v3_0.Operation({
+                        responses: {
+                            200: {
+                                description: 'success',
+                                content: {
+                                    'application/json': {
+                                        schema: {
+                                            type: 'object',
+                                            properties: {
+                                                read: {
+                                                    type: 'string',
+                                                    readOnly: true
+                                                },
+                                                write: {
+                                                    type: 'string',
+                                                    writeOnly: true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    const [ res, err ] = operation.response(200, { read: 'abc', write: 'abc'})
+                    expect(res).to.be.undefined
+                    expect(err).to.match(/Cannot read from write only properties: write/)
+                })
+
             });
 
             describe('headers', () => {

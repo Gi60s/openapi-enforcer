@@ -363,7 +363,7 @@ module.exports = {
                             result.body = body;
                         } else {
                             body = schema.formalize(body);
-                            let err = schema.validate(body);
+                            let err = schema.validate(body, { readWriteMode: 'read' });
                             if (!err) [body, err] = schema.serialize(body);
                             if (err) {
                                 exception.at('body').merge(err);
@@ -397,7 +397,7 @@ module.exports = {
                             const schema = contentType && content[contentType] && content[contentType].schema;
                             if (schema) {
                                 body = schema.formalize(body);
-                                let err = schema.validate(body);
+                                let err = schema.validate(body, { readWriteMode: 'read' });
                                 if (!err) [body, err] = schema.serialize(body);
                                 if (err) {
                                     exception.at('body').merge(err);
