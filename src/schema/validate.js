@@ -185,9 +185,9 @@ function runValidate(exception, map, schema, originalValue, options) {
             // validate that we only have readable or writable properties
             if (readWriteOnly.length > 0) {
                 if (readWriteMode === 'write') {
-                    exception.message('Cannot read from write only properties: ' + readWriteOnly.join(', '));
-                } else if (readWriteMode === 'read') {
                     exception.message('Cannot write to read only properties: ' + readWriteOnly.join(', '));
+                } else if (readWriteMode === 'read') {
+                    exception.message('Cannot read from write only properties: ' + readWriteOnly.join(', '));
                 }
             }
 
