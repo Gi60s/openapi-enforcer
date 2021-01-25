@@ -7,7 +7,7 @@ import * as RequestBody from './RequestBody'
 import * as Response from './Response'
 import * as Schema from './Schema'
 import * as SecurityScheme from './SecurityScheme'
-import { Validator } from '../Validator'
+import { SchemaObject } from '../definition-validator'
 import { EnforcerComponent, FactoryResult, Statics, v3 } from './'
 
 export interface Class extends Statics<Definition, Object> {
@@ -59,7 +59,7 @@ export function Factory (): FactoryResult<Definition, Object> {
 
   return {
     component: Components,
-    schema: function (data): Validator.SchemaObject {
+    validator: function (data): SchemaObject {
       const components = data.components as v3
       return {
         type: 'object',

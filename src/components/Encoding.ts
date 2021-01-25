@@ -1,5 +1,5 @@
 import * as Header from './Header'
-import { Validator } from '../Validator'
+import { SchemaObject } from '../definition-validator'
 import { EnforcerComponent, FactoryResult, Statics } from './'
 
 const rxContentType = /^([a-z-]+)\/(\*|[a-z-]+)(?:\+([a-z-]+))?/
@@ -41,7 +41,7 @@ export function Factory (): FactoryResult<Definition, Object> {
 
   return {
     component: Encoding,
-    schema: function (data): Validator.SchemaObject {
+    validator: function (data): SchemaObject {
       const components = data.components
       return {
         type: 'object',

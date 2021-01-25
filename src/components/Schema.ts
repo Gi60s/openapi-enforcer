@@ -1,5 +1,5 @@
 import { Exception } from 'exception-tree'
-import { Validator } from '../Validator'
+import * as Validator from '../definition-validator'
 import { EnforcerComponent, FactoryResult, Statics } from './'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import { Result } from 'result-value-exception'
@@ -276,7 +276,7 @@ export function Factory2 (): FactoryResult<Definition, Object> {
 
   return {
     component: Schema,
-    schema: getValidatorSchema(Schema)
+    validator: getValidatorSchema(Schema)
   }
 }
 
@@ -303,11 +303,11 @@ export function Factory3 (): FactoryResult<Definition, Object> {
 
   return {
     component: Schema,
-    schema: getValidatorSchema(Schema)
+    validator: getValidatorSchema(Schema)
   }
 }
 
-function getValidatorSchema (Schema: Class): Validator.SchemaConstructor {
+function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, any> {
   // define common validator schemas for reuse below
   const d: { [key: string]: Validator.Schema } = {
     schema: {

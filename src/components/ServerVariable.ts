@@ -1,4 +1,4 @@
-import { Validator } from '../Validator'
+import { SchemaObject } from '../definition-validator'
 import { EnforcerComponent, FactoryResult, Statics } from './'
 
 export interface Class extends Statics<Definition, Object> {
@@ -32,7 +32,7 @@ export function Factory (): FactoryResult<Definition, Object> {
 
   return {
     component: ServerVariable,
-    schema: function (): Validator.SchemaObject {
+    validator: function (): SchemaObject {
       return {
         type: 'object',
         required: () => ['default'],

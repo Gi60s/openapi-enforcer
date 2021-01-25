@@ -1,4 +1,4 @@
-import { Validator } from '../Validator'
+import { SchemaObject } from '../definition-validator'
 import { EnforcerComponent, FactoryResult, Statics, v3 } from './'
 import * as ServerVariable from './ServerVariable'
 
@@ -39,7 +39,7 @@ export function Factory (): FactoryResult<Definition, Object> {
 
   return {
     component: Server,
-    schema: function (data): Validator.SchemaObject {
+    validator: function (data): SchemaObject {
       const components = data.components as v3
       return {
         type: 'object',

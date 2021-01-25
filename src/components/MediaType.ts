@@ -1,7 +1,7 @@
 import * as Encoding from './Encoding'
 import * as Example from './Example'
 import * as Schema from './Schema'
-import { Validator } from '../Validator'
+import { SchemaComponent, SchemaObject } from '../definition-validator'
 import { EnforcerComponent, FactoryResult, Statics, v3 } from './'
 
 const rxContentTypeMime = /(?:^multipart\/)|(?:^application\/x-www-form-urlencoded$)/
@@ -40,7 +40,7 @@ export function Factory (): FactoryResult<Definition, Object> {
 
   return {
     component: MediaType,
-    schema: function (data): Validator.SchemaObject {
+    validator: function (data): SchemaObject {
       const components = data.components as v3
       return {
         type: 'object',
@@ -84,7 +84,7 @@ export function Factory (): FactoryResult<Definition, Object> {
               type: 'object',
               ignored ({ chain }) {
                 const requestBodyObject = chain.length > 4 ? chain[4] : null // TODO: validate that this is a RequestBody instance
-                return requestBodyObject === null || requestBodyObject.schema.component !== components.RequestBody || !rxContentTypeMime.test(chain[3].key)
+                return requestBodyObject === null || (requestBodyObject.schema as SchemaComponent<any, any>).component !== components.RequestBody || !rxContentTypeMime.test(chain[3].key)
               },
               after ({ alert, chain }) {
                 const mediaTypeObject = chain[1]

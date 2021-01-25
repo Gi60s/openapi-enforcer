@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 import { expect } from 'chai'
-import { OpenAPIEnforcer } from '../index'
+import { OpenAPIEnforcer, v2 } from '../index'
 
 describe('Contact', function () {
-  let Contact: OpenAPIEnforcer.Contact
+  let Contact: v2.ContactClass
 
   before(() => {
     Contact = OpenAPIEnforcer().v2.Contact
@@ -23,9 +24,5 @@ describe('Contact', function () {
       expect(error).to.match(/Expected a string/)
       expect(warning).to.be.undefined
     })
-  })
-
-  describe('builder', function () {
-
   })
 })

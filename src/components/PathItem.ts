@@ -1,7 +1,7 @@
 import * as Operation from './Operation'
 import * as Parameter from './Parameter'
 import * as Server from './Server'
-import { Validator } from '../Validator'
+import { SchemaObject } from '../definition-validator'
 import { EnforcerComponent, FactoryResult, Statics } from './'
 
 export interface Class extends Statics<Definition, Object> {
@@ -64,7 +64,7 @@ export function Factory (): FactoryResult<Definition, Object> {
 
   return {
     component: PathItem,
-    schema: function (data): Validator.SchemaObject {
+    validator: function (data): SchemaObject {
       const { components } = data
       const major = components.major
       return {

@@ -8,10 +8,10 @@ import * as Header from './Header'
 import * as Info from './Info'
 import * as License from './License'
 import * as Link from './Link'
-// import * as MediaType from './MediaType'
-// import * as OAuthFlow from './OAuthFlow'
-// import * as OAuthFlows from './OAuthFlows'
-// import * as OpenAPI from './OpenAPI'
+import * as MediaType from './MediaType'
+import * as OAuthFlow from './OAuthFlow'
+import * as OAuthFlows from './OAuthFlows'
+import * as OpenAPI from './OpenAPI'
 // import * as Operation from './Operation'
 // import * as Parameter from './Parameter'
 import * as PathItem from './PathItem'
@@ -30,11 +30,22 @@ import * as Xml from './Xml'
 
 import { Exception } from 'exception-tree'
 import Result from 'result-value-exception'
-import * as Validator from '../Validator'
+import * as Validator from '../definition-validator'
 import { smart } from '../util'
 import { BuildMapper } from '../BuildMapper'
+import { SchemaObject } from '../definition-validator'
 
 const ComponentMapper: WeakMap<EnforcerComponent<any, any>, ComponentMapItem<any, any>> = new WeakMap()
+const defaultRequestBodyAllowedMethods = {
+  get: false,
+  post: true,
+  put: true,
+  delete: false,
+  options: true,
+  head: true,
+  patch: true,
+  trace: false
+}
 
 export type AnyComponent =
 Callback.Class |
@@ -47,9 +58,9 @@ Header.Class |
 Info.Class |
 License.Class |
 Link.Class |
-// MediaType.Class |
-// OAuthFlow.Class |
-// OAuthFlows.Class |
+MediaType.Class |
+OAuthFlow.Class |
+OAuthFlows.Class |
 // OpenAPI.Class |
 // Operation.Class |
 // Parameter.Class |
@@ -100,10 +111,10 @@ export interface v3 {
   Info: Info.Class
   License: License.Class
   Link: Link.Class
-  // MediaType: MediaType.Class
-  // OAuthFlow: OAuthFlow.Class
-  // OAuthFlows: OAuthFlows.Class
-  // OpenAPI: OpenAPI.Class
+  MediaType: MediaType.Class
+  OAuthFlow: OAuthFlow.Class
+  OAuthFlows: OAuthFlows.Class
+  OpenAPI: OpenAPI.Class
   // Operation: Operation.Class
   // Parameter: Parameter.Class
   PathItem: PathItem.Class
@@ -121,24 +132,47 @@ export interface v3 {
 }
 
 interface ComponentMapItem<Definition, Built> {
-  components: v2 | v3
-  extensions: {
-    builder: Array<ExtensionFunction<Definition, Built>>
-    validator: Array<ExtensionFunction<Definition, Built>>
+  builder: {
+    component: AnyComponent
+    extensions: Array<ExtensionFunction<Definition, Built>>
   }
-  schema: FactorySchema<Definition, Built>
+  components: v2 | v3
+  definition: {
+    extensions: Array<ExtensionFunction<Definition, Built>>
+    validator: DefinitionValidatorFactory<Definition, Built>
+  }
   options: ComponentOptionsFixed
 }
 
 export interface ComponentOptions {
   disablePathNormalization?: boolean
+  requestBodyAllowedMethods?: {
+    get?: boolean
+    post?: boolean
+    put?: boolean
+    delete?: boolean
+    options?: boolean
+    head?: boolean
+    patch?: boolean
+    trace?: boolean
+  }
   exceptions?: {
     [code: string]: ExceptionMode
   }
 }
 
-interface ComponentOptionsFixed {
+export interface ComponentOptionsFixed {
   disablePathNormalization: boolean
+  requestBodyAllowedMethods: {
+    get: boolean
+    post: boolean
+    put: boolean
+    delete: boolean
+    options: boolean
+    head: boolean
+    patch: boolean
+    trace: boolean
+  }
   exceptions: {
     [code: string]: ExceptionMode
   }
@@ -159,10 +193,10 @@ type ExtensionFunction<Definition, Built> = (data: ExtensionData<Definition, Bui
 
 export interface FactoryResult<Definition, Built> {
   component: AnyComponent
-  schema: FactorySchema<Definition, Built>
+  validator: DefinitionValidatorFactory<Definition, Built>
 }
 
-type FactorySchema<Definition, Built> = (data: Validator.Data<Definition, Built>) => Validator.SchemaObject
+type DefinitionValidatorFactory<Definition, Built> = (data: Validator.Data<Definition, Built>) => Validator.SchemaObject
 
 export interface Statics<Definition, Built> {
   extend: (type: 'builder' | 'validator', extension: ExtensionFunction<Definition, Built>) => undefined
@@ -182,16 +216,20 @@ export class EnforcerComponent<Definition, Built> {
   }
 
   static extend<Definition, Built> (type: 'builder' | 'validator', extension: ExtensionFunction<Definition, Built>): undefined {
-    const { extensions } = getComponentData(this)
-    if (type in extensions) {
-      if (typeof extension === 'function') {
-        extensions[type].push(extension)
-      } else {
-        throw Error('Invalid extension. Expected a function. Received: ' + smart(extension))
-      }
+    const key = type === 'builder'
+      ? 'builder'
+      : type === 'validator' ? 'definition' : ''
+    if (key === '') throw Error('Invalid extension type. Expected either "builder" or "validator". Received: ' + type)
+
+    const data = getComponentData(this)
+    if (data === undefined) throw Error('Invalid component context.')
+
+    if (typeof extension === 'function') {
+      data[key].extensions.push(extension)
     } else {
-      throw Error('Invalid extension type. Expected one of: ' + Object.keys(extensions).join(', ') + '. Received: ' + smart(type))
+      throw Error('Invalid extension. Expected a function. Received: ' + smart(extension))
     }
+
     return undefined
   }
 
@@ -267,13 +305,19 @@ export function generateComponents (version: 2 | 3, options: ComponentOptionsFix
 }
 
 export function generateComponent<Definition, Built> (name: string, components: v2 | v3, factory: () => FactoryResult<Definition, Built>, options: ComponentOptionsFixed): AnyComponent {
-  const { component, schema } = factory()
+  const { component, validator } = factory()
   // @ts-expect-error
   components[name] = component
   ComponentMapper.set(component, {
+    builder: {
+      component,
+      extensions: []
+    },
     components: components,
-    extensions: { builder: [], validator: [] },
-    schema,
+    definition: {
+      extensions: [],
+      validator
+    },
     options
   })
   return component
@@ -285,12 +329,21 @@ export function getComponentData<Definition, Built> (component: EnforcerComponen
   return data
 }
 
+export function getComponentSchema<Definition, Built> (component: EnforcerComponent<Definition, Built>, data: Validator.Data<Definition, Built>): SchemaObject {
+  const found = ComponentMapper.get(component)
+  if (found === undefined) throw Error('Invalid component context')
+  return found.definition.validator(data)
+}
+
 export function normalizeOptions (options?: ComponentOptions): ComponentOptionsFixed {
   // normalize options
   if (options === undefined) options = {}
   if (typeof options !== 'object' || options === null) throw Error('Invalid configuration options specified.')
   if (!('disablePathNormalization' in options)) options.disablePathNormalization = false
   if (!('exceptions' in options)) options.exceptions = {}
+  if (!('requestBodyAllowedMethods' in options)) options.requestBodyAllowedMethods = {}
+  options.requestBodyAllowedMethods = Object.assign({}, defaultRequestBodyAllowedMethods, options.requestBodyAllowedMethods)
+
   return options as ComponentOptionsFixed
 }
 
@@ -323,6 +376,8 @@ function initializeValidatorData<Definition, Built> (component: EnforcerComponen
     },
     components,
     map: BuildMapper(),
+    metadata: {},
+    options,
 
     // changing values
     built: undefined,

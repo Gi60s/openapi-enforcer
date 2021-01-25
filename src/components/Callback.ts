@@ -1,6 +1,6 @@
 import { EnforcerComponent, FactoryResult, Statics } from './'
 import * as PathItem from './PathItem'
-import { Validator } from '../Validator'
+import { SchemaObject } from '../definition-validator'
 
 export interface Class extends Statics<Definition, Object> {
   new (definition: Definition): Object
@@ -25,7 +25,7 @@ export function Factory (): FactoryResult<Definition, Object> {
 
   return {
     component: Callback,
-    schema: function (data): Validator.SchemaObject {
+    validator: function (data): SchemaObject {
       const { components } = data
       return {
         type: 'object',

@@ -1,19 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { expect } from 'chai'
 import { Exception } from 'exception-tree'
-import { OpenAPIEnforcer } from '../index'
-import { SchemaObject } from '../Validator'
-import * as EnforcerComponent from '../components'
-import { generateComponent, normalizeOptions, FactoryResult } from '../components'
-
-const Enforcer = OpenAPIEnforcer()
+import { SchemaObject } from '../definition-validator'
+import { EnforcerComponent, ExtensionData, generateComponent, normalizeOptions, FactoryResult } from '../components'
 
 describe.only('definition validator', () => {
   describe('common', function () {
     describe('after', function () {
       it('will have a built object', function () {
         let built
-        const C = define({
+        const C = define('C', {
           type: 'object',
           after (data) {
             built = data.built
@@ -24,7 +20,7 @@ describe.only('definition validator', () => {
       })
 
       it('can add errors and warnings', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           after ({ error, warning }) {
             error.message('foo')
@@ -40,7 +36,7 @@ describe.only('definition validator', () => {
 
     describe('allowed', function () {
       it('schema can be explicitly allowed', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           properties: [
             {
@@ -60,7 +56,7 @@ describe.only('definition validator', () => {
       })
 
       it('schema can be explicitly disallowed', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           properties: [
             {
@@ -83,7 +79,7 @@ describe.only('definition validator', () => {
     describe('before', function () {
       it('will not have a built object', function () {
         let built
-        const C = define({
+        const C = define('C', {
           type: 'object',
           before (data) {
             built = data.built
@@ -95,7 +91,7 @@ describe.only('definition validator', () => {
       })
 
       it('will continue validating if before returns true', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           before () { return true },
           properties: [
@@ -109,7 +105,7 @@ describe.only('definition validator', () => {
       })
 
       it('will not continue validating if before returns false', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           before () { return false },
           properties: [
@@ -123,7 +119,7 @@ describe.only('definition validator', () => {
       })
 
       it('can add errors and warnings', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           before ({ error, warning }) {
             error.message('foo')
@@ -140,7 +136,7 @@ describe.only('definition validator', () => {
 
     describe('default', function () {
       it('will set default if value not provided', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           properties: [
             {
@@ -159,7 +155,7 @@ describe.only('definition validator', () => {
       })
 
       it('will not set default if value is provided', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           properties: [
             {
@@ -178,7 +174,7 @@ describe.only('definition validator', () => {
       })
 
       it('will not alter definition input', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           properties: [
             {
@@ -200,7 +196,7 @@ describe.only('definition validator', () => {
 
     describe('enum', function () {
       it('will allow value matching enum', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           properties: [
             {
@@ -219,7 +215,7 @@ describe.only('definition validator', () => {
       })
 
       it('will not allow a value not-matching enum', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           properties: [
             {
@@ -240,7 +236,7 @@ describe.only('definition validator', () => {
 
     describe('ignored', function () {
       it('can explicitly ignore value', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           properties: [
             {
@@ -259,7 +255,7 @@ describe.only('definition validator', () => {
       })
 
       it('can explicitly not ignore value', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           properties: [
             {
@@ -280,7 +276,7 @@ describe.only('definition validator', () => {
 
     describe('nullable', function () {
       it('can be explicitly nullable', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           properties: [
             {
@@ -299,7 +295,7 @@ describe.only('definition validator', () => {
       })
 
       it('can be explicitly not nullable', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           properties: [
             {
@@ -318,7 +314,7 @@ describe.only('definition validator', () => {
       })
 
       it('is nullable by default', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           properties: [
             {
@@ -339,7 +335,7 @@ describe.only('definition validator', () => {
 
   describe('array', function () {
     it('will validate type', function () {
-      const C = define({
+      const C = define('C', {
         type: 'object',
         properties: [
           {
@@ -358,7 +354,7 @@ describe.only('definition validator', () => {
     })
 
     it('will validate all items', function () {
-      const C = define({
+      const C = define('C', {
         type: 'object',
         properties: [
           {
@@ -382,7 +378,7 @@ describe.only('definition validator', () => {
 
   describe('boolean', function () {
     it('will validate type', function () {
-      const C = define({
+      const C = define('C', {
         type: 'object',
         properties: [
           {
@@ -403,7 +399,7 @@ describe.only('definition validator', () => {
 
   describe('number', function () {
     it('will validate type', function () {
-      const C = define({
+      const C = define('C', {
         type: 'object',
         properties: [
           {
@@ -424,7 +420,7 @@ describe.only('definition validator', () => {
 
   describe('string', function () {
     it('will validate type', function () {
-      const C = define({
+      const C = define('C', {
         type: 'object',
         properties: [
           {
@@ -446,7 +442,7 @@ describe.only('definition validator', () => {
   describe('object', function () {
     describe('additionalProperties', function () {
       it('defaults to false', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object'
         })
         const [value, error, warning] = C.validate({ foo: 1 })
@@ -456,7 +452,7 @@ describe.only('definition validator', () => {
       })
 
       it('can be set to false', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           additionalProperties: false
         })
@@ -467,7 +463,7 @@ describe.only('definition validator', () => {
       })
 
       it('can be set to true', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           additionalProperties: true
         })
@@ -478,7 +474,7 @@ describe.only('definition validator', () => {
       })
 
       it('can be set to a schema', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           additionalProperties: {
             type: 'string'
@@ -494,7 +490,7 @@ describe.only('definition validator', () => {
 
     describe('required', function () {
       it('can require an additional property', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           required: () => ['foo'],
           additionalProperties: true
@@ -507,7 +503,7 @@ describe.only('definition validator', () => {
       })
 
       it('can require a named property', function () {
-        const C = define({
+        const C = define('C', {
           type: 'object',
           required: () => ['foo'],
           properties: [
@@ -527,7 +523,8 @@ describe.only('definition validator', () => {
 
     describe('component', function () {
       it('can validate sub components', function () {
-        const A = define({
+        const components = {}
+        const A = define('A', {
           type: 'object',
           properties: [
             {
@@ -535,22 +532,23 @@ describe.only('definition validator', () => {
               schema: { type: 'string' }
             }
           ]
-        })
+        }, components)
 
-        const B = define({
+        const B = define('B', {
           type: 'object',
           properties: [
             {
               name: 'a',
               schema: {
                 type: 'component',
+                // @ts-expect-error
                 component: A
               }
             }
           ]
-        })
+        }, components)
 
-        const [value, e] = B.validate({ a: { s: 'hello' } })
+        const [value] = B.validate({ a: { s: 'hello' } })
         expect(value).to.deep.equal({ a: { s: 'hello' } })
 
         const [, error] = B.validate({ a: { s: 1 } })
@@ -561,7 +559,7 @@ describe.only('definition validator', () => {
 
   describe('extensions', function () {
     it('will run extensions', function () {
-      const C = define({
+      const C = define('C', {
         type: 'object',
         properties: [
           {
@@ -570,17 +568,18 @@ describe.only('definition validator', () => {
           }
         ]
       })
-      C.extend('validator', data => {
+      C.extend('validator', (data: ExtensionData<any, any>) => {
         data.warning.message('This is a warning')
       })
 
       const [, , warning] = C.validate({ s: 'hello' })
-      expect((<Exception>warning).count).to.equal(1)
+      expect((warning as Exception).count).to.equal(1)
       expect(warning).to.match(/This is a warning/)
     })
 
     it('will run sub component extensions', function () {
-      const A = define({
+      const components = {}
+      const A = define('A', {
         type: 'object',
         properties: [
           {
@@ -588,33 +587,34 @@ describe.only('definition validator', () => {
             schema: { type: 'string' }
           }
         ]
-      })
-      A.extend('validator', data => {
+      }, components)
+      A.extend('validator', (data: ExtensionData<any, any>) => {
         data.warning.message('This is a warning')
       })
 
-      const B = define({
+      const B = define('B', {
         type: 'object',
         properties: [
           {
             name: 'a',
             schema: {
               type: 'component',
+              // @ts-expect-error
               component: A
             }
           }
         ]
-      })
+      }, components)
 
       const [, , warning] = B.validate({ a: { s: 'hello' } })
-      expect((<Exception>warning).count).to.equal(1)
+      expect((warning as Exception).count).to.equal(1)
       expect(warning).to.match(/This is a warning/)
     })
   })
 })
 
-function define<Definition, Built> (name: string, schema: SchemaObject<Definition, Built>, components = {}): EnforcerComponent.EnforcerComponent<any, any> {
-  class Test extends EnforcerComponent.EnforcerComponent<Definition, Built> implements Object {
+function define<Definition, Built> (name: string, schema: SchemaObject<Definition, Built>, components = {}): EnforcerComponent<Definition, Built> {
+  class Test extends EnforcerComponent<Definition, Built> {
     readonly [x: string]: any
 
     // constructor (definition: Definition) {
@@ -633,10 +633,6 @@ function define<Definition, Built> (name: string, schema: SchemaObject<Definitio
   const options = normalizeOptions()
   // @ts-expect-error
   generateComponent(name, components, factory, options)
-
-  Validator.LookupMap.set(Test, () => {
-    return schema
-  })
 
   return Test
 }

@@ -1,6 +1,6 @@
 import * as Contact from './Contact'
 import * as License from './License'
-import { Validator } from '../Validator'
+import { SchemaObject } from '../definition-validator'
 import { EnforcerComponent, FactoryResult, Statics } from './'
 
 export interface Class extends Statics<Definition, Object> {
@@ -43,7 +43,7 @@ export function Factory (): FactoryResult<Definition, Object> {
 
   return {
     component: Info,
-    schema: function (data): Validator.SchemaObject {
+    validator: function (data): SchemaObject {
       const { components } = data
       return {
         type: 'object',

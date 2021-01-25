@@ -1,4 +1,4 @@
-import { Validator } from './Validator'
+import { Validator } from './definition-validator'
 
 export interface IBuildMapper {
   getMappedBuild: (definition: object, schema: Validator.SchemaObject) => BuildItem | undefined

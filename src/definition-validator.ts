@@ -1,4 +1,13 @@
-import { AnyComponent, ExtensionData, getComponentData, v2, v3 } from './components'
+import {
+  AnyComponent,
+  ComponentOptionsFixed,
+  ExtensionData,
+  getComponentData,
+  getComponentSchema,
+  v2,
+  v3
+} from './components'
+import * as Operation from './components/Operation'
 import { IBuildMapper } from './BuildMapper'
 import { Exception } from 'exception-tree'
 import { booleanMapToStringArray, isObject, same, smart, stringArrayToBooleanMap } from './util'
@@ -10,6 +19,13 @@ export interface Data<DefinitionType, BuiltType> {
   alert: (mode: 'ignore' | 'warn' | 'error', code: string, message: string) => undefined
   components: v2 | v3
   map: IBuildMapper
+  metadata: {
+    [key: string]: any
+    operationIdMap?: {
+      [operationId: string]: Data<Operation.Definition, Operation.Object>
+    }
+  }
+  options: ComponentOptionsFixed
 
   // changing values
   built: BuiltType
@@ -169,7 +185,7 @@ export function validateDefinition (data: Data<any, any>): boolean {
     data.built = definition
     return runCustomValidators(data)
   } else if (schema.type === 'object' || schema.type === 'component') {
-    const oSchema = (schema.type === 'object' ? schema : LookupMap.get(schema.component, data)) as SchemaObject
+    const oSchema = (schema.type === 'object' ? schema : getComponentSchema(schema.component, data))
     let success = true
 
     if (!isObject(definition)) {
@@ -236,7 +252,7 @@ export function validateDefinition (data: Data<any, any>): boolean {
       if (additionalProperties === false) {
         notAllowed.push(key)
       } else if (additionalProperties !== true) {
-        const child = buildChildData(data, def, key, additionalProperties as Schema)
+        const child = buildChildData(data, def, key, additionalProperties)
         if (!validateChild(child, key)) success = false
       } else {
         data.built[key] = def
@@ -283,6 +299,8 @@ function buildChildData (data: Data<any, any>, definition: any, key: string, sch
     alert: data.alert,
     components: data.components,
     map: data.map,
+    metadata: data.metadata,
+    options: data.options,
 
     // changing values
     built: undefined,
@@ -364,7 +382,7 @@ function runBaseValidators (data: Data<any, any>, schema: Schema): { continue: b
 function runCustomValidators (data: Data<any, any>): boolean {
   let schema = data.schema
   const component = 'component' in schema ? schema.component : null
-  if (schema.type === 'component') schema = LookupMap.get(schema.component, data)
+  if (schema.type === 'component') schema = getComponentSchema(schema.component, data)
 
   // run custom validation
   if (schema.after !== undefined) {
@@ -375,14 +393,15 @@ function runCustomValidators (data: Data<any, any>): boolean {
 
   if (schema.type === 'object') {
     if (component !== null && component !== undefined) {
-      const { components, extensions } = getComponentData(component)
+      const componentData = getComponentData(component)
+      const extensions = componentData.definition.extensions
 
       // run component extension validations
-      const length = extensions.validator.length
+      const length = extensions.length
       if (length > 0) {
         const extensionData: ExtensionData<any, any> = {
           built: data.built,
-          components: components,
+          components: componentData.components,
           definition: data.definition,
           error: data.error,
           key: data.key,
@@ -390,7 +409,7 @@ function runCustomValidators (data: Data<any, any>): boolean {
         }
 
         for (let i = 0; i < length; i++) {
-          extensions.validator[i](extensionData)
+          extensions[i](extensionData)
         }
 
         if (data.error.hasException) return false
