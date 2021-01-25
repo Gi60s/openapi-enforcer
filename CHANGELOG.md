@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.12.7
+
+### Fixed
+
+- **ReadOnly and WriteOnly Error Message Fix**
+
+Although readOnly and writeOnly errors were being caught correctly, the messaging was negative. For example, it would say "Cannot write to read only" when it meant "Cannot read from write only" and vice versa.
+
 ## 1.12.6
 
 ### Fixed
