@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.12.8
+
+### Fixed
+
+- **Operation Response Now Validates for Write Only Properties**
+
+The operation response function now checks that write only properties are not being sent to the client.
+
 ## 1.12.7
 
 ### Fixed
