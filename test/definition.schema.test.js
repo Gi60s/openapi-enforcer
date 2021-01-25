@@ -4405,7 +4405,7 @@ describe('definition/schema', () => {
 
                 it('will not allow writing to properties that are readOnly', () => {
                     const errors = schema.validate({ any: true, read: true, write: true }, { readWriteMode: 'write' });
-                    expect(errors).to.match(/Cannot read from write only properties: read/)
+                    expect(errors).to.match(/Cannot write to read only properties: read/)
                 });
 
                 it('will allow writing to properties that are not readOnly', () => {
@@ -4415,7 +4415,7 @@ describe('definition/schema', () => {
 
                 it('will not allow reading from properties that are writeOnly', () => {
                     const errors = schema.validate({ any: true, read: true, write: true }, { readWriteMode: 'read' });
-                    expect(errors).to.match(/Cannot write to read only properties: write/)
+                    expect(errors).to.match(/Cannot read from write only properties: write/)
                 });
 
                 it('will allow reading from properties that are not writeOnly', () => {
