@@ -11,6 +11,8 @@ subtitle: API
 
 This function will dereference your OpenAPI document, validate it, produce warnings where appropriate, and return a Promise that resolves to an [OpenAPI component](./components/openapi.md) for an OpenAPI specification 3.x.x document or a [Swagger component](./components/swagger.md) for Swagger 2.0.
 
+The OpenAPI or Swagger component that is returned will have one additional property, `getBundledDefinition()`, that can be called to get back a JSON object that has the `$refs` resolved to only use a single file. This object can be converted to a string using `JSON.stringify()` to get the bundled definition. 
+
 **Parameters:**
 
 | Parameter | Description | Type | Default |
