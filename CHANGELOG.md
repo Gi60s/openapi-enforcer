@@ -4,13 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.13.0
+
+- **Add getBundledDefinition**
+
+  The ref parser already has a bundler function, but now when creating an OpenAPI or Swagger component using the [Enforcer function](https://byu-oit.github.io/openapi-enforcer/api/openapi-enforcer#enforcer) an additional property will be added to get the bundled definition.
+
 ## 1.12.8
 
 ### Fixed
 
 - **Operation Response Now Validates for Write Only Properties**
 
-The operation response function now checks that write only properties are not being sent to the client.
+  The operation response function now checks that write only properties are not being sent to the client.
 
 ## 1.12.7
 
@@ -18,7 +24,7 @@ The operation response function now checks that write only properties are not be
 
 - **ReadOnly and WriteOnly Error Message Fix**
 
-Although readOnly and writeOnly errors were being caught correctly, the messaging was negative. For example, it would say "Cannot write to read only" when it meant "Cannot read from write only" and vice versa.
+  Although readOnly and writeOnly errors were being caught correctly, the messaging was negative. For example, it would say "Cannot write to read only" when it meant "Cannot read from write only" and vice versa.
 
 ## 1.12.6
 
@@ -26,7 +32,7 @@ Although readOnly and writeOnly errors were being caught correctly, the messagin
 
 - **ReadOnly and WriteOnly**
 
-The library was incorrectly not accounting for readOnly and writeOnly when using schema validation. This functionality has been added.
+  The library was incorrectly not accounting for readOnly and writeOnly when using schema validation. This functionality has been added.
 
 ## 1.12.5
 
