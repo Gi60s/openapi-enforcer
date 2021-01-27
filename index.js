@@ -82,6 +82,17 @@ async function Enforcer(definition, options) {
     if (options.fullResult) return new Result(openapi, exception, warnings);
     if (!options.hideWarnings && warnings && warnings.hasException) console.warn(warnings.toString());
     if (exception && exception.hasException) throw Error(exception.toString());
+
+    openapi.getBundledDefinition = async function () {
+        if (useNewRefParser) {
+            const result = await refParser.bundle()
+            if (result.error) throw Error(result.error)
+            return result.value
+        } else {
+            return await refParser.bundle(definition)
+        }
+    }
+
     return openapi;
 }
 
