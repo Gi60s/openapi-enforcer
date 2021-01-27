@@ -67,6 +67,7 @@
         <div class="post-content"><h2 id="enforcer">Enforcer</h2>
 <p><code>Enforcer ( definition [, options ] ) : Promise &lt; OpenAPI | Swagger &gt;</code></p>
 <p>This function will dereference your OpenAPI document, validate it, produce warnings where appropriate, and return a Promise that resolves to an <a href="/openapi-enforcer/api/components/openapi">OpenAPI component</a> for an OpenAPI specification 3.x.x document or a <a href="/openapi-enforcer/api/components/swagger">Swagger component</a> for Swagger 2.0.</p>
+<p>The OpenAPI or Swagger component that is returned will have one additional property, <code>getBundledDefinition()</code>, that can be called to get back a JSON object that has the <code>$refs</code> resolved to only use a single file. This object can be converted to a string using <code>JSON.stringify()</code> to get the bundled definition. </p>
 <p><strong>Parameters:</strong></p>
 <table>
 <thead>
