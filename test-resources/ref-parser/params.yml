@@ -6,7 +6,7 @@ PathId:
     type: string
 PathBar:
   in: path
-  name: id
+  name: bar
   required: true
   schema:
     type: string

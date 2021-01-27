@@ -14,7 +14,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './Bundle1.yml#/a'
+                  - $ref: './Bundle3.yml#/Employee'
                   - $ref: './People.yml#/Person'
                   - $ref: '#/paths/~1foo~1{id}~1bar~1{bar}/get/responses/200/content/application~1json/schema/oneOf/2'
   /foo/{id}/bar/{bar}:
@@ -29,9 +29,9 @@ paths:
               application/json:
                 schema:
                   oneOf:
-                    - $ref: './Bundle1.yml#/a'
-                    - $ref: './Bundle2.yml#/c'
+                    - $ref: './Bundle3.yml#/Employee'
+                    - $ref: './Bundle3.yml#/Student'
                     - type: object
                       properties:
                         name:
-                          $ref: './People.yml#/Person/property/name'
+                          $ref: './People.yml#/Person/properties/name'

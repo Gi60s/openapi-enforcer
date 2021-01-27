@@ -85,12 +85,12 @@ describe('ref-parser', () => {
 
     it('can load a non object', async () => {
         const parser = new RefParser(path.resolve(resourcesDir, 'Value.yaml'));
-        const [ result ] = await parser.dereference();
+        const [ result, err ] = await parser.dereference();
         expect(result.Value['x-key']).to.equal('Value');
         expect(result.Value.properties.value.type).to.equal('integer');
     });
 
-    it('can handle circular references in same document', async () => {
+    it('can handle circular references in same object', async () => {
         const obj = {
             A: {
                 title: 'A',
@@ -202,7 +202,7 @@ describe('ref-parser', () => {
             });
 
             it('can identify node source for child http resource', async () => {
-                const source = parser.getSourcePath(result.People.items.property);
+                const source = parser.getSourcePath(result.People.items.properties);
                 expect(source).to.equal('http://localhost:18088/People.yml');
             });
 
@@ -268,7 +268,7 @@ describe('ref-parser', () => {
         it('can get the child root node from file source', async () => {
             const parser = new RefParser(path.resolve(resourcesDir, 'Household.json'));
             const [ value ] = await parser.dereference();
-            const source = parser.getSourceNode(value.People.items.property);
+            const source = parser.getSourceNode(value.People.items.properties);
             expect(source).to.haveOwnProperty('Person');
             expect(source.Person['x-key']).to.equal('Person');
         });
@@ -374,14 +374,24 @@ describe('ref-parser', () => {
                 },
                 schemas: {
                   x: {
-                      type: 'string'
+                      type: 'object',
+                      'x-foo': 'foo',
+                      properties: {
+                          x: {
+                              $ref: '#/schemas/x'
+                          },
+                          y: {
+                              type: 'number'
+                          }
+                      }
                   }
                 }
             }
 
             const parser = new RefParser(doc);
             const [ bundled ] = await parser.bundle();
-            expect(bundled.components.schemas.x).to.deep.equal({ type: 'string' })
+            expect(bundled.components.schemas.x['x-foo']).to.equal('foo')
+            expect(bundled.schemas.x).to.haveOwnProperty('$ref')
         });
 
         it('can bundle parameters', async function () {

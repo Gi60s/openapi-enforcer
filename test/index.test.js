@@ -200,6 +200,8 @@ describe('index/production', () => {
                         traverse(a[key], b[key], exception.at(key));
                     }
                 }
+            } else if (typeof a === 'function') {
+                if (a.toString() !== b.toString()) return exception.message('Value mismatch. Expected ' + a + ' but received ' + b);
             } else if (a !== b) {
                 return exception.message('Value mismatch. Expected ' + a + ' but received ' + b);
             }
@@ -2052,3 +2054,30 @@ describe('index/request', () => {
     });
 
 });
+
+describe('index/getBundledDefinition', function () {
+    const filePath = path.resolve(__dirname, '..', 'test-resources', 'ref-parser', 'openapi.yml')
+    let useNewRefParser
+
+    before(() => {
+        useNewRefParser = Enforcer.config.useNewRefParser
+    })
+
+    after(() => {
+        Enforcer.config.useNewRefParser = useNewRefParser
+    })
+
+    it('will get the bundle for old ref parser', async function () {
+        Enforcer.config.useNewRefParser = false
+        const openapi = await Enforcer(filePath)
+        const def = await openapi.getBundledDefinition()
+        expect(() => JSON.stringify(def)).not.to.throw(Error)
+    })
+
+    it('will get the bundle for old ref parser', async function () {
+        Enforcer.config.useNewRefParser = true
+        const openapi = await Enforcer(filePath)
+        const def = await openapi.getBundledDefinition()
+        expect(() => JSON.stringify(def)).not.to.throw(Error)
+    })
+})

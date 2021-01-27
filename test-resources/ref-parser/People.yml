@@ -1,7 +1,7 @@
 Person:
   x-key: Person
   type: object
-  property:
+  properties:
     name:
       type: string
     age:
