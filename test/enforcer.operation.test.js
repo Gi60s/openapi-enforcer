@@ -1486,6 +1486,18 @@ describe('enforcer/operation', () => {
                     expect(err).to.be.undefined
                 });
 
+                it('2XX works for operation.response', () => {
+                    const [ operation ] = Enforcer.v3_0.Operation({
+                        responses: {
+                            '200': { description: 'ok' },
+                            '2XX': { description: '' }
+                        }
+                    });
+
+                    const [ , err ] = operation.response(204)
+                    expect(err).to.be.undefined
+                });
+
                 it('600 not ok', () => {
                     const [ , err ] = Enforcer.v2_0.Operation({
                         responses: {

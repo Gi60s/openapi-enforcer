@@ -342,7 +342,11 @@ module.exports = {
             const exception = new Exception('Response invalid');
             const warning = new Exception('Response has one or more warnings');
             const hasBody = body !== undefined;
-            const response = this.responses[code] || this.responses.default;
+            const response = (() => {
+                const codeString = String(code)
+                const codeChar = codeString[0]
+                return this.responses[code] || this.responses[codeChar + 'XX'] || this.responses.default;
+            })()
             const result = { headers: {} };
             const major = this.enforcerData.major;
             const skipCodes = this.enforcerData.options.exceptionSkipCodes;

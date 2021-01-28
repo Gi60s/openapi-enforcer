@@ -4,7 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.13.1
+
+### Fixed
+
+- **Function operation.response Supports Wildcard Codes**
+
+  OpenAPI spec 3.0.0 and newer support wildcard response codes. Examples: `1XX`, `2XX`, `3XX`, `4XX`, `5XX`. The document validator has supported this, but the Operation.prototype.response function did not support that until now.
+
 ## 1.13.0
+
+### Added
 
 - **Add getBundledDefinition**
 
