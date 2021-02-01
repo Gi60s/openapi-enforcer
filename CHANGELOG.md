@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.13.2
+
+### Fixed
+
+- **Read / Write Required Property May Not Exist**
+
+  Fixed an error when checking for required schema properties that should not be included due to being read-only or write only.
+
 ## 1.13.1
 
 ### Fixed

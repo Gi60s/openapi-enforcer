@@ -147,8 +147,8 @@ function runValidate(exception, map, schema, originalValue, options) {
             const readWriteOnly = [];
             const required = schema.required ?
                 schema.required.filter(name => {
-                    if (!options.readWriteMode) return true
                     const prop = properties[name]
+                    if (!options.readWriteMode || !prop) return true
                     if (options.readWriteMode === 'write' && !prop.readOnly) return true
                     if (options.readWriteMode === 'read' && !prop.writeOnly) return true
                     return false
