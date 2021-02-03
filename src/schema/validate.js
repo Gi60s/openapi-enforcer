@@ -75,11 +75,9 @@ function runValidate(exception, map, schema, originalValue, options) {
 
     } else if (schema.oneOf) {
         if (schema.discriminator) {
-            const data = schema.discriminate(value, true);
-            const subSchema = data.schema;
-            const key = data.key;
+            const { name, key, schema: subSchema } = schema.discriminate(value, true);
             if (!subSchema) {
-                exception.message('Discriminator property "' + key + '" as "' + value[key] + '" did not map to a schema');
+                exception.message('Discriminator property "' + key + '" as "' + name + '" did not map to a schema');
             } else {
                 runValidate(exception.at(value[key]), map, subSchema, value, options);
             }
@@ -201,7 +199,7 @@ function runValidate(exception, map, schema, originalValue, options) {
                 if (details.schema) {
                     runValidate(exception, map, details.schema, value, options);
                 } else if (name) {
-                    exception.message('The value "' + name + '" is not valid for "' + key + '" because it has no associated schema');
+                    exception.message('Discriminator property "' + key + '" as "' + name + '" did not map to a schema');
                 } // else - already taken care of because it's a missing required error
             }
         }
