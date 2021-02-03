@@ -108,4 +108,115 @@ describe('documented issues fixes', () => {
 
     })
 
+    describe('issue-108 - attempting to validate an object without discriminator field results in exception', () => {
+        const def = {
+            openapi: '3.0.0',
+            info: { title: '', version: '' },
+            paths: {
+                '/': {
+                    post: {
+                        requestBody: {
+                            content: {
+                                'application/json': {
+                                    schema: { $ref: '#/components/schemas/content' }
+                                }
+                            }
+                        },
+                        responses: {
+                            200: { description: 'ok' }
+                        }
+                    }
+                }
+            },
+            components: {
+                schemas: {
+                    'content.text': {
+                        type: 'object',
+                        properties: {
+                            type: {
+                                type: 'string'
+                            },
+                            content: {
+                                type: 'string'
+                            }
+                        }
+                    },
+                    'content.file': {
+                        type: 'object',
+                        properties: {
+                            type: {
+                                type: 'string'
+                            },
+                            content: {
+                                type: 'string',
+                                format: 'byte'
+                            }
+                        }
+                    },
+                    content: {
+                        oneOf: [
+                            { $ref: '#/components/schemas/content.text' },
+                            { $ref: '#/components/schemas/content.file' }
+                        ],
+                        discriminator: {
+                            propertyName: 'type',
+                            mapping: {
+                                text: '#/components/schemas/content.text',
+                                file: '#/components/schemas/content.file'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        it('should validate correctly with valid discriminator property name', async () => {
+            const [ openapi, error ] = await Enforcer(def, { fullResult: true })
+            expect(error).to.equal(undefined)
+
+            const err = openapi.components.schemas.content.validate({
+                type: 'text',
+                content: 'hello'
+            })
+            expect(err).to.equal(undefined)
+        })
+
+        it('should produce an exception with deserializing invalid discriminator property name', async () => {
+            const [ openapi, error ] = await Enforcer(def, { fullResult: true })
+            expect(error).to.equal(undefined)
+
+            const [ , err ] = openapi.components.schemas.content.deserialize({
+                type: 'audio',
+                content: 'hello'
+            })
+            expect(err).to.match(/Discriminator property "type" as "audio" did not map to a schema/)
+        })
+
+        it('should produce an exception with validating invalid discriminator property name', async () => {
+            const [ openapi, error ] = await Enforcer(def, { fullResult: true })
+            expect(error).to.equal(undefined)
+
+            const err = openapi.components.schemas.content.validate({
+                type: 'audio',
+                content: 'hello'
+            })
+            expect(err).to.match(/Discriminator property "type" as "audio" did not map to a schema/)
+        })
+
+        it('should produce an error for operation request with invalid discriminator property', async () => {
+            const [ openapi ] = await Enforcer(def, { fullResult: true, toString: true, componentOptions: { production: false } });
+
+            const [, err] = openapi.request({
+                path: '/',
+                method: 'POST',
+                body: {
+                    type: 'audio',
+                    url: 'hello'
+                },
+            });
+
+            expect(err).to.match(/Discriminator property "type" as "audio" did not map to a schema/);
+        })
+    })
+
 });
