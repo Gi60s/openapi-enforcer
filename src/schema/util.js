@@ -53,8 +53,12 @@ exports.anyOneOf = function (schema, value, exception, map, action, isSerialize,
             return util.merge(value, highs[0].result);
         }
     } else if (matches.length === 0) {
-        const child = exception.nest('No matching schemas');
-        exceptions.forEach(childException => child.push(childException));
+        if (exceptions.length > 0) {
+            const child = exception.nest('No matching schemas');
+            exceptions.forEach(childException => child.push(childException));
+        } else {
+            exception.message('No matching schemas')
+        }
     } else {
         return util.merge(value, matches[0].result);
     }
