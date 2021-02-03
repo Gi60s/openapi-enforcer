@@ -41,11 +41,11 @@ function runPopulate(exception, warn, depth, schema, params, object, property, o
         if (!schema.discriminator) {
             exception.message('Unable to populate ' + mode + ' without a discriminator');
         } else {
-            const subSchema = schema.discriminate(value);
+            const { name, key, schema: subSchema } = schema.discriminate(value, true);
             if (subSchema) {
                 runPopulate(exception, warn, depth, subSchema, params, object, property, options);
             } else {
-                exception.message('Unable to find discriminator schema');
+                exception.message('Discriminator property "' + key + '" as "' + name + '" did not map to a schema');
             }
         }
 

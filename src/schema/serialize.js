@@ -49,9 +49,13 @@ function runSerialize(exception, map, schema, originalValue) {
         return Object.assign(value, result);
 
     } else if (schema.anyOf || schema.oneOf) {
-        let subSchema;
-        if (schema.discriminator && (subSchema = schema.discriminate(value))) {
-            Object.assign(value, runSerialize(exception, map, subSchema, originalValue));
+        if (schema.discriminator) {
+            const { name, key, schema: subSchema } = schema.discriminate(value, true)
+            if (subSchema) {
+                Object.assign(value, runSerialize(exception, map, subSchema, originalValue));
+            } else {
+                exception.message('Discriminator property "' + key + '" as "' + name + '" did not map to a schema');
+            }
         } else {
             return schemaUtil.anyOneOf(schema, originalValue, exception, map, runSerialize, true);
         }
@@ -82,11 +86,11 @@ function runSerialize(exception, map, schema, originalValue) {
             });
 
             if (schema.discriminator) {
-                const subSchema = schema.discriminate(value);
+                const { name, key, schema: subSchema } = schema.discriminate(value, true)
                 if (subSchema) {
                     Object.assign(value, runSerialize(exception, map, subSchema, originalValue));
                 } else {
-                    exception.message('Unable to discriminate to schema');
+                    exception.message('Discriminator property "' + key + '" as "' + name + '" did not map to a schema');
                 }
             }
             return value;

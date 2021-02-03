@@ -49,8 +49,20 @@ function runRandom(exception, warn, map, schema, parent, property, options, dept
 
     } else if (schema.anyOf || schema.oneOf) {
         const mode = schema.anyOf ? 'anyOf' : 'oneOf';
-        const subSchema = schema.discriminator ? schema.discriminate(value) : chooseOne(schema[mode]);
-        runRandom(exception, warn, map, subSchema, parent, property, options, depth);
+        if (schema.discriminator) {
+            const { name, key, schema: subSchema } = schema.discriminate(value, true);
+            if (subSchema) {
+                runRandom(exception, warn, map, subSchema, parent, property, options, depth);
+            } else if (name === undefined) {
+                const subSchema = chooseOne(schema[mode])
+                runRandom(exception, warn, map, subSchema, parent, property, options, depth);
+            } else {
+                exception.message('Discriminator property "' + key + '" as "' + name + '" did not map to a schema');
+            }
+        } else {
+            const subSchema = chooseOne(schema[mode])
+            runRandom(exception, warn, map, subSchema, parent, property, options, depth);
+        }
 
     } else if (schema.not) {
         warn.message('Cannot generate random value for schema with not');
