@@ -2716,7 +2716,7 @@ describe('definition/schema', () => {
                 const enforcer = await Enforcer(def);
                 const schema = enforcer.components.schemas.something;
                 const [ , err ] = schema.populate({ first: 'Bob', type: 'dog' });
-                expect(err).to.match(/Unable to find discriminator schema/)
+                expect(err).to.match(/Discriminator property "type" as "undefined" did not map to a schema/)
             });
 
         });
@@ -3611,7 +3611,7 @@ describe('definition/schema', () => {
                 const schema = enforcer.components.schemas.Pet;
                 schema.anyOf[0].properties.birthDate.format = 'date';
                 const [ , err ] = schema.serialize({ birthDate: new Date('2000-01-01') });
-                expect(err).to.match(/too many schemas match/);
+                expect(err).to.match(/Discriminator property "petType" as "undefined" did not map to a schema/);
             });
 
             it('can determine anyOf with discriminator', async () => {
