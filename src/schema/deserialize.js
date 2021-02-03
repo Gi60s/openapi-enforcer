@@ -60,9 +60,13 @@ function runDeserialize(exception, map, schema, originalValue, options) {
 
     } else if (schema.anyOf || schema.oneOf) {
         let result;
-        let subSchema;
-        if (schema.discriminator && (subSchema = schema.discriminate(value))) {
-            result = Object.assign(value, runDeserialize(exception, map, subSchema, originalValue, options));
+        if (schema.discriminator) {
+            const { name, key, schema: subSchema } = schema.discriminate(value, true)
+            if (subSchema) {
+                result = Object.assign(value, runDeserialize(exception, map, subSchema, originalValue, options));
+            } else {
+                exception.message('Discriminator property "' + key + '" as "' + name + '" did not map to a schema');
+            }
         } else {
             result = schemaUtil.anyOneOf(schema,
                 originalValue, exception, map, runDeserialize, false, options);
@@ -94,11 +98,11 @@ function runDeserialize(exception, map, schema, originalValue, options) {
             });
 
             if (schema.discriminator) {
-                const subSchema = schema.discriminate(value);
+                const { name, key, schema: subSchema } = schema.discriminate(value, true);
                 if (subSchema) {
                     Object.assign(value, runDeserialize(exception, map, subSchema, originalValue, options));
                 } else {
-                    exception.message('Unable to discriminate to schema');
+                    exception.message('Discriminator property "' + key + '" as "' + name + '" did not map to a schema');
                 }
             }
             return value;
