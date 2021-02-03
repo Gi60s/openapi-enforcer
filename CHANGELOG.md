@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.13.3
+
+### Fixed
+
+- **Discriminator Bugs**
+
+  Various bugs were found for serializing, deserializing, randomly generating, and populating values off of a schema that included a discriminator. Some of these bugs were related to not following the OpenAPI specification closely enough.
+
+  Now if a discriminator is specified then it will not attempt to find other matches when the discriminator does not resolve the schema.
+
 ## 1.13.2
 
 ### Fixed
