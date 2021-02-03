@@ -2340,8 +2340,10 @@ describe('definition/schema', () => {
                 expect(value2.birthDate).to.be.a('string');
             });
 
-            it('will produce error for anyOf with too much ambiguity', async () => {
-                const enforcer = await Enforcer(anyOfDef);
+            it('will produce error for anyOf with no discriminator and too much ambiguity', async () => {
+                const def = util.copy(anyOfDef)
+                delete def.components.schemas.Pet.discriminator
+                const enforcer = await Enforcer(def);
                 const schema = enforcer.components.schemas.Pet;
                 const [ , err ] = schema.deserialize({ birthDate: '2000-01-01' });
                 expect(err).to.match(/too many schemas match/);
@@ -2359,8 +2361,10 @@ describe('definition/schema', () => {
                 expect(value2.birthDate).to.be.a('string');
             });
 
-            it('can guess for anyOf with more defined properties', async () => {
-                const enforcer = await Enforcer(anyOfDef);
+            it('can guess for anyOf with more defined properties and no discriminator', async () => {
+                const def = util.copy(anyOfDef)
+                delete def.components.schemas.Pet.discriminator
+                const enforcer = await Enforcer(def);
                 const schema = enforcer.components.schemas.Pet;
                 const [ , err ] = schema.deserialize({ packSize: 5, birthDate: '2000-01-01' });
                 expect(err).to.equal(undefined);
@@ -3622,8 +3626,10 @@ describe('definition/schema', () => {
                 expect(err).to.match(/at: birthDate\s+Unable to serialize to a string/);
             });
 
-            it('can guess for anyOf with more defined properties', async () => {
-                const enforcer = await Enforcer(anyOfDef);
+            it('can guess for anyOf with more defined properties and no discriminator', async () => {
+                const def = util.copy(anyOfDef)
+                delete def.components.schemas.Pet.discriminator
+                const enforcer = await Enforcer(def);
                 const schema = enforcer.components.schemas.Pet;
                 schema.anyOf[0].properties.birthDate.format = 'date';
                 const [ , err ] = schema.deserialize({ packSize: 5, birthDate: '2000-01-01' });
@@ -4513,7 +4519,7 @@ describe('definition/schema', () => {
                         const schema = enforcer.definitions.Pet;
                         const errors = schema.validate({ petType: 'Mouse' });
                         expect(errors).to.match(/One or more required properties missing: animalType/);
-                        expect(errors).to.match(/it has no associated schema/);
+                        expect(errors).to.match(/Discriminator property "petType" as "Mouse" did not map to a schema/);
                         expect(errors.count).to.equal(2);
                     });
 
