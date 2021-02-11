@@ -61,12 +61,14 @@ export function Factory (): FactoryResult<Definition, Object> {
       const components = data.components as v3
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         required: () => ['openapi', 'info', 'paths'],
         properties: [
           {
             name: 'components',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Components
             }
           },
@@ -74,6 +76,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'externalDocs',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.ExternalDocumentation
             }
           },
@@ -81,6 +84,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'info',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Info
             }
           },
@@ -106,6 +110,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'paths',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Paths
             }
           },
@@ -115,6 +120,7 @@ export function Factory (): FactoryResult<Definition, Object> {
               type: 'array',
               items: {
                 type: 'component',
+                allowsRef: false,
                 component: components.SecurityRequirement
               }
             }
@@ -125,6 +131,7 @@ export function Factory (): FactoryResult<Definition, Object> {
               type: 'array',
               items: {
                 type: 'component',
+                allowsRef: false,
                 component: components.Server
               }
             }
@@ -135,6 +142,7 @@ export function Factory (): FactoryResult<Definition, Object> {
               type: 'array',
               items: {
                 type: 'component',
+                allowsRef: false,
                 component: components.Tag
               }
             }

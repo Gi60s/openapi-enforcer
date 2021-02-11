@@ -32,6 +32,7 @@ export function Factory (): FactoryResult<Definition, Object> {
     validator: function (): SchemaObject {
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         required: () => ['url'],
         properties: [
           {

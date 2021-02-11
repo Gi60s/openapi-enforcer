@@ -88,14 +88,17 @@ export function Factory (): FactoryResult<Definition, Object> {
 
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: [
           {
             name: 'callbacks',
             allowed: isV3,
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: (components as v3).Callback
               }
             }
@@ -125,6 +128,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'externalDocs',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.ExternalDocumentation
             }
           },
@@ -148,6 +152,7 @@ export function Factory (): FactoryResult<Definition, Object> {
               type: 'array',
               items: {
                 type: 'component',
+                allowsRef: true,
                 component: components.Parameter
               }
             }
@@ -167,6 +172,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             allowed: isV3,
             schema: {
               type: 'component',
+              allowsRef: true,
               before: ({ alert }) => {
                 // TODO: test that I'm getting the correct key here
                 // @ts-expect-error
@@ -183,6 +189,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'responses',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Responses
             }
           },
@@ -198,6 +205,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'security',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.SecurityRequirement
             }
           },
@@ -208,6 +216,7 @@ export function Factory (): FactoryResult<Definition, Object> {
               type: 'array',
               items: {
                 type: 'component',
+                allowsRef: false,
                 component: (components as v3).Server
               }
             }

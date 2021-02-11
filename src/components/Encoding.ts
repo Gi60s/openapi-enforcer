@@ -45,6 +45,7 @@ export function Factory (): FactoryResult<Definition, Object> {
       const components = data.components
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         before: data => {
           const { alert, chain } = data
 
@@ -75,7 +76,7 @@ export function Factory (): FactoryResult<Definition, Object> {
                     !(definition === 'spaceDelimited' && type === 'array') &&
                     !(definition === 'pipeDelimited' && type === 'array') &&
                     !(definition === 'deepObject' && type === 'object')) {
-                    alert('error', 'ENC002', 'Style "' + definition + '" is incompatible with schema type: ' + type)
+                    alert('error', 'ENC002', 'Style "' + definition + '" is incompatible with schema type: ' + (type as string))
                   }
                 }
               }
@@ -116,8 +117,10 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'headers',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: components.Header,
                 ignored: ({ chain }) => chain[0].key === 'content-type'
               },

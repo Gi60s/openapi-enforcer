@@ -40,11 +40,13 @@ export function Factory (): FactoryResult<Definition, Object> {
       const components = data.components as v3
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: [
           {
             name: 'authorizationCode',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.OAuthFlow
             }
           },
@@ -52,6 +54,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'clientCredentials',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.OAuthFlow
             }
           },
@@ -59,6 +62,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'implicit',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.OAuthFlow
             }
           },
@@ -66,6 +70,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'password',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.OAuthFlow
             }
           }

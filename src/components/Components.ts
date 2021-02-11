@@ -63,13 +63,16 @@ export function Factory (): FactoryResult<Definition, Object> {
       const components = data.components as v3
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: [
           {
             name: 'callbacks',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: components.Callback
               }
             }
@@ -77,8 +80,10 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'examples',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: components.Example
               }
             }
@@ -86,8 +91,10 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'headers',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: components.Header
               }
             }
@@ -95,8 +102,10 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'links',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: components.Link
               }
             }
@@ -104,8 +113,10 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'parameters',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: components.Parameter
               }
             }
@@ -113,8 +124,10 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'requestBodies',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: components.RequestBody
               }
             }
@@ -122,8 +135,10 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'responses',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: components.Response
               }
             }
@@ -131,8 +146,10 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'schemas',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: components.Schema
               }
             }
@@ -140,8 +157,10 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'securitySchemes',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: components.SecurityScheme
               }
             }

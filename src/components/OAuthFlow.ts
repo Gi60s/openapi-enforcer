@@ -48,6 +48,7 @@ export function Factory (): FactoryResult<Definition, Object> {
 
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         required: () => required,
         properties: [
           {
@@ -63,6 +64,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'scopes',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'string'
               }

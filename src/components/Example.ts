@@ -35,9 +35,11 @@ export function Factory (): FactoryResult<Definition, Object> {
 
   return {
     component: Example,
-    validator: function (): SchemaObject {
+    validator: function (data): SchemaObject {
+      const { components } = data
       return {
         type: 'object',
+        allowsSchemaExtensions: components.major === '3',
         after ({ alert, built }) {
           if ('value' in built && 'externalValue' in built) {
             alert('error', 'EXM001', 'Cannot have both "externalValue" and "value" properties')

@@ -47,6 +47,7 @@ export function Factory (): FactoryResult<Definition, Object> {
       const { components } = data
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         required: () => ['title', 'version'],
         properties: [
           {
@@ -65,6 +66,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'contact',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Contact
             }
           },
@@ -72,6 +74,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'license',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.License
             }
           },

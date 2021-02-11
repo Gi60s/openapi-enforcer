@@ -37,6 +37,7 @@ export function Factory (): FactoryResult<Definition, Object> {
       const major = components.major
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: [
           {
             name: 'style',

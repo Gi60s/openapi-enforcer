@@ -46,6 +46,7 @@ export function Factory (): FactoryResult<Definition, Object> {
       const components = data.components as v3
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         after ({ alert, built }) {
           if ('operationRef' in built && 'operationId' in built) {
             alert('error', 'LNK001', 'Must not define both operationId and operationRef')
@@ -67,19 +68,30 @@ export function Factory (): FactoryResult<Definition, Object> {
           {
             name: 'parameters',
             schema: {
-              type: 'any'
+              type: 'object',
+              allowsSchemaExtensions: false,
+              additionalProperties: {
+                // Read about Runtime Expression Syntax at https://swagger.io/docs/specification/links/
+                type: 'string'
+              }
             }
           },
           {
             name: 'requestBody',
             schema: {
-              type: 'any'
+              type: 'object',
+              allowsSchemaExtensions: false,
+              additionalProperties: {
+                // Read about Runtime Expression Syntax at https://swagger.io/docs/specification/links/
+                type: 'string'
+              }
             }
           },
           {
             name: 'server',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Server
             }
           }

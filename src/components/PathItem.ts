@@ -2,7 +2,7 @@ import * as Operation from './Operation'
 import * as Parameter from './Parameter'
 import * as Server from './Server'
 import { SchemaObject } from '../definition-validator'
-import { EnforcerComponent, FactoryResult, Statics } from './'
+import { EnforcerComponent, FactoryResult, Statics, v3 } from './'
 
 export interface Class extends Statics<Definition, Object> {
   new (definition: Definition): Object
@@ -69,6 +69,7 @@ export function Factory (): FactoryResult<Definition, Object> {
       const major = components.major
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: [
           {
             name: 'parameters',
@@ -76,6 +77,7 @@ export function Factory (): FactoryResult<Definition, Object> {
               type: 'array',
               items: {
                 type: 'component',
+                allowsRef: true,
                 component: components.Parameter
               }
             }
@@ -84,6 +86,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'delete',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Operation
             }
           },
@@ -98,6 +101,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'get',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Operation
             }
           },
@@ -105,6 +109,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'head',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Operation
             }
           },
@@ -112,6 +117,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'options',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Operation
             }
           },
@@ -119,6 +125,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'patch',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Operation
             }
           },
@@ -126,6 +133,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'put',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Operation
             }
           },
@@ -133,6 +141,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'post',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Operation
             }
           },
@@ -141,6 +150,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             allowed: () => major === '3',
             schema: {
               type: 'component',
+              allowsRef: false,
               component: components.Operation
             }
           },
@@ -151,7 +161,8 @@ export function Factory (): FactoryResult<Definition, Object> {
               type: 'array',
               items: {
                 type: 'component',
-                component: components.Server
+                allowsRef: false,
+                component: (components as v3).Server
               }
             }
           },

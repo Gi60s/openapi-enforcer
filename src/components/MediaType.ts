@@ -44,6 +44,7 @@ export function Factory (): FactoryResult<Definition, Object> {
       const components = data.components as v3
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         after ({ alert, built, chain, key }) {
           const parent = chain.length > 0 ? chain[0] : null
           if (parent !== null && parent.key === 'content' && !rxMediaType.test(key)) {
@@ -59,6 +60,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'schema',
             schema: {
               type: 'component',
+              allowsRef: true,
               component: components.Schema
             }
           },
@@ -72,8 +74,10 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'examples',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: components.Example
               }
             }
@@ -82,6 +86,7 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'encoding',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               ignored ({ chain }) {
                 const requestBodyObject = chain.length > 4 ? chain[4] : null // TODO: validate that this is a RequestBody instance
                 return requestBodyObject === null || (requestBodyObject.schema as SchemaComponent<any, any>).component !== components.RequestBody || !rxContentTypeMime.test(chain[3].key)
@@ -96,6 +101,7 @@ export function Factory (): FactoryResult<Definition, Object> {
               },
               additionalProperties: {
                 type: 'component',
+                allowsRef: true,
                 component: components.Encoding
               }
             }

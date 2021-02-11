@@ -312,12 +312,14 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
   const d: { [key: string]: Validator.Schema } = {
     schema: {
       type: 'component',
+      allowsRef: true,
       component: Schema
     },
     schemaArray: {
       type: 'array',
       items: {
         type: 'component',
+        allowsRef: true,
         component: Schema
       }
     }
@@ -355,6 +357,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
           }
           : {
             type: 'component',
+            allowsRef: true,
             component: Schema
           }
       },
@@ -386,6 +389,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
           : {
             type: 'object',
             required: () => ['propertyName'],
+            allowsSchemaExtensions: false,
             properties: [
               {
                 name: 'propertyName',
@@ -395,6 +399,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
                 name: 'mapping',
                 schema: {
                   type: 'object',
+                  allowsSchemaExtensions: false,
                   additionalProperties: {
                     type: 'string',
                     after () { } // TODO: attempt lookup of mapping reference
@@ -432,6 +437,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
         name: 'externalDocs',
         schema: {
           type: 'component',
+          allowsRef: false,
           component: components.ExternalDocumentation
         }
       },
@@ -528,6 +534,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
         name: 'properties',
         schema: {
           type: 'object',
+          allowsSchemaExtensions: true,
           additionalProperties: d.schema
         }
       },
@@ -571,6 +578,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
         name: 'xml',
         schema: {
           type: 'component',
+          allowsRef: false,
           component: components.Xml
         }
       },
@@ -604,6 +612,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
       const keep = commonProperties.concat(['allOf'])
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: properties.filter(p => keep.includes(p.name))
       }
 
@@ -612,6 +621,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
       const keep = commonProperties.concat(['anyOf'])
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: properties.filter(p => keep.includes(p.name))
       }
 
@@ -620,6 +630,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
       const keep = commonProperties.concat(['not'])
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: properties.filter(p => keep.includes(p.name))
       }
 
@@ -628,6 +639,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
       const keep = commonProperties.concat(['oneOf'])
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: properties.filter(p => keep.includes(p.name))
       }
 
@@ -636,6 +648,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
       const keep = commonProperties.concat(['items', 'maxItems', 'minItems', 'type', 'uniqueItems'])
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         required: () => ['items'],
         properties: properties.filter(p => keep.includes(p.name))
       }
@@ -645,6 +658,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
       const keep = commonProperties.concat(['format', 'type'])
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: properties.filter(p => keep.includes(p.name))
       }
 
@@ -653,6 +667,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
       const keep = commonProperties.concat(['exclusiveMaximum', 'exclusiveMinimum', 'format', 'maximum', 'minimum', 'multipleOf', 'type'])
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: properties.filter(p => keep.includes(p.name))
       }
 
@@ -661,6 +676,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
       const keep = commonProperties.concat(['additionalProperties', 'maxProperties', 'minProperties', 'properties', 'required', 'type'])
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: properties.filter(p => keep.includes(p.name))
       }
 
@@ -670,6 +686,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
       console.log('v' + major + ' string: ' + keep.join(','))
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: properties.filter(p => keep.includes(p.name))
       }
 
@@ -678,6 +695,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
       console.log('v' + major + ' unknown: ' + commonProperties.join(','))
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         properties: properties.filter(p => commonProperties.includes(p.name))
       }
     }

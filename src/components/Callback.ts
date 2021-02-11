@@ -29,8 +29,10 @@ export function Factory (): FactoryResult<Definition, Object> {
       const { components } = data
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         additionalProperties: {
           type: 'component',
+          allowsRef: false,
           component: components.PathItem
         }
       }

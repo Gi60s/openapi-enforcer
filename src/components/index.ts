@@ -12,7 +12,7 @@ import * as MediaType from './MediaType'
 import * as OAuthFlow from './OAuthFlow'
 import * as OAuthFlows from './OAuthFlows'
 import * as OpenAPI from './OpenAPI'
-// import * as Operation from './Operation'
+import * as Operation from './Operation'
 // import * as Parameter from './Parameter'
 import * as PathItem from './PathItem'
 // import * as Paths from './Paths'
@@ -62,7 +62,7 @@ MediaType.Class |
 OAuthFlow.Class |
 OAuthFlows.Class |
 // OpenAPI.Class |
-// Operation.Class |
+Operation.Class |
 // Parameter.Class |
 PathItem.Class |
 // Paths.Class |
@@ -85,7 +85,7 @@ export interface v2 {
   Header: Header.Class
   Info: Info.Class
   License: License.Class
-  // Operation: Operation.Class
+  Operation: Operation.Class
   // Parameter: Parameter.Class
   PathItem: PathItem.Class
   // Paths: Paths.Class
@@ -115,7 +115,7 @@ export interface v3 {
   OAuthFlow: OAuthFlow.Class
   OAuthFlows: OAuthFlows.Class
   OpenAPI: OpenAPI.Class
-  // Operation: Operation.Class
+  Operation: Operation.Class
   // Parameter: Parameter.Class
   PathItem: PathItem.Class
   // Paths: Paths.Class

@@ -43,6 +43,7 @@ export function Factory (): FactoryResult<Definition, Object> {
       const components = data.components as v3
       return {
         type: 'object',
+        allowsSchemaExtensions: true,
         required: () => ['url'],
         properties: [
           {
@@ -61,8 +62,10 @@ export function Factory (): FactoryResult<Definition, Object> {
             name: 'variables',
             schema: {
               type: 'object',
+              allowsSchemaExtensions: false,
               additionalProperties: {
                 type: 'component',
+                allowsRef: false,
                 component: components.ServerVariable
               }
             }
