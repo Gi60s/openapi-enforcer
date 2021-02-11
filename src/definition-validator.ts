@@ -74,6 +74,7 @@ export interface SchemaBoolean<Definition=boolean, Built=boolean> extends Schema
 
 export interface SchemaComponent<Definition, Built> extends SchemaBase<Definition, Built> {
   type: 'component'
+  allowsRef: boolean
   component: AnyComponent
 }
 
@@ -87,6 +88,7 @@ export interface SchemaString<Definition=string, Built=string> extends SchemaBas
 
 export interface SchemaObject<Definition=object, Built=object> extends SchemaBase<Definition, Built> {
   type: 'object'
+  allowsSchemaExtensions: boolean
   additionalProperties?: boolean | Schema
   required?: (data: Data<Definition, Built>) => string[]
   properties?: SchemaProperty[]
