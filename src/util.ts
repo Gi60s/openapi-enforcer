@@ -1,4 +1,4 @@
-const rxSemver = /^(\d+)(?:\.(\d+))(?:\.(\d+))?$/
+import rx from './rx'
 
 interface BooleanMap {
   [key: string]: boolean
@@ -65,6 +65,10 @@ function isDate (value: any): boolean {
   return value !== null && typeof value === 'object' && !isNaN(value) && value instanceof Date
 }
 
+export function isNumber (value: any): boolean {
+  return typeof value === 'number' && !isNaN(value)
+}
+
 export function isObject (v: any): boolean {
   return v !== null && typeof v === 'object' && Object.prototype.toString.call(v) === '[object Object]'
 }
@@ -83,6 +87,32 @@ export function isPlainObject (value: any): boolean {
   // check constructor for Object-specific method
   // eslint-disable-next-line no-prototype-builtins
   return prototype.hasOwnProperty('isPrototypeOf')
+}
+
+export function isValidDateString (format: 'date' | 'date-time', value: string): boolean {
+  const date = new Date(value)
+  if (!isNaN(date.getTime())) return false
+  const isoDate = format === 'date' ? date.toISOString().substring(0, 10) : date.toISOString()
+  const match = rx[format].exec(isoDate)
+  const year = +match[1]
+  const month = +match[2] - 1
+  const day = +match[3]
+  const hour = match[4] !== undefined ? +match[4] : 0
+  const minute = match[5] !== undefined ? +match[5] : 0
+  const second = match[6] !== undefined ? +match[6] : 0
+  const millisecond = match[7] !== undefined ? +match[7] : 0
+  return !!(date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month &&
+    date.getUTCDate() === day &&
+    date.getUTCHours() === hour &&
+    date.getUTCMinutes() === minute &&
+    date.getUTCSeconds() === second &&
+    date.getUTCMilliseconds() === millisecond)
+}
+
+export function round (number: number, decimalPlaces = 0): number {
+  const multiplier = Math.pow(10, decimalPlaces)
+  return Math.round(number * multiplier) / multiplier
 }
 
 export function same (v1: any, v2: any): boolean {
@@ -124,7 +154,7 @@ export function same (v1: any, v2: any): boolean {
 }
 
 export function semver (version: string): Semver {
-  const match = rxSemver.exec(version)
+  const match = rx.semver.exec(version)
   return match !== undefined
     ? {
       major: +match[1],
@@ -198,7 +228,7 @@ function toPlainObjectRecursive (value: any, options: ToPlainObjectOptions, map:
     const result: { set: boolean, value: ObjectMap } = { set: true, value: {} }
     map.set(value, result)
     for (const k in value) {
-      if (options.allowInheritedProperties === true || k in value) {
+      if (options.allowInheritedProperties || k in value) {
         const r = toPlainObjectRecursive(value[k], options, map)
         if (r.set) result.value[k] = r.value
       }
