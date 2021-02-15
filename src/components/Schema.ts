@@ -1,35 +1,19 @@
+import * as DataTypeFormat from '../data-type-format'
+import * as Discriminator from './Discriminator'
 import { Exception } from 'exception-tree'
 import * as Validator from '../definition-validator'
-import { EnforcerComponent, FactoryResult, Statics } from './'
+import { EnforcerComponent, FactoryResult, Statics, v3 } from './'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import { Result } from 'result-value-exception'
 import * as Xml from './Xml'
-
-interface CustomDataTypeDefinition {
-  constructors?: Function[]
-  deserialize: (data: { exception: Exception, schema: Object, value: any }) => any
-  isNumeric?: boolean
-  random?: (data: { exception: Exception, schema: Object }) => any
-  serialize: (data: { exception: Exception, schema: Object, value: any }) => any
-  validate: (data: { exception: Exception, schema: Object, value: any }) => undefined
-}
-
-interface CustomDataTypeDefinitionPlus extends CustomDataTypeDefinition {
-  type: string
-  format: string
-}
-
-export interface CustomDataTypeDefinitionMap {
-  boolean: { [k: string]: CustomDataTypeDefinitionPlus }
-  integer: { [k: string]: CustomDataTypeDefinitionPlus }
-  number: { [k: string]: CustomDataTypeDefinitionPlus }
-  string: { [k: string]: CustomDataTypeDefinitionPlus }
-}
+// import { smart } from '../util'
 
 export interface Class extends Statics<Definition, Object> {
   new (definition: Definition): Object
-  defineDataTypeFormat: (type: 'boolean' | 'integer' | 'number' | 'string', format: string, definition: CustomDataTypeDefinition | null) => undefined
-  typeIsNumeric: (definition: Definition) => boolean
+  dataTypes: DataTypeFormat.Controller
+  // defineDataTypeFormat: (type: 'boolean' | 'integer' | 'number' | 'string', format: string, definition: CustomDataTypeDefinition | null) => undefined
+  // getDataTypeFormats: (type: 'boolean' | 'integer' | 'number' | 'string') => string[]
+  // typeIsNumeric: (definition: Definition) => boolean
 }
 
 interface DefinitionBase {
@@ -71,12 +55,7 @@ export interface Definition2 extends DefinitionBase {
 export interface Definition3 extends DefinitionBase {
   anyOf?: Definition[]
   deprecated?: boolean
-  discriminator?: {
-    propertyName: string
-    mapping: {
-      [key: string]: string
-    }
-  }
+  discriminator?: Discriminator.Definition
   not?: Definition
   nullable?: boolean
   oneOf?: Definition[]
@@ -84,12 +63,12 @@ export interface Definition3 extends DefinitionBase {
 }
 
 export type Definition = Definition2 | Definition3
-type IDefinition = Definition
+// type IDefinition = Definition
 
-interface ObjectBase {
+interface ObjectBase<ObjectType=Object> {
   [extension: string]: any
-  additionalProperties?: Object | boolean
-  allOf?: Object[]
+  additionalProperties?: ObjectType | boolean
+  allOf?: ObjectType[]
   default?: any
   description?: string
   enum?: any[]
@@ -98,7 +77,7 @@ interface ObjectBase {
   exclusiveMinimum?: boolean
   externalDocs?: ExternalDocumentation.Object
   format?: string
-  items?: Object
+  items?: ObjectType
   maximum?: number
   maxItems?: number
   maxLength?: number
@@ -109,7 +88,7 @@ interface ObjectBase {
   minProperties?: number
   multipleOf?: number
   pattern?: string
-  properties?: { [key: string]: Object }
+  properties?: { [key: string]: ObjectType }
   readOnly?: boolean
   required?: string[]
   title?: string
@@ -124,35 +103,21 @@ interface ObjectBase {
   validate: (value: any) => Exception | undefined
 }
 
-export interface Object2 extends ObjectBase {
+export interface Object2 extends ObjectBase<Object2> {
   discriminator?: string
 }
 
-export interface Object3 extends ObjectBase {
-  anyOf?: Object[]
+export interface Object3 extends ObjectBase<Object3> {
+  anyOf?: Object3[]
   deprecated?: boolean
-  discriminator?: {
-    propertyName: string
-    mapping: {
-      [key: string]: Object
-    }
-  }
-  not?: Object
+  discriminator?: Discriminator.Object
+  not?: Object3
   nullable?: boolean
-  oneOf?: Object[]
+  oneOf?: Object3[]
   writeOnly?: boolean
 }
 
 export type Object = Object2 | Object3
-
-const dataTypeConstructors: Set<Function> = new Set()
-const dataTypeWarnings: { [k: string]: boolean } = {}
-const dataTypes: CustomDataTypeDefinitionMap = {
-  boolean: {},
-  integer: {},
-  number: {},
-  string: {}
-}
 
 class SchemaBase<Definition, Object> extends EnforcerComponent<Definition, Object> {
   readonly additionalProperties?: Object | boolean
@@ -212,57 +177,6 @@ class SchemaBase<Definition, Object> extends EnforcerComponent<Definition, Objec
     // TODO: this function
     return undefined
   }
-
-  static defineDataTypeFormat (type: 'boolean' | 'integer' | 'number' | 'string', format: string, definition: CustomDataTypeDefinition | null): undefined {
-    if (!(type in dataTypes)) throw Error('Invalid type specified. Must be one of: ' + Object.keys(dataTypes).join(', '))
-    if (format === '' || typeof format !== 'string') throw Error('Invalid format specified. Must be a non-empty string')
-    if (format in dataTypes[type]) throw Error('Format "' + format + '" is already defined')
-
-    if (definition !== null) {
-      if (typeof definition !== 'object' ||
-        typeof definition.deserialize !== 'function' ||
-        typeof definition.serialize !== 'function' ||
-        typeof definition.validate !== 'function' ||
-        ('random' in definition && typeof definition.random !== 'function')) throw Error('Invalid data type definition. Must be an object that defines handlers for "deserialize", "serialize", and "validate" with optional "random" handler.')
-
-      if ('constructors' in definition) {
-        if (!Array.isArray(definition.constructors)) {
-          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-          throw Error('Invalid data type constructors value. Expected an array of functions. Received: ' + definition.constructors)
-        }
-        definition.constructors.forEach((fn: Function) => {
-          if (typeof fn !== 'function') {
-            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-            throw Error('Invalid constructor specified. Expected a function, received: ' + fn)
-          }
-          dataTypeConstructors.add(fn)
-        })
-      } else {
-        const key = type + '-' + format
-        if (!dataTypeWarnings[key]) {
-          dataTypeWarnings[key] = true
-          console.warn('WARNING: Data type definition missing recommended "constructors" property for type "' + type + '" and format "' + format + '".')
-        }
-      }
-    }
-
-    // store the definition
-    dataTypes[type][format] = Object.assign({}, definition, { type, format })
-
-    return undefined
-  }
-
-  static typeIsNumeric (definition: IDefinition): boolean {
-    const type = definition.type
-    if (type !== 'boolean' && type !== 'integer' && type !== 'number' && type !== 'string') return false
-    if (type === 'integer' || type === 'number') return true
-
-    const format = definition.format
-    if (format === undefined) return false
-
-    const configuration = dataTypes[type][format]
-    return typeof configuration === 'object' && 'isNumeric' in configuration ? configuration.isNumeric : false
-  }
 }
 
 export function Factory2 (): FactoryResult<Definition, Object> {
@@ -272,6 +186,8 @@ export function Factory2 (): FactoryResult<Definition, Object> {
     // constructor (definition: Definition2) {
     //   super(definition)
     // }
+
+    static dataTypes = DataTypeFormat.Factory()
   }
 
   return {
@@ -282,23 +198,19 @@ export function Factory2 (): FactoryResult<Definition, Object> {
 
 export function Factory3 (): FactoryResult<Definition, Object> {
   class Schema extends SchemaBase<Definition3, Object3> implements Object3 {
-    readonly anyOf?: Object[]
+    readonly anyOf?: Object3[]
     readonly deprecated?: boolean
-    readonly discriminator?: {
-      readonly propertyName: string
-      readonly mapping: {
-        readonly [key: string]: Object
-      }
-    }
-
-    readonly not?: Object
+    readonly discriminator?: Discriminator.Object
+    readonly not?: Object3
     readonly nullable?: boolean
-    readonly oneOf?: Object[]
+    readonly oneOf?: Object3[]
     readonly writeOnly?: boolean
 
     // constructor (definition: Definition3) {
     //   super(definition)
     // }
+
+    static dataTypes = DataTypeFormat.Factory()
   }
 
   return {
@@ -307,7 +219,7 @@ export function Factory3 (): FactoryResult<Definition, Object> {
   }
 }
 
-function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, any> {
+function getValidatorSchema<SchemaType> (Schema: Class): Validator.SchemaConstructor<any, any> {
   // define common validator schemas for reuse below
   const d: { [key: string]: Validator.Schema } = {
     schema: {
@@ -333,6 +245,9 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
     const { components, definition } = data
     const major: string = components.major
     const commonProperties = major === '2' ? commonProperties2 : commonProperties3
+    const root = definition as Definition
+    const dataTypeDefinition: DataTypeFormat.Definition<SchemaType> = Schema.dataTypes.getDefinition(definition.type, definition.format)
+
     const properties: Array<{ name: string, schema: Validator.Schema }> = [
       {
         name: 'type',
@@ -345,7 +260,11 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
         name: 'format',
         schema: {
           type: 'string',
-          after () {} // TODO: check that the format is defined for the specific type
+          after ({ alert, definition }) {
+            if (dataTypeDefinition === undefined && definition !== undefined) {
+              alert('warn', 'SCH001', `Data type format ${root.type} ${definition} is not defined. Standard ${root.type} processing will be used.`)
+            }
+          }
         }
       },
       {
@@ -387,26 +306,9 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
         schema: major === '2'
           ? { type: 'string' }
           : {
-            type: 'object',
-            required: () => ['propertyName'],
-            allowsSchemaExtensions: false,
-            properties: [
-              {
-                name: 'propertyName',
-                schema: { type: 'string' }
-              },
-              {
-                name: 'mapping',
-                schema: {
-                  type: 'object',
-                  allowsSchemaExtensions: false,
-                  additionalProperties: {
-                    type: 'string',
-                    after () { } // TODO: attempt lookup of mapping reference
-                  }
-                }
-              }
-            ]
+            type: 'component',
+            allowsRef: false,
+            component: (components as v3).Discriminator
           }
       },
       {
@@ -663,7 +565,7 @@ function getValidatorSchema (Schema: Class): Validator.SchemaConstructor<any, an
       }
 
       // numeric
-    } else if (Schema.typeIsNumeric(definition)) {
+    } else if (dataTypeDefinition.isNumeric) {
       const keep = commonProperties.concat(['exclusiveMaximum', 'exclusiveMinimum', 'format', 'maximum', 'minimum', 'multipleOf', 'type'])
       return {
         type: 'object',

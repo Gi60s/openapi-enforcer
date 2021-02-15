@@ -9,9 +9,9 @@ export interface Definition {
   $ref: string
 }
 
-export interface Object {
+export interface Object<Component=AnyComponent> {
   $ref: string
-  component: AnyComponent
+  component: Component
 }
 
 export function Factory (): FactoryResult<Definition, Object> {

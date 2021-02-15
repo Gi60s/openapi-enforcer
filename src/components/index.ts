@@ -1,6 +1,7 @@
 import * as Callback from './Callback'
 import * as Components from './Components'
 import * as Contact from './Contact'
+import * as Discriminator from './Discriminator'
 import * as Encoding from './Encoding'
 import * as Example from './Example'
 import * as ExternalDocumentation from './ExternalDocumentation'
@@ -48,35 +49,36 @@ const defaultRequestBodyAllowedMethods = {
 }
 
 export type AnyComponent =
-Callback.Class |
-Components.Class |
-Contact.Class |
-Encoding.Class |
-Example.Class |
-ExternalDocumentation.Class |
-Header.Class |
-Info.Class |
-License.Class |
-Link.Class |
-MediaType.Class |
-OAuthFlow.Class |
-OAuthFlows.Class |
-// OpenAPI.Class |
-Operation.Class |
-// Parameter.Class |
-PathItem.Class |
-// Paths.Class |
-// RequestBody.Class |
-// Response.Class |
-// Responses.Class |
-Schema.Class |
-// SecurityRequirement.Class |
-// SecurityScheme.Class |
-// Swagger.Class |
-Server.Class |
-ServerVariable.Class |
-// Tag.Class |
-Xml.Class
+  Callback.Class |
+  Components.Class |
+  Contact.Class |
+  Discriminator.Class |
+  Encoding.Class |
+  Example.Class |
+  ExternalDocumentation.Class |
+  Header.Class |
+  Info.Class |
+  License.Class |
+  Link.Class |
+  MediaType.Class |
+  OAuthFlow.Class |
+  OAuthFlows.Class |
+  // OpenAPI.Class |
+  Operation.Class |
+  // Parameter.Class |
+  PathItem.Class |
+  // Paths.Class |
+  // RequestBody.Class |
+  // Response.Class |
+  // Responses.Class |
+  Schema.Class |
+  // SecurityRequirement.Class |
+  // SecurityScheme.Class |
+  // Swagger.Class |
+  Server.Class |
+  ServerVariable.Class |
+  // Tag.Class |
+  Xml.Class
 
 export interface v2 {
   major: '2'
@@ -104,6 +106,7 @@ export interface v3 {
   Callback: Callback.Class
   Components: Components.Class
   Contact: Contact.Class
+  Discriminator: Discriminator.Class
   Encoding: Encoding.Class
   Example: Example.Class
   ExternalDocumentation: ExternalDocumentation.Class
@@ -387,6 +390,7 @@ function initializeValidatorData<Definition, Built> (component: EnforcerComponen
     key: '',
     schema: {
       type: 'component',
+      allowsRef: true,
       component: component as AnyComponent
     },
     warning: new Exception(warningHeading)
