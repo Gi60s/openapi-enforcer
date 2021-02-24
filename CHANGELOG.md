@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.14.0
+
+### Added
+
+- **Create Random String with Pattern**
+
+  - Schemas of type string with a defined pattern did not allow for values to be generated. Now schema's with patterns can be randomly generated.
+
+### Fixed
+
+- **Random Number Generator**
+
+  When generating a random number from a schema it was possible that the randomly generated value would not fall within the expected minimum / maximum range. This is fixed.
+
+
 ## 1.13.3
 
 ### Fixed
