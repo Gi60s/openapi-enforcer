@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const RandExp = require("randexp");
 const util = require('../util');
 
 const { copy, randomOneOf: chooseOne, randomNumber, randomText } = util;
@@ -164,13 +165,27 @@ function runRandom(exception, warn, map, schema, parent, property, options, dept
             const exclusiveMin = !!schema.exclusiveMinimum;
             const exclusiveMax = !!schema.exclusiveMaximum;
             const multipleOf = schema.hasOwnProperty('multipleOf') ? schema.multipleOf : 0;
-            const min = schema.hasOwnProperty('minimum') ? schema.minimum : -1 * Math.floor(options.numberVariation * .25);
-            const max = schema.hasOwnProperty('maximum') ? schema.maximum : Math.ceil(options.numberVariation * .75);
+            const hasMin = schema.hasOwnProperty('minimum')
+            const hasMax = schema.hasOwnProperty('maximum')
+            let min, max;
+            if (hasMin && !hasMax) {
+                min = schema.minimum
+                max = min + options.numberVariation
+            } else if (!hasMin && hasMax) {
+                max = schema.maximum
+                min = max - options.numberVariation
+            } else if (hasMin && hasMax) {
+                min = schema.minimum
+                max = schema.maximum
+            } else {
+                min = -1 * Math.floor(options.numberVariation * .25);
+                max = Math.ceil(options.numberVariation * .75);
+            }
             parent[property] = randomNumber({min, max, multipleOf, exclusiveMin, exclusiveMax, decimalPlaces});
 
         } else if (type === 'string') {
             if (schema.hasOwnProperty('pattern')) {
-                warn.message('Cannot generate random value that matches a pattern');
+                parent[property] = new RandExp(schema.pattern).gen();
             } else {
                 const options = {};
                 if (schema.hasOwnProperty('minLength')) options.minLength = schema.minLength;
