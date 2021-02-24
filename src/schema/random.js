@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const RandExp = require("randexp");
 const util = require('../util');
 
 const { copy, randomOneOf: chooseOne, randomNumber, randomText } = util;
@@ -170,7 +171,7 @@ function runRandom(exception, warn, map, schema, parent, property, options, dept
 
         } else if (type === 'string') {
             if (schema.hasOwnProperty('pattern')) {
-                warn.message('Cannot generate random value that matches a pattern');
+                parent[property] = new RandExp(schema.pattern).gen();
             } else {
                 const options = {};
                 if (schema.hasOwnProperty('minLength')) options.minLength = schema.minLength;

@@ -1208,6 +1208,9 @@ function numericType (schema) {
 }
 
 function serializeSchema (schema, exception, dataTypes, serializedSchemas) {
+    if (schema.pattern) {
+        schema.pattern = schema.pattern.source;
+    }
     if (!serializedSchemas) {
         serializedSchemas = [schema];
     } else if (!serializedSchemas.includes(schema)) {

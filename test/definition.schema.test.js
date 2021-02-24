@@ -42,7 +42,7 @@ describe('definition/schema', () => {
             type: 'object',
             required: ['petType'],
             properties: {
-                petType: { type: 'string' }
+                petType: { type: 'string'}
             },
             discriminator: 'petType'
         },
@@ -2950,6 +2950,32 @@ describe('definition/schema', () => {
 
         describe('integer', () => {
 
+            it('can produce random integer below zero', () => {
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    type: 'number',
+                    minimum: -3,
+                    maximum: 0,
+                    multipleOf: 1
+                });
+
+                for (let i=0; i<5; i++) {
+                    const [ value ] = schema.random();
+                    expect(value).to.be.greaterThan(-4);
+                    expect(value).to.be.lessThan(1);
+                }
+            });
+
+            it('can produce random integer if maximum not set and minimum is high', () => {
+                const [ schema ] = Enforcer.v3_0.Schema({
+                    type: 'number',
+                    minimum: 1000000000000,
+                    multipleOf: 1
+                });
+
+                const [ value ] = schema.random();
+                expect(value).to.be.greaterThan(1000000000000 - 1);
+            });
+
             it('can produce random integer', () => {
                 const [ schema ] = Enforcer.v3_0.Schema({
                     type: 'integer'
@@ -3157,6 +3183,25 @@ describe('definition/schema', () => {
 
         describe('string', () => {
 
+            it('can produce random string by pattern', () => {
+                const spec = {
+                    allOf: [
+                        {
+                            type: 'object',
+                            required: ['petType'],
+                            properties: {
+                                petType: { type: 'string', pattern: '^[a-z]{5}[0-9]{3}$' }
+                            },
+                        }
+                    ]
+                }
+                const { value: schema} = new Enforcer.v3_0.Schema(spec);
+                const { error, value, warning} = schema.random();
+                expect(value.petType).to.match(/^[a-z]{5}[0-9]{3}$/)
+                expect(warning).to.be.undefined;
+                expect(error).to.be.undefined;
+            });
+
             it('can produce random string', () => {
                 const [ schema ] = Enforcer.v3_0.Schema({ type: 'string' });
                 const [ value ] = schema.random();
@@ -3167,12 +3212,6 @@ describe('definition/schema', () => {
                 const [ schema ] = Enforcer.v3_0.Schema({ type: 'string', minLength: 5, maxLength: 5 });
                 const [ value ] = schema.random();
                 expect(value.length).to.equal(5);
-            });
-
-            it('cannot produce random string with pattern match', () => {
-                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string', pattern: 'abc' });
-                const [ , , warn ] = schema.random();
-                expect(warn).to.match(/Cannot generate random value that matches a pattern/);
             });
 
         });
@@ -4389,7 +4428,7 @@ describe('definition/schema', () => {
 
             describe('readOnly and writeOnly', () => {
                 let schema
-                
+
                 before(() => {
                     const def = Object.assign({}, base, {
                         properties: {

@@ -417,6 +417,10 @@ function randomNumber ({ min, max, multipleOf, exclusiveMin = false, exclusiveMa
     const minIsNumber = isNumber(min);
     const maxIsNumber = isNumber(max);
 
+    if (max < min) {
+        max = 2 * min;
+    }
+
     if (isNumber(multipleOf) && multipleOf > 0) {
         const modMin = min % multipleOf;
         if (modMin !== 0) min += multipleOf - modMin;
@@ -424,8 +428,9 @@ function randomNumber ({ min, max, multipleOf, exclusiveMin = false, exclusiveMa
 
         if (max === min) return max;
 
-        const index = Math.round(Math.random() * (max - min) / multipleOf);
-        return index * multipleOf;
+        let index = Math.round(Math.random() * (max - min) / multipleOf);
+
+        return (index + min) * multipleOf;
 
     } else {
         const multiplier = minIsNumber && maxIsNumber ? max - min : spread;
