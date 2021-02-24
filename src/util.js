@@ -417,9 +417,7 @@ function randomNumber ({ min, max, multipleOf, exclusiveMin = false, exclusiveMa
     const minIsNumber = isNumber(min);
     const maxIsNumber = isNumber(max);
 
-    if (max < min) {
-        max = 2 * min;
-    }
+    if (max < min) throw Error('Maximum value must be greater than or equal to minimum value')
 
     if (isNumber(multipleOf) && multipleOf > 0) {
         const modMin = min % multipleOf;
