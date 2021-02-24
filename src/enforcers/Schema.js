@@ -670,7 +670,7 @@ module.exports = {
                     weight: 1,
                     allowed: ({parent}) => parent.definition.type === 'object',
                     type: 'array',
-                    items: 'string',
+                    items: { type: 'string' },
                     errors: ({ definition, exception, parent }) => {
                         const additionalProperties = parent.definition.additionalProperties;
                         const parentProperties = parent.definition.properties;
@@ -999,6 +999,10 @@ function merge (exception, warning, schemas, dataTypes, major, skipCodes, escala
         });
         const names = Object.keys(namesMap);
         if (names.length === 1) result.discriminator = names[0];
+        // if (names.length === 1) result.discriminator = {
+        //     propertyName: names[0],
+        //     mapping: mappings
+        // };
         if (names.length > 1) exception.message('Unable to merge multiple discriminator values into one');
         if (mappingConflicts.length > 0) exception.message('Conflicting discriminator mappings attempt to map different values to same name');
     }
