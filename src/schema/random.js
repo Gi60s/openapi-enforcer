@@ -165,8 +165,22 @@ function runRandom(exception, warn, map, schema, parent, property, options, dept
             const exclusiveMin = !!schema.exclusiveMinimum;
             const exclusiveMax = !!schema.exclusiveMaximum;
             const multipleOf = schema.hasOwnProperty('multipleOf') ? schema.multipleOf : 0;
-            const min = schema.hasOwnProperty('minimum') ? schema.minimum : -1 * Math.floor(options.numberVariation * .25);
-            const max = schema.hasOwnProperty('maximum') ? schema.maximum : Math.ceil(options.numberVariation * .75);
+            const hasMin = schema.hasOwnProperty('minimum')
+            const hasMax = schema.hasOwnProperty('maximum')
+            let min, max;
+            if (hasMin && !hasMax) {
+                min = schema.minimum
+                max = min + options.numberVariation
+            } else if (!hasMin && hasMax) {
+                max = schema.maximum
+                min = max - options.numberVariation
+            } else if (hasMin && hasMax) {
+                min = schema.minimum
+                max = schema.maximum
+            } else {
+                min = -1 * Math.floor(options.numberVariation * .25);
+                max = Math.ceil(options.numberVariation * .75);
+            }
             parent[property] = randomNumber({min, max, multipleOf, exclusiveMin, exclusiveMax, decimalPlaces});
 
         } else if (type === 'string') {
