@@ -24,6 +24,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'Callback',
+    alertCodes: {},
     component: Callback,
     validator: function (data): SchemaObject {
       const { components } = data

@@ -58,6 +58,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'Components',
+    alertCodes: {},
     component: Components,
     validator: function (data): SchemaObject {
       const components = data.components as v3

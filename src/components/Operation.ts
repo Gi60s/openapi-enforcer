@@ -78,6 +78,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'Operation',
+    alertCodes: {},
     component: Operation,
     validator: function (data): Validator.SchemaObject {
       const { components, options, key } = data

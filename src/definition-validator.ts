@@ -16,7 +16,11 @@ const rxExtension = /^x-.+/
 
 export interface Data<DefinitionType, BuiltType> {
   // unchanging values
-  alert: (mode: 'ignore' | 'warn' | 'error', code: string, message: string) => undefined
+  alert: {
+    error (code: number, ...args: any[]): void
+    ignore (code: number, ...args: any[]): void
+    warn (code: number, ...args: any[]): void
+  }
   components: v2 | v3
   map: IBuildMapper
   metadata: {
@@ -37,14 +41,22 @@ export interface Data<DefinitionType, BuiltType> {
   warning: Exception
 }
 
+interface NotAllowed {
+  name: string
+  reason?: string
+}
+
 export type Schema = SchemaAny | SchemaArray | SchemaBoolean | SchemaComponent<any, any> | SchemaNumber | SchemaString | SchemaObject
 
 interface SchemaBase<Definition, Result> {
-  // Run custom code after valid.
+  // Run custom code after valid and built.
   after?: (data: Data<Definition, Result>) => void
 
   // Run custom code before validate. Returning false will stop follow up validations.
   before?: (data: Data<Definition, Result>) => boolean
+
+  // Custom build step
+  build?: (data: Data<Definition, Result>) => any
 
   // Set the default.
   default?: (data: Data<Definition, Result>) => Result
@@ -80,10 +92,15 @@ export interface SchemaComponent<Definition, Built> extends SchemaBase<Definitio
 
 export interface SchemaNumber<Definition=number, Built=number> extends SchemaBase<Definition, Built> {
   type: 'number'
+  integer?: boolean
+  maximum?: number
+  minimum?: number
 }
 
 export interface SchemaString<Definition=string, Built=string> extends SchemaBase<Definition, Built> {
   type: 'string'
+  maxLength?: number
+  minLength?: number
 }
 
 export interface SchemaObject<Definition=object, Built=object> extends SchemaBase<Definition, Built> {
@@ -96,7 +113,7 @@ export interface SchemaObject<Definition=object, Built=object> extends SchemaBas
 
 export interface SchemaProperty<SchemaType=Schema, Definition=any, Built=any> {
   name: string
-  allowed?: (data: Data<Definition, Built>) => boolean // Whether property is even allowed. Omit `allowed` property to allow by default.
+  allowed?: (data: Data<Definition, Built>) => boolean | string // Whether property is even allowed. Omit `allowed` property to allow by default.
   schema: SchemaType
 }
 
@@ -154,7 +171,7 @@ export function validateDefinition (data: Data<any, any>): boolean {
   if (!baseValidatorResult.continue) return baseValidatorResult.set
 
   if (schema.type === 'any') {
-    data.built = definition
+    data.built = 'build' in schema ? schema.build(data) : definition
     return runCustomValidators(data)
   } else if (schema.type === 'array') {
     if (!Array.isArray(definition)) {
@@ -177,14 +194,28 @@ export function validateDefinition (data: Data<any, any>): boolean {
       error.message('Expected a boolean. Received: ' + smart(definition), 'DVTYPE')
       return false
     }
-    data.built = definition
+    data.built = 'build' in schema ? schema.build(data) : definition
     return runCustomValidators(data)
   } else if (schema.type === 'number') {
+    let success = true
     if (typeof definition !== 'number') {
       error.message('Expected a number. Received: ' + smart(definition), 'DVTYPE')
       return false
     }
-    data.built = definition
+    if (schema.integer === true && definition % 1 !== 0) {
+      error.message('Value must be an integer. Received: ' + smart(definition), 'DVNINT')
+      success = false
+    }
+    if ('maximum' in schema && definition > schema.maximum) {
+      error.message('Value must be less than or equal to ' + schema.maximum + '. Received: ' + smart(definition), 'DVNMAX')
+      success = false
+    }
+    if ('minimum' in schema && definition < schema.minimum) {
+      error.message('Value must be greater than or equal to ' + schema.minimum + '. Received: ' + smart(definition), 'DVNMIN')
+      success = false
+    }
+    if (!success) return false
+    data.built = 'build' in schema ? schema.build(data) : definition
     return runCustomValidators(data)
   } else if (schema.type === 'object' || schema.type === 'component') {
     const oSchema = (schema.type === 'object' ? schema : getComponentSchema(schema.component, data))
@@ -218,7 +249,7 @@ export function validateDefinition (data: Data<any, any>): boolean {
     const missingRequiredMap = stringArrayToBooleanMap(requiredProperties)
     const validatedPropertiesMap: { [key: string]: boolean } = {}
     const childrenData: { [key: string]: Data<any, any> } = {}
-    const notAllowed: string[] = []
+    const notAllowed: NotAllowed[] = []
     schemaProperties.forEach(prop => {
       const name = prop.name
       const allowed = prop.allowed
@@ -226,8 +257,12 @@ export function validateDefinition (data: Data<any, any>): boolean {
       if (name in definition) {
         missingRequiredMap[name] = false
         validatedPropertiesMap[name] = true
-        if (allowed !== undefined && !allowed(child)) {
-          notAllowed.push(name)
+        const allow = allowed === undefined || allowed(child)
+        if (allow === false || typeof allow === 'string') {
+          notAllowed.push({
+            name,
+            reason: allow !== false ? allow : ''
+          })
         } else if (!validateChild(child, name)) {
           success = false
         }
@@ -252,7 +287,10 @@ export function validateDefinition (data: Data<any, any>): boolean {
         ? oSchema.additionalProperties
         : false
       if (additionalProperties === false) {
-        notAllowed.push(key)
+        notAllowed.push({
+          name: key,
+          reason: 'Additional property not allowed.'
+        })
       } else if (additionalProperties !== true) {
         const child = buildChildData(data, def, key, additionalProperties)
         if (!validateChild(child, key)) success = false
@@ -263,8 +301,18 @@ export function validateDefinition (data: Data<any, any>): boolean {
 
     // report any properties that are not allowed
     if (notAllowed.length > 0) {
-      notAllowed.sort((a: string, b: string) => a < b ? -1 : 1)
-      error.message('One or more properties exist that are not allowed: ' + notAllowed.join(', '), 'DVPNAL')
+      notAllowed.sort((a: NotAllowed, b: NotAllowed) => a.name < b.name ? -1 : 1)
+      const reasons = notAllowed.filter(v => v.reason !== undefined && v.reason.length > 0)
+      const message = 'One or more properties exist that are not allowed: ' + notAllowed.join(', ')
+      if (reasons.length === 0) {
+        error.message(message, 'DVPNAL')
+      } else {
+        const child = error.nest(message)
+        reasons.forEach(reason => {
+          child.message(reason.name + ': ' + reason.reason, 'DVPNAL')
+        })
+      }
+      
       success = false
     }
 
@@ -281,11 +329,21 @@ export function validateDefinition (data: Data<any, any>): boolean {
     map.setMappedBuild(definition, oSchema, data.built, success)
     return success
   } else if (schema.type === 'string') {
+    let success = true
     if (typeof definition !== 'string') {
       error.message('Expected a string. Received: ' + smart(definition), 'DVTYPE')
       return false
     }
-    data.built = definition
+    if ('maxLength' in schema && definition.length > schema.maxLength) {
+      error.message('Length must be less than or equal to ' + schema.maxLength + '. Received: ' + smart(definition), 'DVSNLN')
+      success = false
+    }
+    if ('minLength' in schema && definition.length < schema.minLength) {
+      error.message('Length must be greater than or equal to ' + schema.maxLength + '. Received: ' + smart(definition), 'DVSXLN')
+      success = false
+    }
+    if (!success) return false
+    data.built = 'build' in schema ? schema.build(data) : definition
     return runCustomValidators(data)
   } else {
     return false

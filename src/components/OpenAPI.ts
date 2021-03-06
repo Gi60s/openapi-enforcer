@@ -56,6 +56,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'OpenAPI',
+    alertCodes: {},
     component: OpenAPI,
     validator: function (data): SchemaObject {
       const components = data.components as v3

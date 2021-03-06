@@ -37,6 +37,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'Xml',
+    alertCodes: {},
     component: Xml,
     validator: function (): SchemaObject {
       return {

@@ -31,6 +31,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'ServerVariable',
+    alertCodes: {},
     component: ServerVariable,
     validator: function (): SchemaObject {
       return {

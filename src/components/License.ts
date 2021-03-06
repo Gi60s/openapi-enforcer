@@ -28,6 +28,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'License',
+    alertCodes: {},
     component: License,
     validator: function (): SchemaObject {
       return {

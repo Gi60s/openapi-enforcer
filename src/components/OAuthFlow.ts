@@ -35,6 +35,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'OAuthFlow',
+    alertCodes: {},
     component: OAuthFlow,
     validator: function (data): SchemaObject {
       const { key } = data

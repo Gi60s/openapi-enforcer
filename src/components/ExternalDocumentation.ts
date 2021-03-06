@@ -28,6 +28,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'ExternalDocumentation',
+    alertCodes: {},
     component: ExternalDocumentation,
     validator: function (): SchemaObject {
       return {

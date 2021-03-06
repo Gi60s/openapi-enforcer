@@ -39,6 +39,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'MediaType',
+    alertCodes: {},
     component: MediaType,
     validator: function (data): SchemaObject {
       const components = data.components as v3

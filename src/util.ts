@@ -1,3 +1,4 @@
+import { Exception } from 'exception-tree'
 import rx from './rx'
 
 interface BooleanMap {
@@ -238,5 +239,31 @@ function toPlainObjectRecursive (value: any, options: ToPlainObjectOptions, map:
     return { set: false }
   } else {
     return { set: true, value }
+  }
+}
+
+export function validateMaxMin (exception: Exception, schema: { [key: string]: any, exclusiveMaximum?: boolean, exclusiveMinimum?: boolean }, type: string, maxProperty: string, minProperty: string, exclusives: boolean, value: any, maximum: number, minimum: number) {
+  if (maxProperty in schema) {
+    if (exclusives && schema.exclusiveMaximum && value >= maximum) {
+      exception.message('Expected ' + type + ' to be less than ' +
+        smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
+        smart(schema.serialize(value).value))
+    } else if (value > maximum) {
+      exception.message('Expected ' + type + ' to be less than or equal to ' +
+        smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
+        smart(schema.serialize(value).value))
+    }
+  }
+
+  if (minProperty in schema) {
+    if (exclusives && schema.exclusiveMinimum && value <= minimum) {
+      exception.message('Expected ' + type + ' to be greater than ' +
+        smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
+        smart(schema.serialize(value).value))
+    } else if (value < minimum) {
+      exception.message('Expected ' + type + ' to be greater than or equal to ' +
+        smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
+        smart(schema.serialize(value).value))
+    }
   }
 }

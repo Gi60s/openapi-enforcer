@@ -32,6 +32,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'RequestBody',
+    alertCodes: {},
     component: RequestBody,
     validator: function (data): SchemaObject {
       const { components } = data

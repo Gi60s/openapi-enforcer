@@ -191,6 +191,8 @@ export function Factory2 (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'Schema',
+    alertCodes: {},
     component: Schema,
     validator: getValidatorSchema(Schema)
   }
@@ -214,6 +216,8 @@ export function Factory3 (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'Schema',
+    alertCodes: {},
     component: Schema,
     validator: getValidatorSchema(Schema)
   }

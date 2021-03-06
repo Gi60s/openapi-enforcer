@@ -7,6 +7,7 @@ import * as Example from './Example'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import * as Header from './Header'
 import * as Info from './Info'
+import * as Item from './Item'
 import * as License from './License'
 import * as Link from './Link'
 import * as MediaType from './MediaType'
@@ -14,7 +15,7 @@ import * as OAuthFlow from './OAuthFlow'
 import * as OAuthFlows from './OAuthFlows'
 import * as OpenAPI from './OpenAPI'
 import * as Operation from './Operation'
-// import * as Parameter from './Parameter'
+import * as Parameter from './Parameter'
 import * as PathItem from './PathItem'
 // import * as Paths from './Paths'
 // import * as RequestBody from './RequestBody'
@@ -58,6 +59,7 @@ export type AnyComponent =
   ExternalDocumentation.Class |
   Header.Class |
   Info.Class |
+  Item.Class |
   License.Class |
   Link.Class |
   MediaType.Class |
@@ -65,7 +67,7 @@ export type AnyComponent =
   OAuthFlows.Class |
   // OpenAPI.Class |
   Operation.Class |
-  // Parameter.Class |
+  Parameter.Class |
   PathItem.Class |
   // Paths.Class |
   // RequestBody.Class |
@@ -81,14 +83,15 @@ export type AnyComponent =
   Xml.Class
 
 export interface v2 {
-  major: '2'
+  $version: '2'
   Contact: Contact.Class
   ExternalDocumentation: ExternalDocumentation.Class
   Header: Header.Class
   Info: Info.Class
+  Item: Item.Class
   License: License.Class
   Operation: Operation.Class
-  // Parameter: Parameter.Class
+  Parameter: Parameter.Class<Parameter.Definition2, Parameter.Object2>
   PathItem: PathItem.Class
   // Paths: Paths.Class
   // Response: Response.Class
@@ -102,7 +105,7 @@ export interface v2 {
 }
 
 export interface v3 {
-  major: '3'
+  $version: '3'
   Callback: Callback.Class
   Components: Components.Class
   Contact: Contact.Class
@@ -132,6 +135,11 @@ export interface v3 {
   ServerVariable: ServerVariable.Class
   // Tag: Tag.Class
   Xml: Xml.Class
+}
+
+export interface ComponentFactoryData {
+  name: string
+  components: v2 | v3
 }
 
 interface ComponentMapItem<Definition, Built> {
@@ -195,6 +203,10 @@ export interface ExtensionData<Definition, Built> {
 type ExtensionFunction<Definition, Built> = (data: ExtensionData<Definition, Built>) => undefined
 
 export interface FactoryResult<Definition, Built> {
+  name: string,
+  alertCodes: {
+    [code: number]: string
+  },
   component: AnyComponent
   validator: DefinitionValidatorFactory<Definition, Built>
 }
@@ -254,10 +266,11 @@ export function generateComponents (version: 2 | 3, options: ComponentOptionsFix
     generateComponent('ExternalDocumentation', v2, ExternalDocumentation.Factory, options)
     generateComponent('Header', v2, Header.Factory, options)
     generateComponent('Info', v2, Info.Factory, options)
+    generateComponent('Item', v2, Item.Factory, options)
     generateComponent('PathItem', v2, PathItem.Factory, options)
     generateComponent('License', v2, License.Factory, options)
     // generateComponent('Operation', v2, Operation.Factory, options)
-    // generateComponent('Parameter', v2, Parameter.Factory, options)
+    generateComponent('Parameter', v2, Parameter.Factory2, options)
     generateComponent('PathItem', v2, PathItem.Factory, options)
     // generateComponent('Paths', v2,Paths.Factory, options)
     // generateComponent('Response', v2, Response.Factory, options)
@@ -288,7 +301,7 @@ export function generateComponents (version: 2 | 3, options: ComponentOptionsFix
     // generateComponent('OAuthFlows', v3, OAuthFlows.Factory, options)
     // generateComponent('OpenAPI', v3, OpenAPI.Factory, options)
     // generateComponent('Operation', v3, Operation.Factory, options)
-    // generateComponent('Parameter', v3, Parameter.Factory, options)
+    generateComponent('Parameter', v3, Parameter.Factory3, options)
     generateComponent('PathItem', v3, PathItem.Factory, options)
     // generateComponent('Paths', v3, Paths.Factory, options)
     // generateComponent('RequestBody', v3, RequestBody.Factory, options)
@@ -307,8 +320,8 @@ export function generateComponents (version: 2 | 3, options: ComponentOptionsFix
   }
 }
 
-export function generateComponent<Definition, Built> (name: string, components: v2 | v3, factory: () => FactoryResult<Definition, Built>, options: ComponentOptionsFixed): AnyComponent {
-  const { component, validator } = factory()
+export function generateComponent<Definition, Built> (name: string, components: v2 | v3, factory: (data: ComponentFactoryData) => FactoryResult<Definition, Built>, options: ComponentOptionsFixed): AnyComponent {
+  const { component, validator } = factory({ name, components })
   // @ts-expect-error
   components[name] = component
   ComponentMapper.set(component, {

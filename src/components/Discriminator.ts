@@ -35,6 +35,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'Discriminator',
+    alertCodes: {},
     component: Discriminator,
     validator: function (data): SchemaObject {
       const { components } = data

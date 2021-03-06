@@ -63,6 +63,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'PathItem',
+    alertCodes: {},
     component: PathItem,
     validator: function (data): SchemaObject {
       const { components } = data

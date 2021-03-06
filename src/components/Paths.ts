@@ -23,6 +23,8 @@ export function Factory (): FactoryResult<Definition, Object> {
 
   // TODO: validate that extensions are not validated against the PathItem component
   return {
+    name: 'Paths',
+    alertCodes: {},
     component: Paths,
     validator: function (data): Validator.SchemaObject {
       const { components } = data

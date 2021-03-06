@@ -2,8 +2,7 @@ import { Controller as IController, DefinitionPlus, Factory as ControllerFactory
 import * as SchemaInterface from '../SchemaInterfaces'
 import * as random from '../randomizer'
 import rx from '../rx'
-import { smart, isValidDateString } from '../util'
-import { Exception } from 'exception-tree'
+import { smart, isValidDateString, validateMaxMin } from '../util'
 import * as Schema from '../components/Schema'
 
 function noop<T> ({ value }: { value: T }): T {
@@ -203,30 +202,4 @@ function randomDate ({ options, schema }: { options: RandomOptions, schema: Sche
     min
   })
   return new Date(value)
-}
-
-function validateMaxMin (exception: Exception, schema: Schema.Object, type: string, maxProperty: string, minProperty: string, exclusives: boolean, value: any, maximum: number, minimum: number) {
-  if (maxProperty in schema) {
-    if (exclusives && schema.exclusiveMaximum && value >= maximum) {
-      exception.message('Expected ' + type + ' to be less than ' +
-        smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
-        smart(schema.serialize(value).value))
-    } else if (value > maximum) {
-      exception.message('Expected ' + type + ' to be less than or equal to ' +
-        smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
-        smart(schema.serialize(value).value))
-    }
-  }
-
-  if (minProperty in schema) {
-    if (exclusives && schema.exclusiveMinimum && value <= minimum) {
-      exception.message('Expected ' + type + ' to be greater than ' +
-        smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
-        smart(schema.serialize(value).value))
-    } else if (value < minimum) {
-      exception.message('Expected ' + type + ' to be greater than or equal to ' +
-        smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
-        smart(schema.serialize(value).value))
-    }
-  }
 }

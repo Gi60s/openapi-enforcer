@@ -31,6 +31,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'Contact',
+    alertCodes: {},
     component: Contact,
     validator: function (): Validator.SchemaObject {
       return {

@@ -34,6 +34,8 @@ export function Factory (): FactoryResult<Definition, Object> {
   }
 
   return {
+    name: 'Example',
+    alertCodes: {},
     component: Example,
     validator: function (data): SchemaObject {
       const { components } = data
