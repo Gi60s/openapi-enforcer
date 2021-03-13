@@ -1,9 +1,8 @@
 import {
   AnyComponent,
+  ComponentMapItem,
   ComponentOptionsFixed,
   ExtensionData,
-  getComponentData,
-  getComponentSchema,
   v2,
   v3
 } from './components'
@@ -14,13 +13,11 @@ import { booleanMapToStringArray, isObject, same, smart, stringArrayToBooleanMap
 
 const rxExtension = /^x-.+/
 
+
+
 export interface Data<DefinitionType, BuiltType> {
   // unchanging values
-  alert: {
-    error (code: number, ...args: any[]): void
-    ignore (code: number, ...args: any[]): void
-    warn (code: number, ...args: any[]): void
-  }
+  alert: (mode: 'ignore' | 'warn' | 'error', code: string, ...args: any[]) => void
   components: v2 | v3
   map: IBuildMapper
   metadata: {
@@ -30,6 +27,7 @@ export interface Data<DefinitionType, BuiltType> {
     }
   }
   options: ComponentOptionsFixed
+  version: VersionObject
 
   // changing values
   built: BuiltType
@@ -114,10 +112,13 @@ export interface SchemaObject<Definition=object, Built=object> extends SchemaBas
 export interface SchemaProperty<SchemaType=Schema, Definition=any, Built=any> {
   name: string
   allowed?: (data: Data<Definition, Built>) => boolean | string // Whether property is even allowed. Omit `allowed` property to allow by default.
-  schema: SchemaType
+  schema: SchemaType,
+  versions?: string[]
 }
 
 export type SchemaConstructor<Definition, Built> = (data: Data<Definition, Built>) => SchemaObject
+
+export type ValidatorFactory<Definition, Object> = (data: Data<Definition, Object>) => SchemaObject
 
 // schema generator and definition to schema mapper
 const componentMap: WeakMap<AnyComponent, { builder: SchemaConstructor<any, any>, schemas: WeakMap<any, Schema> }> = new WeakMap()
@@ -218,7 +219,13 @@ export function validateDefinition (data: Data<any, any>): boolean {
     data.built = 'build' in schema ? schema.build(data) : definition
     return runCustomValidators(data)
   } else if (schema.type === 'object' || schema.type === 'component') {
-    const oSchema = (schema.type === 'object' ? schema : getComponentSchema(schema.component, data))
+    let componentData: ComponentMapItem<unknown, unknown> = null
+    if (schema.type === 'component') {
+      data.component = schema.component
+      data.reference = componentData.factoryResult.reference
+      componentData = getComponentData(schema.component)
+    }
+    const oSchema = componentData ? componentData.definition.validator(data) : schema
     let success = true
 
     if (!isObject(definition)) {
@@ -227,7 +234,7 @@ export function validateDefinition (data: Data<any, any>): boolean {
     }
 
     // if we have a "component" schema then run the base validators with the new schema
-    if (schema !== oSchema) {
+    if (componentData) {
       const result = runBaseValidators(data, oSchema)
       if (!result.continue) return result.set
     }
@@ -257,14 +264,18 @@ export function validateDefinition (data: Data<any, any>): boolean {
       if (name in definition) {
         missingRequiredMap[name] = false
         validatedPropertiesMap[name] = true
-        const allow = allowed === undefined || allowed(child)
-        if (allow === false || typeof allow === 'string') {
-          notAllowed.push({
-            name,
-            reason: allow !== false ? allow : ''
-          })
-        } else if (!validateChild(child, name)) {
-          success = false
+        if ('versions' in prop && !versionMatch(data.version, prop.versions)) {
+          notAllowed.push({ name, reason: 'Property not part of OpenAPI specification version ' + data.version })
+        } else {
+          const allow = allowed === undefined || allowed(child)
+          if (allow === false || typeof allow === 'string') {
+            notAllowed.push({
+              name,
+              reason: allow !== false ? allow : ''
+            })
+          } else if (!validateChild(child, name)) {
+            success = false
+          }
         }
       } else if (prop.schema.default !== undefined) {
         if (validateChild(child, name)) {
@@ -361,8 +372,13 @@ function buildChildData (data: Data<any, any>, definition: any, key: string, sch
     map: data.map,
     metadata: data.metadata,
     options: data.options,
+    version: data.version,
 
-    // changing values
+    // changing per spec component values - changes inside the validator function if type === 'component'
+    component: data.component,
+    reference: data.reference,
+
+    // always changing values
     built: undefined,
     chain,
     definition,
@@ -377,6 +393,16 @@ function validateChild (child: Data<any, any>, key: string): boolean {
   const success = validateDefinition(child)
   if (success) child.chain[0].built[key] = child.built
   return success
+}
+
+function versionMatch (current: Version, versions: string[]) {
+  const { major, minor, patch } = current
+  const length = versions.length
+  for (let i = 0; i < length; i++) {
+    const [ a, b, c ] = (versions[i] + '.x.x').split('.')
+    if (major === +a && (b === 'x' || minor === +b) && (c === 'x' || patch === +c)) return true
+  }
+  return false
 }
 
 function runBaseValidators (data: Data<any, any>, schema: Schema): { continue: boolean, set: boolean } {

@@ -1,5 +1,6 @@
-import * as Validator from '../definition-validator'
-import { EnforcerComponent, FactoryResult, Statics } from './'
+import { ComponentDefinition } from '../component-registry'
+import { Data, SchemaObject } from '../definition-validator'
+import { EnforcerComponent, Statics } from './'
 
 export interface Class extends Statics<Definition, Object> {
   new (definition: Definition): Object
@@ -19,40 +20,47 @@ export interface Object {
   readonly email?: string
 }
 
-export function Factory (): FactoryResult<Definition, Object> {
-  class Contact extends EnforcerComponent<Definition, Object> implements Object {
-    readonly name?: string
-    readonly url?: string
-    readonly email?: string
+export const versions = {
+  '2.0': 'http://spec.openapis.org/oas/v2.0#contact-object',
+  '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#contact-object',
+  '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#contact-object',
+  '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#contact-object',
+  '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#contact-object'
+}
 
-    // constructor (definition: Definition) {
-    //   super(definition)
-    // }
-  }
+export const Component = class Contact extends EnforcerComponent<Definition, Object> implements Object {
+  readonly name?: string
+  readonly url?: string
+  readonly email?: string
 
+  // constructor (definition: Definition) {
+  //   super(definition)
+  // }
+}
+
+export function validator (data: Data<Definition, Object>): SchemaObject {
   return {
-    name: 'Contact',
-    alertCodes: {},
-    component: Contact,
-    validator: function (): Validator.SchemaObject {
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: [
-          {
-            name: 'name',
-            schema: { type: 'string' }
-          },
-          {
-            name: 'url',
-            schema: { type: 'string' }
-          },
-          {
-            name: 'email',
-            schema: { type: 'string' }
-          }
-        ]
+    type: 'object',
+    allowsSchemaExtensions: true,
+    properties: [
+      {
+        name: 'name',
+        schema: { type: 'string' }
+      },
+      {
+        name: 'url',
+        schema: { type: 'string' }
+      },
+      {
+        name: 'email',
+        schema: { type: 'string' }
       }
-    }
+    ]
   }
+}
+
+export const register: ComponentDefinition = {
+  component: Component,
+  validator,
+  versions
 }

@@ -1,8 +1,9 @@
+import { ComponentDefinition } from '../component-registry'
 import * as DataTypeFormat from '../data-type-format'
 import * as Discriminator from './Discriminator'
 import { Exception } from 'exception-tree'
 import * as Validator from '../definition-validator'
-import { EnforcerComponent, FactoryResult, Statics, v3 } from './'
+import { EnforcerComponent, Statics, v3 } from './'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import { Result } from 'result-value-exception'
 import * as Xml from './Xml'
@@ -119,7 +120,15 @@ export interface Object3 extends ObjectBase<Object3> {
 
 export type Object = Object2 | Object3
 
-class SchemaBase<Definition, Object> extends EnforcerComponent<Definition, Object> {
+export const versions = Object.freeze({
+  '2.0': 'http://spec.openapis.org/oas/v2.0#schema-object',
+  '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#schema-object',
+  '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#schema-object',
+  '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#schema-object',
+  '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#schema-object'
+})
+
+export const Component = class Schema extends EnforcerComponent<Definition, Object> {
   readonly additionalProperties?: Object | boolean
   readonly allOf?: Object[]
   readonly default?: any
@@ -148,8 +157,16 @@ class SchemaBase<Definition, Object> extends EnforcerComponent<Definition, Objec
   readonly type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
   readonly uniqueItems?: boolean
   readonly xml?: Xml.Object
+  
+  readonly discriminator?: string | Discriminator.Object
+  readonly anyOf?: Object3[]
+  readonly deprecated?: boolean
+  readonly not?: Object3
+  readonly nullable?: boolean
+  readonly oneOf?: Object3[]
+  readonly writeOnly?: boolean
 
-  // constructor (definition: D) {
+  // constructor (definition: Definition2) {
   //   super(definition)
   // }
 
@@ -179,64 +196,20 @@ class SchemaBase<Definition, Object> extends EnforcerComponent<Definition, Objec
   }
 }
 
-export function Factory2 (): FactoryResult<Definition, Object> {
-  class Schema extends SchemaBase<Definition2, Object2> implements Object2 {
-    readonly discriminator?: string
-
-    // constructor (definition: Definition2) {
-    //   super(definition)
-    // }
-
-    static dataTypes = DataTypeFormat.Factory()
-  }
-
-  return {
-    name: 'Schema',
-    alertCodes: {},
-    component: Schema,
-    validator: getValidatorSchema(Schema)
-  }
-}
-
-export function Factory3 (): FactoryResult<Definition, Object> {
-  class Schema extends SchemaBase<Definition3, Object3> implements Object3 {
-    readonly anyOf?: Object3[]
-    readonly deprecated?: boolean
-    readonly discriminator?: Discriminator.Object
-    readonly not?: Object3
-    readonly nullable?: boolean
-    readonly oneOf?: Object3[]
-    readonly writeOnly?: boolean
-
-    // constructor (definition: Definition3) {
-    //   super(definition)
-    // }
-
-    static dataTypes = DataTypeFormat.Factory()
-  }
-
-  return {
-    name: 'Schema',
-    alertCodes: {},
-    component: Schema,
-    validator: getValidatorSchema(Schema)
-  }
-}
-
-function getValidatorSchema<SchemaType> (Schema: Class): Validator.SchemaConstructor<any, any> {
+export function validator (data: Validator.Data<Definition, Object>): Validator.SchemaObject {
   // define common validator schemas for reuse below
   const d: { [key: string]: Validator.Schema } = {
     schema: {
       type: 'component',
       allowsRef: true,
-      component: Schema
+      component: Component
     },
     schemaArray: {
       type: 'array',
       items: {
         type: 'component',
         allowsRef: true,
-        component: Schema
+        component: Component
       }
     }
   }
@@ -245,365 +218,368 @@ function getValidatorSchema<SchemaType> (Schema: Class): Validator.SchemaConstru
   const commonProperties2 = ['default', 'description', 'discriminator', 'enum', 'example', 'externalDocs', 'readOnly', 'title', 'xml']
   const commonProperties3 = ['default', 'deprecated', 'description', 'discriminator', 'enum', 'example', 'externalDocs', 'nullable', 'readOnly', 'title', 'writeOnly', 'xml']
 
-  return function (data): Validator.SchemaObject {
-    const { components, definition } = data
-    const major: string = components.major
-    const commonProperties = major === '2' ? commonProperties2 : commonProperties3
-    const root = definition as Definition
-    const dataTypeDefinition: DataTypeFormat.Definition<SchemaType> = Schema.dataTypes.getDefinition(definition.type, definition.format)
+  const { components, definition } = data
+  const version: string = components.$version
+  const commonProperties = version === '2' ? commonProperties2 : commonProperties3
+  const root = definition as Definition
+  const dataTypeDefinition: DataTypeFormat.Definition<SchemaType> = Schema.dataTypes.getDefinition(definition.type, definition.format)
 
-    const properties: Array<{ name: string, schema: Validator.Schema }> = [
-      {
-        name: 'type',
-        schema: {
-          type: 'string',
-          enum: () => ['array', 'boolean', 'integer', 'number', 'object', 'string']
-        }
-      },
-      {
-        name: 'format',
-        schema: {
-          type: 'string',
-          after ({ alert, definition }) {
-            if (dataTypeDefinition === undefined && definition !== undefined) {
-              alert('warn', 'SCH001', `Data type format ${root.type} ${definition} is not defined. Standard ${root.type} processing will be used.`)
-            }
+  const properties: Array<{ name: string, schema: Validator.Schema }> = [
+    {
+      name: 'type',
+      schema: {
+        type: 'string',
+        enum: () => ['array', 'boolean', 'integer', 'number', 'object', 'string']
+      }
+    },
+    {
+      name: 'format',
+      schema: {
+        type: 'string',
+        after ({ alert, definition }) {
+          if (dataTypeDefinition === undefined && definition !== undefined) {
+            alert('warn', 'SCH001', `Data type format ${root.type} ${definition} is not defined. Standard ${root.type} processing will be used.`)
           }
         }
-      },
-      {
-        name: 'additionalProperties',
-        schema: typeof definition.additionalProperties === 'object'
-          ? {
-            type: 'boolean',
-            default: () => true
-          }
-          : {
-            type: 'component',
-            allowsRef: true,
-            component: Schema
-          }
-      },
-      {
-        name: 'allOf',
-        schema: d.schemaArray
-      },
-      {
-        name: 'anyOf',
-        schema: d.schemaArray
-      },
-      {
-        name: 'deprecated',
-        schema: {
+      }
+    },
+    {
+      name: 'additionalProperties',
+      schema: typeof definition.additionalProperties === 'object'
+        ? {
           type: 'boolean',
-          default: () => false
+          default: () => true
         }
-      },
-      {
-        name: 'description',
-        schema: {
-          type: 'string'
+        : {
+          type: 'component',
+          allowsRef: true,
+          component: Component
         }
-      },
-      {
-        name: 'discriminator',
-        schema: major === '2'
-          ? { type: 'string' }
-          : {
-            type: 'component',
-            allowsRef: false,
-            component: (components as v3).Discriminator
-          }
-      },
-      {
-        name: 'enum',
-        schema: {
-          type: 'array',
-          items: {
-            type: 'any',
-            after () {} // TODO: validate that each enum matches schema
-          }
-        }
-      },
-      {
-        name: 'exclusiveMaximum',
-        schema: {
-          type: 'boolean',
-          default: () => false
-        }
-      },
-      {
-        name: 'exclusiveMinimum',
-        schema: {
-          type: 'boolean',
-          default: () => false
-        }
-      },
-      {
-        name: 'externalDocs',
-        schema: {
+    },
+    {
+      name: 'allOf',
+      schema: d.schemaArray
+    },
+    {
+      name: 'anyOf',
+      schema: d.schemaArray
+    },
+    {
+      name: 'deprecated',
+      schema: {
+        type: 'boolean',
+        default: () => false
+      }
+    },
+    {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    {
+      name: 'discriminator',
+      schema: version === '2'
+        ? { type: 'string' }
+        : {
           type: 'component',
           allowsRef: false,
-          component: components.ExternalDocumentation
+          component: (components as v3).Discriminator
         }
-      },
-      {
-        name: 'items',
-        schema: d.schema
-      },
-      {
-        name: 'maximum',
-        schema: {
-          type: 'number',
-          after () {} // TODO: make sure max > min and that max is integer if type is integer
+    },
+    {
+      name: 'enum',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'any',
+          after () {} // TODO: validate that each enum matches schema
         }
-      },
-      {
-        name: 'maxItems',
-        schema: {
-          type: 'number',
-          after () {} // TODO: make sure max > min and that max is integer if type is integer
-        }
-      },
-      {
-        name: 'maxLength',
-        schema: {
-          type: 'number',
-          after () {} // TODO: make sure max > min and that max is integer if type is integer
-        }
-      },
-      {
-        name: 'maxProperties',
-        schema: {
-          type: 'number',
-          after () {} // TODO: make sure max > min and that max is integer if type is integer
-        }
-      },
-      {
-        name: 'minimum',
-        schema: {
-          type: 'number',
-          after () {} // TODO: make sure max > min and that max is integer if type is integer
-        }
-      },
-      {
-        name: 'minItems',
-        schema: {
-          type: 'number',
-          after () {} // TODO: make sure max > min and that max is integer if type is integer
-        }
-      },
-      {
-        name: 'minLength',
-        schema: {
-          type: 'number',
-          after () {} // TODO: make sure max > min and that max is integer if type is integer
-        }
-      },
-      {
-        name: 'minProperties',
-        schema: {
-          type: 'number',
-          after () {} // TODO: make sure max > min and that max is integer if type is integer
-        }
-      },
-      {
-        name: 'multipleOf',
-        schema: {
-          type: 'number',
-          after () {}
-        }
-      },
-      {
-        name: 'not',
-        schema: d.schema
-      },
-      {
-        name: 'nullable',
-        schema: {
-          type: 'boolean',
-          default: () => false
-        }
-      },
-      {
-        name: 'oneOf',
-        schema: d.schemaArray
-      },
-      {
-        name: 'pattern',
-        schema: {
-          type: 'string',
-          after () {} // TODO: must be valid regex
-        }
-      },
-      {
-        name: 'properties',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: true,
-          additionalProperties: d.schema
-        }
-      },
-      {
-        name: 'readOnly',
-        schema: {
-          type: 'boolean',
-          default: () => false
-        }
-      },
-      {
-        name: 'required',
-        schema: {
-          type: 'array',
-          items: {
-            type: 'string'
-          }
-        }
-      },
-      {
-        name: 'title',
-        schema: {
+      }
+    },
+    {
+      name: 'exclusiveMaximum',
+      schema: {
+        type: 'boolean',
+        default: () => false
+      }
+    },
+    {
+      name: 'exclusiveMinimum',
+      schema: {
+        type: 'boolean',
+        default: () => false
+      }
+    },
+    {
+      name: 'externalDocs',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: ExternalDocumentation.Component
+      }
+    },
+    {
+      name: 'items',
+      schema: d.schema
+    },
+    {
+      name: 'maximum',
+      schema: {
+        type: 'number',
+        after () {} // TODO: make sure max > min and that max is integer if type is integer
+      }
+    },
+    {
+      name: 'maxItems',
+      schema: {
+        type: 'number',
+        after () {} // TODO: make sure max > min and that max is integer if type is integer
+      }
+    },
+    {
+      name: 'maxLength',
+      schema: {
+        type: 'number',
+        after () {} // TODO: make sure max > min and that max is integer if type is integer
+      }
+    },
+    {
+      name: 'maxProperties',
+      schema: {
+        type: 'number',
+        after () {} // TODO: make sure max > min and that max is integer if type is integer
+      }
+    },
+    {
+      name: 'minimum',
+      schema: {
+        type: 'number',
+        after () {} // TODO: make sure max > min and that max is integer if type is integer
+      }
+    },
+    {
+      name: 'minItems',
+      schema: {
+        type: 'number',
+        after () {} // TODO: make sure max > min and that max is integer if type is integer
+      }
+    },
+    {
+      name: 'minLength',
+      schema: {
+        type: 'number',
+        after () {} // TODO: make sure max > min and that max is integer if type is integer
+      }
+    },
+    {
+      name: 'minProperties',
+      schema: {
+        type: 'number',
+        after () {} // TODO: make sure max > min and that max is integer if type is integer
+      }
+    },
+    {
+      name: 'multipleOf',
+      schema: {
+        type: 'number',
+        after () {}
+      }
+    },
+    {
+      name: 'not',
+      schema: d.schema
+    },
+    {
+      name: 'nullable',
+      schema: {
+        type: 'boolean',
+        default: () => false
+      }
+    },
+    {
+      name: 'oneOf',
+      schema: d.schemaArray
+    },
+    {
+      name: 'pattern',
+      schema: {
+        type: 'string',
+        after () {} // TODO: must be valid regex
+      }
+    },
+    {
+      name: 'properties',
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: true,
+        additionalProperties: d.schema
+      }
+    },
+    {
+      name: 'readOnly',
+      schema: {
+        type: 'boolean',
+        default: () => false
+      }
+    },
+    {
+      name: 'required',
+      schema: {
+        type: 'array',
+        items: {
           type: 'string'
         }
-      },
-      {
-        name: 'uniqueItems',
-        schema: {
-          type: 'boolean',
-          default: () => false
-        }
-      },
-      {
-        name: 'writeOnly',
-        schema: {
-          type: 'boolean',
-          default: () => false
-        }
-      },
-      {
-        name: 'xml',
-        schema: {
-          type: 'component',
-          allowsRef: false,
-          component: components.Xml
-        }
-      },
-
-      // these properties are for after most of schema is built out
-      {
-        name: 'default',
-        schema: {
-          type: 'any',
-          after () { } // TODO: validate that default matches schema
-        }
-      },
-      {
-        name: 'enum',
-        schema: {
-          type: 'any',
-          after () { } // TODO: validate that default matches schema
-        }
-      },
-      {
-        name: 'example',
-        schema: {
-          type: 'any',
-          after () {} // TODO: validate that example matches schema
-        }
       }
-    ]
-
-    // allOf
-    if ('allOf' in definition.allOf) {
-      const keep = commonProperties.concat(['allOf'])
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: properties.filter(p => keep.includes(p.name))
+    },
+    {
+      name: 'title',
+      schema: {
+        type: 'string'
       }
-
-      // anyOf
-    } else if ('anyOf' in definition && major === '3') {
-      const keep = commonProperties.concat(['anyOf'])
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: properties.filter(p => keep.includes(p.name))
+    },
+    {
+      name: 'uniqueItems',
+      schema: {
+        type: 'boolean',
+        default: () => false
       }
-
-      // not
-    } else if ('not' in definition && major === '3') {
-      const keep = commonProperties.concat(['not'])
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: properties.filter(p => keep.includes(p.name))
+    },
+    {
+      name: 'writeOnly',
+      schema: {
+        type: 'boolean',
+        default: () => false
       }
-
-      // oneOf
-    } else if ('oneOf' in definition && major === '3') {
-      const keep = commonProperties.concat(['oneOf'])
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: properties.filter(p => keep.includes(p.name))
+    },
+    {
+      name: 'xml',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Xml.Component
       }
+    },
 
-      // array
-    } else if (definition.type === 'array') {
-      const keep = commonProperties.concat(['items', 'maxItems', 'minItems', 'type', 'uniqueItems'])
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        required: () => ['items'],
-        properties: properties.filter(p => keep.includes(p.name))
+    // these properties are for after most of schema is built out
+    {
+      name: 'default',
+      schema: {
+        type: 'any',
+        after () { } // TODO: validate that default matches schema
       }
-
-      // boolean
-    } else if (definition.type === 'boolean') {
-      const keep = commonProperties.concat(['format', 'type'])
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: properties.filter(p => keep.includes(p.name))
+    },
+    {
+      name: 'enum',
+      schema: {
+        type: 'any',
+        after () { } // TODO: validate that default matches schema
       }
-
-      // numeric
-    } else if (dataTypeDefinition.isNumeric) {
-      const keep = commonProperties.concat(['exclusiveMaximum', 'exclusiveMinimum', 'format', 'maximum', 'minimum', 'multipleOf', 'type'])
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: properties.filter(p => keep.includes(p.name))
-      }
-
-      // object
-    } else if (definition.type === 'object') {
-      const keep = commonProperties.concat(['additionalProperties', 'maxProperties', 'minProperties', 'properties', 'required', 'type'])
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: properties.filter(p => keep.includes(p.name))
-      }
-
-      // string
-    } else if (definition.type === 'string') {
-      const keep = commonProperties.concat(['format', 'maxLength', 'minLength', 'pattern', 'type'])
-      console.log('v' + major + ' string: ' + keep.join(','))
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: properties.filter(p => keep.includes(p.name))
-      }
-
-      // no known type
-    } else {
-      console.log('v' + major + ' unknown: ' + commonProperties.join(','))
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: properties.filter(p => commonProperties.includes(p.name))
+    },
+    {
+      name: 'example',
+      schema: {
+        type: 'any',
+        after () {} // TODO: validate that example matches schema
       }
     }
+  ]
+
+  // allOf
+  if ('allOf' in definition.allOf) {
+    const keep = commonProperties.concat(['allOf'])
+    return {
+      type: 'object',
+      allowsSchemaExtensions: true,
+      properties: properties.filter(p => keep.includes(p.name))
+    }
+
+    // anyOf
+  } else if ('anyOf' in definition && version === '3') {
+    const keep = commonProperties.concat(['anyOf'])
+    return {
+      type: 'object',
+      allowsSchemaExtensions: true,
+      properties: properties.filter(p => keep.includes(p.name))
+    }
+
+    // not
+  } else if ('not' in definition && version === '3') {
+    const keep = commonProperties.concat(['not'])
+    return {
+      type: 'object',
+      allowsSchemaExtensions: true,
+      properties: properties.filter(p => keep.includes(p.name))
+    }
+
+    // oneOf
+  } else if ('oneOf' in definition && version === '3') {
+    const keep = commonProperties.concat(['oneOf'])
+    return {
+      type: 'object',
+      allowsSchemaExtensions: true,
+      properties: properties.filter(p => keep.includes(p.name))
+    }
+
+    // array
+  } else if (definition.type === 'array') {
+    const keep = commonProperties.concat(['items', 'maxItems', 'minItems', 'type', 'uniqueItems'])
+    return {
+      type: 'object',
+      allowsSchemaExtensions: true,
+      required: () => ['items'],
+      properties: properties.filter(p => keep.includes(p.name))
+    }
+
+    // boolean
+  } else if (definition.type === 'boolean') {
+    const keep = commonProperties.concat(['format', 'type'])
+    return {
+      type: 'object',
+      allowsSchemaExtensions: true,
+      properties: properties.filter(p => keep.includes(p.name))
+    }
+
+    // numeric
+  } else if (dataTypeDefinition.isNumeric) {
+    const keep = commonProperties.concat(['exclusiveMaximum', 'exclusiveMinimum', 'format', 'maximum', 'minimum', 'multipleOf', 'type'])
+    return {
+      type: 'object',
+      allowsSchemaExtensions: true,
+      properties: properties.filter(p => keep.includes(p.name))
+    }
+
+    // object
+  } else if (definition.type === 'object') {
+    const keep = commonProperties.concat(['additionalProperties', 'maxProperties', 'minProperties', 'properties', 'required', 'type'])
+    return {
+      type: 'object',
+      allowsSchemaExtensions: true,
+      properties: properties.filter(p => keep.includes(p.name))
+    }
+
+    // string
+  } else if (definition.type === 'string') {
+    const keep = commonProperties.concat(['format', 'maxLength', 'minLength', 'pattern', 'type'])
+    return {
+      type: 'object',
+      allowsSchemaExtensions: true,
+      properties: properties.filter(p => keep.includes(p.name))
+    }
+
+    // no known type
+  } else {
+    return {
+      type: 'object',
+      allowsSchemaExtensions: true,
+      properties: properties.filter(p => commonProperties.includes(p.name))
+    }
   }
+}
+
+export const register: ComponentDefinition = {
+  component: Component,
+  dataTypes: DataTypeFormat.Factory(),
+  validator,
+  versions
 }

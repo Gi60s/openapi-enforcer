@@ -62,6 +62,14 @@ export function copy<T> (value: T, map = new Map()): T {
   }
 }
 
+export function edgeSlashes (value: string, start: boolean, end: boolean): string {
+  value = value.replace(/^\//, '').replace(/\/$/, '')
+  if (value.length === 0 && (start || end)) return '/'
+  if (start) value = '/' + value
+  if (end) value += '/'
+  return value
+}
+
 function isDate (value: any): boolean {
   return value !== null && typeof value === 'object' && !isNaN(value) && value instanceof Date
 }

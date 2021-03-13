@@ -1,18 +1,21 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { expect } from 'chai'
 import { Exception } from 'exception-tree'
-import { SchemaObject } from '../definition-validator'
-import { EnforcerComponent, ExtensionData, generateComponent, normalizeOptions, FactoryResult } from '../components'
+import { SchemaObject, ValidatorFactory } from '../definition-validator'
+import { EnforcerComponent, ExtensionData } from '../components'
 
 describe.only('definition validator', () => {
   describe('common', function () {
     describe('after', function () {
       it('will have a built object', function () {
         let built
-        const C = define('C', {
-          type: 'object',
-          after (data) {
-            built = data.built
+        const C = define(() => {
+          return {
+            type: 'object',
+            allowsSchemaExtensions: false,
+            after (data) {
+              built = data.built
+            }
           }
         })
         C.validate({})
@@ -20,11 +23,14 @@ describe.only('definition validator', () => {
       })
 
       it('can add errors and warnings', function () {
-        const C = define('C', {
-          type: 'object',
-          after ({ error, warning }) {
-            error.message('foo')
-            warning.message('bar')
+        const C = define(() => {
+          return {
+            type: 'object',
+            allowsSchemaExtensions: false,
+            after ({ error, warning }) {
+              error.message('foo')
+              warning.message('bar')
+            }
           }
         })
         const [value, error, warning] = C.validate({})
@@ -36,17 +42,20 @@ describe.only('definition validator', () => {
 
     describe('allowed', function () {
       it('schema can be explicitly allowed', function () {
-        const C = define('C', {
-          type: 'object',
-          properties: [
-            {
-              name: 'foo',
-              allowed: () => true,
-              schema: {
-                type: 'string'
+        const C = define(() => {
+          return {
+            type: 'object',
+            allowsSchemaExtensions: false,
+            properties: [
+              {
+                name: 'foo',
+                allowed: () => true,
+                schema: {
+                  type: 'string'
+                }
               }
-            }
-          ]
+            ]
+          }
         })
 
         const [value, error, warning] = C.validate({ foo: 'bar' })
@@ -56,17 +65,20 @@ describe.only('definition validator', () => {
       })
 
       it('schema can be explicitly disallowed', function () {
-        const C = define('C', {
-          type: 'object',
-          properties: [
-            {
-              name: 'foo',
-              allowed: () => false,
-              schema: {
-                type: 'string'
+        const C = define(() => {
+          return {
+            type: 'object',
+            allowsSchemaExtensions: false,
+            properties: [
+              {
+                name: 'foo',
+                allowed: () => false,
+                schema: {
+                  type: 'string'
+                }
               }
-            }
-          ]
+            ]
+          }
         })
 
         const [value, error, warning] = C.validate({ foo: 'bar' })
@@ -79,11 +91,14 @@ describe.only('definition validator', () => {
     describe('before', function () {
       it('will not have a built object', function () {
         let built
-        const C = define('C', {
-          type: 'object',
-          before (data) {
-            built = data.built
-            return true
+        const C = define(() => {
+          return {
+            type: 'object',
+            allowsSchemaExtensions: false,
+            before (data) {
+              built = data.built
+              return true
+            }
           }
         })
         C.validate({ foo: 1 })
@@ -91,12 +106,15 @@ describe.only('definition validator', () => {
       })
 
       it('will continue validating if before returns true', function () {
-        const C = define('C', {
-          type: 'object',
-          before () { return true },
-          properties: [
-            { name: 'foo', schema: { type: 'string' } }
-          ]
+        const C = define(() => {
+          return {
+            type: 'object',
+            allowsSchemaExtensions: false,
+            before () { return true },
+            properties: [
+              { name: 'foo', schema: { type: 'string' } }
+            ]
+          }
         })
         const [value, error, warning] = C.validate({ foo: 1 })
         expect(value).to.be.undefined
@@ -105,12 +123,15 @@ describe.only('definition validator', () => {
       })
 
       it('will not continue validating if before returns false', function () {
-        const C = define('C', {
-          type: 'object',
-          before () { return false },
-          properties: [
-            { name: 'foo', schema: { type: 'string' } }
-          ]
+        const C = define(() => {
+          return {
+            type: 'object',
+            allowsSchemaExtensions: false,
+            before () { return false },
+            properties: [
+              { name: 'foo', schema: { type: 'string' } }
+            ]
+          }
         })
         const [value, error, warning] = C.validate({ foo: 1 })
         expect(value).to.be.undefined
@@ -119,12 +140,15 @@ describe.only('definition validator', () => {
       })
 
       it('can add errors and warnings', function () {
-        const C = define('C', {
-          type: 'object',
-          before ({ error, warning }) {
-            error.message('foo')
-            warning.message('bar')
-            return true
+        const C = define(() => {
+          return {
+            type: 'object',
+            allowsSchemaExtensions: false,
+            before ({ error, warning }) {
+              error.message('foo')
+              warning.message('bar')
+              return true
+            }
           }
         })
         const [value, error, warning] = C.validate({ foo: 1 })
@@ -136,17 +160,20 @@ describe.only('definition validator', () => {
 
     describe('default', function () {
       it('will set default if value not provided', function () {
-        const C = define('C', {
-          type: 'object',
-          properties: [
-            {
-              name: 'foo',
-              schema: {
-                type: 'string',
-                default () { return 'foo' }
+        const C = define(() => {
+          return {
+            type: 'object',
+            allowsSchemaExtensions: false,
+            properties: [
+              {
+                name: 'foo',
+                schema: {
+                  type: 'string',
+                  default () { return 'foo' }
+                }
               }
-            }
-          ]
+            ]
+          }
         })
         const [value, error, warning] = C.validate({})
         expect(value).to.deep.equal({ foo: 'foo' })
@@ -155,17 +182,20 @@ describe.only('definition validator', () => {
       })
 
       it('will not set default if value is provided', function () {
-        const C = define('C', {
-          type: 'object',
-          properties: [
-            {
-              name: 'foo',
-              schema: {
-                type: 'string',
-                default () { return 'foo' }
+        const C = define(() => {
+          return {
+            type: 'object',
+            allowsSchemaExtensions: false,
+            properties: [
+              {
+                name: 'foo',
+                schema: {
+                  type: 'string',
+                  default () { return 'foo' }
+                }
               }
-            }
-          ]
+            ]
+          }
         })
         const [value, error, warning] = C.validate({ foo: 'bar' })
         expect(value).to.deep.equal({ foo: 'bar' })
@@ -174,17 +204,20 @@ describe.only('definition validator', () => {
       })
 
       it('will not alter definition input', function () {
-        const C = define('C', {
-          type: 'object',
-          properties: [
-            {
-              name: 'foo',
-              schema: {
-                type: 'string',
-                default () { return 'foo' }
+        const C = define(() => {
+          return {
+            type: 'object',
+            allowsSchemaExtensions: false,
+            properties: [
+              {
+                name: 'foo',
+                schema: {
+                  type: 'string',
+                  default () { return 'foo' }
+                }
               }
-            }
-          ]
+            ]
+          }
         })
         const def = {}
         const [value] = C.validate(def)
@@ -613,26 +646,22 @@ describe.only('definition validator', () => {
   })
 })
 
-function define<Definition, Built> (name: string, schema: SchemaObject<Definition, Built>, components = {}): EnforcerComponent<Definition, Built> {
+function define<Definition, Built> (validator: ValidatorFactory<Definition, Built>): EnforcerComponent<Definition, Built> {
   class Test extends EnforcerComponent<Definition, Built> {
     readonly [x: string]: any
 
     // constructor (definition: Definition) {
     //   super(definition)
     // }
-  }
 
-  function factory (): FactoryResult<Definition, Built> {
-    return {
-      component: Test,
-      // @ts-expect-error
-      schema: () => schema
+    public static get validator () {
+      return validator
+    }
+
+    public static get versions () {
+      return versions
     }
   }
-
-  const options = normalizeOptions()
-  // @ts-expect-error
-  generateComponent(name, components, factory, options)
 
   return Test
 }

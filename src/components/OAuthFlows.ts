@@ -1,5 +1,7 @@
-import { EnforcerComponent, FactoryResult, Statics, v3 } from './'
-import { SchemaObject } from '../definition-validator'
+import { ComponentDefinition } from '../component-registry'
+import { EnforcerComponent, Statics } from './'
+import { Data, SchemaObject } from '../definition-validator'
+import * as OAuthFlow from './OAuthFlow'
 
 export interface Class extends Statics<Definition, Object> {
   new (definition: Definition): Object
@@ -21,63 +23,68 @@ export interface Object {
   tokenUrl?: string
 }
 
-export function Factory (): FactoryResult<Definition, Object> {
-  class OAuthFlows extends EnforcerComponent<Definition, Object> implements Object {
-    readonly [extension: string]: any
-    readonly authorizationUrl?: string
-    readonly refreshUrl?: string
-    readonly scopes: string[]
-    readonly tokenUrl?: string
+export const versions = Object.freeze({
+  '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#oauth-flows-object',
+  '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#oauth-flows-object',
+  '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#oauth-flows-object',
+  '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#oauth-flows-object'
+})
 
-    // constructor (definition: Definition) {
-    //   super(definition)
-    // }
-  }
+export const Component = class OAuthFlows extends EnforcerComponent<Definition, Object> implements Object {
+  readonly [extension: string]: any
+  readonly authorizationUrl?: string
+  readonly refreshUrl?: string
+  readonly scopes: string[]
+  readonly tokenUrl?: string
 
+  // constructor (definition: Definition) {
+  //   super(definition)
+  // }
+}
+
+export function validator (data: Data<Definition, Object>): SchemaObject {
   return {
-    name: 'OAuthFlows',
-    alertCodes: {},
-    component: OAuthFlows,
-    validator: function (data): SchemaObject {
-      const components = data.components as v3
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: [
-          {
-            name: 'authorizationCode',
-            schema: {
-              type: 'component',
-              allowsRef: false,
-              component: components.OAuthFlow
-            }
-          },
-          {
-            name: 'clientCredentials',
-            schema: {
-              type: 'component',
-              allowsRef: false,
-              component: components.OAuthFlow
-            }
-          },
-          {
-            name: 'implicit',
-            schema: {
-              type: 'component',
-              allowsRef: false,
-              component: components.OAuthFlow
-            }
-          },
-          {
-            name: 'password',
-            schema: {
-              type: 'component',
-              allowsRef: false,
-              component: components.OAuthFlow
-            }
-          }
-        ]
+    type: 'object',
+    allowsSchemaExtensions: true,
+    properties: [
+      {
+        name: 'authorizationCode',
+        schema: {
+          type: 'component',
+          allowsRef: false,
+          component: OAuthFlow.Component
+        }
+      },
+      {
+        name: 'clientCredentials',
+        schema: {
+          type: 'component',
+          allowsRef: false,
+          component: OAuthFlow.Component
+        }
+      },
+      {
+        name: 'implicit',
+        schema: {
+          type: 'component',
+          allowsRef: false,
+          component: OAuthFlow.Component
+        }
+      },
+      {
+        name: 'password',
+        schema: {
+          type: 'component',
+          allowsRef: false,
+          component: OAuthFlow.Component
+        }
       }
-    }
+    ]
   }
+}
+
+export const register: ComponentDefinition = {
+  component: Component,
+  validator,
+  versions
 }

@@ -1,4 +1,6 @@
-import { generateComponents, normalizeOptions, ComponentOptions, v2 as Iv2, v3 as Iv3 } from './components'
+import { v2, v3 } from './components'
+import * as Version from './component-registry'
+
 import { Exception } from 'exception-tree'
 import * as Callback from './components/Callback'
 import * as Components from './components/Components'
@@ -14,49 +16,103 @@ import * as MediaType from './components/MediaType'
 import * as OAuthFlow from './components/OAuthFlow'
 import * as OAuthFlows from './components/OAuthFlows'
 import * as OpenAPI from './components/OpenAPI'
-// import * as Operation from './components/Operation'
-// import * as Parameter from './components/Parameter'
+import * as Operation from './components/Operation'
+import * as Parameter from './components/Parameter'
 import * as PathItem from './components/PathItem'
-// import * as Paths from './components/Paths'
-// import * as RequestBody from './components/RequestBody'
-// import * as Response from './components/Response'
-// import * as Responses from './components/Responses'
+import * as Paths from './components/Paths'
+import * as RequestBody from './components/RequestBody'
+import * as Response from './components/Response'
+import * as Responses from './components/Responses'
 import * as Schema from './components/Schema'
-// import * as SecurityRequirement from './components/SecurityRequirement'
-// import * as SecurityScheme from './components/SecurityScheme'
-// import * as Swagger from './components/Swagger'
+import * as SecurityRequirement from './components/SecurityRequirement'
+import * as SecurityScheme from './components/SecurityScheme'
+import * as Swagger from './components/Swagger'
 import * as Server from './components/Server'
 import * as ServerVariable from './components/ServerVariable'
-// import * as Tag from './components/Tag'
+import * as Tag from './components/Tag'
 import * as Xml from './components/Xml'
 
-interface EnforcerFactoryResult {
-  validate: (definition: object) => Exception
-  v2: Iv2
-  v3: Iv3
+interface Options {
+  dereference: boolean
+  validate: boolean
 }
 
-export function OpenAPIEnforcer (options?: ComponentOptions): EnforcerFactoryResult {
-  const opts = normalizeOptions(options)
-  const v2 = generateComponents(2, opts) as Iv2
-  const v3 = generateComponents(3, opts) as Iv3
+const processed: WeakMap<object, { dereferenced: boolean, validated: boolean }> = new WeakMap()
 
-  return {
-    validate (definition: object): Exception {
-      if ('swagger' in definition) {
-        return v2.Swagger.validate(definition)
-      } else {
-        return v3.OpenAPI.validate(definition)
-      }
-    },
-    v2,
-    v3
+export async function build (definition: string | object): Promise<Swagger.Object | OpenAPI.Object> {
+  // make sure we've loaded the definition
+  let def: object = typeof definition === 'string' 
+    ? await load(definition, { dereference: true, validate: true })
+    : definition
+  
+  // make sure the definition is dereference and validated
+  // TODO: rethink this logic
+  const status = processed.get(def)
+  if (!status) {
+    await dereference(def)
+    def = await validate(def)
+  } else if (!status.dereferenced) {
+    throw Error('Unable to build a')
+  }
+  } else if (!status.validated) {
+    def = await validate(def)
+  }
+
+  if ('swagger' in def) {
+    const { Swagger } = components(def.swagger)
+    return new Swagger(def)
+
+  } else if ('openapi' in def) {
+    const { OpenAPI } = components(def.openapi)
+    return new OpenAPI(def)
+
+  } else {
+    throw Error('Invalid definition. Unable to find property "openapi" or "swagger" at the root of the document.')
   }
 }
 
-// TODO: implement load - load a path with optional dereferencing
-export async function load (path: string): Promise<any> {
+/**
+ * Get an object containing all components
+ * @param version OpenAPI specification version number for the components to be retrieved.
+ * @returns 
+ */
+export function components (version: Version.Number): v2 | v3 {
+  switch (version) {
+    case '2.0': return Version.components(version) as v2
+    case '3.0.0':
+    case '3.0.1':
+    case '3.0.2':
+    case '3.0.3': return Version.components(version) as v3
+    default:
+      throw Error('Invalid version specified: ' + version)
+  }
+}
+
+// TODO: set global configuration
+export function config (config: any) {
+
+}
+
+// dereference
+export async function dereference (definition: object): Promise<any> {
+  const status = processed.get(definition)
+
+  // TODO: dereference
+  const dereferencedObject = {}
+  
+  processed.set(dereferencedObject, { dereferenced: true })
   return true
+}
+
+// load and dereference
+export async function load (path: string, options?: { dereference: boolean, validate: boolean }): Promise<any> {
+  // TODO: load path and then deference
+  return true
+}
+
+// requires an openapi document base - returns a valid frozen object
+export async function validate (definition: object) {
+
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace

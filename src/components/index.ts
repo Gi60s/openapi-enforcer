@@ -1,3 +1,4 @@
+import { getAlert } from '../Exception/config'
 import * as Callback from './Callback'
 import * as Components from './Components'
 import * as Contact from './Contact'
@@ -35,19 +36,9 @@ import Result from 'result-value-exception'
 import * as Validator from '../definition-validator'
 import { smart } from '../util'
 import { BuildMapper } from '../BuildMapper'
-import { SchemaObject } from '../definition-validator'
+import * as Version from '../component-registry'
 
 const ComponentMapper: WeakMap<EnforcerComponent<any, any>, ComponentMapItem<any, any>> = new WeakMap()
-const defaultRequestBodyAllowedMethods = {
-  get: false,
-  post: true,
-  put: true,
-  delete: false,
-  options: true,
-  head: true,
-  patch: true,
-  trace: false
-}
 
 export type AnyComponent =
   Callback.Class |
@@ -67,7 +58,7 @@ export type AnyComponent =
   OAuthFlows.Class |
   // OpenAPI.Class |
   Operation.Class |
-  Parameter.Class |
+  Parameter.Class<Parameter.Definition, Parameter.Object> |
   PathItem.Class |
   // Paths.Class |
   // RequestBody.Class |
@@ -122,7 +113,7 @@ export interface v3 {
   OAuthFlows: OAuthFlows.Class
   OpenAPI: OpenAPI.Class
   Operation: Operation.Class
-  // Parameter: Parameter.Class
+  Parameter: Parameter.Class<Parameter.Definition3, Parameter.Object3>
   PathItem: PathItem.Class
   // Paths: Paths.Class
   // RequestBody: RequestBody.Class
@@ -137,12 +128,7 @@ export interface v3 {
   Xml: Xml.Class
 }
 
-export interface ComponentFactoryData {
-  name: string
-  components: v2 | v3
-}
-
-interface ComponentMapItem<Definition, Built> {
+export interface ComponentMapItem<Definition, Built> {
   builder: {
     component: AnyComponent
     extensions: Array<ExtensionFunction<Definition, Built>>
@@ -152,7 +138,12 @@ interface ComponentMapItem<Definition, Built> {
     extensions: Array<ExtensionFunction<Definition, Built>>
     validator: DefinitionValidatorFactory<Definition, Built>
   }
+  name: string
   options: ComponentOptionsFixed
+  reference: {
+    [version: string]: string
+  }
+  version: Version.Details
 }
 
 export interface ComponentOptions {
@@ -202,15 +193,6 @@ export interface ExtensionData<Definition, Built> {
 
 type ExtensionFunction<Definition, Built> = (data: ExtensionData<Definition, Built>) => undefined
 
-export interface FactoryResult<Definition, Built> {
-  name: string,
-  alertCodes: {
-    [code: number]: string
-  },
-  component: AnyComponent
-  validator: DefinitionValidatorFactory<Definition, Built>
-}
-
 type DefinitionValidatorFactory<Definition, Built> = (data: Validator.Data<Definition, Built>) => Validator.SchemaObject
 
 export interface Statics<Definition, Built> {
@@ -248,6 +230,7 @@ export class EnforcerComponent<Definition, Built> {
     return undefined
   }
 
+
   static validate<Definition, Built> (definition: Definition): Result<Built> {
     const data = initializeValidatorData<Definition, Built>(this, definition,
       'Invalid ' + this.name + ' definition',
@@ -255,145 +238,26 @@ export class EnforcerComponent<Definition, Built> {
     Validator.validateDefinition(data)
     return new Result(data.built, data.error, data.warning)
   }
-}
 
-export function generateComponents (version: 2 | 3, options: ComponentOptionsFixed): v2 | v3 {
-  if (version === 2) {
-    // @ts-expect-error
-    const v2: v2 = {}
-    generateComponent('Contact', v2, Contact.Factory, options)
-    generateComponent('Contact', v2, Contact.Factory, options)
-    generateComponent('ExternalDocumentation', v2, ExternalDocumentation.Factory, options)
-    generateComponent('Header', v2, Header.Factory, options)
-    generateComponent('Info', v2, Info.Factory, options)
-    generateComponent('Item', v2, Item.Factory, options)
-    generateComponent('PathItem', v2, PathItem.Factory, options)
-    generateComponent('License', v2, License.Factory, options)
-    // generateComponent('Operation', v2, Operation.Factory, options)
-    generateComponent('Parameter', v2, Parameter.Factory2, options)
-    generateComponent('PathItem', v2, PathItem.Factory, options)
-    // generateComponent('Paths', v2,Paths.Factory, options)
-    // generateComponent('Response', v2, Response.Factory, options)
-    // generateComponent('Responses', v2, Responses.Factory, options)
-    generateComponent('Schema', v2, Schema.Factory2, options)
-    // generateComponent('SecurityRequirement', v2, SecurityRequirement.Factory, options)
-    // generateComponent('SecurityScheme', v2, SecurityScheme.Factory, options)
-    // generateComponent('Swagger', v2, Swagger.Factory, options)
-    // generateComponent('Tag', v2, Tag.Factory, options)
-    generateComponent('Xml', v2, Xml.Factory, options)
-    return v2
-  } else if (version === 3) {
-    // @ts-expect-error
-    const v3: Iv3 = {}
-    generateComponent('Callback', v3, Callback.Factory, options)
-    generateComponent('Contact', v3, Contact.Factory, options)
-    generateComponent('Components', v3, Components.Factory, options)
-    generateComponent('Encoding', v3, Encoding.Factory, options)
-    generateComponent('Example', v3, Example.Factory, options)
-    generateComponent('ExternalDocumentation', v3, ExternalDocumentation.Factory, options)
-    generateComponent('Header', v3, Header.Factory, options)
-    generateComponent('Info', v3, Info.Factory, options)
-    generateComponent('PathItem', v3, PathItem.Factory, options)
-    generateComponent('License', v3, License.Factory, options)
-    generateComponent('Link', v3, Link.Factory, options)
-    // generateComponent('MediaType', v3, MediaType.Factory, options)
-    // generateComponent('OAuthFlow', v3, OAuthFlow.Factory, options)
-    // generateComponent('OAuthFlows', v3, OAuthFlows.Factory, options)
-    // generateComponent('OpenAPI', v3, OpenAPI.Factory, options)
-    // generateComponent('Operation', v3, Operation.Factory, options)
-    generateComponent('Parameter', v3, Parameter.Factory3, options)
-    generateComponent('PathItem', v3, PathItem.Factory, options)
-    // generateComponent('Paths', v3, Paths.Factory, options)
-    // generateComponent('RequestBody', v3, RequestBody.Factory, options)
-    // generateComponent('Response', v3, Response.Factory, options)
-    // generateComponent('Responses', v3, Responses.Factory, options)
-    generateComponent('Schema', v3, Schema.Factory3, options)
-    // generateComponent('SecurityRequirement', v3, SecurityRequirement.Factory, options)
-    // generateComponent('SecurityScheme', v3, SecurityScheme.Factory, options)
-    generateComponent('Server', v3, Server.Factory, options)
-    generateComponent('ServerVariable', v3, ServerVariable.Factory, options)
-    // generateComponent('Tag', v3, Tag.Factory, options)
-    generateComponent('Xml', v3, Xml.Factory, options)
-    return v3
-  } else {
-    throw Error('Invalid version specified')
+  static get versions (): Version.Reference {
+    return {}
   }
 }
 
-export function generateComponent<Definition, Built> (name: string, components: v2 | v3, factory: (data: ComponentFactoryData) => FactoryResult<Definition, Built>, options: ComponentOptionsFixed): AnyComponent {
-  const { component, validator } = factory({ name, components })
-  // @ts-expect-error
-  components[name] = component
-  ComponentMapper.set(component, {
-    builder: {
-      component,
-      extensions: []
-    },
-    components: components,
-    definition: {
-      extensions: [],
-      validator
-    },
-    options
-  })
-  return component
-}
-
-export function getComponentData<Definition, Built> (component: EnforcerComponent<Definition, Built>): ComponentMapItem<Definition, Built> {
-  const data = ComponentMapper.get(component)
-  if (data === undefined) throw Error('Invalid component context')
-  return data
-}
-
-export function getComponentSchema<Definition, Built> (component: EnforcerComponent<Definition, Built>, data: Validator.Data<Definition, Built>): SchemaObject {
-  const found = ComponentMapper.get(component)
-  if (found === undefined) throw Error('Invalid component context')
-  return found.definition.validator(data)
-}
-
-export function normalizeOptions (options?: ComponentOptions): ComponentOptionsFixed {
-  // normalize options
-  if (options === undefined) options = {}
-  if (typeof options !== 'object' || options === null) throw Error('Invalid configuration options specified.')
-  if (!('disablePathNormalization' in options)) options.disablePathNormalization = false
-  if (!('exceptions' in options)) options.exceptions = {}
-  if (!('requestBodyAllowedMethods' in options)) options.requestBodyAllowedMethods = {}
-  options.requestBodyAllowedMethods = Object.assign({}, defaultRequestBodyAllowedMethods, options.requestBodyAllowedMethods)
-
-  return options as ComponentOptionsFixed
-}
-
 function initializeValidatorData<Definition, Built> (component: EnforcerComponent<Definition, Built>, definition: Definition, errorHeading: string, warningHeading: string): Validator.Data<Definition, Built> {
-  const { components, options } = getComponentData(component)
+  const { components, name, options, reference, version } = getComponentData(component)
 
   // build data object
   const data: Validator.Data<Definition, Built> = {
     // unchanging values
-    /*
-     * Which mode should you choose when specifying an alert:
-     *
-     * Is the alert critical (systems cannot continue) -> 'error'
-     * Is the alert a MUST (or MUST NOT) from the OpenAPI spec -> 'error'
-     * Everything else -> 'warn'
-     *
-     * An "error" cannot be downgraded to warn or ignore, but a warning or ignore can be moved to "error" or "ignore"
-     */
-    alert (mode: ExceptionMode, code: string, message: string): undefined {
-      if (mode !== 'error' && code in options.exceptions) mode = options.exceptions[code]
-      switch (mode) {
-        case 'error':
-          data.error.message(message, code)
-          break
-        case 'warn':
-          data.warning.message(message, code)
-          break
-      }
-      return undefined
-    },
     components,
     map: BuildMapper(),
     metadata: {},
     options,
+
+    // changing per component values
+    component,
+    reference: reference[version.name],
 
     // changing values
     built: undefined,
@@ -406,7 +270,11 @@ function initializeValidatorData<Definition, Built> (component: EnforcerComponen
       allowsRef: true,
       component: component as AnyComponent
     },
+    version,
     warning: new Exception(warningHeading)
   }
+
+  if (!data.reference) throw Error('Component "' + name + '" not supported for specification version ' + version.name)
+
   return data
 }

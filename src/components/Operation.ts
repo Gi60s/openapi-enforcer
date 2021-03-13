@@ -1,5 +1,6 @@
-import * as Validator from '../definition-validator'
-import { EnforcerComponent, FactoryResult, Statics, v2, v3 } from './'
+import { ComponentDefinition } from '../component-registry'
+import { Data, SchemaObject } from '../definition-validator'
+import { EnforcerComponent, Statics } from './'
 import * as Callback from './Callback'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import * as Parameter from './Parameter'
@@ -54,195 +55,203 @@ export interface Object {
   tags?: string[]
 }
 
-export function Factory (): FactoryResult<Definition, Object> {
-  class Operation extends EnforcerComponent<Definition, Object> implements Object {
-    readonly callbacks?: { [key: string]: Callback.Object } // v3
-    readonly consumes?: string[] // v2
-    readonly deprecated?: boolean
-    readonly description?: string
-    readonly externalDocs?: ExternalDocumentation.Object
-    readonly operationId?: string
-    readonly parameters?: Parameter.Object[]
-    readonly produces?: string[] // v2
-    readonly requestBody?: RequestBody.Object // v3
-    readonly responses: Responses.Object
-    readonly schemes?: string[] // v2
-    readonly security?: SecurityRequirement.Object[]
-    readonly servers?: Server.Object[] // v3
-    readonly summary?: string
-    readonly tags?: string[]
+export const versions = Object.freeze({
+  '2.0': 'http://spec.openapis.org/oas/v2.0#operation-object',
+  '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#operation-object',
+  '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#operation-object',
+  '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#operation-object',
+  '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#operation-object'
+})
 
-    // constructor (definition: Definition) {
-    //   super(definition)
-    // }
-  }
+export const Component = class Operation extends EnforcerComponent<Definition, Object> implements Object {
+  readonly callbacks?: { [key: string]: Callback.Object } // v3
+  readonly consumes?: string[] // v2
+  readonly deprecated?: boolean
+  readonly description?: string
+  readonly externalDocs?: ExternalDocumentation.Object
+  readonly operationId?: string
+  readonly parameters?: Parameter.Object[]
+  readonly produces?: string[] // v2
+  readonly requestBody?: RequestBody.Object // v3
+  readonly responses: Responses.Object
+  readonly schemes?: string[] // v2
+  readonly security?: SecurityRequirement.Object[]
+  readonly servers?: Server.Object[] // v3
+  readonly summary?: string
+  readonly tags?: string[]
+
+  // constructor (definition: Definition) {
+  //   super(definition)
+  // }
+}
+
+export function validator (data: Data<Definition, Object>): SchemaObject {
+  const { components, options, key: method } = data
 
   return {
-    name: 'Operation',
-    alertCodes: {},
-    component: Operation,
-    validator: function (data): Validator.SchemaObject {
-      const { components, options, key } = data
-      const { major } = components
-      const V3 = major === '3'
-      function isV2 (): boolean { return !V3 }
-      function isV3 (): boolean { return V3 }
-
-      return {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: [
-          {
-            name: 'callbacks',
-            allowed: isV3,
-            schema: {
-              type: 'object',
-              allowsSchemaExtensions: false,
-              additionalProperties: {
-                type: 'component',
-                allowsRef: true,
-                component: (components as v3).Callback
-              }
-            }
-          },
-          {
-            name: 'consumes',
-            allowed: isV2,
-            schema: {
-              type: 'array',
-              items: {
-                type: 'string'
-              }
-            }
-          },
-          {
-            name: 'deprecated',
-            schema: {
-              type: 'boolean',
-              default: () => false
-            }
-          },
-          {
-            name: 'description',
-            schema: { type: 'string' }
-          },
-          {
-            name: 'externalDocs',
-            schema: {
-              type: 'component',
-              allowsRef: false,
-              component: components.ExternalDocumentation
-            }
-          },
-          {
-            name: 'operationId',
-            schema: {
-              type: 'string',
-              after ({ alert, definition, metadata }) {
-                if (metadata.operationIdMap === undefined) metadata.operationIdMap = {}
-                if (metadata.operationIdMap[definition] !== undefined) {
-                  alert('error', 'OPR001', 'The operationId must be unique.')
-                } else {
-                  metadata.operationIdMap[definition] = data
-                }
-              }
-            }
-          },
-          {
-            name: 'parameters',
-            schema: {
-              type: 'array',
-              items: {
-                type: 'component',
-                allowsRef: true,
-                component: components.Parameter
-              }
-            }
-          },
-          {
-            name: 'produces',
-            allowed: isV2,
-            schema: {
-              type: 'array',
-              items: {
-                type: 'string'
-              }
-            }
-          },
-          {
-            name: 'requestBody',
-            allowed: isV3,
-            schema: {
-              type: 'component',
-              allowsRef: true,
-              before: ({ alert }) => {
-                // TODO: test that I'm getting the correct key here
-                // @ts-expect-error
-                if (options.requestBodyAllowedMethods[key] !== true) {
-                  alert('error', 'OPR002', 'Request body is not allowed for method: ' + key)
-                  return false
-                }
-                return true
-              },
-              component: (components as v3).RequestBody
-            }
-          },
-          {
-            name: 'responses',
-            schema: {
-              type: 'component',
-              allowsRef: false,
-              component: components.Responses
-            }
-          },
-          {
-            name: 'schemes',
-            allowed: isV2,
-            schema: {
-              type: 'string',
-              enum: () => ['http', 'https', 'ws', 'wss']
-            }
-          },
-          {
-            name: 'security',
-            schema: {
-              type: 'component',
-              allowsRef: false,
-              component: components.SecurityRequirement
-            }
-          },
-          {
-            name: 'servers',
-            allowed: isV3,
-            schema: {
-              type: 'array',
-              items: {
-                type: 'component',
-                allowsRef: false,
-                component: (components as v3).Server
-              }
-            }
-          },
-          {
-            name: 'summary',
-            schema: {
-              type: 'string',
-              after ({ alert, definition }) {
-                if (definition.length >= 120) {
-                  alert('warn', 'OPR003', 'Summary should be less than 120 characters.')
-                }
-              }
-            }
-          },
-          {
-            name: 'tags',
-            schema: {
-              type: 'array',
-              items: { type: 'string' }
+    type: 'object',
+    allowsSchemaExtensions: true,
+    properties: [
+      {
+        name: 'callbacks',
+        versions: ['3.x.x'],
+        schema: {
+          type: 'object',
+          allowsSchemaExtensions: false,
+          additionalProperties: {
+            type: 'component',
+            allowsRef: true,
+            component: Callback.Component
+          }
+        }
+      },
+      {
+        name: 'consumes',
+        versions: ['2.x'],
+        schema: {
+          type: 'array',
+          items: {
+            type: 'string'
+          }
+        }
+      },
+      {
+        name: 'deprecated',
+        schema: {
+          type: 'boolean',
+          default: () => false
+        }
+      },
+      {
+        name: 'description',
+        schema: { type: 'string' }
+      },
+      {
+        name: 'externalDocs',
+        schema: {
+          type: 'component',
+          allowsRef: false,
+          component: ExternalDocumentation.Component
+        }
+      },
+      {
+        name: 'operationId',
+        schema: {
+          type: 'string',
+          after ({ alert, definition, metadata }) {
+            if (metadata.operationIdMap === undefined) metadata.operationIdMap = {}
+            if (metadata.operationIdMap[definition] !== undefined) {
+              alert('error', 'OPR001', 'The operationId must be unique.')
+            } else {
+              metadata.operationIdMap[definition] = data
             }
           }
-        ]
+        }
+      },
+      {
+        name: 'parameters',
+        schema: {
+          type: 'array',
+          items: {
+            type: 'component',
+            allowsRef: true,
+            component: Parameter.Component
+          }
+        }
+      },
+      {
+        name: 'produces',
+        versions: ['2.x'],
+        schema: {
+          type: 'array',
+          items: {
+            type: 'string'
+          }
+        }
+      },
+      {
+        name: 'requestBody',
+        versions: ['3.x.x'],
+        schema: {
+          type: 'component',
+          allowsRef: true,
+          before: ({ exception }) => {
+            switch (method.toLowerCase()) {
+              case 'get':
+                exception.message('OPRBDY', 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET')
+                break
+              case 'delete':
+                exception.message('OPRBDY', 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE')
+                break
+              case 'trace':
+                exception.message('OPRBDY', 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/TRACE')
+                break
+            }
+            return true
+          },
+          component: RequestBody.Component
+        }
+      },
+      {
+        name: 'responses',
+        schema: {
+          type: 'component',
+          allowsRef: false,
+          component: Responses.Component
+        }
+      },
+      {
+        name: 'schemes',
+        versions: ['2.x'],
+        schema: {
+          type: 'string',
+          enum: () => ['http', 'https', 'ws', 'wss']
+        }
+      },
+      {
+        name: 'security',
+        schema: {
+          type: 'component',
+          allowsRef: false,
+          component: SecurityRequirement.Component
+        }
+      },
+      {
+        name: 'servers',
+        versions: ['3.x.x'],
+        schema: {
+          type: 'array',
+          items: {
+            type: 'component',
+            allowsRef: false,
+            component: Server.Component
+          }
+        }
+      },
+      {
+        name: 'summary',
+        schema: {
+          type: 'string',
+          after ({ alert, definition }) {
+            if (definition.length >= 120) {
+              alert('warn', 'OPR003', 'Summary should be less than 120 characters.')
+            }
+          }
+        }
+      },
+      {
+        name: 'tags',
+        schema: {
+          type: 'array',
+          items: { type: 'string' }
+        }
       }
-    }
+    ]
   }
+}
+
+export const register: ComponentDefinition = {
+  component: Component,
+  validator,
+  versions
 }
