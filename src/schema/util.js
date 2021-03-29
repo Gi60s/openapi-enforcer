@@ -12,7 +12,13 @@ exports.anyOneOf = function (schema, value, exception, map, action, isSerialize,
         const mapCopy = new Map(map);
 
         // if serializing make sure the value validates against this schema before serialize
-        if (isSerialize && subSchema.validate(value)) return;
+        if (isSerialize) {
+            const error = subSchema.validate(value)
+            if (error) {
+                exceptions.push(error)
+                return
+            }
+        }
 
         // serialize or deserialize
         const result = action(childException, mapCopy, subSchema, util.copy(value), options);
