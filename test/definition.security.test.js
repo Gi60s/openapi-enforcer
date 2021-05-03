@@ -52,7 +52,7 @@ describe('security definitions', () => {
         });
     });
 
-    describe.only('v3', () => {
+    describe('v3', () => {
 
         it('openIdConnect can list scopes', () => {
             const def = {
