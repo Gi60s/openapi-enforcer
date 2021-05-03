@@ -52,4 +52,29 @@ describe('security definitions', () => {
         });
     });
 
+    describe.only('v3', () => {
+
+        it('openIdConnect can list scopes', () => {
+            const def = {
+                openapi: '3.0.0',
+                info: { title: '', version: '' },
+                paths: {},
+                components: {
+                    securitySchemes: {
+                        openId: {
+                            type: 'openIdConnect',
+                            openIdConnectUrl: 'https://localhost/.well-known/openid-configuration'
+                        }
+                    }
+                },
+                security: [
+                    { openId: ['read', 'write'] }
+                ]
+            };
+            const [ , err ] = Enforcer.v3_0.OpenApi(def);
+            expect(err).to.be.undefined;
+        });
+    });
+
+
 });

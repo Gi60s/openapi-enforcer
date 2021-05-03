@@ -15,7 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const EnforcerRef  = require('../enforcer-ref');
 
 module.exports = {
     init: function (data) {
@@ -53,6 +52,7 @@ module.exports = {
 
                             // for oauth2 check that all scopes requested are defined
                             if (security) {
+                                // oauth2 requires the scopes to be listed in the security schema
                                 if (security.type === 'oauth2') {
                                     let scopes;
                                     if (major === 2) {
@@ -72,7 +72,8 @@ module.exports = {
                                         }
                                     });
                                 } else {
-                                    if (definition.length > 0) {
+                                    // only oauth2 and openIdConnect can have scopes and we've already accounted for oauth2 in the previous conditional block
+                                    if (definition.length > 0 && security.type !== 'openIdConnect') {
                                         exception.at(key).message('Security requirement for ' + security.type + ' value must be an empty array');
                                     }
                                 }
