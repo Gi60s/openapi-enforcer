@@ -1656,6 +1656,71 @@ describe('definition/schema', () => {
 
         describe('oneOf', () => {
 
+            it('it does not screw up value when deserialize example', () => {
+                const [ schema, err, warn ] = Enforcer.v3_0.Schema({
+                    type: 'object',
+                    required: ['f'],
+                    properties: {
+                        'f': {
+                            type: 'array',
+                            items: {
+                                oneOf: [
+                                    {
+                                        type: 'object',
+                                        required: ['n', 'n1', 'v'],
+                                        properties: {
+                                            n: {
+                                                type: 'string',
+                                                enum: ['f1']
+                                            },
+                                            n1: {
+                                                type: 'string',
+                                            },
+                                            v: {
+                                                type: 'array',
+                                                items: {
+                                                    type: 'string'
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        type: 'object',
+                                        required: ['n', 'n1', 'v'],
+                                        properties: {
+                                            n: {
+                                                type: 'string',
+                                                enum: ['f2']
+                                            },
+                                            n1: {
+                                                type: 'number',
+                                            },
+                                            v: {
+                                                type: 'array',
+                                                items: {
+                                                    type: 'boolean'
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    example: {
+                        'f': [
+                            {
+                                n: 'f1',
+                                n1: "sdfs",
+                                v: ['one', 'two']
+                            }
+                        ]
+                    }
+                });
+                expect(err).to.be.undefined;
+                expect(warn).to.be.undefined;
+            });
+
             it('is not allowed for v2', () => {
                 const [ , err ] = Enforcer.v2_0.Schema({ oneOf: [] });
                 expect(err).to.match(/Property not allowed: oneOf/);
