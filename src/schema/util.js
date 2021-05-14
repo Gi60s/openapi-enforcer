@@ -1,9 +1,11 @@
 const Exception = require('../exception');
 const util      = require('../util');
+const SchemaValue = require('./value')
 
 const m1 = 'Unable to determine deserialization schema because too many schemas match. Use of a discriminator or making your schemas more specific would help this problem.'
 
 exports.anyOneOf = function (schema, value, exception, map, action, isSerialize, options) {
+    if (value instanceof SchemaValue) value = value.value
     const key = schema.anyOf ? 'anyOf' : 'oneOf';
     const exceptions = [];
     const matches = [];
@@ -30,7 +32,7 @@ exports.anyOneOf = function (schema, value, exception, map, action, isSerialize,
             let score = 1;
             if (subSchema.type === 'object') {
                 const properties = subSchema.properties || {};
-                const keys = Object.keys(value);
+                const keys = Object.keys(result);
                 const length = keys.length;
                 for (let i = 0; i < length; i++) {
                     const key = keys[i];
@@ -43,7 +45,7 @@ exports.anyOneOf = function (schema, value, exception, map, action, isSerialize,
                 }
             }
             if (score > 0 && !isSerialize && subSchema.validate(result)) score = 0;
-            if (score > 0) matches.push({ score, result })
+            if (score > 0) matches.push({ score, result: util.copy(result) })
         }
     });
     if (matches.length > 1) {
