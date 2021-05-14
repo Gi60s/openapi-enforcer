@@ -182,7 +182,6 @@ function runDeserialize(exception, map, schema, originalValue, options) {
             }
         }
 
-    } else {
-        return value;
     }
+    return value;
 }
