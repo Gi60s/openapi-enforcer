@@ -1,180 +1,172 @@
-import { ComponentDefinition } from '../component-registry'
+import { OASComponent, initializeData, Data, SchemaObject, SpecMap, Version, ValidateResult } from './'
+import { yes } from '../util'
 import * as Callback from './Callback'
 import * as Example from './Example'
 import * as Header from './Header'
 import * as Link from './Link'
 import * as Parameter from './Parameter'
+import * as Reference from './Reference'
 import * as RequestBody from './RequestBody'
 import * as Response from './Response'
 import * as Schema from './Schema'
 import * as SecurityScheme from './SecurityScheme'
-import { Data, SchemaObject } from '../definition-validator'
-import { EnforcerComponent, Statics, v3 } from './'
-
-export interface Class extends Statics<Definition, Object> {
-  new (definition: Definition): Object
-}
 
 export interface Definition {
   [extension: string]: any
-  callbacks?: { [key: string]: Callback.Definition }
-  examples?: { [key: string]: Example.Definition }
-  headers?: { [key: string]: Header.Definition }
-  links?: { [key: string]: Link.Definition }
-  parameters?: { [key: string]: Parameter.Definition }
-  requestBodies?: { [key: string]: RequestBody.Definition }
-  responses?: { [key: string]: Response.Definition }
-  schemas?: { [key: string]: Schema.Definition }
-  securitySchemes?: { [key: string]: SecurityScheme.Definition }
+  callbacks?: Record<string, Callback.Definition | Reference.Definition>
+  examples?: Record<string, Example.Definition | Reference.Definition>
+  headers?: Record<string, Header.Definition | Reference.Definition>
+  links?: Record<string, Link.Definition | Reference.Definition>
+  parameters?: Record<string, Parameter.Definition | Reference.Definition>
+  requestBodies?: Record<string, RequestBody.Definition | Reference.Definition>
+  responses?: Record<string, Response.Definition | Reference.Definition>
+  schemas?: Record<string, Schema.Definition | Reference.Definition>
+  securitySchemes?: Record<string, SecurityScheme.Definition | Reference.Definition>
 }
 
-export interface Object {
-  [extension: string]: any
-  readonly callbacks?: { [key: string]: Callback.Object }
-  readonly examples?: { [key: string]: Example.Object }
-  readonly headers?: { [key: string]: Header.Object }
-  readonly links?: { [key: string]: Link.Object }
-  readonly parameters?: { [key: string]: Parameter.Object }
-  readonly requestBodies?: { [key: string]: RequestBody.Object }
-  readonly responses?: { [key: string]: Response.Object }
-  readonly schemas?: { [key: string]: Schema.Object }
-  readonly securitySchemes?: { [key: string]: SecurityScheme.Object }
-}
+export class Components extends OASComponent {
+  readonly [extension: string]: any
+  readonly callbacks?: Record<string, Callback.Callback | Reference.Reference>
+  readonly examples?: Record<string, Example.Example | Reference.Reference>
+  readonly headers?: Record<string, Header.Header | Reference.Reference>
+  readonly links?: Record<string, Link.Link | Reference.Reference>
+  readonly parameters?: Record<string, Parameter.Parameter | Reference.Reference>
+  readonly requestBodies?: Record<string, RequestBody.RequestBody | Reference.Reference>
+  readonly responses?: Record<string, Response.Response | Reference.Reference>
+  readonly schemas?: Record<string, Schema.Schema | Reference.Reference>
+  readonly securitySchemes?: Record<string, SecurityScheme.SecurityScheme | Reference.Reference>
 
-export const versions = Object.freeze({
-  '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#components-object',
-  '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#components-object',
-  '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#components-object',
-  '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#components-object'
-})
-
-export const Component = class Components extends EnforcerComponent<Definition, Object> implements Object {
-  readonly callbacks?: { [key: string]: Callback.Object }
-  readonly examples?: { [key: string]: Example.Object }
-  readonly headers?: { [key: string]: Header.Object }
-  readonly links?: { [key: string]: Link.Object }
-  readonly parameters?: { [key: string]: Parameter.Object }
-  readonly requestBodies?: { [key: string]: RequestBody.Object }
-  readonly responses?: { [key: string]: Response.Object }
-  readonly schemas?: { [key: string]: Schema.Object }
-  readonly securitySchemes?: { [key: string]: SecurityScheme.Object }
-
-  // constructor (definition: Definition) {
-  //   super(definition)
-  // }
-}
-
-export function validator (data: Data<Definition, Object>): SchemaObject {
-  return {
-    type: 'object',
-    allowsSchemaExtensions: true,
-    properties: [
-      {
-        name: 'callbacks',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: Callback.Component
-          }
-        }
-      }, {
-        name: 'examples',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: Example.Component
-          }
-        }
-      }, {
-        name: 'headers',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: Header.Component
-          }
-        }
-      }, {
-        name: 'links',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: Link.Component
-          }
-        }
-      }, {
-        name: 'parameters',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: Parameter.Component
-          }
-        }
-      }, {
-        name: 'requestBodies',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: RequestBody.Component
-          }
-        }
-      }, {
-        name: 'responses',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: Response.Component
-          }
-        }
-      }, {
-        name: 'schemas',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: Schema.Component
-          }
-        }
-      }, {
-        name: 'securitySchemes',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: SecurityScheme.Component
-          }
-        }
-      }
-    ]
+  constructor (definition: Definition, version?: Version) {
+    const data = initializeData('constructing Components object', definition, version, arguments[2])
+    super(data)
   }
-}
 
-export const register: ComponentDefinition = {
-  component: Component,
-  validator,
-  versions
+  static get spec (): SpecMap {
+    return {
+      '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#components-object',
+      '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#components-object',
+      '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#components-object',
+      '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#components-object'
+    }
+  }
+
+  static schemaGenerator (): SchemaObject {
+    return {
+      type: 'object',
+      allowsSchemaExtensions: yes,
+      properties: [
+        {
+          name: 'callbacks',
+          schema: {
+            type: 'object',
+            allowsSchemaExtensions: yes,
+            additionalProperties: {
+              type: 'component',
+              allowsRef: true,
+              component: Callback.Callback
+            }
+          }
+        }, {
+          name: 'examples',
+          schema: {
+            type: 'object',
+            allowsSchemaExtensions: yes,
+            additionalProperties: {
+              type: 'component',
+              allowsRef: true,
+              component: Example.Example
+            }
+          }
+        }, {
+          name: 'headers',
+          schema: {
+            type: 'object',
+            allowsSchemaExtensions: yes,
+            additionalProperties: {
+              type: 'component',
+              allowsRef: true,
+              component: Header.Header
+            }
+          }
+        }, {
+          name: 'links',
+          schema: {
+            type: 'object',
+            allowsSchemaExtensions: yes,
+            additionalProperties: {
+              type: 'component',
+              allowsRef: true,
+              component: Link.Link
+            }
+          }
+        }, {
+          name: 'parameters',
+          schema: {
+            type: 'object',
+            allowsSchemaExtensions: yes,
+            additionalProperties: {
+              type: 'component',
+              allowsRef: true,
+              component: Parameter.Parameter
+            }
+          }
+        }, {
+          name: 'requestBodies',
+          schema: {
+            type: 'object',
+            allowsSchemaExtensions: yes,
+            additionalProperties: {
+              type: 'component',
+              allowsRef: true,
+              component: RequestBody.RequestBody
+            }
+          }
+        }, {
+          name: 'responses',
+          schema: {
+            type: 'object',
+            allowsSchemaExtensions: yes,
+            additionalProperties: {
+              type: 'component',
+              allowsRef: true,
+              component: Response.Response
+            }
+          }
+        }, {
+          name: 'schemas',
+          schema: {
+            type: 'object',
+            allowsSchemaExtensions: yes,
+            additionalProperties: {
+              type: 'component',
+              allowsRef: true,
+              component: Schema.Schema
+            }
+          }
+        }, {
+          name: 'securitySchemes',
+          schema: {
+            type: 'object',
+            allowsSchemaExtensions: yes,
+            additionalProperties: {
+              type: 'component',
+              allowsRef: true,
+              component: SecurityScheme.SecurityScheme,
+              // TODO: put this after function into the Swagger security definitions too
+              // http://spec.openapis.org/oas/v2.0#security-requirement-object
+              after (data: Data) {
+                const { key, metadata } = data
+                if (metadata.securitySchemes === undefined) metadata.securitySchemes = {}
+                metadata.securitySchemes[key] = data
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+
+  static validate (definition: Definition, version?: Version): ValidateResult {
+    return super.validate(definition, version, arguments[2])
+  }
 }

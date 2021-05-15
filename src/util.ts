@@ -1,4 +1,4 @@
-import { Exception } from 'exception-tree'
+import { Exception } from './Exception'
 import rx from './rx'
 
 interface BooleanMap {
@@ -103,6 +103,8 @@ export function isValidDateString (format: 'date' | 'date-time', value: string):
   if (!isNaN(date.getTime())) return false
   const isoDate = format === 'date' ? date.toISOString().substring(0, 10) : date.toISOString()
   const match = rx[format].exec(isoDate)
+  if (match === null) return false
+
   const year = +match[1]
   const month = +match[2] - 1
   const day = +match[3]
@@ -117,6 +119,17 @@ export function isValidDateString (format: 'date' | 'date-time', value: string):
     date.getUTCMinutes() === minute &&
     date.getUTCSeconds() === second &&
     date.getUTCMilliseconds() === millisecond)
+}
+
+export function no (): false {
+  return false
+}
+
+export function noop (): void {}
+
+export function required (isRequired?: any): boolean {
+  if (isRequired === undefined) isRequired = true
+  return isRequired === true
 }
 
 export function round (number: number, decimalPlaces = 0): number {
@@ -164,7 +177,7 @@ export function same (v1: any, v2: any): boolean {
 
 export function semver (version: string): Semver {
   const match = rx.semver.exec(version)
-  return match !== undefined
+  return match !== null
     ? {
       major: +match[1],
       minor: +match[2],
@@ -224,7 +237,7 @@ function toPlainObjectRecursive (value: any, options: ToPlainObjectOptions, map:
   if (typeof value === 'function' && 'constructor' in value && (options.preserve as Set<Function>).has(value.constructor)) {
     return { set: true, value }
   } else if (Array.isArray(value)) {
-    if (map.has(value)) return map.get(value)
+    if (map.has(value)) return map.get(value) as ToPlainObjectResult
     const result: ToPlainObjectResult = { set: true, value: [] }
     map.set(value, result)
     value.forEach(v => {
@@ -233,11 +246,11 @@ function toPlainObjectRecursive (value: any, options: ToPlainObjectOptions, map:
     })
     return result
   } else if (value !== null && typeof value === 'object') {
-    if (map.has(value)) return map.get(value)
+    if (map.has(value)) return map.get(value) as ToPlainObjectResult
     const result: { set: boolean, value: ObjectMap } = { set: true, value: {} }
     map.set(value, result)
     for (const k in value) {
-      if (options.allowInheritedProperties || k in value) {
+      if (options.allowInheritedProperties === true || k in value) {
         const r = toPlainObjectRecursive(value[k], options, map)
         if (r.set) result.value[k] = r.value
       }
@@ -250,28 +263,32 @@ function toPlainObjectRecursive (value: any, options: ToPlainObjectOptions, map:
   }
 }
 
-export function validateMaxMin (exception: Exception, schema: { [key: string]: any, exclusiveMaximum?: boolean, exclusiveMinimum?: boolean }, type: string, maxProperty: string, minProperty: string, exclusives: boolean, value: any, maximum: number, minimum: number) {
-  if (maxProperty in schema) {
-    if (exclusives && schema.exclusiveMaximum && value >= maximum) {
-      exception.message('Expected ' + type + ' to be less than ' +
-        smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
-        smart(schema.serialize(value).value))
-    } else if (value > maximum) {
-      exception.message('Expected ' + type + ' to be less than or equal to ' +
-        smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
-        smart(schema.serialize(value).value))
-    }
-  }
-
-  if (minProperty in schema) {
-    if (exclusives && schema.exclusiveMinimum && value <= minimum) {
-      exception.message('Expected ' + type + ' to be greater than ' +
-        smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
-        smart(schema.serialize(value).value))
-    } else if (value < minimum) {
-      exception.message('Expected ' + type + ' to be greater than or equal to ' +
-        smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
-        smart(schema.serialize(value).value))
-    }
-  }
+export function yes (): true {
+  return true
 }
+
+// export function validateMaxMin (exception: Exception, schema: { [key: string]: any, exclusiveMaximum?: boolean, exclusiveMinimum?: boolean }, type: string, maxProperty: string, minProperty: string, exclusives: boolean, value: any, maximum: number, minimum: number): void {
+//   if (maxProperty in schema) {
+//     if (exclusives && schema.exclusiveMaximum === true && value >= maximum) {
+//       exception.message('Expected ' + type + ' to be less than ' +
+//         smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
+//         smart(schema.serialize(value).value), '')
+//     } else if (value > maximum) {
+//       exception.message('Expected ' + type + ' to be less than or equal to ' +
+//         smart(schema.serialize(schema[maxProperty]).value) + '. Received: ' +
+//         smart(schema.serialize(value).value))
+//     }
+//   }
+//
+//   if (minProperty in schema) {
+//     if (exclusives && schema.exclusiveMinimum === true && value <= minimum) {
+//       exception.message('Expected ' + type + ' to be greater than ' +
+//         smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
+//         smart(schema.serialize(value).value))
+//     } else if (value < minimum) {
+//       exception.message('Expected ' + type + ' to be greater than or equal to ' +
+//         smart(schema.serialize(schema[minProperty]).value) + '. Received: ' +
+//         smart(schema.serialize(value).value))
+//     }
+//   }
+// }

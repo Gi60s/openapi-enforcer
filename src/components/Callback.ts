@@ -1,49 +1,42 @@
-import { ComponentDefinition } from '../component-registry'
-import { EnforcerComponent, Statics } from './'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
+import { yes } from '../util'
 import * as PathItem from './PathItem'
-import { Data, SchemaObject } from '../definition-validator'
-
-export interface Class extends Statics<Definition, Object> {
-  new (definition: Definition): Object
-}
 
 export interface Definition {
-  [extension: string]: PathItem.Definition | any
+  [extensionOrPathItem: string]: PathItem.Definition | any
 }
 
-export interface Object {
-  [extension: string]: PathItem.Object | any
-}
+export class Callback extends OASComponent {
+  readonly [extensionOrPathItem: string]: PathItem.PathItem | any
 
-export const versions = Object.freeze({
-  '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#callback-object',
-  '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#callback-object',
-  '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#callback-object',
-  '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#callback-object'
-})
+  constructor (definition: Definition, version?: Version) {
+    const data = initializeData('constructing Callback object', definition, version, arguments[2])
+    super(data)
+  }
 
-export const Component = class Callback extends EnforcerComponent<Definition, Object> implements Object {
-  readonly [extension: string]: PathItem.Object | any
-
-  // constructor (definition: Definition) {
-  //   super(definition)
-  // }
-}
-
-export function validator (data: Data<Definition, Object>): SchemaObject {
-  return {
-    type: 'object',
-    allowsSchemaExtensions: true,
-    additionalProperties: {
-      type: 'component',
-      allowsRef: false,
-      component: PathItem.Component
+  static get spec (): SpecMap {
+    return {
+      '2.0': 'http://spec.openapis.org/oas/v2.0#license-object',
+      '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#license-object',
+      '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#license-object',
+      '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#license-object',
+      '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#license-object'
     }
   }
-}
 
-export const register: ComponentDefinition = {
-  component: Component,
-  validator,
-  versions
+  static schemaGenerator (): SchemaObject {
+    return {
+      type: 'object',
+      allowsSchemaExtensions: yes,
+      additionalProperties: {
+        type: 'component',
+        allowsRef: false,
+        component: PathItem.PathItem
+      }
+    }
+  }
+
+  static validate (definition: Definition, version?: Version): ValidateResult {
+    return super.validate(definition, version, arguments[2])
+  }
 }

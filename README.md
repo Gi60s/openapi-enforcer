@@ -1,3 +1,35 @@
+
+# Usage
+
+This is how I think I'd like it to be used.
+
+```js
+import { OpenAPI, hook, load, config } from 'openapi-enforcer'
+
+// configure defaults
+config({
+  version: '3.0.2'
+})
+
+// add hooks
+OpenAPI.on('validate', function (data, component) {
+  
+})
+
+// load and dereference
+const definition = await load('./path/to/openapi.yml', { dereference: true })
+
+// validate and get errors
+const errors = OpenAPI.validate(definition, '3.0.3')  // overwrite default version
+if (errors) {
+  console.error(errors)
+} else {
+  // will not validate - only builds
+  const openapi = new OpenAPI(definition)
+}
+```
+
+
 # Component Template
 
 When making a new component, use the following as a template.

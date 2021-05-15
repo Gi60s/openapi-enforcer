@@ -1,15 +1,12 @@
-import { ComponentDefinition } from '../component-registry'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
+import { yes } from '../util'
+import * as E from '../Exception/methods'
 import * as Operation from './Operation'
 import * as Parameter from './Parameter'
+import * as Reference from './Reference'
 import * as Server from './Server'
-import { Data, SchemaObject } from '../definition-validator'
-import { EnforcerComponent, Statics } from './'
 
 const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']
-
-export interface Class extends Statics<Definition, Object> {
-  new (definition: Definition): Object
-}
 
 export interface Definition {
   [extension: string]: any
@@ -18,184 +15,168 @@ export interface Definition {
   get?: Operation.Definition
   head?: Operation.Definition
   options?: Operation.Definition
-  parameters: Parameter.Definition[]
+  parameters?: Array<Parameter.Definition | Reference.Definition>
   patch?: Operation.Definition
   put?: Operation.Definition
   post?: Operation.Definition
   trace?: Operation.Definition
-
-  // TODO: update servers type
   servers?: Server.Definition[]
   summary?: string
 }
 
-export interface Object {
+export class PathItem extends OASComponent {
   readonly [extension: string]: any
-  readonly delete?: Operation.Object
-  readonly description?: string
-  readonly get?: Operation.Object
-  readonly head?: Operation.Object
-  readonly options?: Operation.Object
-  readonly parameters?: Parameter.Object[]
-  readonly patch?: Operation.Object
-  readonly post?: Operation.Object
-  readonly put?: Operation.Object
-  readonly trace?: Operation.Object
-  readonly servers?: Server.Object[]
-  readonly summary?: string
-}
+  delete?: Operation.Operation
+  description?: string
+  get?: Operation.Operation
+  head?: Operation.Operation
+  options?: Operation.Operation
+  parameters?: Array<Parameter.Parameter | Reference.Reference>
+  patch?: Operation.Operation
+  put?: Operation.Operation
+  post?: Operation.Operation
+  trace?: Operation.Operation
+  servers?: Server.Server[]
+  summary?: string
 
-export const versions = {
-  '2.0': 'http://spec.openapis.org/oas/v2.0#path-item-object',
-  '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#path-item-object',
-  '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#path-item-object',
-  '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#path-item-object',
-  '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#path-item-object'
-}
+  constructor (definition: Definition, version?: Version) {
+    const data = initializeData('constructing PathItem object', definition, version, arguments[2])
+    super(data)
+  }
 
-export const Component = class PathItem extends EnforcerComponent<Definition, Object> implements Object {
-  readonly delete?: Operation.Object
-  readonly description?: string
-  readonly get?: Operation.Object
-  readonly head?: Operation.Object
-  readonly options?: Operation.Object
-  readonly parameters?: Parameter.Object[]
-  readonly patch?: Operation.Object
-  readonly post?: Operation.Object
-  readonly put?: Operation.Object
-  readonly trace?: Operation.Object
-  readonly servers?: Server.Object[]
-  readonly summary?: string
+  static get spec (): SpecMap {
+    return {
+      '2.0': 'http://spec.openapis.org/oas/v2.0#path-item-object',
+      '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#path-item-object',
+      '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#path-item-object',
+      '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#path-item-object',
+      '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#path-item-object'
+    }
+  }
 
-  // constructor (definition: Definition) {
-  //   super(definition)
-  // }
-}
-
-export function validator (data: Data<Definition, Object>): SchemaObject {
-  return {
-    type: 'object',
-    allowsSchemaExtensions: true,
-    after ({ definition, exception }) {
-      const length = methods.length
-      let hasMethod = false
-      for (let i = 0; i < length; i++) {
-        if (methods[i] in definition) {
-          hasMethod = true
-          break
-        }
-      }
-      if (!hasMethod) exception.message('NOMTHD')
-    },
-    properties: [
-      {
-        name: 'parameters',
-        schema: {
-          type: 'array',
-          items: {
-            type: 'component',
-            allowsRef: true,
-            component: Parameter.Component
+  static schemaGenerator (): SchemaObject {
+    return {
+      type: 'object',
+      allowsSchemaExtensions: yes,
+      after ({ definition, exception, reference, key }) {
+        const length = methods.length
+        let hasMethod = false
+        for (let i = 0; i < length; i++) {
+          if (methods[i] in definition) {
+            hasMethod = true
+            break
           }
         }
+        if (!hasMethod) exception.message(E.pathMissingMethods(reference, key))
       },
-      {
-        name: 'delete',
-        schema: {
-          type: 'component',
-          allowsRef: false,
-          component: Operation.Component
-        }
-      },
-      {
-        name: 'description',
-        versions: ['3.x.x'],
-        schema: {
-          type: 'string'
-        }
-      },
-      {
-        name: 'get',
-        schema: {
-          type: 'component',
-          allowsRef: false,
-          component: Operation.Component
-        }
-      },
-      {
-        name: 'head',
-        schema: {
-          type: 'component',
-          allowsRef: false,
-          component: Operation.Component
-        }
-      },
-      {
-        name: 'options',
-        schema: {
-          type: 'component',
-          allowsRef: false,
-          component: Operation.Component
-        }
-      },
-      {
-        name: 'patch',
-        schema: {
-          type: 'component',
-          allowsRef: false,
-          component: Operation.Component
-        }
-      },
-      {
-        name: 'put',
-        schema: {
-          type: 'component',
-          allowsRef: false,
-          component: Operation.Component
-        }
-      },
-      {
-        name: 'post',
-        schema: {
-          type: 'component',
-          allowsRef: false,
-          component: Operation.Component
-        }
-      },
-      {
-        name: 'trace',
-        versions: ['3.x.x'],
-        schema: {
-          type: 'component',
-          allowsRef: false,
-          component: Operation.Component
-        }
-      },
-      {
-        name: 'servers',
-        versions: ['3.x.x'],
-        schema: {
-          type: 'array',
-          items: {
+      properties: [
+        {
+          name: 'parameters',
+          schema: {
+            type: 'array',
+            items: {
+              type: 'component',
+              allowsRef: true,
+              component: Parameter.Parameter
+            }
+          }
+        },
+        {
+          name: 'delete',
+          schema: {
             type: 'component',
             allowsRef: false,
-            component: Server.Component
+            component: Operation.Operation
+          }
+        },
+        {
+          name: 'description',
+          versions: ['3.x.x'],
+          schema: {
+            type: 'string'
+          }
+        },
+        {
+          name: 'get',
+          schema: {
+            type: 'component',
+            allowsRef: false,
+            component: Operation.Operation
+          }
+        },
+        {
+          name: 'head',
+          schema: {
+            type: 'component',
+            allowsRef: false,
+            component: Operation.Operation
+          }
+        },
+        {
+          name: 'options',
+          schema: {
+            type: 'component',
+            allowsRef: false,
+            component: Operation.Operation
+          }
+        },
+        {
+          name: 'patch',
+          schema: {
+            type: 'component',
+            allowsRef: false,
+            component: Operation.Operation
+          }
+        },
+        {
+          name: 'put',
+          schema: {
+            type: 'component',
+            allowsRef: false,
+            component: Operation.Operation
+          }
+        },
+        {
+          name: 'post',
+          schema: {
+            type: 'component',
+            allowsRef: false,
+            component: Operation.Operation
+          }
+        },
+        {
+          name: 'trace',
+          versions: ['3.x.x'],
+          schema: {
+            type: 'component',
+            allowsRef: false,
+            component: Operation.Operation
+          }
+        },
+        {
+          name: 'servers',
+          versions: ['3.x.x'],
+          schema: {
+            type: 'array',
+            items: {
+              type: 'component',
+              allowsRef: false,
+              component: Server.Server
+            }
+          }
+        },
+        {
+          name: 'summary',
+          versions: ['3.x.x'],
+          schema: {
+            type: 'string'
           }
         }
-      },
-      {
-        name: 'summary',
-        versions: ['3.x.x'],
-        schema: {
-          type: 'string'
-        }
-      }
-    ]
+      ]
+    }
   }
-}
 
-export const register: ComponentDefinition = {
-  component: Component,
-  validator,
-  versions
+  static validate (definition: Definition, version?: Version): ValidateResult {
+    return super.validate(definition, version, arguments[2])
+  }
 }

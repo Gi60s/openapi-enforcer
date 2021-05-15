@@ -1,123 +1,115 @@
-import { ComponentDefinition } from '../component-registry'
+import { OASComponent, initializeData, SchemaComponent, SchemaObject, SpecMap, Version, ValidateResult } from './'
+import rx from '../rx'
+import { no, yes } from '../util'
+import * as E from '../Exception/methods'
 import * as Encoding from './Encoding'
 import * as Example from './Example'
+import * as Reference from './Reference'
+import * as RequestBody from './RequestBody'
 import * as Schema from './Schema'
-import { Data, SchemaComponent, SchemaObject } from '../definition-validator'
-import { EnforcerComponent, Statics } from './'
-
-const rxContentTypeMime = /(?:^multipart\/)|(?:^application\/x-www-form-urlencoded$)/
-
-export interface Class extends Statics<Definition, Object> {
-  new (definition: Definition): Object
-}
 
 export interface Definition {
   [extension: string]: any
-  encoding?: { [key: string]: Encoding.Definition }
+  encoding?: Record<string, Encoding.Definition | Reference.Definition>
   example?: any
-  examples?: { [key: string]: Example.Definition }
-  schema?: Schema.Definition
+  examples?: Record<string, Example.Definition | Reference.Definition>
+  schema?: Schema.Definition | Reference.Definition
 }
 
-export interface Object {
-  [extension: string]: any
-  encoding?: { [key: string]: Encoding.Object }
+export class MediaType extends OASComponent {
+  readonly [extension: string]: any
+  encoding?: Record<string, Encoding.Encoding | Reference.Reference>
   example?: any
-  examples?: { [key: string]: Example.Object }
-  schema?: Schema.Definition
-}
+  examples?: Record<string, Example.Example | Reference.Reference>
+  schema?: Schema.Schema | Reference.Reference
 
-export const versions = Object.freeze({
-  '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#media-type-object',
-  '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#media-type-object',
-  '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#media-type-object',
-  '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#media-type-object'
-})
+  constructor (definition: Definition, version?: Version) {
+    const data = initializeData('constructing MediaType object', definition, version, arguments[2])
+    super(data)
+  }
 
-export const Component = class MediaType extends EnforcerComponent<Definition, Object> implements Object {
-  encoding?: { [key: string]: Encoding.Object }
-  example?: any
-  examples?: { [key: string]: Example.Object }
-  schema?: Schema.Definition
+  static get spec (): SpecMap {
+    return {
+      '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#media-type-object',
+      '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#media-type-object',
+      '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#media-type-object',
+      '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#media-type-object'
+    }
+  }
 
-  // constructor (definition: Definition) {
-  //   super(definition)
-  // }
-}
+  static schemaGenerator (): SchemaObject {
+    return {
+      type: 'object',
+      allowsSchemaExtensions: yes,
+      after ({ built, exception, chain, key, reference }) {
+        const parent = chain.length > 0 ? chain[0] : null
+        if (parent !== null && parent.key === 'content' && !rx.mediaType.test(key)) {
+          exception.message(E.invalidMediaType(reference, key))
+        }
 
-export function validator (data: Data<Definition, Object>): SchemaObject {
-  return {
-    type: 'object',
-    allowsSchemaExtensions: true,
-    after ({ alert, built, chain, key }) {
-      const parent = chain.length > 0 ? chain[0] : null
-      if (parent !== null && parent.key === 'content' && !rxMediaType.test(key)) {
-        alert('warn', 'MEDTYP', key)
-      }
-
-      if ('example' in built && 'examples' in built) {
-        alert('error', 'MED002', 'Properties "example" and "examples" are mutually exclusive.')
-      }
-    },
-    properties: [
-      {
-        name: 'schema',
-        schema: {
-          type: 'component',
-          allowsRef: true,
-          component: Schema.Component
+        if ('example' in built && 'examples' in built) {
+          exception.message(E.exampleExamplesConflict(reference))
         }
       },
-      {
-        name: 'example',
-        schema: {
-          type: 'any'
-        }
-      },
-      {
-        name: 'examples',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          additionalProperties: {
+      properties: [
+        {
+          name: 'schema',
+          schema: {
             type: 'component',
             allowsRef: true,
-            component: Example.Component
+            component: Schema.Schema
           }
-        }
-      },
-      {
-        name: 'encoding',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          ignored ({ chain }) {
-            const requestBodyObject = chain.length > 4 ? chain[4] : null // TODO: validate that this is a RequestBody instance
-            return requestBodyObject === null || (requestBodyObject.schema as SchemaComponent<any, any>).component !== RequestBody.Component || !rxContentTypeMime.test(chain[3].key)
-          },
-          after ({ alert, chain }) {
-            const mediaTypeObject = chain[1]
-            const key = chain[0].key
-            const { built } = mediaTypeObject
-            if (!('schema' in built) || !('properties' in built.schema) || !(key in built.schema.properties)) {
-              alert('error', 'MED004', 'Encoding name must match a property name in the media type\'s schema')
+        },
+        {
+          name: 'example',
+          schema: {
+            type: 'any'
+          }
+        },
+        {
+          name: 'examples',
+          schema: {
+            type: 'object',
+            allowsSchemaExtensions: no,
+            additionalProperties: {
+              type: 'component',
+              allowsRef: true,
+              component: Example.Example
             }
-          },
-          additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: Encoding.Component
+          }
+        },
+        {
+          name: 'encoding',
+          schema: {
+            type: 'object',
+            allowsSchemaExtensions: no,
+            ignored ({ chain }) {
+              const requestBodyObject = chain.length > 4 ? chain[4] : null // TODO: validate that this is a RequestBody instance
+              if (requestBodyObject === null) return true
+
+              const component = (requestBodyObject.schema as SchemaComponent).component
+              return component !== RequestBody.RequestBody || !rx.contentType.test(chain[3].key)
+            },
+            after ({ chain, exception, reference }) {
+              const mediaTypeObject = chain[1]
+              const key = chain[0].key
+              const { built } = mediaTypeObject
+              if (!('schema' in built) || !('properties' in built.schema) || !(key in built.schema.properties)) {
+                exception.message(E.encodingNameNotMatched(reference))
+              }
+            },
+            additionalProperties: {
+              type: 'component',
+              allowsRef: true,
+              component: Encoding.Encoding
+            }
           }
         }
-      }
-    ]
+      ]
+    }
+  }
+
+  static validate (definition: Definition, version?: Version): ValidateResult {
+    return super.validate(definition, version, arguments[2])
   }
 }
-
-export const register: ComponentDefinition = {
-  component: Component,
-  validator,
-  versions
-}
-
-export const rxMediaType = /^(?:\*|(application|audio|example|font|image|message|model|multipart|text|video|x-\S+))\/(?:\*|(?:([\w.-]+)\+)?([\w.-]+)(?:; *(.+))?)$/

@@ -1,85 +1,69 @@
-import { ComponentDefinition } from '../component-registry'
-import { Data, SchemaObject } from '../definition-validator'
-import { EnforcerComponent, Statics } from './'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
+import { no, yes } from '../util'
 import * as ServerVariable from './ServerVariable'
-
-export interface Class extends Statics<Definition, Object> {
-  new (definition: Definition): Object
-}
 
 export interface Definition {
   [extension: string]: any
   description?: string
   url: string
-  variables?: {
-    [name: string]: ServerVariable.Definition
-  }
+  variables?: Record<string, ServerVariable.Definition>
 }
 
-export interface Object {
-  [extension: string]: any
+export class Server extends OASComponent {
+  readonly [extension: string]: any
   readonly description?: string
-  readonly url: string
-  readonly variables?: {
-    [name: string]: ServerVariable.Object
-  }
-}
+  readonly url!: string
+  readonly variables?: Record<string, ServerVariable.ServerVariable>
 
-export const versions = Object.freeze({
-  '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#server-object',
-  '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#server-object',
-  '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#server-object',
-  '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#server-object'
-})
-
-export const Component = class Server extends EnforcerComponent<Definition, Object> implements Object {
-  readonly description?: string
-  readonly url: string
-  readonly variables?: {
-    [name: string]: ServerVariable.Object
+  constructor (definition: Definition, version?: Version) {
+    const data = initializeData('constructing Server object', definition, version, arguments[2])
+    super(data)
   }
 
-  // constructor (definition: Definition) {
-  //   super(definition)
-  // }
-}
+  static get spec (): SpecMap {
+    return {
+      '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#server-object',
+      '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#server-object',
+      '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#server-object',
+      '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#server-object'
+    }
+  }
 
-export function validator (data: Data<Definition, Object>): SchemaObject {
-  return {
-    type: 'object',
-    allowsSchemaExtensions: true,
-    required: () => ['url'],
-    properties: [
-      {
-        name: 'url',
-        schema: {
-          type: 'string'
-        }
-      },
-      {
-        name: 'description',
-        schema: {
-          type: 'string'
-        }
-      },
-      {
-        name: 'variables',
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          additionalProperties: {
-            type: 'component',
-            allowsRef: false,
-            component: ServerVariable.Component
+  static schemaGenerator (): SchemaObject {
+    return {
+      type: 'object',
+      allowsSchemaExtensions: yes,
+      properties: [
+        {
+          name: 'url',
+          required: yes,
+          schema: {
+            type: 'string'
+          }
+        },
+        {
+          name: 'description',
+          schema: {
+            type: 'string'
+          }
+        },
+        {
+          name: 'variables',
+          schema: {
+            type: 'object',
+            allowsSchemaExtensions: no,
+            additionalProperties: {
+              type: 'component',
+              allowsRef: false,
+              component: ServerVariable.ServerVariable
+            }
           }
         }
-      }
-    ]
+      ]
+    }
   }
-}
 
-export const register: ComponentDefinition = {
-  component: Component,
-  validator,
-  versions
+  static validate (definition: Definition, version?: Version): ValidateResult {
+    return super.validate(definition, version, arguments[2])
+  }
 }

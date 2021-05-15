@@ -6,10 +6,8 @@
     "module": "commonjs",
     "target": "es2019",
 
+    "strict": true,
     "noImplicitAny": true,
-    "noImplicitThis": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
     "preserveConstEnums": true,
     "removeComments": true,
     "esModuleInterop": true,
@@ -23,7 +21,6 @@
   ],
 
   "exclude": [
-    "node_modules",
-    "old"
+    "node_modules"
   ]
 }
