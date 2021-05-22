@@ -1,6 +1,7 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
 import { no, yes } from '../util'
 import * as E from '../Exception/methods'
+import rx from '../rx'
 import * as Definitions from './Definitions'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import * as Info from './Info'
@@ -11,7 +12,8 @@ import * as SecurityScheme from './SecurityScheme'
 import * as SecurityRequirement from './SecurityRequirement'
 import * as Tag from './Tag'
 
-const rxHostParts = /^((?:https?|wss?):\/\/)?(.+?)(\/.+)?$/
+const rxHostParts = /^(?:(https?|wss?):\/\/)?(.+?)(\/.+)?$/
+const rxPathTemplating = /[{}]/
 
 export interface Definition {
   [extension: string]: any
@@ -72,6 +74,7 @@ export class Swagger extends OASComponent {
             type: 'string',
             after ({ exception, definition, reference }) {
               if (definition[0] !== '/') exception.message(E.swaggerBasePathInvalid(reference, definition))
+              if (rxPathTemplating.test(definition)) exception.message(E.swaggerBasePathTemplating(reference, definition))
             }
           }
         },
@@ -79,7 +82,12 @@ export class Swagger extends OASComponent {
           name: 'consumes',
           schema: {
             type: 'array',
-            items: { type: 'string' }
+            items: {
+              type: 'string',
+              after ({ definition, exception, reference }) {
+                if (!rx.mediaType.test(definition)) exception.message(E.invalidMediaType(reference, definition))
+              }
+            }
           }
         },
         {
@@ -107,6 +115,9 @@ export class Swagger extends OASComponent {
               if (match !== undefined && match !== null) {
                 if (match[1] !== undefined) exception.message(E.swaggerHostHasScheme(reference, definition, match[1]))
                 if (match[3] !== undefined) exception.message(E.swaggerHostHasSubPath(reference, definition, match[3]))
+              }
+              if (rxPathTemplating.test(definition)) {
+                exception.message(E.swaggerHostDoesNotSupportPathTemplating(reference, definition))
               }
             }
           }
@@ -145,7 +156,12 @@ export class Swagger extends OASComponent {
           name: 'produces',
           schema: {
             type: 'array',
-            items: { type: 'string' }
+            items: {
+              type: 'string',
+              after ({ definition, exception, reference }) {
+                if (!rx.mediaType.test(definition)) exception.message(E.invalidMediaType(reference, definition))
+              }
+            }
           }
         },
         {
