@@ -450,6 +450,11 @@ export function validate (data: Data): any { // return value is what to add to b
     }
   }
 
+  // $ref property is only allowed for components, and only some of those
+  if (typeof definition === 'object' && '$ref' in definition && schema.type !== 'any' && schema.type !== 'component') {
+    exception.message(E.$refNotAllowed(data.reference))
+  }
+
   if (schema.type === 'any') {
     data.built = definition
     if (typeof schema.build === 'function') data.built = schema.build(data, componentDef)
@@ -505,7 +510,7 @@ export function validate (data: Data): any { // return value is what to add to b
     return runAfterValidator(data)
   } else if (schema.type === 'component') {
     if (!isObject(definition)) {
-      exception.message(E.invalidType(data.reference, 'an object', definition))
+      exception.message(E.invalidType(data.reference, 'a non-null object', definition))
       return undefined
     }
 
