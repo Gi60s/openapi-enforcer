@@ -1,7 +1,7 @@
-import { ExceptionSet } from '../../Exception'
+import { Exception } from '../../Exception'
 import * as E from '../../Exception/methods'
 import * as random from './Randomizer'
-import { isValidDateString, smart } from '../../util'
+import { isValidDateString } from '../../util'
 import { Definition as Schema } from '../Schema'
 import RandExp from 'randexp'
 import rx from '../../rx'
@@ -11,11 +11,11 @@ const dataTypeWarnings: { [k: string]: boolean } = {}
 
 export interface DefinitionInput {
   constructors?: Function[]
-  deserialize?: (data: { exception: ExceptionSet, schema: Schema, value: any }) => any
+  deserialize?: (data: { exception: Exception, schema: Schema, value: any }) => any
   isNumeric?: boolean
-  random?: (data: { exception: ExceptionSet, options: RandomOptions, schema: Schema }) => any
-  serialize?: (data: { exception: ExceptionSet, schema: Schema, value: any }) => any
-  validate?: (data: { exception: ExceptionSet, schema: Schema, value: any }) => void
+  random?: (data: { exception: Exception, options: RandomOptions, schema: Schema }) => any
+  serialize?: (data: { exception: Exception, schema: Schema, value: any }) => any
+  validate?: (data: { exception: Exception, schema: Schema, value: any }) => void
 }
 
 export interface Definition extends DefinitionInput {
@@ -308,7 +308,7 @@ function randomDate ({ options, schema }: { options: RandomOptions, schema: Sche
   return new Date(value)
 }
 
-function validateMaxMin (exception: ExceptionSet, schema: { [key: string]: any, exclusiveMaximum?: boolean, exclusiveMinimum?: boolean }, type: string, maxProperty: string, minProperty: string, exclusives: boolean, value: any, maximum: number, minimum: number): void {
+function validateMaxMin (exception: Exception, schema: { [key: string]: any, exclusiveMaximum?: boolean, exclusiveMinimum?: boolean }, type: string, maxProperty: string, minProperty: string, exclusives: boolean, value: any, maximum: number, minimum: number): void {
   if (maxProperty in schema) {
     if (exclusives && schema.exclusiveMaximum === true && value >= maximum) {
       exception.message(E.exceedsNumberBounds('', 'maximum', true,
