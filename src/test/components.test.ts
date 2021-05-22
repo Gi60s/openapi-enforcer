@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, Version, ExtendedComponent } from '../components'
+import { OASComponent, initializeData, SchemaObject, Version, ExtendedComponent, SpecMap } from '../components'
 import { expect } from 'chai'
 import { copy, no, yes } from '../util'
 
@@ -84,6 +84,16 @@ class Basic extends OASComponent {
   static schemaGenerator (): SchemaObject {
     return copy(basicSchemaObject)
   }
+
+  static get spec (): SpecMap {
+    return {
+      '2.0': 'Spec URL...',
+      '3.0.0': 'Spec URL...',
+      '3.0.1': 'Spec URL...',
+      '3.0.2': 'Spec URL...',
+      '3.0.3': 'Spec URL...'
+    }
+  }
 }
 
 interface HasChildComponentDefinition extends BasicDefinition {
@@ -115,6 +125,16 @@ class HasChildComponent extends OASComponent {
       }
     })
     return schema
+  }
+
+  static get spec (): SpecMap {
+    return {
+      '2.0': 'Spec URL...',
+      '3.0.0': 'Spec URL...',
+      '3.0.1': 'Spec URL...',
+      '3.0.2': 'Spec URL...',
+      '3.0.3': 'Spec URL...'
+    }
   }
 }
 
@@ -153,6 +173,16 @@ class LoopComponent extends OASComponent {
       }
     })
     return schema
+  }
+
+  static get spec (): SpecMap {
+    return {
+      '2.0': 'Spec URL...',
+      '3.0.0': 'Spec URL...',
+      '3.0.1': 'Spec URL...',
+      '3.0.2': 'Spec URL...',
+      '3.0.3': 'Spec URL...'
+    }
   }
 }
 
@@ -368,7 +398,9 @@ describe('Generic component tests', () => {
         const Test = TestComponent({
           type: 'object',
           allowsSchemaExtensions: no,
-          after () { count++ },
+          after () {
+            count++
+          },
           properties: [
             {
               name: 'required',
@@ -377,8 +409,8 @@ describe('Generic component tests', () => {
             }
           ]
         })
-        const [error] = Test.validate({})
-        expect(error).not.to.equal(null)
+        const error = Test.validate({})
+        expect(error.count).to.equal(1)
         expect(count).to.equal(0)
       })
     })
@@ -411,8 +443,8 @@ describe('Generic component tests', () => {
             }
           ]
         })
-        const [error] = Test.validate({})
-        expect(error).to.equal(null)
+        const error = Test.validate({})
+        expect(error.count).to.equal(0)
       })
     })
 
@@ -491,7 +523,7 @@ describe('Generic component tests', () => {
       })
 
       it('validate does check for required properties', function () {
-        const [error] = Test.validate({})
+        const error = Test.validate({})
         expect(error).to.match(/Missing one or more required properties: required/)
       })
     })
