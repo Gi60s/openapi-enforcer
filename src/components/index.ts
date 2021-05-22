@@ -1,5 +1,6 @@
 import { getConfig } from '../config'
-import { ExceptionSet, Exception, E } from '../Exception'
+import { Exception, ExceptionReport } from '../Exception'
+import * as E from '../Exception/methods'
 import rx from '../rx'
 import { no, yes, isObject, same, smart } from '../util'
 
@@ -35,7 +36,7 @@ export interface Data {
   built: any
   chain: Data[]
   definition: any
-  exception: ExceptionSet
+  exception: Exception
   key: string
   schema: Schema
 }
@@ -136,7 +137,7 @@ export interface SpecMap {
   '3.0.3'?: string
 }
 
-export type ValidateResult = [ Exception | null, Exception | null ] // error, warning
+export type ValidateResult = ExceptionReport
 
 export type Version = '2.0' | '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3'
 
@@ -158,7 +159,7 @@ export abstract class OASComponent {
   protected constructor (data: Data) {
     const { definition, map } = data
     data.component = data
-    data.reference = this.spec[data.version]
+    data.reference = (this.constructor as OASComponent).spec[data.version]
 
     // register the use of this component with this definition
     if (!map.has(this.constructor)) map.set(this.constructor, [])
@@ -191,17 +192,12 @@ export abstract class OASComponent {
   }
 
   static validate (definition: any, version?: Version, incomingData?: Data): ValidateResult {
-    const data = initializeData('validating ' + this.name + ' object', definition, version, incomingData)
+    const data: Data = initializeData('validating ' + this.name + ' object', definition, version, incomingData)
     data.component = data
     data.schema = componentSchemasMap.get(this as unknown as ExtendedComponent) ?? this.schemaGenerator()
-    validate(data as unknown as Data)
+    validate(data)
 
-    const hasError: boolean = data.exception.error.hasException
-    const hasWarning: boolean = data.exception.warning.hasException
-    return [
-      hasError ? data.exception.error : null,
-      hasWarning ? data.exception.warning : null
-    ]
+    return data.exception.report()
   }
 }
 
@@ -266,8 +262,6 @@ export class Reference extends OASComponent {
 export function initializeData<Definition> (exceptionMessage: string, definition: Definition, version?: Version, data?: Data): Data {
   if (data === undefined) {
     const v: string = version === undefined ? getConfig().version : version
-    const error = new Exception('One or more errors found while ' + exceptionMessage + ':')
-    const warning = new Exception('One or more warnings found while ' + exceptionMessage + ':')
     data = {
       // unchanging values
       major: parseInt(v.split('.')[0]),
@@ -286,7 +280,7 @@ export function initializeData<Definition> (exceptionMessage: string, definition
       built: undefined,
       chain: [],
       definition: definition,
-      exception: new ExceptionSet(error, warning),
+      exception: new Exception('One or more errors found while ' + exceptionMessage + ':'),
       key: '',
       schema: { type: 'any' }
     }
@@ -510,6 +504,11 @@ export function validate (data: Data): any { // return value is what to add to b
     if (typeof schema.build === 'function') data.built = schema.build(data, componentDef)
     return runAfterValidator(data)
   } else if (schema.type === 'component') {
+    if (!isObject(definition)) {
+      exception.message(E.invalidType(data.reference, 'an object', definition))
+      return undefined
+    }
+
     const s = schema as unknown as SchemaComponent
     let component = s.component
 
@@ -764,9 +763,8 @@ function validateObject (data: Data): any {
   // report any properties that are not allowed
   if (notAllowed.length > 0) {
     notAllowed.sort((a: NotAllowed, b: NotAllowed) => a.name < b.name ? -1 : 1)
-    const child = exception.nest('One or more properties not allowed: ')
     notAllowed.forEach(reason => {
-      child.message(E.propertyNotAllowed(data.reference, reason.name, reason.reason ?? ''))
+      exception.message(E.propertyNotAllowed(data.reference, reason.name, reason.reason ?? ''))
     })
     success = false
   }
