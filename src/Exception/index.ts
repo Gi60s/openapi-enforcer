@@ -1,6 +1,5 @@
 import { ExceptionMessageData } from './types'
 import { getConfig, ExceptionConfiguration } from '../config'
-import * as E from './methods'
 import * as util from 'util'
 
 const inspect = util.inspect.custom ?? 'inspect'
@@ -16,64 +15,50 @@ interface ExceptionPreReport {
     data: ExceptionPreReport
   }>
   count: number
+  countDetails: {
+    error: number
+    warn: number
+    opinion: number
+    ignore: number
+  }
   messages: ExceptionMessageData[]
   parent: ExceptionPreReport | null
 }
 
 export interface ExceptionReport {
   count: number
+  countDetails: {
+    error: number
+    warn: number
+    opinion: number
+    ignore: number
+  }
   hasException: boolean
   message: string
   messageDetails: Array<{
     data: ExceptionMessageData
     path: string[]
   }>
+  toString: () => string
 }
 
-export { E }
-
-export class ExceptionSet {
+export class Exception {
   public header: string | undefined
-  public data: ExceptionData<ExceptionSet> = { at: {}, messages: [] }
+  public data: ExceptionData<Exception> = { at: {}, messages: [] }
 
   constructor (header?: string) {
     this.header = header
   }
 
-  public at (key: string | number): ExceptionSet {
+  public at (key: string | number): Exception {
     const at = this.data.at
-    if (!(key in at)) at[key] = new ExceptionSet()
+    if (!(key in at)) at[key] = new Exception()
     return at[key]
   }
 
-  public message (data: ExceptionMessageData): ExceptionSet {
+  public message (data: ExceptionMessageData): Exception {
     this.data.messages.push(data)
     return this
-
-    // TODO: account for dynamic active property
-    // if (!(code in config)) throw Error('Invalid message code: ' + code)
-    // const data: ExceptionConfigData = config[code]
-    //
-    // // code levels can be changed in the application configuration
-    // const codeLevels = getConfig().exceptions.codes
-    // const level = code in codeLevels
-    // // @ts-expect-error
-    //   ? codeLevels[code]
-    //   : data.level
-    //
-    // const ref = reference === null ? data.reference ?? '' : reference
-    // switch (level) {
-    //   case 'error':
-    //     return this.error.message(code, ref, util.format(data.message, ...args))
-    //   case 'opinion':
-    //     return this.warning.message(code, ref, 'Opinion: ' + util.format(data.message, ...args))
-    //   case 'warn':
-    //     return this.warning.message(code, ref, util.format(data.message, ...args))
-    //   case 'ignore':
-    //     return new Exception('Ignored:')
-    //   default:
-    //     throw Error('Invalid message level: ' + (level as string))
-    // }
   }
 
   public report (config: ExceptionConfiguration = {}): ExceptionReport {
@@ -89,13 +74,29 @@ export class ExceptionSet {
 
     const result: ExceptionReport = {
       count: 0,
+      countDetails: {
+        error: 0,
+        warn: 0,
+        opinion: 0,
+        ignore: 0
+      },
       get hasException () { return this.count > 0 },
       message: '',
-      messageDetails: []
+      messageDetails: [],
+
+      toString (): string { return this.message },
+      [inspect] (): string {
+        if (this.hasException) {
+          return '[ EnforcerException: ' + this.message + ' ]'
+        } else {
+          return '[ EnforcerException ]'
+        }
+      }
     }
 
     // run pre report
     const data = runPreReport(fullConfig, this, null)
+    result.countDetails = data.countDetails
     if (data.count === 0) return result
 
     result.message = (this.header as string) + fullConfig.lineDelimiter + getReport(result, fullConfig, data, ' '.repeat(indentLength + 2), [])
@@ -189,11 +190,17 @@ export class ExceptionSet {
 //   }
 // }
 
-function runPreReport (fullConfig: Required<ExceptionConfiguration>, context: ExceptionSet, parent: ExceptionPreReport | null): ExceptionPreReport {
+function runPreReport (fullConfig: Required<ExceptionConfiguration>, context: Exception, parent: ExceptionPreReport | null): ExceptionPreReport {
   const data = context.data
   const result: ExceptionPreReport = {
     children: [],
     count: 0,
+    countDetails: parent !== null ? parent.countDetails : {
+      error: 0,
+      warn: 0,
+      opinion: 0,
+      ignore: 0
+    },
     messages: [],
     parent
   }
@@ -202,11 +209,16 @@ function runPreReport (fullConfig: Required<ExceptionConfiguration>, context: Ex
   const messages = data.messages
     .map(message => {
       const code = message.code
-      // @ts-expect-error - We validate codes so this will be ok
-      message.level = fullConfig.codes !== undefined ? fullConfig.codes[code] : message.level
+      // @ts-expect-error
+      if (fullConfig?.codes?.[code] !== undefined) {
+        // @ts-expect-error
+        message.level = fullConfig.codes[code]
+      }
+      result.countDetails[message.level]++
       return message
     })
     .filter(message => {
+      if (message.active === false) return false
       // @ts-expect-error
       return fullConfig.include.includes(message.level)
     })
