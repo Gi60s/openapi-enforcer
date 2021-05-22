@@ -9,9 +9,9 @@ export class Result <T=any> {
   w: Exception | undefined
 
   constructor (value: T | undefined, error?: Exception, warning?: Exception) {
-    if (error === undefined || !error.hasException) error = undefined
-    if (warning === undefined || !warning.hasException) warning = undefined
-    if (error !== undefined) value = undefined
+    // if (error === undefined || !error.hasException) error = undefined
+    // if (warning === undefined || !warning.hasException) warning = undefined
+    // if (error !== undefined) value = undefined
 
     this.error = error
     this.value = value
