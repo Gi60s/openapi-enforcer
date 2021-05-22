@@ -52,8 +52,8 @@ export class Swagger extends OASComponent {
   swagger!: '2.0'
   tags?: Tag.Tag[]
 
-  constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Swagger object', definition, version, arguments[2])
+  constructor (definition: Definition) {
+    const data = initializeData('constructing Swagger object', definition, '2.0', arguments[2])
     super(data)
   }
 
@@ -232,7 +232,7 @@ export class Swagger extends OASComponent {
     }
   }
 
-  static validate (definition: Definition, version?: Version): ValidateResult {
-    return super.validate(definition, version, arguments[2])
+  static validate (definition: Definition): ValidateResult {
+    return super.validate(definition, '2.0', arguments[2])
   }
 }
