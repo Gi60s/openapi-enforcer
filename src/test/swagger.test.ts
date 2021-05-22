@@ -248,7 +248,7 @@ describe('Swagger component', () => {
 
       it('must be an object', function () {
         const error = Swagger.validate({ swagger, info, paths: [] })
-        expect(error).to.match(/Expected an object/)
+        expect(error).to.match(/Expected a non-null object/)
       })
 
       it('will warn if no paths are defined', () => {
@@ -263,6 +263,160 @@ describe('Swagger component', () => {
         exceptionLevel(['warn'], () => {
           const error = Swagger.validate({ swagger, info, paths: { $ref: '' } })
           expect(error.count).to.equal(1)
+          expect(error.messageDetails[0].data.code).to.equal('DVCREF')
+        })
+      })
+    })
+
+    describe('property: definitions', () => {
+      it('can be an object', function () {
+        const error = Swagger.validate({ swagger, info, paths, definitions: {} })
+        expect(error.count).to.equal(0)
+      })
+
+      it('must be an object', function () {
+        // @ts-expect-error
+        const error = Swagger.validate({ swagger, info, paths, definitions: [] })
+        expect(error).to.match(/Expected a non-null object/)
+      })
+
+      it('will warn if $ref is used', () => {
+        exceptionLevel(['warn'], () => {
+          // @ts-expect-error
+          const error = Swagger.validate({ swagger, info, paths, definitions: { $ref: '' } })
+          expect(error.count).to.equal(2)
+          expect(error.messageDetails[0].data.code).to.equal('DVCREF')
+        })
+      })
+    })
+
+    describe('property: parameters', () => {
+      it('can be an object', function () {
+        const error = Swagger.validate({ swagger, info, paths, parameters: {} })
+        expect(error.count).to.equal(0)
+      })
+
+      it('must be an object', function () {
+        // @ts-expect-error
+        const error = Swagger.validate({ swagger, info, paths, parameters: [] })
+        expect(error).to.match(/Expected a non-null object/)
+      })
+
+      it('will warn if $ref is used', () => {
+        exceptionLevel(['warn'], () => {
+          // @ts-expect-error
+          const error = Swagger.validate({ swagger, info, paths, parameters: { $ref: '' } })
+          expect(error.count).to.equal(2)
+          expect(error.messageDetails[0].data.code).to.equal('DVCREF')
+        })
+      })
+    })
+
+    describe('property: responses', () => {
+      it('can be an object', function () {
+        const error = Swagger.validate({ swagger, info, paths, responses: {} })
+        expect(error.count).to.equal(0)
+      })
+
+      it('must be an object', function () {
+        // @ts-expect-error
+        const error = Swagger.validate({ swagger, info, paths, responses: [] })
+        expect(error).to.match(/Expected a non-null object/)
+      })
+
+      it('will warn if $ref is used', () => {
+        exceptionLevel(['warn'], () => {
+          // @ts-expect-error
+          const error = Swagger.validate({ swagger, info, paths, responses: { $ref: '' } })
+          expect(error.count).to.equal(2)
+          expect(error.messageDetails[1].data.code).to.equal('DVCREF')
+        })
+      })
+    })
+
+    describe('property: securityDefinitions', () => {
+      it('can be an object', function () {
+        const error = Swagger.validate({ swagger, info, paths, securityDefinitions: {} })
+        expect(error.count).to.equal(0)
+      })
+
+      it('must be an object', function () {
+        // @ts-expect-error
+        const error = Swagger.validate({ swagger, info, paths, securityDefinitions: [] })
+        expect(error).to.match(/Expected a non-null object/)
+      })
+
+      it('will warn if $ref is used', () => {
+        exceptionLevel(['warn'], () => {
+          // @ts-expect-error
+          const error = Swagger.validate({ swagger, info, paths, securityDefinitions: { $ref: '' } })
+          expect(error.count).to.equal(2)
+          expect(error.messageDetails[1].data.code).to.equal('DVCREF')
+        })
+      })
+    })
+
+    describe('property: security', () => {
+      it('can be an array', function () {
+        const error = Swagger.validate({ swagger, info, paths, security: [] })
+        expect(error.count).to.equal(0)
+      })
+
+      it('must be an array', function () {
+        // @ts-expect-error
+        const error = Swagger.validate({ swagger, info, paths, security: {} })
+        expect(error).to.match(/Expected an array/)
+      })
+
+      it('will warn if $ref is used', () => {
+        exceptionLevel(['warn'], () => {
+          // @ts-expect-error
+          const error = Swagger.validate({ swagger, info, paths, security: { $ref: '' } })
+          expect(error.count).to.equal(2)
+          expect(error.messageDetails[1].data.code).to.equal('DVCREF')
+        })
+      })
+    })
+
+    describe('property: tags', () => {
+      it('can be an array', function () {
+        const error = Swagger.validate({ swagger, info, paths, tags: [] })
+        expect(error.count).to.equal(0)
+      })
+
+      it('must be an array', function () {
+        // @ts-expect-error
+        const error = Swagger.validate({ swagger, info, paths, tags: {} })
+        expect(error).to.match(/Expected an array/)
+      })
+
+      it('will warn if $ref is used', () => {
+        exceptionLevel(['warn'], () => {
+          // @ts-expect-error
+          const error = Swagger.validate({ swagger, info, paths, tags: { $ref: '' } })
+          expect(error.count).to.equal(2)
+          expect(error.messageDetails[1].data.code).to.equal('DVCREF')
+        })
+      })
+    })
+
+    describe('property: externalDocs', () => {
+      it('can be an object', function () {
+        const error = Swagger.validate({ swagger, info, paths, externalDocs: { url: '' } })
+        expect(error.count).to.equal(0)
+      })
+
+      it('must be an object', function () {
+        // @ts-expect-error
+        const error = Swagger.validate({ swagger, info, paths, externalDocs: [] })
+        expect(error).to.match(/Expected a non-null object/)
+      })
+
+      it('will warn if $ref is used', () => {
+        exceptionLevel(['warn'], () => {
+          // @ts-expect-error
+          const error = Swagger.validate({ swagger, info, paths, externalDocs: { $ref: '' } })
+          expect(error.count).to.equal(2)
           expect(error.messageDetails[0].data.code).to.equal('DVCREF')
         })
       })
