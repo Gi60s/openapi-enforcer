@@ -57,7 +57,7 @@ let current: FullConfiguration = {
       RESPHD: 'warn',
       TYPFRM: 'warn'
     },
-    include: ['error', 'warn'],
+    include: ['error'],
     lineDelimiter: '\r' // TODO: how does windows handle this instead of \r\n?
   },
   production: process.env.NODE_ENV === 'production',
@@ -95,8 +95,15 @@ const schema = {
             TYPFRM: codeSchema
           }
         },
-        opinions: {
-          type: 'boolean'
+        include: {
+          type: 'array',
+          items: {
+            type: 'string',
+            enum: ['error', 'warn', 'opinion']
+          }
+        },
+        lineDelimiter: {
+          type: 'string'
         }
       }
     },
@@ -118,7 +125,10 @@ function update (schema: any, source: any, original: any, path: string): any {
   const { type } = schema
   const sType = typeof source
 
-  if (type === 'boolean') {
+  if (type === 'array') {
+    if (!Array.isArray(source)) throw Error('Invalid type at ' + path + '. Expected an array.')
+    return source.map((s, i) => update(schema.items, s, original[i], path + ' > ' + String(i)))
+  } else if (type === 'boolean') {
     if (sType !== 'boolean') throw Error('Invalid type at ' + path + '. Expected a boolean.')
     return source
   } else if (type === 'string') {
@@ -137,5 +147,6 @@ function update (schema: any, source: any, original: any, path: string): any {
         }
       })
     }
+    return result
   }
 }
