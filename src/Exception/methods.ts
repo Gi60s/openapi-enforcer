@@ -1,7 +1,7 @@
 import { getConfig } from '../config'
+import { Exception } from './'
 import { Level, ExceptionMessageData } from './types'
 import { smart } from '../util'
-import exp from 'constants'
 
 export function $refNotAllowed (reference: string): ExceptionMessageData {
   const code = 'DVCREF'
@@ -49,7 +49,9 @@ export function enumNotMet (reference: string, acceptableValues: any[], invalidV
   return {
     level: 'error',
     code: 'DVNNUL',
-    message: 'Value must be one of: ' + acceptableValues.join(', ') + '. Received: ' + smart(invalidValue),
+    message: acceptableValues.length > 1
+      ? 'Value must be one of: ' + acceptableValues.join(', ') + '. Received: ' + smart(invalidValue)
+      : 'Value must equal: ' + String(acceptableValues[0]) + '. Received: ' + smart(invalidValue),
     metadata: {
       acceptableValues,
       invalidValue
@@ -68,12 +70,13 @@ export function exampleExamplesConflict (reference: string): ExceptionMessageDat
   }
 }
 
-export function exampleNotSerializable (example: any, schema: any): ExceptionMessageData {
+export function exampleNotSerializable (example: any, schema: any, error: Exception): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'EXSCNS',
     message: 'Example could not be serialized and therefore cannot be validated against the schema',
     metadata: {
+      error: error.toString(),
       example,
       schema
     },
@@ -81,12 +84,13 @@ export function exampleNotSerializable (example: any, schema: any): ExceptionMes
   }
 }
 
-export function exampleNotValid (example: any, schema: any): ExceptionMessageData {
+export function exampleNotValid (example: any, schema: any, error: Exception): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'EXSCNV',
     message: 'Example is not valid when compared against the schema',
     metadata: {
+      error: error.toString(),
       example,
       schema
     },
@@ -198,7 +202,6 @@ export function invalidMaxMin (minimum: any, maximum: any, minProperty: string, 
     },
     reference: ''
   }
-}
 }
 
 export function invalidMediaType (reference: string, mediaType: string): ExceptionMessageData {
@@ -456,7 +459,7 @@ export function propertyNotAllowed (reference: string, propertyName: string, rea
   return {
     level: 'error',
     code: 'DVPNAL',
-    message: propertyName + ' - ' + reason,
+    message: 'Property "' + propertyName + '" not allowed.' + (reason.length > 0 ? ' ' + reason : ''),
     metadata: {
       propertyName,
       reason
@@ -553,9 +556,33 @@ export function swaggerBasePathInvalid (reference: string, basePath: string): Ex
   return {
     level: 'error',
     code: 'SWGBPT',
-    message: 'The base path must start with a forward slash',
+    message: 'The base path must start with a forward slash: ' + basePath,
     metadata: {
       basePath
+    },
+    reference
+  }
+}
+
+export function swaggerBasePathTemplating (reference: string, basePath: string): ExceptionMessageData {
+  return {
+    level: 'error',
+    code: 'SWGBPT',
+    message: 'The base path does not support path templating: ' + basePath,
+    metadata: {
+      basePath
+    },
+    reference
+  }
+}
+
+export function swaggerHostDoesNotSupportPathTemplating (reference: string, host: string): ExceptionMessageData {
+  return {
+    level: 'error',
+    code: 'SWGHPT',
+    message: 'The host does not support path templating: ' + host,
+    metadata: {
+      host
     },
     reference
   }
