@@ -99,13 +99,11 @@ export class Response extends OASComponent {
                   const schema = built.schema as Schema.Schema
                   const serialized = schema.serialize(example)
                   if (serialized.error != null) {
-                    const child = exception.message(E.exampleNotSerializable(example, schema))
-                    child.push(serialized.error)
+                    exception.message(E.exampleNotSerializable(example, schema, serialized.error))
                   } else {
                     const error = schema.validate(serialized.value)
                     if (error != null) {
-                      const child = exception.message(E.exampleNotValid(example, schema))
-                      child.push(error)
+                      exception.message(E.exampleNotValid(example, schema, error))
                     }
                   }
                 } else {
