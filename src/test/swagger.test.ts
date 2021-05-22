@@ -22,6 +22,14 @@ describe('Swagger component', () => {
       expect(error).to.match(/Missing one or more required properties: info, paths, swagger/)
     })
 
+    it('allows extensions', () => {
+      exceptionLevel(['warn'], () => {
+        const error = Swagger.validate({ swagger, info, paths, 'x-foo': 'foo' })
+        expect(error.count).to.equal(1)
+        expect(error.messageDetails[0].data.code).not.to.equal('DVOEXT')
+      })
+    })
+
     describe('property: swagger', () => {
       it('is required', function () {
         // @ts-expect-error
