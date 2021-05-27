@@ -109,12 +109,12 @@ export function schemaGenerator (referenceComponentClass: any): SchemaObject {
         },
         schema: {
           type: 'string',
-          after (data) {
+          after (data, componentDef) {
             const { definition: format, exception } = data
             const type = getType(data)
             const def = dataTypes.getDefinition(type as DataType.Type, format)
             if (def === undefined) {
-              exception.message(E.unknownTypeFormat(type, format))
+              exception.message(E.unknownTypeFormat(componentDef['x-enforcer'], type, format))
             }
           }
         }
@@ -231,7 +231,8 @@ function initializeDataTypes (component: ExtendedComponent): DataType.DataTypeSt
 
 export function validateMaxMin (data: Data, minKey: string, maxKey: string): void {
   const { built, exception } = data
+  const xEnforcer = data.definition['x-enforcer']
   if (minKey in built && maxKey in built && built[minKey] > built[maxKey]) {
-    exception.message(E.invalidMaxMin(built[minKey], built[maxKey], minKey, maxKey))
+    exception.message(E.invalidMaxMin(xEnforcer, built[minKey], built[maxKey], minKey, maxKey))
   }
 }

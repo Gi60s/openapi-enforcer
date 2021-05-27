@@ -1,5 +1,7 @@
 import { Contact } from '../components/Contact'
 import { expect } from 'chai'
+import { exceptionLevel } from '../test-utils'
+import { Swagger } from '../components/Swagger'
 
 describe('Contact component', () => {
   describe('build', () => {
@@ -10,18 +12,16 @@ describe('Contact component', () => {
   })
 
   describe('validate', () => {
-    it('can have no properties', function () {
+    it('has no required properties', function () {
       const error = Contact.validate({})
       expect(error.count).to.equal(0)
     })
 
-    it('can have valid properties with valid values', function () {
-      const error = Contact.validate({
-        name: 'Bob',
-        url: 'https://fake.com',
-        email: 'email@email.com'
+    it('allows extensions', () => {
+      exceptionLevel(['warn'], () => {
+        const error = Contact.validate({ 'x-foo': 'foo' })
+        expect(error).to.match(/No problems detected/)
       })
-      expect(error.count).to.equal(0)
     })
 
     it('cannot have invalid properties', function () {
@@ -31,12 +31,63 @@ describe('Contact component', () => {
       expect(error).to.match(/Property "foo" not allowed. Property not part of the specification/)
     })
 
-    it('cannot have wrong type for valid property', function () {
-      const error = Contact.validate({
-        // @ts-expect-error
-        name: 12
+    describe('property: name', function () {
+      it('can be a string', function () {
+        const error = Contact.validate({ name: 'Bob' })
+        expect(error).to.match(/No problems detected/)
       })
-      expect(error).to.match(/Expected a string/)
+
+      it('must be a string', function () {
+        const error = Contact.validate({
+          // @ts-expect-error
+          name: 12
+        })
+        expect(error).to.match(/Expected a string/)
+      })
+    })
+
+    describe('property: url', function () {
+      it('can be a valid url', function () {
+        const error = Contact.validate({ url: 'http://foo.com' })
+        expect(error).to.match(/No problems detected/)
+      })
+
+      it('will warn if an invalid url', function () {
+        exceptionLevel(['error', 'warn'], () => {
+          const error = Contact.validate({ url: 'not-url' })
+          expect(error).to.match(/Value does not appear to be a valid URL/)
+        })
+      })
+
+      it('must be a string', function () {
+        const error = Contact.validate({
+          // @ts-expect-error
+          url: 12
+        })
+        expect(error).to.match(/Expected a string/)
+      })
+    })
+
+    describe('property: email', function () {
+      it('can be a valid email', function () {
+        const error = Contact.validate({ email: 'email@fake.com' })
+        expect(error).to.match(/No problems detected/)
+      })
+
+      it('will warn if an invalid url', function () {
+        exceptionLevel(['error', 'warn'], () => {
+          const error = Contact.validate({ email: 'not-email' })
+          expect(error).to.match(/Value does not appear to be a valid email address/)
+        })
+      })
+
+      it('must be a string', function () {
+        const error = Contact.validate({
+          // @ts-expect-error
+          email: 12
+        })
+        expect(error).to.match(/Expected a string/)
+      })
     })
   })
 })

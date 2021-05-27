@@ -1,5 +1,7 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, ValidateResult, Version } from './'
 import { yes } from '../util'
+import * as E from '../Exception/methods'
+import rx from '../rx'
 
 export interface Definition {
   [extension: string]: any
@@ -40,11 +42,27 @@ export class Contact extends OASComponent {
         },
         {
           name: 'url',
-          schema: { type: 'string' }
+          schema: {
+            type: 'string',
+            after (data, component) {
+              const { definition, exception, reference } = data
+              if (!rx.url.test(definition)) {
+                exception.message(E.invalidUrl(component['x-enforcer'], reference, definition))
+              }
+            }
+          }
         },
         {
           name: 'email',
-          schema: { type: 'string' }
+          schema: {
+            type: 'string',
+            after (data, component) {
+              const { definition, exception, reference } = data
+              if (!rx.email.test(definition)) {
+                exception.message(E.invalidEmail(component['x-enforcer'], reference, definition))
+              }
+            }
+          }
         }
       ]
     }

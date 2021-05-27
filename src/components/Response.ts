@@ -93,21 +93,21 @@ export class Response extends OASComponent {
             allowsSchemaExtensions: no,
             additionalProperties: {
               type: 'any',
-              after ({ built, exception, definition: example }) {
+              after ({ built, exception, definition: example }, def) {
                 // validate the example if a schema is defined
                 if ('schema' in built) {
                   const schema = built.schema as Schema.Schema
                   const serialized = schema.serialize(example)
                   if (serialized.error != null) {
-                    exception.message(E.exampleNotSerializable(example, schema, serialized.error))
+                    exception.message(E.exampleNotSerializable(def['x-enforcer'], example, schema, serialized.error))
                   } else {
                     const error = schema.validate(serialized.value)
                     if (error != null) {
-                      exception.message(E.exampleNotValid(example, schema, error))
+                      exception.message(E.exampleNotValid(def['x-enforcer'], example, schema, error))
                     }
                   }
                 } else {
-                  exception.message(E.exampleWithoutSchema())
+                  exception.message(E.exampleWithoutSchema(def['x-enforcer']))
                 }
               }
             }

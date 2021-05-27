@@ -309,7 +309,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
       if (major === 2 && v2After !== undefined) v2After(data, def)
 
       if (built.required === true && 'default' in built) {
-        exception.message(E.defaultRequiredConflict())
+        exception.message(E.defaultRequiredConflict(def['x-enforcer']))
       }
 
       if (built.example !== undefined && built.examples !== undefined) {

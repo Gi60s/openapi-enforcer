@@ -58,7 +58,7 @@ export class PathItem extends OASComponent {
     return {
       type: 'object',
       allowsSchemaExtensions: yes,
-      after ({ definition, exception, reference, key }) {
+      after ({ definition, exception, reference, key }, def) {
         const length = methods.length
         let hasMethod = false
         for (let i = 0; i < length; i++) {
@@ -67,7 +67,7 @@ export class PathItem extends OASComponent {
             break
           }
         }
-        if (!hasMethod) exception.message(E.pathMissingMethods(reference, key))
+        if (!hasMethod) exception.message(E.pathMissingMethods(def['x-enforcer'], reference, key))
       },
       properties: [
         {

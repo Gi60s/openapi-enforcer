@@ -84,8 +84,8 @@ export class Swagger extends OASComponent {
             type: 'array',
             items: {
               type: 'string',
-              after ({ definition, exception, reference }) {
-                if (!rx.mediaType.test(definition)) exception.message(E.invalidMediaType(reference, definition))
+              after ({ definition, exception, reference }, def) {
+                if (!rx.mediaType.test(definition)) exception.message(E.invalidMediaType(def['x-enforcer'], reference, definition))
               }
             }
           }
@@ -158,8 +158,8 @@ export class Swagger extends OASComponent {
             type: 'array',
             items: {
               type: 'string',
-              after ({ definition, exception, reference }) {
-                if (!rx.mediaType.test(definition)) exception.message(E.invalidMediaType(reference, definition))
+              after ({ definition, exception, reference }, def) {
+                if (!rx.mediaType.test(definition)) exception.message(E.invalidMediaType(def['x-enforcer'], reference, definition))
               }
             }
           }

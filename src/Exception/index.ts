@@ -1,6 +1,9 @@
+import { Data } from '../components'
 import { ExceptionMessageData } from './types'
 import { getConfig, ExceptionConfiguration } from '../config'
+import * as E from './methods'
 import * as util from 'util'
+import { parseEnforcerExtensionDirective } from '../util'
 
 const inspect = util.inspect.custom ?? 'inspect'
 
@@ -45,6 +48,7 @@ export interface ExceptionReport {
 export class Exception {
   public header: string | undefined
   public data: ExceptionData<Exception> = { at: {}, messages: [] }
+  // public from = E
 
   constructor (header?: string) {
     this.header = header
@@ -54,6 +58,14 @@ export class Exception {
     const at = this.data.at
     if (!(key in at)) at[key] = new Exception()
     return at[key]
+  }
+
+  public from (data: Data): typeof E {
+    const definition = data.chain[0]?.definition
+    if (definition['x-enforcer'] !== undefined) {
+
+    }
+    return E
   }
 
   public message (data: ExceptionMessageData): Exception {
@@ -97,9 +109,10 @@ export class Exception {
     // run pre report
     const data = runPreReport(fullConfig, this, null)
     result.countDetails = data.countDetails
-    if (data.count === 0) return result
+    result.message = data.count === 0
+      ? 'No problems detected'
+      : (this.header as string) + fullConfig.lineDelimiter + getReport(result, fullConfig, data, ' '.repeat(indentLength + 2), [])
 
-    result.message = (this.header as string) + fullConfig.lineDelimiter + getReport(result, fullConfig, data, ' '.repeat(indentLength + 2), [])
     return result
   }
 
@@ -117,78 +130,6 @@ export class Exception {
     }
   }
 }
-
-// export class Exception {
-//   public header: string
-//   public data: {
-//     at: {
-//       [key: string]: Exception
-//     }
-//     nest: Exception[]
-//     messages: ExceptionMessageData[]
-//   } = { at: {}, nest: [], messages: [] }
-//
-//   constructor (header: string) {
-//     this.header = header
-//   }
-//
-//   public at (key: string | number): Exception {
-//     const at = this.data.at
-//     if (!(key in at)) at[key] = new Exception('')
-//     return at[key]
-//   }
-//
-//   public get hasException (): boolean {
-//     const children = this.data
-//     if (children.messages.length > 0) return true
-//
-//     const nest = children.nest
-//     const length = nest.length
-//     for (let i = 0; i < length; i++) {
-//       if (nest[i].hasException) return true
-//     }
-//
-//     const keys = Object.keys(children.at)
-//     const length2 = keys.length
-//     for (let i = 0; i < length2; i++) {
-//       if (children.at[keys[i]].hasException) return true
-//     }
-//
-//     return false
-//   }
-//
-//   public message (code: string, reference: string, message: string): Exception {
-//     this.data.messages.push({
-//       code,
-//       message,
-//       reference
-//     })
-//     return this
-//   }
-//
-//   public nest (header: string): Exception {
-//     const exception = new Exception(header)
-//     this.push(exception)
-//     return exception
-//   }
-//
-//   public push (exception: Exception): Exception {
-//     this.data.nest.push(exception)
-//     return exception
-//   }
-//
-//   public toString (): string {
-//     return toString(this, null, '')
-//   }
-//
-//   [inspect] (): string {
-//     if (this.hasException) {
-//       return '[ EnforcerException: ' + toString(this, null, '  ') + ' ]'
-//     } else {
-//       return '[ EnforcerException ]'
-//     }
-//   }
-// }
 
 function runPreReport (fullConfig: Required<ExceptionConfiguration>, context: Exception, parent: ExceptionPreReport | null): ExceptionPreReport {
   const data = context.data
@@ -209,11 +150,21 @@ function runPreReport (fullConfig: Required<ExceptionConfiguration>, context: Ex
   const messages = data.messages
     .map(message => {
       const code = message.code
-      // @ts-expect-error
-      if (fullConfig?.codes?.[code] !== undefined) {
-        // @ts-expect-error
-        message.level = fullConfig.codes[code]
+      if (message.level !== 'error') {
+        if (message.xEnforcer !== undefined) {
+          // overwrite the level if specified in the enforcer data
+          const { exceptionCodeMap: map } = parseEnforcerExtensionDirective(message.xEnforcer)
+          if (map[code] !== undefined) {
+            // @ts-expect-error
+            message.level = map[code]
+          }
+        } else if (fullConfig?.codes?.[code] !== undefined) {
+          // overwrite the level if specified in the global config
+          // @ts-expect-error
+          message.level = fullConfig.codes[code]
+        }
       }
+
       result.countDetails[message.level]++
       return message
     })

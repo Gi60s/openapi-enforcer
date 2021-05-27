@@ -1,6 +1,16 @@
 import { OASComponent, initializeData, SchemaObject, Version, ExtendedComponent, SpecMap } from '../components'
 import { expect } from 'chai'
 import { copy, no, yes } from '../util'
+import { setConfig } from '../config'
+import { exceptionLevel } from '../test-utils'
+
+before(() => {
+  setConfig({
+    exceptions: {
+      include: ['error']
+    }
+  })
+})
 
 const basicSchemaObject: SchemaObject = {
   type: 'object',
@@ -369,6 +379,39 @@ describe('Generic component tests', () => {
   })
 
   describe('validate', function () {
+    describe('x-enforcer', () => {
+      it('is allowed even if extensions are not allowed', function () {
+        exceptionLevel(['opinion', 'warn', 'error'], () => {
+          const Test = TestComponent({
+            type: 'object',
+            allowsSchemaExtensions: no
+          })
+          const error = Test.validate({ 'x-enforcer': 'ignore ASDF' })
+          expect(error.count).to.equal(0)
+        })
+      })
+
+      it('can modify the error level', function () {
+        const Test = TestComponent({
+          type: 'object',
+          allowsSchemaExtensions: no,
+          after ({ exception }) {
+            exception.message({
+              level: 'warn',
+              code: 'ABC',
+              message: 'There is a warning',
+              metadata: {},
+              reference: '',
+              xEnforcer: 'error: ABC'
+            })
+          }
+        })
+        const error = Test.validate({})
+        expect(error.count).to.equal(1)
+        expect(error.countDetails.error).to.equal(1)
+      })
+    })
+
     describe('after function', function () {
       it('is run during validate', function () {
         let count = 0

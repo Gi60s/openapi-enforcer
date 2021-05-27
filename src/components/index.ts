@@ -180,6 +180,10 @@ export abstract class OASComponent {
     }
   }
 
+  static extend (): void {
+
+  }
+
   static get spec (): SpecMap {
     return {}
   }
@@ -410,6 +414,7 @@ export function validate (data: Data): any { // return value is what to add to b
   const componentDef = data.component.definition
   const definition = data.definition
   const schema = data.schema as SchemaAny
+  const xEnforcer = definition['x-enforcer']
 
   // run before hook
   if (schema.before !== undefined) {
@@ -452,7 +457,7 @@ export function validate (data: Data): any { // return value is what to add to b
 
   // $ref property is only allowed for components, and only some of those
   if (typeof definition === 'object' && '$ref' in definition && schema.type !== 'any' && schema.type !== 'component') {
-    exception.message(E.$refNotAllowed(data.reference))
+    exception.message(E.$refNotAllowed(xEnforcer, data.reference))
   }
 
   if (schema.type === 'any') {
@@ -521,7 +526,7 @@ export function validate (data: Data): any { // return value is what to add to b
     const hasRef = '$ref' in definition
     if (hasRef) {
       if (!s.allowsRef) {
-        exception.message(E.$refNotAllowed(data.reference))
+        exception.message(E.$refNotAllowed(xEnforcer, data.reference))
         return
       } else {
         component = Reference
@@ -741,7 +746,7 @@ function validateObject (data: Data): any {
 
     // if a schema extension
     if (rx.extension.test(key)) {
-      if (!allowsSchemaExtensions) exception.message(E.extensionNotAllowed(data.reference))
+      if (!allowsSchemaExtensions && key !== 'x-enforcer') exception.message(E.extensionNotAllowed(definition['x-enforcer'], data.reference))
       return
     }
 

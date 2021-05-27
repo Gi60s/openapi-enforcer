@@ -41,10 +41,10 @@ export class MediaType extends OASComponent {
     return {
       type: 'object',
       allowsSchemaExtensions: yes,
-      after ({ built, exception, chain, key, reference }) {
+      after ({ built, exception, chain, key, reference }, component) {
         const parent = chain.length > 0 ? chain[0] : null
         if (parent !== null && parent.key === 'content' && !rx.mediaType.test(key)) {
-          exception.message(E.invalidMediaType(reference, key))
+          exception.message(E.invalidMediaType(component['x-enforcer'], reference, key))
         }
 
         if ('example' in built && 'examples' in built) {

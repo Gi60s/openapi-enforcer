@@ -1,5 +1,5 @@
-import { Exception } from './Exception'
 import rx from './rx'
+import { CodesMap } from './config'
 
 interface BooleanMap {
   [key: string]: boolean
@@ -126,6 +126,26 @@ export function no (): false {
 }
 
 export function noop (): void {}
+
+export function parseEnforcerExtensionDirective (directive: string): { exceptionCodeMap: CodesMap } {
+  const result: { exceptionCodeMap: CodesMap } = {
+    exceptionCodeMap: {}
+  }
+  directive
+    .split(';')
+    .map(v => v.trim().split(':'))
+    .map(v => {
+      const key = v[0].trim()
+      const value = v[1].trim()
+      if (key === 'ignore' || key === 'opinion' || key === 'warn' || key === 'error') {
+        const codes: string[] = value.split(/ +/)
+        codes.forEach(code => {
+          result.exceptionCodeMap[code] = key
+        })
+      }
+    })
+  return result
+}
 
 export function required (isRequired?: any): boolean {
   if (isRequired === undefined) isRequired = true

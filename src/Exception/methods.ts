@@ -1,27 +1,26 @@
-import { getConfig } from '../config'
 import { Exception } from './'
-import { Level, ExceptionMessageData } from './types'
+import { ExceptionMessageData } from './types'
 import { smart } from '../util'
 
-export function $refNotAllowed (reference: string): ExceptionMessageData {
-  const code = 'DVCREF'
-  const level = getConfigLevel(code, 'warn')
+export function $refNotAllowed (xEnforcer: string, reference: string): ExceptionMessageData {
   return {
-    level,
-    code,
+    level: 'warn',
+    code: 'DVCREF',
     message: 'Reference not allowed here.',
     metadata: {},
-    reference
+    reference,
+    xEnforcer
   }
 }
 
-export function defaultRequiredConflict (): ExceptionMessageData {
+export function defaultRequiredConflict (xEnforcer: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'DEFREQ',
     message: 'Setting a "default" value and setting "required" to true means the "default" value will never be used.',
     metadata: {},
-    reference: ''
+    reference: '',
+    xEnforcer
   }
 }
 
@@ -70,7 +69,7 @@ export function exampleExamplesConflict (reference: string): ExceptionMessageDat
   }
 }
 
-export function exampleNotSerializable (example: any, schema: any, error: Exception): ExceptionMessageData {
+export function exampleNotSerializable (xEnforcer: string, example: any, schema: any, error: Exception): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'EXSCNS',
@@ -80,11 +79,12 @@ export function exampleNotSerializable (example: any, schema: any, error: Except
       example,
       schema
     },
-    reference: ''
+    reference: '',
+    xEnforcer
   }
 }
 
-export function exampleNotValid (example: any, schema: any, error: Exception): ExceptionMessageData {
+export function exampleNotValid (xEnforcer: string, example: any, schema: any, error: Exception): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'EXSCNV',
@@ -94,7 +94,8 @@ export function exampleNotValid (example: any, schema: any, error: Exception): E
       example,
       schema
     },
-    reference: ''
+    reference: '',
+    xEnforcer
   }
 }
 
@@ -108,13 +109,14 @@ export function exampleValueExternalConflict (reference: string): ExceptionMessa
   }
 }
 
-export function exampleWithoutSchema (): ExceptionMessageData {
+export function exampleWithoutSchema (xEnforcer: string): ExceptionMessageData {
   return {
     level: 'opinion',
     code: 'EXVCNF',
     message: 'An example is great, but you should add a schema. A schema can provide more detailed information than an example',
     metadata: {},
-    reference: ''
+    reference: '',
+    xEnforcer
   }
 }
 
@@ -153,7 +155,7 @@ export function exceedsStringLengthBounds (reference: string, boundBy: 'maxLengt
   }
 }
 
-export function exceedsSummaryLength (reference: string, summary: string): ExceptionMessageData {
+export function exceedsSummaryLength (xEnforcer: string, reference: string, summary: string): ExceptionMessageData {
   const length = summary.length
   return {
     level: 'warn',
@@ -163,17 +165,19 @@ export function exceedsSummaryLength (reference: string, summary: string): Excep
       length: length,
       summary
     },
-    reference
+    reference,
+    xEnforcer
   }
 }
 
-export function extensionNotAllowed (reference: string): ExceptionMessageData {
+export function extensionNotAllowed (xEnforcer: string, reference: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'DVOEXT',
     message: 'Schema extensions not allowed here',
     metadata: {},
-    reference
+    reference,
+    xEnforcer
   }
 }
 
@@ -189,7 +193,20 @@ export function invalidCookieExplode (reference: string, parameterName: string):
   }
 }
 
-export function invalidMaxMin (minimum: any, maximum: any, minProperty: string, maxProperty: string): ExceptionMessageData {
+export function invalidEmail (xEnforcer: string, reference: string, invalidValue: any): ExceptionMessageData {
+  return {
+    level: 'warn',
+    code: 'DVIEML',
+    message: 'Value does not appear to be a valid email address: ' + smart(invalidValue),
+    metadata: {
+      invalidValue
+    },
+    reference,
+    xEnforcer
+  }
+}
+
+export function invalidMaxMin (xEnforcer: string, minimum: any, maximum: any, minProperty: string, maxProperty: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'MEDTYP',
@@ -200,11 +217,12 @@ export function invalidMaxMin (minimum: any, maximum: any, minProperty: string, 
       minimum,
       minProperty
     },
-    reference: ''
+    reference: '',
+    xEnforcer
   }
 }
 
-export function invalidMediaType (reference: string, mediaType: string): ExceptionMessageData {
+export function invalidMediaType (xEnforcer: string, reference: string, mediaType: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'MEDTYP',
@@ -212,7 +230,8 @@ export function invalidMediaType (reference: string, mediaType: string): Excepti
     metadata: {
       mediaType
     },
-    reference
+    reference,
+    xEnforcer
   }
 }
 
@@ -288,6 +307,19 @@ export function invalidType (reference: string, expectedType: string, invalidVal
   }
 }
 
+export function invalidUrl (xEnforcer: string, reference: string, invalidValue: any): ExceptionMessageData {
+  return {
+    level: 'warn',
+    code: 'DVIURL',
+    message: 'Value does not appear to be a valid URL: ' + smart(invalidValue),
+    metadata: {
+      invalidValue
+    },
+    reference,
+    xEnforcer
+  }
+}
+
 export function invalidValue (reference: string, expected: string, value: any): ExceptionMessageData {
   return {
     level: 'error',
@@ -360,13 +392,14 @@ export function mustNotBeNull (reference: string): ExceptionMessageData {
   }
 }
 
-export function noPathsDefined (): ExceptionMessageData {
+export function noPathsDefined (xEnforcer: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'PTHSND',
     message: 'No paths defined',
     metadata: {},
-    reference: ''
+    reference: '',
+    xEnforcer
   }
 }
 
@@ -383,7 +416,7 @@ export function notMultipleOf (reference: string, multipleOf: number, value: any
   }
 }
 
-export function operationMethodShouldNotHaveBody (reference: string, method: string): ExceptionMessageData {
+export function operationMethodShouldNotHaveBody (xEnforcer: string, reference: string, method: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'OPRBDY',
@@ -391,7 +424,8 @@ export function operationMethodShouldNotHaveBody (reference: string, method: str
     metadata: {
       method
     },
-    reference
+    reference,
+    xEnforcer
   }
 }
 
@@ -418,7 +452,7 @@ export function operationIdMustBeUnique (reference: string, operationId: string,
   }
 }
 
-export function pathEndingsInconsistent (pathsWithTrailingSlash: string[], pathsWithoutTrailingSlash: string[]): ExceptionMessageData {
+export function pathEndingsInconsistent (xEnforcer: string, pathsWithTrailingSlash: string[], pathsWithoutTrailingSlash: string[]): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'PTHINC',
@@ -427,11 +461,12 @@ export function pathEndingsInconsistent (pathsWithTrailingSlash: string[], paths
       pathsWithTrailingSlash,
       pathsWithoutTrailingSlash
     },
-    reference: ''
+    reference: '',
+    xEnforcer
   }
 }
 
-export function pathMissingMethods (reference: string, path: string): ExceptionMessageData {
+export function pathMissingMethods (xEnforcer: string, reference: string, path: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'NOMTHD',
@@ -439,7 +474,8 @@ export function pathMissingMethods (reference: string, path: string): ExceptionM
     metadata: {
       path
     },
-    reference
+    reference,
+    xEnforcer
   }
 }
 
@@ -468,17 +504,18 @@ export function propertyNotAllowed (reference: string, propertyName: string, rea
   }
 }
 
-export function randomPasswordWarning (): ExceptionMessageData {
+export function randomPasswordWarning (xEnforcer: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'DTRPAS',
     message: 'It may not be safe to use this random value as a password',
     metadata: {},
-    reference: ''
+    reference: '',
+    xEnforcer
   }
 }
 
-export function responseBodyNotAllowed (type: 'schema' | 'content'): ExceptionMessageData {
+export function responseBodyNotAllowed (xEnforcer: string, type: 'schema' | 'content'): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'RESNBD',
@@ -486,7 +523,8 @@ export function responseBodyNotAllowed (type: 'schema' | 'content'): ExceptionMe
     metadata: {
       type
     },
-    reference: ''
+    reference: '',
+    xEnforcer
   }
 }
 
@@ -500,13 +538,14 @@ export function responseRequired (reference: string): ExceptionMessageData {
   }
 }
 
-export function responseShouldIncludeLocationHeader (): ExceptionMessageData {
+export function responseShouldIncludeLocationHeader (xEnforcer: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'RESPHD',
     message: 'A 201 response for a POST request should return a location header and this is not documented in your OpenAPI document',
     metadata: {},
-    reference: 'https://tools.ietf.org/html/rfc7231#section-4.3.3'
+    reference: 'https://tools.ietf.org/html/rfc7231#section-4.3.3',
+    xEnforcer
   }
 }
 
@@ -614,7 +653,7 @@ export function swaggerHostHasSubPath (reference: string, host: string, subPath:
   }
 }
 
-export function unknownTypeFormat (type: string, format: string): ExceptionMessageData {
+export function unknownTypeFormat (xEnforcer: string, type: string, format: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'SWGHBP',
@@ -623,94 +662,7 @@ export function unknownTypeFormat (type: string, format: string): ExceptionMessa
       format,
       type
     },
-    reference: ''
+    reference: '',
+    xEnforcer
   }
 }
-
-function getConfigLevel (code: string, defaultLevel: Level): Level {
-  const config = getConfig()
-  const level = code in config.exceptions.codes
-    // @ts-expect-error
-    ? config.exceptions.codes[code] as Level
-    : defaultLevel
-  return level
-}
-
-//
-// export const types: ExceptionCodes = {
-//
-
-//   // data types
-//   DTVMXN: {
-//     level: 'error',
-//     message: 'Expected %s to be %s than %s %s. Received: %s'
-//   },
-//
-
-//
-//   // example
-//   EXVCNF: {
-//     level: 'error',
-//     message: 'Cannot have both "externalValue" and "value" properties.'
-//   },
-//
-//   // link
-//   LNKCFL: {
-//     level: 'error',
-//     message: 'Must not define both operationId and operationRef'
-//   },
-//
-
-//
-//   EXPCFL: {
-//     level: 'error',
-//     message: 'Properties "example" and "examples" are mutually exclusive.'
-//   },
-//
-
-//
-
-//
-
-//
-
-//
-//   // PathItem
-//   NOMTHD: {
-//     level: 'warn',
-//     message: 'No methods defined.'
-//   },
-//
-//   // Paths
-//   PTHESH: {
-//     level: 'opinion',
-//     message: 'Paths should not end with a slash.'
-//   },
-//   PTHSSH: {
-//     level: 'error',
-//     message: 'Path must begin with a single forward slash.',
-//     reference: 'https://tools.ietf.org/html/rfc3986#section-3.3'
-//   },
-//
-//   // Response
-//
-//   // Security Scheme
-//
-//   // Schema
-//   MAXMIN: {
-//     level: 'error',
-//     message: 'Property %s must be less than %s.'
-//   },
-//   TYPFRM: {
-//     level: 'warn',
-//     message: 'Non-standard format used: %s. %s'
-//   },
-//
-//   // ServerVariables
-//   SVRENM: {
-//     level: 'warn',
-//     message: 'Enum should not be an empty array.'
-//   },
-//
-
-// }

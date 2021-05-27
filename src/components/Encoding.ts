@@ -88,9 +88,9 @@ export class Encoding extends OASComponent {
               }
               return 'text/plain'
             },
-            after ({ definition, exception, reference }) {
+            after ({ definition, exception, reference }, component) {
               if (!rx.mediaType.test(definition)) {
-                exception.message(E.invalidMediaType(reference, definition))
+                exception.message(E.invalidMediaType(component['x-enforcer'], reference, definition))
               }
             }
           }

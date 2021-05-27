@@ -30,6 +30,11 @@ describe('Swagger component', () => {
       })
     })
 
+    it('cannot have invalid properties', function () {
+      const error = Swagger.validate({ swagger, info, paths, foo: 'invalid' })
+      expect(error).to.match(/Property "foo" not allowed. Property not part of the specification/)
+    })
+
     describe('property: swagger', () => {
       it('is required', function () {
         // @ts-expect-error

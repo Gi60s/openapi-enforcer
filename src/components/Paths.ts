@@ -29,14 +29,14 @@ export class Paths extends OASComponent {
     return {
       type: 'object',
       allowsSchemaExtensions: yes,
-      after ({ definition, exception }) {
+      after ({ definition, exception }, def) {
         const paths = Object.keys(definition)
         const includesTrailingSlashes: string[] = []
         const omitsTrainingSlashes: string[] = []
 
         // no paths defined
         if (paths.length === 0) {
-          exception.message(E.noPathsDefined())
+          exception.message(E.noPathsDefined(def['x-enforcer']))
         }
 
         paths.forEach((key: string) => {
@@ -51,7 +51,7 @@ export class Paths extends OASComponent {
 
         // inconsistent path endings
         if (includesTrailingSlashes.length > 0 && omitsTrainingSlashes.length > 0) {
-          exception.message(E.pathEndingsInconsistent(includesTrailingSlashes, omitsTrainingSlashes))
+          exception.message(E.pathEndingsInconsistent(def['x-enforcer'], includesTrailingSlashes, omitsTrainingSlashes))
         }
       },
       additionalProperties: {

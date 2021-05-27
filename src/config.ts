@@ -1,22 +1,6 @@
 import { Version } from './components'
 
-interface CodesMap {
-  DEFREQ: ExceptionLevel
-  ENCMED: ExceptionLevel
-  EXNOSC: ExceptionLevel
-  EXSCNS: ExceptionLevel
-  EXSCNV: ExceptionLevel
-  MEDTYP: ExceptionLevel
-  NOMTHD: ExceptionLevel
-  OPRBDY: ExceptionLevel
-  OPRSUM: ExceptionLevel
-  PTHESH: ExceptionLevel
-  PTHINC: ExceptionLevel
-  RESNBD: ExceptionLevel
-  RESNOS: ExceptionLevel
-  RESPHD: ExceptionLevel
-  TYPFRM: ExceptionLevel
-}
+export type CodesMap = Record<string, ExceptionLevel>
 
 export interface Configuration {
   exceptions?: ExceptionConfiguration
@@ -40,24 +24,8 @@ type ExceptionLevel = 'ignore' | 'opinion' | 'warn' | 'error'
 
 let current: FullConfiguration = {
   exceptions: {
-    codes: {
-      DEFREQ: 'warn',
-      ENCMED: 'warn',
-      EXNOSC: 'opinion',
-      EXSCNS: 'warn',
-      EXSCNV: 'warn',
-      MEDTYP: 'warn',
-      NOMTHD: 'warn',
-      OPRBDY: 'warn',
-      OPRSUM: 'warn',
-      PTHESH: 'opinion',
-      PTHINC: 'warn',
-      RESNBD: 'warn',
-      RESNOS: 'warn',
-      RESPHD: 'warn',
-      TYPFRM: 'warn'
-    },
-    include: ['error'],
+    codes: {},
+    include: process.env.NODE_ENV === 'production' ? ['error'] : ['error', 'warn'],
     lineDelimiter: '\r' // TODO: how does windows handle this instead of \r\n?
   },
   production: process.env.NODE_ENV === 'production',

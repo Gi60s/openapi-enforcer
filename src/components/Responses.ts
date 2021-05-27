@@ -38,7 +38,7 @@ export class Responses extends OASComponent {
         allowsRef: false,
         component: Response.Response
       },
-      after ({ built, exception, major, reference }, { key: method }) {
+      after ({ built, exception, major, reference }, { key: method, 'x-enforcer': xEnforcer }) {
         const codes = Object.keys(built)
         let has2xxResponseCode: boolean = false
 
@@ -53,14 +53,14 @@ export class Responses extends OASComponent {
             // if a POST 201 response then warn if missing location header
             if (method === 'post' && code === '201') {
               const locationHeaderKey = response.headers !== undefined && Object.keys(response.headers).filter(v => rxLocation.test(v))[0]
-              if (locationHeaderKey === undefined) exception.message(E.responseShouldIncludeLocationHeader())
+              if (locationHeaderKey === undefined) exception.message(E.responseShouldIncludeLocationHeader(xEnforcer))
 
               // if a 204 then there should be no response body (or schema)
             } else if (code === '204') {
               if (major === 2 && 'schema' in response) {
-                exception.message(E.responseBodyNotAllowed('schema'))
+                exception.message(E.responseBodyNotAllowed(xEnforcer, 'schema'))
               } else if (major === 3 && 'content' in response) {
-                exception.message(E.responseBodyNotAllowed('content'))
+                exception.message(E.responseBodyNotAllowed(xEnforcer, 'content'))
               }
             }
           }

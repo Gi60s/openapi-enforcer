@@ -65,11 +65,11 @@ export class Header extends OASComponent {
     // copy schema from partial schema generator
     const schema = PartialSchema.schemaGenerator(Header)
 
-    schema.after = (data: Data) => {
+    schema.after = (data: Data, component) => {
       const { built, exception } = data
 
       if (built.required === true && 'default' in built) {
-        exception.message(E.defaultRequiredConflict())
+        exception.message(E.defaultRequiredConflict(component['x-enforcer']))
       }
 
       if (built.example !== undefined && built.examples !== undefined) {

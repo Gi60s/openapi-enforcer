@@ -151,17 +151,17 @@ export class Operation extends OASComponent {
           schema: {
             type: 'component',
             allowsRef: true,
-            before: ({ component, exception }) => {
+            before: ({ component, exception }, def) => {
               const method = component.key
               switch (method.toLowerCase()) {
                 case 'get':
-                  exception.message(E.operationMethodShouldNotHaveBody('https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET', 'get'))
+                  exception.message(E.operationMethodShouldNotHaveBody(def['x-enforcer'], 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET', 'get'))
                   break
                 case 'delete':
-                  exception.message(E.operationMethodShouldNotHaveBody('https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE', 'delete'))
+                  exception.message(E.operationMethodShouldNotHaveBody(def['x-enforcer'], 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE', 'delete'))
                   break
                 case 'trace':
-                  exception.message(E.operationMethodShouldNotHaveBody('https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/TRACE', 'trace'))
+                  exception.message(E.operationMethodShouldNotHaveBody(def['x-enforcer'], 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/TRACE', 'trace'))
                   break
               }
               return true
@@ -209,9 +209,9 @@ export class Operation extends OASComponent {
           name: 'summary',
           schema: {
             type: 'string',
-            after ({ definition, exception, reference }) {
+            after ({ definition, exception, reference }, def) {
               if (definition.length >= 120) {
-                exception.message(E.exceedsSummaryLength(reference, definition))
+                exception.message(E.exceedsSummaryLength(def['x-enforcer'], reference, definition))
               }
             }
           }
