@@ -1,10 +1,11 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
-import { yes } from '../util'
+import { addExceptionLocation, adjustExceptionLevel, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Operation from './Operation'
 import * as Parameter from './Parameter'
 import * as Reference from './Reference'
 import * as Server from './Server'
+import { lookup } from '../loader'
 
 const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']
 
@@ -67,7 +68,12 @@ export class PathItem extends OASComponent {
             break
           }
         }
-        if (!hasMethod) exception.message(E.pathMissingMethods(def['x-enforcer'], reference, key))
+        if (!hasMethod) {
+          const pathMissingMethods = E.pathMissingMethods(reference, key)
+          adjustExceptionLevel(def, pathMissingMethods)
+          addExceptionLocation(pathMissingMethods, lookup(def))
+          exception.message(pathMissingMethods)
+        }
       },
       properties: [
         {

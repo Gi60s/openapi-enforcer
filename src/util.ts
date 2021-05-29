@@ -1,5 +1,7 @@
 import rx from './rx'
 import { CodesMap } from './config'
+import { ExceptionMessageData } from './Exception/types'
+import { Location } from 'json-to-ast'
 
 interface BooleanMap {
   [key: string]: boolean
@@ -23,6 +25,22 @@ interface ToPlainObjectOptions {
 interface ToPlainObjectResult {
   set: boolean
   value?: any
+}
+
+export function adjustExceptionLevel (o: any, message: ExceptionMessageData): void {
+  if (o?.['x-enforcer'] !== undefined) {
+    const { exceptionCodeMap } = parseEnforcerExtensionDirective(o['x-enforcer'])
+    const code = message.code
+    if (code !== 'error' && code in exceptionCodeMap) message.level = exceptionCodeMap[code]
+  }
+}
+
+export function addExceptionLocation (message: ExceptionMessageData, ...locations: Array<Location|undefined>): void {
+  const filtered: Location[] = locations.filter(l => l !== undefined) as Location[]
+  if (filtered.length > 0) {
+    if (!Array.isArray(message.locations)) message.locations = []
+    message.locations.push(...filtered)
+  }
 }
 
 export function booleanMapToStringArray (map: BooleanMap): string[] {

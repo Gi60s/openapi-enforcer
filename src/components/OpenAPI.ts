@@ -1,5 +1,6 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
-import { yes } from '../util'
+import * as Loader from '../loader'
+import { addExceptionLocation, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Components from './Components'
 import * as ExternalDocumentation from './ExternalDocumentation'
@@ -8,6 +9,7 @@ import * as Paths from './Paths'
 import * as SecurityRequirement from './SecurityRequirement'
 import * as Server from './Server'
 import * as Tag from './Tag'
+import { lookup } from '../loader'
 
 const rxVersion = /^\d+\.\d+\.\d+$/
 
@@ -21,6 +23,10 @@ export interface Definition {
   security?: SecurityRequirement.Definition[]
   servers?: Server.Definition[]
   tags?: Tag.Definition[]
+}
+
+export interface LoaderOptions extends Loader.Options {
+  validate?: boolean
 }
 
 export class OpenAPI extends OASComponent {
@@ -46,6 +52,15 @@ export class OpenAPI extends OASComponent {
       '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#openapi-object',
       '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#openapi-object'
     }
+  }
+
+  static async load (path: string, options?: LoaderOptions): Promise<Definition> {
+    const def = await Loader.load(path, options)
+    if (options?.validate !== false) {
+      const error = this.validate(def)
+      if (error.hasException) throw Error(error.toString())
+    }
+    return def
   }
 
   static schemaGenerator (): SchemaObject {
@@ -83,13 +98,17 @@ export class OpenAPI extends OASComponent {
           required: yes,
           schema: {
             type: 'string',
-            before: ({ definition, exception, reference }) => {
+            before: ({ definition, exception, reference }, component) => {
               if (!rxVersion.test(definition)) {
-                exception.message(E.invalidSemanticVersionNumber(reference))
+                const invalidSemanticVersionNumber = E.invalidSemanticVersionNumber(reference)
+                addExceptionLocation(invalidSemanticVersionNumber, lookup(component, 'openapi', 'value'))
+                exception.message(invalidSemanticVersionNumber)
                 return false
               }
               if (definition.split('.')[0] !== '3') {
-                exception.message(E.invalidOpenApiVersionNumber(reference, definition))
+                const invalidOpenApiVersionNumber = E.invalidOpenApiVersionNumber(reference, definition)
+                addExceptionLocation(invalidOpenApiVersionNumber, lookup(component, 'openapi', 'value'))
+                exception.message(invalidOpenApiVersionNumber)
                 return false
               }
               return true

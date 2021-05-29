@@ -195,7 +195,9 @@ base.defineMultiple({ integer: ['', 'int32', 'int64'], number: ['', 'float', 'do
 
 base.defineMultiple({ string: ['', 'password'] }, {
   random ({ exception, options, schema }) {
-    if (schema.format === 'password') exception.message(E.randomPasswordWarning(schema['x-enforcer']))
+    if (schema.format === 'password') {
+      exception.message(E.randomPasswordWarning())
+    }
     if (schema.pattern !== undefined) {
       return new RandExp(schema.pattern).gen()
     } else {

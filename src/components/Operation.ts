@@ -1,5 +1,5 @@
 import { OASComponent, initializeData, Data, SchemaObject, SpecMap, Version, ValidateResult } from './'
-import { no, yes } from '../util'
+import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Callback from './Callback'
 import * as ExternalDocumentation from './ExternalDocumentation'
@@ -9,6 +9,8 @@ import * as RequestBody from './RequestBody'
 import * as Responses from './Responses'
 import * as SecurityRequirement from './SecurityRequirement'
 import * as Server from './Server'
+import { lookup } from '../loader'
+import { ExceptionMessageData } from '../Exception/types'
 
 export interface Definition {
   [extension: string]: any
@@ -113,14 +115,16 @@ export class Operation extends OASComponent {
           name: 'operationId',
           schema: {
             type: 'string',
-            after (data) {
+            after (data, def) {
               const { definition, exception, metadata } = data
               if (metadata.operationIdMap === undefined) metadata.operationIdMap = {}
               if (metadata.operationIdMap[definition] === undefined) metadata.operationIdMap[definition] = []
               metadata.operationIdMap[definition].push(data.component)
 
               // this exception method had a dynamic active property that will determine if this is an error or not
-              exception.message(E.operationIdMustBeUnique(data.reference, definition, metadata.operationIdMap[definition]))
+              const operationIdMustBeUnique = E.operationIdMustBeUnique(data.reference, definition, metadata.operationIdMap[definition])
+              addExceptionLocation(operationIdMustBeUnique, lookup(def, 'operationId', 'value'))
+              exception.message(operationIdMustBeUnique)
             }
           }
         },
@@ -153,15 +157,22 @@ export class Operation extends OASComponent {
             allowsRef: true,
             before: ({ component, exception }, def) => {
               const method = component.key
+              let operationMethodShouldNotHaveBody: ExceptionMessageData
               switch (method.toLowerCase()) {
                 case 'get':
-                  exception.message(E.operationMethodShouldNotHaveBody(def['x-enforcer'], 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET', 'get'))
+                  operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody('https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET', 'get')
+                  addExceptionLocation(operationMethodShouldNotHaveBody, lookup(def, 'requestBody'))
+                  exception.message(operationMethodShouldNotHaveBody)
                   break
                 case 'delete':
-                  exception.message(E.operationMethodShouldNotHaveBody(def['x-enforcer'], 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE', 'delete'))
+                  operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody('https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET', 'delete')
+                  addExceptionLocation(operationMethodShouldNotHaveBody, lookup(def, 'requestBody'))
+                  exception.message(operationMethodShouldNotHaveBody)
                   break
                 case 'trace':
-                  exception.message(E.operationMethodShouldNotHaveBody(def['x-enforcer'], 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/TRACE', 'trace'))
+                  operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody('https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET', 'trace')
+                  addExceptionLocation(operationMethodShouldNotHaveBody, lookup(def, 'requestBody'))
+                  exception.message(operationMethodShouldNotHaveBody)
                   break
               }
               return true
@@ -211,7 +222,10 @@ export class Operation extends OASComponent {
             type: 'string',
             after ({ definition, exception, reference }, def) {
               if (definition.length >= 120) {
-                exception.message(E.exceedsSummaryLength(def['x-enforcer'], reference, definition))
+                const exceedsSummaryLength = E.exceedsSummaryLength(reference, definition)
+                adjustExceptionLevel(def, exceedsSummaryLength)
+                addExceptionLocation(exceedsSummaryLength, lookup(def, 'summary', 'value'))
+                exception.message(exceedsSummaryLength)
               }
             }
           }

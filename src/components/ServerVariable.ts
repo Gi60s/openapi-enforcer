@@ -1,6 +1,7 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
-import { yes } from '../util'
+import { addExceptionLocation, adjustExceptionLevel, yes } from '../util'
 import * as E from '../Exception/methods'
+import { lookup } from '../loader'
 
 export interface Definition {
   [extension: string]: any
@@ -41,10 +42,12 @@ export class ServerVariable extends OASComponent {
             items: {
               type: 'string'
             },
-            after (data) {
+            after (data, def) {
               const { built, exception } = data
               if (built.length === 0) {
-                exception.message(E.enumMissingValues())
+                const enumMissingValues = E.enumMissingValues()
+                addExceptionLocation(enumMissingValues, lookup(def, 'enum', 'value'))
+                exception.message(enumMissingValues)
               }
             }
           }

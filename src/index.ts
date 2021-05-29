@@ -1,3 +1,11 @@
+import * as Loader from './loader'
+
+export { Loader }
+
+export async function load (path: string, options?: Loader.Options): Promise<unknown> {
+  return await Loader.load(path, options)
+}
+
 //
 // import * as Callback from './components/Callback'
 // import * as Components from './components/Components'

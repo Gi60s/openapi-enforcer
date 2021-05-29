@@ -2,25 +2,23 @@ import { Exception } from './'
 import { ExceptionMessageData } from './types'
 import { smart } from '../util'
 
-export function $refNotAllowed (xEnforcer: string, reference: string): ExceptionMessageData {
+export function $refNotAllowed (reference: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'DVCREF',
     message: 'Reference not allowed here.',
     metadata: {},
-    reference,
-    xEnforcer
+    reference
   }
 }
 
-export function defaultRequiredConflict (xEnforcer: string): ExceptionMessageData {
+export function defaultRequiredConflict (): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'DEFREQ',
     message: 'Setting a "default" value and setting "required" to true means the "default" value will never be used.',
     metadata: {},
-    reference: '',
-    xEnforcer
+    reference: ''
   }
 }
 
@@ -69,7 +67,7 @@ export function exampleExamplesConflict (reference: string): ExceptionMessageDat
   }
 }
 
-export function exampleNotSerializable (xEnforcer: string, example: any, schema: any, error: Exception): ExceptionMessageData {
+export function exampleNotSerializable (example: any, schema: any, error: Exception): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'EXSCNS',
@@ -79,12 +77,11 @@ export function exampleNotSerializable (xEnforcer: string, example: any, schema:
       example,
       schema
     },
-    reference: '',
-    xEnforcer
+    reference: ''
   }
 }
 
-export function exampleNotValid (xEnforcer: string, example: any, schema: any, error: Exception): ExceptionMessageData {
+export function exampleNotValid (example: any, schema: any, error: Exception): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'EXSCNV',
@@ -94,8 +91,7 @@ export function exampleNotValid (xEnforcer: string, example: any, schema: any, e
       example,
       schema
     },
-    reference: '',
-    xEnforcer
+    reference: ''
   }
 }
 
@@ -109,14 +105,13 @@ export function exampleValueExternalConflict (reference: string): ExceptionMessa
   }
 }
 
-export function exampleWithoutSchema (xEnforcer: string): ExceptionMessageData {
+export function exampleWithoutSchema (): ExceptionMessageData {
   return {
     level: 'opinion',
     code: 'EXVCNF',
     message: 'An example is great, but you should add a schema. A schema can provide more detailed information than an example',
     metadata: {},
-    reference: '',
-    xEnforcer
+    reference: ''
   }
 }
 
@@ -155,7 +150,7 @@ export function exceedsStringLengthBounds (reference: string, boundBy: 'maxLengt
   }
 }
 
-export function exceedsSummaryLength (xEnforcer: string, reference: string, summary: string): ExceptionMessageData {
+export function exceedsSummaryLength (reference: string, summary: string): ExceptionMessageData {
   const length = summary.length
   return {
     level: 'warn',
@@ -165,19 +160,17 @@ export function exceedsSummaryLength (xEnforcer: string, reference: string, summ
       length: length,
       summary
     },
-    reference,
-    xEnforcer
+    reference
   }
 }
 
-export function extensionNotAllowed (xEnforcer: string, reference: string): ExceptionMessageData {
+export function extensionNotAllowed (reference: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'DVOEXT',
     message: 'Schema extensions not allowed here',
     metadata: {},
-    reference,
-    xEnforcer
+    reference
   }
 }
 
@@ -193,7 +186,7 @@ export function invalidCookieExplode (reference: string, parameterName: string):
   }
 }
 
-export function invalidEmail (xEnforcer: string, reference: string, invalidValue: any): ExceptionMessageData {
+export function invalidEmail (reference: string, invalidValue: any): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'DVIEML',
@@ -201,12 +194,11 @@ export function invalidEmail (xEnforcer: string, reference: string, invalidValue
     metadata: {
       invalidValue
     },
-    reference,
-    xEnforcer
+    reference
   }
 }
 
-export function invalidMaxMin (xEnforcer: string, minimum: any, maximum: any, minProperty: string, maxProperty: string): ExceptionMessageData {
+export function invalidMaxMin (minimum: any, maximum: any, minProperty: string, maxProperty: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'MEDTYP',
@@ -217,12 +209,11 @@ export function invalidMaxMin (xEnforcer: string, minimum: any, maximum: any, mi
       minimum,
       minProperty
     },
-    reference: '',
-    xEnforcer
+    reference: ''
   }
 }
 
-export function invalidMediaType (xEnforcer: string, reference: string, mediaType: string): ExceptionMessageData {
+export function invalidMediaType (reference: string, mediaType: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'MEDTYP',
@@ -230,8 +221,7 @@ export function invalidMediaType (xEnforcer: string, reference: string, mediaTyp
     metadata: {
       mediaType
     },
-    reference,
-    xEnforcer
+    reference
   }
 }
 
@@ -307,7 +297,7 @@ export function invalidType (reference: string, expectedType: string, invalidVal
   }
 }
 
-export function invalidUrl (xEnforcer: string, reference: string, invalidValue: any): ExceptionMessageData {
+export function invalidUrl (reference: string, invalidValue: any): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'DVIURL',
@@ -315,8 +305,7 @@ export function invalidUrl (xEnforcer: string, reference: string, invalidValue: 
     metadata: {
       invalidValue
     },
-    reference,
-    xEnforcer
+    reference
   }
 }
 
@@ -392,14 +381,13 @@ export function mustNotBeNull (reference: string): ExceptionMessageData {
   }
 }
 
-export function noPathsDefined (xEnforcer: string): ExceptionMessageData {
+export function noPathsDefined (): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'PTHSND',
     message: 'No paths defined',
     metadata: {},
-    reference: '',
-    xEnforcer
+    reference: ''
   }
 }
 
@@ -416,7 +404,7 @@ export function notMultipleOf (reference: string, multipleOf: number, value: any
   }
 }
 
-export function operationMethodShouldNotHaveBody (xEnforcer: string, reference: string, method: string): ExceptionMessageData {
+export function operationMethodShouldNotHaveBody (reference: string, method: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'OPRBDY',
@@ -424,8 +412,7 @@ export function operationMethodShouldNotHaveBody (xEnforcer: string, reference: 
     metadata: {
       method
     },
-    reference,
-    xEnforcer
+    reference
   }
 }
 
@@ -452,7 +439,7 @@ export function operationIdMustBeUnique (reference: string, operationId: string,
   }
 }
 
-export function pathEndingsInconsistent (xEnforcer: string, pathsWithTrailingSlash: string[], pathsWithoutTrailingSlash: string[]): ExceptionMessageData {
+export function pathEndingsInconsistent (pathsWithTrailingSlash: string[], pathsWithoutTrailingSlash: string[]): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'PTHINC',
@@ -461,12 +448,11 @@ export function pathEndingsInconsistent (xEnforcer: string, pathsWithTrailingSla
       pathsWithTrailingSlash,
       pathsWithoutTrailingSlash
     },
-    reference: '',
-    xEnforcer
+    reference: ''
   }
 }
 
-export function pathMissingMethods (xEnforcer: string, reference: string, path: string): ExceptionMessageData {
+export function pathMissingMethods (reference: string, path: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'NOMTHD',
@@ -474,8 +460,7 @@ export function pathMissingMethods (xEnforcer: string, reference: string, path: 
     metadata: {
       path
     },
-    reference,
-    xEnforcer
+    reference
   }
 }
 
@@ -504,18 +489,17 @@ export function propertyNotAllowed (reference: string, propertyName: string, rea
   }
 }
 
-export function randomPasswordWarning (xEnforcer: string): ExceptionMessageData {
+export function randomPasswordWarning (): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'DTRPAS',
     message: 'It may not be safe to use this random value as a password',
     metadata: {},
-    reference: '',
-    xEnforcer
+    reference: ''
   }
 }
 
-export function responseBodyNotAllowed (xEnforcer: string, type: 'schema' | 'content'): ExceptionMessageData {
+export function responseBodyNotAllowed (type: 'schema' | 'content'): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'RESNBD',
@@ -523,8 +507,7 @@ export function responseBodyNotAllowed (xEnforcer: string, type: 'schema' | 'con
     metadata: {
       type
     },
-    reference: '',
-    xEnforcer
+    reference: ''
   }
 }
 
@@ -538,14 +521,13 @@ export function responseRequired (reference: string): ExceptionMessageData {
   }
 }
 
-export function responseShouldIncludeLocationHeader (xEnforcer: string): ExceptionMessageData {
+export function responseShouldIncludeLocationHeader (): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'RESPHD',
     message: 'A 201 response for a POST request should return a location header and this is not documented in your OpenAPI document',
     metadata: {},
-    reference: 'https://tools.ietf.org/html/rfc7231#section-4.3.3',
-    xEnforcer
+    reference: 'https://tools.ietf.org/html/rfc7231#section-4.3.3'
   }
 }
 
@@ -653,7 +635,7 @@ export function swaggerHostHasSubPath (reference: string, host: string, subPath:
   }
 }
 
-export function unknownTypeFormat (xEnforcer: string, type: string, format: string): ExceptionMessageData {
+export function unknownTypeFormat (type: string, format: string): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'SWGHBP',
@@ -662,7 +644,6 @@ export function unknownTypeFormat (xEnforcer: string, type: string, format: stri
       format,
       type
     },
-    reference: '',
-    xEnforcer
+    reference: ''
   }
 }

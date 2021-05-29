@@ -1,12 +1,13 @@
 import { OASComponent, initializeData, SchemaComponent, SchemaObject, SpecMap, Version, ValidateResult } from './'
 import rx from '../rx'
-import { no, yes } from '../util'
+import { addExceptionLocation, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Encoding from './Encoding'
 import * as Example from './Example'
 import * as Reference from './Reference'
 import * as RequestBody from './RequestBody'
 import * as Schema from './Schema'
+import { lookup } from '../loader'
 
 export interface Definition {
   [extension: string]: any
@@ -41,14 +42,18 @@ export class MediaType extends OASComponent {
     return {
       type: 'object',
       allowsSchemaExtensions: yes,
-      after ({ built, exception, chain, key, reference }, component) {
-        const parent = chain.length > 0 ? chain[0] : null
-        if (parent !== null && parent.key === 'content' && !rx.mediaType.test(key)) {
-          exception.message(E.invalidMediaType(component['x-enforcer'], reference, key))
+      after ({ built, chain, definition, exception, key, reference }, component) {
+        const parent = chain[0]
+        if (parent !== undefined && parent.key === 'content' && !rx.mediaType.test(key)) {
+          const invalidMediaType = E.invalidMediaType(reference, key)
+          addExceptionLocation(invalidMediaType, lookup(parent.definition, key, 'key'))
+          exception.message(invalidMediaType)
         }
 
         if ('example' in built && 'examples' in built) {
-          exception.message(E.exampleExamplesConflict(reference))
+          const exampleExamplesConflict = E.exampleExamplesConflict(reference)
+          addExceptionLocation(exampleExamplesConflict, lookup(component, 'example', 'key'), lookup(component, 'examples', 'key'))
+          exception.message(exampleExamplesConflict)
         }
       },
       properties: [
@@ -90,12 +95,14 @@ export class MediaType extends OASComponent {
               const component = (requestBodyObject.schema as SchemaComponent).component
               return component !== RequestBody.RequestBody || !rx.contentType.test(chain[3].key)
             },
-            after ({ chain, exception, reference }) {
+            after ({ chain, exception, reference }, component) {
               const mediaTypeObject = chain[1]
               const key = chain[0].key
               const { built } = mediaTypeObject
               if (!('schema' in built) || !('properties' in built.schema) || !(key in built.schema.properties)) {
-                exception.message(E.encodingNameNotMatched(reference))
+                const encodingNameNotMatched = E.encodingNameNotMatched(reference)
+                addExceptionLocation(encodingNameNotMatched, lookup(component, 'encoding', 'key'))
+                exception.message(encodingNameNotMatched)
               }
             },
             additionalProperties: {

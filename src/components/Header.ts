@@ -1,11 +1,12 @@
 import { Data, OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
-import { no } from '../util'
+import { addExceptionLocation, no } from '../util'
 import * as E from '../Exception/methods'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as DataType from './helpers/DataTypes'
 import * as Example from './Example'
 import * as Reference from './Reference'
 import * as Schema from './Schema'
+import { lookup } from '../loader'
 
 export interface Definition extends PartialSchema.Definition<Definition> {
   [extension: string]: any
@@ -69,11 +70,15 @@ export class Header extends OASComponent {
       const { built, exception } = data
 
       if (built.required === true && 'default' in built) {
-        exception.message(E.defaultRequiredConflict(component['x-enforcer']))
+        const defaultRequiredConflict = E.defaultRequiredConflict()
+        addExceptionLocation(defaultRequiredConflict, lookup(component, 'default', 'key'), lookup(component, 'required'))
+        exception.message(defaultRequiredConflict)
       }
 
       if (built.example !== undefined && built.examples !== undefined) {
-        exception.message(E.exampleExamplesConflict(data.reference))
+        const exampleExamplesConflict = E.exampleExamplesConflict(data.reference)
+        addExceptionLocation(exampleExamplesConflict, lookup(component, 'example', 'key'), lookup(component, 'examples', 'key'))
+        exception.message(exampleExamplesConflict)
       }
     }
 

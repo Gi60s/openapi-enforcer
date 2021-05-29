@@ -1,8 +1,9 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
-import { no, yes } from '../util'
+import { addExceptionLocation, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Parameter from './Parameter'
 import * as Server from './Server'
+import { lookup } from '../loader'
 
 export interface Definition {
   [extension: string]: any
@@ -41,9 +42,11 @@ export class Link extends OASComponent {
     return {
       type: 'object',
       allowsSchemaExtensions: yes,
-      after ({ built, exception, reference }) {
+      after ({ built, definition, exception, reference }) {
         if ('operationRef' in built && 'operationId' in built) {
-          exception.message(E.linkOperationConflict(reference))
+          const linkOperationConflict = E.linkOperationConflict(reference)
+          addExceptionLocation(linkOperationConflict, lookup(definition, 'operationRef', 'key'), lookup(definition, 'operationId', 'key'))
+          exception.message(linkOperationConflict)
         }
       },
       properties: [

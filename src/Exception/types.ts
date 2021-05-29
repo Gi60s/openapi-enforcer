@@ -1,21 +1,13 @@
+import { Location } from 'json-to-ast'
+
 export type Level = 'ignore' | 'opinion' | 'warn' | 'error'
 
-export type ExceptionMessageData = ExceptionMessageError | ExceptionMessageWarn
-
-interface ExceptionMessageBase {
+export interface ExceptionMessageData {
   active?: boolean
   code: string
   level: Level
+  locations?: Location[]
   message: string
   metadata: Record<string, any>
   reference: string
-}
-
-interface ExceptionMessageError extends ExceptionMessageBase{
-  level: 'error'
-}
-
-interface ExceptionMessageWarn extends ExceptionMessageBase {
-  level: 'ignore' | 'opinion' | 'warn'
-  xEnforcer: string
 }

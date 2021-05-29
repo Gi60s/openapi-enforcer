@@ -1,9 +1,10 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
 import * as E from '../Exception/methods'
 import rx from '../rx'
-import { no, yes } from '../util'
+import { addExceptionLocation, no, yes } from '../util'
 import * as Header from './Header'
 import * as Reference from './Reference'
+import { lookup } from '../loader'
 
 export interface Definition {
   [extension: string]: any
@@ -58,7 +59,7 @@ export class Encoding extends OASComponent {
             default: () => 'form',
             enum: () => ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'],
             ignored: ({ chain }) => chain[1].key !== 'application/x-www-form-urlencoded',
-            after ({ chain, exception, definition, reference }) {
+            after ({ chain, exception, definition, reference }, def) {
               const ancestor = chain[2]
               const type = ancestor.definition.schema.type
               if (type !== undefined && definition !== undefined && chain[0].definition.in === 'query') {
@@ -66,7 +67,9 @@ export class Encoding extends OASComponent {
                   !(definition === 'spaceDelimited' && type === 'array') &&
                   !(definition === 'pipeDelimited' && type === 'array') &&
                   !(definition === 'deepObject' && type === 'object')) {
-                  exception.message(E.invalidStyle(reference, definition, type))
+                  const invalidStyle = E.invalidStyle(reference, definition, type)
+                  addExceptionLocation(invalidStyle, lookup(def, 'style', 'value'))
+                  exception.message(invalidStyle)
                 }
               }
             }
@@ -88,9 +91,11 @@ export class Encoding extends OASComponent {
               }
               return 'text/plain'
             },
-            after ({ definition, exception, reference }, component) {
+            after ({ definition, exception, reference }, def) {
               if (!rx.mediaType.test(definition)) {
-                exception.message(E.invalidMediaType(component['x-enforcer'], reference, definition))
+                const invalidMediaType = E.invalidMediaType(reference, definition)
+                addExceptionLocation(invalidMediaType, lookup(def, 'contentType', 'value'))
+                exception.message(invalidMediaType)
               }
             }
           }

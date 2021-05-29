@@ -1,8 +1,9 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
-import { no } from '../util'
+import { addExceptionLocation, adjustExceptionLevel, no } from '../util'
 import { OpenAPI } from './OpenAPI'
 import { Swagger } from './Swagger'
 import * as E from '../Exception/methods'
+import { lookup } from '../loader'
 
 export interface Definition {
   [name: string]: string[]
@@ -36,8 +37,8 @@ export class SecurityRequirement extends OASComponent {
           type: 'string'
         }
       },
-      after (data) {
-        const { built, exception, key, metadata, root, major } = data
+      after (data, def) {
+        const { built, exception, definition, key, metadata, root, major } = data
 
         const rootComponent = root.component
         if (rootComponent instanceof OpenAPI || rootComponent instanceof Swagger) {
@@ -46,11 +47,15 @@ export class SecurityRequirement extends OASComponent {
               // if no associated security scheme then produce an error
               const scheme = metadata.securitySchemes?.[key]?.built
               if (scheme === undefined) {
-                exception.message(E.securitySchemeMissingReference(data.reference, major))
+                const securitySchemeMissingReference = E.securitySchemeMissingReference(data.reference, major)
+                addExceptionLocation(securitySchemeMissingReference, lookup(definition, name, 'value'))
+                exception.message(securitySchemeMissingReference)
 
                 // if security scheme is not oauth2 or openIdConnect then the value must be an empty array
               } else if (['oauth2', 'openIdConnect'].includes(scheme.type) && built[name].length > 0) {
-                exception.message(E.securityRequirementNotEmptyArray(data.reference, major))
+                const securityRequirementNotEmptyArray = E.securityRequirementNotEmptyArray(data.reference, major)
+                addExceptionLocation(securityRequirementNotEmptyArray, lookup(definition, name, 'value'))
+                exception.message(securityRequirementNotEmptyArray)
               }
             })
           })

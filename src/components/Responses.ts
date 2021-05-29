@@ -1,7 +1,8 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
-import { no } from '../util'
+import { addExceptionLocation, adjustExceptionLevel, no } from '../util'
 import * as E from '../Exception/methods'
 import * as Response from './Response'
+import { lookup } from '../loader'
 
 const rxCode = /^[1-5]\d{2}$/
 const rxLocation = /^location$/i
@@ -38,14 +39,17 @@ export class Responses extends OASComponent {
         allowsRef: false,
         component: Response.Response
       },
-      after ({ built, exception, major, reference }, { key: method, 'x-enforcer': xEnforcer }) {
+      after ({ built, exception, major, reference }, def) {
         const codes = Object.keys(built)
+        const method = def.key
         let has2xxResponseCode: boolean = false
 
         codes.forEach(code => {
           // test that the code is valid
           if (!rxCode.test(code) && !rxRange.test(code) && code !== 'default') {
-            exception.message(E.invalidResponseCode(code))
+            const invalidResponseCode = E.invalidResponseCode(code)
+            addExceptionLocation(invalidResponseCode, lookup(def, code, 'key'))
+            exception.message(invalidResponseCode)
           } else {
             const response: Response.Response = built[code]
             if (code.startsWith('2')) has2xxResponseCode = true
@@ -53,14 +57,25 @@ export class Responses extends OASComponent {
             // if a POST 201 response then warn if missing location header
             if (method === 'post' && code === '201') {
               const locationHeaderKey = response.headers !== undefined && Object.keys(response.headers).filter(v => rxLocation.test(v))[0]
-              if (locationHeaderKey === undefined) exception.message(E.responseShouldIncludeLocationHeader(xEnforcer))
+              if (locationHeaderKey === undefined) {
+                const responseShouldIncludeLocationHeader = E.responseShouldIncludeLocationHeader()
+                adjustExceptionLevel(def, responseShouldIncludeLocationHeader)
+                addExceptionLocation(responseShouldIncludeLocationHeader, lookup(def, code, 'value'))
+                exception.message(responseShouldIncludeLocationHeader)
+              }
 
               // if a 204 then there should be no response body (or schema)
             } else if (code === '204') {
               if (major === 2 && 'schema' in response) {
-                exception.message(E.responseBodyNotAllowed(xEnforcer, 'schema'))
+                const responseBodyNotAllowed = E.responseBodyNotAllowed('schema')
+                adjustExceptionLevel(def, responseBodyNotAllowed)
+                addExceptionLocation(responseBodyNotAllowed, lookup(def[code], 'responseBody', 'value'))
+                exception.message(responseBodyNotAllowed)
               } else if (major === 3 && 'content' in response) {
-                exception.message(E.responseBodyNotAllowed(xEnforcer, 'content'))
+                const responseBodyNotAllowed = E.responseBodyNotAllowed('content')
+                adjustExceptionLevel(def, responseBodyNotAllowed)
+                addExceptionLocation(responseBodyNotAllowed, lookup(def[code], 'responseBody', 'value'))
+                exception.message(responseBodyNotAllowed)
               }
             }
           }
@@ -68,11 +83,15 @@ export class Responses extends OASComponent {
 
         // if no response codes then it's an error
         if (codes.length === 0) {
-          exception.message(E.responseRequired(reference))
+          const responseRequired = E.responseRequired(reference)
+          addExceptionLocation(responseRequired, lookup(def))
+          exception.message(responseRequired)
 
           // if no success codes then it's a warning
         } else if (!has2xxResponseCode && !('default' in built)) {
-          exception.message(E.responsesShouldIncludeSuccess(reference))
+          const responsesShouldIncludeSuccess = E.responsesShouldIncludeSuccess(reference)
+          addExceptionLocation(responsesShouldIncludeSuccess, lookup(def))
+          exception.message(responsesShouldIncludeSuccess)
         }
       }
     }

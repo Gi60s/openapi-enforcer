@@ -60,14 +60,6 @@ export class Exception {
     return at[key]
   }
 
-  public from (data: Data): typeof E {
-    const definition = data.chain[0]?.definition
-    if (definition['x-enforcer'] !== undefined) {
-
-    }
-    return E
-  }
-
   public message (data: ExceptionMessageData): Exception {
     this.data.messages.push(data)
     return this

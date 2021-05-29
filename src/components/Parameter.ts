@@ -1,12 +1,13 @@
 import { initializeData, Data, SchemaObject, SpecMap, Version, SchemaProperty, ValidateResult } from './'
 import * as PartialSchema from './helpers/PartialSchema'
-import { no, yes } from '../util'
+import { addExceptionLocation, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Items from './Items'
 import * as Example from './Example'
 import * as Reference from './Reference'
 import * as Schema from './Schema'
 import * as DataType from './helpers/DataTypes'
+import { lookup } from '../loader'
 
 export type Definition = Definition2 | Definition3
 
@@ -193,10 +194,12 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
         schema: {
           type: 'boolean',
           default: () => false,
-          before (data: Data) {
+          before (data: Data, def) {
             const { exception, component, definition: value } = data
             if (component.definition?.in === 'path' && value !== true) {
-              exception.message(E.pathParameterMustBeRequired(data.reference, component.definition.name))
+              const pathParameterMustBeRequired = E.pathParameterMustBeRequired(data.reference, component.definition.name)
+              addExceptionLocation(pathParameterMustBeRequired, lookup(def, 'required', 'value') ?? lookup(def))
+              exception.message(pathParameterMustBeRequired)
               return false
             }
             return true
@@ -250,8 +253,9 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
               default: return []
             }
           },
-          after (data: Data, { in: at }: { in: string }) {
+          after (data: Data, def) {
             const { definition: style, exception, component } = data
+            const at = def.in
             data.finally.push(function () {
               const parameter = component.built
               const schema: Schema.Schema | Reference.Reference | undefined = parameter.schema
@@ -262,7 +266,11 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
                   if ((style !== 'form') &&
                     !(style === 'spaceDelimited' && type === 'array') &&
                     !(style === 'pipeDelimited' && type === 'array') &&
-                    !(style === 'deepObject' && type === 'object')) exception.message(E.invalidStyle(data.reference, style, type))
+                    !(style === 'deepObject' && type === 'object')) {
+                    const invalidStyle = E.invalidStyle(data.reference, style, type)
+                    addExceptionLocation(invalidStyle, lookup(def, 'style', 'value'))
+                    exception.message(invalidStyle)
+                  }
                 }
               }
             })
@@ -275,14 +283,17 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
         schema: {
           type: 'boolean',
           default: (data: Data, def: Definition) => def.style === 'form',
-          after (data: Data, { in: at, name }: { in: string, name: string }) {
+          after (data: Data, def) {
             const { definition: explode, exception, component } = data
             data.finally.push(function () {
               const parameter = component.built
               if (parameter.schema !== undefined && !('$ref' in parameter.schema)) {
                 const type = parameter.schema.type
+                const { at, name } = def
                 if (at === 'cookie' && explode === true && (type === 'array' || type === 'object')) {
-                  exception.message(E.invalidCookieExplode(data.reference, name))
+                  const invalidCookieExplode = E.invalidCookieExplode(data.reference, name)
+                  addExceptionLocation(invalidCookieExplode, lookup(def, 'explode', 'value'))
+                  exception.message(invalidCookieExplode)
                 }
               }
             })
@@ -309,11 +320,15 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
       if (major === 2 && v2After !== undefined) v2After(data, def)
 
       if (built.required === true && 'default' in built) {
-        exception.message(E.defaultRequiredConflict(def['x-enforcer']))
+        const defaultRequiredConflict = E.defaultRequiredConflict()
+        addExceptionLocation(defaultRequiredConflict, lookup(def, 'default', 'key'), lookup(def, 'required'))
+        exception.message(defaultRequiredConflict)
       }
 
       if (built.example !== undefined && built.examples !== undefined) {
-        exception.message(E.exampleExamplesConflict(data.reference))
+        const exampleExamplesConflict = E.exampleExamplesConflict(data.reference)
+        addExceptionLocation(exampleExamplesConflict, lookup(def, 'example', 'key'), lookup(def, 'examples', 'key'))
+        exception.message(exampleExamplesConflict)
       }
 
       // TODO: If type is "file", the consumes MUST be either "multipart/form-data", " application/x-www-form-urlencoded" or both and the parameter MUST be in "formData".

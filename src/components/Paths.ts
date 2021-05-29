@@ -1,7 +1,8 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
-import { yes } from '../util'
+import { addExceptionLocation, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as PathItem from './PathItem'
+import { lookup } from '../loader'
 
 export interface Definition {
   [pathOrExtension: string]: PathItem.Definition | any
@@ -36,7 +37,9 @@ export class Paths extends OASComponent {
 
         // no paths defined
         if (paths.length === 0) {
-          exception.message(E.noPathsDefined(def['x-enforcer']))
+          const noPathsDefined = E.noPathsDefined()
+          addExceptionLocation(noPathsDefined, lookup(def, 'paths'))
+          exception.message(noPathsDefined)
         }
 
         paths.forEach((key: string) => {
@@ -51,7 +54,11 @@ export class Paths extends OASComponent {
 
         // inconsistent path endings
         if (includesTrailingSlashes.length > 0 && omitsTrainingSlashes.length > 0) {
-          exception.message(E.pathEndingsInconsistent(def['x-enforcer'], includesTrailingSlashes, omitsTrainingSlashes))
+          const pathEndingsInconsistent = E.pathEndingsInconsistent(includesTrailingSlashes, omitsTrainingSlashes)
+          paths.forEach((path: string) => {
+            addExceptionLocation(pathEndingsInconsistent, lookup(definition, path, 'key'))
+          })
+          exception.message(pathEndingsInconsistent)
         }
       },
       additionalProperties: {

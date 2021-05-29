@@ -1,11 +1,12 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
-import { no, yes } from '../util'
+import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Header from './Header'
 import * as Link from './Link'
 import * as MediaType from './MediaType'
 import * as Reference from './Reference'
 import * as Schema from './Schema'
+import { lookup } from '../loader'
 
 const rxContentType = /^content-type$/i
 const rxLinkName = /^[a-zA-Z0-9.\-_]+$/
@@ -93,21 +94,31 @@ export class Response extends OASComponent {
             allowsSchemaExtensions: no,
             additionalProperties: {
               type: 'any',
-              after ({ built, exception, definition: example }, def) {
+              after ({ built, chain, key, exception, definition: example }) {
                 // validate the example if a schema is defined
+                const parent = chain[0]
                 if ('schema' in built) {
                   const schema = built.schema as Schema.Schema
                   const serialized = schema.serialize(example)
                   if (serialized.error != null) {
-                    exception.message(E.exampleNotSerializable(def['x-enforcer'], example, schema, serialized.error))
+                    const exampleNotSerializable = E.exampleNotSerializable(example, schema, serialized.error)
+                    adjustExceptionLevel(parent?.definition, exampleNotSerializable)
+                    addExceptionLocation(exampleNotSerializable, lookup(parent?.definition, key, 'value'))
+                    exception.message(exampleNotSerializable)
                   } else {
                     const error = schema.validate(serialized.value)
                     if (error != null) {
-                      exception.message(E.exampleNotValid(def['x-enforcer'], example, schema, error))
+                      const exampleNotSerializable = E.exampleNotValid(example, schema, error)
+                      adjustExceptionLevel(parent?.definition, exampleNotSerializable)
+                      addExceptionLocation(exampleNotSerializable, lookup(parent?.definition, key, 'value'))
+                      exception.message(exampleNotSerializable)
                     }
                   }
                 } else {
-                  exception.message(E.exampleWithoutSchema(def['x-enforcer']))
+                  const exampleWithoutSchema = E.exampleWithoutSchema()
+                  adjustExceptionLevel(parent?.definition, exampleWithoutSchema)
+                  addExceptionLocation(exampleWithoutSchema, lookup(parent?.definition, key, 'value'))
+                  exception.message(exampleWithoutSchema)
                 }
               }
             }
@@ -136,8 +147,13 @@ export class Response extends OASComponent {
               type: 'component',
               allowsRef: true,
               component: Link.Link,
-              after ({ exception, key, reference }) {
-                if (!rxLinkName.test(key)) exception.message(E.invalidResponseLinkKey(reference, key))
+              after ({ exception, chain, key, reference }) {
+                if (!rxLinkName.test(key)) {
+                  const invalidResponseLinkKey = E.invalidResponseLinkKey(reference, key)
+                  const parent = chain[0]
+                  addExceptionLocation(invalidResponseLinkKey, lookup(parent?.definition, key, 'key'))
+                  exception.message(invalidResponseLinkKey)
+                }
               }
             }
           }

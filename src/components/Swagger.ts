@@ -1,5 +1,6 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
-import { no, yes } from '../util'
+import { OASComponent, initializeData, SchemaObject, SpecMap, ValidateResult } from './'
+import * as Loader from '../loader'
+import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import rx from '../rx'
 import * as Definitions from './Definitions'
@@ -11,6 +12,7 @@ import * as Response from './Response'
 import * as SecurityScheme from './SecurityScheme'
 import * as SecurityRequirement from './SecurityRequirement'
 import * as Tag from './Tag'
+import { lookup } from '../loader'
 
 const rxHostParts = /^(?:(https?|wss?):\/\/)?(.+?)(\/.+)?$/
 const rxPathTemplating = /[{}]/
@@ -32,6 +34,10 @@ export interface Definition {
   schemes?: string[]
   swagger: '2.0'
   tags?: Tag.Definition[]
+}
+
+export interface LoaderOptions extends Loader.Options {
+  validate?: boolean
 }
 
 export class Swagger extends OASComponent {
@@ -63,6 +69,15 @@ export class Swagger extends OASComponent {
     }
   }
 
+  static async load (path: string, options?: LoaderOptions): Promise<Definition> {
+    const def = await Loader.load(path, options)
+    if (options?.validate !== false) {
+      const error = this.validate(def)
+      if (error.hasException) throw Error(error.toString())
+    }
+    return def
+  }
+
   static schemaGenerator (): SchemaObject {
     return {
       type: 'object',
@@ -72,9 +87,17 @@ export class Swagger extends OASComponent {
           name: 'basePath',
           schema: {
             type: 'string',
-            after ({ exception, definition, reference }) {
-              if (definition[0] !== '/') exception.message(E.swaggerBasePathInvalid(reference, definition))
-              if (rxPathTemplating.test(definition)) exception.message(E.swaggerBasePathTemplating(reference, definition))
+            after ({ exception, definition, reference }, def) {
+              if (definition[0] !== '/') {
+                const swaggerBasePathInvalid = E.swaggerBasePathInvalid(reference, definition)
+                addExceptionLocation(swaggerBasePathInvalid, lookup(def, 'basePath', 'value'))
+                exception.message(swaggerBasePathInvalid)
+              }
+              if (rxPathTemplating.test(definition)) {
+                const swaggerBasePathTemplating = E.swaggerBasePathTemplating(reference, definition)
+                addExceptionLocation(swaggerBasePathTemplating, lookup(def, 'basePath', 'value'))
+                exception.message(swaggerBasePathTemplating)
+              }
             }
           }
         },
@@ -84,8 +107,13 @@ export class Swagger extends OASComponent {
             type: 'array',
             items: {
               type: 'string',
-              after ({ definition, exception, reference }, def) {
-                if (!rx.mediaType.test(definition)) exception.message(E.invalidMediaType(def['x-enforcer'], reference, definition))
+              after ({ definition, exception, key, reference }, def) {
+                if (!rx.mediaType.test(definition)) {
+                  const invalidMediaType = E.invalidMediaType(reference, definition)
+                  adjustExceptionLevel(def.consumes, invalidMediaType)
+                  addExceptionLocation(invalidMediaType, lookup(def.consumes, key, 'value'))
+                  exception.message(invalidMediaType)
+                }
               }
             }
           }
@@ -110,14 +138,24 @@ export class Swagger extends OASComponent {
           name: 'host',
           schema: {
             type: 'string',
-            after ({ exception, definition, reference }) {
+            after ({ exception, definition, reference }, def) {
               const match = rxHostParts.exec(definition)
               if (match !== undefined && match !== null) {
-                if (match[1] !== undefined) exception.message(E.swaggerHostHasScheme(reference, definition, match[1]))
-                if (match[3] !== undefined) exception.message(E.swaggerHostHasSubPath(reference, definition, match[3]))
+                if (match[1] !== undefined) {
+                  const swaggerHostHasScheme = E.swaggerHostHasScheme(reference, definition, match[1])
+                  addExceptionLocation(swaggerHostHasScheme, lookup(def, 'host', 'value'))
+                  exception.message(swaggerHostHasScheme)
+                }
+                if (match[3] !== undefined) {
+                  const swaggerHostHasSubPath = E.swaggerHostHasSubPath(reference, definition, match[3])
+                  addExceptionLocation(swaggerHostHasSubPath, lookup(def, 'host', 'value'))
+                  exception.message(swaggerHostHasSubPath)
+                }
               }
               if (rxPathTemplating.test(definition)) {
-                exception.message(E.swaggerHostDoesNotSupportPathTemplating(reference, definition))
+                const swaggerHostDoesNotSupportPathTemplating = E.swaggerHostDoesNotSupportPathTemplating(reference, definition)
+                addExceptionLocation(swaggerHostDoesNotSupportPathTemplating, lookup(def, 'host', 'value'))
+                exception.message(swaggerHostDoesNotSupportPathTemplating)
               }
             }
           }
@@ -158,8 +196,13 @@ export class Swagger extends OASComponent {
             type: 'array',
             items: {
               type: 'string',
-              after ({ definition, exception, reference }, def) {
-                if (!rx.mediaType.test(definition)) exception.message(E.invalidMediaType(def['x-enforcer'], reference, definition))
+              after ({ definition, exception, key, reference }, def) {
+                if (!rx.mediaType.test(definition)) {
+                  const invalidMediaType = E.invalidMediaType(reference, definition)
+                  adjustExceptionLevel(def, invalidMediaType)
+                  addExceptionLocation(invalidMediaType, lookup(def.produces, key))
+                  exception.message(invalidMediaType)
+                }
               }
             }
           }
