@@ -390,26 +390,6 @@ describe('Generic component tests', () => {
           expect(error.count).to.equal(0)
         })
       })
-
-      it('can modify the error level', function () {
-        const Test = TestComponent({
-          type: 'object',
-          allowsSchemaExtensions: no,
-          after ({ exception }) {
-            exception.message({
-              level: 'warn',
-              code: 'ABC',
-              message: 'There is a warning',
-              metadata: {},
-              reference: '',
-              xEnforcer: 'error: ABC'
-            })
-          }
-        })
-        const error = Test.validate({})
-        expect(error.count).to.equal(1)
-        expect(error.countDetails.error).to.equal(1)
-      })
     })
 
     describe('after function', function () {
