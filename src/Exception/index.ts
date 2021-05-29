@@ -88,7 +88,7 @@ export class Exception {
       message: '',
       messageDetails: [],
 
-      toString (): string { return this.message },
+      toString (): string { return result.message },
       [inspect] (): string {
         if (this.hasException) {
           return '[ EnforcerException: ' + this.message + ' ]'
@@ -103,7 +103,7 @@ export class Exception {
     result.countDetails = data.countDetails
     result.message = data.count === 0
       ? 'No problems detected'
-      : (this.header as string) + fullConfig.lineDelimiter + getReport(result, fullConfig, data, ' '.repeat(indentLength + 2), [])
+      : (this.header as string) + getReport(result, fullConfig, data, ' '.repeat(indentLength), [])
 
     return result
   }
