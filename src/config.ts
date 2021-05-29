@@ -26,7 +26,7 @@ let current: FullConfiguration = {
   exceptions: {
     codes: {},
     include: process.env.NODE_ENV === 'production' ? ['error'] : ['error', 'warn'],
-    lineDelimiter: '\r' // TODO: how does windows handle this instead of \r\n?
+    lineDelimiter: '\n' // TODO: how does windows handle this instead of \r\n?
   },
   production: process.env.NODE_ENV === 'production',
   version: '3.0.0'
