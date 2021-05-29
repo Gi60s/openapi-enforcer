@@ -83,11 +83,12 @@ describe('loader and lookup', () => {
 
   describe('yaml', () => {
     it('can load a valid yaml file', async function () {
-      const result = await load(path.resolve(resources, 'all-types.yaml'))
-      // console.log(result.value)
-      console.log(lookup(result, 'boolean'))
-      console.log(lookup(result, 'boolean', 'key'))
-      console.log(lookup(result, 'boolean', 'value'))
+      try {
+        await load(path.resolve(resources, 'all-types.yaml'))
+        throw Error('Expected error')
+      } catch (e) {
+        expect(e).to.match(/Expected error/)
+      }
     })
 
     it('will produce errors for an invalid yaml file', async function () {
