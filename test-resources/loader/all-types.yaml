@@ -1,0 +1,7 @@
+array:
+  - 1
+boolean: true
+number: 1
+string: Hello
+object:
+  x: 1
