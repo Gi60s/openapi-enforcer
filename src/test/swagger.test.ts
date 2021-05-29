@@ -1,5 +1,5 @@
 import { Swagger } from '../components/Swagger'
-import { exceptionLevel } from '../test-utils'
+import { exceptionLevel, initTestLoader, registerContent } from '../test-utils'
 import { expect } from 'chai'
 
 const swagger = '2.0'
@@ -12,6 +12,29 @@ describe('Swagger component', () => {
       // @ts-expect-error
       const component = new Swagger({})
       expect(component).to.be.instanceOf(Swagger)
+    })
+  })
+
+  describe('load', () => {
+    before(() => {
+      initTestLoader()
+      const content = registerContent('swagger.json', { swagger: '2.4', info: {} })
+      console.log(content)
+    })
+
+    it('can load a document without validating', async () => {
+      const loaded = await Swagger.load('swagger.json', { validate: false })
+      expect(loaded.swagger).to.equal('2.4')
+    })
+
+    it('will validate a loaded document by default', async () => {
+      try {
+        await Swagger.load('swagger.json')
+        throw Error('Should not get here')
+      } catch (e) {
+        expect(e).not.to.match(/Should not get here/)
+        expect(e).to.match(/One or more errors found while validating Swagger object/)
+      }
     })
   })
 
