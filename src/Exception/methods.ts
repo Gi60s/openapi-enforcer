@@ -47,8 +47,8 @@ export function enumNotMet (reference: string, acceptableValues: any[], invalidV
     level: 'error',
     code: 'DVNNUL',
     message: acceptableValues.length > 1
-      ? 'Value must be one of: ' + acceptableValues.join(', ') + '. Received: ' + smart(invalidValue)
-      : 'Value must equal: ' + String(acceptableValues[0]) + '. Received: ' + smart(invalidValue),
+      ? 'Value must be one of: ' + acceptableValues.map(v => smart(v)).join(', ') + '. Received: ' + smart(invalidValue)
+      : 'Value must equal: ' + smart(acceptableValues[0]) + '. Received: ' + smart(invalidValue),
     metadata: {
       acceptableValues,
       invalidValue
