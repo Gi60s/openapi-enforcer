@@ -16,7 +16,9 @@ interface LineEnding {
   lineLength: number
 }
 
-export type Loader = (path: string, data?: LoaderMetadata) => Promise<LoaderMatch|LoaderMismatch>
+export type Loader = (path: string, data?: LoaderMetadata) => Promise<LoaderResult>
+
+export type LoaderResult = LoaderMatch | LoaderMismatch
 
 interface LoaderMatch {
   loaded: true
