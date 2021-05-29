@@ -143,16 +143,9 @@ function runPreReport (fullConfig: Required<ExceptionConfiguration>, context: Ex
     .map(message => {
       const code = message.code
       if (message.level !== 'error') {
-        if (message.xEnforcer !== undefined) {
-          // overwrite the level if specified in the enforcer data
-          const { exceptionCodeMap: map } = parseEnforcerExtensionDirective(message.xEnforcer)
-          if (map[code] !== undefined) {
-            // @ts-expect-error
-            message.level = map[code]
-          }
-        } else if (fullConfig?.codes?.[code] !== undefined) {
+        // TODO: don't overwrite level if already adjusted
+        if (fullConfig?.codes?.[code] !== undefined) {
           // overwrite the level if specified in the global config
-          // @ts-expect-error
           message.level = fullConfig.codes[code]
         }
       }
@@ -201,6 +194,15 @@ function getReport (report: ExceptionReport, fullConfig: Required<ExceptionConfi
 
   messages.forEach(message => {
     result += fullConfig.lineDelimiter + prefixPlus + message.message
+    if (message.locations !== undefined) {
+      result += ' [' + message.locations.map(l => {
+        let str = l.source !== undefined
+          ? String(l.source) + ':'
+          : ''
+        str += String(l.start.line) + ':' + String(l.start.column)
+        return str
+      }).join(', ') + ']'
+    }
     report.count++
     report.messageDetails.push({
       data: message,
