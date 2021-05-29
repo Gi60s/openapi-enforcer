@@ -411,7 +411,7 @@ export function buildChildData (data: Data, definition: any, key: string, schema
 }
 
 export function validate (data: Data): any { // return value is what to add to built
-  const { exception, map } = data
+  const { exception, key, map } = data
   const componentDef = data.component.definition
   const definition = data.definition
   const schema = data.schema as SchemaAny
@@ -432,7 +432,7 @@ export function validate (data: Data): any { // return value is what to add to b
   if (definition === null) {
     if (schema.nullable === undefined || !schema.nullable(data, componentDef)) {
       const mustNotBeNull = E.mustNotBeNull(data.reference)
-      addExceptionLocation(mustNotBeNull, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(mustNotBeNull, lookup(parent?.definition, key, 'value'))
       exception.message(mustNotBeNull)
       return
     } else {
@@ -454,7 +454,7 @@ export function validate (data: Data): any { // return value is what to add to b
     const found = matches.find((v: any) => same(v, definition))
     if (found === undefined) {
       const enumNotMet = E.enumNotMet(data.reference, matches, definition)
-      addExceptionLocation(enumNotMet, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(enumNotMet, lookup(parent?.definition, key, 'value'))
       exception.message(enumNotMet)
       return
     }
@@ -464,7 +464,7 @@ export function validate (data: Data): any { // return value is what to add to b
   if (typeof definition === 'object' && '$ref' in definition && schema.type !== 'any' && schema.type !== 'component') {
     const $refNotAllowed = E.$refNotAllowed(data.reference)
     adjustExceptionLevel(parent, $refNotAllowed)
-    addExceptionLocation($refNotAllowed, lookup(parent?.definition, parent?.key, 'key'))
+    addExceptionLocation($refNotAllowed, lookup(parent?.definition, key, 'key'))
     exception.message($refNotAllowed)
   }
 
@@ -476,7 +476,7 @@ export function validate (data: Data): any { // return value is what to add to b
     const s = schema as unknown as SchemaArray
     if (!Array.isArray(definition)) {
       const invalidType = E.invalidType(data.reference, 'an array', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return
     }
@@ -518,7 +518,7 @@ export function validate (data: Data): any { // return value is what to add to b
   } else if (schema.type === 'boolean') {
     if (typeof definition !== 'boolean') {
       const invalidType = E.invalidType(data.reference, 'a boolean', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return undefined
     }
@@ -528,7 +528,7 @@ export function validate (data: Data): any { // return value is what to add to b
   } else if (schema.type === 'component') {
     if (!isObject(definition)) {
       const invalidType = E.invalidType(data.reference, 'a non-null object', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return undefined
     }
@@ -542,7 +542,7 @@ export function validate (data: Data): any { // return value is what to add to b
       if (!s.allowsRef) {
         const $refNotAllowed = E.$refNotAllowed(data.reference)
         adjustExceptionLevel(parent, $refNotAllowed)
-        addExceptionLocation($refNotAllowed, lookup(parent?.definition, parent?.key, 'value'))
+        addExceptionLocation($refNotAllowed, lookup(parent?.definition, key, 'value'))
         exception.message($refNotAllowed)
         return
       } else {
@@ -553,7 +553,7 @@ export function validate (data: Data): any { // return value is what to add to b
     // check that this component is allowed for the active version
     if (component.spec[data.version] === undefined) {
       const invalidVersionForComponent = E.invalidVersionForComponent(data.reference, component.name, data.version)
-      addExceptionLocation(invalidVersionForComponent, lookup(parent?.definition, parent?.key))
+      addExceptionLocation(invalidVersionForComponent, lookup(parent?.definition, key))
       data.exception.message(invalidVersionForComponent)
       return undefined
     }
@@ -590,25 +590,25 @@ export function validate (data: Data): any { // return value is what to add to b
     let success = true
     if (typeof definition !== 'number') {
       const invalidType = E.invalidType(data.reference, 'a number', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return false
     }
     if (s.integer === true && definition % 1 !== 0) {
       const invalidType = E.invalidType(data.reference, 'an integer', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
       exception.message(invalidType)
       success = false
     }
     if (s.maximum !== undefined && definition > s.maximum) {
       const exceedsNumberBounds = E.exceedsNumberBounds(data.reference, 'maximum', true, s.maximum, definition)
-      addExceptionLocation(exceedsNumberBounds, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(exceedsNumberBounds, lookup(parent?.definition, key, 'value'))
       exception.message(exceedsNumberBounds)
       success = false
     }
     if (s.minimum !== undefined && definition < s.minimum) {
       const exceedsNumberBounds = E.exceedsNumberBounds(data.reference, 'minimum', true, s.minimum, definition)
-      addExceptionLocation(exceedsNumberBounds, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(exceedsNumberBounds, lookup(parent?.definition, key, 'value'))
       exception.message(exceedsNumberBounds)
       success = false
     }
@@ -621,7 +621,7 @@ export function validate (data: Data): any { // return value is what to add to b
     // validate definition type
     if (!isObject(definition)) {
       const invalidType = E.invalidType(data.reference, 'a non-null object', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return undefined
     }
@@ -634,19 +634,19 @@ export function validate (data: Data): any { // return value is what to add to b
     let success = true
     if (typeof definition !== 'string') {
       const invalidType = E.invalidType(data.reference, 'a string', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return false
     }
     if (s.maxLength !== undefined && definition.length > s.maxLength) {
       const exceedsStringLengthBounds = E.exceedsStringLengthBounds(data.reference, 'maxLength', s.maxLength, definition)
-      addExceptionLocation(exceedsStringLengthBounds, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(exceedsStringLengthBounds, lookup(parent?.definition, key, 'value'))
       exception.message(exceedsStringLengthBounds)
       success = false
     }
     if (s.minLength !== undefined && definition.length < s.minLength) {
       const exceedsStringLengthBounds = E.exceedsStringLengthBounds(data.reference, 'minLength', s.minLength, definition)
-      addExceptionLocation(exceedsStringLengthBounds, lookup(parent?.definition, parent?.key, 'value'))
+      addExceptionLocation(exceedsStringLengthBounds, lookup(parent?.definition, key, 'value'))
       exception.message(exceedsStringLengthBounds)
       success = false
     }
