@@ -3,7 +3,7 @@ import { expect } from 'chai'
 
 const adapter = Adapter()
 
-describe.only('adapter', () => {
+describe('adapter', () => {
   describe('path', () => {
     describe('dirname', () => {
       it('can get the dirname from a file path', function () {

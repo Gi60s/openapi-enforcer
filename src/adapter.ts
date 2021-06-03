@@ -1,10 +1,12 @@
 import * as Path from 'path'
+import util from 'util'
 
 const rxHttp = /^https?:\/\//
 const rxUrlParts = /^(https?):\/\/(.+?)(?:\/|$)(.*)/
 
 export interface Adapter {
   cwd: string
+  inspect: any
   path: {
     dirname: (path: string) => string
     resolve: (...path: string[]) => string
@@ -27,6 +29,7 @@ function browser (): Adapter {
 
   return {
     cwd: /\.[a-z0-9]+$/.test(url) ? dirnameUrl(url) : url,
+    inspect: 'inspect',
     path: {
       dirname (path: string): string {
         return dirnameUrl(path)
@@ -43,8 +46,11 @@ function browser (): Adapter {
 function node (): Adapter {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const Path = require('path')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const Util = require('util')
   return {
     cwd: process.cwd(),
+    inspect: Util.inspect.custom ?? 'inspect',
     path: {
       dirname (path: string): string {
         if (rxHttp.test(path)) {
