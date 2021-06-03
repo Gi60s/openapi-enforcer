@@ -1,20 +1,7 @@
-import { getConfig, setConfig } from './config'
 import * as Loader from './loader'
-import { sep } from 'path'
 
 const testLoaderRegistry: Record<string, string> = {}
 let testLoaderInitialized = false
-
-export function exceptionLevel (levels: Array<'opinion'|'warn'|'error'>, handler: () => void): void {
-  const include = getConfig().exceptions.include
-  setConfig({
-    exceptions: { include: levels }
-  })
-  handler()
-  setConfig({
-    exceptions: { include }
-  })
-}
 
 export function registerContent (path: string, data: object): string {
   testLoaderRegistry[path] = JSON.stringify(data, null, 2)
