@@ -31,7 +31,10 @@ export function adjustExceptionLevel (o: any, message: ExceptionMessageData): vo
   if (o?.['x-enforcer'] !== undefined) {
     const { exceptionCodeMap } = parseEnforcerExtensionDirective(o['x-enforcer'])
     const code = message.code
-    if (code !== 'error' && code in exceptionCodeMap) message.level = exceptionCodeMap[code]
+    if (code !== 'error' && code in exceptionCodeMap) {
+      message.originalLevel = message.level
+      message.level = exceptionCodeMap[code]
+    }
   }
 }
 
