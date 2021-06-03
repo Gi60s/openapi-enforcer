@@ -1,7 +1,11 @@
 import axios from 'axios'
 import { Exception } from './Exception'
+import * as E from './Exception/methods'
 import jsonParser, { ArrayNode, LiteralNode, Location, ObjectNode, ValueNode } from 'json-to-ast'
+import { findRefs, traverse } from './ref-parser'
 import * as yamlParser from 'yaml-ast-parser'
+import { Result } from './Result'
+import * as util from './util'
 
 const loaders: Loader[] = []
 const lookupMap = new WeakMap<any, Lookup>()
@@ -32,6 +36,7 @@ interface LoaderMismatch {
 
 interface LoaderMetadata {
   callerPath?: string
+  cache?: Record<string, any>
   exception?: Exception
 }
 
@@ -63,11 +68,114 @@ export function define (loader: Loader): void {
   loaders.unshift(loader)
 }
 
-export async function load (path: string, options?: Options, data?: LoaderMetadata): Promise<any> {
+export async function load (path: string, options?: Options, data?: LoaderMetadata): Promise<Result> {
   if (options === undefined || options === null) options = {}
   if (typeof options !== 'object') throw Error('Invalid load options specified.')
   if (options.dereference === undefined) options.dereference = true
 
+  if (data === undefined || data === null) data = {}
+  if (data.exception === undefined) data.exception = new Exception('Unable to load ' + path)
+  if (data.cache === undefined) data.cache = {}
+
+  // load content and cache it
+  const node = data.cache[path] !== undefined ? data.cache[path] : await runLoaders(path, data)
+  const report = data.exception.report()
+  const hasException = report.error?.hasException ?? false
+  if (!hasException) data.cache[path] = node
+
+  // dereference any $refs
+  if (!hasException && node !== undefined && options.dereference) {
+    const references = findRefs(node)
+    const length = references.length
+    for (let i = 0; i < length; i++) {
+      const { ref, parent, key } = references[i]
+      let n: any
+
+      // local reference
+      if (ref.startsWith('#/')) {
+        n = traverse(node, ref, data.exception)
+
+      // reference to other location
+      } else {
+        const [path, subRef] = ref.split('#/')
+        const node = await load(path, options, data)
+        n = traverse(node, '#/' + subRef, data.exception)
+      }
+
+      if (n !== undefined) {
+        // TODO: handle case where parent === null
+        parent[key] = n
+      } else {
+        const message = E.refNotResolved(ref, path)
+        util.addExceptionLocation(message, lookup(node))
+        data.exception.message(message)
+      }
+    }
+  }
+
+  return new Result(node, data.exception)
+}
+
+export function lookup (node: object, key?: string | number, filter: 'key' | 'value' | 'both' = 'both'): Location | undefined {
+  if (node === undefined) return
+  const result = lookupMap.get(node)
+  if (result !== undefined) {
+    if (key !== undefined) {
+      if (result.properties !== undefined) {
+        const match = result.properties[key]
+        if (match !== undefined) {
+          if (filter === 'both') {
+            return {
+              start: match.key.start,
+              end: match.value.end,
+              source: match.key.source
+            }
+          } else if (filter === 'key') {
+            return match.key
+          } else if (filter === 'value') {
+            return match.value
+          }
+        }
+      }
+      if (result.items !== undefined) return result.items[key as number]
+    } else {
+      return result.loc
+    }
+  }
+}
+
+function getLocation (pos: number, lineEndings: LineEnding[]): Location['start'] {
+  const result: Location['start'] = {
+    line: 1,
+    column: 1,
+    offset: pos
+  }
+  let lastLine: LineEnding = lineEndings[0]
+
+  const length = lineEndings.length
+  for (let i = 0; i < length; i++) {
+    const lineEnding = lineEndings[i]
+    if (lineEnding.pos > pos) {
+      const prev = lineEndings[i - 1]
+      result.column = prev === undefined
+        ? pos + 1
+        : pos - (prev.pos + prev.len) + 1
+      lastLine = prev
+      break
+    } else {
+      result.line++
+    }
+  }
+
+  if (result.column === 0) {
+    result.line--
+    result.column = lastLine.lineLength + 1
+  }
+
+  return result
+}
+
+async function runLoaders (path: string, data: LoaderMetadata): Promise<any> {
   const length = loaders.length
   for (let i = 0; i < length; i++) {
     const loader = loaders[i]
@@ -132,66 +240,9 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
     }
   }
 
+  data.exception?.message(E.loaderNotAvailable(path))
+
   throw Error('No defined loaders were able to load the path: ' + path)
-}
-
-export function lookup (node: object, key?: string | number, filter: 'key' | 'value' | 'both' = 'both'): Location | undefined {
-  if (node === undefined) return
-  const result = lookupMap.get(node)
-  if (result !== undefined) {
-    if (key !== undefined) {
-      if (result.properties !== undefined) {
-        const match = result.properties[key]
-        if (match !== undefined) {
-          if (filter === 'both') {
-            return {
-              start: match.key.start,
-              end: match.value.end,
-              source: match.key.source
-            }
-          } else if (filter === 'key') {
-            return match.key
-          } else if (filter === 'value') {
-            return match.value
-          }
-        }
-      }
-      if (result.items !== undefined) return result.items[key as number]
-    } else {
-      return result.loc
-    }
-  }
-}
-
-function getLocation (pos: number, lineEndings: LineEnding[]): Location['start'] {
-  const result: Location['start'] = {
-    line: 1,
-    column: 1,
-    offset: pos
-  }
-  let lastLine: LineEnding = lineEndings[0]
-
-  const length = lineEndings.length
-  for (let i = 0; i < length; i++) {
-    const lineEnding = lineEndings[i]
-    if (lineEnding.pos > pos) {
-      const prev = lineEndings[i - 1]
-      result.column = prev === undefined
-        ? pos + 1
-        : pos - (prev.pos + prev.len) + 1
-      lastLine = prev
-      break
-    } else {
-      result.line++
-    }
-  }
-
-  if (result.column === 0) {
-    result.line--
-    result.column = lastLine.lineLength + 1
-  }
-
-  return result
 }
 
 function processJsonAst (data: ValueNode): any {
