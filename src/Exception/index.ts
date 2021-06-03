@@ -1,11 +1,9 @@
-import { Data } from '../components'
-import { ExceptionMessageData } from './types'
+import Adapter from '../adapter'
+import { ExceptionMessageData, Level } from './types'
 import { getConfig, ExceptionConfiguration } from '../config'
-import * as E from './methods'
-import * as util from 'util'
-import { parseEnforcerExtensionDirective } from '../util'
 
-const inspect = util.inspect.custom ?? 'inspect'
+const { inspect } = Adapter()
+const reportExceptionMap: WeakMap<ExceptionReport | ExceptionReportItem, Exception> = new WeakMap()
 
 interface ExceptionData<T> {
   at: Record<string, T>
@@ -17,32 +15,20 @@ interface ExceptionPreReport {
     at: string
     data: ExceptionPreReport
   }>
-  count: number
-  countDetails: {
-    error: number
-    warn: number
-    opinion: number
-    ignore: number
+  exception: Exception
+  hasException: {
+    error: boolean
+    warn: boolean
+    opinion: boolean
+    ignore: boolean
   }
-  messages: ExceptionMessageData[]
+  messages: {
+    error: ExceptionMessageData[]
+    warn: ExceptionMessageData[]
+    opinion: ExceptionMessageData[]
+    ignore: ExceptionMessageData[]
+  }
   parent: ExceptionPreReport | null
-}
-
-export interface ExceptionReport {
-  count: number
-  countDetails: {
-    error: number
-    warn: number
-    opinion: number
-    ignore: number
-  }
-  hasException: boolean
-  message: string
-  messageDetails: Array<{
-    data: ExceptionMessageData
-    path: string[]
-  }>
-  toString: () => string
 }
 
 export class Exception {
@@ -70,177 +56,255 @@ export class Exception {
     const indentLength: number = arguments.length === 2 ? arguments[1] : 0
     const fullConfig: Required<ExceptionConfiguration> = {
       codes: Object.assign({}, c.codes, config.codes),
-      include: config.include !== undefined ? config.include : c.include,
       lineDelimiter: config.lineDelimiter !== undefined ? config.lineDelimiter : c.lineDelimiter
     }
 
     // TODO: validate that only allowed codes are included in the fullConfig.codes
 
-    const result: ExceptionReport = {
-      count: 0,
-      countDetails: {
-        error: 0,
-        warn: 0,
-        opinion: 0,
-        ignore: 0
-      },
-      get hasException () { return this.count > 0 },
-      message: '',
-      messageDetails: [],
-
-      toString (): string { return result.message },
-      [inspect] (): string {
-        if (this.hasException) {
-          return '[ EnforcerException: ' + this.message + ' ]'
-        } else {
-          return '[ EnforcerException ]'
-        }
-      }
-    }
-
-    // run pre report
     const data = runPreReport(fullConfig, this, null)
-    result.countDetails = data.countDetails
-    result.message = data.count === 0
-      ? 'No problems detected'
-      : (this.header as string) + getReport(result, fullConfig, data, ' '.repeat(indentLength), [])
+    const prefix = ' '.repeat(indentLength)
+    const header = this.header ?? ''
+    return new ExceptionReport(this, data, header, prefix, fullConfig.lineDelimiter)
+  }
+}
 
-    return result
+export class ExceptionReport {
+  readonly '0': ErrorReport | undefined
+  readonly '1': WarningReport | undefined
+  readonly '2': OpinionReport | undefined
+  readonly '3': IgnoredReport | undefined
+
+  constructor (exception: Exception, data: ExceptionPreReport, header: string, prefix: string, lineDelimiter: string) {
+    reportExceptionMap.set(this, exception)
+
+    let error: ErrorReport | undefined = new ErrorReport('error', data, header, prefix, lineDelimiter)
+    if (!error.hasException) error = undefined
+    if (error !== undefined) this[0] = error
+
+    let warn: WarningReport | undefined = new WarningReport('warn', data, header, prefix, lineDelimiter)
+    if (!warn.hasException) warn = undefined
+    if (warn !== undefined) this[1] = warn
+
+    let opinion: OpinionReport | undefined = new OpinionReport('opinion', data, header, prefix, lineDelimiter)
+    if (!opinion.hasException) opinion = undefined
+    if (opinion !== undefined) this[2] = opinion
+
+    let ignore: IgnoredReport | undefined = new IgnoredReport('ignore', data, header, prefix, lineDelimiter)
+    if (!ignore.hasException) ignore = undefined
+    if (ignore !== undefined) this[3] = ignore
+
+    Object.freeze(this)
   }
 
-  public toString (): string {
-    return this.report().message
+  get error (): ErrorReport | undefined {
+    return this[0]
+  }
+
+  get e (): ErrorReport | undefined {
+    return this[0]
+  }
+
+  get exception (): Exception {
+    return reportExceptionMap.get(this) as Exception
+  }
+
+  get warn (): WarningReport | undefined {
+    return this[1]
+  }
+
+  get w (): WarningReport | undefined {
+    return this[1]
+  }
+
+  get opinion (): OpinionReport | undefined {
+    return this[2]
+  }
+
+  get o (): OpinionReport | undefined {
+    return this[2]
+  }
+
+  get ignore (): IgnoredReport | undefined {
+    return this[3]
+  }
+
+  get i (): IgnoredReport | undefined {
+    return this[3]
+  }
+
+  get length (): 4 {
+    return 4
+  }
+
+  toString (): string {
+    const parts: string[] = []
+    const errorCount = this.error === undefined ? 0 : this.error.count
+    const warningCount = this.warn === undefined ? 0 : this.warn.count
+    const opinionCount = this.opinion === undefined ? 0 : this.opinion.count
+    const ignoredCount = this.ignore === undefined ? 0 : this.ignore.count
+
+    parts.push(errorCount === 1 ? '1 Error' : String(errorCount) + ' Errors')
+    parts.push(warningCount === 1 ? '1 Warning' : String(warningCount) + ' Warnings')
+    parts.push(opinionCount === 1 ? '1 Opinion' : String(opinionCount) + ' Opinions')
+    parts.push(String(ignoredCount) + ' Ignored')
+
+    return '[ ExceptionReport: ' + parts.join(', ') + ' ]'
   }
 
   [inspect] (): string {
-    // @ts-expect-error
-    const report = this.report({}, 2)
-    if (report.hasException) {
-      return '[ EnforcerException: ' + report.message + ' ]'
+    return this.toString()
+  }
+
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  [Symbol.iterator] () {}
+}
+
+// Give the ExceptionReport the same iterator as the Array object
+ExceptionReport.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
+
+export class ExceptionReportItem {
+  public readonly message: string
+  public readonly messageDetails: Array<{
+    data: ExceptionMessageData
+    path: string[]
+  }>
+
+  constructor (level: Level, data: ExceptionPreReport, header: string, prefix: string, lineDelimiter: string) {
+    this.message = 'Nothing to report'
+    this.messageDetails = []
+    const reportMessage = getReport(this, level, lineDelimiter, data, prefix, [])
+    reportExceptionMap.set(this, data.exception)
+    if (this.messageDetails.length > 0) {
+      switch (level) {
+        case 'error':
+          header = header.replace('[TYPE]', 'errors')
+          break
+        case 'warn':
+          header = header.replace('[TYPE]', 'warnings')
+          break
+        case 'opinion':
+          header = header.replace('[TYPE]', 'opinions')
+          break
+        case 'ignore':
+          header = header.replace('[TYPE]', 'ignored items')
+          break
+      }
+      this.message = header + reportMessage
+    }
+  }
+
+  get count (): number {
+    return this.messageDetails.length
+  }
+
+  get exception (): Exception {
+    return reportExceptionMap.get(this) as Exception
+  }
+
+  get hasException (): boolean {
+    return this.messageDetails.length > 0
+  }
+
+  toString (): string { return this.message }
+
+  [inspect] (): string {
+    if (this.hasException) {
+      return '[ EnforcerException: ' + this.message + ' ]'
     } else {
       return '[ EnforcerException ]'
     }
   }
 }
 
+export class ErrorReport extends ExceptionReportItem {}
+export class WarningReport extends ExceptionReportItem {}
+export class OpinionReport extends ExceptionReportItem {}
+export class IgnoredReport extends ExceptionReportItem {}
+
 function runPreReport (fullConfig: Required<ExceptionConfiguration>, context: Exception, parent: ExceptionPreReport | null): ExceptionPreReport {
   const data = context.data
   const result: ExceptionPreReport = {
     children: [],
-    count: 0,
-    countDetails: parent !== null ? parent.countDetails : {
-      error: 0,
-      warn: 0,
-      opinion: 0,
-      ignore: 0
+    exception: context,
+    hasException: parent !== null ? parent.hasException : {
+      error: false,
+      warn: false,
+      opinion: false,
+      ignore: false
     },
-    messages: [],
+    messages: {
+      error: [],
+      warn: [],
+      opinion: [],
+      ignore: []
+    },
     parent
   }
 
-  // filter out the messages that this exception will produce
-  const messages = data.messages
-    .map(message => {
+  // sort messages into groups
+  data.messages
+    .forEach(message => {
       const code = message.code
-      if (message.level !== 'error') {
-        // TODO: don't overwrite level if already adjusted
+
+      // if message level has not been modified and it is not an error then check to see if it should be changed
+      if (message.originalLevel === undefined && message.level !== 'error') {
         if (fullConfig?.codes?.[code] !== undefined) {
           // overwrite the level if specified in the global config
           message.level = fullConfig.codes[code]
         }
       }
 
-      result.countDetails[message.level]++
-      return message
+      if (message.active !== false) {
+        result.messages[message.level].push(message)
+        result.hasException[message.level] = true
+      }
     })
-    .filter(message => {
-      if (message.active === false) return false
-      // @ts-expect-error
-      return fullConfig.include.includes(message.level)
-    })
-  result.messages.push(...messages)
-  result.count = result.messages.length
 
   // filter out the children that have messages
   const at = data.at
   Object.keys(at).forEach(key => {
-    const r = runPreReport(fullConfig, at[key], result)
-    if (r.count > 0) {
-      result.children.push({
-        at: key,
-        data: r
-      })
-      result.count += r.count
-    }
-  })
-
-  return result
-}
-
-function getReport (report: ExceptionReport, fullConfig: Required<ExceptionConfiguration>, data: ExceptionPreReport, prefix: string, path: string[]): string {
-  const prefixPlus = prefix + '  '
-  let result: string = ''
-
-  const { children, messages, parent } = data
-  children.forEach(child => {
-    const at = child.at
-    if (parent?.children.length === 1) {
-      result += ' > '
-    } else {
-      result += fullConfig.lineDelimiter + prefixPlus + 'at: '
-    }
-    result += at + ' ' + getReport(report, fullConfig, child.data, prefixPlus, path.concat([at]))
-  })
-
-  messages.forEach(message => {
-    result += fullConfig.lineDelimiter + prefixPlus + message.message
-    if (message.locations !== undefined) {
-      result += ' [' + message.locations.map(l => {
-        let str = l.source !== undefined
-          ? String(l.source) + ':'
-          : ''
-        str += String(l.start.line) + ':' + String(l.start.column)
-        return str
-      }).join(', ') + ']'
-    }
-    report.count++
-    report.messageDetails.push({
-      data: message,
-      path: path
+    result.children.push({
+      at: key,
+      data: runPreReport(fullConfig, at[key], result)
     })
   })
 
   return result
 }
 
-// function toString (context: Exception, parent: Exception | null, prefix: string): string {
-//   if (!context.hasException) return ''
-//
-//   const prefixPlus = prefix + '  '
-//   const children = context.data
-//   let result = ''
-//
-//   if (context.header !== '') result += ((parent != null) ? prefix : '') + context.header
-//
-//   const at = children.at
-//   const atKeys = Object.keys(at).filter(key => at[key].hasException)
-//   const singleAtKey = atKeys.length === 1
-//   atKeys.forEach(key => {
-//     const exception = children.at[key]
-//     if (context.header !== '' || !singleAtKey || children.nest.length > 0 || children.messages.length > 0) {
-//       result += '\n' + prefixPlus + 'at: ' + key + toString(exception, context, prefixPlus)
-//     } else {
-//       result += ' > ' + key + toString(exception, context, prefix)
-//     }
-//   })
-//
-//   children.nest.forEach(exception => {
-//     if (exception.hasException) result += '\n' + toString(exception, context, prefixPlus)
-//   })
-//
-//   children.messages.forEach(message => {
-//     result += '\n' + prefixPlus + message.message
-//   })
-//
-//   return result
-// }
+function getReport (report: ExceptionReportItem, level: Level, lineDelimiter: string, data: ExceptionPreReport, prefix: string, path: string[]): string {
+  const prefixPlus = prefix + '  '
+  let result: string = ''
+
+  const { children, hasException, messages, parent } = data
+  if (hasException[level]) {
+    children.forEach(child => {
+      const at = child.at
+      if (parent?.children.length === 1) {
+        result += ' > '
+      } else {
+        result += lineDelimiter + prefixPlus + 'at: '
+      }
+      result += at + ' ' + getReport(report, level, lineDelimiter, child.data, prefixPlus, path.concat([at]))
+    })
+
+    messages[level].forEach(message => {
+      result += lineDelimiter + prefixPlus + message.message
+      if (message.locations !== undefined) {
+        result += ' [' + message.locations.map(l => {
+          let str = l.source !== undefined
+            ? String(l.source) + ':'
+            : ''
+          str += String(l.start.line) + ':' + String(l.start.column)
+          return str
+        }).join(', ') + ']'
+      }
+      report.messageDetails.push({
+        data: message,
+        path: path
+      })
+    })
+  }
+
+  return result
+}
