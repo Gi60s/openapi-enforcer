@@ -381,14 +381,14 @@ describe('Generic component tests', () => {
   describe('validate', function () {
     describe('x-enforcer', () => {
       it('is allowed even if extensions are not allowed', function () {
-        exceptionLevel(['opinion', 'warn', 'error'], () => {
-          const Test = TestComponent({
-            type: 'object',
-            allowsSchemaExtensions: no
-          })
-          const error = Test.validate({ 'x-enforcer': 'ignore ASDF' })
-          expect(error.count).to.equal(0)
+        const Test = TestComponent({
+          type: 'object',
+          allowsSchemaExtensions: no
         })
+        const [error, warn, opinion] = Test.validate({ 'x-enforcer': 'ignore ASDF' })
+        expect(error).to.equal(undefined)
+        expect(warn).to.equal(undefined)
+        expect(opinion).to.equal(undefined)
       })
     })
 
@@ -432,8 +432,8 @@ describe('Generic component tests', () => {
             }
           ]
         })
-        const error = Test.validate({})
-        expect(error.count).to.equal(1)
+        const [error] = Test.validate({})
+        expect(error?.count).to.equal(1)
         expect(count).to.equal(0)
       })
     })
@@ -466,8 +466,8 @@ describe('Generic component tests', () => {
             }
           ]
         })
-        const error = Test.validate({})
-        expect(error.count).to.equal(0)
+        const [error] = Test.validate({})
+        expect(error).to.equal(undefined)
       })
     })
 
@@ -546,7 +546,7 @@ describe('Generic component tests', () => {
       })
 
       it('validate does check for required properties', function () {
-        const error = Test.validate({})
+        const [error] = Test.validate({})
         expect(error).to.match(/Missing one or more required properties: required/)
       })
     })

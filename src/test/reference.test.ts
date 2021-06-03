@@ -13,19 +13,19 @@ describe('Reference component', () => {
   describe('validate', () => {
     it('must have $ref', function () {
       // @ts-expect-error
-      const error = Reference.validate({})
+      const [error] = Reference.validate({})
       expect(error).to.match(/Missing one or more required properties: \$ref/)
     })
 
     it('can have valid $ref', function () {
-      const error = Reference.validate({
+      const [error] = Reference.validate({
         $ref: 'foo'
       })
-      expect(error.count).to.equal(0)
+      expect(error).to.equal(undefined)
     })
 
     it('cannot have invalid $ref', function () {
-      const error = Reference.validate({
+      const [error] = Reference.validate({
         // @ts-expect-error
         $ref: true
       })

@@ -9,7 +9,7 @@ describe('loader and lookup', () => {
   describe('json', () => {
     it('can load a valid json file', async function () {
       const filePath = path.resolve(resources, 'all-types.json')
-      const object = await load(filePath)
+      const [object] = await load(filePath)
       const json = JSON.parse(fs.readFileSync(filePath, 'utf8'))
       expect(object).to.deep.equal(json)
     })
@@ -26,7 +26,7 @@ describe('loader and lookup', () => {
     })
 
     it('can correctly locate an array', async function () {
-      const object = await load(path.resolve(resources, 'all-types.json'))
+      const [object] = await load(path.resolve(resources, 'all-types.json'))
       const result = lookup(object.array)
       if (result === undefined) throw Error('Should have found reference')
 
@@ -37,7 +37,7 @@ describe('loader and lookup', () => {
     })
 
     it('can correctly locate an array index', async function () {
-      const object = await load(path.resolve(resources, 'all-types.json'))
+      const [object] = await load(path.resolve(resources, 'all-types.json'))
       const result = lookup(object.array, 0)
       if (result === undefined) throw Error('Should have found reference')
 
@@ -48,7 +48,7 @@ describe('loader and lookup', () => {
     })
 
     it('can correctly locate an object property', async function () {
-      const object = await load(path.resolve(resources, 'all-types.json'))
+      const [object] = await load(path.resolve(resources, 'all-types.json'))
       const result = lookup(object, 'boolean')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -59,7 +59,7 @@ describe('loader and lookup', () => {
     })
 
     it('can correctly locate an object property key', async function () {
-      const object = await load(path.resolve(resources, 'all-types.json'))
+      const [object] = await load(path.resolve(resources, 'all-types.json'))
       const result = lookup(object, 'boolean', 'key')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -70,7 +70,7 @@ describe('loader and lookup', () => {
     })
 
     it('can correctly locate an object property value', async function () {
-      const object = await load(path.resolve(resources, 'all-types.json'))
+      const [object] = await load(path.resolve(resources, 'all-types.json'))
       const result = lookup(object, 'boolean', 'value')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -103,7 +103,7 @@ describe('loader and lookup', () => {
     })
 
     it('can correctly locate an array', async function () {
-      const object = await load(path.resolve(resources, 'all-types.yaml'))
+      const [object] = await load(path.resolve(resources, 'all-types.yaml'))
       const result = lookup(object.array)
       if (result === undefined) throw Error('Should have found reference')
 
@@ -114,7 +114,7 @@ describe('loader and lookup', () => {
     })
 
     it('can correctly locate an array index', async function () {
-      const object = await load(path.resolve(resources, 'all-types.yaml'))
+      const [object] = await load(path.resolve(resources, 'all-types.yaml'))
       const result = lookup(object.array, 0)
       if (result === undefined) throw Error('Should have found reference')
 
@@ -125,7 +125,7 @@ describe('loader and lookup', () => {
     })
 
     it('can correctly locate an object property', async function () {
-      const object = await load(path.resolve(resources, 'all-types.yaml'))
+      const [object] = await load(path.resolve(resources, 'all-types.yaml'))
       const result = lookup(object, 'boolean')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -136,7 +136,7 @@ describe('loader and lookup', () => {
     })
 
     it('can correctly locate an object property key', async function () {
-      const object = await load(path.resolve(resources, 'all-types.yaml'))
+      const [object] = await load(path.resolve(resources, 'all-types.yaml'))
       const result = lookup(object, 'boolean', 'key')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -147,7 +147,7 @@ describe('loader and lookup', () => {
     })
 
     it('can correctly locate an object property value', async function () {
-      const object = await load(path.resolve(resources, 'all-types.yaml'))
+      const [object] = await load(path.resolve(resources, 'all-types.yaml'))
       const result = lookup(object, 'boolean', 'value')
       if (result === undefined) throw Error('Should have found reference')
 
