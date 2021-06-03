@@ -10,7 +10,6 @@ export interface Configuration {
 
 export interface ExceptionConfiguration {
   codes?: CodesMap
-  include?: Array<'opinion'|'warn'|'error'>
   lineDelimiter?: string
 }
 
@@ -25,7 +24,6 @@ type ExceptionLevel = 'ignore' | 'opinion' | 'warn' | 'error'
 let current: FullConfiguration = {
   exceptions: {
     codes: {},
-    include: process.env.NODE_ENV === 'production' ? ['error'] : ['error', 'warn'],
     lineDelimiter: '\n' // TODO: how does windows handle this instead of \r\n?
   },
   production: process.env.NODE_ENV === 'production',
@@ -61,13 +59,6 @@ const schema = {
             RESNOS: codeSchema,
             RESPHD: codeSchema,
             TYPFRM: codeSchema
-          }
-        },
-        include: {
-          type: 'array',
-          items: {
-            type: 'string',
-            enum: ['error', 'warn', 'opinion']
           }
         },
         lineDelimiter: {
