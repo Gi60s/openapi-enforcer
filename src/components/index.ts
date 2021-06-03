@@ -285,7 +285,7 @@ export function initializeData<Definition> (exceptionMessage: string, definition
       built: undefined,
       chain: [],
       definition: definition,
-      exception: new Exception('One or more errors found while ' + exceptionMessage + ':'),
+      exception: new Exception('One or more [TYPE] found while ' + exceptionMessage + ':'),
       key: '',
       schema: { type: 'any' }
     }
