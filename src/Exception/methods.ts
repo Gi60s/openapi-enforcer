@@ -359,6 +359,16 @@ export function linkOperationConflict (reference: string): ExceptionMessageData 
   }
 }
 
+export function loaderNotAvailable (path: string): ExceptionMessageData {
+  return {
+    level: 'error',
+    code: 'LOADNA',
+    message: 'No defined loaders were able to load the path: ' + path,
+    metadata: { path },
+    reference: ''
+  }
+}
+
 export function missingRequiredProperties (reference: string, properties: string[]): ExceptionMessageData {
   return {
     level: 'error',
@@ -495,6 +505,36 @@ export function randomPasswordWarning (): ExceptionMessageData {
     code: 'DTRPAS',
     message: 'It may not be safe to use this random value as a password',
     metadata: {},
+    reference: ''
+  }
+}
+
+export function refInfiniteLoop (): ExceptionMessageData {
+  return {
+    message: 'Unresolvable infinite loop',
+    code: 'REFPIL',
+    level: 'error',
+    metadata: {},
+    reference: ''
+  }
+}
+
+export function refInvalidStart (): ExceptionMessageData {
+  return {
+    message: 'References must start with #/',
+    code: 'REFINS',
+    level: 'error',
+    metadata: {},
+    reference: ''
+  }
+}
+
+export function refNotResolved (ref: string, from: string): ExceptionMessageData {
+  return {
+    message: 'Cannot resolve reference "' + ref + '" from "' + from + '"',
+    code: 'REFTNF',
+    level: 'error',
+    metadata: { ref, from },
     reference: ''
   }
 }
