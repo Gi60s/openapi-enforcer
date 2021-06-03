@@ -9,5 +9,6 @@ export interface ExceptionMessageData {
   locations?: Location[]
   message: string
   metadata: Record<string, any>
+  originalLevel?: Level
   reference: string
 }
