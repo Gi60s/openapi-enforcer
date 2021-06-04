@@ -1,4 +1,4 @@
-import { Reference } from '../components/Reference'
+import { Reference } from '../components'
 import { expect } from 'chai'
 
 describe('Reference component', () => {
@@ -14,7 +14,7 @@ describe('Reference component', () => {
     it('must have $ref', function () {
       // @ts-expect-error
       const [error] = Reference.validate({})
-      expect(error).to.match(/Missing one or more required properties: \$ref/)
+      expect(error).to.match(/Missing required property: \$ref/)
     })
 
     it('can have valid $ref', function () {

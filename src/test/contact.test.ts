@@ -1,7 +1,5 @@
 import { Contact } from '../components/Contact'
 import { expect } from 'chai'
-import { exceptionLevel } from '../test-utils'
-import { Swagger } from '../components/Swagger'
 
 describe('Contact component', () => {
   describe('build', () => {

@@ -28,3 +28,20 @@ export function initTestLoader (): void {
     })
   }
 }
+
+// get the minimum valid definition for a component
+export function minimal (component: any): any {
+  const name = typeof component === 'function' && component.name !== undefined ? component.name : component
+  switch (name) {
+    case 'Parameter':
+      return {
+        name: 'param',
+        in: 'query',
+        schema: minimal('Schema')
+      }
+    case 'Response':
+      return { description: '' }
+    case 'Schema':
+      return { type: 'string' }
+  }
+}
