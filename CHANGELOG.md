@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.14.3
+
+### Fixed
+
+- **Reporting for Equivalent Paths**
+
+  A bug was identified that could incorrectly report the wrong paths when equivalent paths were identified.
+
 ## 1.14.2
 
 ### Fixed
