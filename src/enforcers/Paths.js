@@ -19,13 +19,14 @@ const EnforcerRef  = require('../enforcer-ref');
 const util          = require('../util');
 
 const rxPathParam = /{([^}]+)}/;
+const methods = util.methods()
 
 module.exports = {
     init: function (data) {
         const { exception, result, plugins } = data;
         const pathParsers = {};
-        const pathEquivalencies = {};
-        const paramlessMap = {};
+        // const pathEquivalencies = {};
+        // const paramlessMap = {};
 
         if (!data.options.disablePathNormalization) {
             const keys = Object.keys(result);
@@ -94,20 +95,20 @@ module.exports = {
                     paramlessStr += subStr;
                 }
 
-                path.methods.forEach(method => {
-                    equivalencyKey += method + equivalencyKey;
-
-                    if (!paramlessMap[equivalencyKey]) paramlessMap[equivalencyKey] = [];
-                    const paramless = paramlessMap[equivalencyKey];
-
-                    if (!pathEquivalencies[equivalencyKey]) pathEquivalencies[equivalencyKey] = [];
-                    if (pathEquivalencies[equivalencyKey].length === 0) pathEquivalencies[equivalencyKey].push(pathKey);
-                    if (!paramless.includes(paramlessStr)) {
-                        paramless.push(paramlessStr);
-                    } else {
-                        pathEquivalencies[equivalencyKey].push(pathKey);
-                    }
-                });
+                // path.methods.forEach(method => {
+                //     equivalencyKey += method + equivalencyKey;
+                //
+                //     if (!paramlessMap[equivalencyKey]) paramlessMap[equivalencyKey] = [];
+                //     const paramless = paramlessMap[equivalencyKey];
+                //
+                //     if (!pathEquivalencies[equivalencyKey]) pathEquivalencies[equivalencyKey] = [];
+                //     if (pathEquivalencies[equivalencyKey].length === 0) pathEquivalencies[equivalencyKey].push(pathKey);
+                //     if (!paramless.includes(paramlessStr)) {
+                //         paramless.push(paramlessStr);
+                //     } else {
+                //         pathEquivalencies[equivalencyKey].push(pathKey);
+                //     }
+                // });
 
                 const rx = new RegExp('^' + rxStr + '$');
 
@@ -135,14 +136,72 @@ module.exports = {
                 pathParsers[pathLength].push(parser);
             });
 
-            const equivalencyException = exception.nest('Equivalent paths are not allowed');
-            Object.keys(pathEquivalencies).forEach(key => {
-                const array = pathEquivalencies[key];
-                if (array.length > 1) {
-                    const conflicts = equivalencyException.nest('Equivalent paths:');
-                    array.forEach(err => conflicts.push(err));
+
+            // convert paths into signatures
+            const pathParamSymbol = Symbol('path parameter')
+            const pathKeySignatures = []
+            Object.keys(result).forEach((pathKey, index) => {
+                const rxPathParameter = /{([^}]+)}/g;
+                const pathSignature = []
+
+                let match
+                let offset = 0
+                // pathKey = util.edgeSlashes(pathKey, false, false);
+                while ((match = rxPathParameter.exec(pathKey))) {
+                    const str = pathKey.substring(offset, match.index)
+                    pathSignature.push(str)
+                    pathSignature.push(pathParamSymbol)
+                    offset = match.index + match[0].length
                 }
-            });
+                const str = pathKey.substring(offset)
+                pathSignature.push(str)
+                methods
+                    .filter(method => result[pathKey].hasOwnProperty(method))
+                    .forEach(method => {
+                        pathKeySignatures.push({
+                            key: pathKey,
+                            method,
+                            signature: [method].concat(pathSignature)
+                        })
+                    })
+            })
+
+            // find equivalent paths based on signatures
+            const pathEquivalencies = []
+            const alreadyMatchedPathEquivalencies = []
+            pathKeySignatures.forEach((top) => {
+                const duplicates = pathKeySignatures.filter((bottom) => {
+                    const length = bottom.signature.length
+                    if (top === bottom || top.signature.length !== length || alreadyMatchedPathEquivalencies.includes(bottom.key)) return false
+                    for (let k = 0; k < length; k++) {
+                        if (bottom.signature[k] !== top.signature[k]) return false
+                    }
+
+                    return true
+                })
+                if (duplicates.length > 0) {
+                    duplicates.unshift(top)
+                    duplicates.forEach(item => alreadyMatchedPathEquivalencies.push(item.key))
+                    pathEquivalencies.push(duplicates)
+                }
+            })
+
+            // report path equivalencies
+            const equivalencyException = exception.nest('Equivalent paths are not allowed');
+            pathEquivalencies.forEach(matches => {
+                const conflicts = equivalencyException.nest('Equivalent paths:');
+                matches.forEach(item => conflicts.push(item.method.toUpperCase() + ' ' + item.key));
+            })
+
+            // report equivalent paths
+            // const equivalencyException = exception.nest('Equivalent paths are not allowed');
+            // Object.keys(pathEquivalencies).forEach(key => {
+            //     const array = pathEquivalencies[key];
+            //     if (array.length > 1) {
+            //         const conflicts = equivalencyException.nest('Equivalent paths:');
+            //         array.forEach(err => conflicts.push(err));
+            //     }
+            // });
 
             Object.keys(pathParsers).forEach(key => {
                 pathParsers[key].sort((a, b) => a.weight < b.weight ? -1 : 1);

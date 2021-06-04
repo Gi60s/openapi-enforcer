@@ -16,8 +16,9 @@
  **/
 'use strict';
 const EnforcerRef  = require('../enforcer-ref');
+const util = require('../util')
 
-const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
+const methods = util.methods()
 
 module.exports = {
     init: function () {
