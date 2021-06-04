@@ -2,9 +2,8 @@ import axios from 'axios'
 import { Exception } from './Exception'
 import * as E from './Exception/methods'
 import jsonParser, { ArrayNode, LiteralNode, Location, ObjectNode, ValueNode } from 'json-to-ast'
-import { findRefs, traverse } from './ref-parser'
 import * as yamlParser from 'yaml-ast-parser'
-import { Result } from './Result'
+import { Result as ResultObject } from './Result'
 import * as util from './util'
 
 const loaders: Loader[] = []
@@ -20,9 +19,9 @@ interface LineEnding {
   lineLength: number
 }
 
-export type Loader = (path: string, data?: LoaderMetadata) => Promise<LoaderResult>
+export type Loader = (path: string, data?: LoaderMetadata) => Promise<Result>
 
-export type LoaderResult = LoaderMatch | LoaderMismatch
+export type Result = LoaderMatch | LoaderMismatch
 
 interface LoaderMatch {
   loaded: true
@@ -64,11 +63,17 @@ export interface Options {
   dereference?: boolean
 }
 
+interface Reference {
+  key: string
+  parent: any
+  ref: string
+}
+
 export function define (loader: Loader): void {
   loaders.unshift(loader)
 }
 
-export async function load (path: string, options?: Options, data?: LoaderMetadata): Promise<Result> {
+export async function load (path: string, options?: Options, data?: LoaderMetadata): Promise<ResultObject> {
   if (options === undefined || options === null) options = {}
   if (typeof options !== 'object') throw Error('Invalid load options specified.')
   if (options.dereference === undefined) options.dereference = true
@@ -79,8 +84,8 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
 
   // load content and cache it
   const node = data.cache[path] !== undefined ? data.cache[path] : await runLoaders(path, data)
-  const report = data.exception.report()
-  const hasException = report.error?.hasException ?? false
+  const [loaderError] = data.exception
+  const hasException = loaderError !== undefined
   if (!hasException) data.cache[path] = node
 
   // dereference any $refs
@@ -93,13 +98,13 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
 
       // local reference
       if (ref.startsWith('#/')) {
-        n = traverse(node, ref, data.exception)
+        n = traverse(node, ref, path, data.exception)
 
       // reference to other location
       } else {
         const [path, subRef] = ref.split('#/')
         const node = await load(path, options, data)
-        n = traverse(node, '#/' + subRef, data.exception)
+        n = traverse(node, '#/' + subRef, path, data.exception)
       }
 
       if (n !== undefined) {
@@ -113,7 +118,7 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
     }
   }
 
-  return new Result(node, data.exception)
+  return new ResultObject(node, data.exception)
 }
 
 export function lookup (node: object, key?: string | number, filter: 'key' | 'value' | 'both' = 'both'): Location | undefined {
@@ -142,6 +147,26 @@ export function lookup (node: object, key?: string | number, filter: 'key' | 'va
       return result.loc
     }
   }
+}
+
+export function findRefs (node: any, parent: any = null, key: string = '', data: Reference[] = []): Reference[] {
+  if (Array.isArray(node)) {
+    node.forEach((n, i) => findRefs(n, node, String(i), data))
+  } else if (node !== null && typeof node === 'object') {
+    Object.keys(node)
+      .forEach((key: string) => {
+        if (key === '$ref') {
+          data.push({
+            key,
+            parent,
+            ref: node.$ref
+          })
+        } else {
+          findRefs(node[key], node, key, data)
+        }
+      })
+  }
+  return data
 }
 
 function getLocation (pos: number, lineEndings: LineEnding[]): Location['start'] {
@@ -348,6 +373,27 @@ function processYamlAst (data: any, source: string, lineEndings: LineEnding[]): 
   } else {
     throw Error('YAML anchors and aliases are not currently supported.')
   }
+}
+
+export function traverse (node: any, path: string, fromPath: string, exception: Exception): any {
+  if (path === '') return node
+
+  const keys = path.substring(1).split('/')
+  let o = node
+  while (keys.length > 0) {
+    const key = keys?.shift()?.replace(/~1/g, '/').replace(/~0/g, '~')
+    if (key !== undefined && key !== '#') {
+      if (o !== null && typeof o === 'object' && key in o) {
+        o = o[key]
+      } else {
+        const message = E.refNotResolved('#' + path, fromPath)
+        util.addExceptionLocation(message, lookup(node))
+        exception.message(message)
+        return
+      }
+    }
+  }
+  return o
 }
 
 // add http(s) GET loader
