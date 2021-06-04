@@ -1,6 +1,5 @@
-import { initializeData, SpecMap, Version, Data, SchemaArray, SchemaComponent, SchemaObject, ValidateResult } from './'
+import { initializeData, SpecMap, Version, Data, SchemaArray, SchemaComponent, SchemaObject, Exception } from './'
 import { no, yes } from '../util'
-import { Exception } from '../Exception'
 import { Result } from '../Result'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as Discriminator from './Discriminator'
@@ -287,7 +286,7 @@ export class Schema extends PartialSchema.PartialSchema<Schema> {
     return schema
   }
 
-  static validate (definition: Definition, version?: Version): ValidateResult {
+  static validate (definition: Definition, version?: Version): Exception {
     return super.validate(definition, version, arguments[2])
   }
 }

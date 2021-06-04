@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
 import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Header from './Header'
@@ -100,8 +100,8 @@ export class Response extends OASComponent {
                 if ('schema' in built) {
                   const schema = built.schema as Schema.Schema
                   const serialized = schema.serialize(example)
-                  if (serialized.error != null) {
-                    const exampleNotSerializable = E.exampleNotSerializable(example, schema, serialized.error)
+                  if (serialized?.exception?.hasError === true) {
+                    const exampleNotSerializable = E.exampleNotSerializable(example, schema, serialized.exception)
                     adjustExceptionLevel(parent?.definition, exampleNotSerializable)
                     addExceptionLocation(exampleNotSerializable, lookup(parent?.definition, key, 'value'))
                     exception.message(exampleNotSerializable)
@@ -162,7 +162,7 @@ export class Response extends OASComponent {
     }
   }
 
-  static validate (definition: Definition, version?: Version): ValidateResult {
+  static validate (definition: Definition, version?: Version): Exception {
     return super.validate(definition, version, arguments[2])
   }
 }

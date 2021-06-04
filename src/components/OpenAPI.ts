@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, ValidateResult } from './'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
 import * as Loader from '../loader'
 import { addExceptionLocation, yes } from '../util'
 import * as E from '../Exception/methods'
@@ -10,6 +10,7 @@ import * as SecurityRequirement from './SecurityRequirement'
 import * as Server from './Server'
 import * as Tag from './Tag'
 import { lookup } from '../loader'
+import { Result } from '../Result'
 
 const rxVersion = /^\d+\.\d+\.\d+$/
 
@@ -54,13 +55,17 @@ export class OpenAPI extends OASComponent {
     }
   }
 
-  static async load (path: string, options?: LoaderOptions): Promise<Definition> {
-    const def = await Loader.load(path, options)
-    if (options?.validate !== false) {
-      const error = this.validate(def)
-      if (error.hasException) throw Error(error.toString())
+  static async load (path: string, options?: LoaderOptions): Promise<Result<Definition>> {
+    const result = await Loader.load(path, options)
+    const [definition, error] = result
+    if (error === undefined && options?.validate !== false) {
+      const data = initializeData('validating OpenAPI object', definition, '2.0')
+      // @ts-expect-error
+      this.validate(definition, data)
+      return new Result(definition, data.exception)
+    } else {
+      return result
     }
-    return def
   }
 
   static schemaGenerator (): SchemaObject {
@@ -161,7 +166,7 @@ export class OpenAPI extends OASComponent {
     }
   }
 
-  static validate (definition: Definition, version?: Version): ValidateResult {
+  static validate (definition: Definition, version?: Version): Exception {
     return super.validate(definition, version, arguments[2])
   }
 }

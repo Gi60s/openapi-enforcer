@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaComponent, SchemaObject, SpecMap, Version, ValidateResult } from './'
+import { OASComponent, initializeData, SchemaComponent, SchemaObject, SpecMap, Version, Exception } from './'
 import rx from '../rx'
 import { addExceptionLocation, no, yes } from '../util'
 import * as E from '../Exception/methods'
@@ -116,7 +116,7 @@ export class MediaType extends OASComponent {
     }
   }
 
-  static validate (definition: Definition, version?: Version): ValidateResult {
+  static validate (definition: Definition, version?: Version): Exception {
     return super.validate(definition, version, arguments[2])
   }
 }

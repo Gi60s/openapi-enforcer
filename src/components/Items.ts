@@ -1,4 +1,4 @@
-import { initializeData, SchemaObject, SpecMap, ValidateResult, Version } from './'
+import { initializeData, SchemaObject, SpecMap, Exception, Version } from './'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as DataType from './helpers/DataTypes'
 
@@ -44,7 +44,7 @@ export class Items extends PartialSchema.PartialSchema<Items> {
     return schema
   }
 
-  static validate (definition: Definition, version?: Version): ValidateResult {
+  static validate (definition: Definition, version?: Version): Exception {
     return super.validate(definition, version, arguments[2])
   }
 }

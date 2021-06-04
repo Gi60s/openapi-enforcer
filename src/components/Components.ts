@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, Data, SchemaObject, SpecMap, Version, ValidateResult } from './'
+import { OASComponent, initializeData, Data, SchemaObject, SpecMap, Version, Exception } from './'
 import { yes } from '../util'
 import * as Callback from './Callback'
 import * as Example from './Example'
@@ -166,7 +166,7 @@ export class Components extends OASComponent {
     }
   }
 
-  static validate (definition: Definition, version?: Version): ValidateResult {
+  static validate (definition: Definition, version?: Version): Exception {
     return super.validate(definition, version, arguments[2])
   }
 }

@@ -1,11 +1,15 @@
-import { getConfig } from '../config'
-import { Exception, ExceptionReport } from '../Exception'
+import * as Config from '../config'
+import { Exception } from '../Exception'
 import * as E from '../Exception/methods'
 import rx from '../rx'
 import { no, yes, isObject, same, smart, adjustExceptionLevel, addExceptionLocation } from '../util'
 import { lookup } from '../loader'
 
 export const componentSchemasMap: WeakMap<ExtendedComponent, SchemaObject> = new WeakMap()
+
+export {
+  Exception
+}
 
 interface MapItem {
   definition: any
@@ -138,8 +142,6 @@ export interface SpecMap {
   '3.0.3'?: string
 }
 
-export type ValidateResult = ExceptionReport
-
 export type Version = '2.0' | '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3'
 
 export function clearCache (component: ExtendedComponent): void {
@@ -150,7 +152,7 @@ export interface ExtendedComponent<T extends OASComponent=any> {
   new (definition: any, version?: Version, ...args: any[]): T
   spec: SpecMap
   schemaGenerator: () => SchemaObject
-  validate: (definition: any, version?: Version, ...args: any[]) => ValidateResult
+  validate: (definition: any, version?: Version, ...args: any[]) => Exception
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -196,13 +198,13 @@ export abstract class OASComponent {
     }
   }
 
-  static validate (definition: any, version?: Version, incomingData?: Data): ValidateResult {
+  static validate (definition: any, version?: Version, incomingData?: Data): Exception {
     const data: Data = initializeData('validating ' + this.name + ' object', definition, version, incomingData)
     data.component = data
     data.schema = componentSchemasMap.get(this as unknown as ExtendedComponent) ?? this.schemaGenerator()
     validate(data)
 
-    return data.exception.report()
+    return data.exception
   }
 }
 
@@ -259,14 +261,14 @@ export class Reference extends OASComponent {
     }
   }
 
-  static validate (definition: ReferenceDefinition, version?: Version): ValidateResult {
+  static validate (definition: ReferenceDefinition, version?: Version): Exception {
     return super.validate(definition, version, arguments[2])
   }
 }
 
 export function initializeData<Definition> (exceptionMessage: string, definition: Definition, version?: Version, data?: Data): Data {
   if (data === undefined) {
-    const v: string = version === undefined ? getConfig().version : version
+    const v: string = version === undefined ? Config.get().version : version
     data = {
       // unchanging values
       major: parseInt(v.split('.')[0]),
@@ -729,12 +731,21 @@ function validateObject (data: Data): any {
   const componentDef = data.component.definition
   const schema = data.schema as SchemaObject
 
-  // validate named properties and set defaults
   const schemaProperties = schema.properties !== undefined ? schema.properties : []
   const missingRequiredProperties: string[] = []
   const validatedProperties: string[] = []
   const childrenData: { [key: string]: Data } = {}
   const notAllowed: NotAllowed[] = []
+
+  // identify which properties are compatible with this version
+  const versionProperties = schemaProperties
+    .filter(prop => {
+      const versionMismatch = prop.versions !== undefined ? !versionMatch(data.version, prop.versions) : false
+      return !versionMismatch
+    })
+    .map(prop => prop.name)
+
+  // validate named properties and set defaults
   let success = true
   schemaProperties.forEach(prop => {
     const name = prop.name
@@ -744,10 +755,12 @@ function validateObject (data: Data): any {
     if (name in definition) {
       validatedProperties.push(name)
       if (versionMismatch) {
-        notAllowed.push({
-          name,
-          reason: 'Not part of OpenAPI specification version ' + data.version
-        })
+        if (!versionProperties.includes(name)) {
+          notAllowed.push({
+            name,
+            reason: 'Not part of OpenAPI specification version ' + data.version
+          })
+        }
       } else if (allowed !== true) {
         notAllowed.push({
           name,

@@ -1,9 +1,10 @@
 import Adapter from '../adapter'
 import { ExceptionMessageData, Level } from './types'
-import { getConfig, ExceptionConfiguration } from '../config'
+import * as Config from '../config'
 
 const { inspect } = Adapter()
-const reportExceptionMap: WeakMap<ExceptionReport | ExceptionReportItem, Exception> = new WeakMap()
+const exceptionMap = new WeakMap<Exception, ExceptionPreReport>()
+const levels: Level[] = ['error', 'warn', 'opinion', 'ignore']
 
 interface ExceptionData<T> {
   at: Record<string, T>
@@ -34,7 +35,6 @@ interface ExceptionPreReport {
 export class Exception {
   public header: string | undefined
   public data: ExceptionData<Exception> = { at: {}, messages: [] }
-  // public from = E
 
   constructor (header?: string) {
     this.header = header
@@ -51,118 +51,80 @@ export class Exception {
     return this
   }
 
-  public report (config: ExceptionConfiguration = {}): ExceptionReport {
-    const c = getConfig().exceptions
-    const indentLength: number = arguments.length === 2 ? arguments[1] : 0
-    const fullConfig: Required<ExceptionConfiguration> = {
-      codes: Object.assign({}, c.codes, config.codes),
-      lineDelimiter: config.lineDelimiter !== undefined ? config.lineDelimiter : c.lineDelimiter
-    }
+  get '0' (): ErrorReport | undefined {
+    const config = Config.get().exceptions
+    const data = runPreReport(config, this, null)
+    exceptionMap.set(this, data)
+    if (!data.hasException.error) return
 
-    // TODO: validate that only allowed codes are included in the fullConfig.codes
-
-    const data = runPreReport(fullConfig, this, null)
-    const prefix = ' '.repeat(indentLength)
+    const prefix = ' '.repeat(2)
     const header = this.header ?? ''
-    return new ExceptionReport(this, data, header, prefix, fullConfig.lineDelimiter)
+    return new ErrorReport('error', data, header, prefix, config.lineDelimiter)
   }
-}
 
-export class ExceptionReport {
-  readonly '0': ErrorReport | undefined
-  readonly '1': WarningReport | undefined
-  readonly '2': OpinionReport | undefined
-  readonly '3': IgnoredReport | undefined
+  get '1' (): WarningReport | undefined {
+    const config = Config.get().exceptions
+    const data = getCachedPreReport(this)
+    if (!data.hasException.warn) return
 
-  constructor (exception: Exception, data: ExceptionPreReport, header: string, prefix: string, lineDelimiter: string) {
-    reportExceptionMap.set(this, exception)
+    const prefix = ' '.repeat(2)
+    const header = this.header ?? ''
+    return new WarningReport('warn', data, header, prefix, config.lineDelimiter)
+  }
 
-    let error: ErrorReport | undefined = new ErrorReport('error', data, header, prefix, lineDelimiter)
-    if (!error.hasException) error = undefined
-    if (error !== undefined) this[0] = error
+  get '2' (): OpinionReport | undefined {
+    const config = Config.get().exceptions
+    const data = getCachedPreReport(this)
+    if (!data.hasException.opinion) return
 
-    let warn: WarningReport | undefined = new WarningReport('warn', data, header, prefix, lineDelimiter)
-    if (!warn.hasException) warn = undefined
-    if (warn !== undefined) this[1] = warn
+    const prefix = ' '.repeat(2)
+    const header = this.header ?? ''
+    return new OpinionReport('opinion', data, header, prefix, config.lineDelimiter)
+  }
 
-    let opinion: OpinionReport | undefined = new OpinionReport('opinion', data, header, prefix, lineDelimiter)
-    if (!opinion.hasException) opinion = undefined
-    if (opinion !== undefined) this[2] = opinion
+  get '3' (): IgnoredReport | undefined {
+    const config = Config.get().exceptions
+    const data = getCachedPreReport(this)
+    if (!data.hasException.ignore) return
 
-    let ignore: IgnoredReport | undefined = new IgnoredReport('ignore', data, header, prefix, lineDelimiter)
-    if (!ignore.hasException) ignore = undefined
-    if (ignore !== undefined) this[3] = ignore
-
-    Object.freeze(this)
+    const prefix = ' '.repeat(2)
+    const header = this.header ?? ''
+    return new IgnoredReport('ignore', data, header, prefix, config.lineDelimiter)
   }
 
   get error (): ErrorReport | undefined {
-    return this[0]
+    return getReportByType('error', this)
   }
 
-  get e (): ErrorReport | undefined {
-    return this[0]
+  get hasError (): boolean {
+    return this.error !== undefined
   }
 
-  get exception (): Exception {
-    return reportExceptionMap.get(this) as Exception
-  }
-
-  get warn (): WarningReport | undefined {
-    return this[1]
-  }
-
-  get w (): WarningReport | undefined {
-    return this[1]
-  }
-
-  get opinion (): OpinionReport | undefined {
-    return this[2]
-  }
-
-  get o (): OpinionReport | undefined {
-    return this[2]
-  }
-
-  get ignore (): IgnoredReport | undefined {
-    return this[3]
-  }
-
-  get i (): IgnoredReport | undefined {
-    return this[3]
+  get ignored (): IgnoredReport | undefined {
+    return getReportByType('ignore', this)
   }
 
   get length (): 4 {
     return 4
   }
 
-  toString (): string {
-    const parts: string[] = []
-    const errorCount = this.error === undefined ? 0 : this.error.count
-    const warningCount = this.warn === undefined ? 0 : this.warn.count
-    const opinionCount = this.opinion === undefined ? 0 : this.opinion.count
-    const ignoredCount = this.ignore === undefined ? 0 : this.ignore.count
-
-    parts.push(errorCount === 1 ? '1 Error' : String(errorCount) + ' Errors')
-    parts.push(warningCount === 1 ? '1 Warning' : String(warningCount) + ' Warnings')
-    parts.push(opinionCount === 1 ? '1 Opinion' : String(opinionCount) + ' Opinions')
-    parts.push(String(ignoredCount) + ' Ignored')
-
-    return '[ ExceptionReport: ' + parts.join(', ') + ' ]'
+  get opinion (): OpinionReport | undefined {
+    return getReportByType('opinion', this)
   }
 
-  [inspect] (): string {
-    return this.toString()
+  get warning (): WarningReport | undefined {
+    return getReportByType('warn', this)
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  [Symbol.iterator] () {}
+  [Symbol.iterator] (): Iterator<any> {
+    throw Error('Method not implemented')
+  }
 }
 
-// Give the ExceptionReport the same iterator as the Array object
-ExceptionReport.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
+// overwrite exception iterator, use array iterator
+Exception.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
 
-export class ExceptionReportItem {
+class ExceptionReport {
   public readonly message: string
   public readonly messageDetails: Array<{
     data: ExceptionMessageData
@@ -173,7 +135,6 @@ export class ExceptionReportItem {
     this.message = 'Nothing to report'
     this.messageDetails = []
     const reportMessage = getReport(this, level, lineDelimiter, data, prefix, [])
-    reportExceptionMap.set(this, data.exception)
     if (this.messageDetails.length > 0) {
       switch (level) {
         case 'error':
@@ -197,10 +158,6 @@ export class ExceptionReportItem {
     return this.messageDetails.length
   }
 
-  get exception (): Exception {
-    return reportExceptionMap.get(this) as Exception
-  }
-
   get hasException (): boolean {
     return this.messageDetails.length > 0
   }
@@ -216,17 +173,35 @@ export class ExceptionReportItem {
   }
 }
 
-export class ErrorReport extends ExceptionReportItem {}
-export class WarningReport extends ExceptionReportItem {}
-export class OpinionReport extends ExceptionReportItem {}
-export class IgnoredReport extends ExceptionReportItem {}
+export class ErrorReport extends ExceptionReport {}
+export class WarningReport extends ExceptionReport {}
+export class OpinionReport extends ExceptionReport {}
+export class IgnoredReport extends ExceptionReport {}
 
-function runPreReport (fullConfig: Required<ExceptionConfiguration>, context: Exception, parent: ExceptionPreReport | null): ExceptionPreReport {
+function getCachedPreReport (exception: Exception): ExceptionPreReport {
+  const config = Config.get().exceptions
+  const existing = exceptionMap.get(exception)
+  const data = existing ?? runPreReport(config, exception, null)
+  if (existing === undefined) exceptionMap.set(exception, data)
+  return data
+}
+
+function getReportByType (level: Level, exception: Exception): ExceptionReport | undefined {
+  const config = Config.get().exceptions
+  const data = runPreReport(config, exception, null)
+  if (!data.hasException[level]) return
+
+  const prefix = ' '.repeat(2)
+  const header = exception.header ?? ''
+  return new ErrorReport(level, data, header, prefix, config.lineDelimiter)
+}
+
+function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, context: Exception, parent: ExceptionPreReport | null): ExceptionPreReport {
   const data = context.data
   const result: ExceptionPreReport = {
     children: [],
     exception: context,
-    hasException: parent !== null ? parent.hasException : {
+    hasException: {
       error: false,
       warn: false,
       opinion: false,
@@ -255,14 +230,19 @@ function runPreReport (fullConfig: Required<ExceptionConfiguration>, context: Ex
       }
 
       if (message.active !== false) {
-        result.messages[message.level].push(message)
-        result.hasException[message.level] = true
+        const level = message.level
+        result.messages[level].push(message)
+        result.hasException[level] = true
       }
     })
 
   // filter out the children that have messages
   const at = data.at
   Object.keys(at).forEach(key => {
+    const data = runPreReport(fullConfig, at[key], result)
+    levels.forEach((level: Level) => {
+      if (data.hasException[level]) result.hasException[level] = true
+    })
     result.children.push({
       at: key,
       data: runPreReport(fullConfig, at[key], result)
@@ -272,20 +252,23 @@ function runPreReport (fullConfig: Required<ExceptionConfiguration>, context: Ex
   return result
 }
 
-function getReport (report: ExceptionReportItem, level: Level, lineDelimiter: string, data: ExceptionPreReport, prefix: string, path: string[]): string {
+function getReport (report: ExceptionReport, level: Level, lineDelimiter: string, data: ExceptionPreReport, prefix: string, path: string[]): string {
   const prefixPlus = prefix + '  '
   let result: string = ''
 
   const { children, hasException, messages, parent } = data
   if (hasException[level]) {
     children.forEach(child => {
-      const at = child.at
-      if (parent?.children.length === 1) {
-        result += ' > '
-      } else {
-        result += lineDelimiter + prefixPlus + 'at: '
+      const { hasException } = child.data
+      if (hasException[level]) {
+        const at = child.at
+        if (parent?.children.length === 1) {
+          result += ' > '
+        } else {
+          result += lineDelimiter + prefixPlus + 'at: '
+        }
+        result += at + ' ' + getReport(report, level, lineDelimiter, child.data, prefixPlus, path.concat([at]))
       }
-      result += at + ' ' + getReport(report, level, lineDelimiter, child.data, prefixPlus, path.concat([at]))
     })
 
     messages[level].forEach(message => {

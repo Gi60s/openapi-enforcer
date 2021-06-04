@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, Data, SchemaObject, SpecMap, Version, ValidateResult } from './index'
+import { OASComponent, initializeData, Data, SchemaObject, SpecMap, Version, Exception } from './index'
 import { no, yes } from '../util'
 
 export interface Definition {
@@ -66,7 +66,7 @@ export class OAuthFlow extends OASComponent {
     }
   }
 
-  static validate (definition: Definition, version?: Version): ValidateResult {
+  static validate (definition: Definition, version?: Version): Exception {
     return super.validate(definition, version, arguments[2])
   }
 }
