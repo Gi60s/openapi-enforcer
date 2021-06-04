@@ -47,6 +47,7 @@ module.exports = {
     lowerCaseObjectProperties,
     mapObject,
     merge,
+    methods,
     mostOf,
     parseCookieString,
     parseQueryString,
@@ -383,6 +384,10 @@ function merge (target, source, mapping = '') {
     } else {
         return source;
     }
+}
+
+function methods () {
+    return ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
 }
 
 function mostOf (numberArray) {
