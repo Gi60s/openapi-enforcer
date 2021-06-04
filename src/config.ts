@@ -72,11 +72,11 @@ const schema = {
   }
 }
 
-export function setConfig (configuration: Configuration): void {
+export function set (configuration: Configuration): void {
   current = update(schema, configuration, current, '')
 }
 
-export function getConfig (): FullConfiguration {
+export function get (): FullConfiguration {
   return current
 }
 
