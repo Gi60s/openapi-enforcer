@@ -219,4 +219,15 @@ describe('documented issues fixes', () => {
         })
     })
 
+    describe('issue-118 - incorrectly identifies duplicate paths', () => {
+
+        it('will correctly identify duplicate paths', async () => {
+            const [ , err ] = await Enforcer(path.resolve(resourcesPath, 'issue-118/openapi.yml'), { fullResult: true });
+            expect(err).to.match(/Equivalent paths are not allowed/)
+            expect(err).to.match(/GET \/user\/{userId}/)
+            expect(err).to.match(/GET \/user\/{username}/)
+        })
+
+    })
+
 });
