@@ -120,7 +120,7 @@ export class DataTypeStore {
 
   getDefinition (type: Type, format?: string): Definition | undefined {
     if (format === undefined) format = ''
-    const def = this.store[type][format]
+    const def = this.store[type]?.[format]
     if (def !== undefined) {
       return def
     } else if (this.parent !== null) {
