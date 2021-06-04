@@ -45,7 +45,7 @@ export function enumMissingValues (): ExceptionMessageData {
 export function enumNotMet (reference: string, acceptableValues: any[], invalidValue: any): ExceptionMessageData {
   return {
     level: 'error',
-    code: 'DVNNUL',
+    code: 'DVENUM',
     message: acceptableValues.length > 1
       ? 'Value must be one of: ' + acceptableValues.map(v => smart(v)).join(', ') + '. Received: ' + smart(invalidValue)
       : 'Value must equal: ' + smart(acceptableValues[0]) + '. Received: ' + smart(invalidValue),
@@ -67,13 +67,13 @@ export function exampleExamplesConflict (reference: string): ExceptionMessageDat
   }
 }
 
-export function exampleNotSerializable (example: any, schema: any, error: Exception): ExceptionMessageData {
+export function exampleNotSerializable (example: any, schema: any, exception: Exception): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'EXSCNS',
     message: 'Example could not be serialized and therefore cannot be validated against the schema',
     metadata: {
-      error: error.toString(),
+      exception,
       example,
       schema
     },
@@ -81,13 +81,13 @@ export function exampleNotSerializable (example: any, schema: any, error: Except
   }
 }
 
-export function exampleNotValid (example: any, schema: any, error: Exception): ExceptionMessageData {
+export function exampleNotValid (example: any, schema: any, exception: Exception): ExceptionMessageData {
   return {
     level: 'warn',
     code: 'EXSCNV',
     message: 'Example is not valid when compared against the schema',
     metadata: {
-      error: error.toString(),
+      exception,
       example,
       schema
     },
@@ -373,7 +373,9 @@ export function missingRequiredProperties (reference: string, properties: string
   return {
     level: 'error',
     code: 'DVPREQ',
-    message: 'Missing one or more required properties: ' + properties.join(', '),
+    message: properties.length === 1
+      ? 'Missing required property: ' + properties[0]
+      : 'Missing required properties: ' + properties.join(', '),
     metadata: {
       properties
     },
