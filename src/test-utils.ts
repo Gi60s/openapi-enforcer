@@ -30,18 +30,44 @@ export function initTestLoader (): void {
 }
 
 // get the minimum valid definition for a component
-export function minimal (component: any): any {
+export function minimal (component: any, version?: '2.x' | '3.x'): any {
   const name = typeof component === 'function' && component.name !== undefined ? component.name : component
   switch (name) {
+    case 'Example':
+      return {}
+    case 'Header':
+      return version === '2.x'
+        ? {
+          type: 'string'
+        }
+        : {
+          schema: minimal('Schema')
+        }
+    case 'Link':
+      return {}
     case 'Parameter':
-      return {
-        name: 'param',
-        in: 'query',
-        schema: minimal('Schema')
-      }
+      return version === '2.x'
+        ? {
+          name: 'param',
+          in: 'query',
+          type: 'string'
+        }
+        : {
+          name: 'param',
+          in: 'query',
+          schema: minimal('Schema')
+        }
+    case 'RequestBody':
+      return { content: {} }
     case 'Response':
       return { description: '' }
     case 'Schema':
       return { type: 'string' }
+    case 'SecurityScheme':
+      return {
+        type: 'apiKey',
+        name: 'apiKey',
+        in: 'query'
+      }
   }
 }
