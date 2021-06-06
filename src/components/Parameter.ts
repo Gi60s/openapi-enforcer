@@ -206,7 +206,6 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
           }
         }
       },
-      // TODO: make sure logic allows me to define property twice with different versions
       {
         name: 'schema',
         versions: ['2.x'],

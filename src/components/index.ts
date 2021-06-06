@@ -739,10 +739,7 @@ function validateObject (data: Data): any {
 
   // identify which properties are compatible with this version
   const versionProperties = schemaProperties
-    .filter(prop => {
-      const versionMismatch = prop.versions !== undefined ? !versionMatch(data.version, prop.versions) : false
-      return !versionMismatch
-    })
+    .filter(prop => prop.versions === undefined || versionMatch(data.version, prop.versions))
     .map(prop => prop.name)
 
   // validate named properties and set defaults
@@ -774,7 +771,7 @@ function validateObject (data: Data): any {
           data.built[name] = value
         }
       }
-    } else if (prop.required?.(child, componentDef) === true) {
+    } else if (prop.required?.(child, componentDef) === true && allowed === true) {
       missingRequiredProperties.push(name)
     } else if (prop.schema.default !== undefined) {
       child.built = prop.schema.default(child as any, componentDef)
