@@ -119,6 +119,7 @@ export class SecurityScheme extends OASComponent {
         {
           name: 'in',
           required: yes,
+          allowed: (data, def: Definition) => def.type === 'apiKey' ? true : 'Only allowed if type is "apiKey".',
           schema: {
             type: 'string',
             enum: ({ major }) => major === 2
