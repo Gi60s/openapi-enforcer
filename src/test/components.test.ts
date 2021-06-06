@@ -82,6 +82,15 @@ describe.only('Components component', () => {
         })
         expect(error).to.match(/Value must be one of: "array", "boolean", "integer", "number", "string"/)
       })
+
+      it('can accept a reference', function () {
+        const [error] = Components.validate({
+          schemas: {
+            Foo: { $ref: 'foo' }
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
     })
 
     describe('property: responses', () => {
@@ -109,6 +118,15 @@ describe.only('Components component', () => {
           }
         })
         expect(error).to.match(/Missing required property: description/)
+      })
+
+      it('can accept a reference', function () {
+        const [error] = Components.validate({
+          responses: {
+            Foo: { $ref: 'foo' }
+          }
+        })
+        expect(error).to.equal(undefined)
       })
     })
 
@@ -138,6 +156,236 @@ describe.only('Components component', () => {
         })
         expect(error).to.match(/Missing required properties: name, in/)
       })
+
+      it('can accept a reference', function () {
+        const [error] = Components.validate({
+          parameters: {
+            Foo: { $ref: 'foo' }
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
     })
+
+    describe('property: examples', () => {
+      it('can be an empty object', function () {
+        const [error] = Components.validate({
+          examples: {}
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('can define valid examples', function () {
+        const [error] = Components.validate({
+          examples: {
+            Example1: minimal(Example)
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('cannot define invalid examples', function () {
+        const [error] = Components.validate({
+          examples: {
+            Example1: { foo: 'bar' }
+          }
+        })
+        expect(error).to.match(/Property "foo" not allowed/)
+      })
+
+      it('can accept a reference', function () {
+        const [error] = Components.validate({
+          examples: {
+            Foo: { $ref: 'foo' }
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
+    })
+
+    describe('property: requestBodies', () => {
+      it('can be an empty object', function () {
+        const [error] = Components.validate({
+          requestBodies: {}
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('can define valid requestBodies', function () {
+        const [error] = Components.validate({
+          requestBodies: {
+            Body1: minimal(RequestBody)
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('cannot define invalid requestBodies', function () {
+        const [error] = Components.validate({
+          requestBodies: {
+            // @ts-expect-error
+            Body1: {}
+          }
+        })
+        expect(error).to.match(/Missing required property: content/)
+      })
+
+      it('can accept a reference', function () {
+        const [error] = Components.validate({
+          requestBodies: {
+            Foo: { $ref: 'foo' }
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
+    })
+
+    describe('property: headers', () => {
+      it('can be an empty object', function () {
+        const [error] = Components.validate({
+          headers: {}
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('can define valid headers', function () {
+        const [error] = Components.validate({
+          headers: {
+            Header1: minimal(Header)
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('cannot define invalid headers', function () {
+        const [error] = Components.validate({
+          headers: {
+            Header1: { foo: 'bar' }
+          }
+        })
+        expect(error).to.match(/Property "foo" not allowed/)
+      })
+
+      it('can accept a reference', function () {
+        const [error] = Components.validate({
+          headers: {
+            Foo: { $ref: 'foo' }
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
+    })
+
+    describe('property: securitySchemes', () => {
+      it('can be an empty object', function () {
+        const [error] = Components.validate({
+          securitySchemes: {}
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('can define valid securitySchemes', function () {
+        const [error] = Components.validate({
+          securitySchemes: {
+            MyScheme: minimal(SecurityScheme)
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('cannot define invalid securitySchemes', function () {
+        const [error] = Components.validate({
+          securitySchemes: {
+            // @ts-expect-error
+            MyScheme: {}
+          }
+        })
+        expect(error).to.match(/Missing required property: type/)
+      })
+
+      it('can accept a reference', function () {
+        const [error] = Components.validate({
+          securitySchemes: {
+            Foo: { $ref: 'foo' }
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
+    })
+
+    describe('property: links', () => {
+      it('can be an empty object', function () {
+        const [error] = Components.validate({
+          links: {}
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('can define valid links', function () {
+        const [error] = Components.validate({
+          links: {
+            MyLink: minimal(Link)
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('cannot define invalid links', function () {
+        const [error] = Components.validate({
+          links: {
+            MyLink: { foo: 'bar' }
+          }
+        })
+        expect(error).to.match(/Property "foo" not allowed/)
+      })
+
+      it('can accept a reference', function () {
+        const [error] = Components.validate({
+          links: {
+            Foo: { $ref: 'foo' }
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
+    })
+
+    describe('property: callbacks', () => {
+      it('can be an empty object', function () {
+        const [error] = Components.validate({
+          callbacks: {}
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('can define valid callbacks', function () {
+        const [error] = Components.validate({
+          callbacks: {
+            MyCallback: minimal(Link)
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it.only('cannot define invalid callbacks', function () {
+        const [error] = Components.validate({
+          callbacks: {
+            MyCallback: { foo: 'bar' }
+          }
+        })
+        expect(error).to.match(/Expected a non-null object. Received: "bar"/)
+      })
+
+      it('can accept a reference', function () {
+        const [error] = Components.validate({
+          callbacks: {
+            Foo: { $ref: 'foo' }
+          }
+        })
+        expect(error).to.equal(undefined)
+      })
+    })
+
+    // TODO: at tests for $ref cases
+    // TODO: add build tests for component maps
   })
 })
