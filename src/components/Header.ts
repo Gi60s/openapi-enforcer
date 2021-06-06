@@ -13,7 +13,7 @@ export interface Definition extends PartialSchema.Definition<Definition> {
 
   // v2
   collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
-  type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
+  type?: 'array' | 'boolean' | 'integer' | 'number' | 'string'
 
   // v3
   deprecated?: boolean // defaults to false
@@ -31,7 +31,7 @@ export class Header extends OASComponent {
 
   // v2
   readonly collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
-  readonly type!: 'array' | 'boolean' | 'integer' | 'number' | 'string'
+  readonly type?: 'array' | 'boolean' | 'integer' | 'number' | 'string'
 
   // v3
   deprecated?: boolean // defaults to false
