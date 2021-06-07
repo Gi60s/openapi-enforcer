@@ -316,6 +316,14 @@ module.exports = {
             number: {},
             string: {}
         };
+        const hooks = scope.hooks = {
+            afterDeserialize: [],
+            afterSerialize: [],
+            afterValidate: [],
+            beforeDeserialize: [],
+            beforeSerialize: [],
+            beforeValidate: [],
+        }
         scope.dataTypeConstructors = function () {
             return Array.from(constructors.values());
         };
@@ -364,6 +372,18 @@ module.exports = {
                         preserve: scope.dataTypeConstructors()
                     });
                 }
+            },
+
+            hook: function (type, handler) {
+                if (!hooks.hasOwnProperty(type)) throw Error('Invalid hook type. Choose one of: ' + Object.keys(hooks).join(', '))
+                if (typeof handler !== 'function') throw Error('Invalid hook handler. Expected a function. Received: ' + util.smart(handler))
+                hooks[type].push(handler)
+            },
+
+            unhook: function (type, handler) {
+                const handlers = hooks[type] || []
+                const index = handlers.indexOf(handler)
+                if (index !== -1) handlers.splice(index, 1)
             },
 
             Value: Value

@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const hooks         = require('./hooks')
 const schemaUtil    = require('./util');
 const util          = require('../util');
 const Value         = require('./value');
@@ -22,7 +23,7 @@ const Value         = require('./value');
 module.exports = runSerialize;
 
 function runSerialize(exception, map, schema, originalValue) {
-    const { serialize, value } = Value.getAttributes(originalValue);
+    let { serialize, value } = Value.getAttributes(originalValue);
     if (!serialize) return originalValue;
 
     const type = schema.type;
@@ -37,7 +38,11 @@ function runSerialize(exception, map, schema, originalValue) {
         }
     }
 
-    if (value === null && (schema.nullable || schema['x-nullable'])) return value;
+    const hookResult = hooks.runHooks(schema, 'beforeSerialize', value, exception)
+    value = hookResult.value
+    if (hookResult.done) return value
+
+    if (value === null && (schema.nullable || schema['x-nullable'])) return hooks.after(schema, 'afterSerialize', value, exception);
 
     if (schema.allOf) {
         const result = {};
@@ -46,20 +51,21 @@ function runSerialize(exception, map, schema, originalValue) {
             const v = runSerialize(allOfException.at(index), map, schema, originalValue);
             Object.assign(result, v)
         });
-        return Object.assign(value, result);
+        return hooks.after(schema, 'afterSerialize', Object.assign(value, result), exception);
 
     } else if (schema.anyOf || schema.oneOf) {
+        let result;
         if (schema.discriminator) {
             const { name, key, schema: subSchema } = schema.discriminate(value, true)
             if (subSchema) {
-                Object.assign(value, runSerialize(exception, map, subSchema, originalValue));
+                result = Object.assign(value, runSerialize(exception, map, subSchema, originalValue));
             } else {
                 exception.message('Discriminator property "' + key + '" as "' + name + '" did not map to a schema');
             }
         } else {
-            return schemaUtil.anyOneOf(schema, originalValue, exception, map, runSerialize, true);
+            result = schemaUtil.anyOneOf(schema, originalValue, exception, map, runSerialize, true);
         }
-        return value;
+        return hooks.after(schema, 'afterSerialize', result, exception);
 
     } else if (type === 'array') {
         if (Array.isArray(value)) {
@@ -68,7 +74,7 @@ function runSerialize(exception, map, schema, originalValue) {
                     value[i] = runSerialize(exception.at(i), map, schema.items, Value.inherit(v, { serialize }));
                 })
             }
-            return value;
+            return hooks.after(schema, 'afterSerialize', value, exception);
         } else {
             exception.message('Expected an array. Received: ' + util.smart(value));
         }
@@ -93,7 +99,7 @@ function runSerialize(exception, map, schema, originalValue) {
                     exception.message('Discriminator property "' + key + '" as "' + name + '" did not map to a schema');
                 }
             }
-            return value;
+            return hooks.after(schema, 'afterSerialize', value, exception);
         } else {
             exception.message('Expected an object. Received: ' + util.smart(originalValue));
         }
@@ -112,7 +118,7 @@ function runSerialize(exception, map, schema, originalValue) {
             if (typeof result !== 'boolean') {
                 exception.message('Unable to serialize to a boolean. Received: ' + util.smart(value));
             }
-            return result;
+            return hooks.after(schema, 'afterSerialize', result, exception);
 
         } else if (type === 'integer') {
             let result = dataType.serialize({
@@ -123,7 +129,7 @@ function runSerialize(exception, map, schema, originalValue) {
             if (typeof result !== 'number' || isNaN(result) || result !== Math.round(result)) {
                 exception.message('Unable to serialize to an integer. Received: ' + util.smart(value));
             }
-            return result;
+            return hooks.after(schema, 'afterSerialize', result, exception);
 
         } else if (type === 'number') {
             let result = dataType.serialize({
@@ -134,7 +140,7 @@ function runSerialize(exception, map, schema, originalValue) {
             if (typeof result !== 'number' || isNaN(result)) {
                 exception.message('Unable to serialize to a number. Received: ' + util.smart(value));
             }
-            return result;
+            return hooks.after(schema, 'afterSerialize', result, exception);
 
         } else if (type === 'string') {
             let result = dataType.serialize({
@@ -145,10 +151,10 @@ function runSerialize(exception, map, schema, originalValue) {
             if (typeof result !== 'string') {
                 exception.message('Unable to serialize to a string. Received: ' + util.smart(value));
             }
-            return result;
+            return hooks.after(schema, 'afterSerialize', result, exception);
         }
 
     } else {
-        return value;
+        return hooks.after(schema, 'afterSerialize', value, exception);
     }
 }

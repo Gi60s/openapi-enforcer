@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const hooks             = require('./hooks')
 const Exception         = require('../exception');
 const util              = require('../util');
 const Value             = require('./value');
@@ -22,7 +23,7 @@ const Value             = require('./value');
 module.exports = runValidate;
 
 function runValidate(exception, map, schema, originalValue, options) {
-    const { validate, value } = Value.getAttributes(originalValue);
+    let { validate, value } = Value.getAttributes(originalValue);
     if (!validate) return originalValue;
 
     const type = schema.type;
@@ -39,8 +40,12 @@ function runValidate(exception, map, schema, originalValue, options) {
         schemas.push(schema);
     }
 
+    const hookResult = hooks.runHooks(schema, 'beforeValidate', value, exception)
+    value = hookResult.value
+    if (hookResult.done) return value
+
     // if nullable and null then skip all other validation
-    if (value === null && (schema.nullable || schema['x-nullable'])) return;
+    if (value === null && (schema.nullable || schema['x-nullable'])) return hooks.after(schema, 'afterValidate', value, exception);
 
     if (schema.allOf) {
         const child = exception.nest('Did not validate against all schemas');
@@ -56,7 +61,8 @@ function runValidate(exception, map, schema, originalValue, options) {
             if (!subSchema) {
                 exception.message('Discriminator property "' + key + '" as "' + value[key] + '" did not map to a schema');
             } else {
-                runValidate(exception.at(value[key]), map, subSchema, value, options);
+                const child = exception.at(value[key])
+                runValidate(child, map, subSchema, value, options);
             }
         } else {
             const anyOfException = Exception('Did not validate against at least one schema');
@@ -70,7 +76,9 @@ function runValidate(exception, map, schema, originalValue, options) {
                     break;
                 }
             }
-            if (!valid) exception.push(anyOfException);
+            if (!valid) {
+                exception.push(anyOfException);
+            }
         }
 
     } else if (schema.oneOf) {
@@ -79,7 +87,8 @@ function runValidate(exception, map, schema, originalValue, options) {
             if (!subSchema) {
                 exception.message('Discriminator property "' + key + '" as "' + name + '" did not map to a schema');
             } else {
-                runValidate(exception.at(value[key]), map, subSchema, value, options);
+                const child = exception.at(value[key])
+                runValidate(child, map, subSchema, value, options);
             }
         } else {
             const oneOfException = Exception('Did not validate against exactly one schema');
@@ -95,13 +104,17 @@ function runValidate(exception, map, schema, originalValue, options) {
                     oneOfException.at(i).push(child);
                 }
             }
-            if (valid !== 1) exception.push(oneOfException);
+            if (valid !== 1) {
+                exception.push(oneOfException);
+            }
         }
 
     } else if (schema.not) {
         const child = Exception('');
         runValidate(child, map, schema, value, options);
-        if (!child.hasException) exception.message('Value should not validate against schema');
+        if (!child.hasException) {
+            exception.message('Value should not validate against schema');
+        }
 
     } else if (type === 'array') {
         if (!Array.isArray(value)) {
@@ -270,6 +283,8 @@ function runValidate(exception, map, schema, originalValue, options) {
         }
         if (!found) exception.message('Value ' + util.smart(value) + ' did not meet enum requirements');
     }
+
+    hooks.after(schema, 'afterValidate', value, exception, true);
 }
 
 function maxMin(exception, schema, type, maxProperty, minProperty, exclusives, value, maximum, minimum) {

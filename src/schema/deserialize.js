@@ -15,6 +15,7 @@
  *    limitations under the License.
  **/
 'use strict';
+const hooks         = require('./hooks')
 const schemaUtil    = require('./util');
 const util          = require('../util');
 const Value         = require('./value');
@@ -27,7 +28,7 @@ const rxNumber = /^\s*(?:\d+(?:\.\d+)?)|(?:\.\d+)\s*$/;
 module.exports = runDeserialize;
 
 function runDeserialize(exception, map, schema, originalValue, options) {
-    const { serialize, value } = Value.getAttributes(originalValue);
+    let { serialize, value } = Value.getAttributes(originalValue);
     if (!serialize) return originalValue;
 
     const type = schema.type;
@@ -43,7 +44,11 @@ function runDeserialize(exception, map, schema, originalValue, options) {
         }
     }
 
-    if (value === null && (schema.nullable || schema['x-nullable'])) return value;
+    const hookResult = hooks.runHooks(schema, 'beforeDeserialize', value, exception)
+    value = hookResult.value
+    if (hookResult.done) return value
+
+    if (value === null && (schema.nullable || schema['x-nullable'])) return hooks.after(schema, 'afterDeserialize', value, exception);
 
     if (schema.allOf) {
         const exception2 = exception.at('allOf');
@@ -53,7 +58,7 @@ function runDeserialize(exception, map, schema, originalValue, options) {
                 const v = runDeserialize(exception2.at(index), map, schema, originalValue, options);
                 Object.assign(result, v)
             });
-            return Object.assign(value, result);
+            return hooks.after(schema, 'afterDeserialize', Object.assign(value, result), exception)
         } else {
             return runDeserialize(exception2.at('0'), map, schema.allOf[0], originalValue, options);
         }
@@ -71,7 +76,7 @@ function runDeserialize(exception, map, schema, originalValue, options) {
             result = schemaUtil.anyOneOf(schema,
                 originalValue, exception, map, runDeserialize, false, options);
         }
-        return result;
+        return hooks.after(schema, 'afterDeserialize', result, exception);
 
     } else if (type === 'array') {
         if (Array.isArray(value)) {
@@ -80,7 +85,7 @@ function runDeserialize(exception, map, schema, originalValue, options) {
                     value[i] = runDeserialize(exception.at(i), map, schema.items, Value.inherit(v, { serialize }), options);
                 });
             }
-            return value;
+            return hooks.after(schema, 'afterDeserialize', value, exception);
         } else {
             exception.message('Expected an array. Received: ' + util.smart(value));
         }
@@ -105,7 +110,7 @@ function runDeserialize(exception, map, schema, originalValue, options) {
                     exception.message('Discriminator property "' + key + '" as "' + name + '" did not map to a schema');
                 }
             }
-            return value;
+            return hooks.after(schema, 'afterDeserialize', value, exception);
         } else {
             exception.message('Expected an object. Received: ' + util.smart(value));
         }
@@ -117,72 +122,76 @@ function runDeserialize(exception, map, schema, originalValue, options) {
         if (type === 'boolean') {
             if (dataType && dataType.deserialize) {
                 // although this will never run right now, it is here in case a custom type definition for booleans is created
-                return dataType.deserialize({
+                const result = dataType.deserialize({
                     exception,
                     schema,
                     value
                 });
+                return hooks.after(schema, 'afterDeserialize', result, exception)
             } else if (typeofValue !== 'boolean') {
                 if (!options.strict) {
                     if (typeofValue === 'string') {
                         if (rxTrue.test(value)) return true;
                         if (rxFalse.test(value)) return false;
                     } else if (typeofValue === 'number') {
-                        return !!value;
+                        return hooks.after(schema, 'afterDeserialize', !!value, exception)
                     }
                 }
                 exception.message('Expected a boolean. Received: ' + util.smart(value));
             } else {
-                return value;
+                return hooks.after(schema, 'afterDeserialize', value, exception)
             }
 
         } else if (type === 'integer') {
             if (dataType && dataType.deserialize) {
-                return dataType.deserialize({
+                const result = dataType.deserialize({
                     exception,
                     schema,
                     value
                 });
+                return hooks.after(schema, 'afterDeserialize', result, exception)
             } else if (typeofValue !== 'number' || !util.isInteger(value)) {
                 if (!options.strict && typeofValue === 'string' && rxInteger.test(value)) {
-                    return +value;
+                    return hooks.after(schema, 'afterDeserialize', +value, exception)
                 }
                 exception.message('Expected an integer. Received: ' + util.smart(value));
             } else {
-                return value;
+                return hooks.after(schema, 'afterDeserialize', value, exception)
             }
 
         } else if (type === 'number') {
             if (dataType && dataType.deserialize) {
-                return dataType.deserialize({
+                const result = dataType.deserialize({
                     exception,
                     schema,
                     value: value
                 });
+                return hooks.after(schema, 'afterDeserialize', result, exception)
             } else if (typeofValue !== 'number') {
                 if (!options.strict && typeofValue === 'string' && rxNumber.test(value)) {
-                    return +value;
+                    return hooks.after(schema, 'afterDeserialize', +value, exception)
                 }
                 exception.message('Expected a number. Received: ' + util.smart(value));
             } else {
-                return value;
+                return hooks.after(schema, 'afterDeserialize', value, exception)
             }
 
         } else if (type === 'string') {
             if (dataType && dataType.deserialize) {
-                return dataType.deserialize({
+                const result = dataType.deserialize({
                     exception,
                     schema,
                     value
                 });
+                return hooks.after(schema, 'afterDeserialize', result, exception)
             } if (typeofValue !== 'string') {
                 exception.message('Expected a string. Received: ' + util.smart(value));
             } else {
-                return value;
+                return hooks.after(schema, 'afterDeserialize', value, exception)
             }
         }
 
     } else {
-        return value
+        return hooks.after(schema, 'afterDeserialize', value, exception)
     }
 }

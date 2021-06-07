@@ -4738,6 +4738,143 @@ describe('definition/schema', () => {
 
     });
 
+    describe('hooks', function () {
+        describe('beforeDeserialize', function () {
+            function hook (value, schema, exception) {
+                if (value === 'foo') {
+                    exception.message('No foo allowed')
+                } else if (schema.type === 'string' && schema.format === 'date' && value === '0000-00-00') {
+                    return {
+                        value: new Date(0),
+                        done: true // if done then don't allow any other deserialize functions to run, we are done
+                    }
+                } else {
+                    // we didn't make any changes so pass along the unchanged value and let other deserializers work on it
+                    return {
+                        value,
+                        done: false
+                    }
+                }
+            }
+
+            before (() => {
+                Enforcer.v3_0.Schema.hook('beforeDeserialize', hook)
+            })
+
+            after (() => {
+                Enforcer.v3_0.Schema.unhook('beforeDeserialize', hook)
+            })
+
+            it('will run hooks', () => {
+                const [ schema1 ] = Enforcer.v3_0.Schema({
+                    type: 'string',
+                    format: 'date'
+                });
+                const [ schema2 ] = Enforcer.v3_0.Schema({
+                    type: 'string'
+                });
+
+                const [ value1 ] = schema1.deserialize('0000-00-00')
+                expect(+value1).to.equal(0)
+
+                const [ value2 ] = schema2.deserialize('0000-00-00')
+                expect(value2).to.equal('0000-00-00')
+
+                const [ , error ] = schema2.deserialize('foo')
+                expect(error).to.match(/No foo allowed/)
+            })
+
+            it('will not run hooks on schema v2 unless added', () => {
+                const [ schema ] = Enforcer.v2_0.Schema({
+                    type: 'string',
+                    format: 'date'
+                });
+
+                try {
+                    schema.deserialize('0000-00-00')
+                    throw Error('foo')
+                } catch (e) {
+                    expect(e).not.to.match(/foo/)
+                }
+            })
+        });
+
+        describe('afterDeserialize', function () {
+            it('will run hooks', () => {
+                let run = false
+
+                function hook () {
+                    run = true
+                }
+                Enforcer.v3_0.Schema.hook('afterDeserialize', hook)
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string' });
+                schema.deserialize('foo')
+                expect(run).to.equal(true)
+                Enforcer.v3_0.Schema.unhook('afterDeserialize', hook)
+            })
+        });
+
+        describe('beforeSerialize', function () {
+            it('will run hooks', () => {
+                let run = false
+
+                function hook () {
+                    run = true
+                }
+                Enforcer.v3_0.Schema.hook('beforeSerialize', hook)
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string' });
+                schema.serialize('foo')
+                expect(run).to.equal(true)
+                Enforcer.v3_0.Schema.unhook('beforeSerialize', hook)
+            })
+        });
+
+        describe('afterSerialize', function () {
+            it('will run hooks', () => {
+                let run = false
+
+                function hook () {
+                    run = true
+                }
+                Enforcer.v3_0.Schema.hook('afterSerialize', hook)
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string' });
+                schema.serialize('foo')
+                expect(run).to.equal(true)
+                Enforcer.v3_0.Schema.unhook('afterSerialize', hook)
+            })
+        });
+
+        describe('beforeValidate', function () {
+            it('will run hooks', () => {
+                let run = false
+
+                function hook () {
+                    run = true
+                }
+                Enforcer.v3_0.Schema.hook('beforeValidate', hook)
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string' });
+                schema.validate('foo')
+                expect(run).to.equal(true)
+                Enforcer.v3_0.Schema.unhook('beforeValidate', hook)
+            })
+        });
+
+        describe('afterValidate', function () {
+            it('will run hooks', () => {
+                let run = false
+
+                function hook () {
+                    run = true
+                }
+                Enforcer.v3_0.Schema.hook('afterValidate', hook)
+                const [ schema ] = Enforcer.v3_0.Schema({ type: 'string' });
+                schema.validate('foo')
+                expect(run).to.equal(true)
+                Enforcer.v3_0.Schema.unhook('afterValidate', hook)
+            })
+        });
+    });
+
     it('using toObject converts nested components too', () => {
         const [ schema ] = new Enforcer.v3_0.Schema({
             type: 'object',
