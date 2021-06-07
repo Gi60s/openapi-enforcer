@@ -60,7 +60,7 @@
         
         <div>
           <p><strong>Page Content</strong></p>
-          <div class="section-nav"><ul class="toc"><li><a href="#instance-methods">Instance Methods</a><ul><li><a href="#deserialize">deserialize</a></li><li><a href="#discriminate">discriminate</a></li><li><a href="#formalize">formalize</a></li><li><a href="#populate">populate</a></li><li><a href="#random">random</a></li><li><a href="#serialize">serialize</a></li><li><a href="#validate">validate</a></li><li><a href="#toobject">toObject</a></li></ul></li><li><a href="#static-methods">Static Methods</a><ul><li><a href="#definedatatypeformat">defineDataTypeFormat</a></li><li><a href="#extractvalue">extractValue</a></li><li><a href="#formalize-1">formalize</a></li><li><a href="#hook">Hook</a></li><li><a href="#unhook">Unhook</a></li><li><a href="#value">Value</a></li></ul></li></ul></div>
+          <div class="section-nav"><ul class="toc"><li><a href="#instance-methods">Instance Methods</a><ul><li><a href="#deserialize">deserialize</a></li><li><a href="#discriminate">discriminate</a></li><li><a href="#formalize">formalize</a></li><li><a href="#populate">populate</a></li><li><a href="#random">random</a></li><li><a href="#serialize">serialize</a></li><li><a href="#validate">validate</a></li><li><a href="#toobject">toObject</a></li></ul></li><li><a href="#static-methods">Static Methods</a><ul><li><a href="#definedatatypeformat">defineDataTypeFormat</a></li><li><a href="#extractvalue">extractValue</a></li><li><a href="#formalize-1">formalize</a></li><li><a href="#hook">hook</a></li><li><a href="#unhook">unhook</a></li><li><a href="#value">Value</a></li></ul></li></ul></div>
         </div>
         
 
@@ -699,7 +699,7 @@ Schema.defineDataTypeFormat(<span class="hljs-string">'string'</span>, <span cla
 <span class="hljs-keyword">const</span> person = <span class="hljs-keyword">new</span> Person(<span class="hljs-string">'bob'</span>, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(<span class="hljs-string">'2000-01-01T00:00:00.000Z'</span>))
 
 <span class="hljs-keyword">const</span> plainObject = Enforcer.v3_0.formalize(person)</code></pre>
-<h2 id="hook">Hook</h2>
+<h2 id="hook">hook</h2>
 <p><code>Schema.hook ( type, handler ) : void</code></p>
 <p>Add a hook to schema deserialize, serialize, and validate functonality.</p>
 <p><strong>Parameters:</strong></p>
@@ -752,7 +752,7 @@ Schema.defineDataTypeFormat(<span class="hljs-string">'string'</span>, <span cla
 
 Enforcer.v2_0.Schema.hook(<span class="hljs-string">'beforeDeserialize'</span>, hook)
 Enforcer.v3_0.Schema.hook(<span class="hljs-string">'beforeDeserialize'</span>, hook)</code></pre>
-<h2 id="unhook">Unhook</h2>
+<h2 id="unhook">unhook</h2>
 <p><code>Schema.unhook ( type, handler ) : void</code></p>
 <p>Remove a previously added hook.</p>
 <p><strong>Parameters:</strong></p>

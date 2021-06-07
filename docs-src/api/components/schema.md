@@ -434,7 +434,7 @@ const person = new Person('bob', new Date('2000-01-01T00:00:00.000Z'))
 const plainObject = Enforcer.v3_0.formalize(person)
 ```
 
-## Hook
+## hook
 
 `Schema.hook ( type, handler ) : void`
 
@@ -486,7 +486,7 @@ Enforcer.v2_0.Schema.hook('beforeDeserialize', hook)
 Enforcer.v3_0.Schema.hook('beforeDeserialize', hook)
 ```
 
-## Unhook
+## unhook
 
 `Schema.unhook ( type, handler ) : void`
 
