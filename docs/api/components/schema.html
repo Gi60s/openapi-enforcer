@@ -60,7 +60,7 @@
         
         <div>
           <p><strong>Page Content</strong></p>
-          <div class="section-nav"><ul class="toc"><li><a href="#instance-methods">Instance Methods</a><ul><li><a href="#deserialize">deserialize</a></li><li><a href="#discriminate">discriminate</a></li><li><a href="#formalize">formalize</a></li><li><a href="#populate">populate</a></li><li><a href="#random">random</a></li><li><a href="#serialize">serialize</a></li><li><a href="#validate">validate</a></li><li><a href="#toobject">toObject</a></li></ul></li><li><a href="#static-methods">Static Methods</a><ul><li><a href="#definedatatypeformat">defineDataTypeFormat</a></li><li><a href="#extractvalue">extractValue</a></li><li><a href="#formalize-1">formalize</a></li><li><a href="#value">Value</a></li></ul></li></ul></div>
+          <div class="section-nav"><ul class="toc"><li><a href="#instance-methods">Instance Methods</a><ul><li><a href="#deserialize">deserialize</a></li><li><a href="#discriminate">discriminate</a></li><li><a href="#formalize">formalize</a></li><li><a href="#populate">populate</a></li><li><a href="#random">random</a></li><li><a href="#serialize">serialize</a></li><li><a href="#validate">validate</a></li><li><a href="#toobject">toObject</a></li></ul></li><li><a href="#static-methods">Static Methods</a><ul><li><a href="#definedatatypeformat">defineDataTypeFormat</a></li><li><a href="#extractvalue">extractValue</a></li><li><a href="#formalize-1">formalize</a></li><li><a href="#hook">Hook</a></li><li><a href="#unhook">Unhook</a></li><li><a href="#value">Value</a></li></ul></li></ul></div>
         </div>
         
 
@@ -699,6 +699,90 @@ Schema.defineDataTypeFormat(<span class="hljs-string">'string'</span>, <span cla
 <span class="hljs-keyword">const</span> person = <span class="hljs-keyword">new</span> Person(<span class="hljs-string">'bob'</span>, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(<span class="hljs-string">'2000-01-01T00:00:00.000Z'</span>))
 
 <span class="hljs-keyword">const</span> plainObject = Enforcer.v3_0.formalize(person)</code></pre>
+<h2 id="hook">Hook</h2>
+<p><code>Schema.hook ( type, handler ) : void</code></p>
+<p>Add a hook to schema deserialize, serialize, and validate functonality.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>type</td>
+<td>The type of hook to add. Expects on of the following values: <code>&quot;afterDeserialize&quot;</code>, <code>&quot;afterSerialize&quot;</code>, <code>&quot;afterValidate&quot;</code>, <code>&quot;beforeDeserialize&quot;</code>, <code>&quot;beforeSerialize&quot;</code>, or <code>&quot;beforeValidate&quot;</code></td>
+</tr>
+<tr>
+<td>handler</td>
+<td>The function to call for the hook. Every hook function must run synchronously, receives the parameters <code>value</code>, <code>schema</code>, and <code>exception</code>, and should return an object with the following structure: <code>{ done: false, hasException: false, value: &#39;whatever&#39; }</code>. The <code>hasException</code> property is optional and allows for performance optimization. If your hook adds an exception then set the value to <code>true</code>, otherwise return it as <code>false</code>.</td>
+</tr>
+</tbody></table>
+<p>In the case that an exception exists your hook function will not be run. It&#39;s possible another hook may run and specify that the process is <code>done: true</code>, also, preventing your hook from running.</p>
+<p><strong>Returns</strong> undefined</p>
+<p><strong>Example</strong></p>
+<pre><code class="language-js"><span class="hljs-comment">// define a custom beforeDeserialize hook</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">zeroDateHook</span> (<span class="hljs-params">value, schema, exception</span>) </span>{
+    <span class="hljs-keyword">if</span> (schema.type === <span class="hljs-string">'string'</span> &amp;&amp; schema.format === <span class="hljs-string">'date'</span> &amp;&amp; value === <span class="hljs-string">'0000-00-00'</span>) {
+        <span class="hljs-comment">// custom deserialize functionality example</span>
+        <span class="hljs-keyword">return</span> {
+            <span class="hljs-attr">done</span>: <span class="hljs-literal">true</span>, <span class="hljs-comment">// if done then don't allow any other deserialize functions to run, we are done</span>
+            <span class="hljs-attr">hasException</span>: <span class="hljs-literal">false</span>, <span class="hljs-comment">// we didn't add any exception messages with this hook</span>
+            <span class="hljs-attr">value</span>: <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(<span class="hljs-number">0</span>)
+        }
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (schema.type === <span class="hljs-string">'string'</span> &amp;&amp; schema.format === <span class="hljs-string">'date-time'</span> &amp;&amp; value === <span class="hljs-string">'0000-00-00'</span>) {
+        <span class="hljs-comment">// exception example</span>
+        exception.message(<span class="hljs-string">'Zero dates are not allowed for date-time formats.'</span>)
+        <span class="hljs-keyword">return</span> {
+            <span class="hljs-attr">done</span>: <span class="hljs-literal">true</span>,
+            <span class="hljs-attr">hasException</span>: <span class="hljs-literal">true</span>,
+            value
+        }
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">// no changes example</span>
+        <span class="hljs-comment">// we didn't make any changes so pass along the unchanged value and let other deserializers work on it</span>
+        <span class="hljs-keyword">return</span> {
+            <span class="hljs-attr">done</span>: <span class="hljs-literal">false</span>,
+            <span class="hljs-attr">hasException</span>: <span class="hljs-literal">false</span>,
+            value
+        }
+    }
+}
+
+Enforcer.v2_0.Schema.hook(<span class="hljs-string">'beforeDeserialize'</span>, hook)
+Enforcer.v3_0.Schema.hook(<span class="hljs-string">'beforeDeserialize'</span>, hook)</code></pre>
+<h2 id="unhook">Unhook</h2>
+<p><code>Schema.unhook ( type, handler ) : void</code></p>
+<p>Remove a previously added hook.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>type</td>
+<td>The type of hook to remove. Expects on of the following values: <code>&quot;afterDeserialize&quot;</code>, <code>&quot;afterSerialize&quot;</code>, <code>&quot;afterValidate&quot;</code>, <code>&quot;beforeDeserialize&quot;</code>, <code>&quot;beforeSerialize&quot;</code>, or <code>&quot;beforeValidate&quot;</code></td>
+</tr>
+<tr>
+<td>handler</td>
+<td>The function to unhook.</td>
+</tr>
+</tbody></table>
+<p><strong>Returns</strong> undefined</p>
+<p><strong>Example</strong></p>
+<pre><code class="language-js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">myHook</span> (<span class="hljs-params">value, schema, exception</span>) </span>{ ... }
+
+<span class="hljs-comment">// add the hook</span>
+Enforcer.v2_0.Schema.hook(<span class="hljs-string">'beforeDeserialize'</span>, myHook)
+Enforcer.v3_0.Schema.hook(<span class="hljs-string">'beforeDeserialize'</span>, myHook)
+
+<span class="hljs-comment">// remove the hook</span>
+Enforcer.v2_0.Schema.unhook(<span class="hljs-string">'beforeDeserialize'</span>, myHook)
+Enforcer.v3_0.Schema.unhook(<span class="hljs-string">'beforeDeserialize'</span>, myHook)</code></pre>
 <h2 id="value">Value</h2>
 <p><code>Schema.value ( value, options ) : any</code></p>
 <p>This is a sub class used only by the Schema and is used to provide more fine grained control over what parts of a value serialize, deserialize, validate, and populate.</p>
