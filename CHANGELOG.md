@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.15.0
+
+### Added
+
+- **Partial TypeScript Support**
+
+  Added some type support for the enforcer. It's a start.
+
+- **Added Schema Hooks**
+
+  Developers can now add hooks before and after serialization, deserialization, and validation. See the documentation on the [schema component](https://byu-oit.github.io/openapi-enforcer/api/components/schema).
+
 ## 1.14.3
 
 ### Fixed
