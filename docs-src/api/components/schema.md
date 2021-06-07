@@ -434,6 +434,87 @@ const person = new Person('bob', new Date('2000-01-01T00:00:00.000Z'))
 const plainObject = Enforcer.v3_0.formalize(person)
 ```
 
+## Hook
+
+`Schema.hook ( type, handler ) : void`
+
+Add a hook to schema deserialize, serialize, and validate functonality.
+
+**Parameters:**
+
+| Parameter | Description |
+| --------- | ----------- |
+| type | The type of hook to add. Expects on of the following values: `"afterDeserialize"`, `"afterSerialize"`, `"afterValidate"`, `"beforeDeserialize"`, `"beforeSerialize"`, or `"beforeValidate"` |
+| handler | The function to call for the hook. Every hook function must run synchronously, receives the parameters `value`, `schema`, and `exception`, and should return an object with the following structure: `{ done: false, hasException: false, value: 'whatever' }`. The `hasException` property is optional and allows for performance optimization. If your hook adds an exception then set the value to `true`, otherwise return it as `false`. |
+
+In the case that an exception exists your hook function will not be run. It's possible another hook may run and specify that the process is `done: true`, also, preventing your hook from running.
+
+**Returns** undefined
+
+**Example**
+
+```js
+// define a custom beforeDeserialize hook
+function zeroDateHook (value, schema, exception) {
+    if (schema.type === 'string' && schema.format === 'date' && value === '0000-00-00') {
+        // custom deserialize functionality example
+        return {
+            done: true, // if done then don't allow any other deserialize functions to run, we are done
+            hasException: false, // we didn't add any exception messages with this hook
+            value: new Date(0)
+        }
+    } else if (schema.type === 'string' && schema.format === 'date-time' && value === '0000-00-00') {
+        // exception example
+        exception.message('Zero dates are not allowed for date-time formats.')
+        return {
+            done: true,
+            hasException: true,
+            value
+        }
+    } else {
+        // no changes example
+        // we didn't make any changes so pass along the unchanged value and let other deserializers work on it
+        return {
+            done: false,
+            hasException: false,
+            value
+        }
+    }
+}
+
+Enforcer.v2_0.Schema.hook('beforeDeserialize', hook)
+Enforcer.v3_0.Schema.hook('beforeDeserialize', hook)
+```
+
+## Unhook
+
+`Schema.unhook ( type, handler ) : void`
+
+Remove a previously added hook.
+
+**Parameters:**
+
+| Parameter | Description |
+| --------- | ----------- |
+| type | The type of hook to remove. Expects on of the following values: `"afterDeserialize"`, `"afterSerialize"`, `"afterValidate"`, `"beforeDeserialize"`, `"beforeSerialize"`, or `"beforeValidate"` |
+| handler | The function to unhook. |
+
+**Returns** undefined
+
+**Example**
+
+```js
+function myHook (value, schema, exception) { ... }
+
+// add the hook
+Enforcer.v2_0.Schema.hook('beforeDeserialize', myHook)
+Enforcer.v3_0.Schema.hook('beforeDeserialize', myHook)
+
+// remove the hook
+Enforcer.v2_0.Schema.unhook('beforeDeserialize', myHook)
+Enforcer.v3_0.Schema.unhook('beforeDeserialize', myHook)
+```
+
 ## Value
 
 `Schema.value ( value, options ) : any`
