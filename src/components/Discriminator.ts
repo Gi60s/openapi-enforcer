@@ -1,6 +1,7 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
 import * as Schema from './Schema'
-import { no, yes } from '../util'
+import { no } from '../util'
+import { lookup, traverse } from '../loader'
 
 export interface Definition {
   [extension: string]: any
@@ -30,7 +31,7 @@ export class Discriminator extends OASComponent {
   static schemaGenerator (): SchemaObject {
     return {
       type: 'object',
-      allowsSchemaExtensions: yes,
+      allowsSchemaExtensions: no,
       properties: [
         {
           name: 'propertyName',
@@ -43,12 +44,36 @@ export class Discriminator extends OASComponent {
             type: 'object',
             allowsSchemaExtensions: no,
             additionalProperties: {
-              type: 'component',
-              allowsRef: false,
-              component: Schema.Schema,
-              after () {
-                // TODO: attempt lookup of mapping reference
+              type: 'string',
+              after (data, componentDef) {
+                const { definition: ref } = data
+                const loc = lookup(componentDef.mapping)
+                const fromPath = loc?.source ?? ''
+                data.root.finally.push(rootData => {
+                  console.log('from: ' + fromPath)
+
+                  // const node = traverse()
+                  console.log(ref)
+                })
               }
+
+              // type: 'component',
+              // allowsRef: false,
+              // component: Schema.Schema,
+              // after (data) {
+              //   console.log('after')
+              //
+              //   data.finally.push(() => {
+              //     const { chain, exception } = data
+              //     const parent = chain[0].definition
+              //     Object.keys(parent).forEach(key => {
+              //       const value = parent[key]
+              //       console.log(value)
+              //     })
+              //   })
+              //
+              //   // TODO: attempt lookup of mapping reference
+              // }
             }
           }
         }
