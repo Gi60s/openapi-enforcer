@@ -2,7 +2,7 @@ import { Definitions } from '../components/Definitions'
 import { expect } from 'chai'
 import { minimal } from '../test-utils'
 
-describe('Contact component', () => {
+describe('Definitions component', () => {
   describe('build', () => {
     it('can build', function () {
       const definitions = new Definitions({})
