@@ -1,6 +1,6 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
 import * as Schema from './Schema'
-import { yes } from '../util'
+import { no } from '../util'
 
 export interface Definition {
   [name: string]: Schema.Definition2
@@ -23,7 +23,7 @@ export class Definitions extends OASComponent {
   static schemaGenerator (): SchemaObject {
     return {
       type: 'object',
-      allowsSchemaExtensions: yes,
+      allowsSchemaExtensions: no,
       additionalProperties: {
         type: 'component',
         allowsRef: false,
