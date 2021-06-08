@@ -12,7 +12,7 @@ import { SecurityScheme } from '../components/SecurityScheme'
 import { expect } from 'chai'
 import { minimal } from '../test-utils'
 
-describe.only('Components component', () => {
+describe('Components component', () => {
   describe('build', () => {
     it('can build', function () {
       const components = new Components({})
@@ -35,6 +35,69 @@ describe.only('Components component', () => {
         }
       })
       expect(components.responses?.Success).to.be.instanceOf(Response)
+    })
+
+    it('can define parameters', function () {
+      const components = new Components({
+        parameters: {
+          Foo: minimal(Parameter)
+        }
+      })
+      expect(components.parameters?.Foo).to.be.instanceOf(Parameter)
+    })
+
+    it('can define examples', function () {
+      const components = new Components({
+        examples: {
+          Foo: minimal(Example)
+        }
+      })
+      expect(components.examples?.Foo).to.be.instanceOf(Example)
+    })
+
+    it('can define RequestBodies', function () {
+      const components = new Components({
+        requestBodies: {
+          Foo: minimal(RequestBody)
+        }
+      })
+      expect(components.requestBodies?.Foo).to.be.instanceOf(RequestBody)
+    })
+
+    it('can define Headers', function () {
+      const components = new Components({
+        headers: {
+          Foo: minimal(Header)
+        }
+      })
+      expect(components.headers?.Foo).to.be.instanceOf(Header)
+    })
+
+    it('can define SecuritySchemes', function () {
+      const components = new Components({
+        securitySchemes: {
+          Foo: minimal(SecurityScheme)
+        }
+      })
+      expect(components.securitySchemes?.Foo).to.be.instanceOf(SecurityScheme)
+    })
+
+    it('can define Links', function () {
+      const components = new Components({
+        links: {
+          Foo: minimal(Link)
+        }
+      })
+      expect(components.links?.Foo).to.be.instanceOf(Link)
+    })
+
+    it('can define Callback', function () {
+      const components = new Components({
+        callbacks: {
+          Foo: minimal(Callback)
+        }
+      })
+      expect(components.callbacks?.Foo).to.be.instanceOf(Callback)
     })
   })
 
@@ -366,7 +429,7 @@ describe.only('Components component', () => {
         expect(error).to.equal(undefined)
       })
 
-      it.only('cannot define invalid callbacks', function () {
+      it('cannot define invalid callbacks', function () {
         const [error] = Components.validate({
           callbacks: {
             MyCallback: { foo: 'bar' }
