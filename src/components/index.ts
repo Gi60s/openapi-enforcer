@@ -204,6 +204,9 @@ export abstract class OASComponent {
     data.schema = componentSchemasMap.get(this as unknown as ExtendedComponent) ?? this.schemaGenerator()
     validate(data)
 
+    // trigger finally hooks
+    data.finally.forEach(fn => fn(data))
+
     return data.exception
   }
 }
