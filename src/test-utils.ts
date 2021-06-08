@@ -33,6 +33,16 @@ export function initTestLoader (): void {
 export function minimal (component: any, version?: '2.x' | '3.x'): any {
   const name = typeof component === 'function' && component.name !== undefined ? component.name : component
   switch (name) {
+    case 'Callback':
+      return {
+        get: {
+          responses: {
+            200: {
+              description: 'ok'
+            }
+          }
+        }
+      }
     case 'Example':
       return {}
     case 'Header':
