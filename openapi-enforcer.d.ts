@@ -1,7 +1,5 @@
 declare module 'openapi-enforcer' {
-  export = OpenApiEnforcer
-
-  export function OpenApiEnforcer (doc: unknown, options?: Options): Promise<OpenAPI>
+  export default function OpenApiEnforcer (doc: unknown, options?: Options): Promise<OpenAPI>
 
   export namespace OpenApiEnforcer {
     export function bundle(doc: unknown): Record<string, unknown>
