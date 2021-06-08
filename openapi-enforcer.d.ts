@@ -1,14 +1,14 @@
 declare module 'openapi-enforcer' {
   export = OpenApiEnforcer
 
-  declare function OpenApiEnforcer (doc: unknown, options?: Options): Promise<OpenAPI>
+  export function OpenApiEnforcer (doc: unknown, options?: Options): Promise<OpenAPI>
 
-  declare namespace OpenApiEnforcer {
+  export namespace OpenApiEnforcer {
     export function bundle(doc: unknown): Record<string, unknown>
     export function dereference(doc: unknown): Record<string, unknown>
   }
 
-  declare interface Options {
+  export interface Options {
     fullResult?: boolean
     hideWarnings?: boolean
     componentOptions?: {
@@ -23,7 +23,7 @@ declare module 'openapi-enforcer' {
     }
   }
 
-  declare class OpenAPI {
+  export class OpenAPI {
     path(method: string, path: string): any
     request(config: unknown): any
     toObject(): any
