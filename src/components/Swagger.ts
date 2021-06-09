@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Exception } from './'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Exception, LoaderOptions, rootComponentLoader } from './'
 import { Result } from '../Result'
 import * as Loader from '../loader'
 import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
@@ -37,10 +37,6 @@ export interface Definition {
   tags?: Tag.Definition[]
 }
 
-export interface LoaderOptions extends Loader.Options {
-  validate?: boolean
-}
-
 export class Swagger extends OASComponent {
   readonly [extension: string]: any
   basePath?: string
@@ -71,16 +67,7 @@ export class Swagger extends OASComponent {
   }
 
   static async load (path: string, options?: LoaderOptions): Promise<Result<Definition>> {
-    const result = await Loader.load(path, options)
-    const [definition, error] = result
-    if (error === undefined && options?.validate !== false) {
-      const data = initializeData('validating Swagger object', definition, '2.0')
-      // @ts-expect-error
-      this.validate(definition, data)
-      return new Result(definition, data.exception)
-    } else {
-      return result
-    }
+    return await rootComponentLoader(path, this, options ?? {}, '2.0')
   }
 
   static schemaGenerator (): SchemaObject {
@@ -281,6 +268,6 @@ export class Swagger extends OASComponent {
   }
 
   static validate (definition: Definition): Exception {
-    return super.validate(definition, '2.0', arguments[1])
+    return super.validate(definition, '2.0', arguments[2])
   }
 }

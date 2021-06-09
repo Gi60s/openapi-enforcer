@@ -3,9 +3,12 @@ import { Exception } from '../Exception'
 import * as E from '../Exception/methods'
 import rx from '../rx'
 import { no, yes, isObject, same, smart, adjustExceptionLevel, addExceptionLocation } from '../util'
-import { lookup } from '../loader'
+import { LoaderMetadata, lookup } from '../loader'
+import * as Loader from '../loader'
+import { Result } from '../Result'
 
 export const componentSchemasMap: WeakMap<ExtendedComponent, SchemaObject> = new WeakMap()
+const loadCacheMap: WeakMap<any, Record<string, any>> = new WeakMap()
 
 export {
   Exception
@@ -18,6 +21,7 @@ interface MapItem {
 
 export interface Data {
   // unchanging values
+  loadCache: Record<string, any>
   major: number
   map: Map<any, MapItem[]>
   metadata: {
@@ -44,6 +48,10 @@ export interface Data {
   exception: Exception
   key: string
   schema: Schema
+}
+
+export interface LoaderOptions extends Loader.Options {
+  validate?: boolean
 }
 
 interface NotAllowed {
@@ -200,6 +208,7 @@ export abstract class OASComponent {
 
   static validate (definition: any, version?: Version, incomingData?: Data): Exception {
     const data: Data = initializeData('validating ' + this.name + ' object', definition, version, incomingData)
+    data.loadCache = loadCacheMap.get(definition) ?? {}
     data.component = data
     data.schema = componentSchemasMap.get(this as unknown as ExtendedComponent) ?? this.schemaGenerator()
     validate(data)
@@ -394,6 +403,7 @@ export function buildChildData (data: Data, definition: any, key: string, schema
 
   return {
     // unchanging values
+    loadCache: data.loadCache,
     major: data.major,
     map: data.map,
     metadata: data.metadata,
@@ -412,6 +422,20 @@ export function buildChildData (data: Data, definition: any, key: string, schema
     exception: data.exception.at(key),
     key,
     schema
+  }
+}
+
+export async function rootComponentLoader<Definition> (path: string, component: OASComponent, options: LoaderOptions, version?: Version): Promise<Result<Definition>> {
+  const config: LoaderMetadata = { cache: {} }
+  const result = await Loader.load(path, options, config)
+  const [definition, error] = result
+  if (error === undefined && options?.validate !== false) {
+    loadCacheMap.set(definition, config.cache as Record<string, any>)
+    const data = initializeData('validating ' + component.constructor.name + ' object', definition, version)
+    component.validate(definition, version, data)
+    return new Result(definition, data.exception)
+  } else {
+    return result
   }
 }
 
@@ -567,6 +591,7 @@ export function validate (data: Data): any { // return value is what to add to b
       // build the child data object
       const child: Data = {
         // unchanging values
+        loadCache: data.loadCache,
         major: data.major,
         map: data.map,
         metadata: data.metadata,
