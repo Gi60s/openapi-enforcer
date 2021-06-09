@@ -359,6 +359,16 @@ export function linkOperationConflict (reference: string): ExceptionMessageData 
   }
 }
 
+export function loaderFailedToLoadResource (path: string, cause: string): ExceptionMessageData {
+  return {
+    level: 'error',
+    code: 'LOADLF',
+    message: 'Unable to load resource: ' + path + (cause.length > 0 ? '. ' + cause : ''),
+    metadata: { cause, path },
+    reference: ''
+  }
+}
+
 export function loaderNotAvailable (path: string): ExceptionMessageData {
   return {
     level: 'error',
