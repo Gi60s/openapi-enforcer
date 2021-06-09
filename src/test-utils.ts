@@ -1,6 +1,10 @@
 import * as Loader from './loader'
+import fs from 'fs'
+import path from 'path'
+import http from 'http'
 
 const testLoaderRegistry: Record<string, string> = {}
+const testResourcesDirectory = path.resolve(__dirname, '..', 'test-resources')
 let testLoaderInitialized = false
 
 export function registerContent (path: string, data: object): string {
@@ -10,6 +14,8 @@ export function registerContent (path: string, data: object): string {
     .map((v: string, i: number) => String(i + 1) + ': ' + v)
     .join('\n')
 }
+
+export const resourcesDirectory = testResourcesDirectory
 
 export function initTestLoader (): void {
   if (!testLoaderInitialized) {
@@ -79,5 +85,31 @@ export function minimal (component: any, version?: '2.x' | '3.x'): any {
         name: 'apiKey',
         in: 'query'
       }
+  }
+}
+
+let listener: any
+export const server = {
+  async start (): Promise<void> {
+    if (listener === undefined) {
+      const server = http.createServer(function (req, res) {
+        const filePath = path.resolve(testResourcesDirectory, (req.url ?? '/').substring(1))
+        const rs = fs.createReadStream(filePath, 'utf8')
+        rs.pipe(res)
+      })
+      return new Promise((resolve, reject) => {
+        // @ts-expect-error
+        listener = server.listen(23245, (err) => {
+          if (err !== null && err !== undefined) return reject(err)
+          resolve()
+        })
+      })
+    }
+  },
+  stop () {
+    if (listener !== undefined) {
+      listener.close()
+      listener = undefined
+    }
   }
 }
