@@ -2,6 +2,7 @@ import { load, lookup } from '../loader'
 import { expect } from 'chai'
 import path from 'path'
 import fs from 'fs'
+import { server } from '../test-utils'
 
 const resources = path.resolve(__dirname, '..', '..', 'test-resources', 'loader')
 
@@ -155,6 +156,26 @@ describe('loader and lookup', () => {
       expect(result.start.column).to.equal(10)
       expect(result.end.line).to.equal(3)
       expect(result.end.column).to.equal(14)
+    })
+  })
+
+  describe('dereference', () => {
+    const dir = path.resolve(resources, '..')
+
+    describe('file system', () => {
+      it('can dereference within a file and outside a file', async function () {
+        const [node] = await load(path.resolve(dir, 'refs', 'openapi.yml'))
+        expect(node.paths['/employees'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('employee')
+        expect(node.paths['/students'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('student')
+      })
+    })
+
+    describe('internet', () => {
+      it('can dereference within a file and outside a file', async function () {
+        const [node] = await load('http://localhost:23245/refs/openapi.yml')
+        expect(node.paths['/employees'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('employee')
+        expect(node.paths['/students'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('student')
+      })
     })
   })
 })
