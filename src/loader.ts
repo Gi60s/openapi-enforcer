@@ -5,7 +5,9 @@ import jsonParser, { ArrayNode, LiteralNode, Location, ObjectNode, ValueNode } f
 import * as yamlParser from 'yaml-ast-parser'
 import { Result as ResultObject } from './Result'
 import * as util from './util'
+import Adapter from './adapter'
 
+const adapter = Adapter()
 const loaders: Loader[] = []
 const lookupMap = new WeakMap<any, Lookup>()
 const rxJson = /\.json$/
@@ -33,7 +35,7 @@ interface LoaderMismatch {
   loaded: false
 }
 
-interface LoaderMetadata {
+export interface LoaderMetadata {
   callerPath?: string
   cache?: Record<string, any>
   exception?: Exception
@@ -92,9 +94,10 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
   if (!hasException && node !== undefined && options.dereference) {
     const references = findRefs(node)
     const length = references.length
+    const dirPath = adapter.path.dirname(path)
     for (let i = 0; i < length; i++) {
       const { ref, parent, key } = references[i]
-      let n: any
+      let n: any // = await dereference(node, ref, data.exception, path)
 
       // local reference
       if (ref.startsWith('#/')) {
@@ -102,9 +105,14 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
 
       // reference to other location
       } else {
-        const [path, subRef] = ref.split('#/')
-        const node = await load(path, options, data)
-        n = traverse(node, '#/' + subRef, path, data.exception)
+        let [childPath, subRef] = ref.split('#/')
+        childPath = adapter.path.resolve(dirPath, childPath)
+        const [node] = await load(childPath, options, data)
+        if (subRef === undefined) {
+          n = node
+        } else if (node !== undefined) {
+          n = traverse(node, '#/' + subRef, childPath, data.exception)
+        }
       }
 
       if (n !== undefined) {
@@ -121,6 +129,7 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
   return new ResultObject(node, data.exception)
 }
 
+// look up location information for a specific node
 export function lookup (node: object, key?: string | number, filter: 'key' | 'value' | 'both' = 'both'): Location | undefined {
   if (node === undefined) return
   const result = lookupMap.get(node)
@@ -149,22 +158,23 @@ export function lookup (node: object, key?: string | number, filter: 'key' | 'va
   }
 }
 
+// find all the $ref properties within the node and its descendants
 export function findRefs (node: any, parent: any = null, key: string = '', data: Reference[] = []): Reference[] {
   if (Array.isArray(node)) {
     node.forEach((n, i) => findRefs(n, node, String(i), data))
   } else if (node !== null && typeof node === 'object') {
-    Object.keys(node)
-      .forEach((key: string) => {
-        if (key === '$ref') {
-          data.push({
-            key,
-            parent,
-            ref: node.$ref
-          })
-        } else {
-          findRefs(node[key], node, key, data)
-        }
+    if (node.$ref !== undefined) {
+      data.push({
+        key,
+        parent,
+        ref: node.$ref
       })
+    } else {
+      Object.keys(node)
+        .forEach((key: string) => {
+          findRefs(node[key], node, key, data)
+        })
+    }
   }
   return data
 }
@@ -266,8 +276,6 @@ async function runLoaders (path: string, data: LoaderMetadata): Promise<any> {
   }
 
   data.exception?.message(E.loaderNotAvailable(path))
-
-  throw Error('No defined loaders were able to load the path: ' + path)
 }
 
 function processJsonAst (data: ValueNode): any {
@@ -378,7 +386,7 @@ function processYamlAst (data: any, source: string, lineEndings: LineEnding[]): 
 export function traverse (node: any, path: string, fromPath: string, exception: Exception): any {
   if (path === '') return node
 
-  const keys = path.substring(1).split('/')
+  const keys = path.substring(2).split('/')
   let o = node
   while (keys.length > 0) {
     const key = keys?.shift()?.replace(/~1/g, '/').replace(/~0/g, '~')
@@ -397,7 +405,7 @@ export function traverse (node: any, path: string, fromPath: string, exception: 
 }
 
 // add http(s) GET loader
-define(async function (path) {
+define(async function (path, data) {
   if (rxHttp.test(path)) {
     const transformResponse = [(res: any) => res] // stop response body from being parsed
 
@@ -405,7 +413,8 @@ define(async function (path) {
       .then(res => {
         const contentType = res.headers['content-type']
         if (res.status < 200 || res.status >= 300) {
-          throw Error('Unable to load resource due to unexpected response status code ' + String(res.status) + ' for URL: ' + path)
+          data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected response code: ' + String(res.status)))
+          return { loaded: false }
         } else {
           const result: LoaderMatch = {
             loaded: true,
@@ -419,13 +428,17 @@ define(async function (path) {
           return result
         }
       })
+      .catch(err => {
+        data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected error: ' + err.toString()))
+        return { loaded: false }
+      })
   } else {
     return { loaded: false }
   }
 })
 
 // add file loader
-define(async function (path) {
+define(async function (path, data) {
   if (fs === undefined) {
     try {
       fs = await import('fs')
@@ -445,7 +458,12 @@ define(async function (path) {
           }
           resolve(result)
         } else {
-          reject(err)
+          if (err.code === 'ENOENT') {
+            resolve({ loaded: false })
+          } else {
+            data?.exception?.message(E.loaderFailedToLoadResource(path, 'File could not load' + (err.code !== undefined ? ': ' + String(err.code) : '')))
+            resolve({ loaded: false })
+          }
         }
       })
     })
