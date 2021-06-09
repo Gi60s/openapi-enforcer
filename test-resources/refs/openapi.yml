@@ -1,0 +1,37 @@
+openapi: 3.0.3
+info:
+  title: Foo
+  version: v1
+paths:
+  /employees:
+    get:
+      responses:
+        200:
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Employee'
+  /students:
+    get:
+      responses:
+        200:
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas.yml#/Student'
+components:
+  schemas:
+    Employee:
+      x-id: employee
+      type: object
+      properties:
+        name:
+          type: string
+        salary:
+          type: number

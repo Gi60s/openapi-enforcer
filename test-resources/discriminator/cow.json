@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "properties": {
+    "petType": {
+      "type": "string",
+      "enum": ["cow"]
+    },
+    "hasSpots": {
+      "type": "boolean"
+    }
+  }
+}

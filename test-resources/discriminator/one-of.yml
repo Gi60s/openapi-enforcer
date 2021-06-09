@@ -1,0 +1,43 @@
+openapi: 3.0.3
+info:
+  title: Foo
+  version: v1
+paths:
+  /:
+    get:
+      responses:
+        200:
+          description: ok
+components:
+  schemas:
+    Cat:
+      type: object
+      properties:
+        petType:
+          type: string
+          enum:
+            - cat
+        lives:
+          type: number
+    Dog:
+      type: object
+      properties:
+        petType:
+          type: string
+          enum:
+            - dog
+        packSize:
+          type: number
+    Pet:
+      oneOf:
+        - $ref: '#/components/schemas/Cat'
+        - $ref: '#/components/schemas/Dog'
+        - $ref: 'http://localhost:23245/discriminator/pets.yml#/Lizard'
+        - $ref: 'http://localhost:23245/discriminator/cow.json'
+      discriminator:
+        propertyName: petType
+        mapping:
+          cat: '#/components/schemas/Cat'
+          dog: '#/components/schemas/Dog'
+          lizard: 'http://localhost:23245/discriminator/pets.yml#/Lizard'
+          cow: 'http://localhost:23245/discriminator/cow.json'

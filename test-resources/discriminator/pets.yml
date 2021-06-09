@@ -1,0 +1,9 @@
+Lizard:
+  type: object
+  properties:
+    petType:
+      type: string
+      enum:
+        - lizard
+    color:
+      type: string

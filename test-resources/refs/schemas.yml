@@ -1,0 +1,8 @@
+Student:
+  x-id: student
+  type: object
+  properties:
+    name:
+      type: string
+    grade:
+      type: string
