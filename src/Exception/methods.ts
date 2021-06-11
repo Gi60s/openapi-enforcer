@@ -369,6 +369,16 @@ export function loaderFailedToLoadResource (path: string, cause: string): Except
   }
 }
 
+export function loaderPathNotCached (path: string): ExceptionMessageData {
+  return {
+    message: 'Cannot find node for path: "' + path,
+    code: 'LOADCA',
+    level: 'warn',
+    metadata: { path },
+    reference: ''
+  }
+}
+
 export function loaderNotAvailable (path: string): ExceptionMessageData {
   return {
     level: 'error',
