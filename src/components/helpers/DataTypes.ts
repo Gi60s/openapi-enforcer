@@ -57,7 +57,6 @@ export class DataTypeStore {
 
     // add defaults
     const copy: Definition = Object.assign(definition)
-    if (copy.format === undefined) copy.format = ''
     if (copy.constructors === undefined) copy.constructors = []
     if (copy.deserialize === undefined) copy.deserialize = noop
     if (copy.isNumeric === undefined) copy.isNumeric = false
@@ -96,7 +95,7 @@ export class DataTypeStore {
     }
 
     // store the definition
-    this.store[type][copy.format] = copy
+    this.store[type][format] = copy
 
     // run baseDataStore define handlers
     // if (this === baseDataStore) {
