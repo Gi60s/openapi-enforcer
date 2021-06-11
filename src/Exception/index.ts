@@ -16,6 +16,12 @@ interface ExceptionPreReport {
     at: string
     data: ExceptionPreReport
   }>
+  counts: {
+    error: number
+    warn: number
+    opinion: number
+    ignore: number
+  }
   exception: Exception
   hasException: {
     error: boolean
@@ -29,7 +35,6 @@ interface ExceptionPreReport {
     opinion: ExceptionMessageData[]
     ignore: ExceptionMessageData[]
   }
-  parent: ExceptionPreReport | null
 }
 
 export class Exception {
@@ -53,7 +58,7 @@ export class Exception {
 
   get '0' (): ErrorReport | undefined {
     const config = Config.get().exceptions
-    const data = runPreReport(config, this, null)
+    const data = runPreReport(config, this)
     exceptionMap.set(this, data)
     if (!data.hasException.error) return
 
@@ -150,7 +155,7 @@ class ExceptionReport {
           header = header.replace('[TYPE]', 'ignored items')
           break
       }
-      this.message = header + reportMessage
+      this.message = header + lineDelimiter + '  at:' + reportMessage.substring(1)
     }
   }
 
@@ -181,14 +186,14 @@ export class IgnoredReport extends ExceptionReport {}
 function getCachedPreReport (exception: Exception): ExceptionPreReport {
   const config = Config.get().exceptions
   const existing = exceptionMap.get(exception)
-  const data = existing ?? runPreReport(config, exception, null)
+  const data = existing ?? runPreReport(config, exception)
   if (existing === undefined) exceptionMap.set(exception, data)
   return data
 }
 
 function getReportByType (level: Level, exception: Exception): ExceptionReport | undefined {
   const config = Config.get().exceptions
-  const data = runPreReport(config, exception, null)
+  const data = runPreReport(config, exception)
   if (!data.hasException[level]) return
 
   const prefix = ' '.repeat(2)
@@ -196,10 +201,16 @@ function getReportByType (level: Level, exception: Exception): ExceptionReport |
   return new ErrorReport(level, data, header, prefix, config.lineDelimiter)
 }
 
-function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, context: Exception, parent: ExceptionPreReport | null): ExceptionPreReport {
+function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, context: Exception): ExceptionPreReport {
   const data = context.data
   const result: ExceptionPreReport = {
     children: [],
+    counts: {
+      error: 0,
+      warn: 0,
+      opinion: 0,
+      ignore: 0
+    },
     exception: context,
     hasException: {
       error: false,
@@ -212,8 +223,7 @@ function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, cont
       warn: [],
       opinion: [],
       ignore: []
-    },
-    parent
+    }
   }
 
   // sort messages into groups
@@ -232,6 +242,7 @@ function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, cont
       if (message.active !== false) {
         const level = message.level
         result.messages[level].push(message)
+        result.counts[level]++
         result.hasException[level] = true
       }
     })
@@ -239,13 +250,16 @@ function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, cont
   // filter out the children that have messages
   const at = data.at
   Object.keys(at).forEach(key => {
-    const data = runPreReport(fullConfig, at[key], result)
+    const data = runPreReport(fullConfig, at[key])
     levels.forEach((level: Level) => {
-      if (data.hasException[level]) result.hasException[level] = true
+      if (data.hasException[level]) {
+        result.hasException[level] = true
+        result.counts[level]++
+      }
     })
     result.children.push({
       at: key,
-      data: runPreReport(fullConfig, at[key], result)
+      data: runPreReport(fullConfig, at[key])
     })
   })
 
@@ -256,18 +270,21 @@ function getReport (report: ExceptionReport, level: Level, lineDelimiter: string
   const prefixPlus = prefix + '  '
   let result: string = ''
 
-  const { children, hasException, messages, parent } = data
+  const { children, hasException, messages } = data
   if (hasException[level]) {
     children.forEach(child => {
       const { hasException } = child.data
       if (hasException[level]) {
-        const at = child.at
-        if (parent?.children.length === 1) {
-          result += ' > '
+        const key = child.at
+        let newPrefix: string
+        if (data.counts[level] === 1) {
+          result += '> '
+          newPrefix = prefix
         } else {
           result += lineDelimiter + prefixPlus + 'at: '
+          newPrefix = prefixPlus
         }
-        result += at + ' ' + getReport(report, level, lineDelimiter, child.data, prefixPlus, path.concat([at]))
+        result += key + ' ' + getReport(report, level, lineDelimiter, child.data, newPrefix, path.concat([key]))
       }
     })
 
