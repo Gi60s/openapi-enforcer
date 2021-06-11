@@ -6,7 +6,7 @@ import * as Link from './Link'
 import * as MediaType from './MediaType'
 import * as Reference from './Reference'
 import * as Schema from './Schema'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 
 const rxContentType = /^content-type$/i
 const rxLinkName = /^[a-zA-Z0-9.\-_]+$/
@@ -103,21 +103,21 @@ export class Response extends OASComponent {
                   if (serialized?.exception?.hasError === true) {
                     const exampleNotSerializable = E.exampleNotSerializable(example, schema, serialized.exception)
                     adjustExceptionLevel(parent?.definition, exampleNotSerializable)
-                    addExceptionLocation(exampleNotSerializable, lookup(parent?.definition, key, 'value'))
+                    addExceptionLocation(exampleNotSerializable, lookupLocation(parent?.definition, key, 'value'))
                     exception.message(exampleNotSerializable)
                   } else {
                     const error = schema.validate(serialized.value)
                     if (error != null) {
                       const exampleNotSerializable = E.exampleNotValid(example, schema, error)
                       adjustExceptionLevel(parent?.definition, exampleNotSerializable)
-                      addExceptionLocation(exampleNotSerializable, lookup(parent?.definition, key, 'value'))
+                      addExceptionLocation(exampleNotSerializable, lookupLocation(parent?.definition, key, 'value'))
                       exception.message(exampleNotSerializable)
                     }
                   }
                 } else {
                   const exampleWithoutSchema = E.exampleWithoutSchema()
                   adjustExceptionLevel(parent?.definition, exampleWithoutSchema)
-                  addExceptionLocation(exampleWithoutSchema, lookup(parent?.definition, key, 'value'))
+                  addExceptionLocation(exampleWithoutSchema, lookupLocation(parent?.definition, key, 'value'))
                   exception.message(exampleWithoutSchema)
                 }
               }
@@ -151,7 +151,7 @@ export class Response extends OASComponent {
                 if (!rxLinkName.test(key)) {
                   const invalidResponseLinkKey = E.invalidResponseLinkKey(reference, key)
                   const parent = chain[0]
-                  addExceptionLocation(invalidResponseLinkKey, lookup(parent?.definition, key, 'key'))
+                  addExceptionLocation(invalidResponseLinkKey, lookupLocation(parent?.definition, key, 'key'))
                   exception.message(invalidResponseLinkKey)
                 }
               }

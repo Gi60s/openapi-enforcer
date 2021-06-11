@@ -4,7 +4,7 @@ import rx from '../rx'
 import { addExceptionLocation, no, yes } from '../util'
 import * as Header from './Header'
 import * as Reference from './Reference'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 
 export interface Definition {
   [extension: string]: any
@@ -68,7 +68,7 @@ export class Encoding extends OASComponent {
                   !(definition === 'pipeDelimited' && type === 'array') &&
                   !(definition === 'deepObject' && type === 'object')) {
                   const invalidStyle = E.invalidStyle(reference, definition, type)
-                  addExceptionLocation(invalidStyle, lookup(def, 'style', 'value'))
+                  addExceptionLocation(invalidStyle, lookupLocation(def, 'style', 'value'))
                   exception.message(invalidStyle)
                 }
               }
@@ -94,7 +94,7 @@ export class Encoding extends OASComponent {
             after ({ definition, exception, reference }, def) {
               if (!rx.mediaType.test(definition)) {
                 const invalidMediaType = E.invalidMediaType(reference, definition)
-                addExceptionLocation(invalidMediaType, lookup(def, 'contentType', 'value'))
+                addExceptionLocation(invalidMediaType, lookupLocation(def, 'contentType', 'value'))
                 exception.message(invalidMediaType)
               }
             }

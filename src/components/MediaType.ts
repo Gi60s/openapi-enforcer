@@ -7,7 +7,7 @@ import * as Example from './Example'
 import * as Reference from './Reference'
 import * as RequestBody from './RequestBody'
 import * as Schema from './Schema'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 
 export interface Definition {
   [extension: string]: any
@@ -46,13 +46,13 @@ export class MediaType extends OASComponent {
         const parent = chain[0]
         if (parent !== undefined && parent.key === 'content' && !rx.mediaType.test(key)) {
           const invalidMediaType = E.invalidMediaType(reference, key)
-          addExceptionLocation(invalidMediaType, lookup(parent.definition, key, 'key'))
+          addExceptionLocation(invalidMediaType, lookupLocation(parent.definition, key, 'key'))
           exception.message(invalidMediaType)
         }
 
         if ('example' in built && 'examples' in built) {
           const exampleExamplesConflict = E.exampleExamplesConflict(reference)
-          addExceptionLocation(exampleExamplesConflict, lookup(component, 'example', 'key'), lookup(component, 'examples', 'key'))
+          addExceptionLocation(exampleExamplesConflict, lookupLocation(component, 'example', 'key'), lookupLocation(component, 'examples', 'key'))
           exception.message(exampleExamplesConflict)
         }
       },
@@ -101,7 +101,7 @@ export class MediaType extends OASComponent {
               const { built } = mediaTypeObject
               if (!('schema' in built) || !('properties' in built.schema) || !(key in built.schema.properties)) {
                 const encodingNameNotMatched = E.encodingNameNotMatched(reference)
-                addExceptionLocation(encodingNameNotMatched, lookup(component, 'encoding', 'key'))
+                addExceptionLocation(encodingNameNotMatched, lookupLocation(component, 'encoding', 'key'))
                 exception.message(encodingNameNotMatched)
               }
             },

@@ -3,7 +3,7 @@ import { addExceptionLocation, adjustExceptionLevel, no } from '../util'
 import { OpenAPI } from './OpenAPI'
 import { Swagger } from './Swagger'
 import * as E from '../Exception/methods'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 
 export interface Definition {
   [name: string]: string[]
@@ -48,13 +48,13 @@ export class SecurityRequirement extends OASComponent {
               const scheme = metadata.securitySchemes?.[key]?.built
               if (scheme === undefined) {
                 const securitySchemeMissingReference = E.securitySchemeMissingReference(data.reference, major)
-                addExceptionLocation(securitySchemeMissingReference, lookup(definition, name, 'value'))
+                addExceptionLocation(securitySchemeMissingReference, lookupLocation(definition, name, 'value'))
                 exception.message(securitySchemeMissingReference)
 
                 // if security scheme is not oauth2 or openIdConnect then the value must be an empty array
               } else if (['oauth2', 'openIdConnect'].includes(scheme.type) && built[name].length > 0) {
                 const securityRequirementNotEmptyArray = E.securityRequirementNotEmptyArray(data.reference, major)
-                addExceptionLocation(securityRequirementNotEmptyArray, lookup(definition, name, 'value'))
+                addExceptionLocation(securityRequirementNotEmptyArray, lookupLocation(definition, name, 'value'))
                 exception.message(securityRequirementNotEmptyArray)
               }
             })

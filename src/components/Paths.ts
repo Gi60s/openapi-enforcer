@@ -2,7 +2,7 @@ import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception
 import { addExceptionLocation, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as PathItem from './PathItem'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 
 export interface Definition {
   [pathOrExtension: string]: PathItem.Definition | any
@@ -38,7 +38,7 @@ export class Paths extends OASComponent {
         // no paths defined
         if (paths.length === 0) {
           const noPathsDefined = E.noPathsDefined()
-          addExceptionLocation(noPathsDefined, lookup(def, 'paths'))
+          addExceptionLocation(noPathsDefined, lookupLocation(def, 'paths'))
           exception.message(noPathsDefined)
         }
 
@@ -56,7 +56,7 @@ export class Paths extends OASComponent {
         if (includesTrailingSlashes.length > 0 && omitsTrainingSlashes.length > 0) {
           const pathEndingsInconsistent = E.pathEndingsInconsistent(includesTrailingSlashes, omitsTrainingSlashes)
           paths.forEach((path: string) => {
-            addExceptionLocation(pathEndingsInconsistent, lookup(definition, path, 'key'))
+            addExceptionLocation(pathEndingsInconsistent, lookupLocation(definition, path, 'key'))
           })
           exception.message(pathEndingsInconsistent)
         }

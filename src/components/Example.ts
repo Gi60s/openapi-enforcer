@@ -1,6 +1,6 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
 import * as E from '../Exception/methods'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 import { addExceptionLocation } from '../util'
 
 export interface Definition {
@@ -40,7 +40,7 @@ export class Example extends OASComponent {
       after ({ built, exception, reference }, def) {
         if ('value' in built && 'externalValue' in built) {
           const exampleValueExternalConflict = E.exampleValueExternalConflict(reference)
-          addExceptionLocation(exampleValueExternalConflict, lookup(def, 'value', 'key'), lookup(def, 'externalValue', 'key'))
+          addExceptionLocation(exampleValueExternalConflict, lookupLocation(def, 'value', 'key'), lookupLocation(def, 'externalValue', 'key'))
           exception.message(exampleValueExternalConflict)
         }
       },

@@ -6,7 +6,7 @@ import * as DataType from './helpers/DataTypes'
 import * as Example from './Example'
 import * as Reference from './Reference'
 import * as Schema from './Schema'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 
 export interface Definition extends PartialSchema.Definition<Definition> {
   [extension: string]: any
@@ -71,13 +71,13 @@ export class Header extends OASComponent {
 
       if (built.required === true && 'default' in built) {
         const defaultRequiredConflict = E.defaultRequiredConflict()
-        addExceptionLocation(defaultRequiredConflict, lookup(component, 'default', 'key'), lookup(component, 'required'))
+        addExceptionLocation(defaultRequiredConflict, lookupLocation(component, 'default', 'key'), lookupLocation(component, 'required'))
         exception.message(defaultRequiredConflict)
       }
 
       if (built.example !== undefined && built.examples !== undefined) {
         const exampleExamplesConflict = E.exampleExamplesConflict(data.reference)
-        addExceptionLocation(exampleExamplesConflict, lookup(component, 'example', 'key'), lookup(component, 'examples', 'key'))
+        addExceptionLocation(exampleExamplesConflict, lookupLocation(component, 'example', 'key'), lookupLocation(component, 'examples', 'key'))
         exception.message(exampleExamplesConflict)
       }
     }

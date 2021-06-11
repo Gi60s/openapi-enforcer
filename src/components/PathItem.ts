@@ -5,7 +5,7 @@ import * as Operation from './Operation'
 import * as Parameter from './Parameter'
 import * as Reference from './Reference'
 import * as Server from './Server'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 
 const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']
 
@@ -71,7 +71,7 @@ export class PathItem extends OASComponent {
         if (!hasMethod) {
           const pathMissingMethods = E.pathMissingMethods(reference, key)
           adjustExceptionLevel(def, pathMissingMethods)
-          addExceptionLocation(pathMissingMethods, lookup(def))
+          addExceptionLocation(pathMissingMethods, lookupLocation(def))
           exception.message(pathMissingMethods)
         }
       },

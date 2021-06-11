@@ -2,7 +2,7 @@ import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception
 import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as OAuthFlows from './OAuthFlows'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 
 const rxUrl = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/
 
@@ -143,7 +143,7 @@ export class SecurityScheme extends OASComponent {
             after ({ exception, definition: url, reference }, def) {
               if (!rxUrl.test(url)) {
                 const securitySchemeNotUrl = E.securitySchemeNotUrl(reference)
-                addExceptionLocation(securitySchemeNotUrl, lookup(def, 'openIdConnectUrl', 'value'))
+                addExceptionLocation(securitySchemeNotUrl, lookupLocation(def, 'openIdConnectUrl', 'value'))
                 exception.message(securitySchemeNotUrl)
               }
             }

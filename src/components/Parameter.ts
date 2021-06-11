@@ -7,7 +7,7 @@ import * as Example from './Example'
 import * as Reference from './Reference'
 import * as Schema from './Schema'
 import * as DataType from './helpers/DataTypes'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 
 export type Definition = Definition2 | Definition3
 
@@ -198,7 +198,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
             const { exception, component, definition: value } = data
             if (component.definition?.in === 'path' && value !== true) {
               const pathParameterMustBeRequired = E.pathParameterMustBeRequired(data.reference, component.definition.name)
-              addExceptionLocation(pathParameterMustBeRequired, lookup(def, 'required', 'value') ?? lookup(def))
+              addExceptionLocation(pathParameterMustBeRequired, lookupLocation(def, 'required', 'value') ?? lookupLocation(def))
               exception.message(pathParameterMustBeRequired)
               return false
             }
@@ -267,7 +267,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
                     !(style === 'pipeDelimited' && type === 'array') &&
                     !(style === 'deepObject' && type === 'object')) {
                     const invalidStyle = E.invalidStyle(data.reference, style, type)
-                    addExceptionLocation(invalidStyle, lookup(def, 'style', 'value'))
+                    addExceptionLocation(invalidStyle, lookupLocation(def, 'style', 'value'))
                     exception.message(invalidStyle)
                   }
                 }
@@ -291,7 +291,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
                 const { at, name } = def
                 if (at === 'cookie' && explode === true && (type === 'array' || type === 'object')) {
                   const invalidCookieExplode = E.invalidCookieExplode(data.reference, name)
-                  addExceptionLocation(invalidCookieExplode, lookup(def, 'explode', 'value'))
+                  addExceptionLocation(invalidCookieExplode, lookupLocation(def, 'explode', 'value'))
                   exception.message(invalidCookieExplode)
                 }
               }
@@ -320,13 +320,13 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
 
       if (built.required === true && 'default' in built) {
         const defaultRequiredConflict = E.defaultRequiredConflict()
-        addExceptionLocation(defaultRequiredConflict, lookup(def, 'default', 'key'), lookup(def, 'required'))
+        addExceptionLocation(defaultRequiredConflict, lookupLocation(def, 'default', 'key'), lookupLocation(def, 'required'))
         exception.message(defaultRequiredConflict)
       }
 
       if (built.example !== undefined && built.examples !== undefined) {
         const exampleExamplesConflict = E.exampleExamplesConflict(data.reference)
-        addExceptionLocation(exampleExamplesConflict, lookup(def, 'example', 'key'), lookup(def, 'examples', 'key'))
+        addExceptionLocation(exampleExamplesConflict, lookupLocation(def, 'example', 'key'), lookupLocation(def, 'examples', 'key'))
         exception.message(exampleExamplesConflict)
       }
 

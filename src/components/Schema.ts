@@ -126,6 +126,14 @@ export class Schema extends PartialSchema.PartialSchema<Schema> {
     // get some of the schema from the partial schema generator
     const schema = PartialSchema.schemaGenerator(Schema)
 
+    // add 'object' as possible type
+    const typeProperty = schema.properties?.find(s => s.name === 'type')
+    if (typeProperty !== undefined) {
+      typeProperty.schema.enum = () => {
+        return ['array', 'boolean', 'integer', 'number', 'object', 'string']
+      }
+    }
+
     const partialAfter = schema.after
     schema.after = (data: Data, def: Definition) => {
       const { built } = data

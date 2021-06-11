@@ -2,7 +2,7 @@ import * as DataType from './DataTypes'
 import { clearCache, Data, SchemaObject, ExtendedComponent, OASComponent } from '../index'
 import { addExceptionLocation, adjustExceptionLevel, yes } from '../../util'
 import * as E from '../../Exception/methods'
-import { lookup } from '../../loader'
+import { lookupLocation } from '../../loader'
 
 /**
  * This file is for code reuse between the following OpenAPI specification objects:
@@ -117,7 +117,7 @@ export function schemaGenerator (referenceComponentClass: any): SchemaObject {
             if (def === undefined) {
               const unknownTypeFormat = E.unknownTypeFormat(type, format)
               adjustExceptionLevel(def, unknownTypeFormat)
-              addExceptionLocation(unknownTypeFormat, lookup(componentDef, 'host', 'value'))
+              addExceptionLocation(unknownTypeFormat, lookupLocation(componentDef, 'host', 'value'))
               exception.message(unknownTypeFormat)
             }
           }
@@ -238,7 +238,7 @@ export function validateMaxMin (data: Data, minKey: string, maxKey: string): voi
   if (minKey in built && maxKey in built && built[minKey] > built[maxKey]) {
     const invalidMaxMin = E.invalidMaxMin(built[minKey], built[maxKey], minKey, maxKey)
     adjustExceptionLevel(data.definition, invalidMaxMin)
-    addExceptionLocation(invalidMaxMin, lookup(data.definition, minKey, 'value'), lookup(data.definition, maxKey, 'value'))
+    addExceptionLocation(invalidMaxMin, lookupLocation(data.definition, minKey, 'value'), lookupLocation(data.definition, maxKey, 'value'))
     exception.message(invalidMaxMin)
   }
 }

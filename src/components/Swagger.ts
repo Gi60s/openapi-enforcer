@@ -1,6 +1,5 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Exception, LoaderOptions, rootComponentLoader } from './'
 import { Result } from '../Result'
-import * as Loader from '../loader'
 import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import rx from '../rx'
@@ -13,7 +12,7 @@ import * as Response from './Response'
 import * as SecurityScheme from './SecurityScheme'
 import * as SecurityRequirement from './SecurityRequirement'
 import * as Tag from './Tag'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 
 const rxHostParts = /^(?:(https?|wss?):\/\/)?(.+?)(\/.+)?$/
 const rxPathTemplating = /[{}]/
@@ -82,12 +81,12 @@ export class Swagger extends OASComponent {
             after ({ exception, definition, reference }, def) {
               if (definition[0] !== '/') {
                 const swaggerBasePathInvalid = E.swaggerBasePathInvalid(reference, definition)
-                addExceptionLocation(swaggerBasePathInvalid, lookup(def, 'basePath', 'value'))
+                addExceptionLocation(swaggerBasePathInvalid, lookupLocation(def, 'basePath', 'value'))
                 exception.message(swaggerBasePathInvalid)
               }
               if (rxPathTemplating.test(definition)) {
                 const swaggerBasePathTemplating = E.swaggerBasePathTemplating(reference, definition)
-                addExceptionLocation(swaggerBasePathTemplating, lookup(def, 'basePath', 'value'))
+                addExceptionLocation(swaggerBasePathTemplating, lookupLocation(def, 'basePath', 'value'))
                 exception.message(swaggerBasePathTemplating)
               }
             }
@@ -103,7 +102,7 @@ export class Swagger extends OASComponent {
                 if (!rx.mediaType.test(definition)) {
                   const invalidMediaType = E.invalidMediaType(reference, definition)
                   adjustExceptionLevel(def.consumes, invalidMediaType)
-                  addExceptionLocation(invalidMediaType, lookup(def.consumes, key, 'value'))
+                  addExceptionLocation(invalidMediaType, lookupLocation(def.consumes, key, 'value'))
                   exception.message(invalidMediaType)
                 }
               }
@@ -135,18 +134,18 @@ export class Swagger extends OASComponent {
               if (match !== undefined && match !== null) {
                 if (match[1] !== undefined) {
                   const swaggerHostHasScheme = E.swaggerHostHasScheme(reference, definition, match[1])
-                  addExceptionLocation(swaggerHostHasScheme, lookup(def, 'host', 'value'))
+                  addExceptionLocation(swaggerHostHasScheme, lookupLocation(def, 'host', 'value'))
                   exception.message(swaggerHostHasScheme)
                 }
                 if (match[3] !== undefined) {
                   const swaggerHostHasSubPath = E.swaggerHostHasSubPath(reference, definition, match[3])
-                  addExceptionLocation(swaggerHostHasSubPath, lookup(def, 'host', 'value'))
+                  addExceptionLocation(swaggerHostHasSubPath, lookupLocation(def, 'host', 'value'))
                   exception.message(swaggerHostHasSubPath)
                 }
               }
               if (rxPathTemplating.test(definition)) {
                 const swaggerHostDoesNotSupportPathTemplating = E.swaggerHostDoesNotSupportPathTemplating(reference, definition)
-                addExceptionLocation(swaggerHostDoesNotSupportPathTemplating, lookup(def, 'host', 'value'))
+                addExceptionLocation(swaggerHostDoesNotSupportPathTemplating, lookupLocation(def, 'host', 'value'))
                 exception.message(swaggerHostDoesNotSupportPathTemplating)
               }
             }
@@ -192,7 +191,7 @@ export class Swagger extends OASComponent {
                 if (!rx.mediaType.test(definition)) {
                   const invalidMediaType = E.invalidMediaType(reference, definition)
                   adjustExceptionLevel(def, invalidMediaType)
-                  addExceptionLocation(invalidMediaType, lookup(def.produces, key))
+                  addExceptionLocation(invalidMediaType, lookupLocation(def.produces, key))
                   exception.message(invalidMediaType)
                 }
               }

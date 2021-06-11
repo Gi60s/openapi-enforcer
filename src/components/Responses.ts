@@ -2,7 +2,7 @@ import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception
 import { addExceptionLocation, adjustExceptionLevel, no } from '../util'
 import * as E from '../Exception/methods'
 import * as Response from './Response'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 
 const rxCode = /^[1-5]\d{2}$/
 const rxLocation = /^location$/i
@@ -48,7 +48,7 @@ export class Responses extends OASComponent {
           // test that the code is valid
           if (!rxCode.test(code) && !rxRange.test(code) && code !== 'default') {
             const invalidResponseCode = E.invalidResponseCode(code)
-            addExceptionLocation(invalidResponseCode, lookup(def, code, 'key'))
+            addExceptionLocation(invalidResponseCode, lookupLocation(def, code, 'key'))
             exception.message(invalidResponseCode)
           } else {
             const response: Response.Response = built[code]
@@ -60,7 +60,7 @@ export class Responses extends OASComponent {
               if (locationHeaderKey === undefined) {
                 const responseShouldIncludeLocationHeader = E.responseShouldIncludeLocationHeader()
                 adjustExceptionLevel(def, responseShouldIncludeLocationHeader)
-                addExceptionLocation(responseShouldIncludeLocationHeader, lookup(def, code, 'value'))
+                addExceptionLocation(responseShouldIncludeLocationHeader, lookupLocation(def, code, 'value'))
                 exception.message(responseShouldIncludeLocationHeader)
               }
 
@@ -69,12 +69,12 @@ export class Responses extends OASComponent {
               if (major === 2 && 'schema' in response) {
                 const responseBodyNotAllowed = E.responseBodyNotAllowed('schema')
                 adjustExceptionLevel(def, responseBodyNotAllowed)
-                addExceptionLocation(responseBodyNotAllowed, lookup(def[code], 'responseBody', 'value'))
+                addExceptionLocation(responseBodyNotAllowed, lookupLocation(def[code], 'responseBody', 'value'))
                 exception.message(responseBodyNotAllowed)
               } else if (major === 3 && 'content' in response) {
                 const responseBodyNotAllowed = E.responseBodyNotAllowed('content')
                 adjustExceptionLevel(def, responseBodyNotAllowed)
-                addExceptionLocation(responseBodyNotAllowed, lookup(def[code], 'responseBody', 'value'))
+                addExceptionLocation(responseBodyNotAllowed, lookupLocation(def[code], 'responseBody', 'value'))
                 exception.message(responseBodyNotAllowed)
               }
             }
@@ -84,13 +84,13 @@ export class Responses extends OASComponent {
         // if no response codes then it's an error
         if (codes.length === 0) {
           const responseRequired = E.responseRequired(reference)
-          addExceptionLocation(responseRequired, lookup(def))
+          addExceptionLocation(responseRequired, lookupLocation(def))
           exception.message(responseRequired)
 
           // if no success codes then it's a warning
         } else if (!has2xxResponseCode && !('default' in built)) {
           const responsesShouldIncludeSuccess = E.responsesShouldIncludeSuccess(reference)
-          addExceptionLocation(responsesShouldIncludeSuccess, lookup(def))
+          addExceptionLocation(responsesShouldIncludeSuccess, lookupLocation(def))
           exception.message(responsesShouldIncludeSuccess)
         }
       }

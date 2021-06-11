@@ -1,5 +1,5 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Exception, Version } from './'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 import { addExceptionLocation, adjustExceptionLevel, yes } from '../util'
 import * as E from '../Exception/methods'
 import rx from '../rx'
@@ -50,7 +50,7 @@ export class Contact extends OASComponent {
               if (!rx.url.test(definition)) {
                 const invalidUrl = E.invalidUrl(reference, definition)
                 adjustExceptionLevel(def, invalidUrl)
-                addExceptionLocation(invalidUrl, lookup(def, 'url', 'value'))
+                addExceptionLocation(invalidUrl, lookupLocation(def, 'url', 'value'))
                 exception.message(invalidUrl)
               }
             }
@@ -65,7 +65,7 @@ export class Contact extends OASComponent {
               if (!rx.email.test(definition)) {
                 const invalidEmail = E.invalidEmail(reference, definition)
                 adjustExceptionLevel(def, invalidEmail)
-                addExceptionLocation(invalidEmail, lookup(def, 'email', 'value'))
+                addExceptionLocation(invalidEmail, lookupLocation(def, 'email', 'value'))
                 exception.message(invalidEmail)
               }
             }

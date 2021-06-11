@@ -3,7 +3,7 @@ import { addExceptionLocation, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Parameter from './Parameter'
 import * as Server from './Server'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 
 export interface Definition {
   [extension: string]: any
@@ -45,7 +45,7 @@ export class Link extends OASComponent {
       after ({ built, definition, exception, reference }) {
         if ('operationRef' in built && 'operationId' in built) {
           const linkOperationConflict = E.linkOperationConflict(reference)
-          addExceptionLocation(linkOperationConflict, lookup(definition, 'operationRef', 'key'), lookup(definition, 'operationId', 'key'))
+          addExceptionLocation(linkOperationConflict, lookupLocation(definition, 'operationRef', 'key'), lookupLocation(definition, 'operationId', 'key'))
           exception.message(linkOperationConflict)
         }
       },

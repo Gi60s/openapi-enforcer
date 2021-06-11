@@ -9,7 +9,7 @@ import * as RequestBody from './RequestBody'
 import * as Responses from './Responses'
 import * as SecurityRequirement from './SecurityRequirement'
 import * as Server from './Server'
-import { lookup } from '../loader'
+import { lookupLocation } from '../loader'
 import { ExceptionMessageData } from '../Exception/types'
 
 export interface Definition {
@@ -123,7 +123,7 @@ export class Operation extends OASComponent {
 
               // this exception method had a dynamic active property that will determine if this is an error or not
               const operationIdMustBeUnique = E.operationIdMustBeUnique(data.reference, definition, metadata.operationIdMap[definition])
-              addExceptionLocation(operationIdMustBeUnique, lookup(def, 'operationId', 'value'))
+              addExceptionLocation(operationIdMustBeUnique, lookupLocation(def, 'operationId', 'value'))
               exception.message(operationIdMustBeUnique)
             }
           }
@@ -161,17 +161,17 @@ export class Operation extends OASComponent {
               switch (method.toLowerCase()) {
                 case 'get':
                   operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody('https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET', 'get')
-                  addExceptionLocation(operationMethodShouldNotHaveBody, lookup(def, 'requestBody'))
+                  addExceptionLocation(operationMethodShouldNotHaveBody, lookupLocation(def, 'requestBody'))
                   exception.message(operationMethodShouldNotHaveBody)
                   break
                 case 'delete':
                   operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody('https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET', 'delete')
-                  addExceptionLocation(operationMethodShouldNotHaveBody, lookup(def, 'requestBody'))
+                  addExceptionLocation(operationMethodShouldNotHaveBody, lookupLocation(def, 'requestBody'))
                   exception.message(operationMethodShouldNotHaveBody)
                   break
                 case 'trace':
                   operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody('https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET', 'trace')
-                  addExceptionLocation(operationMethodShouldNotHaveBody, lookup(def, 'requestBody'))
+                  addExceptionLocation(operationMethodShouldNotHaveBody, lookupLocation(def, 'requestBody'))
                   exception.message(operationMethodShouldNotHaveBody)
                   break
               }
@@ -224,7 +224,7 @@ export class Operation extends OASComponent {
               if (definition.length >= 120) {
                 const exceedsSummaryLength = E.exceedsSummaryLength(reference, definition)
                 adjustExceptionLevel(def, exceedsSummaryLength)
-                addExceptionLocation(exceedsSummaryLength, lookup(def, 'summary', 'value'))
+                addExceptionLocation(exceedsSummaryLength, lookupLocation(def, 'summary', 'value'))
                 exception.message(exceedsSummaryLength)
               }
             }
