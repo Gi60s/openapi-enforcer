@@ -72,10 +72,11 @@ export class OpenAPI extends OASComponent {
     data.loadCache = config.cache as Record<string, any>
     data.exception = exception
 
-    // run validation then reset the map
+    // run validation then reset some data properties
     // @ts-expect-error
     if (options.validate === true) OpenAPI.validate(definition, version, data)
     data.map = new Map()
+    data.finally = []
 
     // build the component if there are no errors
     if (exception.hasError) return new Result(definition, exception) // first param will be undefined because of error

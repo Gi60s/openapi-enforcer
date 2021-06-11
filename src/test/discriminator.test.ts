@@ -4,7 +4,7 @@ import { expect } from 'chai'
 import path from 'path'
 import { resourcesDirectory, server } from '../test-utils'
 
-describe.only('Discriminator component', () => {
+describe('Discriminator component', () => {
   describe('build', () => {
     it('can build', function () {
       // @ts-expect-error
@@ -61,16 +61,22 @@ describe.only('Discriminator component', () => {
         expect(error).to.match(/Expected a non-null object/)
       })
 
-      it.only('will warn of unresolvable mappings', async function () {
+      it('will resolve mappings with load', async function () {
         const filePath = path.resolve(resourcesDirectory, 'discriminator', 'one-of.yml')
-        const [openapi, error, warn] = await OpenAPI.load(filePath)
-        // const [, warn] = Discriminator.validate({
-        //   propertyName: 'petType',
-        //   mapping: {
-        //     dog: '#/components/schemas/Dog'
-        //   }
-        // })
-        expect(warn).to.match(/Expected a non-null object/)
+        const [openapi] = await OpenAPI.load(filePath)
+
+        const mapping = openapi.components.schemas.Pet.discriminator.mapping
+        const oneOf = openapi.components.schemas.Pet.oneOf
+        expect(oneOf.includes(mapping.cat)).to.equal(true)
+        expect(oneOf.includes(mapping.dog)).to.equal(true)
+        expect(oneOf.includes(mapping.lizard)).to.equal(true)
+        expect(oneOf.includes(mapping.cow)).to.equal(true)
+      })
+
+      it('will warn of unresolvable mappings', async function () {
+        const filePath = path.resolve(resourcesDirectory, 'discriminator', 'one-of.yml')
+        const [openapi, error] = await OpenAPI.load(filePath)
+        console.log(error)
       })
 
       // it('must be a string', function () {

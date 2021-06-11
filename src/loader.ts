@@ -9,7 +9,7 @@ import Adapter from './adapter'
 
 const adapter = Adapter()
 const loaders: Loader[] = []
-const lookupMap = new WeakMap<any, Lookup>()
+const lookupLocationMap = new WeakMap<any, LookupLocation>()
 const rxJson = /\.json$/
 const rxHttp = /^https?:\/\//i
 const rxYaml = /\.ya?ml$/
@@ -41,7 +41,7 @@ export interface LoaderMetadata {
   exception?: Exception
 }
 
-interface Lookup {
+interface LookupLocation {
   loc: Location
   items?: Location[]
   properties?: Record<string, { key: Location, value: Location }>
@@ -73,6 +73,32 @@ interface Reference {
 
 export function define (loader: Loader): void {
   loaders.unshift(loader)
+}
+
+// using a load cache, look up a node by its path
+export function getReferenceNode (loadMap: Record<string, any>, rootNodePath: string, ref: string, exception: Exception): void {
+  const rootNode = loadMap[rootNodePath]
+  if (rootNode === undefined) {
+    const message = E.loaderPathNotCached(rootNodePath)
+    exception.message(message)
+  } else {
+    if (ref.startsWith('#/')) {
+      return traverse(rootNode, ref, rootNodePath, exception)
+    } else {
+      const dirPath = adapter.path.dirname(rootNodePath)
+      let [childPath, subRef] = ref.split('#/')
+      childPath = adapter.path.resolve(dirPath, childPath)
+      const node = loadMap[childPath]
+      if (node === undefined) {
+        const message = E.loaderPathNotCached(childPath)
+        exception.message(message)
+      } else if (subRef === undefined) {
+        return node
+      } else {
+        return traverse(node, '#/' + subRef, childPath, exception)
+      }
+    }
+  }
 }
 
 export async function load (path: string, options?: Options, data?: LoaderMetadata): Promise<ResultObject> {
@@ -120,7 +146,7 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
         parent[key] = n
       } else {
         const message = E.refNotResolved(ref, path)
-        util.addExceptionLocation(message, lookup(node))
+        util.addExceptionLocation(message, lookupLocation(node))
         data.exception.message(message)
       }
     }
@@ -130,9 +156,9 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
 }
 
 // look up location information for a specific node
-export function lookup (node: object, key?: string | number, filter: 'key' | 'value' | 'both' = 'both'): Location | undefined {
+export function lookupLocation (node: object, key?: string | number, filter: 'key' | 'value' | 'both' = 'both'): Location | undefined {
   if (node === undefined) return
-  const result = lookupMap.get(node)
+  const result = lookupLocationMap.get(node)
   if (result !== undefined) {
     if (key !== undefined) {
       if (result.properties !== undefined) {
@@ -282,8 +308,8 @@ function processJsonAst (data: ValueNode): any {
   if (data.type === 'Array') {
     const built: any[] = []
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const lookup: Lookup = { loc: data.loc!, items: [] }
-    lookupMap.set(built, lookup)
+    const lookup: LookupLocation = { loc: data.loc!, items: [] }
+    lookupLocationMap.set(built, lookup)
     data.children.forEach(child => {
       const result = processJsonAst(child)
       built.push(result)
@@ -297,8 +323,8 @@ function processJsonAst (data: ValueNode): any {
   } else if (data.type === 'Object') {
     const built: Record<string, any> = {}
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const lookup: Lookup = { loc: data.loc!, properties: {} }
-    lookupMap.set(built, lookup)
+    const lookup: LookupLocation = { loc: data.loc!, properties: {} }
+    lookupLocationMap.set(built, lookup)
     data.children.forEach(child => {
       const propertyName = child.key.value
       built[propertyName] = processJsonAst(child.value)
@@ -319,8 +345,8 @@ function processYamlAst (data: any, source: string, lineEndings: LineEnding[]): 
   // object
   if (data.kind === yamlParser.Kind.MAP) {
     const built: Record<string, any> = {}
-    const lookup: Lookup = { loc, properties: {} }
-    lookupMap.set(built, lookup)
+    const lookup: LookupLocation = { loc, properties: {} }
+    lookupLocationMap.set(built, lookup)
     const result: NodeObject = {
       type: 'Object',
       built,
@@ -364,8 +390,8 @@ function processYamlAst (data: any, source: string, lineEndings: LineEnding[]): 
     }
   } else if (data.kind === yamlParser.Kind.SEQ) {
     const built: any[] = []
-    const lookup: Lookup = { loc, items: [] }
-    lookupMap.set(built, lookup)
+    const lookup: LookupLocation = { loc, items: [] }
+    lookupLocationMap.set(built, lookup)
     return {
       type: 'Array',
       built,
@@ -395,7 +421,7 @@ export function traverse (node: any, path: string, fromPath: string, exception: 
         o = o[key]
       } else {
         const message = E.refNotResolved('#' + path, fromPath)
-        util.addExceptionLocation(message, lookup(node))
+        util.addExceptionLocation(message, lookupLocation(node))
         exception.message(message)
         return
       }
@@ -429,7 +455,7 @@ define(async function (path, data) {
         }
       })
       .catch(err => {
-        data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected error: ' + err.toString()))
+        data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected error: ' + (err.toString() as string)))
         return { loaded: false }
       })
   } else {

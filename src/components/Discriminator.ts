@@ -1,7 +1,8 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
 import * as Schema from './Schema'
-import { no } from '../util'
-import { lookup, traverse } from '../loader'
+import { addExceptionLocation, no } from '../util'
+import { lookupLocation, getReferenceNode } from '../loader'
+import * as E from '../Exception/methods'
 
 export interface Definition {
   [extension: string]: any
@@ -44,36 +45,50 @@ export class Discriminator extends OASComponent {
             type: 'object',
             allowsSchemaExtensions: no,
             additionalProperties: {
-              type: 'string',
-              after (data, componentDef) {
-                const { definition: ref } = data
-                const loc = lookup(componentDef.mapping)
-                const fromPath = loc?.source ?? ''
-                data.root.finally.push(rootData => {
-                  console.log('from: ' + fromPath)
+              type: 'string'
+            },
+            build (data, componentDef) {
+              // replace discriminator mapping references with objects or Schema instances
+              data.root.finally.push(() => {
+                console.log('==== FINALLY RUN ====')
+                console.log('Mode: ' + data.mode)
 
-                  // const node = traverse()
-                  console.log(ref)
-                })
-              }
+                const { definition, exception } = data
+                const loc = lookupLocation(definition)
+                const rootNodePath = loc?.source
+                Object.keys(definition)
+                  .forEach(key => {
+                    const ref = definition[key]
+                    if (typeof rootNodePath === 'string') {
+                      const node = getReferenceNode(data.loadCache, rootNodePath, ref, exception.at(key))
+                      if (node !== undefined) {
+                        console.log('Found node: ' + (ref as string))
 
-              // type: 'component',
-              // allowsRef: false,
-              // component: Schema.Schema,
-              // after (data) {
-              //   console.log('after')
-              //
-              //   data.finally.push(() => {
-              //     const { chain, exception } = data
-              //     const parent = chain[0].definition
-              //     Object.keys(parent).forEach(key => {
-              //       const value = parent[key]
-              //       console.log(value)
-              //     })
-              //   })
-              //
-              //   // TODO: attempt lookup of mapping reference
-              // }
+                        // if build mode then look up the built Schema instance
+                        if (data.mode === 'build') {
+                          const store = data.map.get(Schema.Schema)
+                          const found = store?.find(item => item.definition === node)
+                          if (found !== undefined) data.built[key] = found.instance
+
+                        // if validate mode then the node object is sufficient
+                        } else {
+                          data.built[key] = node
+                        }
+                      } else {
+                        console.log('Node not found: ' + (ref as string))
+                        // const refNotResolved = E.refNotResolved(ref, rootNodePath)
+                        // addExceptionLocation(refNotResolved, lookupLocation(definition, key, 'value'))
+                        // exception.message(refNotResolved)
+                      }
+                    } else {
+                      console.log('Root node not found')
+                      // const refNotResolved = E.refNotResolved(ref, 'unknown')
+                      // addExceptionLocation(refNotResolved, loc)
+                      // exception.message(refNotResolved)
+                    }
+                  })
+              })
+              return data.built
             }
           }
         }

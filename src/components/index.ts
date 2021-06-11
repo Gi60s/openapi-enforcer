@@ -358,13 +358,20 @@ export function build (data: Data): any {
       const Component = schema.component
 
       // check if the definition has been used with this component previously, otherwise create the component
-      const store = map.get(Component)
-      const found = store?.find(item => item.definition === definition)
-      if (found !== undefined) {
-        data.built = found.instance
-      } else {
-        data.built = new Component(definition, data.version, data)
-      }
+      // const store = map.get(Component)
+      // const found = store?.find(item => item.definition === definition)
+      // if (found !== undefined) {
+      //   data.built = found.instance
+      // } else {
+      //   data.built = new Component(definition, data.version, data)
+      // }
+
+      return mappable(Component, data, {}, (built) => {
+        const child = buildChildDataForComponent(data, Component, built)
+        data.built = build(child)
+        child.finally.forEach(fn => fn(child))
+        return data.built
+      })
     } else if (schema.type === 'number') {
       if (typeof definition !== 'number') throw Error('Invalid definition type. Expected a number. Received: ' + smart(definition))
       data.built = definition
@@ -380,17 +387,23 @@ export function build (data: Data): any {
     } else if (schema.type === 'object') {
       if (!isObject(definition)) throw Error('Invalid definition type. Expected an object. Received: ' + smart(definition))
 
-      const store = map.get(schema)
-      const found = store?.find(item => item.definition === definition)
-      if (found !== undefined) {
-        data.built = found.instance
-        return data.built // already processed defaults and build too so we can return early
-      } else {
-        data.built = {}
-        if (!map.has(schema)) map.set(schema, [])
-        map.get(schema)?.push({ definition, instance: data.built })
-        buildObjectProperties(data.built, data)
-      }
+      return mappable(schema, data, {}, (built) => {
+        data.built = built
+        buildObjectProperties(built, data)
+        return data.built
+      })
+
+      // const store = map.get(schema)
+      // const found = store?.find(item => item.definition === definition)
+      // if (found !== undefined) {
+      //   data.built = found.instance
+      //   return data.built // already processed defaults and build too so we can return early
+      // } else {
+      //   data.built = {}
+      //   if (!map.has(schema)) map.set(schema, [])
+      //   map.get(schema)?.push({ definition, instance: data.built })
+      //   buildObjectProperties(data.built, data)
+      // }
     } else if (schema.type === 'string') {
       if (typeof definition !== 'string') throw Error('Invalid definition type. Expected a string. Received: ' + smart(definition))
       data.built = definition
@@ -439,6 +452,32 @@ export function buildChildData (data: Data, definition: any, key: string, schema
     exception: data.exception.at(key),
     key,
     schema
+  }
+}
+
+export function buildChildDataForComponent (data: Data, component: ExtendedComponent, built: any): Data {
+  return {
+    // unchanging values
+    loadCache: data.loadCache,
+    major: data.major,
+    map: data.map,
+    metadata: data.metadata,
+    mode: data.mode,
+    root: data.root,
+    version: data.version,
+
+    // changes per component
+    component: data,
+    reference: component.spec[data.version] as string,
+    finally: [],
+
+    // always changing values
+    built,
+    chain: data.chain,
+    definition: data.definition,
+    exception: data.exception,
+    key: data.key,
+    schema: componentSchemasMap.get(component) ?? component.schemaGenerator()
   }
 }
 
@@ -596,30 +635,7 @@ export function validate (data: Data): any { // return value is what to add to b
     }
 
     return mappable(component, data, {}, (built) => {
-      // build the child data object
-      const child: Data = {
-        // unchanging values
-        loadCache: data.loadCache,
-        major: data.major,
-        map: data.map,
-        metadata: data.metadata,
-        mode: data.mode,
-        root: data.root,
-        version: data.version,
-
-        // changes per component
-        component: data,
-        reference: component.spec[data.version] as string,
-        finally: [],
-
-        // always changing values
-        built,
-        chain: data.chain,
-        definition: data.definition,
-        exception: data.exception,
-        key: data.key,
-        schema: componentSchemasMap.get(component) ?? component.schemaGenerator()
-      }
+      const child = buildChildDataForComponent(data, component, built)
       validateObject(child)
       child.finally.forEach(fn => fn(child))
       return data.built
