@@ -2,13 +2,10 @@ import * as Config from '../config'
 import { Exception } from '../Exception'
 import * as E from '../Exception/methods'
 import rx from '../rx'
-import { no, yes, isObject, same, smart, adjustExceptionLevel, addExceptionLocation } from '../util'
-import { LoaderMetadata, lookup } from '../loader'
-import * as Loader from '../loader'
-import { Result } from '../Result'
+import { no, yes, copy, isObject, same, smart, adjustExceptionLevel, addExceptionLocation } from '../util'
+import { lookupLocation } from '../loader'
 
 export const componentSchemasMap: WeakMap<ExtendedComponent, SchemaObject> = new WeakMap()
-const loadCacheMap: WeakMap<any, Record<string, any>> = new WeakMap()
 
 export {
   Exception
@@ -33,6 +30,7 @@ export interface Data {
       [name: string]: Data
     }
   }
+  mode: 'build' | 'validate'
   root: Data
   version: Version
 
@@ -50,7 +48,8 @@ export interface Data {
   schema: Schema
 }
 
-export interface LoaderOptions extends Loader.Options {
+export interface LoaderOptions {
+  dereference?: boolean
   validate?: boolean
 }
 
@@ -170,6 +169,7 @@ export abstract class OASComponent {
   protected constructor (data: Data) {
     const { definition, map } = data
     data.component = data
+    data.mode = 'build'
     data.reference = (this.constructor as OASComponent).spec[data.version]
 
     // register the use of this component with this definition
@@ -208,8 +208,9 @@ export abstract class OASComponent {
 
   static validate (definition: any, version?: Version, incomingData?: Data): Exception {
     const data: Data = initializeData('validating ' + this.name + ' object', definition, version, incomingData)
-    data.loadCache = loadCacheMap.get(definition) ?? {}
+    // data.loadCache = loadCacheMap.get(definition) ?? {}
     data.component = data
+    data.mode = 'validate'
     data.schema = componentSchemasMap.get(this as unknown as ExtendedComponent) ?? this.schemaGenerator()
     validate(data)
 
@@ -283,9 +284,11 @@ export function initializeData<Definition> (exceptionMessage: string, definition
     const v: string = version === undefined ? Config.get().version : version
     data = {
       // unchanging values
+      loadCache: {},
       major: parseInt(v.split('.')[0]),
       map: new Map(),
       metadata: {},
+      mode: 'build', // this value will be overwritten by whatever made the call to this function
       // @ts-expect-error
       root: null,
       version: v as Version,
@@ -293,6 +296,7 @@ export function initializeData<Definition> (exceptionMessage: string, definition
       // changes per component
       // @ts-expect-error
       component: null,
+      reference: '',
       finally: [],
 
       // always changing values
@@ -313,7 +317,19 @@ export function build (data: Data): any {
   const { definition, map, schema } = data
   const componentDef = data.component.definition
   if (definition !== undefined) {
-    if (schema.type === 'any') {
+    // if there is a $ref then built a Reference instance
+    const hasRef = typeof definition === 'object' && definition !== null && '$ref' in definition
+    if (hasRef) {
+      // check if the definition has been used with this component previously, otherwise create the component
+      const store = map.get(Reference)
+      const found = store?.find(item => item.definition === definition)
+      if (found !== undefined) {
+        data.built = found.instance
+      } else {
+        // @ts-expect-error
+        data.built = new Reference(definition, data.version, data)
+      }
+    } else if (schema.type === 'any') {
       data.built = definition
     } else if (schema.type === 'array') {
       if (!Array.isArray(definition)) throw Error('Invalid definition type. Expected an array. Received: ' + smart(definition))
@@ -386,11 +402,11 @@ export function build (data: Data): any {
   }
 
   if (typeof schema.build === 'function') {
-    if (schema.type === 'array') {
-      throw Error('Schema of type SchemaArray does not support build function.')
-    } else if (schema.type === 'object') {
-      throw Error('Schema of type SchemaObject does not support build function.')
-    }
+    // if (schema.type === 'array') {
+    //   throw Error('Schema of type SchemaArray does not support build function.')
+    // } else if (schema.type === 'object') {
+    //   throw Error('Schema of type SchemaObject does not support build function.')
+    // }
     data.built = schema.build(data, componentDef)
   }
 
@@ -407,6 +423,7 @@ export function buildChildData (data: Data, definition: any, key: string, schema
     major: data.major,
     map: data.map,
     metadata: data.metadata,
+    mode: data.mode,
     root: data.root,
     version: data.version,
 
@@ -425,18 +442,11 @@ export function buildChildData (data: Data, definition: any, key: string, schema
   }
 }
 
-export async function rootComponentLoader<Definition> (path: string, component: OASComponent, options: LoaderOptions, version?: Version): Promise<Result<Definition>> {
-  const config: LoaderMetadata = { cache: {} }
-  const result = await Loader.load(path, options, config)
-  const [definition, error] = result
-  if (error === undefined && options?.validate !== false) {
-    loadCacheMap.set(definition, config.cache as Record<string, any>)
-    const data = initializeData('validating ' + component.constructor.name + ' object', definition, version)
-    component.validate(definition, version, data)
-    return new Result(definition, data.exception)
-  } else {
-    return result
-  }
+export function normalizeLoaderOptions (options?: LoaderOptions): Required<LoaderOptions> {
+  if (options === undefined) options = {}
+  if (options.dereference === undefined) options.dereference = true
+  if (options.validate === undefined) options.validate = true
+  return options as Required<LoaderOptions>
 }
 
 export function validate (data: Data): any { // return value is what to add to built
@@ -461,12 +471,12 @@ export function validate (data: Data): any { // return value is what to add to b
   if (definition === null) {
     if (schema.nullable === undefined || !schema.nullable(data, componentDef)) {
       const mustNotBeNull = E.mustNotBeNull(data.reference)
-      addExceptionLocation(mustNotBeNull, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(mustNotBeNull, lookupLocation(parent?.definition, key, 'value'))
       exception.message(mustNotBeNull)
       return
     } else {
       data.built = null
-      return runAfterValidator(data)
+      return runFinalValidatorFunctions(data)
     }
   }
 
@@ -474,7 +484,7 @@ export function validate (data: Data): any { // return value is what to add to b
   if (definition === undefined && schema.default !== undefined) {
     const value = schema.default(data, componentDef)
     if (value !== undefined) data.built = value
-    return runAfterValidator(data)
+    return runFinalValidatorFunctions(data)
   }
 
   // if enum is invalid then exit
@@ -483,7 +493,7 @@ export function validate (data: Data): any { // return value is what to add to b
     const found = matches.find((v: any) => same(v, definition))
     if (found === undefined) {
       const enumNotMet = E.enumNotMet(data.reference, matches, definition)
-      addExceptionLocation(enumNotMet, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(enumNotMet, lookupLocation(parent?.definition, key, 'value'))
       exception.message(enumNotMet)
       return
     }
@@ -493,19 +503,31 @@ export function validate (data: Data): any { // return value is what to add to b
   if (typeof definition === 'object' && '$ref' in definition && schema.type !== 'any' && schema.type !== 'component') {
     const $refNotAllowed = E.$refNotAllowed(data.reference)
     adjustExceptionLevel(parent, $refNotAllowed)
-    addExceptionLocation($refNotAllowed, lookup(parent?.definition, key, 'key'))
+    addExceptionLocation($refNotAllowed, lookupLocation(parent?.definition, key, 'key'))
     exception.message($refNotAllowed)
   }
 
+  // check if refs allowed and ref is set
+  const hasRef = typeof definition === 'object' && '$ref' in definition
+  if (hasRef) {
+    const s = schema as unknown as SchemaComponent
+    if (!s.allowsRef) {
+      const $refNotAllowed = E.$refNotAllowed(data.reference)
+      adjustExceptionLevel(parent, $refNotAllowed)
+      addExceptionLocation($refNotAllowed, lookupLocation(parent?.definition, key, 'value'))
+      exception.message($refNotAllowed)
+      return
+    }
+  }
+
   if (schema.type === 'any') {
-    data.built = definition
-    if (typeof schema.build === 'function') data.built = schema.build(data, componentDef)
-    return runAfterValidator(data)
+    data.built = copy(definition)
+    return runFinalValidatorFunctions(data)
   } else if (schema.type === 'array') {
     const s = schema as unknown as SchemaArray
     if (!Array.isArray(definition)) {
       const invalidType = E.invalidType(data.reference, 'an array', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return
     }
@@ -536,9 +558,9 @@ export function validate (data: Data): any { // return value is what to add to b
           data.built[i] = value
         }
       })
-      if (typeof schema.build === 'function') throw Error('Schema of type SchemaArray does not support build function.')
+      // if (typeof schema.build === 'function') throw Error('Schema of type SchemaArray does not support build function.')
       if (success) {
-        storeItem.instance = runAfterValidator(data)
+        storeItem.instance = runFinalValidatorFunctions(data)
         return storeItem.instance // storeItem.instance === data.built
       } else {
         return undefined
@@ -547,42 +569,28 @@ export function validate (data: Data): any { // return value is what to add to b
   } else if (schema.type === 'boolean') {
     if (typeof definition !== 'boolean') {
       const invalidType = E.invalidType(data.reference, 'a boolean', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return undefined
     }
     data.built = definition
-    if (typeof schema.build === 'function') data.built = schema.build(data, componentDef)
-    return runAfterValidator(data)
+    return runFinalValidatorFunctions(data)
   } else if (schema.type === 'component') {
     if (!isObject(definition)) {
       const invalidType = E.invalidType(data.reference, 'a non-null object', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return undefined
     }
 
+    // determine correct component
     const s = schema as unknown as SchemaComponent
-    let component = s.component
-
-    // check if refs allowed and ref is set
-    const hasRef = '$ref' in definition
-    if (hasRef) {
-      if (!s.allowsRef) {
-        const $refNotAllowed = E.$refNotAllowed(data.reference)
-        adjustExceptionLevel(parent, $refNotAllowed)
-        addExceptionLocation($refNotAllowed, lookup(parent?.definition, key, 'value'))
-        exception.message($refNotAllowed)
-        return
-      } else {
-        component = Reference
-      }
-    }
+    const component = hasRef ? Reference : s.component
 
     // check that this component is allowed for the active version
     if (component.spec[data.version] === undefined) {
       const invalidVersionForComponent = E.invalidVersionForComponent(data.reference, component.name, data.version)
-      addExceptionLocation(invalidVersionForComponent, lookup(parent?.definition, key))
+      addExceptionLocation(invalidVersionForComponent, lookupLocation(parent?.definition, key))
       data.exception.message(invalidVersionForComponent)
       return undefined
     }
@@ -595,6 +603,7 @@ export function validate (data: Data): any { // return value is what to add to b
         major: data.major,
         map: data.map,
         metadata: data.metadata,
+        mode: data.mode,
         root: data.root,
         version: data.version,
 
@@ -605,14 +614,14 @@ export function validate (data: Data): any { // return value is what to add to b
 
         // always changing values
         built,
-        chain: [data].concat(data.chain),
+        chain: data.chain,
         definition: data.definition,
         exception: data.exception,
         key: data.key,
         schema: componentSchemasMap.get(component) ?? component.schemaGenerator()
       }
       validateObject(child)
-      data.finally.forEach(fn => fn(child))
+      child.finally.forEach(fn => fn(child))
       return data.built
     })
   } else if (schema.type === 'number') {
@@ -620,71 +629,79 @@ export function validate (data: Data): any { // return value is what to add to b
     let success = true
     if (typeof definition !== 'number') {
       const invalidType = E.invalidType(data.reference, 'a number', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return false
     }
     if (s.integer === true && definition % 1 !== 0) {
       const invalidType = E.invalidType(data.reference, 'an integer', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       success = false
     }
     if (s.maximum !== undefined && definition > s.maximum) {
       const exceedsNumberBounds = E.exceedsNumberBounds(data.reference, 'maximum', true, s.maximum, definition)
-      addExceptionLocation(exceedsNumberBounds, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(exceedsNumberBounds, lookupLocation(parent?.definition, key, 'value'))
       exception.message(exceedsNumberBounds)
       success = false
     }
     if (s.minimum !== undefined && definition < s.minimum) {
       const exceedsNumberBounds = E.exceedsNumberBounds(data.reference, 'minimum', true, s.minimum, definition)
-      addExceptionLocation(exceedsNumberBounds, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(exceedsNumberBounds, lookupLocation(parent?.definition, key, 'value'))
       exception.message(exceedsNumberBounds)
       success = false
     }
     if (!success) return false
 
     data.built = definition
-    if (typeof schema.build === 'function') data.built = schema.build(data, componentDef)
-    return runAfterValidator(data)
+    return runFinalValidatorFunctions(data)
   } else if (schema.type === 'object') {
     // validate definition type
     if (!isObject(definition)) {
       const invalidType = E.invalidType(data.reference, 'a non-null object', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return undefined
     }
 
     return mappable(schema, data, {}, () => {
       validateObject(data)
+      return data.built
     })
+  } else if (schema.type === 'oneOf') {
+    const s = schema as unknown as SchemaOneOf
+    const match = s.oneOf.find(item => item.condition(data, data.component.definition))
+    if (match === undefined) {
+      throw Error('Definition does not meet any of the possible conditions. Received: ' + smart(definition))
+    } else {
+      const child = Object.assign({}, data, { schema: match.schema })
+      return validate(child)
+    }
   } else if (schema.type === 'string') {
     const s = schema as unknown as SchemaString
     let success = true
     if (typeof definition !== 'string') {
       const invalidType = E.invalidType(data.reference, 'a string', definition)
-      addExceptionLocation(invalidType, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return false
     }
     if (s.maxLength !== undefined && definition.length > s.maxLength) {
       const exceedsStringLengthBounds = E.exceedsStringLengthBounds(data.reference, 'maxLength', s.maxLength, definition)
-      addExceptionLocation(exceedsStringLengthBounds, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(exceedsStringLengthBounds, lookupLocation(parent?.definition, key, 'value'))
       exception.message(exceedsStringLengthBounds)
       success = false
     }
     if (s.minLength !== undefined && definition.length < s.minLength) {
       const exceedsStringLengthBounds = E.exceedsStringLengthBounds(data.reference, 'minLength', s.minLength, definition)
-      addExceptionLocation(exceedsStringLengthBounds, lookup(parent?.definition, key, 'value'))
+      addExceptionLocation(exceedsStringLengthBounds, lookupLocation(parent?.definition, key, 'value'))
       exception.message(exceedsStringLengthBounds)
       success = false
     }
 
     if (success) {
       data.built = definition
-      if (schema.build !== undefined) data.built = schema.build(data, componentDef)
-      return runAfterValidator(data)
+      return runFinalValidatorFunctions(data)
     } else {
       return undefined
     }
@@ -699,15 +716,26 @@ function buildObjectProperties (context: any, data: Data): void {
   const schema = data.schema as SchemaObject
   const properties = schema.properties !== undefined ? schema.properties : []
   const remainingProperties: string[] = Object.keys(definition)
-  properties.forEach((property: SchemaProperty) => {
-    const key: string = property.name
-    const subSchema = property.schema
-    if (key in definition || subSchema.default !== undefined) {
-      const child = buildChildData(data, definition[key], key, subSchema)
-      const value: any = build(child)
-      if (value !== undefined) context[key] = value
+  properties.forEach((prop: SchemaProperty) => {
+    const name = prop.name
+    const child = buildChildData(data, definition[name], name, prop.schema)
+    const allowed = prop.allowed === undefined ? true : prop.allowed(child, componentDef)
 
-      const index = remainingProperties.indexOf(key)
+    // get the built value
+    let value: any
+    let found = false
+    if (name in definition) {
+      value = build(child)
+      found = true
+    } else if (prop.schema.default !== undefined && allowed === true) {
+      value = prop.schema.default(child, componentDef)
+      found = true
+    }
+    if (value !== undefined) context[name] = value
+
+    // if this property has been processed then remove from remaining properties
+    if (found) {
+      const index = remainingProperties.indexOf(name)
       if (index !== -1) remainingProperties.splice(index, 1)
     }
   })
@@ -748,9 +776,13 @@ function mappable (key: any, data: Data, value: any, handler: (value: any) => an
   }
 }
 
-function runAfterValidator (data: Data): any {
+function runFinalValidatorFunctions (data: Data): any {
   const schema = data.schema as SchemaAny
   if (schema.after !== undefined) schema.after(data, data.component.definition)
+  if (schema.build !== undefined) {
+    const built = schema.build(data, data.component.definition)
+    if (built !== undefined) data.built = built
+  }
   return data.built
 }
 
@@ -801,8 +833,9 @@ function validateObject (data: Data): any {
       }
     } else if (prop.required?.(child, componentDef) === true && allowed === true) {
       missingRequiredProperties.push(name)
-    } else if (prop.schema.default !== undefined) {
+    } else if (prop.schema.default !== undefined && allowed === true) {
       child.built = prop.schema.default(child as any, componentDef)
+      data.built[name] = child.built
     }
   })
 
@@ -821,7 +854,7 @@ function validateObject (data: Data): any {
     if (rx.extension.test(key)) {
       if (!allowsSchemaExtensions && key !== 'x-enforcer') {
         const extensionNotAllowed = E.extensionNotAllowed(data.reference)
-        addExceptionLocation(extensionNotAllowed, lookup(definition, key))
+        addExceptionLocation(extensionNotAllowed, lookupLocation(definition, key))
         exception.message(extensionNotAllowed)
       }
       return
@@ -852,7 +885,7 @@ function validateObject (data: Data): any {
     notAllowed.sort((a: NotAllowed, b: NotAllowed) => a.name < b.name ? -1 : 1)
     notAllowed.forEach(reason => {
       const propertyNotAllowed = E.propertyNotAllowed(data.reference, reason.name, reason.reason ?? '')
-      addExceptionLocation(propertyNotAllowed, lookup(definition, reason.name))
+      addExceptionLocation(propertyNotAllowed, lookupLocation(definition, reason.name))
       exception.message(propertyNotAllowed)
     })
     success = false
@@ -861,13 +894,13 @@ function validateObject (data: Data): any {
   // report on missing required properties
   if (missingRequiredProperties.length > 0) {
     const eMissingRequiredProperties = E.missingRequiredProperties(data.reference, missingRequiredProperties)
-    addExceptionLocation(eMissingRequiredProperties, lookup(definition))
+    addExceptionLocation(eMissingRequiredProperties, lookupLocation(definition))
     exception.message(eMissingRequiredProperties)
     success = false
   }
 
-  if (typeof schema.build === 'function') throw Error('Schema of type SchemaObject does not support build function.')
-  return success ? runAfterValidator(data) : undefined
+  // if (typeof schema.build === 'function') throw Error('Schema of type SchemaObject does not support build function.')
+  return success ? runFinalValidatorFunctions(data) : undefined
 }
 
 function versionMatch (current: Version, versions: string[]): boolean {
