@@ -1,5 +1,5 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
-import { addExceptionLocation, adjustExceptionLevel, no } from '../util'
+import { addExceptionLocation, no } from '../util'
 import { OpenAPI } from './OpenAPI'
 import { Swagger } from './Swagger'
 import * as E from '../Exception/methods'

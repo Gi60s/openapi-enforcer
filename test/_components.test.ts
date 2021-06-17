@@ -1,6 +1,6 @@
-import { OASComponent, initializeData, SchemaObject, Version, ExtendedComponent, SpecMap } from '../components'
+import { OASComponent, initializeData, SchemaObject, Version, ExtendedComponent, SpecMap } from '../src/components'
 import { expect } from 'chai'
-import { copy, no, yes } from '../util'
+import { copy, no, yes } from '../src/util'
 
 const basicSchemaObject: SchemaObject = {
   type: 'object',

@@ -1,8 +1,7 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
 import * as Schema from './Schema'
-import { addExceptionLocation, no } from '../util'
+import { no } from '../util'
 import { lookupLocation, getReferenceNode } from '../loader'
-import * as E from '../Exception/methods'
 
 export interface Definition {
   [extension: string]: any

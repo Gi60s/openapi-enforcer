@@ -1,5 +1,5 @@
-import { Swagger } from '../components/Swagger'
-import { initTestLoader, registerContent } from '../test-utils'
+import { Swagger } from '../src/components/Swagger'
+import { initTestLoader, registerContent } from '../src/test-utils'
 import { expect } from 'chai'
 
 const swagger = '2.0'

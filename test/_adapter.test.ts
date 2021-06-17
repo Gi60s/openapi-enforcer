@@ -1,4 +1,4 @@
-import Adapter from '../adapter'
+import Adapter from '../src/adapter'
 import { expect } from 'chai'
 
 const adapter = Adapter()

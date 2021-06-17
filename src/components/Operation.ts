@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, Data, SchemaObject, SpecMap, Version, Exception } from './'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
 import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Callback from './Callback'

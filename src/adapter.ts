@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import util from 'util'
 
 const rxHttp = /^https?:\/\//
 const rxUrlParts = /^(https?):\/\/(.+?)(?:\/|$)(.*)/

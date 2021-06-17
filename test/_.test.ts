@@ -1,4 +1,4 @@
-import { server } from '../test-utils'
+import { server } from '../src/test-utils'
 
 before(async () => {
   await server.start()

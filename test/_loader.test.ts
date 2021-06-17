@@ -1,8 +1,7 @@
-import { load, lookupLocation } from '../loader'
+import { load, lookupLocation } from '../src/loader'
 import { expect } from 'chai'
 import path from 'path'
 import fs from 'fs'
-import { server } from '../test-utils'
 
 const resources = path.resolve(__dirname, '..', '..', 'test-resources', 'loader')
 

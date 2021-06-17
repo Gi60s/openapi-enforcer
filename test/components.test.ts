@@ -1,16 +1,16 @@
-import { Callback } from '../components/Callback'
-import { Components } from '../components/Components'
-import { Example } from '../components/Example'
-import { Header } from '../components/Header'
-import { Link } from '../components/Link'
-import { Parameter } from '../components/Parameter'
+import { Callback } from '../src/components/Callback'
+import { Components } from '../src/components/Components'
+import { Example } from '../src/components/Example'
+import { Header } from '../src/components/Header'
+import { Link } from '../src/components/Link'
+import { Parameter } from '../src/components/Parameter'
 // import { PathItem } from '../components/PathItem'  // version 3.1.0
-import { RequestBody } from '../components/RequestBody'
-import { Response } from '../components/Response'
-import { Schema } from '../components/Schema'
-import { SecurityScheme } from '../components/SecurityScheme'
+import { RequestBody } from '../src/components/RequestBody'
+import { Response } from '../src/components/Response'
+import { Schema } from '../src/components/Schema'
+import { SecurityScheme } from '../src/components/SecurityScheme'
 import { expect } from 'chai'
-import { minimal } from '../test-utils'
+import { minimal } from '../src/test-utils'
 
 describe('Components component', () => {
   describe('build', () => {

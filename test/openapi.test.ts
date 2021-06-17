@@ -1,9 +1,9 @@
-import { OpenAPI } from '../components/OpenAPI'
-import { Reference } from '../components/Reference'
-import { Schema } from '../components/Schema'
+import { OpenAPI } from '../src/components/OpenAPI'
+import { Reference } from '../src/components/Reference'
+import { Schema } from '../src/components/Schema'
 import { expect } from 'chai'
 import path from 'path'
-import { resourcesDirectory } from '../test-utils'
+import { resourcesDirectory } from '../src/test-utils'
 
 describe('OpenAPI component', function () {
   describe.only('load', () => {
@@ -18,7 +18,7 @@ describe('OpenAPI component', function () {
 
     it('can load without dereference', async () => {
       const filePath = path.resolve(resourcesDirectory, 'discriminator', 'one-of.yml')
-      const [openapi, error] = await OpenAPI.load(filePath, { dereference: false })
+      const [openapi] = await OpenAPI.load(filePath, { dereference: false })
       expect(openapi?.components?.schemas?.Pet.oneOf[0]).to.be.instanceof(Reference)
       expect(openapi?.components?.schemas?.Pet.oneOf[1]).to.be.instanceof(Reference)
       expect(openapi?.components?.schemas?.Pet.oneOf[2]).to.be.instanceof(Reference)

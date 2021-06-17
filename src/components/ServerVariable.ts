@@ -1,5 +1,5 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
-import { addExceptionLocation, adjustExceptionLevel, yes } from '../util'
+import { addExceptionLocation, yes } from '../util'
 import * as E from '../Exception/methods'
 import { lookupLocation } from '../loader'
 

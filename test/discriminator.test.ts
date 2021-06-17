@@ -1,8 +1,8 @@
-import { OpenAPI } from '../components/OpenAPI'
-import { Discriminator } from '../components/Discriminator'
+import { OpenAPI } from '../src/components/OpenAPI'
+import { Discriminator } from '../src/components/Discriminator'
 import { expect } from 'chai'
 import path from 'path'
-import { resourcesDirectory, server } from '../test-utils'
+import { resourcesDirectory } from '../src/test-utils'
 
 describe('Discriminator component', () => {
   describe('build', () => {
@@ -75,7 +75,7 @@ describe('Discriminator component', () => {
 
       it('will warn of unresolvable mappings', async function () {
         const filePath = path.resolve(resourcesDirectory, 'discriminator', 'one-of.yml')
-        const [openapi, error] = await OpenAPI.load(filePath)
+        const [error] = await OpenAPI.load(filePath)
         console.log(error)
       })
 

@@ -1,4 +1,12 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Exception, LoaderOptions, rootComponentLoader } from './'
+import {
+  OASComponent,
+  initializeData,
+  SchemaObject,
+  SpecMap,
+  Exception,
+  LoaderOptions,
+  normalizeLoaderOptions
+} from './'
 import { Result } from '../Result'
 import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
 import * as E from '../Exception/methods'
@@ -12,7 +20,8 @@ import * as Response from './Response'
 import * as SecurityScheme from './SecurityScheme'
 import * as SecurityRequirement from './SecurityRequirement'
 import * as Tag from './Tag'
-import { lookupLocation } from '../loader'
+import { LoaderMetadata, lookupLocation } from '../loader'
+import * as Loader from '../loader'
 
 const rxHostParts = /^(?:(https?|wss?):\/\/)?(.+?)(\/.+)?$/
 const rxPathTemplating = /[{}]/
@@ -65,8 +74,38 @@ export class Swagger extends OASComponent {
     }
   }
 
-  static async load (path: string, options?: LoaderOptions): Promise<Result<Definition>> {
-    return await rootComponentLoader(path, this, options ?? {}, '2.0')
+  static async load (path: string, options?: LoaderOptions): Promise<Result<Swagger>> {
+    options = normalizeLoaderOptions(options)
+
+    // load file with dereference
+    const config: LoaderMetadata = {
+      cache: {},
+      exception: new Exception('Unable to load Swagger document')
+    }
+    const loaded = await Loader.load(path, { dereference: options.dereference }, config)
+
+    // if there is an error then return now
+    const [definition] = loaded
+    const exception = loaded.exception as Exception
+    if (loaded.hasError) return new Result(definition, exception) // first param will be undefined because of error
+
+    // initialize data object
+    const version = definition.openapi
+    const data = initializeData('', definition, version)
+    data.loadCache = config.cache as Record<string, any>
+    data.exception = exception
+
+    // run validation then reset some data properties
+    // @ts-expect-error
+    if (options.validate === true) OpenAPI.validate(definition, version, data)
+    data.map = new Map()
+    data.finally = []
+
+    // build the component if there are no errors
+    if (exception.hasError) return new Result(definition, exception) // first param will be undefined because of error
+    // @ts-expect-error
+    const component = new Swagger(definition, version, data)
+    return new Result(component, exception)
   }
 
   static schemaGenerator (): SchemaObject {
