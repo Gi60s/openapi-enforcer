@@ -29,6 +29,7 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.1.0",
     "mocha": "^7.1.1",
+    "nyc": "^15.1.0",
     "snazzy": "^9.0.0",
     "ts-loader": "^8.0.2",
     "ts-node": "^9.1.1",
@@ -42,10 +43,12 @@
     "build": "tsc",
     "build:browser": "webpack --config ./browser.webpack.config.js",
     "build:node": "tsc --build tsconfig.json",
+    "coverage": "nyc npm run test --reporter=text",
     "dev": "tsc --watch",
     "lint": "ts-standard --verbose | snazzy",
     "lint:fix": "ts-standard --fix --verbose | snazzy",
-    "test": "mocha --require ts-node/register --extensions ts,tsx --watch --watch-files src 'test/**/*.{ts,tsx}'"
+    "test": "mocha test/**/*.test.ts --require ts-node/register --recursive",
+    "test:watch": "npm test -- --watch --watch-files src test"
   },
   "author": "James Speirs <james.speirs@gmail.com>",
   "license": "Apache-2.0"

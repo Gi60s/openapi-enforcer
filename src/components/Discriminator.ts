@@ -49,7 +49,7 @@ export class Discriminator extends OASComponent {
             build (data, componentDef) {
               // replace discriminator mapping references with objects or Schema instances
               data.root.finally.push(() => {
-                console.log('==== ' + data.mode.toUpperCase() + ' FINALLY RUN ====')
+                // console.log('==== ' + data.mode.toUpperCase() + ' FINALLY RUN ====')
 
                 const { definition, exception } = data
                 const loc = lookupLocation(definition)
@@ -60,7 +60,7 @@ export class Discriminator extends OASComponent {
                     if (typeof rootNodePath === 'string') {
                       const node = getReferenceNode(data.loadCache, rootNodePath, ref, exception.at(key))
                       if (node !== undefined) {
-                        console.log('Found node: ' + (ref as string))
+                        // console.log('Found node: ' + (ref as string))
 
                         // if build mode then look up the built Schema instance
                         if (data.mode === 'build') {
@@ -73,13 +73,13 @@ export class Discriminator extends OASComponent {
                           data.built[key] = node
                         }
                       } else {
-                        console.log('Node not found: ' + (ref as string))
+                        // console.log('Node not found: ' + (ref as string))
                         // const refNotResolved = E.refNotResolved(ref, rootNodePath)
                         // addExceptionLocation(refNotResolved, lookupLocation(definition, key, 'value'))
                         // exception.message(refNotResolved)
                       }
                     } else {
-                      console.log('Root node not found')
+                      // console.log('Root node not found')
                       // const refNotResolved = E.refNotResolved(ref, 'unknown')
                       // addExceptionLocation(refNotResolved, loc)
                       // exception.message(refNotResolved)

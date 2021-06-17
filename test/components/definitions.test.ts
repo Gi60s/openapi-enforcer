@@ -1,6 +1,6 @@
-import { Definitions } from '../src/components/Definitions'
+import { Definitions } from '../../src'
 import { expect } from 'chai'
-import { minimal } from '../src/test-utils'
+import { minimal } from '../util/helpers'
 
 describe('Definitions component', () => {
   describe('build', () => {

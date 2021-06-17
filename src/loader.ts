@@ -23,7 +23,7 @@ interface LineEnding {
 
 export type Loader = (path: string, data?: LoaderMetadata) => Promise<Result>
 
-export type Result = LoaderMatch | LoaderMismatch
+export type Result = LoaderMismatch | LoaderMatch
 
 interface LoaderMatch {
   loaded: true
@@ -432,33 +432,31 @@ export function traverse (node: any, path: string, fromPath: string, exception: 
 
 // add http(s) GET loader
 define(async function (path, data) {
-  if (rxHttp.test(path)) {
+  if (!rxHttp.test(path)) {
+    return { loaded: false }
+  }
+
+  try {
     const transformResponse = [(res: any) => res] // stop response body from being parsed
+    const res = await axios.get(path, { transformResponse })
+    const contentType = res.headers['content-type']
+    if (res.status < 200 || res.status >= 300) {
+      data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected response code: ' + String(res.status)))
+      return { loaded: false }
+    } else {
+      const result: LoaderMatch = {
+        loaded: true,
+        content: res.data
+      }
 
-    return axios.get(path, { transformResponse })
-      .then(res => {
-        const contentType = res.headers['content-type']
-        if (res.status < 200 || res.status >= 300) {
-          data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected response code: ' + String(res.status)))
-          return { loaded: false }
-        } else {
-          const result: LoaderMatch = {
-            loaded: true,
-            content: res.data
-          }
-
-          if (typeof contentType === 'string') {
-            if (/^application\/json/.test(contentType)) result.type = 'json'
-            if (/^(?:text|application)\/(?:x-)?yaml/.test(contentType)) result.type = 'yaml'
-          }
-          return result
-        }
-      })
-      .catch(err => {
-        data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected error: ' + (err.toString() as string)))
-        return { loaded: false }
-      })
-  } else {
+      if (typeof contentType === 'string') {
+        if (/^application\/json/.test(contentType)) result.type = 'json'
+        if (/^(?:text|application)\/(?:x-)?yaml/.test(contentType)) result.type = 'yaml'
+      }
+      return result
+    }
+  } catch (err) {
+    data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected error: ' + (err.toString() as string)))
     return { loaded: false }
   }
 })
@@ -474,24 +472,23 @@ define(async function (path, data) {
   }
   if (fs === null || fs === undefined) {
     return { loaded: false }
-  } else {
-    return await new Promise((resolve, reject) => {
-      fs.readFile(path, 'utf8', (err: any, content: string) => {
-        if (err === null || err === undefined) {
-          const result: LoaderMatch = {
-            loaded: true,
-            content
-          }
-          resolve(result)
-        } else {
-          if (err.code === 'ENOENT') {
-            resolve({ loaded: false })
-          } else {
-            data?.exception?.message(E.loaderFailedToLoadResource(path, 'File could not load' + (err.code !== undefined ? ': ' + String(err.code) : '')))
-            resolve({ loaded: false })
-          }
-        }
-      })
-    })
   }
+  return await new Promise((resolve) => {
+    fs.readFile(path, 'utf8', (err: any, content: string) => {
+      if (err === null || err === undefined) {
+        const result: LoaderMatch = {
+          loaded: true,
+          content
+        }
+        resolve(result)
+      } else {
+        if (err.code === 'ENOENT') {
+          resolve({ loaded: false })
+        } else {
+          data?.exception?.message(E.loaderFailedToLoadResource(path, 'File could not load' + (err.code !== undefined ? ': ' + String(err.code) : '')))
+          resolve({ loaded: false })
+        }
+      }
+    })
+  })
 })

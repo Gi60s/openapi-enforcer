@@ -1,4 +1,4 @@
-import * as Loader from './loader'
+import * as Loader from '../../src/loader'
 import fs from 'fs'
 import path from 'path'
 import http from 'http'

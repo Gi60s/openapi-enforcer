@@ -1,16 +1,18 @@
-import { Callback } from '../src/components/Callback'
-import { Components } from '../src/components/Components'
-import { Example } from '../src/components/Example'
-import { Header } from '../src/components/Header'
-import { Link } from '../src/components/Link'
-import { Parameter } from '../src/components/Parameter'
-// import { PathItem } from '../components/PathItem'  // version 3.1.0
-import { RequestBody } from '../src/components/RequestBody'
-import { Response } from '../src/components/Response'
-import { Schema } from '../src/components/Schema'
-import { SecurityScheme } from '../src/components/SecurityScheme'
+import {
+  Callback,
+  Components,
+  Example,
+  Header,
+  Link,
+  Parameter,
+  RequestBody,
+  Response,
+  Schema,
+  SecurityScheme
+} from '../../src'
+// import { PathItem } from '../../src/components/PathItem'  // version 3.1.0
 import { expect } from 'chai'
-import { minimal } from '../src/test-utils'
+import { minimal } from '../util/helpers'
 
 describe('Components component', () => {
   describe('build', () => {
@@ -432,6 +434,7 @@ describe('Components component', () => {
       it('cannot define invalid callbacks', function () {
         const [error] = Components.validate({
           callbacks: {
+            // @ts-expect-error
             MyCallback: { foo: 'bar' }
           }
         })

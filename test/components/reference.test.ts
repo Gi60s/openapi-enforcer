@@ -1,4 +1,4 @@
-import { Reference } from '../src/components'
+import { Reference } from '../../src/components'
 import { expect } from 'chai'
 
 describe('Reference component', () => {

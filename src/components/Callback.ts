@@ -3,7 +3,7 @@ import { yes } from '../util'
 import * as PathItem from './PathItem'
 
 export interface Definition {
-  [extensionOrPathItem: string]: PathItem.Definition | any
+  [extensionOrPathItem: string]: PathItem.Definition
 }
 
 export class Callback extends OASComponent {

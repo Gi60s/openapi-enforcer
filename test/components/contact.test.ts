@@ -1,4 +1,4 @@
-import { Contact } from '../src/components/Contact'
+import { Contact } from '../../src'
 import { expect } from 'chai'
 
 describe('Contact component', () => {

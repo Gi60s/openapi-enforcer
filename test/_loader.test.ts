@@ -2,8 +2,16 @@ import { load, lookupLocation } from '../src/loader'
 import { expect } from 'chai'
 import path from 'path'
 import fs from 'fs'
+import { server } from './util/helpers'
 
-const resources = path.resolve(__dirname, '..', '..', 'test-resources', 'loader')
+before(async () => {
+  await server.start()
+})
+after(() => {
+  server.stop()
+})
+
+const resources = path.resolve(__dirname, 'resources', 'loader')
 
 describe('loader and lookupLocation', () => {
   describe('json', () => {

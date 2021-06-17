@@ -1,6 +1,14 @@
-import { Swagger } from '../src/components/Swagger'
-import { initTestLoader, registerContent } from '../src/test-utils'
+import { Swagger } from '../../src/components/Swagger'
+import { initTestLoader, registerContent } from '../util/helpers'
 import { expect } from 'chai'
+import { server } from '../util/helpers'
+
+before(async () => {
+  await server.start()
+})
+after(() => {
+  server.stop()
+})
 
 const swagger = '2.0'
 const info = { title: '', version: '' }
@@ -18,8 +26,7 @@ describe('Swagger component', () => {
   describe('load', () => {
     before(() => {
       initTestLoader()
-      const content = registerContent('swagger.json', { swagger: '2.4', info: {} })
-      console.log(content)
+      registerContent('swagger.json', { swagger: '2.4', info: {} })
     })
 
     it('can load a document without validating', async () => {
@@ -29,7 +36,6 @@ describe('Swagger component', () => {
 
     it('will validate a loaded document by default', async () => {
       const { error } = await Swagger.load('swagger.json')
-      console.log(error)
       expect(error).to.match(/One or more errors found while validating Swagger object/)
       expect(error?.count).to.equal(3)
     })
