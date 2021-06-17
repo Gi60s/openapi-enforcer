@@ -61,7 +61,7 @@ export class Swagger extends OASComponent {
 
   static get spec (): SpecMap {
     return {
-      '2.0': 'http://spec.openapis.org/oas/v2.0#swagger-object'
+      '2.0': 'https://spec.openapis.org/oas/v2.0#swagger-object'
     }
   }
 

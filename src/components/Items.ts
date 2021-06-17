@@ -24,7 +24,7 @@ export class Items extends PartialSchema.PartialSchema<Items> {
 
   static get spec (): SpecMap {
     return {
-      '2.0': 'http://spec.openapis.org/oas/v2.0#items-object'
+      '2.0': 'https://spec.openapis.org/oas/v2.0#items-object'
     }
   }
 

@@ -58,11 +58,11 @@ export class SecurityScheme extends OASComponent {
 
   static get spec (): SpecMap {
     return {
-      '2.0': 'http://spec.openapis.org/oas/v2.0#security-scheme-object',
-      '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#security-scheme-object',
-      '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#security-scheme-object',
-      '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#security-scheme-object',
-      '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#security-scheme-object'
+      '2.0': 'https://spec.openapis.org/oas/v2.0#security-scheme-object',
+      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#security-scheme-object',
+      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#security-scheme-object',
+      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#security-scheme-object',
+      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-scheme-object'
     }
   }
 

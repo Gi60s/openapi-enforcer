@@ -31,10 +31,10 @@ export class MediaType extends OASComponent {
 
   static get spec (): SpecMap {
     return {
-      '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#media-type-object',
-      '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#media-type-object',
-      '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#media-type-object',
-      '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#media-type-object'
+      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#media-type-object',
+      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#media-type-object',
+      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#media-type-object',
+      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#media-type-object'
     }
   }
 
