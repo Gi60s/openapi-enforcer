@@ -250,11 +250,11 @@ export class Reference extends OASComponent {
 
   static get spec (): SpecMap {
     return {
-      '2.0': 'http://spec.openapis.org/oas/v2.0#reference-object',
-      '3.0.0': 'http://spec.openapis.org/oas/v3.0.0#reference-object',
-      '3.0.1': 'http://spec.openapis.org/oas/v3.0.1#reference-object',
-      '3.0.2': 'http://spec.openapis.org/oas/v3.0.2#reference-object',
-      '3.0.3': 'http://spec.openapis.org/oas/v3.0.3#reference-object'
+      '2.0': 'https://spec.openapis.org/oas/v2.0#reference-object',
+      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#reference-object',
+      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#reference-object',
+      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#reference-object',
+      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#reference-object'
     }
   }
 
@@ -358,15 +358,16 @@ export function build (data: Data): any {
       const Component = schema.component
 
       // check if the definition has been used with this component previously, otherwise create the component
-      // const store = map.get(Component)
-      // const found = store?.find(item => item.definition === definition)
-      // if (found !== undefined) {
-      //   data.built = found.instance
-      // } else {
-      //   data.built = new Component(definition, data.version, data)
-      // }
+      const store = map.get(Component)
+      const found = store?.find(item => item.definition === definition)
+      if (found !== undefined) {
+        data.built = found.instance
+      } else {
+        data.built = new Component(definition, data.version, data)
+      }
 
-      return mappable(Component, data, {}, (built) => {
+      // TODO: use StandIn class to hold the position while the component is being built
+      mappable(Component, data, {}, (built) => {
         const child = buildChildDataForComponent(data, Component, built)
         data.built = build(child)
         child.finally.forEach(fn => fn(child))
@@ -387,7 +388,7 @@ export function build (data: Data): any {
     } else if (schema.type === 'object') {
       if (!isObject(definition)) throw Error('Invalid definition type. Expected an object. Received: ' + smart(definition))
 
-      return mappable(schema, data, {}, (built) => {
+      mappable(schema, data, {}, (built) => {
         data.built = built
         buildObjectProperties(built, data)
         return data.built
