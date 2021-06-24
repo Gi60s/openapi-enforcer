@@ -186,9 +186,9 @@ export abstract class OASComponent {
     // trigger finally hooks
     data.finally.forEach(fn => fn(data))
 
-    if (typeof data.schema.build === 'function') {
-      throw Error('Schema of type SchemaObject does not support build function.')
-    }
+    // if (typeof data.schema.build === 'function') {
+    //   throw Error('Schema of type SchemaObject does not support build function.')
+    // }
   }
 
   static extend (): void {
@@ -366,7 +366,6 @@ export function build (data: Data): any {
         data.built = new Component(definition, data.version, data)
       }
 
-      // TODO: use StandIn class to hold the position while the component is being built
       mappable(Component, data, {}, (built) => {
         const child = buildChildDataForComponent(data, Component, built)
         data.built = build(child)
