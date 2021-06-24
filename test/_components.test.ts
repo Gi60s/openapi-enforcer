@@ -299,27 +299,27 @@ describe('Generic component tests', () => {
         expect(count).to.equal(1)
       })
 
-      it('cannot be run on arrays', function () {
-        const Test = TestComponent({
-          type: 'object',
-          allowsSchemaExtensions: no,
-          additionalProperties: {
-            type: 'array',
-            items: { type: 'any' },
-            build () { return true }
-          }
-        })
-        expect(() => new Test({ foo: [] })).to.throw(/SchemaArray does not support build function./)
-      })
-
-      it('cannot be run on objects', function () {
-        const Test = TestComponent({
-          type: 'object',
-          allowsSchemaExtensions: no,
-          build (d) { return true }
-        })
-        expect(() => new Test({})).to.throw(/SchemaObject does not support build function./)
-      })
+      // it('cannot be run on arrays', function () {
+      //   const Test = TestComponent({
+      //     type: 'object',
+      //     allowsSchemaExtensions: no,
+      //     additionalProperties: {
+      //       type: 'array',
+      //       items: { type: 'any' },
+      //       build () { return true }
+      //     }
+      //   })
+      //   expect(() => new Test({ foo: [] })).to.throw(/SchemaArray does not support build function./)
+      // })
+      //
+      // it('cannot be run on objects', function () {
+      //   const Test = TestComponent({
+      //     type: 'object',
+      //     allowsSchemaExtensions: no,
+      //     build (d) { return true }
+      //   })
+      //   expect(() => new Test({})).to.throw(/SchemaObject does not support build function./)
+      // })
     })
 
     describe('type validation', () => {
@@ -479,27 +479,27 @@ describe('Generic component tests', () => {
         expect(data?.built.foo).to.equal('baz')
       })
 
-      it('cannot be run on arrays', function () {
-        const Test = TestComponent({
-          type: 'object',
-          allowsSchemaExtensions: no,
-          additionalProperties: {
-            type: 'array',
-            items: { type: 'any' },
-            build () { return true }
-          }
-        })
-        expect(() => Test.validate({ foo: [] })).to.throw(/SchemaArray does not support build function./)
-      })
-
-      it('cannot be run on objects', function () {
-        const Test = TestComponent({
-          type: 'object',
-          allowsSchemaExtensions: no,
-          build (d) { return true }
-        })
-        expect(() => Test.validate({})).to.throw(/SchemaObject does not support build function./)
-      })
+    //   it('cannot be run on arrays', function () {
+    //     const Test = TestComponent({
+    //       type: 'object',
+    //       allowsSchemaExtensions: no,
+    //       additionalProperties: {
+    //         type: 'array',
+    //         items: { type: 'any' },
+    //         build () { return true }
+    //       }
+    //     })
+    //     expect(() => Test.validate({ foo: [] })).to.throw(/SchemaArray does not support build function./)
+    //   })
+    //
+    //   it('cannot be run on objects', function () {
+    //     const Test = TestComponent({
+    //       type: 'object',
+    //       allowsSchemaExtensions: no,
+    //       build (d) { return true }
+    //     })
+    //     expect(() => Test.validate({})).to.throw(/SchemaObject does not support build function./)
+    //   })
     })
   })
 
