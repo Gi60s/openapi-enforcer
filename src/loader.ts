@@ -228,7 +228,7 @@ function getLocation (pos: number, lineEndings: LineEnding[]): Location['start']
     }
   }
 
-  if (result.column === 0) {
+  if (result.column <= 0) {
     result.line--
     result.column = lastLine.lineLength + 1
   }
