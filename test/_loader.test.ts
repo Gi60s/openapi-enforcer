@@ -2,14 +2,6 @@ import { load, lookupLocation } from '../src/loader'
 import { expect } from 'chai'
 import path from 'path'
 import fs from 'fs'
-import { server } from './util/helpers'
-
-before(async () => {
-  await server.start()
-})
-after(() => {
-  server.stop()
-})
 
 const resources = path.resolve(__dirname, 'resources', 'loader')
 
