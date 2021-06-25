@@ -55,7 +55,7 @@ const basicSchemaObject: SchemaObject = {
 }
 
 interface BasicDefinition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   any?: any
   array?: Array<{ x?: number, y?: number }>
   boolean?: boolean
@@ -69,6 +69,7 @@ interface BasicDefinition {
 }
 
 class Basic extends OASComponent {
+  readonly [key: `x-${string}`]: any
   readonly any?: any
   readonly array?: Array<{ x?: number, y?: number }>
   readonly boolean!: boolean
@@ -77,7 +78,7 @@ class Basic extends OASComponent {
   readonly string?: string
 
   constructor (definition: BasicDefinition, version?: Version) {
-    const data = initializeData('constructing Basic object', definition, version, arguments[2])
+    const data = initializeData('constructing', Basic, definition, version, arguments[2])
     super(data)
   }
 
@@ -110,7 +111,7 @@ class HasChildComponent extends OASComponent {
   readonly string?: string
 
   constructor (definition: HasChildComponentDefinition, version?: Version) {
-    const data = initializeData('constructing HasChildComponent object', definition, version, arguments[2])
+    const data = initializeData('constructing', HasChildComponent, definition, version, arguments[2])
     super(data)
   }
 
@@ -153,7 +154,7 @@ class LoopComponent extends OASComponent {
   readonly string?: string
 
   constructor (definition: LoopComponentDefinition, version?: Version) {
-    const data = initializeData('constructing LoopComponent object', definition, version, arguments[2])
+    const data = initializeData('constructing', LoopComponent, definition, version, arguments[2])
     super(data)
   }
 
@@ -230,6 +231,7 @@ describe('Generic component tests', () => {
     })
 
     it('will not add unknown properties', function () {
+      // @ts-expect-error
       const component = new Basic({ foo: 'string' })
       expect(component).to.be.instanceOf(Basic)
     })
@@ -509,7 +511,7 @@ describe('Generic component tests', () => {
         readonly required!: boolean
 
         constructor (definition: any, version?: Version) {
-          const data = initializeData('constructing Test object', definition, version, arguments[2])
+          const data = initializeData('constructing', Test, definition, version, arguments[2])
           super(data)
         }
 
@@ -546,7 +548,7 @@ describe('Generic component tests', () => {
 function TestComponent (schema: SchemaObject): ExtendedComponent {
   return class Test extends OASComponent {
     constructor (definition: any, version?: Version) {
-      const data = initializeData('constructing Test object', definition, version, arguments[2])
+      const data = initializeData('constructing', Test, definition, version, arguments[2])
       super(data)
     }
 

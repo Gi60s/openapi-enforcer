@@ -36,7 +36,8 @@ describe('Swagger component', () => {
 
     it('will validate a loaded document by default', async () => {
       const { error } = await Swagger.load('swagger.json')
-      expect(error).to.match(/One or more errors found while validating Swagger object/)
+      expect(error).to.match(/One or more errors found while loading Swagger object/)
+      throw Error('This error message has two "at: " at the beginning. Fix this.')
       expect(error?.count).to.equal(3)
     })
   })
@@ -56,6 +57,7 @@ describe('Swagger component', () => {
     })
 
     it('cannot have invalid properties', function () {
+      // @ts-expect-error
       const [error] = Swagger.validate({ swagger, info, paths, foo: 'invalid' })
       expect(error).to.match(/Property "foo" not allowed. Property not part of the specification/)
     })
@@ -278,6 +280,7 @@ describe('Swagger component', () => {
       })
 
       it('must be an object', function () {
+        // @ts-expect-error
         const [error] = Swagger.validate({ swagger, info, paths: [] })
         expect(error).to.match(/Expected a non-null object/)
       })
@@ -289,6 +292,7 @@ describe('Swagger component', () => {
       })
 
       it('will warn if $ref is used', () => {
+        // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths: { $ref: '' } })
         expect(warning?.count).to.equal(1)
         expect(warning?.messageDetails[0].data.code).to.equal('DVCREF')

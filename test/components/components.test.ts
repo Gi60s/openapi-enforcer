@@ -10,7 +10,6 @@ import {
   Schema,
   SecurityScheme
 } from '../../src'
-// import { PathItem } from '../../src/components/PathItem'  // version 3.1.0
 import { expect } from 'chai'
 import { minimal } from '../util/helpers'
 
@@ -116,6 +115,7 @@ describe('Components component', () => {
 
     it('cannot have invalid properties', function () {
       const [error] = Components.validate({
+        // @ts-expect-error
         foo: 'invalid'
       })
       expect(error).to.match(/Property "foo" not allowed. Property not part of the specification/)
@@ -145,7 +145,7 @@ describe('Components component', () => {
             Name: { type: 'foo' }
           }
         })
-        expect(error).to.match(/Value must be one of: "array", "boolean", "integer", "number", "string"/)
+        expect(error).to.match(/Value must be one of: "array", "boolean", "integer", "number", "object", "string"/)
       })
 
       it('can accept a reference', function () {
@@ -252,6 +252,7 @@ describe('Components component', () => {
       it('cannot define invalid examples', function () {
         const [error] = Components.validate({
           examples: {
+            // @ts-expect-error
             Example1: { foo: 'bar' }
           }
         })
@@ -325,6 +326,7 @@ describe('Components component', () => {
       it('cannot define invalid headers', function () {
         const [error] = Components.validate({
           headers: {
+            // @ts-expect-error
             Header1: { foo: 'bar' }
           }
         })
@@ -398,6 +400,7 @@ describe('Components component', () => {
       it('cannot define invalid links', function () {
         const [error] = Components.validate({
           links: {
+            // @ts-expect-error
             MyLink: { foo: 'bar' }
           }
         })

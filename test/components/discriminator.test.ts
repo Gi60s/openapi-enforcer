@@ -35,8 +35,8 @@ describe('Discriminator component', () => {
     })
 
     it('cannot have invalid properties', function () {
-      // @ts-expect-error
       const [error] = Discriminator.validate({
+        // @ts-expect-error
         foo: 'invalid'
       })
       expect(error).to.match(/Property "foo" not allowed. Property not part of the specification/)
