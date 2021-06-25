@@ -4,7 +4,7 @@ import path from 'path'
 import http from 'http'
 
 const testLoaderRegistry: Record<string, string> = {}
-const testResourcesDirectory = path.resolve(__dirname, '..', 'test-resources')
+const testResourcesDirectory = path.resolve(__dirname, '..', 'resources')
 let testLoaderInitialized = false
 
 export function registerContent (path: string, data: object): string {
