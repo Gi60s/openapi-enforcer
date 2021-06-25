@@ -2,7 +2,7 @@ import { OASComponent, initializeData, Data, SchemaObject, SpecMap, Version, Exc
 import { no, yes } from '../util'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   authorizationUrl?: string
   refreshUrl?: string
   scopes: string[]
@@ -10,11 +10,11 @@ export interface Definition {
 }
 
 export class OAuthFlow extends OASComponent {
-  readonly [extension: string]: any
-  authorizationUrl?: string
-  refreshUrl?: string
-  scopes!: string[]
-  tokenUrl?: string
+  readonly [key: `x-${string}`]: any
+  readonly authorizationUrl?: string
+  readonly refreshUrl?: string
+  readonly scopes!: string[]
+  readonly tokenUrl?: string
 
   constructor (definition: Definition, version?: Version) {
     const data = initializeData('constructing OAuthFlow object', definition, version, arguments[2])

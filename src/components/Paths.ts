@@ -5,11 +5,13 @@ import * as PathItem from './PathItem'
 import { lookupLocation } from '../loader'
 
 export interface Definition {
-  [pathOrExtension: string]: PathItem.Definition | any
+  [key: `x-${string}`]: any
+  [path: string]: PathItem.Definition
 }
 
 export class Paths extends OASComponent {
-  [pathOrExtension: string]: PathItem.PathItem | any
+  readonly [key: `x-${string}`]: any
+  readonly [path: string]: PathItem.PathItem
 
   constructor (definition: Definition, version?: Version) {
     const data = initializeData('constructing Paths object', definition, version, arguments[2])

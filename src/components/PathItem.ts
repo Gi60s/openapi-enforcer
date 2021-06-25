@@ -10,7 +10,7 @@ import { lookupLocation } from '../loader'
 const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   delete?: Operation.Definition
   description?: string
   get?: Operation.Definition
@@ -26,7 +26,7 @@ export interface Definition {
 }
 
 export class PathItem extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   delete?: Operation.Operation
   description?: string
   get?: Operation.Operation

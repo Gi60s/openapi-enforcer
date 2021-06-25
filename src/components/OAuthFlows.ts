@@ -3,19 +3,19 @@ import { yes } from '../util'
 import * as OAuthFlow from './OAuthFlow'
 
 export interface Definition {
-  [extension: string]: any
-  authorizationUrl?: string
-  refreshUrl?: string
-  scopes: string[]
-  tokenUrl?: string
+  [key: `x-${string}`]: any
+  authorizationCode?: OAuthFlow.Definition
+  clientCredentials?: OAuthFlow.Definition
+  implicit?: OAuthFlow.Definition
+  password?: OAuthFlow.Definition
 }
 
 export class OAuthFlows extends OASComponent {
-  readonly [extension: string]: any
-  readonly authorizationUrl?: string
-  readonly refreshUrl?: string
-  readonly scopes!: string[]
-  readonly tokenUrl?: string
+  readonly [key: `x-${string}`]: any
+  readonly authorizationCode?: OAuthFlow.OAuthFlow
+  readonly clientCredentials?: OAuthFlow.OAuthFlow
+  readonly implicit?: OAuthFlow.OAuthFlow
+  readonly password?: OAuthFlow.OAuthFlow
 
   constructor (definition: Definition, version?: Version) {
     const data = initializeData('constructing OAuthFlows object', definition, version, arguments[2])

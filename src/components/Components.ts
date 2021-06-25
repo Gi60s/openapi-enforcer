@@ -12,7 +12,7 @@ import * as Schema from './Schema'
 import * as SecurityScheme from './SecurityScheme'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   callbacks?: Record<string, Callback.Definition | Reference.Definition>
   examples?: Record<string, Example.Definition | Reference.Definition>
   headers?: Record<string, Header.Definition | Reference.Definition>
@@ -25,7 +25,7 @@ export interface Definition {
 }
 
 export class Components extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly callbacks?: Record<string, Callback.Callback | Reference.Reference>
   readonly examples?: Record<string, Example.Example | Reference.Reference>
   readonly headers?: Record<string, Header.Header | Reference.Reference>

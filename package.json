@@ -35,7 +35,7 @@
     "ts-node": "^9.1.1",
     "ts-standard": "^10.0.0",
     "typedoc": "^0.17.6",
-    "typescript": "^3.9.5",
+    "typescript": "^4.4.0-dev.20210624",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12"
   },
@@ -47,7 +47,7 @@
     "dev": "tsc --watch",
     "lint": "ts-standard --verbose | snazzy",
     "lint:fix": "ts-standard --fix --verbose | snazzy",
-    "test": "mocha test/**/*.test.ts --require ts-node/register --recursive",
+    "test": "mocha test/**/*.test.ts --require ts-node/register --require test/util/hooks.ts --recursive",
     "test:watch": "npm test -- --watch --watch-files src test"
   },
   "author": "James Speirs <james.speirs@gmail.com>",

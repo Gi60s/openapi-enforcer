@@ -6,7 +6,7 @@ import * as Server from './Server'
 import { lookupLocation } from '../loader'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   description?: string
   operationId?: string
   operationRef?: string
@@ -16,7 +16,7 @@ export interface Definition {
 }
 
 export class Link extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly description?: string
   readonly operationId?: string
   readonly operationRef?: string

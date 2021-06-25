@@ -12,7 +12,7 @@ import { lookupLocation } from '../loader'
 export type Definition = Definition2 | Definition3
 
 export interface Definition2 extends PartialSchema.Definition<Items.Definition> {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   name: string
   in: 'body' | 'formData' | 'header' | 'path' | 'query'
   allowEmptyValue?: boolean
@@ -39,7 +39,7 @@ export interface Definition2 extends PartialSchema.Definition<Items.Definition> 
 }
 
 export interface Definition3 {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   name: string
   in: 'cookie' | 'header' | 'path' | 'query'
   allowEmptyValue?: boolean
@@ -55,7 +55,7 @@ export interface Definition3 {
 }
 
 export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly name!: string
   readonly in!: 'body' | 'cookie' | 'formData' | 'header' | 'path' | 'query'
   readonly allowEmptyValue?: boolean
@@ -281,7 +281,10 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
         versions: ['3.x.x'],
         schema: {
           type: 'boolean',
-          default: (data: Data, def: Definition) => def.style === 'form',
+          default: (data: Data, def: Definition) => {
+            // @ts-expect-error
+            return def.style === 'form'
+          },
           after (data: Data, def) {
             const { definition: explode, exception, component } = data
             data.finally.push(function () {

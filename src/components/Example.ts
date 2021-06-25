@@ -4,7 +4,7 @@ import { lookupLocation } from '../loader'
 import { addExceptionLocation } from '../util'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   description?: string
   externalValue?: string
   summary?: string
@@ -12,7 +12,7 @@ export interface Definition {
 }
 
 export class Example extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly description?: string
   readonly externalValue?: string
   readonly summary?: string

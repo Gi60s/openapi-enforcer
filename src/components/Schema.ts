@@ -9,8 +9,8 @@ import * as DataType from './helpers/DataTypes'
 
 export type Definition = Definition2 | Definition3
 
-interface DefinitionBase<Definition> extends PartialSchema.Definition<Definition>{
-  [extension: string]: any
+interface DefinitionBase<Definition> extends PartialSchema.Definition<Definition> {
+  [key: `x-${string}`]: any
   additionalProperties?: Definition | boolean
   allOf?: Definition[]
   description?: string
@@ -41,7 +41,7 @@ export interface Definition3 extends DefinitionBase<Definition3> {
 }
 
 export class Schema extends PartialSchema.PartialSchema<Schema> {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly additionalProperties?: Object | boolean
   readonly allOf?: Object[]
   readonly description?: string

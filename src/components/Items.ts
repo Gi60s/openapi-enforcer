@@ -3,13 +3,13 @@ import * as PartialSchema from './helpers/PartialSchema'
 import * as DataType from './helpers/DataTypes'
 
 export interface Definition extends PartialSchema.Definition<Definition> {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
 }
 
 export class Items extends PartialSchema.PartialSchema<Items> {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   readonly type!: 'array' | 'boolean' | 'integer' | 'number' | 'string'
 

@@ -15,7 +15,7 @@ import { Result } from '../Result'
 const rxVersion = /^\d+\.\d+\.\d+$/
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   components?: Components.Definition
   externalDocs?: ExternalDocumentation.Definition
   info: Info.Definition
@@ -27,7 +27,7 @@ export interface Definition {
 }
 
 export class OpenAPI extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly components?: Components.Components
   readonly externalDocs?: ExternalDocumentation.ExternalDocumentation
   readonly info!: Info.Info

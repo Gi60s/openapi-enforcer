@@ -13,7 +13,7 @@ import { lookupLocation } from '../loader'
 import { ExceptionMessageData } from '../Exception/types'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   callbacks?: Record<string, Callback.Definition | Reference.Definition> // v3
   consumes?: string[] // v2
   deprecated?: boolean
@@ -32,7 +32,7 @@ export interface Definition {
 }
 
 export class Operation extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly callbacks?: Record<string, Callback.Callback | Reference.Reference> // v3
   readonly consumes?: string[] // v2
   readonly deprecated?: boolean

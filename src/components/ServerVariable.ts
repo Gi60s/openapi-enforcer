@@ -4,14 +4,14 @@ import * as E from '../Exception/methods'
 import { lookupLocation } from '../loader'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   enum?: string[]
   default: string
   description?: string
 }
 
 export class ServerVariable extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly enum?: string[]
   readonly default!: string
   readonly description?: string

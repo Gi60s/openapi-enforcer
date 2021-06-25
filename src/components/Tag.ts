@@ -3,14 +3,14 @@ import { yes } from '../util'
 import * as ExternalDocumentation from './ExternalDocumentation'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   name: string
   description?: string
   externalDocs?: ExternalDocumentation.Definition
 }
 
 export class Tag extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly name!: string
   readonly description?: string
   readonly externalDocs?: ExternalDocumentation.ExternalDocumentation

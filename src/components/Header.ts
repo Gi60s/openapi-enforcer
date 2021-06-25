@@ -9,7 +9,7 @@ import * as Schema from './Schema'
 import { lookupLocation } from '../loader'
 
 export interface Definition extends PartialSchema.Definition<Definition> {
-  [extension: string]: any
+  [key: `x-${string}`]: any
 
   // v2
   collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
@@ -27,7 +27,7 @@ export interface Definition extends PartialSchema.Definition<Definition> {
 }
 
 export class Header extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
 
   // v2
   readonly collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'

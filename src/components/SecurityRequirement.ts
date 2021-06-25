@@ -6,11 +6,13 @@ import * as E from '../Exception/methods'
 import { lookupLocation } from '../loader'
 
 export interface Definition {
+  [key: `x-${string}`]: any
   [name: string]: string[]
 }
 
 export class SecurityRequirement extends OASComponent {
-  [name: string]: string[] | any
+  readonly [key: `x-${string}`]: any
+  readonly [name: string]: string[]
 
   constructor (definition: Definition, version?: Version) {
     const data = initializeData('constructing SecurityRequirement object', definition, version, arguments[2])

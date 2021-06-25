@@ -5,14 +5,14 @@ import * as E from '../Exception/methods'
 import rx from '../rx'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   name?: string
   url?: string
   email?: string
 }
 
 export class Contact extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly email?: string
   readonly name?: string
   readonly url?: string

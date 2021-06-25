@@ -164,7 +164,20 @@ export interface ExtendedComponent<T extends OASComponent=any> {
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export abstract class OASComponent {
-  [key: string]: any
+  // If the line following the example is not commented out then there will be no errors around extensions,
+  // but it makes it easier to get extensions without having to cast to an xComponent type.
+  // Example:
+  // const info = new Info.Info({
+  //   title: '',
+  //   version: '',
+  //   contact: {
+  //     'x-name': 'Bob',
+  //     name: 'Bob'
+  //   } as Contact.xDefinition
+  // })
+  // console.log((info.contact as Contact.xContact)['x-name'])
+  //
+  // [key: string]: any
 
   protected constructor (data: Data) {
     const { definition, map } = data
@@ -363,15 +376,9 @@ export function build (data: Data): any {
       if (found !== undefined) {
         data.built = found.instance
       } else {
+        // creating the component will also register it with the store
         data.built = new Component(definition, data.version, data)
       }
-
-      mappable(Component, data, {}, (built) => {
-        const child = buildChildDataForComponent(data, Component, built)
-        data.built = build(child)
-        child.finally.forEach(fn => fn(child))
-        return data.built
-      })
     } else if (schema.type === 'number') {
       if (typeof definition !== 'number') throw Error('Invalid definition type. Expected a number. Received: ' + smart(definition))
       data.built = definition

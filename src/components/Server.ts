@@ -3,14 +3,14 @@ import { no, yes } from '../util'
 import * as ServerVariable from './ServerVariable'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   description?: string
   url: string
   variables?: Record<string, ServerVariable.Definition>
 }
 
 export class Server extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly description?: string
   readonly url!: string
   readonly variables?: Record<string, ServerVariable.ServerVariable>

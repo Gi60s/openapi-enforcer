@@ -9,7 +9,7 @@ const rxUrl = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\
 export type Definition = Definition2 | Definition3
 
 export interface Definition2 {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   authorizationUrl: string
   description?: string
   flow: string
@@ -21,7 +21,7 @@ export interface Definition2 {
 }
 
 export interface Definition3 {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   bearerFormat?: string
   description?: string
   flows: string
@@ -33,7 +33,7 @@ export interface Definition3 {
 }
 
 export class SecurityScheme extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly description?: string
   readonly in!: string
   readonly name!: string
@@ -171,9 +171,12 @@ export class SecurityScheme extends OASComponent {
           name: 'tokenUrl',
           versions: ['2.x'],
           required: yes,
-          allowed: (data, def: Definition) => def.type === 'oauth2' && ['password', 'application', 'accessCode'].includes(def.flow)
-            ? true
-            : 'Only allowed if type is "oauth2" and flow is one of "application", "accessCode", or "password".',
+          allowed: (data, def: Definition) => {
+            // @ts-expect-error
+            return def.type === 'oauth2' && ['password', 'application', 'accessCode'].includes(def.flow)
+              ? true
+              : 'Only allowed if type is "oauth2" and flow is one of "application", "accessCode", or "password".'
+          },
           schema: { type: 'string' }
         }
       ]

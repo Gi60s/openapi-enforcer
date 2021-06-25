@@ -2,13 +2,13 @@ import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception
 import { yes } from '../util'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   name: string
   url?: string
 }
 
 export class License extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly name!: string
   readonly url?: string
 

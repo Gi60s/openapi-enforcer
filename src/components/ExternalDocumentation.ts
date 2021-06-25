@@ -2,13 +2,13 @@ import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception
 import { yes } from '../util'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   description?: string
   url: string
 }
 
 export class ExternalDocumentation extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly description?: string
   readonly url!: string
 

@@ -7,7 +7,7 @@ import * as Reference from './Reference'
 import { lookupLocation } from '../loader'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   allowReserved?: boolean
   contentType?: string
   explode?: boolean
@@ -16,7 +16,7 @@ export interface Definition {
 }
 
 export class Encoding extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly allowReserved?: boolean
   readonly contentType?: string
   readonly explode?: boolean

@@ -10,7 +10,7 @@ import * as Schema from './Schema'
 import { lookupLocation } from '../loader'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   encoding?: Record<string, Encoding.Definition | Reference.Definition>
   example?: any
   examples?: Record<string, Example.Definition | Reference.Definition>
@@ -18,7 +18,7 @@ export interface Definition {
 }
 
 export class MediaType extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   encoding?: Record<string, Encoding.Encoding | Reference.Reference>
   example?: any
   examples?: Record<string, Example.Example | Reference.Reference>

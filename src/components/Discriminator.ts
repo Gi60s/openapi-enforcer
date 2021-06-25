@@ -4,13 +4,11 @@ import { no } from '../util'
 import { lookupLocation, getReferenceNode } from '../loader'
 
 export interface Definition {
-  [extension: string]: any
   propertyName: string
   mapping?: Record<string, string>
 }
 
 export class Discriminator extends OASComponent {
-  readonly [extension: string]: any
   readonly propertyName!: string
   readonly mapping?: Record<string, Schema.Schema>
 

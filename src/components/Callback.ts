@@ -3,11 +3,13 @@ import { yes } from '../util'
 import * as PathItem from './PathItem'
 
 export interface Definition {
-  [extensionOrPathItem: string]: PathItem.Definition
+  [key: `x-${string}`]: any
+  [pathItem: string]: PathItem.Definition
 }
 
 export class Callback extends OASComponent {
-  readonly [extensionOrPathItem: string]: PathItem.PathItem | any
+  readonly [key: `x-${string}`]: any
+  readonly [pathItem: string]: PathItem.PathItem
 
   constructor (definition: Definition, version?: Version) {
     const data = initializeData('constructing Callback object', definition, version, arguments[2])
@@ -16,11 +18,10 @@ export class Callback extends OASComponent {
 
   static get spec (): SpecMap {
     return {
-      '2.0': 'https://spec.openapis.org/oas/v2.0#license-object',
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#license-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#license-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#license-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#license-object'
+      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#callback-object',
+      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#callback-object',
+      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#callback-object',
+      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#callback-object'
     }
   }
 

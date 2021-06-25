@@ -14,7 +14,7 @@ const rxLinkName = /^[a-zA-Z0-9.\-_]+$/
 export type Definition = Definition2 | Definition3
 
 export interface Definition2 {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   description: string
   headers?: Record<string, Header.Definition>
   examples?: Record<string, any>
@@ -22,7 +22,7 @@ export interface Definition2 {
 }
 
 export interface Definition3 {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   content?: Record<string, MediaType.Definition>
   description: string
   headers?: Record<string, Header.Definition | Reference.Definition>
@@ -30,7 +30,7 @@ export interface Definition3 {
 }
 
 export class Response extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly content?: Record<string, MediaType.MediaType>
   readonly description!: string
   readonly examples?: Record<string, any>

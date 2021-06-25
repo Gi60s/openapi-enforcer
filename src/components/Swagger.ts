@@ -27,7 +27,7 @@ const rxHostParts = /^(?:(https?|wss?):\/\/)?(.+?)(\/.+)?$/
 const rxPathTemplating = /[{}]/
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   basePath?: string
   consumes?: string[]
   definitions?: Definitions.Definition
@@ -46,22 +46,22 @@ export interface Definition {
 }
 
 export class Swagger extends OASComponent {
-  readonly [extension: string]: any
-  basePath?: string
-  consumes?: string[]
-  definitions?: Definitions.Definitions
-  externalDocs?: ExternalDocumentation.ExternalDocumentation
-  host?: string
-  info!: Info.Info
-  parameters?: Record<string, Parameter.Parameter>
-  paths!: Paths.Paths
-  produces?: string[]
-  responses?: Record<string, Response.Response>
-  security?: SecurityRequirement.SecurityRequirement[]
-  securityDefinitions?: Record<string, SecurityScheme.SecurityScheme>
-  schemes?: string[]
-  swagger!: '2.0'
-  tags?: Tag.Tag[]
+  readonly [key: `x-${string}`]: any
+  readonly basePath?: string
+  readonly consumes?: string[]
+  readonly definitions?: Definitions.Definitions
+  readonly externalDocs?: ExternalDocumentation.ExternalDocumentation
+  readonly host?: string
+  readonly info!: Info.Info
+  readonly parameters?: Record<string, Parameter.Parameter>
+  readonly paths!: Paths.Paths
+  readonly produces?: string[]
+  readonly responses?: Record<string, Response.Response>
+  readonly security?: SecurityRequirement.SecurityRequirement[]
+  readonly securityDefinitions?: Record<string, SecurityScheme.SecurityScheme>
+  readonly schemes?: string[]
+  readonly swagger!: '2.0'
+  readonly tags?: Tag.Tag[]
 
   constructor (definition: Definition) {
     const data = initializeData('constructing Swagger object', definition, '2.0', arguments[2])

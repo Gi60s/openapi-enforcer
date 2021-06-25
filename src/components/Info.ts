@@ -4,7 +4,7 @@ import * as Contact from './Contact'
 import * as License from './License'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   title: string
   description?: string
   termsOfService?: string
@@ -14,7 +14,7 @@ export interface Definition {
 }
 
 export class Info extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly title!: string
   readonly description?: string
   readonly termsOfService?: string

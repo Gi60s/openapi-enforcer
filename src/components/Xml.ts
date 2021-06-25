@@ -2,7 +2,7 @@ import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception
 import { yes } from '../util'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   name?: string
   namespace?: string
   prefix?: string
@@ -11,7 +11,7 @@ export interface Definition {
 }
 
 export class Xml extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   readonly name?: string
   readonly namespace?: string
   readonly prefix?: string

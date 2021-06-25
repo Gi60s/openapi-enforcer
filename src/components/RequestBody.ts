@@ -3,14 +3,14 @@ import { yes } from '../util'
 import * as MediaType from './MediaType'
 
 export interface Definition {
-  [extension: string]: any
+  [key: `x-${string}`]: any
   description?: string
   content: MediaType.Definition
   required?: boolean
 }
 
 export class RequestBody extends OASComponent {
-  readonly [extension: string]: any
+  readonly [key: `x-${string}`]: any
   description?: string
   content!: MediaType.MediaType
   required?: boolean
