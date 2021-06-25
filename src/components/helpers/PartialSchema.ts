@@ -63,13 +63,13 @@ export function schemaGenerator (referenceComponentClass: any): SchemaObject {
   let type: string
 
   function getType (data: Data): string {
-    if (type === undefined) type = data.component.definition.type
+    if (type === undefined) type = data.component.data.definition.type
     return type
   }
 
   function isNumeric (data: Data): boolean {
     const type = getType(data)
-    const def = dataTypes.getDefinition(type as DataType.Type, data.component.definition.format)
+    const def = dataTypes.getDefinition(type as DataType.Type, data.component.data.definition.format)
     return def?.isNumeric ?? false
   }
 

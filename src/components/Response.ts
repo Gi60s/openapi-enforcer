@@ -39,7 +39,7 @@ export class Response extends OASComponent {
   readonly schema?: Schema.Schema
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Response object', definition, version, arguments[2])
+    const data = initializeData('constructing', Response, definition, version, arguments[2])
     super(data)
   }
 

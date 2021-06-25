@@ -13,7 +13,7 @@ export class License extends OASComponent {
   readonly url?: string
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing License object', definition, version, arguments[2])
+    const data = initializeData('constructing', License, definition, version, arguments[2])
     super(data)
   }
 

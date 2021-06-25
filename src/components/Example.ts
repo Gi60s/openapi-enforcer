@@ -19,7 +19,7 @@ export class Example extends OASComponent {
   readonly value?: any
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Example object', definition, version, arguments[2])
+    const data = initializeData('constructing', Example, definition, version, arguments[2])
     super(data)
   }
 

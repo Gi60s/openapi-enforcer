@@ -18,7 +18,7 @@ export class Contact extends OASComponent {
   readonly url?: string
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Contact object', definition, version, arguments[2])
+    const data = initializeData('constructing', Contact, definition, version, arguments[2])
     super(data)
   }
 

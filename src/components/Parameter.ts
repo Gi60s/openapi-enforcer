@@ -77,7 +77,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
   readonly style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'simple' | 'spaceDelimited' | 'pipeDelimited'
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Parameter object', definition, version, arguments[2])
+    const data = initializeData('constructing', Parameter, definition, version, arguments[2])
     super(data)
   }
 
@@ -167,7 +167,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
         schema: {
           type: 'any',
           after: ({ exception, root }: Data) => {
-            root.finally.push(() => {
+            root.component.finally.push(() => {
               // TODO: test if example matches schema
             })
           }
@@ -182,7 +182,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
           additionalProperties: {
             type: 'any',
             after: ({ exception, root }: Data) => {
-              root.finally.push(() => {
+              root.component.finally.push(() => {
                 // TODO: test if example matches schema
               })
             }
@@ -194,11 +194,11 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
         schema: {
           type: 'boolean',
           default: () => false,
-          before (data: Data, def) {
+          before (data: Data, componentDef) {
             const { exception, component, definition: value } = data
-            if (component.definition?.in === 'path' && value !== true) {
-              const pathParameterMustBeRequired = E.pathParameterMustBeRequired(data.reference, component.definition.name)
-              addExceptionLocation(pathParameterMustBeRequired, lookupLocation(def, 'required', 'value') ?? lookupLocation(def))
+            if (componentDef.in === 'path' && value !== true) {
+              const pathParameterMustBeRequired = E.pathParameterMustBeRequired(data.reference, componentDef.name)
+              addExceptionLocation(pathParameterMustBeRequired, lookupLocation(componentDef, 'required', 'value') ?? lookupLocation(componentDef))
               exception.message(pathParameterMustBeRequired)
               return false
             }
@@ -255,8 +255,8 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
           after (data: Data, def) {
             const { definition: style, exception, component } = data
             const at = def.in
-            data.finally.push(function () {
-              const parameter = component.built
+            data.component.finally.push(function () {
+              const parameter = component.data.built
               const schema: Schema.Schema | Reference.Reference | undefined = parameter.schema
               if (schema !== undefined && !('$ref' in schema)) {
                 const type = schema.type
@@ -287,8 +287,8 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
           },
           after (data: Data, def) {
             const { definition: explode, exception, component } = data
-            data.finally.push(function () {
-              const parameter = component.built
+            data.component.finally.push(function () {
+              const parameter = component.data.built
               if (parameter.schema !== undefined && !('$ref' in parameter.schema)) {
                 const type = parameter.schema.type
                 const { at, name } = def

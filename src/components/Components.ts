@@ -37,7 +37,7 @@ export class Components extends OASComponent {
   readonly securitySchemes?: Record<string, SecurityScheme.SecurityScheme | Reference.Reference>
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Components object', definition, version, arguments[2])
+    const data = initializeData('constructing', Components, definition, version, arguments[2])
     super(data)
   }
 

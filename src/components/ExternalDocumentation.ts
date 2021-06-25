@@ -13,7 +13,7 @@ export class ExternalDocumentation extends OASComponent {
   readonly url!: string
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing ExternalDocumentation object', definition, version, arguments[2])
+    const data = initializeData('constructing', ExternalDocumentation, definition, version, arguments[2])
     super(data)
   }
 

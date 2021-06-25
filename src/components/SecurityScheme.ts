@@ -52,7 +52,7 @@ export class SecurityScheme extends OASComponent {
   readonly scheme?: string
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing SecurityScheme object', definition, version, arguments[2])
+    const data = initializeData('constructing', SecurityScheme, definition, version, arguments[2])
     super(data)
   }
 

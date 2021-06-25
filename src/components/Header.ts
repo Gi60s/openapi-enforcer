@@ -44,7 +44,7 @@ export class Header extends OASComponent {
   style?: 'simple'
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Header object', definition, version, arguments[2])
+    const data = initializeData('constructing', Header, definition, version, arguments[2])
     super(data)
   }
 

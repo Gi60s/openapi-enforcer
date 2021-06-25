@@ -5,7 +5,7 @@ import {
   SpecMap,
   Exception,
   LoaderOptions,
-  normalizeLoaderOptions
+  normalizeLoaderOptions, loadRoot
 } from './'
 import { Result } from '../Result'
 import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
@@ -64,7 +64,7 @@ export class Swagger extends OASComponent {
   readonly tags?: Tag.Tag[]
 
   constructor (definition: Definition) {
-    const data = initializeData('constructing Swagger object', definition, '2.0', arguments[2])
+    const data = initializeData('constructing', Swagger, definition, '2.0', arguments[2])
     super(data)
   }
 
@@ -75,37 +75,7 @@ export class Swagger extends OASComponent {
   }
 
   static async load (path: string, options?: LoaderOptions): Promise<Result<Swagger>> {
-    options = normalizeLoaderOptions(options)
-
-    // load file with dereference
-    const config: LoaderMetadata = {
-      cache: {},
-      exception: new Exception('Unable to load Swagger document')
-    }
-    const loaded = await Loader.load(path, { dereference: options.dereference }, config)
-
-    // if there is an error then return now
-    const [definition] = loaded
-    const exception = loaded.exception as Exception
-    if (loaded.hasError) return new Result(definition, exception) // first param will be undefined because of error
-
-    // initialize data object
-    const version = definition.openapi
-    const data = initializeData('', definition, version)
-    data.loadCache = config.cache as Record<string, any>
-    data.exception = exception
-
-    // run validation then reset some data properties
-    // @ts-expect-error
-    if (options.validate === true) OpenAPI.validate(definition, version, data)
-    data.map = new Map()
-    data.finally = []
-
-    // build the component if there are no errors
-    if (exception.hasError) return new Result(definition, exception) // first param will be undefined because of error
-    // @ts-expect-error
-    const component = new Swagger(definition, version, data)
-    return new Result(component, exception)
+    return loadRoot<Swagger>(Swagger, path, options)
   }
 
   static schemaGenerator (): SchemaObject {

@@ -50,7 +50,7 @@ export class Operation extends OASComponent {
   readonly tags?: string[]
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Operation object', definition, version, arguments[2])
+    const data = initializeData('constructing', Operation, definition, version, arguments[2])
     super(data)
   }
 
@@ -119,7 +119,7 @@ export class Operation extends OASComponent {
               const { definition, exception, metadata } = data
               if (metadata.operationIdMap === undefined) metadata.operationIdMap = {}
               if (metadata.operationIdMap[definition] === undefined) metadata.operationIdMap[definition] = []
-              metadata.operationIdMap[definition].push(data.component)
+              metadata.operationIdMap[definition].push(data.component.data)
 
               // this exception method had a dynamic active property that will determine if this is an error or not
               const operationIdMustBeUnique = E.operationIdMustBeUnique(data.reference, definition, metadata.operationIdMap[definition])
@@ -156,7 +156,7 @@ export class Operation extends OASComponent {
             type: 'component',
             allowsRef: true,
             before: ({ component, exception }, def) => {
-              const method = component.key
+              const method = component.data.key
               let operationMethodShouldNotHaveBody: ExceptionMessageData
               switch (method.toLowerCase()) {
                 case 'get':

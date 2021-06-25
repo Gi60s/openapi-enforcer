@@ -10,7 +10,7 @@ export class Definitions extends OASComponent {
   readonly [name: string]: Schema.Schema
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Definitions object', definition, version, arguments[2])
+    const data = initializeData('constructing', Definitions, definition, version, arguments[2])
     super(data)
   }
 

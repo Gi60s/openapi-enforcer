@@ -14,7 +14,7 @@ export class Items extends PartialSchema.PartialSchema<Items> {
   readonly type!: 'array' | 'boolean' | 'integer' | 'number' | 'string'
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Items object', definition, version, arguments[2])
+    const data = initializeData('constructing', Items, definition, version, arguments[2])
     super(data)
   }
 

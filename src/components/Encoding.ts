@@ -24,7 +24,7 @@ export class Encoding extends OASComponent {
   readonly style?: string
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Encoding object', definition, version, arguments[2])
+    const data = initializeData('constructing', Encoding, definition, version, arguments[2])
     super(data)
   }
 
@@ -47,7 +47,7 @@ export class Encoding extends OASComponent {
         const ancestor = chain[1]
 
         // TODO: remove this once i'm sure I'm getting the right position in hierarchy
-        console.log('TODO: Validate that this is an encoding: ' + ancestor.key)
+        console.log('TODO: Validate that this is an encoding: ' + ancestor?.key)
 
         return true
       },
@@ -58,10 +58,10 @@ export class Encoding extends OASComponent {
             type: 'string',
             default: () => 'form',
             enum: () => ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'],
-            ignored: ({ chain }) => chain[1].key !== 'application/x-www-form-urlencoded',
+            ignored: ({ chain }) => chain[1]?.key !== 'application/x-www-form-urlencoded',
             after ({ chain, exception, definition, reference }, def) {
               const ancestor = chain[2]
-              const type = ancestor.definition.schema.type
+              const type = ancestor?.definition.schema.type
               if (type !== undefined && definition !== undefined && chain[0].definition.in === 'query') {
                 if ((definition !== 'form') &&
                   !(definition === 'spaceDelimited' && type === 'array') &&
@@ -81,7 +81,8 @@ export class Encoding extends OASComponent {
             type: 'string',
             default: ({ chain }) => {
               const propertyName = chain[0].key
-              const v = chain[2].definition.schema.properties[propertyName]
+              const v = chain[2]?.definition.schema.properties[propertyName]
+              if (v === undefined) return undefined
               if (v.type === 'string' && v.format === 'binary') return 'application/octet-stream'
               if (v.type === 'object') return 'application/json'
               if (v.type === 'array') {
@@ -105,7 +106,7 @@ export class Encoding extends OASComponent {
           schema: {
             type: 'boolean',
             default: () => false,
-            ignored: ({ chain }) => chain[2].key !== 'application/x-www-form-urlencoded'
+            ignored: ({ chain }) => chain[2]?.key !== 'application/x-www-form-urlencoded'
           }
         },
         {
@@ -119,7 +120,7 @@ export class Encoding extends OASComponent {
               component: Header.Header,
               ignored: ({ chain }) => chain[0].key === 'content-type'
             },
-            ignored: ({ chain }) => !chain[2].key.startsWith('multipart/')
+            ignored: ({ chain }) => !chain[2]?.key.startsWith('multipart/')
           }
         },
         {
@@ -127,7 +128,7 @@ export class Encoding extends OASComponent {
           schema: {
             type: 'boolean',
             default: ({ chain }) => chain[0].built.style === 'form',
-            ignored: ({ chain }) => chain[2].key !== 'application/x-www-form-urlencoded'
+            ignored: ({ chain }) => chain[2]?.key !== 'application/x-www-form-urlencoded'
           }
         }
       ]

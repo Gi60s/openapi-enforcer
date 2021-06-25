@@ -455,7 +455,7 @@ define(async function (path, data) {
       }
       return result
     }
-  } catch (err) {
+  } catch (err: any) {
     data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected error: ' + (err.toString() as string)))
     return { loaded: false }
   }

@@ -17,7 +17,7 @@ export class ServerVariable extends OASComponent {
   readonly description?: string
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing ServerVariable object', definition, version, arguments[2])
+    const data = initializeData('constructing', ServerVariable, definition, version, arguments[2])
     super(data)
   }
 

@@ -12,7 +12,7 @@ export class Callback extends OASComponent {
   readonly [pathItem: string]: PathItem.PathItem
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Callback object', definition, version, arguments[2])
+    const data = initializeData('constructing', Callback, definition, version, arguments[2])
     super(data)
   }
 

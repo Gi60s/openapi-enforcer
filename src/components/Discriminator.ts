@@ -13,7 +13,7 @@ export class Discriminator extends OASComponent {
   readonly mapping?: Record<string, Schema.Schema>
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Discriminator object', definition, version, arguments[2])
+    const data = initializeData('constructing', Discriminator, definition, version, arguments[2])
     super(data)
   }
 
@@ -46,7 +46,7 @@ export class Discriminator extends OASComponent {
             },
             build (data, componentDef) {
               // replace discriminator mapping references with objects or Schema instances
-              data.root.finally.push(() => {
+              data.root.component.finally.push(() => {
                 // console.log('==== ' + data.mode.toUpperCase() + ' FINALLY RUN ====')
 
                 const { definition, exception } = data

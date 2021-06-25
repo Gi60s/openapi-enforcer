@@ -16,7 +16,7 @@ export class RequestBody extends OASComponent {
   required?: boolean
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing RequestBody object', definition, version, arguments[2])
+    const data = initializeData('constructing', RequestBody, definition, version, arguments[2])
     super(data)
   }
 

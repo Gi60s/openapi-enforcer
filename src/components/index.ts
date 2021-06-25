@@ -3,7 +3,9 @@ import { Exception } from '../Exception'
 import * as E from '../Exception/methods'
 import rx from '../rx'
 import { no, yes, copy, isObject, same, smart, adjustExceptionLevel, addExceptionLocation } from '../util'
-import { lookupLocation } from '../loader'
+import { LoaderMetadata, lookupLocation } from '../loader'
+import { Result } from '../Result'
+import * as Loader from '../loader'
 
 export const componentSchemasMap: WeakMap<ExtendedComponent, SchemaObject> = new WeakMap()
 
@@ -35,9 +37,12 @@ export interface Data {
   version: Version
 
   // changes per component
-  component: Data
+  component: {
+    constructor: ExtendedComponent,
+    data: Data,
+    finally: Array<(componentData: Data) => void>
+  }
   reference: string
-  finally: Array<(componentData: Data) => void>
 
   // always changing values
   built: any
@@ -164,44 +169,20 @@ export interface ExtendedComponent<T extends OASComponent=any> {
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export abstract class OASComponent {
-  // If the line following the example is not commented out then there will be no errors around extensions,
-  // but it makes it easier to get extensions without having to cast to an xComponent type.
-  // Example:
-  // const info = new Info.Info({
-  //   title: '',
-  //   version: '',
-  //   contact: {
-  //     'x-name': 'Bob',
-  //     name: 'Bob'
-  //   } as Contact.xDefinition
-  // })
-  // console.log((info.contact as Contact.xContact)['x-name'])
-  //
-  // [key: string]: any
-
   protected constructor (data: Data) {
     const { definition, map } = data
-    data.component = data
     data.mode = 'build'
-    data.reference = (this.constructor as OASComponent).spec[data.version]
+    data.built = this
 
     // register the use of this component with this definition
     if (!map.has(this.constructor)) map.set(this.constructor, [])
     map.get(this.constructor)?.push({ definition, instance: this })
 
-    // get the schema for this component
-    const Component = this.constructor as ExtendedComponent
-    data.schema = componentSchemasMap.get(Component) ?? Component.schemaGenerator()
-
     // begin building properties
     buildObjectProperties(this, data)
 
     // trigger finally hooks
-    data.finally.forEach(fn => fn(data))
-
-    // if (typeof data.schema.build === 'function') {
-    //   throw Error('Schema of type SchemaObject does not support build function.')
-    // }
+    data.component.finally.forEach(fn => fn(data))
   }
 
   static extend (): void {
@@ -219,16 +200,16 @@ export abstract class OASComponent {
     }
   }
 
+  // All classes that inherit this static method will overwrite it and call it directly, hiding the
+  // third parameters from users of the library.
   static validate (definition: any, version?: Version, incomingData?: Data): Exception {
-    const data: Data = initializeData('validating ' + this.name + ' object', definition, version, incomingData)
-    // data.loadCache = loadCacheMap.get(definition) ?? {}
-    data.component = data
+    const component = this as unknown as ExtendedComponent
+    const data: Data = initializeData('validating', component, definition, version, incomingData)
     data.mode = 'validate'
-    data.schema = componentSchemasMap.get(this as unknown as ExtendedComponent) ?? this.schemaGenerator()
     validate(data)
 
     // trigger finally hooks
-    data.finally.forEach(fn => fn(data))
+    data.component.finally.forEach(fn => fn(data))
 
     return data.exception
   }
@@ -242,7 +223,7 @@ export class Reference extends OASComponent {
   $ref!: string
 
   constructor (definition: ReferenceDefinition, version?: Version) {
-    const data = initializeData('constructing Reference object', definition, version, arguments[2])
+    const data = initializeData('constructing', Reference, definition, version, arguments[2])
     super(data)
   }
 
@@ -292,7 +273,7 @@ export class Reference extends OASComponent {
   }
 }
 
-export function initializeData<Definition> (exceptionMessage: string, definition: Definition, version?: Version, data?: Data): Data {
+export function initializeData<Definition> (action: 'constructing' | 'loading' | 'validating', component: ExtendedComponent, definition: Definition, version?: Version, data?: Data): Data {
   if (data === undefined) {
     const v: string = version === undefined ? Config.get().version : version
     data = {
@@ -307,28 +288,37 @@ export function initializeData<Definition> (exceptionMessage: string, definition
       version: v as Version,
 
       // changes per component
-      // @ts-expect-error
-      component: null,
+      component: {
+        // @ts-expect-error
+        data: null,
+        constructor: component,
+        reference: '',
+        finally: []
+      },
       reference: '',
-      finally: [],
 
       // always changing values
       built: undefined,
       chain: [],
       definition: definition,
-      exception: new Exception('One or more [TYPE] found while ' + exceptionMessage + ':'),
+      exception: new Exception('One or more [TYPE] found while ' + action + ' ' + component.name + ' object' + ':'),
       key: '',
       schema: { type: 'any' }
     }
     // @ts-expect-error
     data.root = data
   }
+
+  data!.schema = componentSchemasMap.get(component) ?? component.schemaGenerator()
+  data!.component.data = data!
+  data!.reference = component.spec[data!.version] as string
+
   return data as Data
 }
 
 export function build (data: Data): any {
   const { definition, map, schema } = data
-  const componentDef = data.component.definition
+  const componentDef = data.component.data.definition
   if (definition !== undefined) {
     // if there is a $ref then built a Reference instance
     const hasRef = typeof definition === 'object' && definition !== null && '$ref' in definition
@@ -383,7 +373,7 @@ export function build (data: Data): any {
       if (typeof definition !== 'number') throw Error('Invalid definition type. Expected a number. Received: ' + smart(definition))
       data.built = definition
     } else if (schema.type === 'oneOf') {
-      const match = schema.oneOf.find(item => item.condition(data, data.component.definition))
+      const match = schema.oneOf.find(item => item.condition(data, componentDef))
       if (match === undefined) {
         throw Error('Definition does not meet any of the possible conditions. Received: ' + smart(definition))
       } else {
@@ -450,7 +440,6 @@ export function buildChildData (data: Data, definition: any, key: string, schema
     // changes per component
     component: data.component,
     reference: data.reference,
-    finally: data.finally,
 
     // always changing values
     built: undefined,
@@ -474,9 +463,12 @@ export function buildChildDataForComponent (data: Data, component: ExtendedCompo
     version: data.version,
 
     // changes per component
-    component: data,
+    component: {
+      constructor: component,
+      data: data,
+      finally: []
+    },
     reference: component.spec[data.version] as string,
-    finally: [],
 
     // always changing values
     built,
@@ -495,10 +487,46 @@ export function normalizeLoaderOptions (options?: LoaderOptions): Required<Loade
   return options as Required<LoaderOptions>
 }
 
+// this is the code for loading either the OpenAPI or Swagger document
+export async function loadRoot<T> (RootComponent: ExtendedComponent, path: string, options?: LoaderOptions): Promise<Result<T>> {
+  options = normalizeLoaderOptions(options)
+
+  // load file with dereference
+  const config: LoaderMetadata = {
+    cache: {},
+    exception: new Exception('Unable to load ' + RootComponent.name + ' document')
+  }
+  const loaded = await Loader.load(path, { dereference: options.dereference }, config)
+
+  // if there is an error then return now
+  const [definition] = loaded
+  const exception = loaded.exception as Exception
+  if (loaded.hasError) return new Result(definition, exception) // first param will be undefined because of error
+
+  // initialize data object
+  const version: string = definition.openapi ?? definition.swagger
+  const data = initializeData('loading', RootComponent, definition, version as Version)
+  data.loadCache = config.cache as Record<string, any>
+  data.exception = exception
+
+  // run validation then reset some data properties
+  // @ts-expect-error
+  if (options.validate === true) RootComponent.validate(definition, version, data)
+  data.map = new Map()
+  data.component.finally = []
+
+  // build the component if there are no errors
+  if (exception.hasError) return new Result(definition, exception) // first param will be undefined because of error
+  // @ts-expect-error
+  const component = new RootComponent(definition, version, data)
+  return new Result(component, exception)
+}
+
 export function validate (data: Data): any { // return value is what to add to built
   const { exception, key, map } = data
-  const componentDef = data.component.definition
+  const componentDef = data.component.data.definition
   const definition = data.definition
+  const reference = data.reference
   const schema = data.schema as SchemaAny
   const parent = data.chain[0]
 
@@ -516,7 +544,7 @@ export function validate (data: Data): any { // return value is what to add to b
   // if null then validate nullable
   if (definition === null) {
     if (schema.nullable === undefined || !schema.nullable(data, componentDef)) {
-      const mustNotBeNull = E.mustNotBeNull(data.reference)
+      const mustNotBeNull = E.mustNotBeNull(reference)
       addExceptionLocation(mustNotBeNull, lookupLocation(parent?.definition, key, 'value'))
       exception.message(mustNotBeNull)
       return
@@ -538,16 +566,17 @@ export function validate (data: Data): any { // return value is what to add to b
     const matches = schema.enum(data, componentDef)
     const found = matches.find((v: any) => same(v, definition))
     if (found === undefined) {
-      const enumNotMet = E.enumNotMet(data.reference, matches, definition)
+      const enumNotMet = E.enumNotMet(reference, matches, definition)
       addExceptionLocation(enumNotMet, lookupLocation(parent?.definition, key, 'value'))
       exception.message(enumNotMet)
       return
     }
   }
 
-  // $ref property is only allowed for components, and only some of those
-  if (typeof definition === 'object' && '$ref' in definition && schema.type !== 'any' && schema.type !== 'component') {
-    const $refNotAllowed = E.$refNotAllowed(data.reference)
+  // $ref property is only allowed for components, and only some of those. The exception is the Reference component that does allow it.
+  const isRefComponent = data.component.constructor === Reference
+  if (typeof definition === 'object' && '$ref' in definition && schema.type !== 'any' && schema.type !== 'component' && !isRefComponent) {
+    const $refNotAllowed = E.$refNotAllowed(reference)
     adjustExceptionLevel(parent, $refNotAllowed)
     addExceptionLocation($refNotAllowed, lookupLocation(parent?.definition, key, 'key'))
     exception.message($refNotAllowed)
@@ -555,10 +584,10 @@ export function validate (data: Data): any { // return value is what to add to b
 
   // check if refs allowed and ref is set
   const hasRef = typeof definition === 'object' && '$ref' in definition
-  if (hasRef) {
+  if (hasRef && !isRefComponent) {
     const s = schema as unknown as SchemaComponent
     if (!s.allowsRef) {
-      const $refNotAllowed = E.$refNotAllowed(data.reference)
+      const $refNotAllowed = E.$refNotAllowed(reference)
       adjustExceptionLevel(parent, $refNotAllowed)
       addExceptionLocation($refNotAllowed, lookupLocation(parent?.definition, key, 'value'))
       exception.message($refNotAllowed)
@@ -572,7 +601,7 @@ export function validate (data: Data): any { // return value is what to add to b
   } else if (schema.type === 'array') {
     const s = schema as unknown as SchemaArray
     if (!Array.isArray(definition)) {
-      const invalidType = E.invalidType(data.reference, 'an array', definition)
+      const invalidType = E.invalidType(reference, 'an array', definition)
       addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return
@@ -614,7 +643,7 @@ export function validate (data: Data): any { // return value is what to add to b
     }
   } else if (schema.type === 'boolean') {
     if (typeof definition !== 'boolean') {
-      const invalidType = E.invalidType(data.reference, 'a boolean', definition)
+      const invalidType = E.invalidType(reference, 'a boolean', definition)
       addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return undefined
@@ -623,7 +652,7 @@ export function validate (data: Data): any { // return value is what to add to b
     return runFinalValidatorFunctions(data)
   } else if (schema.type === 'component') {
     if (!isObject(definition)) {
-      const invalidType = E.invalidType(data.reference, 'a non-null object', definition)
+      const invalidType = E.invalidType(reference, 'a non-null object', definition)
       addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return undefined
@@ -635,7 +664,7 @@ export function validate (data: Data): any { // return value is what to add to b
 
     // check that this component is allowed for the active version
     if (component.spec[data.version] === undefined) {
-      const invalidVersionForComponent = E.invalidVersionForComponent(data.reference, component.name, data.version)
+      const invalidVersionForComponent = E.invalidVersionForComponent(reference, component.name, data.version)
       addExceptionLocation(invalidVersionForComponent, lookupLocation(parent?.definition, key))
       data.exception.message(invalidVersionForComponent)
       return undefined
@@ -644,32 +673,32 @@ export function validate (data: Data): any { // return value is what to add to b
     return mappable(component, data, {}, (built) => {
       const child = buildChildDataForComponent(data, component, built)
       validateObject(child)
-      child.finally.forEach(fn => fn(child))
+      child.component.finally.forEach(fn => fn(child))
       return data.built
     })
   } else if (schema.type === 'number') {
     const s = schema as unknown as SchemaNumber
     let success = true
     if (typeof definition !== 'number') {
-      const invalidType = E.invalidType(data.reference, 'a number', definition)
+      const invalidType = E.invalidType(reference, 'a number', definition)
       addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return false
     }
     if (s.integer === true && definition % 1 !== 0) {
-      const invalidType = E.invalidType(data.reference, 'an integer', definition)
+      const invalidType = E.invalidType(reference, 'an integer', definition)
       addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       success = false
     }
     if (s.maximum !== undefined && definition > s.maximum) {
-      const exceedsNumberBounds = E.exceedsNumberBounds(data.reference, 'maximum', true, s.maximum, definition)
+      const exceedsNumberBounds = E.exceedsNumberBounds(reference, 'maximum', true, s.maximum, definition)
       addExceptionLocation(exceedsNumberBounds, lookupLocation(parent?.definition, key, 'value'))
       exception.message(exceedsNumberBounds)
       success = false
     }
     if (s.minimum !== undefined && definition < s.minimum) {
-      const exceedsNumberBounds = E.exceedsNumberBounds(data.reference, 'minimum', true, s.minimum, definition)
+      const exceedsNumberBounds = E.exceedsNumberBounds(reference, 'minimum', true, s.minimum, definition)
       addExceptionLocation(exceedsNumberBounds, lookupLocation(parent?.definition, key, 'value'))
       exception.message(exceedsNumberBounds)
       success = false
@@ -681,7 +710,7 @@ export function validate (data: Data): any { // return value is what to add to b
   } else if (schema.type === 'object') {
     // validate definition type
     if (!isObject(definition)) {
-      const invalidType = E.invalidType(data.reference, 'a non-null object', definition)
+      const invalidType = E.invalidType(reference, 'a non-null object', definition)
       addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return undefined
@@ -693,7 +722,7 @@ export function validate (data: Data): any { // return value is what to add to b
     })
   } else if (schema.type === 'oneOf') {
     const s = schema as unknown as SchemaOneOf
-    const match = s.oneOf.find(item => item.condition(data, data.component.definition))
+    const match = s.oneOf.find(item => item.condition(data, componentDef))
     if (match === undefined) {
       throw Error('Definition does not meet any of the possible conditions. Received: ' + smart(definition))
     } else {
@@ -704,19 +733,19 @@ export function validate (data: Data): any { // return value is what to add to b
     const s = schema as unknown as SchemaString
     let success = true
     if (typeof definition !== 'string') {
-      const invalidType = E.invalidType(data.reference, 'a string', definition)
+      const invalidType = E.invalidType(reference, 'a string', definition)
       addExceptionLocation(invalidType, lookupLocation(parent?.definition, key, 'value'))
       exception.message(invalidType)
       return false
     }
     if (s.maxLength !== undefined && definition.length > s.maxLength) {
-      const exceedsStringLengthBounds = E.exceedsStringLengthBounds(data.reference, 'maxLength', s.maxLength, definition)
+      const exceedsStringLengthBounds = E.exceedsStringLengthBounds(reference, 'maxLength', s.maxLength, definition)
       addExceptionLocation(exceedsStringLengthBounds, lookupLocation(parent?.definition, key, 'value'))
       exception.message(exceedsStringLengthBounds)
       success = false
     }
     if (s.minLength !== undefined && definition.length < s.minLength) {
-      const exceedsStringLengthBounds = E.exceedsStringLengthBounds(data.reference, 'minLength', s.minLength, definition)
+      const exceedsStringLengthBounds = E.exceedsStringLengthBounds(reference, 'minLength', s.minLength, definition)
       addExceptionLocation(exceedsStringLengthBounds, lookupLocation(parent?.definition, key, 'value'))
       exception.message(exceedsStringLengthBounds)
       success = false
@@ -735,7 +764,7 @@ export function validate (data: Data): any { // return value is what to add to b
 
 function buildObjectProperties (context: any, data: Data): void {
   const { definition, component } = data
-  const componentDef = component.definition
+  const componentDef = component.data.definition
   const schema = data.schema as SchemaObject
   const properties = schema.properties !== undefined ? schema.properties : []
   const remainingProperties: string[] = Object.keys(definition)
@@ -801,9 +830,10 @@ function mappable (key: any, data: Data, value: any, handler: (value: any) => an
 
 function runFinalValidatorFunctions (data: Data): any {
   const schema = data.schema as SchemaAny
-  if (schema.after !== undefined) schema.after(data, data.component.definition)
+  const componentDef = data.component.data.definition
+  if (schema.after !== undefined) schema.after(data, componentDef)
   if (schema.build !== undefined) {
-    const built = schema.build(data, data.component.definition)
+    const built = schema.build(data, componentDef)
     if (built !== undefined) data.built = built
   }
   return data.built
@@ -811,7 +841,8 @@ function runFinalValidatorFunctions (data: Data): any {
 
 function validateObject (data: Data): any {
   const { definition, exception } = data
-  const componentDef = data.component.definition
+  const componentDef = data.component.data.definition
+  const reference = data.reference
   const schema = data.schema as SchemaObject
 
   const schemaProperties = schema.properties !== undefined ? schema.properties : []
@@ -876,7 +907,7 @@ function validateObject (data: Data): any {
     // if a schema extension
     if (rx.extension.test(key)) {
       if (!allowsSchemaExtensions && key !== 'x-enforcer') {
-        const extensionNotAllowed = E.extensionNotAllowed(data.reference)
+        const extensionNotAllowed = E.extensionNotAllowed(reference)
         addExceptionLocation(extensionNotAllowed, lookupLocation(definition, key))
         exception.message(extensionNotAllowed)
       }
@@ -907,7 +938,7 @@ function validateObject (data: Data): any {
   if (notAllowed.length > 0) {
     notAllowed.sort((a: NotAllowed, b: NotAllowed) => a.name < b.name ? -1 : 1)
     notAllowed.forEach(reason => {
-      const propertyNotAllowed = E.propertyNotAllowed(data.reference, reason.name, reason.reason ?? '')
+      const propertyNotAllowed = E.propertyNotAllowed(reference, reason.name, reason.reason ?? '')
       addExceptionLocation(propertyNotAllowed, lookupLocation(definition, reason.name))
       exception.message(propertyNotAllowed)
     })
@@ -916,7 +947,7 @@ function validateObject (data: Data): any {
 
   // report on missing required properties
   if (missingRequiredProperties.length > 0) {
-    const eMissingRequiredProperties = E.missingRequiredProperties(data.reference, missingRequiredProperties)
+    const eMissingRequiredProperties = E.missingRequiredProperties(reference, missingRequiredProperties)
     addExceptionLocation(eMissingRequiredProperties, lookupLocation(definition))
     exception.message(eMissingRequiredProperties)
     success = false

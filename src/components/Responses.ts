@@ -16,7 +16,7 @@ export class Responses extends OASComponent {
   readonly [code: string]: Response.Response | any
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Responses object', definition, version, arguments[2])
+    const data = initializeData('constructing', Responses, definition, version, arguments[2])
     super(data)
   }
 

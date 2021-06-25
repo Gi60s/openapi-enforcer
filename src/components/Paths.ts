@@ -14,7 +14,7 @@ export class Paths extends OASComponent {
   readonly [path: string]: PathItem.PathItem
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Paths object', definition, version, arguments[2])
+    const data = initializeData('constructing', Paths, definition, version, arguments[2])
     super(data)
   }
 

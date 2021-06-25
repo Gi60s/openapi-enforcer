@@ -25,7 +25,7 @@ export class Link extends OASComponent {
   readonly server?: Server.Server
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Link object', definition, version, arguments[2])
+    const data = initializeData('constructing', Link, definition, version, arguments[2])
     super(data)
   }
 

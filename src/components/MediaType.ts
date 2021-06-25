@@ -25,7 +25,7 @@ export class MediaType extends OASComponent {
   schema?: Schema.Schema | Reference.Reference
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing MediaType object', definition, version, arguments[2])
+    const data = initializeData('constructing', MediaType, definition, version, arguments[2])
     super(data)
   }
 

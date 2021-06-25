@@ -18,7 +18,7 @@ export class OAuthFlows extends OASComponent {
   readonly password?: OAuthFlow.OAuthFlow
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing OAuthFlows object', definition, version, arguments[2])
+    const data = initializeData('constructing', OAuthFlows, definition, version, arguments[2])
     super(data)
   }
 

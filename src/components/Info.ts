@@ -23,7 +23,7 @@ export class Info extends OASComponent {
   readonly version!: string
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Info object', definition, version, arguments[2])
+    const data = initializeData('constructing', Info, definition, version, arguments[2])
     super(data)
   }
 

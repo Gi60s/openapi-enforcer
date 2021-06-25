@@ -65,7 +65,7 @@ export class Schema extends PartialSchema.PartialSchema<Schema> {
   readonly writeOnly?: boolean
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Schema object', definition, version, arguments[2])
+    const data = initializeData('constructing', Schema, definition, version, arguments[2])
     super(data)
   }
 

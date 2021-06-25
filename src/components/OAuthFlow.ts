@@ -17,7 +17,7 @@ export class OAuthFlow extends OASComponent {
   readonly tokenUrl?: string
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing OAuthFlow object', definition, version, arguments[2])
+    const data = initializeData('constructing', OAuthFlow, definition, version, arguments[2])
     super(data)
   }
 

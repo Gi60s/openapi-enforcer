@@ -19,7 +19,7 @@ export class Xml extends OASComponent {
   readonly wrapped?: boolean
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Xml object', definition, version, arguments[2])
+    const data = initializeData('constructing', Xml, definition, version, arguments[2])
     super(data)
   }
 

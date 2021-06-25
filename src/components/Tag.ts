@@ -16,7 +16,7 @@ export class Tag extends OASComponent {
   readonly externalDocs?: ExternalDocumentation.ExternalDocumentation
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing Tags object', definition, version, arguments[2])
+    const data = initializeData('constructing', Tag, definition, version, arguments[2])
     super(data)
   }
 
