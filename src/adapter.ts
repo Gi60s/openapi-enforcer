@@ -1,4 +1,4 @@
-import * as Path from 'path'
+import { IncomingMessage } from 'http'
 
 const rxHttp = /^https?:\/\//
 const rxUrlParts = /^(https?):\/\/(.+?)(?:\/|$)(.*)/
@@ -10,6 +10,7 @@ export interface Adapter {
     dirname: (path: string) => string
     resolve: (...path: string[]) => string
   }
+  request: (url: string) => Promise<{ data: string, headers: Record<string, string | string[]>, status: number }>
   sep: string
 }
 
@@ -34,8 +35,21 @@ function browser (): Adapter {
         return dirnameUrl(path)
       },
       resolve (...path: string[]): string {
-        const paths = resolvePathFilter(...path)
+        const paths = resolvePathFilter('/', ...path)
         return resolveUrlPath(...paths)
+      }
+    },
+    async request (url) {
+      const res = await fetch(url)
+      const data = await res.text()
+      const headers: Record<string, string | string[]> = {}
+      res.headers.forEach((value, key) => {
+        headers[key] = value
+      })
+      return {
+        data,
+        headers,
+        status: res.status
       }
     },
     sep: '/'
@@ -47,6 +61,11 @@ function node (): Adapter {
   const Path = require('path')
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const Util = require('util')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const Http = require('http')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const Https = require('https')
+
   return {
     cwd: process.cwd(),
     inspect: Util.inspect.custom ?? 'inspect',
@@ -59,7 +78,7 @@ function node (): Adapter {
         }
       },
       resolve (...path: string[]): string {
-        const paths = resolvePathFilter(...path)
+        const paths = resolvePathFilter(Path.sep, ...path)
         const topPath = paths[0]
         if (topPath !== undefined && rxHttp.test(topPath)) {
           return resolveUrlPath(...paths)
@@ -67,6 +86,28 @@ function node (): Adapter {
           return Path.resolve(...path)
         }
       }
+    },
+    async request (url) {
+      if (!rxHttp.test(url)) throw Error('Invalid URL: ' + url)
+      return await new Promise((resolve, reject) => {
+        const mode = url.startsWith('https') ? Https : Http
+        const req = mode.request(url, {}, (res: IncomingMessage) => {
+          let data: string = ''
+          res.setEncoding('utf8')
+          res.on('data', (chunk) => {
+            data += chunk as string
+          })
+          res.on('end', () => {
+            resolve({
+              data,
+              headers: res.headers as Record<string, string | string[]>,
+              status: res.statusCode as number
+            })
+          })
+        })
+        req.on('error', reject)
+        req.end()
+      })
     },
     sep: Path.sep
   }
@@ -83,11 +124,11 @@ function dirnameUrl (path: string): string {
   return (String(protocol) + '://' + String(domain) + '/' + ar.join('/')).replace(/\/$/, '')
 }
 
-function resolvePathFilter (...path: string[]): string[] {
+function resolvePathFilter (separator: string, ...path: string[]): string[] {
   // find last absolute path index
   let lastAbsolutePathIndex: number = 0
   path.forEach((pathItem, index) => {
-    if (rxHttp.test(pathItem) || pathItem === Path.sep) {
+    if (rxHttp.test(pathItem) || pathItem === separator) {
       lastAbsolutePathIndex = index
     }
   })

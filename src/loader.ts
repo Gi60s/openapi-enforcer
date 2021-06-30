@@ -1,4 +1,3 @@
-import axios from 'axios'
 import { Exception } from './Exception'
 import * as E from './Exception/methods'
 import jsonParser, { ArrayNode, LiteralNode, Location, ObjectNode, ValueNode } from 'json-to-ast'
@@ -437,8 +436,7 @@ define(async function (path, data) {
   }
 
   try {
-    const transformResponse = [(res: any) => res] // stop response body from being parsed
-    const res = await axios.get(path, { transformResponse })
+    const res = await adapter.request(path)
     const contentType = res.headers['content-type']
     if (res.status < 200 || res.status >= 300) {
       data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected response code: ' + String(res.status)))
