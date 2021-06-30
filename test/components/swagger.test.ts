@@ -1,14 +1,6 @@
 import { Swagger } from '../../src/components/Swagger'
 import { initTestLoader, registerContent } from '../util/helpers'
 import { expect } from 'chai'
-import { server } from '../util/helpers'
-
-before(async () => {
-  await server.start()
-})
-after(() => {
-  server.stop()
-})
 
 const swagger = '2.0'
 const info = { title: '', version: '' }
@@ -34,8 +26,10 @@ describe('Swagger component', () => {
       expect(loaded.swagger).to.equal('2.4')
     })
 
-    it('will validate a loaded document by default', async () => {
+    it.only('will validate a loaded document by default', async () => {
       const { error } = await Swagger.load('swagger.json')
+      const s = error!.toString()
+      console.log(s)
       expect(error).to.match(/One or more errors found while loading Swagger object/)
       throw Error('This error message has two "at: " at the beginning. Fix this.')
       expect(error?.count).to.equal(3)

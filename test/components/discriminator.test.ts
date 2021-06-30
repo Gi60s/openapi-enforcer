@@ -3,14 +3,6 @@ import { Discriminator } from '../../src/components/Discriminator'
 import { expect } from 'chai'
 import path from 'path'
 import { resourcesDirectory } from '../util/helpers'
-import { server } from '../util/helpers'
-
-before(async () => {
-  await server.start()
-})
-after(() => {
-  server.stop()
-})
 
 describe('Discriminator component', () => {
   describe('build', () => {
