@@ -2,7 +2,7 @@ import Adapter from '../adapter'
 import { ExceptionMessageData, Level } from './types'
 import * as Config from '../config'
 
-const { inspect } = Adapter()
+const { inspect, eol } = Adapter()
 const exceptionMap = new WeakMap<Exception, ExceptionPreReport>()
 const levels: Level[] = ['error', 'warn', 'opinion', 'ignore']
 
@@ -12,16 +12,16 @@ interface ExceptionData<T> {
 }
 
 interface ExceptionPreReport {
-  children: Array<{
-    at: string
-    data: ExceptionPreReport
-  }>
-  counts: {
+  activeChildrenCount: {
     error: number
     warn: number
     opinion: number
     ignore: number
   }
+  children: Array<{
+    at: string
+    data: ExceptionPreReport
+  }>
   exception: Exception
   hasException: {
     error: boolean
@@ -62,39 +62,32 @@ export class Exception {
     exceptionMap.set(this, data)
     if (!data.hasException.error) return
 
-    const prefix = ' '.repeat(2)
     const header = this.header ?? ''
-    return new ErrorReport('error', data, header, prefix, config.lineDelimiter)
+    return new ErrorReport('error', data, header)
   }
 
   get '1' (): WarningReport | undefined {
-    const config = Config.get().exceptions
     const data = getCachedPreReport(this)
     if (!data.hasException.warn) return
 
-    const prefix = ' '.repeat(2)
     const header = this.header ?? ''
-    return new WarningReport('warn', data, header, prefix, config.lineDelimiter)
+    return new WarningReport('warn', data, header)
   }
 
   get '2' (): OpinionReport | undefined {
-    const config = Config.get().exceptions
     const data = getCachedPreReport(this)
     if (!data.hasException.opinion) return
 
-    const prefix = ' '.repeat(2)
     const header = this.header ?? ''
-    return new OpinionReport('opinion', data, header, prefix, config.lineDelimiter)
+    return new OpinionReport('opinion', data, header)
   }
 
   get '3' (): IgnoredReport | undefined {
-    const config = Config.get().exceptions
     const data = getCachedPreReport(this)
     if (!data.hasException.ignore) return
 
-    const prefix = ' '.repeat(2)
     const header = this.header ?? ''
-    return new IgnoredReport('ignore', data, header, prefix, config.lineDelimiter)
+    return new IgnoredReport('ignore', data, header)
   }
 
   get error (): ErrorReport | undefined {
@@ -136,10 +129,10 @@ class ExceptionReport {
     path: string[]
   }>
 
-  constructor (level: Level, data: ExceptionPreReport, header: string, prefix: string, lineDelimiter: string) {
+  constructor (level: Level, data: ExceptionPreReport, header: string) {
     this.message = 'Nothing to report'
     this.messageDetails = []
-    const reportMessage = getReport(this, level, lineDelimiter, data, prefix, [])
+    const reportMessage = getReport(this, level, data, '  ', false, [])
     if (this.messageDetails.length > 0) {
       switch (level) {
         case 'error':
@@ -155,7 +148,9 @@ class ExceptionReport {
           header = header.replace('[TYPE]', 'ignored items')
           break
       }
-      this.message = header + lineDelimiter + '  at:' + reportMessage.substring(1)
+      this.message = header + reportMessage
+
+      console.log(this.message)
     }
   }
 
@@ -196,21 +191,20 @@ function getReportByType (level: Level, exception: Exception): ExceptionReport |
   const data = runPreReport(config, exception)
   if (!data.hasException[level]) return
 
-  const prefix = ' '.repeat(2)
   const header = exception.header ?? ''
-  return new ErrorReport(level, data, header, prefix, config.lineDelimiter)
+  return new ErrorReport(level, data, header)
 }
 
 function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, context: Exception): ExceptionPreReport {
   const data = context.data
   const result: ExceptionPreReport = {
-    children: [],
-    counts: {
+    activeChildrenCount: {
       error: 0,
       warn: 0,
       opinion: 0,
       ignore: 0
     },
+    children: [],
     exception: context,
     hasException: {
       error: false,
@@ -242,7 +236,6 @@ function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, cont
       if (message.active !== false) {
         const level = message.level
         result.messages[level].push(message)
-        result.counts[level]++
         result.hasException[level] = true
       }
     })
@@ -254,42 +247,41 @@ function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, cont
     levels.forEach((level: Level) => {
       if (data.hasException[level]) {
         result.hasException[level] = true
-        result.counts[level]++
+        result.activeChildrenCount[level]++
       }
     })
-    result.children.push({
-      at: key,
-      data: runPreReport(fullConfig, at[key])
-    })
+    result.children.push({ at: key, data })
   })
 
   return result
 }
 
-function getReport (report: ExceptionReport, level: Level, lineDelimiter: string, data: ExceptionPreReport, prefix: string, path: string[]): string {
-  const prefixPlus = prefix + '  '
+function getReport (report: ExceptionReport, level: Level, data: ExceptionPreReport, indent: string, isContinue: boolean, path: string[]): string {
+  const indentPlus = indent + '  '
   let result: string = ''
 
   const { children, hasException, messages } = data
   if (hasException[level]) {
     children.forEach(child => {
-      const { hasException } = child.data
+      const { activeChildrenCount, messages, hasException } = child.data
       if (hasException[level]) {
         const key = child.at
-        let newPrefix: string
-        if (data.counts[level] === 1) {
-          result += '> '
-          newPrefix = prefix
+        // determine whether we should add new lines or increase indent for child messages
+        if (messages[level].length === 0) {
+          const willContinue = activeChildrenCount[level] === 1
+          result += (isContinue ? ' > ' : eol + indent + 'at: ') + key +
+            getReport(report, level, child.data, willContinue ? indent : indentPlus, willContinue, path.concat([key]))
+        } else if (isContinue) {
+          result += ' > ' + key + getReport(report, level, child.data, indentPlus, false, path.concat([key]))
         } else {
-          result += lineDelimiter + prefixPlus + 'at: '
-          newPrefix = prefixPlus
+          result += eol + indent + 'at: ' + key +
+            getReport(report, level, child.data, indentPlus, false, path.concat([key]))
         }
-        result += key + ' ' + getReport(report, level, lineDelimiter, child.data, newPrefix, path.concat([key]))
       }
     })
 
     messages[level].forEach(message => {
-      result += lineDelimiter + prefixPlus + message.message
+      result += eol + indent + message.message
       if (message.locations !== undefined) {
         result += ' [' + message.locations.map(l => {
           let str = l.source !== undefined
