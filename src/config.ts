@@ -4,18 +4,15 @@ export type CodesMap = Record<string, ExceptionLevel>
 
 export interface Configuration {
   exceptions?: ExceptionConfiguration
-  production?: boolean
   version?: Version
 }
 
 export interface ExceptionConfiguration {
   codes?: CodesMap
-  lineDelimiter?: string
 }
 
 export interface FullConfiguration {
   exceptions: Required<ExceptionConfiguration>
-  production: boolean
   version: Version
 }
 
@@ -23,10 +20,8 @@ type ExceptionLevel = 'ignore' | 'opinion' | 'warn' | 'error'
 
 let current: FullConfiguration = {
   exceptions: {
-    codes: {},
-    lineDelimiter: '\n' // TODO: how does windows handle this instead of \r\n?
+    codes: {}
   },
-  production: process.env.NODE_ENV === 'production',
   version: '3.0.0'
 }
 
