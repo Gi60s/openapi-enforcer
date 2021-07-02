@@ -494,7 +494,7 @@ export async function loadRoot<T> (RootComponent: ExtendedComponent, path: strin
   // load file with dereference
   const config: LoaderMetadata = {
     cache: {},
-    exception: new Exception('Unable to load ' + RootComponent.name + ' document')
+    exception: new Exception('One or more [TYPE] found while loading ' + RootComponent.name + ' document')
   }
   const loaded = await Loader.load(path, { dereference: options.dereference }, config)
 
