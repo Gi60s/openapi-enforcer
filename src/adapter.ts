@@ -5,6 +5,7 @@ const rxUrlParts = /^(https?):\/\/(.+?)(?:\/|$)(.*)/
 
 export interface Adapter {
   cwd: string
+  eol: string
   inspect: any
   path: {
     dirname: (path: string) => string
@@ -26,9 +27,9 @@ export default function adapter (): Adapter {
 
 function browser (): Adapter {
   const [url] = window.location.href.split('?')
-
   return {
     cwd: /\.[a-z0-9]+$/.test(url) ? dirnameUrl(url) : url,
+    eol: navigator.appVersion.includes('Win') ? '\r\n' : '\n',
     inspect: 'inspect',
     path: {
       dirname (path: string): string {
@@ -58,16 +59,19 @@ function browser (): Adapter {
 
 function node (): Adapter {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const Path = require('path')
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const Util = require('util')
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const Http = require('http')
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const Https = require('https')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const os = require('os')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const Path = require('path')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const Util = require('util')
 
   return {
     cwd: process.cwd(),
+    eol: os.EOL,
     inspect: Util.inspect.custom ?? 'inspect',
     path: {
       dirname (path: string): string {
