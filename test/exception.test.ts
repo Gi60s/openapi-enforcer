@@ -5,7 +5,7 @@ import { Level } from '../src/Exception/types'
 
 const { eol } = Adapter()
 
-describe.only('Exception', () => {
+describe('Exception', () => {
   describe('report formatting', () => {
     it('only one child message', function () {
       new X()
@@ -97,24 +97,6 @@ describe.only('Exception', () => {
         .test([
           '  at: a > b',
           '    First message'
-        ])
-    })
-
-    it('double nested with two nested children', function () {
-      new X()
-        .at('parameters').at('x')
-        .at('foo').up()
-        .at('name').add('name error').up()
-        .at('in').add('in error').up()
-        .up().up()
-        .add('top error')
-        .test([
-          '  at: parameters > x',
-          '    at: name',
-          '      name error',
-          '    at: in',
-          '      in error',
-          '  top error'
         ])
     })
 
