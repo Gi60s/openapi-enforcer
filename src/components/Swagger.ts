@@ -75,7 +75,7 @@ export class Swagger extends OASComponent {
   }
 
   static async load (path: string, options?: LoaderOptions): Promise<Result<Swagger>> {
-    return loadRoot<Swagger>(Swagger, path, options)
+    return await loadRoot<Swagger>(Swagger, path, options)
   }
 
   static schemaGenerator (): SchemaObject {
