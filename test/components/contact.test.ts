@@ -22,6 +22,7 @@ describe('Contact component', () => {
 
     it('cannot have invalid properties', function () {
       const [error] = Contact.validate({
+        // @ts-expect-error
         foo: 'invalid'
       })
       expect(error).to.match(/Property "foo" not allowed. Property not part of the specification/)
