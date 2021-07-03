@@ -53,26 +53,32 @@ export function minimal (component: any, version?: '2.x' | '3.x'): any {
       return {}
     case 'Header':
       return version === '2.x'
-        ? {
-          type: 'string'
-        }
-        : {
-          schema: minimal('Schema')
-        }
+        ? { type: 'string' }
+        : { schema: minimal('Schema') }
     case 'Link':
       return {}
+    case 'Operation':
+      return {
+        responses: {
+          200: { description: 'ok' }
+        }
+      }
     case 'Parameter':
       return version === '2.x'
         ? {
-          name: 'param',
-          in: 'query',
-          type: 'string'
-        }
+            name: 'param',
+            in: 'query',
+            type: 'string'
+          }
         : {
-          name: 'param',
-          in: 'query',
-          schema: minimal('Schema')
-        }
+            name: 'param',
+            in: 'query',
+            schema: minimal('Schema')
+          }
+    case 'PathItem':
+      return {
+        get: minimal('Operation', version)
+      }
     case 'RequestBody':
       return { content: {} }
     case 'Response':
