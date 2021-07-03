@@ -3,6 +3,8 @@ import { Discriminator } from '../../src/components/Discriminator'
 import { expect } from 'chai'
 import path from 'path'
 import { resourcesDirectory } from '../util/helpers'
+import { load } from '../../src/loader'
+import { Reference } from '../../src'
 
 describe('Discriminator component', () => {
   describe('build', () => {
@@ -73,19 +75,28 @@ describe('Discriminator component', () => {
         expect(oneOf.includes(mapping.cow)).to.equal(true)
       })
 
-      it('will warn of unresolvable mappings', async function () {
+      it('can load without dereference', async () => {
         const filePath = path.resolve(resourcesDirectory, 'discriminator', 'one-of.yml')
-        const [error] = await OpenAPI.load(filePath)
-        // console.log(error)
+        const [openapi] = await OpenAPI.load(filePath, { dereference: false })
+        expect(openapi?.components?.schemas?.Pet.oneOf[0]).to.be.instanceof(Reference)
+        expect(openapi?.components?.schemas?.Pet.oneOf[1]).to.be.instanceof(Reference)
+        expect(openapi?.components?.schemas?.Pet.oneOf[2]).to.be.instanceof(Reference)
+        expect(openapi?.components?.schemas?.Pet.oneOf[3]).to.be.instanceof(Reference)
       })
 
-      // it('must be a string', function () {
-      //   const [error] = Contact.validate({
-      //     // @ts-expect-error
-      //     url: 12
-      //   })
-      //   expect(error).to.match(/Expected a string/)
-      // })
+      it('will error on unresolvable mappings when loading a file', async function () {
+        const filePath = path.resolve(resourcesDirectory, 'discriminator', 'missing-mapping.yml')
+        const { error } = await OpenAPI.load(filePath)
+        expect(error).to.match(/Cannot resolve reference "#\/components\/schemas\/Lizard"/)
+      })
+
+      it('will error on unresolvable mappings when using assigned value', async function () {
+        const filePath = path.resolve(resourcesDirectory, 'discriminator', 'missing-mapping.yml')
+        const [definition] = await load(filePath, { dereference: false })
+        const result = await OpenAPI.validate(JSON.parse(JSON.stringify(definition)))
+        expect(result.error?.count).to.equal(1)
+        expect(result.error).to.match(/Cannot resolve reference "#\/components\/schemas\/Lizard" from "In process assignment"/)
+      })
     })
   })
 })
