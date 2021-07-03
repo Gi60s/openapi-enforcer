@@ -6,6 +6,10 @@ const { inspect, eol } = Adapter()
 const exceptionMap = new WeakMap<Exception, ExceptionPreReport>()
 const levels: Level[] = ['error', 'warn', 'opinion', 'ignore']
 
+export interface ExceptionConfiguration {
+  checkForDuplicates?: boolean
+}
+
 interface ExceptionData<T> {
   at: Record<string, T>
   messages: ExceptionMessageData[]
@@ -40,19 +44,32 @@ interface ExceptionPreReport {
 export class Exception {
   public header: string | undefined
   public data: ExceptionData<Exception> = { at: {}, messages: [] }
+  public config: Required<ExceptionConfiguration>
 
-  constructor (header?: string) {
+  constructor (header?: string, config?: ExceptionConfiguration) {
+    if (config === undefined) config = {}
+    if (config.checkForDuplicates === undefined) config.checkForDuplicates = false
+    this.config = config as Required<ExceptionConfiguration>
     this.header = header
   }
 
   public at (key: string | number): Exception {
     const at = this.data.at
-    if (!(key in at)) at[key] = new Exception()
+    if (!(key in at)) {
+      at[key] = new Exception()
+      at[key].config = this.config
+    }
     return at[key]
   }
 
   public message (data: ExceptionMessageData): Exception {
-    this.data.messages.push(data)
+    let isDuplicate: boolean = false
+    if (this.config.checkForDuplicates) {
+      isDuplicate = this.data.messages.find(m => {
+        return m.code === data.code && m.level === data.level && m.message === data.message && m.reference === data.reference
+      }) !== undefined
+    }
+    if (!isDuplicate) this.data.messages.push(data)
     return this
   }
 
@@ -149,8 +166,6 @@ class ExceptionReport {
           break
       }
       this.message = header + reportMessage
-
-      console.log(this.message)
     }
   }
 
