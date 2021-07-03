@@ -1,5 +1,6 @@
 import { Callback } from '../../src'
 import { expect } from 'chai'
+import { minimal } from '../util/helpers'
 
 describe('Callback component', () => {
   describe('build', () => {
@@ -26,6 +27,21 @@ describe('Callback component', () => {
         foo: 'invalid'
       })
       expect(error).to.match(/Expected a non-null object/)
+    })
+
+    it('can have a valid path item definition', function () {
+      const [error] = Callback.validate({
+        foo: minimal('PathItem', '3.x')
+      })
+      expect(error).to.equal(undefined)
+    })
+
+    it('cannot have a $ref', function () {
+      const { warning } = Callback.validate({
+        // @ts-expect-error
+        foo: { $ref: '' }
+      })
+      expect(warning).to.match(/Reference not allowed here/)
     })
   })
 })
