@@ -26,12 +26,9 @@ describe('Swagger component', () => {
       expect(loaded.swagger).to.equal('2.4')
     })
 
-    it.only('will validate a loaded document by default', async () => {
+    it('will validate a loaded document by default', async () => {
       const { error } = await Swagger.load('swagger.json')
-      const s = error!.toString()
-      console.log(s)
-      expect(error).to.match(/One or more errors found while loading Swagger object/)
-      throw Error('This error message has two "at: " at the beginning. Fix this.')
+      expect(error).to.match(/One or more errors found while loading Swagger document/)
       expect(error?.count).to.equal(3)
     })
   })
