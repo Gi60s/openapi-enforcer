@@ -5,7 +5,7 @@ import {
   SpecMap,
   Exception,
   LoaderOptions,
-  normalizeLoaderOptions, loadRoot
+  loadRoot
 } from './'
 import { Result } from '../Result'
 import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
@@ -20,8 +20,7 @@ import * as Response from './Response'
 import * as SecurityScheme from './SecurityScheme'
 import * as SecurityRequirement from './SecurityRequirement'
 import * as Tag from './Tag'
-import { LoaderMetadata, lookupLocation } from '../loader'
-import * as Loader from '../loader'
+import { lookupLocation } from '../loader'
 
 const rxHostParts = /^(?:(https?|wss?):\/\/)?(.+?)(\/.+)?$/
 const rxPathTemplating = /[{}]/
