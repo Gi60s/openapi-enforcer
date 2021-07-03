@@ -38,8 +38,8 @@ export interface Data {
 
   // changes per component
   component: {
-    constructor: ExtendedComponent,
-    data: Data,
+    constructor: ExtendedComponent
+    data: Data
     finally: Array<(componentData: Data) => void>
   }
   reference: string
@@ -309,9 +309,10 @@ export function initializeData<Definition> (action: 'constructing' | 'loading' |
     data.root = data
   }
 
-  data!.schema = componentSchemasMap.get(component) ?? component.schemaGenerator()
-  data!.component.data = data!
-  data!.reference = component.spec[data!.version] as string
+  const result = data as Data
+  result.schema = componentSchemasMap.get(component) ?? component.schemaGenerator()
+  result.component.data = result
+  result.reference = component.spec[result.version] as string
 
   return data as Data
 }
@@ -494,7 +495,7 @@ export async function loadRoot<T> (RootComponent: ExtendedComponent, path: strin
   // load file with dereference
   const config: LoaderMetadata = {
     cache: {},
-    exception: new Exception('One or more [TYPE] found while loading ' + RootComponent.name + ' document')
+    exception: new Exception('One or more [TYPE] found while loading ' + RootComponent.name + ' document', { checkForDuplicates: true })
   }
   const loaded = await Loader.load(path, { dereference: options.dereference }, config)
 
@@ -575,18 +576,20 @@ export function validate (data: Data): any { // return value is what to add to b
 
   // $ref property is only allowed for components, and only some of those. The exception is the Reference component that does allow it.
   const isRefComponent = data.component.constructor === Reference
+  let appliedRefError: boolean = false
   if (typeof definition === 'object' && '$ref' in definition && schema.type !== 'any' && schema.type !== 'component' && !isRefComponent) {
     const $refNotAllowed = E.$refNotAllowed(reference)
     adjustExceptionLevel(parent, $refNotAllowed)
     addExceptionLocation($refNotAllowed, lookupLocation(parent?.definition, key, 'key'))
     exception.message($refNotAllowed)
+    appliedRefError = true
   }
 
   // check if refs allowed and ref is set
   const hasRef = typeof definition === 'object' && '$ref' in definition
   if (hasRef && !isRefComponent) {
     const s = schema as unknown as SchemaComponent
-    if (!s.allowsRef) {
+    if (!s.allowsRef && !appliedRefError) {
       const $refNotAllowed = E.$refNotAllowed(reference)
       adjustExceptionLevel(parent, $refNotAllowed)
       addExceptionLocation($refNotAllowed, lookupLocation(parent?.definition, key, 'value'))
