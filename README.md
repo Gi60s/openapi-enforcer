@@ -10,10 +10,10 @@ Each of the components is programmed to validate definitions, but we need to go 
 and write tests ensuring that the validator does what we expect it to. Below is a list of components:
 
 - [X] Callback
-- [ ] Components
-- [ ] Contact
-- [ ] Definitions
-- [ ] Discriminator
+- [X] Components
+- [X] Contact
+- [X] Definitions
+- [X] Discriminator
 - [ ] Encoding
 - [ ] Example
 - [ ] ExternalDocumentation
