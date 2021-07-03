@@ -75,7 +75,7 @@ export function define (loader: Loader): void {
 }
 
 // using a load cache, look up a node by its path
-export function getReferenceNode (loadMap: Record<string, any>, rootNodePath: string, ref: string, exception: Exception): void {
+export function getReferenceNode (loadMap: Record<string, any>, rootNodePath: string, ref: string, exception: Exception): any {
   const rootNode = loadMap[rootNodePath]
   if (rootNode === undefined) {
     const message = E.loaderPathNotCached(rootNodePath)
@@ -213,6 +213,7 @@ function getLocation (pos: number, lineEndings: LineEnding[]): Location['start']
   let lastLine: LineEnding = lineEndings[0]
 
   const length = lineEndings.length
+  let found: boolean = false
   for (let i = 0; i < length; i++) {
     const lineEnding = lineEndings[i]
     if (lineEnding.pos > pos) {
@@ -221,10 +222,16 @@ function getLocation (pos: number, lineEndings: LineEnding[]): Location['start']
         ? pos + 1
         : pos - (prev.pos + prev.len) + 1
       lastLine = prev
+      found = true
       break
     } else {
       result.line++
     }
+  }
+
+  if (!found) {
+    const prev = lineEndings[length - 1]
+    result.column = pos - (prev.pos + prev.len) + 1
   }
 
   if (result.column <= 0) {
@@ -419,7 +426,7 @@ export function traverse (node: any, path: string, fromPath: string, exception: 
       if (o !== null && typeof o === 'object' && key in o) {
         o = o[key]
       } else {
-        const message = E.refNotResolved('#' + path, fromPath)
+        const message = E.refNotResolved(path, fromPath)
         util.addExceptionLocation(message, lookupLocation(node))
         exception.message(message)
         return
