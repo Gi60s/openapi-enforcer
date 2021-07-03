@@ -62,7 +62,7 @@ export class OpenAPI extends OASComponent {
   }
 
   static async load (path: string, options?: LoaderOptions): Promise<Result<OpenAPI>> {
-    return loadRoot<OpenAPI>(OpenAPI, path, options)
+    return await loadRoot<OpenAPI>(OpenAPI, path, options)
   }
 
   static schemaGenerator (): SchemaObject {
