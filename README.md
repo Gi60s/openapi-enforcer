@@ -119,7 +119,7 @@ Test the following methods:
 This is how I think I'd like it to be used.
 
 ```js
-import { OpenAPI } from 'openapi-enforcer'
+import { OpenAPI, Reference } from 'openapi-enforcer'
 
 // configure defaults
 config({
@@ -134,4 +134,12 @@ OpenAPI.on('validate', function (data, component) {
 // load, dereference, validate, and build
 // Defaults to deserialize and validate
 let openapi = await OpenAPI.load('./path/to/openapi.yml', { dereference: true, validate: true })
+
+
+// create using a constructor (fully dereferenced)
+const spec = { openapi: '3.0.3', info: { title: '', version: '' } }
+openapi = new OpenAPI(spec)
+
+// create using a constructor (not dereferenced)
+openapi = new OpenAPI<Reference>(spec)
 ```
