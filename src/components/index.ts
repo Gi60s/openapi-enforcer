@@ -88,6 +88,8 @@ interface SchemaBase {
   nullable?: (data: Data, componentDefinition: any) => boolean
 }
 
+export type Referencable<HasReference, T> = HasReference extends Reference ? T | Reference : T
+
 export interface SchemaAny extends SchemaBase {
   type: 'any'
 }
@@ -169,8 +171,11 @@ export interface ExtendedComponent<T extends OASComponent=any> {
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export abstract class OASComponent {
+  // protected readonly enforcerData: Data
+
   protected constructor (data: Data) {
-    const { definition, map } = data
+    // this.enforcerData = data
+    const { definition, map, schema } = data
     data.mode = 'build'
     data.built = this
 
@@ -180,6 +185,10 @@ export abstract class OASComponent {
 
     // begin building properties
     buildObjectProperties(this, data)
+
+    if (typeof schema.build === 'function') {
+      data.built = schema.build(data, definition)
+    }
 
     // trigger finally hooks
     data.component.finally.forEach(fn => fn(data))
@@ -390,18 +399,6 @@ export function build (data: Data): any {
         buildObjectProperties(built, data)
         return data.built
       })
-
-      // const store = map.get(schema)
-      // const found = store?.find(item => item.definition === definition)
-      // if (found !== undefined) {
-      //   data.built = found.instance
-      //   return data.built // already processed defaults and build too so we can return early
-      // } else {
-      //   data.built = {}
-      //   if (!map.has(schema)) map.set(schema, [])
-      //   map.get(schema)?.push({ definition, instance: data.built })
-      //   buildObjectProperties(data.built, data)
-      // }
     } else if (schema.type === 'string') {
       if (typeof definition !== 'string') throw Error('Invalid definition type. Expected a string. Received: ' + smart(definition))
       data.built = definition
@@ -412,12 +409,8 @@ export function build (data: Data): any {
     data.built = schema.default(data, componentDef)
   }
 
-  if (typeof schema.build === 'function') {
-    // if (schema.type === 'array') {
-    //   throw Error('Schema of type SchemaArray does not support build function.')
-    // } else if (schema.type === 'object') {
-    //   throw Error('Schema of type SchemaObject does not support build function.')
-    // }
+  // if the schema type is component then the built and build functions will run in the OASComponent constructor
+  if (typeof schema.build === 'function' && schema.type !== 'component') {
     data.built = schema.build(data, componentDef)
   }
 

@@ -1,4 +1,4 @@
-import { initializeData, Data, SchemaObject, SpecMap, Version, SchemaProperty, Exception } from './'
+import { initializeData, Data, SchemaObject, SpecMap, Version, SchemaProperty, Exception, Referencable } from './'
 import * as PartialSchema from './helpers/PartialSchema'
 import { addExceptionLocation, no, yes } from '../util'
 import * as E from '../Exception/methods'
@@ -8,6 +8,7 @@ import * as Reference from './Reference'
 import * as Schema from './Schema'
 import * as DataType from './helpers/DataTypes'
 import { lookupLocation } from '../loader'
+import { Dereference } from './Reference'
 
 export type Definition = Definition2 | Definition3
 
@@ -54,14 +55,14 @@ export interface Definition3 {
   style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'simple' | 'spaceDelimited' | 'pipeDelimited'
 }
 
-export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
+export class Parameter<HasReference=Dereference> extends PartialSchema.PartialSchema<Items.Items> {
   readonly [key: `x-${string}`]: any
   readonly name!: string
   readonly in!: 'body' | 'cookie' | 'formData' | 'header' | 'path' | 'query'
   readonly allowEmptyValue?: boolean
   readonly description?: string
   readonly required?: boolean
-  readonly schema?: Schema.Schema | Reference.Reference
+  readonly schema?: Referencable<HasReference, Schema.Schema>
 
   // v2 properties (in addition to those added by PartialSchema
   readonly collectionFormat?: 'csv' | 'multi' | 'pipes' | 'ssv' | 'tsv'
@@ -71,7 +72,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
   readonly allowReserved?: boolean
   readonly deprecated?: boolean
   readonly example?: any
-  readonly examples?: Record<string, Example.Example | Reference.Reference>
+  readonly examples?: Record<string, Referencable<HasReference, Example.Example>>
 
   readonly explode?: boolean
   readonly style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'simple' | 'spaceDelimited' | 'pipeDelimited'
@@ -195,7 +196,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items.Items> {
           type: 'boolean',
           default: () => false,
           before (data: Data, componentDef) {
-            const { exception, component, definition: value } = data
+            const { exception, definition: value } = data
             if (componentDef.in === 'path' && value !== true) {
               const pathParameterMustBeRequired = E.pathParameterMustBeRequired(data.reference, componentDef.name)
               addExceptionLocation(pathParameterMustBeRequired, lookupLocation(componentDef, 'required', 'value') ?? lookupLocation(componentDef))

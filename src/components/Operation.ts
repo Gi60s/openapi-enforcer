@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception, Referencable } from './'
 import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Callback from './Callback'
@@ -11,6 +11,7 @@ import * as SecurityRequirement from './SecurityRequirement'
 import * as Server from './Server'
 import { lookupLocation } from '../loader'
 import { ExceptionMessageData } from '../Exception/types'
+import { Dereference } from './Reference'
 
 export interface Definition {
   [key: `x-${string}`]: any
@@ -31,17 +32,17 @@ export interface Definition {
   tags?: string[]
 }
 
-export class Operation extends OASComponent {
+export class Operation<HasReference=Dereference> extends OASComponent {
   readonly [key: `x-${string}`]: any
-  readonly callbacks?: Record<string, Callback.Callback | Reference.Reference> // v3
+  readonly callbacks?: Record<string, Referencable<HasReference, Callback.Callback>> // v3
   readonly consumes?: string[] // v2
   readonly deprecated?: boolean
   readonly description?: string
   readonly externalDocs?: ExternalDocumentation.ExternalDocumentation
   readonly operationId?: string
-  readonly parameters?: Parameter.Parameter[]
+  readonly parameters?: Array<Parameter.Parameter<HasReference>>
   readonly produces?: string[] // v2
-  readonly requestBody?: RequestBody.RequestBody | Reference.Reference // v3
+  readonly requestBody?: Referencable<HasReference, RequestBody.RequestBody> // v3
   readonly responses!: Responses.Responses
   readonly schemes?: string[] // v2
   readonly security?: SecurityRequirement.SecurityRequirement[]

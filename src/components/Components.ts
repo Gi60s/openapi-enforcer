@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, Data, SchemaObject, SpecMap, Version, Exception } from './'
+import { OASComponent, initializeData, Data, Referencable, SchemaObject, SpecMap, Version, Exception } from './'
 import { yes } from '../util'
 import * as Callback from './Callback'
 import * as Example from './Example'
@@ -10,6 +10,7 @@ import * as RequestBody from './RequestBody'
 import * as Response from './Response'
 import * as Schema from './Schema'
 import * as SecurityScheme from './SecurityScheme'
+import { Dereference } from './Reference'
 
 export interface Definition {
   [key: `x-${string}`]: any
@@ -24,17 +25,17 @@ export interface Definition {
   securitySchemes?: Record<string, SecurityScheme.Definition | Reference.Definition>
 }
 
-export class Components extends OASComponent {
+export class Components<HasReference=Dereference> extends OASComponent {
   readonly [key: `x-${string}`]: any
-  readonly callbacks?: Record<string, Callback.Callback | Reference.Reference>
-  readonly examples?: Record<string, Example.Example | Reference.Reference>
-  readonly headers?: Record<string, Header.Header | Reference.Reference>
-  readonly links?: Record<string, Link.Link | Reference.Reference>
-  readonly parameters?: Record<string, Parameter.Parameter | Reference.Reference>
-  readonly requestBodies?: Record<string, RequestBody.RequestBody | Reference.Reference>
-  readonly responses?: Record<string, Response.Response | Reference.Reference>
-  readonly schemas?: Record<string, Schema.Schema | Reference.Reference>
-  readonly securitySchemes?: Record<string, SecurityScheme.SecurityScheme | Reference.Reference>
+  readonly callbacks?: Record<string, Referencable<HasReference, Callback.Callback>>
+  readonly examples?: Record<string, Referencable<HasReference, Example.Example>>
+  readonly headers?: Record<string, Referencable<HasReference, Header.Header<HasReference>>>
+  readonly links?: Record<string, Referencable<HasReference, Link.Link>>
+  readonly parameters?: Record<string, Referencable<HasReference, Parameter.Parameter<HasReference>>>
+  readonly requestBodies?: Record<string, Referencable<HasReference, RequestBody.RequestBody>>
+  readonly responses?: Record<string, Referencable<HasReference, Response.Response<HasReference>>>
+  readonly schemas?: Record<string, Referencable<HasReference, Schema.Schema>>
+  readonly securitySchemes?: Record<string, Referencable<HasReference, SecurityScheme.SecurityScheme>>
 
   constructor (definition: Definition, version?: Version) {
     const data = initializeData('constructing', Components, definition, version, arguments[2])

@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaComponent, SchemaObject, SpecMap, Version, Exception } from './'
+import { OASComponent, initializeData, Referencable, SchemaComponent, SchemaObject, SpecMap, Version, Exception } from './'
 import rx from '../rx'
 import { addExceptionLocation, no, yes } from '../util'
 import * as E from '../Exception/methods'
@@ -8,6 +8,7 @@ import * as Reference from './Reference'
 import * as RequestBody from './RequestBody'
 import * as Schema from './Schema'
 import { lookupLocation } from '../loader'
+import { Dereference } from './Reference'
 
 export interface Definition {
   [key: `x-${string}`]: any
@@ -17,12 +18,12 @@ export interface Definition {
   schema?: Schema.Definition | Reference.Definition
 }
 
-export class MediaType extends OASComponent {
+export class MediaType<HasReference=Dereference> extends OASComponent {
   readonly [key: `x-${string}`]: any
-  encoding?: Record<string, Encoding.Encoding | Reference.Reference>
+  encoding?: Record<string, Referencable<HasReference, Encoding.Encoding<HasReference>>>
   example?: any
-  examples?: Record<string, Example.Example | Reference.Reference>
-  schema?: Schema.Schema | Reference.Reference
+  examples?: Record<string, Referencable<HasReference, Example.Example>>
+  schema?: Referencable<HasReference, Schema.Schema>
 
   constructor (definition: Definition, version?: Version) {
     const data = initializeData('constructing', MediaType, definition, version, arguments[2])
@@ -42,7 +43,7 @@ export class MediaType extends OASComponent {
     return {
       type: 'object',
       allowsSchemaExtensions: yes,
-      after ({ built, chain, definition, exception, key, reference }, component) {
+      after ({ built, chain, exception, key, reference }, component) {
         const parent = chain[0]
         if (parent !== undefined && parent.key === 'content' && !rx.mediaType.test(key)) {
           const invalidMediaType = E.invalidMediaType(reference, key)

@@ -1,4 +1,4 @@
-import { Data, OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
+import { Data, OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception, Referencable } from './'
 import { addExceptionLocation, no } from '../util'
 import * as E from '../Exception/methods'
 import * as PartialSchema from './helpers/PartialSchema'
@@ -7,6 +7,7 @@ import * as Example from './Example'
 import * as Reference from './Reference'
 import * as Schema from './Schema'
 import { lookupLocation } from '../loader'
+import { Dereference } from './Reference'
 
 export interface Definition extends PartialSchema.Definition<Definition> {
   [key: `x-${string}`]: any
@@ -26,7 +27,7 @@ export interface Definition extends PartialSchema.Definition<Definition> {
   style?: 'simple'
 }
 
-export class Header extends OASComponent {
+export class Header<HasReference=Dereference> extends OASComponent {
   readonly [key: `x-${string}`]: any
 
   // v2
@@ -37,10 +38,10 @@ export class Header extends OASComponent {
   deprecated?: boolean // defaults to false
   description?: string
   example?: any
-  examples?: Record<string, Example.Definition | Reference.Definition>
+  examples?: Record<string, Referencable<HasReference, Example.Definition>>
   explode?: boolean
   required?: boolean
-  schema?: Schema.Definition3 | Reference.Definition
+  schema?: Referencable<HasReference, Schema.Schema>
   style?: 'simple'
 
   constructor (definition: Definition, version?: Version) {

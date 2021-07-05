@@ -1,10 +1,11 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
+import { OASComponent, initializeData, Referencable, SchemaObject, SpecMap, Version, Exception } from './'
 import * as E from '../Exception/methods'
 import rx from '../rx'
 import { addExceptionLocation, no, yes } from '../util'
 import * as Header from './Header'
 import * as Reference from './Reference'
 import { lookupLocation } from '../loader'
+import { Dereference } from './Reference'
 
 export interface Definition {
   [key: `x-${string}`]: any
@@ -15,12 +16,12 @@ export interface Definition {
   style?: string
 }
 
-export class Encoding extends OASComponent {
+export class Encoding<HasReference=Dereference> extends OASComponent {
   readonly [key: `x-${string}`]: any
   readonly allowReserved?: boolean
   readonly contentType?: string
   readonly explode?: boolean
-  readonly headers?: Record<string, Header.Header | Reference.Reference>
+  readonly headers?: Record<string, Referencable<HasReference, Header.Header<HasReference>>>
   readonly style?: string
 
   constructor (definition: Definition, version?: Version) {

@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception, Referencable } from './'
 import { addExceptionLocation, adjustExceptionLevel, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Operation from './Operation'
@@ -6,6 +6,7 @@ import * as Parameter from './Parameter'
 import * as Reference from './Reference'
 import * as Server from './Server'
 import { lookupLocation } from '../loader'
+import { Dereference } from './Reference'
 
 const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']
 
@@ -25,18 +26,18 @@ export interface Definition {
   summary?: string
 }
 
-export class PathItem extends OASComponent {
+export class PathItem<HasReference=Dereference> extends OASComponent {
   readonly [key: `x-${string}`]: any
-  delete?: Operation.Operation
+  delete?: Operation.Operation<HasReference>
   description?: string
-  get?: Operation.Operation
-  head?: Operation.Operation
-  options?: Operation.Operation
-  parameters?: Array<Parameter.Parameter | Reference.Reference>
-  patch?: Operation.Operation
-  put?: Operation.Operation
-  post?: Operation.Operation
-  trace?: Operation.Operation
+  get?: Operation.Operation<HasReference>
+  head?: Operation.Operation<HasReference>
+  options?: Operation.Operation<HasReference>
+  parameters?: Array<Referencable<HasReference, Parameter.Parameter<HasReference>>>
+  patch?: Operation.Operation<HasReference>
+  put?: Operation.Operation<HasReference>
+  post?: Operation.Operation<HasReference>
+  trace?: Operation.Operation<HasReference>
   servers?: Server.Server[]
   summary?: string
 

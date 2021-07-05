@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception, Referencable } from './'
 import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Header from './Header'
@@ -7,6 +7,7 @@ import * as MediaType from './MediaType'
 import * as Reference from './Reference'
 import * as Schema from './Schema'
 import { lookupLocation } from '../loader'
+import { Dereference } from './Reference'
 
 const rxContentType = /^content-type$/i
 const rxLinkName = /^[a-zA-Z0-9.\-_]+$/
@@ -29,13 +30,13 @@ export interface Definition3 {
   links?: Record<string, Link.Definition | Reference.Definition>
 }
 
-export class Response extends OASComponent {
+export class Response<HasReference=Dereference> extends OASComponent {
   readonly [key: `x-${string}`]: any
-  readonly content?: Record<string, MediaType.MediaType>
+  readonly content?: Record<string, MediaType.MediaType<HasReference>>
   readonly description!: string
   readonly examples?: Record<string, any>
-  readonly headers?: Record<string, Header.Header | Reference.Reference>
-  readonly links?: Record<string, Link.Link | Reference.Reference>
+  readonly headers?: Record<string, Referencable<HasReference, Header.Header<HasReference>>>
+  readonly links?: Record<string, Referencable<HasReference, Link.Link>>
   readonly schema?: Schema.Schema
 
   constructor (definition: Definition, version?: Version) {
