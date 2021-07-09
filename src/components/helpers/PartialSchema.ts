@@ -153,8 +153,9 @@ export function schemaGenerator (referenceComponentClass: any): SchemaObject {
         allowed: (data) => getType(data) === 'array' ? true : 'Data type must be an array.',
         required: (data) => getType(data) === 'array',
         schema: {
-          type: 'boolean',
-          default: () => false
+          type: 'component',
+          allowsRef: true,
+          component: referenceComponentClass
         }
       },
       {

@@ -1,4 +1,15 @@
-import { initializeData, SpecMap, Version, Data, SchemaArray, SchemaComponent, SchemaObject, Exception } from './'
+import {
+  initializeData,
+  SpecMap,
+  Version,
+  Data,
+  Reference,
+  SchemaArray,
+  SchemaComponent,
+  SchemaObject,
+  Exception,
+  Dereferenced, Referencable
+} from './'
 import { no, yes } from '../util'
 import { Result } from '../Result'
 import * as PartialSchema from './helpers/PartialSchema'
@@ -12,13 +23,13 @@ export type Definition = Definition2 | Definition3
 interface DefinitionBase<Definition> extends PartialSchema.Definition<Definition> {
   [key: `x-${string}`]: any
   additionalProperties?: Definition | boolean
-  allOf?: Definition[]
+  allOf?: Array<Definition | Reference>
   description?: string
   example?: any
   externalDocs?: ExternalDocumentation.Definition
   maxProperties?: number
   minProperties?: number
-  properties?: Record<string, Definition>
+  properties?: Record<string, Definition | Reference>
   readOnly?: boolean
   required?: string[]
   title?: string
@@ -31,25 +42,25 @@ export interface Definition2 extends DefinitionBase<Definition2> {
 }
 
 export interface Definition3 extends DefinitionBase<Definition3> {
-  anyOf?: Definition3[]
+  anyOf?: Array<Definition | Reference>
   deprecated?: boolean
   discriminator?: Discriminator.Definition
-  not?: Definition3
+  not?: Definition3 | Reference
   nullable?: boolean
-  oneOf?: Definition3[]
+  oneOf?: Array<Definition | Reference>
   writeOnly?: boolean
 }
 
-export class Schema extends PartialSchema.PartialSchema<Schema> {
+export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSchema<Schema> {
   readonly [key: `x-${string}`]: any
-  readonly additionalProperties?: Object | boolean
-  readonly allOf?: Object[]
+  readonly additionalProperties?: Referencable<HasReference, Schema<HasReference>> | boolean
+  readonly allOf?: Array<Referencable<HasReference, Schema<HasReference>>>
   readonly description?: string
   readonly example?: any
   readonly externalDocs?: ExternalDocumentation.ExternalDocumentation
   readonly maxProperties?: number
   readonly minProperties?: number
-  readonly properties?: Record<string, Object>
+  readonly properties?: Record<string, Referencable<HasReference, Schema<HasReference>>>
   readonly readOnly?: boolean
   readonly required?: string[]
   readonly title?: string
@@ -57,11 +68,11 @@ export class Schema extends PartialSchema.PartialSchema<Schema> {
   readonly xml?: Xml.Xml
 
   readonly discriminator?: string | Discriminator.Discriminator
-  readonly anyOf?: Schema[]
+  readonly anyOf?: Array<Referencable<HasReference, Schema<HasReference>>>
   readonly deprecated?: boolean
-  readonly not?: Schema
+  readonly not?: Referencable<HasReference, Schema<HasReference>>
   readonly nullable?: boolean
-  readonly oneOf?: Schema[]
+  readonly oneOf?: Array<Referencable<HasReference, Schema<HasReference>>>
   readonly writeOnly?: boolean
 
   constructor (definition: Definition, version?: Version) {

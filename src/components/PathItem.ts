@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception, Referencable } from './'
+import { OASComponent, Dereferenced, initializeData, SchemaObject, SpecMap, Version, Exception, Referencable } from './'
 import { addExceptionLocation, adjustExceptionLevel, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Operation from './Operation'
@@ -6,7 +6,6 @@ import * as Parameter from './Parameter'
 import * as Reference from './Reference'
 import * as Server from './Server'
 import { lookupLocation } from '../loader'
-import { Dereference } from './Reference'
 
 const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']
 
@@ -26,7 +25,7 @@ export interface Definition {
   summary?: string
 }
 
-export class PathItem<HasReference=Dereference> extends OASComponent {
+export class PathItem<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
   delete?: Operation.Operation<HasReference>
   description?: string

@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception, Dereferenced } from './'
 import { addExceptionLocation, adjustExceptionLevel, no } from '../util'
 import * as E from '../Exception/methods'
 import * as Response from './Response'
@@ -9,11 +9,14 @@ const rxLocation = /^location$/i
 const rxRange = /^[1-5]X{2}$/
 
 export interface Definition {
-  [code: string]: Response.Definition
+  [key: `x-${string}`]: any
+  [code: string | number]: Response.Definition
 }
 
-export class Responses extends OASComponent {
-  readonly [code: string]: Response.Response | any
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export class Responses<HasReference=Dereferenced> extends OASComponent {
+  readonly [key: `x-${string}`]: any
+  readonly [code: string]: Response.Response<HasReference>
 
   constructor (definition: Definition, version?: Version) {
     const data = initializeData('constructing', Responses, definition, version, arguments[2])

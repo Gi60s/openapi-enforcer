@@ -5,14 +5,14 @@ import * as MediaType from './MediaType'
 export interface Definition {
   [key: `x-${string}`]: any
   description?: string
-  content: MediaType.Definition
+  content: Record<string, MediaType.Definition>
   required?: boolean
 }
 
 export class RequestBody extends OASComponent {
   readonly [key: `x-${string}`]: any
   description?: string
-  content!: MediaType.MediaType
+  content!: Record<string, MediaType.MediaType>
   required?: boolean
 
   constructor (definition: Definition, version?: Version) {

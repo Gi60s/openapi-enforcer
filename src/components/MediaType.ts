@@ -8,7 +8,7 @@ import * as Reference from './Reference'
 import * as RequestBody from './RequestBody'
 import * as Schema from './Schema'
 import { lookupLocation } from '../loader'
-import { Dereference } from './Reference'
+import { Dereferenced } from './Reference'
 
 export interface Definition {
   [key: `x-${string}`]: any
@@ -18,7 +18,7 @@ export interface Definition {
   schema?: Schema.Definition | Reference.Definition
 }
 
-export class MediaType<HasReference=Dereference> extends OASComponent {
+export class MediaType<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
   encoding?: Record<string, Referencable<HasReference, Encoding.Encoding<HasReference>>>
   example?: any
@@ -63,7 +63,14 @@ export class MediaType<HasReference=Dereference> extends OASComponent {
           schema: {
             type: 'component',
             allowsRef: true,
-            component: Schema.Schema
+            component: Schema.Schema,
+            after ({ definition, exception, reference }) {
+              if (definition.$ref === undefined && definition.type !== 'object') {
+                const mediaTypeSchemaMustBeObject = E.mediaTypeSchemaMustBeObject(reference, definition.type)
+                addExceptionLocation(mediaTypeSchemaMustBeObject, lookupLocation(definition, 'type', 'value'))
+                exception.message(mediaTypeSchemaMustBeObject)
+              }
+            }
           }
         },
         {
@@ -90,26 +97,21 @@ export class MediaType<HasReference=Dereference> extends OASComponent {
             type: 'object',
             allowsSchemaExtensions: no,
             ignored ({ chain }) {
-              const requestBodyObject = chain.length > 4 ? chain[4] : null // TODO: validate that this is a RequestBody instance
-              if (requestBodyObject === null) return true
-
-              const component = (requestBodyObject.schema as SchemaComponent).component
-              return component !== RequestBody.RequestBody || !rx.contentType.test(chain[3].key)
-            },
-            after ({ chain, exception, reference }, component) {
-              const mediaTypeObject = chain[1]
-              const key = chain[0].key
-              const { built } = mediaTypeObject
-              if (!('schema' in built) || !('properties' in built.schema) || !(key in built.schema.properties)) {
-                const encodingNameNotMatched = E.encodingNameNotMatched(reference)
-                addExceptionLocation(encodingNameNotMatched, lookupLocation(component, 'encoding', 'key'))
-                exception.message(encodingNameNotMatched)
-              }
+              // ignore unless this resides within a request body
+              return chain[2]?.component.constructor !== RequestBody.RequestBody
             },
             additionalProperties: {
               type: 'component',
               allowsRef: true,
-              component: Encoding.Encoding
+              component: Encoding.Encoding,
+              after ({ definition, exception, key, reference }, componentDef) {
+                // ensure that any properties in the encoding have a matching property in the schema properties
+                if (componentDef.schema?.properties?.[key] === undefined) {
+                  const encodingNameNotMatched = E.encodingNameNotMatched(reference)
+                  addExceptionLocation(encodingNameNotMatched, lookupLocation(definition, key, 'key'))
+                  exception.message(encodingNameNotMatched)
+                }
+              }
             }
           }
         }

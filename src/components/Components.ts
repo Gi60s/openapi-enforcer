@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, Data, Referencable, SchemaObject, SpecMap, Version, Exception } from './'
+import { OASComponent, initializeData, Data, Dereferenced, Referencable, SchemaObject, SpecMap, Version, Exception } from './'
 import { yes } from '../util'
 import * as Callback from './Callback'
 import * as Example from './Example'
@@ -10,7 +10,6 @@ import * as RequestBody from './RequestBody'
 import * as Response from './Response'
 import * as Schema from './Schema'
 import * as SecurityScheme from './SecurityScheme'
-import { Dereference } from './Reference'
 
 export interface Definition {
   [key: `x-${string}`]: any
@@ -25,7 +24,7 @@ export interface Definition {
   securitySchemes?: Record<string, SecurityScheme.Definition | Reference.Definition>
 }
 
-export class Components<HasReference=Dereference> extends OASComponent {
+export class Components<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
   readonly callbacks?: Record<string, Referencable<HasReference, Callback.Callback>>
   readonly examples?: Record<string, Referencable<HasReference, Example.Example>>

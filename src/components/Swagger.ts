@@ -5,7 +5,7 @@ import {
   SpecMap,
   Exception,
   LoaderOptions,
-  loadRoot
+  loadRoot, Dereferenced
 } from './'
 import { Result } from '../Result'
 import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
@@ -44,18 +44,18 @@ export interface Definition {
   tags?: Tag.Definition[]
 }
 
-export class Swagger extends OASComponent {
+export class Swagger<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
   readonly basePath?: string
   readonly consumes?: string[]
-  readonly definitions?: Definitions.Definitions
+  readonly definitions?: Definitions.Definitions<HasReference>
   readonly externalDocs?: ExternalDocumentation.ExternalDocumentation
   readonly host?: string
   readonly info!: Info.Info
-  readonly parameters?: Record<string, Parameter.Parameter>
-  readonly paths!: Paths.Paths
+  readonly parameters?: Record<string, Parameter.Parameter<HasReference>>
+  readonly paths!: Paths.Paths<HasReference>
   readonly produces?: string[]
-  readonly responses?: Record<string, Response.Response>
+  readonly responses?: Record<string, Response.Response<HasReference>>
   readonly security?: SecurityRequirement.SecurityRequirement[]
   readonly securityDefinitions?: Record<string, SecurityScheme.SecurityScheme>
   readonly schemes?: string[]

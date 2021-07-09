@@ -1,4 +1,4 @@
-import { initializeData, Data, SchemaObject, SpecMap, Version, SchemaProperty, Exception, Referencable } from './'
+import { initializeData, Data, Dereferenced, SchemaObject, SpecMap, Version, SchemaProperty, Exception, Referencable } from './'
 import * as PartialSchema from './helpers/PartialSchema'
 import { addExceptionLocation, no, yes } from '../util'
 import * as E from '../Exception/methods'
@@ -8,7 +8,6 @@ import * as Reference from './Reference'
 import * as Schema from './Schema'
 import * as DataType from './helpers/DataTypes'
 import { lookupLocation } from '../loader'
-import { Dereference } from './Reference'
 
 export type Definition = Definition2 | Definition3
 
@@ -55,7 +54,7 @@ export interface Definition3 {
   style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'simple' | 'spaceDelimited' | 'pipeDelimited'
 }
 
-export class Parameter<HasReference=Dereference> extends PartialSchema.PartialSchema<Items.Items> {
+export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialSchema<Items.Items> {
   readonly [key: `x-${string}`]: any
   readonly name!: string
   readonly in!: 'body' | 'cookie' | 'formData' | 'header' | 'path' | 'query'

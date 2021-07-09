@@ -7,7 +7,7 @@ import {
   SpecMap,
   Version,
   Exception,
-  loadRoot
+  loadRoot, Dereferenced
 } from './'
 import * as Loader from '../loader'
 import { addExceptionLocation, yes } from '../util'
@@ -36,13 +36,13 @@ export interface Definition {
   tags?: Tag.Definition[]
 }
 
-export class OpenAPI extends OASComponent {
+export class OpenAPI<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
-  readonly components?: Components.Components
+  readonly components?: Components.Components<HasReference>
   readonly externalDocs?: ExternalDocumentation.ExternalDocumentation
   readonly info!: Info.Info
   readonly openapi!: string
-  readonly paths!: Paths.Paths
+  readonly paths!: Paths.Paths<HasReference>
   readonly security?: SecurityRequirement.SecurityRequirement[]
   readonly servers?: Server.Server[]
   readonly tags?: Tag.Tag[]
@@ -62,6 +62,10 @@ export class OpenAPI extends OASComponent {
   }
 
   static async load (path: string, options?: LoaderOptions): Promise<Result<OpenAPI>> {
+    options = normalizeLoaderOptions(options)
+    if (options.dereference === true) {
+      return await loadRoot<OpenAPI<Dereferenced>>(OpenAPI, path, options)
+    }
     return await loadRoot<OpenAPI>(OpenAPI, path, options)
   }
 

@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception, Dereferenced } from './'
 import * as Schema from './Schema'
 import { no } from '../util'
 
@@ -6,8 +6,9 @@ export interface Definition {
   [name: string]: Schema.Definition2
 }
 
-export class Definitions extends OASComponent {
-  readonly [name: string]: Schema.Schema
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export class Definitions<HasReference=Dereferenced> extends OASComponent {
+  readonly [name: string]: Schema.Schema<HasReference>
 
   constructor (definition: Definition, version?: Version) {
     const data = initializeData('constructing', Definitions, definition, version, arguments[2])

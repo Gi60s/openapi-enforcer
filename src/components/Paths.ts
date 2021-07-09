@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
+import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception, Dereferenced } from './'
 import { addExceptionLocation, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as PathItem from './PathItem'
@@ -9,9 +9,9 @@ export interface Definition {
   [path: string]: PathItem.Definition
 }
 
-export class Paths extends OASComponent {
+export class Paths<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
-  readonly [path: string]: PathItem.PathItem
+  readonly [path: string]: PathItem.PathItem<HasReference>
 
   constructor (definition: Definition, version?: Version) {
     const data = initializeData('constructing', Paths, definition, version, arguments[2])

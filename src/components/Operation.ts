@@ -1,4 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception, Referencable } from './'
+import { OASComponent, Dereferenced, initializeData, SchemaObject, SpecMap, Version, Exception, Referencable } from './'
 import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Callback from './Callback'
@@ -11,7 +11,6 @@ import * as SecurityRequirement from './SecurityRequirement'
 import * as Server from './Server'
 import { lookupLocation } from '../loader'
 import { ExceptionMessageData } from '../Exception/types'
-import { Dereference } from './Reference'
 
 export interface Definition {
   [key: `x-${string}`]: any
@@ -32,7 +31,7 @@ export interface Definition {
   tags?: string[]
 }
 
-export class Operation<HasReference=Dereference> extends OASComponent {
+export class Operation<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
   readonly callbacks?: Record<string, Referencable<HasReference, Callback.Callback>> // v3
   readonly consumes?: string[] // v2
