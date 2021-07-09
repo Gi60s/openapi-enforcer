@@ -88,7 +88,40 @@ interface SchemaBase {
   nullable?: (data: Data, componentDefinition: any) => boolean
 }
 
-export type Referencable<HasReference, T> = HasReference extends Reference ? T | Reference : T
+/**
+ * The following block of code defines types and interfaces that make it easier
+ * to interact as a developer with the components and their properties, especially
+ * in the case where a property may be a reference or it may be another component.
+ *
+ * By default, all constructed components will assume that derferencing has
+ * occurred. If a `load` function is called without dereferencing then the
+ * component will be marked as referenced and all referencable properties
+ * will be marked as references.
+ *
+ * Components that allow references can be manually typed by using the Dereference,
+ * DereferenceUnknown, or Reference generics, as can be seen in the following examples:
+ *
+ * Example of OpenAPI component will all references implicitly resolved:
+ * const openapi = new OpenAPI({ ... })
+ *
+ * Example of OpenAPI component will all references explicitly resolved:
+ * const openapi = new OpenAPI<Dereferenced>({ ... })
+ *
+ * Example of OpenAPI component will all references explicitly unresolved:
+ * const openapi = new OpenAPI<Referenced>({ ... })
+ *
+ * Example of OpenAPI component will all references explicitly unknown if resolved:
+ * const openapi = new OpenAPI<ReferencedUnknown>({ ... })
+ */
+export interface Dereferenced { ref: 'dereferenced' }
+export interface Referenced { ref: 'referenced' }
+export interface ReferencedUnknown { ref: 'dereferenced-unknown' }
+export type Referencable<HasReference, T> =
+  HasReference extends Referenced ? Reference :
+    HasReference extends ReferencedUnknown ? T | Reference : T
+/**
+ * End of dereference types and interfaces.
+ */
 
 export interface SchemaAny extends SchemaBase {
   type: 'any'
@@ -282,6 +315,10 @@ export class Reference extends OASComponent {
   }
 }
 
+// The following class is used for conditional typing
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
+export class ReferenceUnknown {}
+
 export function initializeData<Definition> (action: 'constructing' | 'loading' | 'validating', component: ExtendedComponent, definition: Definition, version?: Version, data?: Data): Data {
   if (data === undefined) {
     const v: string = version === undefined ? Config.get().version : version
@@ -329,6 +366,12 @@ export function initializeData<Definition> (action: 'constructing' | 'loading' |
 export function build (data: Data): any {
   const { definition, map, schema } = data
   const componentDef = data.component.data.definition
+
+  // if this definition should be ignored then return now
+  if (schema.ignored !== undefined) {
+    if (schema.ignored(data, componentDef)) return
+  }
+
   if (definition !== undefined) {
     // if there is a $ref then built a Reference instance
     const hasRef = typeof definition === 'object' && definition !== null && '$ref' in definition
@@ -670,6 +713,7 @@ export function validate (data: Data): any { // return value is what to add to b
       const child = buildChildDataForComponent(data, component, built)
       validateObject(child)
       child.component.finally.forEach(fn => fn(child))
+      runFinalValidatorFunctions(data)
       return data.built
     })
   } else if (schema.type === 'number') {
@@ -775,8 +819,9 @@ function buildObjectProperties (context: any, data: Data): void {
     if (name in definition) {
       value = build(child)
       found = true
-    } else if (prop.schema.default !== undefined && allowed === true) {
-      value = prop.schema.default(child, componentDef)
+    } else if (allowed === true) {
+      // value = prop.schema.default(child, componentDef)
+      value = build(child)
       found = true
     }
     if (value !== undefined) context[name] = value
