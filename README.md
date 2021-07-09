@@ -14,7 +14,7 @@ and write tests ensuring that the validator does what we expect it to. Below is 
 - [X] Contact
 - [X] Definitions
 - [X] Discriminator
-- [ ] Encoding
+- [X] Encoding
 - [ ] Example
 - [ ] ExternalDocumentation
 - [ ] Header
@@ -142,4 +142,42 @@ openapi = new OpenAPI(spec)
 
 // create using a constructor (not dereferenced)
 openapi = new OpenAPI<Reference>(spec)
+```
+
+# Referenced or Dereferenced?
+
+By default, all constructed components will assume that derferencing has
+occurred. If a `load` function is called without dereferencing then the
+component will be marked as referenced and all referencable properties
+will be marked as references.
+
+Components that allow references can be manually typed by using the Dereference,
+DereferenceUnknown, or Reference generics, as can be seen in the following examples:
+
+Example of OpenAPI component will all references implicitly resolved:
+
+```ts
+import { OpenAPI } from 'openapi-enforcer'
+const openapi = new OpenAPI({ ... })
+```
+
+Example of OpenAPI component will all references explicitly resolved:
+
+```ts
+import { OpenAPI, Dereferenced } from 'openapi-enforcer'
+const openapi = new OpenAPI<Dereferenced>({ ... })
+```
+
+Example of OpenAPI component will all references explicitly unresolved:
+
+```ts
+import { OpenAPI, Referenced } from 'openapi-enforcer'
+const openapi = new OpenAPI<Referenced>({ ... })
+```
+
+Example of OpenAPI component will all references explicitly unknown if resolved:
+
+```ts
+import { OpenAPI, ReferencedUnknown } from 'openapi-enforcer'
+const openapi = new OpenAPI<ReferencedUnknown>({ ... })
 ```
