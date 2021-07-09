@@ -32,6 +32,26 @@ export function encodingNameNotMatched (reference: string): ExceptionMessageData
   }
 }
 
+export function encodingHeaderContentType (reference: string): ExceptionMessageData {
+  return {
+    level: 'warn',
+    code: 'MEDHCT',
+    message: 'Encoding headers should not include Content-Type. That is already part of the Encoding definition under the "contentType" property.',
+    metadata: {},
+    reference
+  }
+}
+
+export function encodingHeadersIgnored (reference: string): ExceptionMessageData {
+  return {
+    level: 'warn',
+    code: 'MEDHED',
+    message: 'Encoding headers ignored unless part of a request body with content multipart/*',
+    metadata: {},
+    reference
+  }
+}
+
 export function enumMissingValues (): ExceptionMessageData {
   return {
     level: 'error',
@@ -201,7 +221,7 @@ export function invalidEmail (reference: string, invalidValue: any): ExceptionMe
 export function invalidMaxMin (minimum: any, maximum: any, minProperty: string, maxProperty: string): ExceptionMessageData {
   return {
     level: 'warn',
-    code: 'MEDTYP',
+    code: 'MAXMIN',
     message: 'Property ' + minProperty + ' (' + smart(minimum) + ') must be less than ' + maxProperty + ' (' + smart(maximum) + ')',
     metadata: {
       maximum,
@@ -385,6 +405,16 @@ export function loaderNotAvailable (path: string): ExceptionMessageData {
     code: 'LOADNA',
     message: 'No defined loaders were able to load the path: ' + path,
     metadata: { path },
+    reference: ''
+  }
+}
+
+export function mediaTypeSchemaMustBeObject (reference: string, type: string): ExceptionMessageData {
+  return {
+    level: 'error',
+    code: 'MEDSCO',
+    message: 'MediaType schema must be of type "object". Received type: ' + type,
+    metadata: { type },
     reference: ''
   }
 }
@@ -707,5 +737,18 @@ export function unknownTypeFormat (type: string, format: string): ExceptionMessa
       type
     },
     reference: ''
+  }
+}
+
+export function valueIgnored (reference: string, value: string, reason: string): ExceptionMessageData {
+  return {
+    level: 'warn',
+    code: 'IGNORD',
+    message: 'The following value will be ignored: ' + value + '.' + (reason !== '' ? ' ' + reason : ''),
+    metadata: {
+      reason,
+      value
+    },
+    reference
   }
 }
