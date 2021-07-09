@@ -1,7 +1,13 @@
-import { Encoding, MediaType, Reference } from '../../src'
+import {
+  Encoding,
+  RequestBody,
+  SchemaDefinition3,
+  RequestBodyDefinition,
+  EncodingDefinition
+} from '../../src'
 import { expect } from 'chai'
 
-describe.only('Encoding component', () => {
+describe('Encoding component', () => {
   describe('build', () => {
     it('can build', () => {
       const encoding = new Encoding({})
@@ -10,20 +16,169 @@ describe.only('Encoding component', () => {
 
     describe('property: contentType', () => {
       describe('defaults', () => {
-        it.only('will default to application/octet stream for media type "string" with format "binary"', () => {
-          const mediaType = new MediaType<Reference>({
-            schema: {
-              type: 'object',
-              properties: {
-                x: { type: 'string', format: 'binary' }
+        let def: RequestBodyDefinition
+        let properties: Record<string, SchemaDefinition3>
+
+        beforeEach(() => {
+          properties = {}
+          def = {
+            content: {
+              'application/x-www-form-urlencoded': {
+                schema: {
+                  type: 'object',
+                  properties
+                },
+                encoding: {
+                  x: {}
+                }
               }
-            },
-            encoding: {
-              x: {}
             }
-          })
-          expect(mediaType.encoding?.x?.contentType).to.equal('application/octet-stream')
+          }
         })
+
+        it('will default to application/octet stream for schema type "string" with format "binary"', () => {
+          properties.x = { type: 'string', format: 'binary' }
+          const body = new RequestBody(def)
+          expect(body.content['application/x-www-form-urlencoded'].encoding?.x?.contentType).to.equal('application/octet-stream')
+        })
+
+        it('will default to text/plain for schema type "boolean"', () => {
+          properties.x = { type: 'number' }
+          const body = new RequestBody(def)
+          expect(body.content['application/x-www-form-urlencoded'].encoding?.x?.contentType).to.equal('text/plain')
+        })
+
+        it('will default to text/plain for schema type "integer"', () => {
+          properties.x = { type: 'integer' }
+          const body = new RequestBody(def)
+          expect(body.content['application/x-www-form-urlencoded'].encoding?.x?.contentType).to.equal('text/plain')
+        })
+
+        it('will default to text/plain for schema type "number"', () => {
+          properties.x = { type: 'number' }
+          const body = new RequestBody(def)
+          expect(body.content['application/x-www-form-urlencoded'].encoding?.x?.contentType).to.equal('text/plain')
+        })
+
+        it('will default to application/json for schema type "object"', () => {
+          properties.x = { type: 'object' }
+          const body = new RequestBody(def)
+          expect(body.content['application/x-www-form-urlencoded'].encoding?.x?.contentType).to.equal('application/json')
+        })
+
+        it('will default to text/plain for schema type "array" with items as string', () => {
+          properties.x = { type: 'array', items: { type: 'string' } }
+          const body = new RequestBody(def)
+          expect(body.content['application/x-www-form-urlencoded'].encoding?.x?.contentType).to.equal('text/plain')
+        })
+
+        it('will default to application/json for schema type "array" with items as object', () => {
+          properties.x = { type: 'array', items: { type: 'object' } }
+          const body = new RequestBody(def)
+          expect(body.content['application/x-www-form-urlencoded'].encoding?.x?.contentType).to.equal('application/json')
+        })
+      })
+    })
+
+    describe('property: style', () => {
+      it('will default to "form"', () => {
+        const body = new RequestBody({
+          content: {
+            'application/x-www-form-urlencoded': {
+              encoding: { x: {} }
+            }
+          }
+        })
+        expect(body.content['application/x-www-form-urlencoded']?.encoding?.x?.style).to.equal('form')
+      })
+
+      it('will be ignored if the request body media type is not application/x-www-form-urlencoded', () => {
+        const body = new RequestBody({
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { x: { type: 'string' } }
+              },
+              encoding: {
+                x: { style: 'form' }
+              }
+            }
+          }
+        })
+        expect(body.content['application/json']?.encoding?.x?.style).to.equal(undefined)
+      })
+    })
+
+    describe('property: explode', () => {
+      it('will default to true if style is "form"', () => {
+        const body = new RequestBody({
+          content: {
+            'application/x-www-form-urlencoded': {
+              schema: {
+                type: 'object',
+                properties: { x: { type: 'string' } }
+              },
+              encoding: {
+                x: { style: 'form' }
+              }
+            }
+          }
+        })
+        expect(body.content['application/x-www-form-urlencoded']?.encoding?.x?.explode).to.equal(true)
+      })
+
+      it('will be ignored if the request body media type is not application/x-www-form-urlencoded', () => {
+        const body = new RequestBody({
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { x: { type: 'string' } }
+              },
+              encoding: {
+                x: { explode: true }
+              }
+            }
+          }
+        })
+        expect(body.content['application/json']?.encoding?.x?.explode).to.equal(undefined)
+      })
+    })
+
+    describe('property: allowReserved', () => {
+      it('will default to false', () => {
+        const body = new RequestBody({
+          content: {
+            'application/x-www-form-urlencoded': {
+              schema: {
+                type: 'object',
+                properties: { x: { type: 'string' } }
+              },
+              encoding: {
+                x: {}
+              }
+            }
+          }
+        })
+        expect(body.content['application/x-www-form-urlencoded']?.encoding?.x?.allowReserved).to.equal(false)
+      })
+
+      it('will be ignored if the request body media type is not application/x-www-form-urlencoded', () => {
+        const body = new RequestBody({
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { x: { type: 'string' } }
+              },
+              encoding: {
+                x: { allowReserved: true }
+              }
+            }
+          }
+        })
+        expect(body.content['application/json']?.encoding?.x?.allowReserved).to.equal(undefined)
       })
     })
   })
@@ -61,6 +216,150 @@ describe.only('Encoding component', () => {
           contentType: {}
         })
         expect(error).to.match(/Expected a string/)
+      })
+
+      it('will warn if the content type looks invalid', () => {
+        const { warning } = Encoding.validate({
+          contentType: 'foo'
+        })
+        expect(warning).to.match(/Media type appears invalid: foo/)
+      })
+    })
+
+    describe('property: headers', () => {
+      let encoding: Record<string, EncodingDefinition>
+      let def: RequestBodyDefinition
+
+      beforeEach(() => {
+        encoding = {}
+        def = {
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  x: { type: 'string' }
+                }
+              },
+              encoding
+            }
+          }
+        }
+      })
+
+      it('can be an object of headers', () => {
+        encoding.x = { headers: {} }
+        const { error } = RequestBody.validate(def)
+        expect(error).to.equal(undefined)
+      })
+
+      it('must be an object of headers', () => {
+        // @ts-expect-error
+        encoding.x = { headers: '' }
+        const { error } = RequestBody.validate(def)
+        expect(error).to.match(/Expected a non-null object/)
+      })
+
+      it('can be an object of headers', () => {
+        encoding.x = { headers: { 'Content-Type': { type: 'string' } } }
+        console.log(JSON.stringify(def, null, 2))
+        const { warning } = RequestBody.validate(def)
+        expect(warning).to.match(/Encoding headers should not include Content-Type/)
+      })
+    })
+
+    describe('property: style', function () {
+      let encoding: Record<string, EncodingDefinition>
+      let def: RequestBodyDefinition
+
+      beforeEach(() => {
+        encoding = {}
+        def = {
+          content: {
+            'application/x-www-form-urlencoded': {
+              schema: {
+                type: 'object',
+                properties: {
+                  x: { type: 'string' }
+                }
+              },
+              encoding
+            }
+          }
+        }
+      })
+
+      it('can be "form"', () => {
+        encoding.x = { style: 'form' }
+        const { error } = RequestBody.validate(def)
+        expect(error).to.equal(undefined)
+      })
+
+      it('can be "spaceDelimited"', () => {
+        encoding.x = { style: 'spaceDelimited' }
+        const { error } = RequestBody.validate(def)
+        expect(error).to.equal(undefined)
+      })
+
+      it('can be "pipeDelimited"', () => {
+        encoding.x = { style: 'pipeDelimited' }
+        const { error } = RequestBody.validate(def)
+        expect(error).to.equal(undefined)
+      })
+
+      it('can be "deepObject"', () => {
+        encoding.x = { style: 'deepObject' }
+        const { error } = RequestBody.validate(def)
+        expect(error).to.equal(undefined)
+      })
+
+      it('must be a valid string', () => {
+        // @ts-expect-error
+        encoding.x = { style: 'foo' }
+        const { error } = RequestBody.validate(def)
+        expect(error).to.match(/Value must be one of/)
+      })
+
+      it('will warn about the value being ignored if not within application/x-www-form-urlencoded', () => {
+        const { warning } = Encoding.validate({
+          style: 'form'
+        })
+        expect(warning).to.match(/The following value will be ignored: form/)
+      })
+    })
+
+    describe('property: explode', () => {
+      let encoding: Record<string, EncodingDefinition>
+      let def: RequestBodyDefinition
+
+      beforeEach(() => {
+        encoding = {}
+        def = {
+          content: {
+            'application/x-www-form-urlencoded': {
+              schema: {
+                type: 'object',
+                properties: {
+                  x: { type: 'string' }
+                }
+              },
+              encoding
+            }
+          }
+        }
+      })
+
+      it('can be a boolean', () => {
+        encoding.x = { explode: true }
+        const { error } = RequestBody.validate(def)
+        expect(error).to.equal(undefined)
+      })
+
+      it('must be a boolean', () => {
+        // @ts-expect-error
+        encoding.x = { explode: '' }
+        const { error } = RequestBody.validate(def)
+        expect(error).to.match(/Expected a boolean/)
       })
     })
   })
