@@ -15,7 +15,7 @@ and write tests ensuring that the validator does what we expect it to. Below is 
 - [X] Definitions
 - [X] Discriminator
 - [X] Encoding
-- [ ] Example
+- [X] Example
 - [ ] ExternalDocumentation
 - [ ] Header
 - [ ] Info
