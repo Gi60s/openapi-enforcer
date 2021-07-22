@@ -108,7 +108,7 @@ describe('Example component', () => {
         expect(error).to.match(/Expected a string/)
       })
 
-      it('can be a string', function () {
+      it('will warn if not a url', function () {
         const { warning } = Example.validate({ externalValue: 'not a url' })
         expect(warning).to.match(/Value does not appear to be a valid URL/)
       })
