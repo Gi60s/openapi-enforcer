@@ -1,5 +1,8 @@
 import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
-import { yes } from '../util'
+import { addExceptionLocation, yes } from '../util'
+import rx from '../rx'
+import * as E from '../Exception/methods'
+import { lookupLocation } from '../loader'
 
 export interface Definition {
   [key: `x-${string}`]: any
@@ -39,7 +42,16 @@ export class ExternalDocumentation extends OASComponent {
         {
           name: 'url',
           required: yes,
-          schema: { type: 'string' }
+          schema: {
+            type: 'string',
+            after ({ definition, exception, reference }, componentDef) {
+              if (!rx.url.test(definition)) {
+                const invalidUrl = E.invalidUrl(reference, definition)
+                addExceptionLocation(invalidUrl, lookupLocation(componentDef, 'externalValue', 'value'))
+                exception.message(invalidUrl)
+              }
+            }
+          }
         }
       ]
     }
