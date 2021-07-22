@@ -49,6 +49,9 @@ export class Discriminator extends OASComponent {
               // replace discriminator mapping references with objects or Schema instances
               data.root.component.finally.push(() => {
                 const { definition, exception } = data
+                // if there is no mapping data then nothing to validate or build here
+                if (definition === undefined) return
+
                 const loc = lookupLocation(definition)
                 let rootNodePath = loc?.source
                 const hasRootNodePath = typeof rootNodePath === 'string'
