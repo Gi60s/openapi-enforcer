@@ -95,6 +95,15 @@ export class Response<HasReference=Dereferenced> extends OASComponent {
             additionalProperties: {
               type: 'any',
               after ({ built, chain, key, exception, definition: example }) {
+                // Validate that the key matches the Operation produces value, whether inherited or explicit.
+                // Reference: https://spec.openapis.org/oas/v2.0#example-object
+                // Operation > Responses > 200 > Response > examples > KEY > definition
+                // TODO: key validation
+                const operationData = chain[3]
+                if (operationData !== undefined) {
+
+                }
+
                 // validate the example if a schema is defined
                 const parent = chain[0]
                 if ('schema' in built) {
