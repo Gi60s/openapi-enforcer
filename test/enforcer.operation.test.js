@@ -2072,6 +2072,16 @@ describe('enforcer/operation', () => {
                     expect(err).to.match(/at: headers > color > x\s+Unable to stringify value/)
                 });
 
+                it('does not care about case of keys in headers object', () => {
+                    const operation = getOperationWithResponseHeader(3, {
+                        CaseInsensitive: {
+                            schema: { type: 'string' }
+                        }
+                    });
+                    const [ res ] = operation.response(200, '', { CASEInsensitive: 'success' });
+                    expect(res.headers['CaseInsensitive']).to.equal('success');
+                });
+
             });
 
         });

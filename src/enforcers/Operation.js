@@ -420,18 +420,19 @@ module.exports = {
                 const headerKeys = Object.keys(headers);
                 if (response.headers) {
                     Object.keys(response.headers).forEach(key => {
+                        const lowerKey = key.toLowerCase();
                         const header = response.headers[key];
                         const schema = header.schema;
                         let value;
 
-                        if (headers.hasOwnProperty(key)) {
-                            value = headers[key];
+                        if (headers.hasOwnProperty(lowerKey)) {
+                            value = headers[lowerKey];
                         } else if (schema.hasOwnProperty('default')) {
                             value = util.copy(schema.default);
                         }
 
                         if (value !== undefined) {
-                            util.arrayRemoveItem(headerKeys, key);
+                            util.arrayRemoveItem(headerKeys, lowerKey);
                             value = schema.formalize(value);
                             let err = schema.validate(value);
                             if (!err) [value, err] = schema.serialize(value);
