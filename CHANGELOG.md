@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.15.4
+
+### Fixed
+
+- **Fixed Case-Sensitivity Issue with Response Headers**
+
+  Response headers that had anything except lowercase values would incorrectly not run through validation. Thanks to @dziegelbein for the PR that included the issue, fix, and tests.
+
 ## 1.15.0
 
 ### Added
