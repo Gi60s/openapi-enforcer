@@ -11,6 +11,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Fixed Case-Sensitivity Issue with Response Headers**
 
   Response headers that had anything except lowercase values would incorrectly not run through validation. Thanks to @dziegelbein for the PR that included the issue, fix, and tests.
+## 1.15.2
+
+### Fixed
+
+- **TypeScript Types Issues**
+
+  TypeScript definition still had some issues, so I've simplified it for now. Looking forward to OpenAPI Enforcer version 2 which is being built with TypeScript.
+
+## 1.15.2
+
+### Fixed
+
+- **TypeScript Types Issues**
+
+  TypeScript definition had some issues.
+
+## 1.15.1
+
+### Added
+
+- **Minimal TypeScript Support**
+
+  Added some typings for TypeScript support.
 
 ## 1.15.0
 
