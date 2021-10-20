@@ -1,5 +1,11 @@
-import { OASComponent, initializeData, Data, Dereferenced, Referencable, SchemaObject, SpecMap, Version, Exception } from './'
-import { yes } from '../util'
+import {
+  OASComponent,
+  Dereferenced,
+  Referencable,
+  Version,
+  Exception,
+  ComponentSchema
+} from './'
 import * as Callback from './Callback'
 import * as Example from './Example'
 import * as Header from './Header'
@@ -24,6 +30,128 @@ export interface Definition {
   securitySchemes?: Record<string, SecurityScheme.Definition | Reference.Definition>
 }
 
+const schemaComponent: ComponentSchema<Definition> = {
+  allowsSchemaExtensions: true,
+  properties: [
+    {
+      name: 'callbacks',
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: true,
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Callback.Callback
+        }
+      }
+    }, {
+      name: 'examples',
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: true,
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Example.Example
+        }
+      }
+    }, {
+      name: 'headers',
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: true,
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Header.Header
+        }
+      }
+    }, {
+      name: 'links',
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: true,
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Link.Link
+        }
+      }
+    }, {
+      name: 'parameters',
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: true,
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Parameter.Parameter
+        }
+      }
+    }, {
+      name: 'requestBodies',
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: true,
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: RequestBody.RequestBody
+        }
+      }
+    }, {
+      name: 'responses',
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: true,
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Response.Response
+        }
+      }
+    }, {
+      name: 'schemas',
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: true,
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Schema.Schema
+        }
+      }
+    }, {
+      name: 'securitySchemes',
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: true,
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: SecurityScheme.SecurityScheme
+        }
+      }
+    }
+  ],
+
+  validator: {
+    // TODO: put this after function into the Swagger security definitions too
+    // https://spec.openapis.org/oas/v2.0#security-requirement-object
+    after (data) {
+      const { metadata } = data.root
+      const { definition } = data.context
+      const { securitySchemes } = definition
+
+      if (typeof securitySchemes === 'object' && securitySchemes !== null) {
+        Object.keys(securitySchemes).forEach((key: string) => {
+          metadata.securitySchemes[key] = data.context.children.securitySchemes.context.children[key]
+        })
+      }
+    }
+  }
+}
+
 export class Components<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
   readonly callbacks?: Record<string, Referencable<HasReference, Callback.Callback>>
@@ -37,133 +165,18 @@ export class Components<HasReference=Dereferenced> extends OASComponent {
   readonly securitySchemes?: Record<string, Referencable<HasReference, SecurityScheme.SecurityScheme>>
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', Components, definition, version, arguments[2])
-    super(data)
+    super(Components, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#components-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#components-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#components-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#components-object'
-    }
+  static spec = {
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#components-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#components-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#components-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#components-object'
   }
 
-  static schemaGenerator (): SchemaObject {
-    return {
-      type: 'object',
-      allowsSchemaExtensions: yes,
-      properties: [
-        {
-          name: 'callbacks',
-          schema: {
-            type: 'object',
-            allowsSchemaExtensions: yes,
-            additionalProperties: {
-              type: 'component',
-              allowsRef: true,
-              component: Callback.Callback
-            }
-          }
-        }, {
-          name: 'examples',
-          schema: {
-            type: 'object',
-            allowsSchemaExtensions: yes,
-            additionalProperties: {
-              type: 'component',
-              allowsRef: true,
-              component: Example.Example
-            }
-          }
-        }, {
-          name: 'headers',
-          schema: {
-            type: 'object',
-            allowsSchemaExtensions: yes,
-            additionalProperties: {
-              type: 'component',
-              allowsRef: true,
-              component: Header.Header
-            }
-          }
-        }, {
-          name: 'links',
-          schema: {
-            type: 'object',
-            allowsSchemaExtensions: yes,
-            additionalProperties: {
-              type: 'component',
-              allowsRef: true,
-              component: Link.Link
-            }
-          }
-        }, {
-          name: 'parameters',
-          schema: {
-            type: 'object',
-            allowsSchemaExtensions: yes,
-            additionalProperties: {
-              type: 'component',
-              allowsRef: true,
-              component: Parameter.Parameter
-            }
-          }
-        }, {
-          name: 'requestBodies',
-          schema: {
-            type: 'object',
-            allowsSchemaExtensions: yes,
-            additionalProperties: {
-              type: 'component',
-              allowsRef: true,
-              component: RequestBody.RequestBody
-            }
-          }
-        }, {
-          name: 'responses',
-          schema: {
-            type: 'object',
-            allowsSchemaExtensions: yes,
-            additionalProperties: {
-              type: 'component',
-              allowsRef: true,
-              component: Response.Response
-            }
-          }
-        }, {
-          name: 'schemas',
-          schema: {
-            type: 'object',
-            allowsSchemaExtensions: yes,
-            additionalProperties: {
-              type: 'component',
-              allowsRef: true,
-              component: Schema.Schema
-            }
-          }
-        }, {
-          name: 'securitySchemes',
-          schema: {
-            type: 'object',
-            allowsSchemaExtensions: yes,
-            additionalProperties: {
-              type: 'component',
-              allowsRef: true,
-              component: SecurityScheme.SecurityScheme,
-              // TODO: put this after function into the Swagger security definitions too
-              // https://spec.openapis.org/oas/v2.0#security-requirement-object
-              after (data: Data) {
-                const { key, metadata } = data
-                if (metadata.securitySchemes === undefined) metadata.securitySchemes = {}
-                metadata.securitySchemes[key] = data
-              }
-            }
-          }
-        }
-      ]
-    }
+  static schemaGenerator (): ComponentSchema<Definition> {
+    return schemaComponent
   }
 
   static validate (definition: Definition, version?: Version): Exception {

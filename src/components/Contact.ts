@@ -1,6 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Exception, Version } from './'
-import { lookupLocation } from '../loader'
-import { addExceptionLocation, adjustExceptionLevel, yes } from '../util'
+import { OASComponent, ComponentSchema, Exception, Version } from './'
 import * as E from '../Exception/methods'
 import rx from '../rx'
 
@@ -11,6 +9,58 @@ export interface Definition {
   email?: string
 }
 
+const contactSchema: ComponentSchema<Definition> = {
+  allowsSchemaExtensions: true,
+  properties: [
+    {
+      name: 'name',
+      schema: { type: 'string' }
+    },
+    {
+      name: 'url',
+      schema: {
+        type: 'string'
+      }
+    },
+    {
+      name: 'email',
+      schema: {
+        type: 'string'
+      }
+    }
+  ],
+  validator: {
+    after (data): void {
+      const { exception, definition } = data.context
+      const { reference } = data.component
+      const { email, url } = definition
+
+      if (typeof url === 'string') {
+        if (!rx.url.test(url)) {
+          const invalidUrl = E.invalidUrl(url, {
+            definition,
+            locations: [{ node: definition, key: 'url', type: 'value' }],
+            reference
+          })
+          exception.at('url').message(invalidUrl)
+        }
+      }
+
+      if (typeof email === 'string') {
+        if (!rx.email.test(email)) {
+          // TODO: working here - how does exception level adjustment work now?
+          const invalidEmail = E.invalidEmail(email, {
+            definition,
+            locations: [{ node: definition, key: 'email', type: 'value' }],
+            reference
+          })
+          exception.message(invalidEmail)
+        }
+      }
+    }
+  }
+}
+
 export class Contact extends OASComponent {
   readonly [key: `x-${string}`]: any
   readonly email?: string
@@ -18,61 +68,19 @@ export class Contact extends OASComponent {
   readonly url?: string
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', Contact, definition, version, arguments[2])
-    super(data)
+    super(Contact, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '2.0': 'https://spec.openapis.org/oas/v2.0#contact-object',
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#contact-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#contact-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#contact-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#contact-object'
-    }
+  static spec = {
+    '2.0': 'https://spec.openapis.org/oas/v2.0#contact-object',
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#contact-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#contact-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#contact-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#contact-object'
   }
 
-  static schemaGenerator (): SchemaObject {
-    return {
-      type: 'object',
-      allowsSchemaExtensions: yes,
-      properties: [
-        {
-          name: 'name',
-          schema: { type: 'string' }
-        },
-        {
-          name: 'url',
-          schema: {
-            type: 'string',
-            after (data, def) {
-              const { definition, exception, reference } = data
-              if (!rx.url.test(definition)) {
-                const invalidUrl = E.invalidUrl(reference, definition)
-                adjustExceptionLevel(def, invalidUrl)
-                addExceptionLocation(invalidUrl, lookupLocation(def, 'url', 'value'))
-                exception.message(invalidUrl)
-              }
-            }
-          }
-        },
-        {
-          name: 'email',
-          schema: {
-            type: 'string',
-            after (data, def) {
-              const { definition, exception, reference } = data
-              if (!rx.email.test(definition)) {
-                const invalidEmail = E.invalidEmail(reference, definition)
-                adjustExceptionLevel(def, invalidEmail)
-                addExceptionLocation(invalidEmail, lookupLocation(def, 'email', 'value'))
-                exception.message(invalidEmail)
-              }
-            }
-          }
-        }
-      ]
-    }
+  static schemaGenerator (): ComponentSchema<Definition> {
+    return contactSchema
   }
 
   static validate (definition: Definition, version?: Version): Exception {

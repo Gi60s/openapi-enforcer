@@ -1,7 +1,11 @@
 import rx from './rx'
-import { CodesMap } from './config'
-import { ExceptionMessageData } from './Exception/types'
+import { ExceptionMessageData, Level } from './Exception/types'
 import { Location } from 'json-to-ast'
+import { SpecMap, Version } from './components'
+
+export interface EnforcerDirective {
+  exceptionCodeLevels: Record<string, Level>
+}
 
 interface BooleanMap {
   [key: string]: boolean
@@ -12,9 +16,11 @@ interface ObjectMap {
 }
 
 export interface Semver {
+  string: string
   major: number
   minor: number
   patch: number
+  hasPatch: boolean
 }
 
 interface ToPlainObjectOptions {
@@ -91,6 +97,30 @@ export function edgeSlashes (value: string, start: boolean, end: boolean): strin
   return value
 }
 
+export function getLatestSpecVersion (specMap: SpecMap, major?: number): Version | undefined {
+  let versions: Semver[] = Object.keys(specMap).map(semver)
+  if (major !== undefined) versions = versions.filter(v => v.major === major)
+  versions.sort((a, b) => {
+    if (a.major === b.major) {
+      if (a.minor === b.minor) {
+        return a.patch < b.patch ? -1 : 1
+      } else if (a.minor < b.minor) {
+        return -1
+      } else {
+        return 1
+      }
+    } else if (a.major < b.major) {
+      return -1
+    } else {
+      return 1
+    }
+  })
+  const latest = versions.pop()
+  return latest === undefined
+    ? undefined
+    : latest.string as Version
+}
+
 function isDate (value: any): boolean {
   return value !== null && typeof value === 'object' && !isNaN(value) && value instanceof Date
 }
@@ -148,21 +178,22 @@ export function no (): false {
 
 export function noop (): void {}
 
-export function parseEnforcerExtensionDirective (directive: string): { exceptionCodeMap: CodesMap } {
-  const result: { exceptionCodeMap: CodesMap } = {
-    exceptionCodeMap: {}
+export function parseEnforcerExtensionDirective (directive: string): EnforcerDirective {
+  const result: EnforcerDirective = {
+    exceptionCodeLevels: {} // Example: "exception: ERCODE=warn CODEN2=ignore"
   }
   directive
     .split(';')
-    .map(v => v.trim().split(':'))
-    .map(v => {
-      const key = v[0].trim()
-      const value = v[1].trim()
-      if (key === 'ignore' || key === 'opinion' || key === 'warn' || key === 'error') {
-        const codes: string[] = value.split(/ +/)
-        codes.forEach(code => {
-          result.exceptionCodeMap[code] = key
-        })
+    .forEach(v => {
+      const [directive, data] = v.split(':').map(v => v.trim())
+      if (directive === 'exception') {
+        data.split(/ +/)
+          .forEach(set => {
+            const [code, value] = set.split(/ *= */).map(v => v.trim())
+            if (value === 'ignore' || value === 'opinion' || value === 'warn' || value === 'error') {
+              result.exceptionCodeLevels[code] = value
+            }
+          })
       }
     })
   return result
@@ -220,11 +251,13 @@ export function semver (version: string): Semver {
   const match = rx.semver.exec(version)
   return match !== null
     ? {
-      major: +match[1],
-      minor: +match[2],
-      patch: +(match[3] === undefined ? 0 : match[3])
-    }
-    : { major: 0, minor: 0, patch: 0 }
+        string: version,
+        major: +match[1],
+        minor: +match[2],
+        patch: +(match[3] === undefined ? 0 : match[3]),
+        hasPatch: match[3] !== undefined
+      }
+    : { string: version, major: 0, minor: 0, patch: 0, hasPatch: false }
 }
 
 export function smart (value: any): string {

@@ -1,9 +1,23 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception, Dereferenced } from './'
+import {
+  OASComponent,
+  Version,
+  Exception,
+  Dereferenced,
+  ComponentSchema
+} from './'
 import * as Schema from './Schema'
-import { no } from '../util'
 
 export interface Definition {
   [name: string]: Schema.Definition2
+}
+
+const schemaDefinition: ComponentSchema<Definition> = {
+  allowsSchemaExtensions: false,
+  additionalProperties: {
+    type: 'component',
+    allowsRef: false,
+    component: Schema.Schema
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -11,26 +25,15 @@ export class Definitions<HasReference=Dereferenced> extends OASComponent {
   readonly [name: string]: Schema.Schema<HasReference>
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', Definitions, definition, version, arguments[2])
-    super(data)
+    super(Definitions, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '2.0': 'https://spec.openapis.org/oas/v2.0#definitions-object'
-    }
+  static spec = {
+    '2.0': 'https://spec.openapis.org/oas/v2.0#definitions-object'
   }
 
-  static schemaGenerator (): SchemaObject {
-    return {
-      type: 'object',
-      allowsSchemaExtensions: no,
-      additionalProperties: {
-        type: 'component',
-        allowsRef: false,
-        component: Schema.Schema
-      }
-    }
+  static schemaGenerator (): ComponentSchema<Definition> {
+    return schemaDefinition
   }
 
   static validate (definition: Definition, version?: Version): Exception {

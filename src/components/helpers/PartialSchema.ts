@@ -1,6 +1,6 @@
 import * as DataType from './DataTypes'
-import { clearCache, Data, SchemaObject, ExtendedComponent, OASComponent } from '../index'
-import { addExceptionLocation, adjustExceptionLevel, yes } from '../../util'
+import { Data, ExtendedComponent, OASComponent, ComponentSchema } from '../index'
+import { addExceptionLocation, adjustExceptionLevel } from '../../util'
 import * as E from '../../Exception/methods'
 import { lookupLocation } from '../../loader'
 
@@ -55,72 +55,35 @@ export abstract class PartialSchema<Items> extends OASComponent {
 export function defineDataType (referenceComponentClass: any, type: DataType.Type, format: string, definition: DataType.Definition): void {
   const dataTypes = initializeDataTypes(referenceComponentClass)
   dataTypes.define(type, format, definition)
-  clearCache(referenceComponentClass)
 }
 
-export function schemaGenerator (referenceComponentClass: any): SchemaObject {
+export function schemaGenerator<Definition> (referenceComponentClass: any, data: Data): ComponentSchema<Definition> {
+  const { context, root } = data
   const dataTypes = initializeDataTypes(referenceComponentClass)
-  let type: string
+  const { reference } = data.component
+  const { definition, exception } = context
+  const type: string = definition.type
+  const format: string | undefined = definition.format
 
-  function getType (data: Data): string {
-    if (type === undefined) type = data.component.data.definition.type
-    return type
-  }
-
-  function isNumeric (data: Data): boolean {
-    const type = getType(data)
-    const def = dataTypes.getDefinition(type as DataType.Type, data.component.data.definition.format)
-    return def?.isNumeric ?? false
-  }
+  const isArray = type === 'array'
+  const isNumeric = dataTypes.getDefinition(type as DataType.Type, format)?.isNumeric ?? false
+  const isString = type === 'string'
 
   return {
-    type: 'object',
-    allowsSchemaExtensions: yes,
-    after (data) {
-      const { built } = data
-      if (built.type === 'array') {
-        validateMaxMin(data, 'minItems', 'maxItems')
-      } else if (isNumeric(data)) {
-        validateMaxMin(data, 'minimum', 'maximum')
-      } else if (built.type === 'string') {
-        validateMaxMin(data, 'minLength', 'maxLength')
-      }
-
-      if ('default' in built) {
-        // TODO: validate default
-      }
-
-      if ('enum' in built) {
-        // TODO: validate enum
-      }
-    },
+    allowsSchemaExtensions: true,
     properties: [
       {
         name: 'type',
         schema: {
           type: 'string',
-          enum: () => ['array', 'boolean', 'integer', 'number', 'string']
+          enum: ['array', 'boolean', 'integer', 'number', 'string']
         }
       },
       {
         name: 'format',
-        allowed (data) {
-          const type = getType(data)
-          return type === 'array' || type === 'object' ? 'Format cannot be specified for type ' + type + '.' : true
-        },
+        notAllowed: type === 'array' || type === 'object' ? 'Format cannot be specified for type ' + type + '.' : undefined,
         schema: {
-          type: 'string',
-          after (data, componentDef) {
-            const { definition: format, exception } = data
-            const type = getType(data)
-            const def = dataTypes.getDefinition(type as DataType.Type, format)
-            if (def === undefined) {
-              const unknownTypeFormat = E.unknownTypeFormat(type, format)
-              adjustExceptionLevel(def, unknownTypeFormat)
-              addExceptionLocation(unknownTypeFormat, lookupLocation(componentDef, 'host', 'value'))
-              exception.message(unknownTypeFormat)
-            }
-          }
+          type: 'string'
         }
       },
       {
@@ -134,24 +97,24 @@ export function schemaGenerator (referenceComponentClass: any): SchemaObject {
       },
       {
         name: 'exclusiveMaximum',
-        allowed: (data) => isNumeric(data) ? true : 'Data type must be numeric.',
+        notAllowed: isNumeric ? undefined : 'Data type must be numeric.',
         schema: {
           type: 'boolean',
-          default: () => false
+          default: false
         }
       },
       {
         name: 'exclusiveMinimum',
-        allowed: (data) => isNumeric(data) ? true : 'Data type must be numeric.',
+        notAllowed: isNumeric ? undefined : 'Data type must be numeric.',
         schema: {
           type: 'boolean',
-          default: () => false
+          default: false
         }
       },
       {
         name: 'items',
-        allowed: (data) => getType(data) === 'array' ? true : 'Data type must be an array.',
-        required: (data) => getType(data) === 'array',
+        notAllowed: isArray ? undefined : 'Data type must be an array.',
+        required: isArray,
         schema: {
           type: 'component',
           allowsRef: true,
@@ -160,65 +123,112 @@ export function schemaGenerator (referenceComponentClass: any): SchemaObject {
       },
       {
         name: 'maximum',
-        allowed: (data) => isNumeric(data) ? true : 'Data type must be numeric.',
+        notAllowed: isNumeric ? undefined : 'Data type must be numeric.',
         schema: {
-          type: 'any' // The type is "any" because a string can be numeric
+          type: 'any' // The type is "any" because a string can be numeric given the proper format (ex: date, date-time)
         }
       },
       {
         name: 'maxItems',
-        allowed: (data) => getType(data) === 'array' ? true : 'Data type must be an array.',
+        notAllowed: isArray ? undefined : 'Data type must be an array.',
         schema: {
-          type: 'number',
-          after () {} // TODO: make sure max > min and that max is integer if type is integer
+          type: 'number'
         }
       },
       {
         name: 'maxLength',
-        allowed: (data) => getType(data) === 'string' ? true : 'Data type must be a string.',
+        notAllowed: isString ? undefined : 'Data type must be a string.',
         schema: {
           type: 'number'
         }
       },
       {
         name: 'minimum',
-        allowed: (data) => isNumeric(data) ? true : 'Data type must be numeric.',
+        notAllowed: isNumeric ? undefined : 'Data type must be numeric.',
         schema: {
-          type: 'any' // The type is "any" because a string can be numeric
+          type: 'any' // The type is "any" because a string can be numeric given the proper format (ex: date, date-time)
         }
       },
       {
         name: 'minItems',
-        allowed: (data) => getType(data) === 'array' ? true : 'Data type must be an array.',
+        notAllowed: isArray ? undefined : 'Data type must be an array.',
         schema: {
           type: 'number'
         }
       },
       {
         name: 'minLength',
-        allowed: (data) => getType(data) === 'string' ? true : 'Data type must be a string.',
+        notAllowed: isString ? undefined : 'Data type must be a string.',
         schema: {
           type: 'number'
         }
       },
       {
         name: 'multipleOf',
-        allowed: (data) => isNumeric(data) ? true : 'Data type must be numeric.',
+        notAllowed: isNumeric ? undefined : 'Data type must be numeric.',
         schema: {
-          type: 'any', // The type is "any" because a string can be numeric
-          after () {
-            // TODO: make multipleOf is a numeric integer
-          }
+          type: 'any' // The type is "any" because a string can be numeric for specific type format combinations
         }
       },
       {
         name: 'uniqueItems',
-        allowed: (data) => getType(data) === 'array' ? true : 'Data type must be an array.',
+        notAllowed: isArray ? undefined : 'Data type must be an array.',
         schema: {
           type: 'boolean'
         }
+      },
+      {
+        name: 'default',
+        schema: {
+          type: 'any'
+        }
       }
-    ]
+    ],
+    validator: {
+      after () {
+        const { built } = context
+        if (built.type === 'array') {
+          validateMaxMin(data, 'minItems', 'maxItems')
+        } else if (isNumeric) {
+          validateMaxMin(data, 'minimum', 'maximum')
+        } else if (built.type === 'string') {
+          validateMaxMin(data, 'minLength', 'maxLength')
+        }
+
+        // validate default value against the schema
+        if ('default' in built) {
+          root.finally.push(() => {
+            // TODO: validate default
+            const defaultValueDoesNotMatchSchema = E.defaultValueDoesNotMatchSchema(reference, built.default)
+          })
+        }
+
+        if ('enum' in built) {
+          // TODO: validate enum
+        }
+
+        if (built.format !== undefined) {
+          const format = built.format
+          const def = dataTypes.getDefinition(type as DataType.Type, format)
+          if (def === undefined) {
+            const unknownTypeFormat = E.unknownTypeFormat(type, format, {
+              definition: format,
+              locations: [{ node: definition, key: 'format', type: 'value' }]
+            })
+            exception.at('format').message(unknownTypeFormat)
+          }
+        }
+
+        if (isNumeric) {
+          // TODO: make sure max >= min and that max is integer if type is integer
+          // TODO: make multipleOf is valid
+        } else if (isArray) {
+          // TODO: make sure maxItems >= minItems
+        } else if (type === 'string') {
+          // TODO: make sure maxLength >= minLength
+        }
+      }
+    }
   }
 }
 
@@ -235,11 +245,15 @@ function initializeDataTypes (component: ExtendedComponent): DataType.DataTypeSt
 }
 
 export function validateMaxMin (data: Data, minKey: string, maxKey: string): void {
-  const { built, exception } = data
+  const { built, definition, exception } = data.context
   if (minKey in built && maxKey in built && built[minKey] > built[maxKey]) {
-    const invalidMaxMin = E.invalidMaxMin(built[minKey], built[maxKey], minKey, maxKey)
-    adjustExceptionLevel(data.definition, invalidMaxMin)
-    addExceptionLocation(invalidMaxMin, lookupLocation(data.definition, minKey, 'value'), lookupLocation(data.definition, maxKey, 'value'))
+    const invalidMaxMin = E.invalidMaxMin(built[minKey], built[maxKey], minKey, maxKey, {
+      definition,
+      locations: [
+        { node: definition, key: minKey, type: 'value' },
+        { node: definition, key: maxKey, type: 'value' }
+      ]
+    })
     exception.message(invalidMaxMin)
   }
 }

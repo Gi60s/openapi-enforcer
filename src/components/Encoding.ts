@@ -1,10 +1,18 @@
-import { OASComponent, initializeData, Data, Dereferenced, Referencable, SchemaObject, SpecMap, Version, Exception } from './'
+import {
+  OASComponent,
+  Data,
+  Dereferenced,
+  Referencable,
+  Version,
+  Exception,
+  ComponentSchema
+} from './'
 import * as E from '../Exception/methods'
 import rx from '../rx'
-import { addExceptionLocation, no, yes } from '../util'
 import * as Header from './Header'
 import * as Reference from './Reference'
-import { lookupLocation } from '../loader'
+import { Definition3 as SchemaDefinition } from './Schema'
+import { Definition as MediaTypeDefinition } from './MediaType'
 
 export interface Definition {
   [key: `x-${string}`]: any
@@ -24,116 +32,83 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
   readonly style!: 'form' | 'spaceDelimited' | 'pipeDelimited' | 'deepObject'
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', Encoding, definition, version, arguments[2])
-    super(data)
+    super(Encoding, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#encoding-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#encoding-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#encoding-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#encoding-object'
-    }
+  // The Encoding Object may only exist for requestBodies where the
+  // media type is multipart or application/x-www-form-urlencoded
+  static spec = {
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#encoding-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#encoding-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#encoding-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#encoding-object'
   }
 
-  static schemaGenerator (): SchemaObject {
+  static schemaGenerator (data: Data): ComponentSchema<Definition> {
+    // The Encoding Object may only exist for requestBodies where the
+    // media type is multipart or application/x-www-form-urlencoded.
+    // Request Body Object: content -> Map<string, Media Type Object>
+    // Media Type Object: encoding -> Encoding Object (this object)
+    const ignoreStyle = checkIfIgnored(data, 'style', 'application/x-www-form-urlencoded', 'The "style" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
+    const { chain, exception, definition, built } = data.context
+    const { reference } = data.component
+
+    const mediaTypeData: Data<MediaTypeDefinition> = chain[1]
+    const mediaTypeDefinition = mediaTypeData?.context.built
+    const schema: SchemaDefinition | null = '$ref' in (mediaTypeDefinition.schema ?? {})
+      ? {}
+      : mediaTypeDefinition.schema as SchemaDefinition
+    const type = schema.type ?? ''
+
+    const contentTypeDefault = (() => {
+      if (mediaTypeData !== undefined) {
+        if (schema.type === 'string' && schema.format === 'binary') return 'application/octet-stream'
+        if (schema.type === 'object') return 'application/json'
+        if (schema.type === 'array') {
+          const i = schema.items as SchemaDefinition
+          if (i.type === 'string' && i.format === 'binary') return 'application/octet-stream'
+          if (i.type === 'object' || i.type === 'array') return 'application/json'
+        }
+      }
+      return 'text/plain'
+    })()
+
     return {
-      type: 'object',
-      allowsSchemaExtensions: yes,
-      before: data => {
-        const { chain } = data
-
-        const ancestor = chain[1]
-
-        // TODO: remove this once i'm sure I'm getting the right position in hierarchy
-        console.log('TODO: Validate that this is an encoding: ' + ancestor?.key)
-
-        return true
-      },
+      allowsSchemaExtensions: true,
       properties: [
         {
           name: 'style',
           schema: {
             type: 'string',
-            default: () => {
-              return 'form'
-            },
-            enum: () => ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'],
-            ignored: (data) => {
-              return checkIfIgnored(data, 'style', 'application/x-www-form-urlencoded', 'The "style" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
-            },
-            after ({ chain, exception, definition, reference }, def) {
-              const ancestor = chain[2]
-              const type = ancestor?.definition.schema.type
-              if (type !== undefined && definition !== undefined && chain[0].definition.in === 'query') {
-                if ((definition !== 'form') &&
-                  !(definition === 'spaceDelimited' && type === 'array') &&
-                  !(definition === 'pipeDelimited' && type === 'array') &&
-                  !(definition === 'deepObject' && type === 'object')) {
-                  const invalidStyle = E.invalidStyle(reference, definition, type)
-                  addExceptionLocation(invalidStyle, lookupLocation(def, 'style', 'value'))
-                  exception.message(invalidStyle)
-                }
-              }
-            }
+            default: 'form',
+            enum: ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'],
+            ignored: ignoreStyle
           }
         },
         {
           name: 'contentType',
           schema: {
             type: 'string',
-            default: ({ chain }) => {
-              const propertyName = chain[0].key
-              const v = chain[2]?.definition.schema?.properties?.[propertyName]
-              if (v === undefined) return undefined
-              if (v.type === 'string' && v.format === 'binary') return 'application/octet-stream'
-              if (v.type === 'object') return 'application/json'
-              if (v.type === 'array') {
-                const i = v.items
-                if (i.type === 'string' && i.format === 'binary') return 'application/octet-stream'
-                if (i.type === 'object' || i.type === 'array') return 'application/json'
-              }
-              return 'text/plain'
-            },
-            after ({ definition, exception, reference }, def) {
-              if (!rx.mediaType.test(definition)) {
-                const invalidMediaType = E.invalidMediaType(reference, definition)
-                addExceptionLocation(invalidMediaType, lookupLocation(def, 'contentType', 'value'))
-                exception.message(invalidMediaType)
-              }
-            }
+            default: contentTypeDefault
           }
         },
         {
           name: 'allowReserved',
           schema: {
             type: 'boolean',
-            default: () => false,
-            ignored (data) {
-              return checkIfIgnored(data, 'allowReserved', 'application/x-www-form-urlencoded', 'The "allowReserved" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
-            }
+            default: false,
+            ignored: checkIfIgnored(data, 'allowReserved', 'application/x-www-form-urlencoded', 'The "allowReserved" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
           }
         },
         {
           name: 'headers',
           schema: {
             type: 'object',
-            allowsSchemaExtensions: no,
+            allowsSchemaExtensions: false,
             additionalProperties: {
               type: 'component',
               allowsRef: true,
-              component: Header.Header,
-              ignored (data) {
-                const { chain, definition, exception, key, reference } = data
-                const ignore = key.toLowerCase() === 'content-type'
-                if (ignore) {
-                  const valueIgnored = E.valueIgnored(reference, definition, 'Encoding headers should not include Content-Type. That is already part of the Encoding definition under the "contentType" property.')
-                  addExceptionLocation(valueIgnored, lookupLocation(chain[0].definition, key))
-                  exception.message(valueIgnored)
-                }
-                return ignore
-              }
+              component: Header.Header
             }
           }
         },
@@ -141,15 +116,56 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
           name: 'explode',
           schema: {
             type: 'boolean',
-            default: ({ chain }) => {
-              return chain[0].built.style === 'form'
-            },
-            ignored: (data) => {
-              return checkIfIgnored(data, 'explode', 'application/x-www-form-urlencoded', 'The "explode" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
+            default: built.style === 'form',
+            ignored: checkIfIgnored(data, 'explode', 'application/x-www-form-urlencoded', 'The "explode" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
+          }
+        }
+      ],
+      validator: {
+        after (data) {
+          // additional "style" property validation
+          // The Encoding Object may only exist for requestBodies where the
+          // media type is multipart or application/x-www-form-urlencoded
+          if (!ignoreStyle) {
+            const style = definition.style
+            if ((style !== 'form') &&
+              !(style === 'spaceDelimited' && type === 'array') &&
+              !(style === 'pipeDelimited' && type === 'array') &&
+              !(style === 'deepObject' && type === 'object')) {
+              const invalidStyle = E.invalidStyle(style, type, {
+                definition,
+                locations: [{ node: definition, key: 'style', type: 'value' }],
+                reference
+              })
+              exception.at('style').message(invalidStyle)
+            }
+          }
+
+          if ('contentType' in definition) {
+            const contentType = definition.contentType
+            if (!rx.mediaType.test(contentType)) {
+              const invalidMediaType = E.invalidMediaType(contentType, {
+                definition,
+                locations: [{ node: definition, key: 'contentType', type: 'value' }],
+                reference
+              })
+              exception.at('contentType').message(invalidMediaType)
+            }
+          }
+
+          if ('headers' in definition) {
+            const contentTypeKey = Object.keys(definition.headers).find(key => key.toLowerCase() === 'content-type')
+            if (contentTypeKey !== undefined) {
+              const valueIgnored = E.valueIgnored(contentTypeKey, 'Encoding headers should not include Content-Type. That is already part of the Encoding definition under the "contentType" property.', {
+                definition: definition,
+                locations: [{ node: definition.headers, key: contentTypeKey, type: 'key' }],
+                reference
+              })
+              exception.at('headers').message(valueIgnored)
             }
           }
         }
-      ]
+      }
     }
   }
 
@@ -159,13 +175,18 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
 }
 
 function checkIfIgnored (data: Data, key: string, allowedMediaType: RegExp | string, reason: string): boolean {
-  const { chain, definition, exception, reference } = data
+  const { chain, definition, exception } = data.context
+  const { reference } = data.component
+  const contextKey = chain[1]?.context.key
   const ignore = typeof allowedMediaType === 'string'
-    ? !chain[2]?.key.includes(allowedMediaType)
-    : !allowedMediaType.test(chain[2]?.key)
+    ? !contextKey.includes(allowedMediaType)
+    : !allowedMediaType.test(contextKey)
   if (ignore && definition !== undefined) {
-    const valueIgnored = E.valueIgnored(reference, definition, reason)
-    addExceptionLocation(valueIgnored, lookupLocation(chain[0].definition, key))
+    const valueIgnored = E.valueIgnored(reference, reason, {
+      definition,
+      locations: [{ node: chain[0].context.definition, key: key }],
+      reference
+    })
     exception.message(valueIgnored)
   }
   return ignore

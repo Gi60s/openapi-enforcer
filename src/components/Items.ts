@@ -1,4 +1,4 @@
-import { initializeData, SchemaObject, SpecMap, Exception, Version } from './'
+import { Data, SpecMap, Exception, Version, ComponentSchema } from './'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as DataType from './helpers/DataTypes'
 
@@ -14,8 +14,7 @@ export class Items extends PartialSchema.PartialSchema<Items> {
   readonly type!: 'array' | 'boolean' | 'integer' | 'number' | 'string'
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', Items, definition, version, arguments[2])
-    super(data)
+    super(Items, definition, version, arguments[2])
   }
 
   static defineDataType (type: DataType.Type, format: string, definition: DataType.Definition): void {
@@ -28,16 +27,16 @@ export class Items extends PartialSchema.PartialSchema<Items> {
     }
   }
 
-  static schemaGenerator (): SchemaObject {
+  static schemaGenerator (data: Data): ComponentSchema<Definition> {
     // copy schema from partial schema generator
-    const schema = PartialSchema.schemaGenerator(Items)
+    const schema = PartialSchema.schemaGenerator(Items, data)
 
     // add collectionFormat property
     schema.properties?.push({
       name: 'collectionFormat',
       schema: {
         type: 'string',
-        enum: () => ['csv', 'ssv', 'tsv', 'pipes']
+        enum: ['csv', 'ssv', 'tsv', 'pipes']
       }
     })
 

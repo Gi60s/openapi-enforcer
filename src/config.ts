@@ -1,6 +1,7 @@
 import { Version } from './components'
+import { Level } from './Exception/types'
 
-export type CodesMap = Record<string, ExceptionLevel>
+export type CodesMap = Record<string, Level>
 
 export interface Configuration {
   exceptions?: ExceptionConfiguration
@@ -16,18 +17,11 @@ export interface FullConfiguration {
   version: Version
 }
 
-type ExceptionLevel = 'ignore' | 'opinion' | 'warn' | 'error'
-
 let current: FullConfiguration = {
   exceptions: {
     codes: {}
   },
   version: '3.0.0'
-}
-
-const codeSchema = {
-  type: 'string',
-  enum: ['ignore', 'warn', 'error']
 }
 
 const schema = {
@@ -38,22 +32,9 @@ const schema = {
       properties: {
         codes: {
           type: 'object',
-          properties: {
-            DEFREQ: codeSchema,
-            ENCMED: codeSchema,
-            EXNOSC: codeSchema,
-            EXSCNS: codeSchema,
-            EXSCNV: codeSchema,
-            MEDTYP: codeSchema,
-            NOMTHD: codeSchema,
-            OPRBDY: codeSchema,
-            OPRSUM: codeSchema,
-            PTHESH: codeSchema,
-            PTHINC: codeSchema,
-            RESNBD: codeSchema,
-            RESNOS: codeSchema,
-            RESPHD: codeSchema,
-            TYPFRM: codeSchema
+          additionalProperties: {
+            type: 'string',
+            enum: ['ignore', 'opinion', 'warn', 'error']
           }
         },
         lineDelimiter: {

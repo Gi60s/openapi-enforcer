@@ -1,22 +1,22 @@
 import {
-  initializeData,
-  SpecMap,
   Version,
+  Dereferenced,
+  Referencable,
   Data,
   Reference,
   SchemaArray,
   SchemaComponent,
-  SchemaObject,
   Exception,
-  Dereferenced, Referencable
+  ComponentSchema
 } from './'
-import { no, yes } from '../util'
+import { noop } from '../util'
 import { Result } from '../Result'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as Discriminator from './Discriminator'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import * as Xml from './Xml'
 import * as DataType from './helpers/DataTypes'
+import * as E from '../Exception/methods'
 
 export type Definition = Definition2 | Definition3
 
@@ -53,6 +53,7 @@ export interface Definition3 extends DefinitionBase<Definition3> {
 
 export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSchema<Schema> {
   readonly [key: `x-${string}`]: any
+  readonly foo!: Referencable<HasReference, Schema<HasReference>>
   readonly additionalProperties?: Referencable<HasReference, Schema<HasReference>> | boolean
   readonly allOf?: Array<Referencable<HasReference, Schema<HasReference>>>
   readonly description?: string
@@ -76,8 +77,7 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
   readonly writeOnly?: boolean
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', Schema, definition, version, arguments[2])
-    super(data)
+    super(Schema, definition, version, arguments[2])
   }
 
   deserialize (value: any): Result {
@@ -109,17 +109,19 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
     PartialSchema.defineDataType(Schema, type, format, definition)
   }
 
-  static get spec (): SpecMap {
-    return {
-      '2.0': 'https://spec.openapis.org/oas/v2.0#schema-object',
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#schema-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#schema-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#schema-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#schema-object'
-    }
+  static spec = {
+    '2.0': 'https://spec.openapis.org/oas/v2.0#schema-object',
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#schema-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#schema-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#schema-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#schema-object'
   }
 
-  static schemaGenerator (): SchemaObject {
+  static schemaGenerator (data: Data): ComponentSchema<Definition> {
+    const { major } = data.root
+    const { reference } = data.component
+    const { definition, exception } = data.context
+
     const schemaArray: SchemaArray = {
       type: 'array',
       items: {
@@ -135,23 +137,46 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
     }
 
     // get some of the schema from the partial schema generator
-    const schema = PartialSchema.schemaGenerator(Schema)
+    const schema = PartialSchema.schemaGenerator(Schema, data)
 
     // add 'object' as possible type
-    const typeProperty = schema.properties?.find(s => s.name === 'type')
-    if (typeProperty !== undefined) {
-      typeProperty.schema.enum = () => {
-        return ['array', 'boolean', 'integer', 'number', 'object', 'string']
-      }
+    const typePropertyDefinition = schema.properties?.find(s => s.name === 'type')
+    if (typePropertyDefinition !== undefined) {
+      typePropertyDefinition.schema.enum = ['array', 'boolean', 'integer', 'number', 'object', 'string']
     }
 
-    const partialAfter = schema.after
-    schema.after = (data: Data, def: Definition) => {
-      const { built } = data
+    const partialValidator = {
+      before: schema.validator?.before ?? (() => true),
+      after: schema.validator?.after ?? noop
+    }
+    if (schema.validator === undefined) schema.validator = {}
+    schema.validator.before = () => {
+      let success = true
+
+      if ('additionalProperties' in definition) {
+        // let this continue even if it fails here
+        const value = definition.additionalProperties
+        if (typeof value !== 'boolean' && typeof value !== 'object') {
+          const invalidAdditionalPropertiesSchema = E.invalidAdditionalPropertiesSchema(value, {
+            definition,
+            locations: [{ node: definition, key: 'additionalProperties', type: 'value' }],
+            reference
+          })
+          exception.at('additionalProperties').message(invalidAdditionalPropertiesSchema)
+        }
+      }
+
+      success = success && partialValidator.before(data)
+
+      return success
+    }
+
+    schema.validator.after = (data: Data) => {
+      const { built } = data.context
       if (built.type === 'object') {
         PartialSchema.validateMaxMin(data, 'minProperties', 'maxProperties')
       }
-      if (partialAfter !== undefined) partialAfter(data, def)
+      partialValidator.after(data)
     }
 
     // add additional properties
@@ -165,14 +190,21 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
               condition: (data: Data, { additionalProperties }: Definition) => typeof additionalProperties === 'object',
               schema: {
                 type: 'boolean',
-                default: yes
+                default: true
               }
             },
             {
               condition: (data: Data, { additionalProperties }: Definition) => typeof additionalProperties !== 'object',
               schema: schemaChild
             }
-          ]
+          ],
+          error (data) {
+            return E.invalidAdditionalPropertiesSchema(definition, {
+              definition,
+              locations: [{ node: definition, key: 'additionalProperties', type: 'value' }],
+              reference
+            })
+          }
         }
       },
       {
@@ -189,28 +221,18 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
         versions: ['3.x.x'],
         schema: {
           type: 'boolean',
-          default: no
+          default: false
         }
       },
       {
         name: 'discriminator',
-        schema: {
-          type: 'oneOf',
-          oneOf: [
-            {
-              condition: ({ major }: Data) => major === 2,
-              schema: { type: 'string' }
-            },
-            {
-              condition: ({ major }: Data) => major > 2,
-              schema: {
-                type: 'component',
-                allowsRef: false,
-                component: Discriminator.Discriminator
-              }
+        schema: major === 2
+          ? { type: 'string' }
+          : {
+              type: 'component',
+              allowsRef: false,
+              component: Discriminator.Discriminator
             }
-          ]
-        }
       },
       {
         name: 'description',
@@ -247,7 +269,7 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
         versions: ['3.x.x'],
         schema: {
           type: 'boolean',
-          default: no
+          default: false
         }
       },
       {
@@ -258,7 +280,7 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
         name: 'properties',
         schema: {
           type: 'object',
-          allowsSchemaExtensions: yes,
+          allowsSchemaExtensions: true,
           additionalProperties: schemaChild
         }
       },
@@ -266,7 +288,7 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
         name: 'readOnly',
         schema: {
           type: 'boolean',
-          default: () => false
+          default: false
         }
       },
       {
@@ -289,7 +311,7 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
         versions: ['3.x.x'],
         schema: {
           type: 'boolean',
-          default: () => false
+          default: false
         }
       },
       {

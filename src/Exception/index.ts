@@ -1,14 +1,14 @@
 import Adapter from '../adapter'
-import { ExceptionMessageData, Level } from './types'
+import { ExceptionMessageData, ExceptionMessageDataInput, Level } from './types'
 import * as Config from '../config'
+import { lookupLocation } from '../loader'
+import { Location } from 'json-to-ast'
+import { parseEnforcerExtensionDirective } from '../util'
+import { getExceptionMessageData } from './error-codes'
 
 const { inspect, eol } = Adapter()
 const exceptionMap = new WeakMap<Exception, ExceptionPreReport>()
 const levels: Level[] = ['error', 'warn', 'opinion', 'ignore']
-
-export interface ExceptionConfiguration {
-  checkForDuplicates?: boolean
-}
 
 interface ExceptionData<T> {
   at: Record<string, T>
@@ -44,12 +44,8 @@ interface ExceptionPreReport {
 export class Exception {
   public header: string | undefined
   public data: ExceptionData<Exception> = { at: {}, messages: [] }
-  public config: Required<ExceptionConfiguration>
 
-  constructor (header?: string, config?: ExceptionConfiguration) {
-    if (config === undefined) config = {}
-    if (config.checkForDuplicates === undefined) config.checkForDuplicates = false
-    this.config = config as Required<ExceptionConfiguration>
+  constructor (header?: string) {
     this.header = header
   }
 
@@ -57,20 +53,64 @@ export class Exception {
     const at = this.data.at
     if (!(key in at)) {
       at[key] = new Exception()
-      at[key].config = this.config
     }
     return at[key]
   }
 
-  public message (data: ExceptionMessageData): Exception {
-    let isDuplicate: boolean = false
-    if (this.config.checkForDuplicates) {
-      isDuplicate = this.data.messages.find(m => {
-        return m.code === data.code && m.level === data.level && m.message === data.message && m.reference === data.reference
-      }) !== undefined
+  public message (data: ExceptionMessageDataInput): ExceptionMessageData {
+    // create initial message object
+    const messageData: ExceptionMessageData = {
+      active: data.active ?? (() => true),
+      alternateLevels: data.alternateLevels ?? [],
+      code: data.code,
+      definition: typeof data.definition === 'object' && data.definition !== null ? data.definition : undefined,
+      id: data.id,
+      level: data.level,
+      locations: (data.locations ?? []).map(v => lookupLocation(v.node, v.key, v.type)).filter(v => v !== undefined) as Location[],
+      message: data.message,
+      metadata: data.metadata ?? {},
+      reference: data.reference ?? ''
     }
-    if (!isDuplicate) this.data.messages.push(data)
-    return this
+
+    // make sure that the current level is included in the alternate levels
+    if (!messageData.alternateLevels.includes(data.level)) messageData.alternateLevels.push(data.level)
+
+    // check to see if the exception level should be changed based on either
+    // 1. the definition x-enforcer directive or
+    // 2. by global configuration
+    const configLevels = Config.get().exceptions?.codes
+    let invalidLevelChange: { level: Level, newLevel: Level, id: string, code: string, allowedLevels: string, alternateLevels: Level[] } | null = null
+    const directive: string | undefined = messageData.definition?.['x-enforcer']
+    const newLevel: Level | undefined = directive !== undefined
+      ? parseEnforcerExtensionDirective(directive)?.exceptionCodeLevels?.[messageData.code]
+      : configLevels?.[messageData.code]
+    if (newLevel !== undefined && newLevel !== data.level) {
+      if (messageData.alternateLevels.includes(newLevel)) {
+        messageData.level = newLevel
+      } else {
+        invalidLevelChange = {
+          allowedLevels: messageData.alternateLevels.join(', '),
+          alternateLevels: messageData.alternateLevels.slice(0),
+          code: data.code,
+          id: data.id,
+          level: data.level,
+          newLevel
+        }
+      }
+    }
+
+    // store the exception data (with possibly modified level)
+    this.data.messages.push(messageData)
+
+    // if there was an attempt to modify the level and it failed then add another exception message about the failure
+    if (invalidLevelChange !== null && data.id !== 'EXCEPTION_LEVEL_CHANGE_INVALID') {
+      this.message(getExceptionMessageData('EXCEPTION_LEVEL_CHANGE_INVALID', invalidLevelChange, {
+        definition: messageData.definition,
+        locations: directive === 'string' ? [{ node: messageData.definition, key: 'x-enforcer', type: 'value' }] : []
+      }))
+    }
+
+    return messageData
   }
 
   get '0' (): ErrorReport | undefined {
@@ -238,17 +278,7 @@ function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, cont
   // sort messages into groups
   data.messages
     .forEach(message => {
-      const code = message.code
-
-      // if message level has not been modified and it is not an error then check to see if it should be changed
-      if (message.originalLevel === undefined && message.level !== 'error') {
-        if (fullConfig?.codes?.[code] !== undefined) {
-          // overwrite the level if specified in the global config
-          message.level = fullConfig.codes[code]
-        }
-      }
-
-      if (message.active !== false) {
+      if (message.active === undefined || message.active()) {
         const level = message.level
         result.messages[level].push(message)
         result.hasException[level] = true

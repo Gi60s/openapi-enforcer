@@ -1,6 +1,17 @@
-import { initializeData, Data, Dereferenced, SchemaObject, SpecMap, Version, SchemaProperty, Exception, Referencable } from './'
+import {
+  initializeData,
+  Data,
+  Dereferenced,
+  SchemaObject,
+  SpecMap,
+  Version,
+  SchemaProperty,
+  Exception,
+  Referencable,
+  ComponentSchema
+} from './'
 import * as PartialSchema from './helpers/PartialSchema'
-import { addExceptionLocation, no, yes } from '../util'
+import { addExceptionLocation, no, noop, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Items from './Items'
 import * as Example from './Example'
@@ -8,6 +19,7 @@ import * as Reference from './Reference'
 import * as Schema from './Schema'
 import * as DataType from './helpers/DataTypes'
 import { lookupLocation } from '../loader'
+import { SchemaDefinition3 } from '../index'
 
 export type Definition = Definition2 | Definition3
 
@@ -77,27 +89,42 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
   readonly style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'simple' | 'spaceDelimited' | 'pipeDelimited'
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', Parameter, definition, version, arguments[2])
-    super(data)
+    super(Parameter, definition, version, arguments[2])
   }
 
   static defineDataType (type: DataType.Type, format: string, definition: DataType.Definition): void {
     PartialSchema.defineDataType(Parameter, type, format, definition)
   }
 
-  static get spec (): SpecMap {
-    return {
-      '2.0': 'https://spec.openapis.org/oas/v2.0#parameter-object',
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#parameter-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#parameter-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#parameter-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#parameter-object'
-    }
+  static spec = {
+    '2.0': 'https://spec.openapis.org/oas/v2.0#parameter-object',
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#parameter-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#parameter-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#parameter-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#parameter-object'
   }
 
-  static schemaGenerator (): SchemaObject {
+  static schemaGenerator (data: Data<Definition>): ComponentSchema<Definition> {
     // copy schema from partial schema generator
-    const schema = PartialSchema.schemaGenerator(Parameter)
+    const schema = PartialSchema.schemaGenerator(Parameter, data)
+
+    const { definition } = data.context
+    const at = definition.in
+    const type = 'type' in definition ? definition.type : ''
+    const isQueryOrFormData = at === 'query' || at === 'formData'
+
+    const styleDefault = at === 'cookie'
+      ? 'form'
+      : (at === 'header' || at === 'path' || at === 'query') ? 'simple' : ''
+    const styleEnum = at === 'cookie'
+      ? ['form']
+      : at === 'header'
+        ? ['simple']
+        : at === 'path'
+          ? ['simple', 'label', 'matrix']
+          : at === 'query'
+            ? ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject']
+            : []
 
     // mark properties from partial schema as applicable only to version 2.x
     schema.properties?.forEach((property: SchemaProperty) => {
@@ -108,45 +135,39 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
     schema.properties?.push(
       {
         name: 'name',
-        required: yes,
+        required: true,
         schema: { type: 'string' }
       },
       {
         name: 'in',
-        required: yes,
+        required: true,
         schema: { type: 'string' }
       },
       {
         name: 'allowEmptyValue',
-        allowed: (data: Data, def: Definition) => ['query', 'formData'].includes(def.in) ? true : 'Only allowed if "in" is query or formData.',
+        notAllowed: isQueryOrFormData ? undefined : 'Only allowed if "in" is query or formData.',
         schema: {
           type: 'boolean',
-          default: () => false
+          default: false
         }
       },
       {
         name: 'allowReserved',
         versions: ['3.x.x'],
-        allowed: (data: Data, { in: at }: { in: string }) => {
-          return at === 'query' || 'Property only allowed for "query" parameters.'
-        },
+        notAllowed: at === 'query' ? undefined : 'Property only allowed for "query" parameters.',
         schema: {
           type: 'boolean',
-          default: () => false
+          default: false
         }
       },
       {
         name: 'collectionFormat',
         versions: ['2.x'],
-        allowed: ({ chain }: Data, def: Definition) => {
-          if (chain[0].definition.type !== 'array') return 'Property only allowed when "type" is "array".'
-          if (!['query', 'formData'].includes(def.in)) return 'Property only allowed when "in" is "formData" or "query".'
-          return true
-        },
+        notAllowed: type === 'array' && isQueryOrFormData ? undefined : 'Property only allowed when "type" is "array" and when "in" is "formData" or "query".',
         schema: {
           type: 'string',
-          default: () => 'csv',
-          enum: () => ['csv', 'ssv', 'tsv', 'pipes', 'multi']
+          default: 'csv',
+          enum: ['csv', 'ssv', 'tsv', 'pipes', 'multi']
         }
       },
       {
@@ -154,7 +175,7 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
         versions: ['3.x.x'],
         schema: {
           type: 'boolean',
-          default: no
+          default: false
         }
       },
       {
@@ -165,12 +186,7 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
         name: 'example',
         versions: ['3.x.x'],
         schema: {
-          type: 'any',
-          after: ({ exception, root }: Data) => {
-            root.component.finally.push(() => {
-              // TODO: test if example matches schema
-            })
-          }
+          type: 'any'
         }
       },
       {
@@ -178,14 +194,9 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
         versions: ['3.x.x'],
         schema: {
           type: 'object',
-          allowsSchemaExtensions: no,
+          allowsSchemaExtensions: false,
           additionalProperties: {
-            type: 'any',
-            after: ({ exception, root }: Data) => {
-              root.component.finally.push(() => {
-                // TODO: test if example matches schema
-              })
-            }
+            type: 'any'
           }
         }
       },
@@ -193,27 +204,13 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
         name: 'required',
         schema: {
           type: 'boolean',
-          default: () => false,
-          before (data: Data, componentDef) {
-            const { exception, definition: value } = data
-            if (componentDef.in === 'path' && value !== true) {
-              const pathParameterMustBeRequired = E.pathParameterMustBeRequired(data.reference, componentDef.name)
-              addExceptionLocation(pathParameterMustBeRequired, lookupLocation(componentDef, 'required', 'value') ?? lookupLocation(componentDef))
-              exception.message(pathParameterMustBeRequired)
-              return false
-            }
-            return true
-          }
+          default: false
         }
       },
       {
         name: 'schema',
         versions: ['2.x'],
-        allowed: (data: Data, def: Definition) => {
-          // if (data.major === 3 || def.in === 'body') return true
-          if (def.in === 'body') return true
-          return 'Property only allowed if "in" is set to "body".'
-        },
+        notAllowed: at === 'body' ? undefined : 'Property only allowed if "in" is set to "body".',
         schema: {
           type: 'component',
           allowsRef: false,
@@ -234,46 +231,8 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
         versions: ['3.x.x'],
         schema: {
           type: 'string',
-          default (data: Data, { in: at }: { in: string }) {
-            switch (at) {
-              case 'cookie': return 'form'
-              case 'header': return 'simple'
-              case 'path': return 'simple'
-              case 'query': return 'simple'
-              default: return ''
-            }
-          },
-          enum (data: Data, { in: at }: { in: string }) {
-            switch (at) {
-              case 'cookie': return ['form']
-              case 'header': return ['simple']
-              case 'path': return ['simple', 'label', 'matrix']
-              case 'query': return ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject']
-              default: return []
-            }
-          },
-          after (data: Data, def) {
-            const { definition: style, exception, component } = data
-            const at = def.in
-            data.component.finally.push(function () {
-              const parameter = component.data.built
-              const schema: Schema.Schema | Reference.Reference | undefined = parameter.schema
-              if (schema !== undefined && !('$ref' in schema)) {
-                const type = schema.type
-                if (type === undefined) return
-                if (at === 'query') {
-                  if ((style !== 'form') &&
-                    !(style === 'spaceDelimited' && type === 'array') &&
-                    !(style === 'pipeDelimited' && type === 'array') &&
-                    !(style === 'deepObject' && type === 'object')) {
-                    const invalidStyle = E.invalidStyle(data.reference, style, type)
-                    addExceptionLocation(invalidStyle, lookupLocation(def, 'style', 'value'))
-                    exception.message(invalidStyle)
-                  }
-                }
-              }
-            })
-          }
+          default: styleDefault,
+          enum: styleEnum
         }
       },
       {
@@ -281,10 +240,7 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
         versions: ['3.x.x'],
         schema: {
           type: 'boolean',
-          default: (data: Data, def: Definition) => {
-            // @ts-expect-error
-            return def.style === 'form'
-          },
+          default: style === 'form', WORKING HERE
           after (data: Data, def) {
             const { definition: explode, exception, component } = data
             data.component.finally.push(function () {
@@ -307,36 +263,98 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
     // modify the type property to also include "file" if "in" is set to "formData"
     const typeProperty = schema.properties?.find((prop: SchemaProperty) => prop.name === 'type')
     if (typeProperty !== undefined) {
-      typeProperty.schema.enum = (data: Data, def: Definition) => {
-        return def.in === 'formData'
-          ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
-          : ['array', 'boolean', 'integer', 'number', 'string']
+      typeProperty.schema.enum = at === 'formData'
+        ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
+        : ['array', 'boolean', 'integer', 'number', 'string']
       }
     }
 
-    const v2After = schema.after
-    schema.after = (data: Data, def: Definition) => {
-      const { built, exception, major } = data
+    const v2Validator = {
+      before: schema.validator?.before ?? (() => true),
+      after: schema.validator?.after ?? noop
+    }
+    if (schema.validator === undefined) schema.validator = {}
+    schema.validator.after = (data) => {
+      const { major } = data.root
+      const { reference } = data.component
+      const { exception } = data.context
 
-      // if v2 then use item validator
-      if (major === 2 && v2After !== undefined) v2After(data, def)
+      if (major === 2) v2Validator.after(data)
 
-      if (built.required === true && 'default' in built) {
-        const defaultRequiredConflict = E.defaultRequiredConflict()
-        addExceptionLocation(defaultRequiredConflict, lookupLocation(def, 'default', 'key'), lookupLocation(def, 'required'))
+      // validate default and required are not both set
+      if (definition.required === true && 'default' in definition) {
+        const defaultRequiredConflict = E.defaultRequiredConflict({
+          definition,
+          locations: [
+            { node: definition, key: 'default', type: 'key' },
+            { node: definition, key: 'required', type: 'key' }
+          ]
+        })
         exception.message(defaultRequiredConflict)
       }
 
-      if (built.example !== undefined && built.examples !== undefined) {
-        const exampleExamplesConflict = E.exampleExamplesConflict(data.reference)
-        addExceptionLocation(exampleExamplesConflict, lookupLocation(def, 'example', 'key'), lookupLocation(def, 'examples', 'key'))
-        exception.message(exampleExamplesConflict)
+      // if parameter in path then validate that required is true
+      if (at === 'path' && definition.required !== true) {
+        const pathParameterMustBeRequired = E.pathParameterMustBeRequired(definition.name, {
+          definition,
+          locations: ['required' in definition ? { node: definition, key: 'required', type: 'value' } : { node: definition }],
+          reference
+        })
+        exception.message(pathParameterMustBeRequired)
       }
 
-      // TODO: If type is "file", the consumes MUST be either "multipart/form-data", " application/x-www-form-urlencoded" or both and the parameter MUST be in "formData".
-    }
+      if (major === 3) {
+        // validate example and examples are not both set
+        if ('example' in definition && 'examples' in definition) {
+          const exampleExamplesConflict = E.exampleExamplesConflict({
+            definition,
+            locations: [
+              { node: definition, key: 'example', type: 'key' },
+              { node: definition, key: 'examples', type: 'key' }
+            ],
+            reference
+          })
+          exception.message(exampleExamplesConflict)
+        }
 
-    return schema
+        // validate that example matches schema
+        if ('example' in definition) {
+          data.root.finally.push(() => {
+            // TODO: test if example matches schema
+          })
+        }
+
+        // validate that example matches schema
+        if ('examples' in definition) {
+          data.root.finally.push(() => {
+            const examples = definition.examples ?? {}
+            Object.keys(examples).forEach(key => {
+              // TODO: test if example matches schema
+            })
+          })
+        }
+
+        // if style is specified then check that it aligns with the schema type
+        const built = data.context.built as Definition3
+        const type = (built.schema as SchemaDefinition3)?.type ?? ''
+        const style = built.style ?? ''
+        if (type !== '') {
+          if ((style !== 'form') &&
+            !(style === 'spaceDelimited' && type === 'array') &&
+            !(style === 'pipeDelimited' && type === 'array') &&
+            !(style === 'deepObject' && type === 'object')) {
+            const invalidStyle = E.invalidStyle(style, type, {
+              definition,
+              locations: [{ node: definition, key: 'style', type: 'value' }],
+              reference
+            })
+            exception.message(invalidStyle)
+          }
+        }
+
+        // TODO: If type is "file", the consumes MUST be either "multipart/form-data", " application/x-www-form-urlencoded" or both and the parameter MUST be in "formData".
+      }
+    }
   }
 
   static validate (definition: Definition, version?: Version): Exception {

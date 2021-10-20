@@ -1,490 +1,360 @@
 import { Exception } from './'
-import { ExceptionMessageData } from './types'
+import { ExceptionMessageDataInput, LocationInput } from './types'
 import { smart } from '../util'
+import { getExceptionMessageData } from './error-codes'
 
-export function $refNotAllowed (reference: string): ExceptionMessageData {
-  return {
-    level: 'warn',
-    code: 'DVCREF',
-    message: 'Reference not allowed here.',
-    metadata: {},
-    reference
-  }
+interface Data {
+  definition: any
+  locations: LocationInput[]
 }
 
-export function defaultRequiredConflict (): ExceptionMessageData {
-  return {
-    level: 'warn',
-    code: 'DEFREQ',
-    message: 'Setting a "default" value and setting "required" to true means the "default" value will never be used.',
-    metadata: {},
-    reference: ''
-  }
+interface DataR {
+  definition: any
+  locations: LocationInput[]
+  reference: string
 }
 
-export function encodingNameNotMatched (reference: string): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'MEDNAM',
-    message: 'Encoding name must match a property name in the media type\'s schema',
-    metadata: {},
-    reference
-  }
+export function $refNotAllowed (data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('$REF_NOT_ALLOWED', {}, data)
 }
 
-export function encodingHeaderContentType (reference: string): ExceptionMessageData {
-  return {
-    level: 'warn',
-    code: 'MEDHCT',
-    message: 'Encoding headers should not include Content-Type. That is already part of the Encoding definition under the "contentType" property.',
-    metadata: {},
-    reference
-  }
+export function defaultRequiredConflict (data: Data): ExceptionMessageDataInput {
+  return getExceptionMessageData('DEFAULT_REQUIRED_CONFLICT', {}, data)
 }
 
-export function encodingHeadersIgnored (reference: string): ExceptionMessageData {
-  return {
-    level: 'warn',
-    code: 'MEDHED',
-    message: 'Encoding headers ignored unless part of a request body with content multipart/*',
-    metadata: {},
-    reference
-  }
+export function defaultValueDoesNotMatchSchema (defaultValue: any, data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('DEFAULT_VALUE_DOES_NOT_MATCH_SCHEMA', { defaultValue }, data)
 }
 
-export function enumMissingValues (): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'SEENUM',
-    message: 'Enum should not be an empty array',
-    metadata: {},
-    reference: ''
-  }
+export function encodingNameNotMatched (encodingName: string, data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('ENCODING_NAME_NOT_MATCHED', { encodingName }, data)
 }
 
-export function enumNotMet (reference: string, acceptableValues: any[], invalidValue: any): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'DVENUM',
-    message: acceptableValues.length > 1
-      ? 'Value must be one of: ' + acceptableValues.map(v => smart(v)).join(', ') + '. Received: ' + smart(invalidValue)
-      : 'Value must equal: ' + smart(acceptableValues[0]) + '. Received: ' + smart(invalidValue),
-    metadata: {
-      acceptableValues,
-      invalidValue
-    },
-    reference
-  }
+export function encodingHeaderContentType (data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('ENCODING_HEADER_CONTENT_TYPE', {}, data)
 }
 
-export function exampleExamplesConflict (reference: string): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'EXPCFL',
-    message: 'Properties "example" and "examples" are mutually exclusive',
-    metadata: {},
-    reference
-  }
+export function encodingHeadersIgnored (data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('ENCODING_HEADERS_IGNORED', {}, data)
 }
 
-export function exampleNotSerializable (example: any, schema: any, exception: Exception): ExceptionMessageData {
-  return {
-    level: 'warn',
-    code: 'EXSCNS',
-    message: 'Example could not be serialized and therefore cannot be validated against the schema',
-    metadata: {
-      exception,
-      example,
-      schema
-    },
-    reference: ''
-  }
+export function enumMissingValues (data: Data): ExceptionMessageDataInput {
+  return getExceptionMessageData('ENUM_MISSING_VALUES', {}, data)
 }
 
-export function exampleNotValid (example: any, schema: any, exception: Exception): ExceptionMessageData {
-  return {
-    level: 'warn',
-    code: 'EXSCNV',
-    message: 'Example is not valid when compared against the schema',
-    metadata: {
-      exception,
-      example,
-      schema
-    },
-    reference: ''
-  }
+export function enumNotMet (acceptableValues: any[], invalidValue: any, data: DataR): ExceptionMessageDataInput {
+  const result = getExceptionMessageData('ENUM_NOT_MET', { acceptableValues, invalidValue }, data)
+  result.message = acceptableValues.length > 1
+    ? 'Value must be one of: ' + acceptableValues.map(v => smart(v)).join(', ') + '. Received: ' + smart(invalidValue)
+    : 'Value must equal: ' + smart(acceptableValues[0]) + '. Received: ' + smart(invalidValue)
+  return result
 }
 
-export function exampleValueExternalConflict (reference: string): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'EXVCNF',
-    message: 'Cannot have both "externalValue" and "value" properties',
-    metadata: {},
-    reference
-  }
+export function exampleExamplesConflict (data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('EXAMPLE_EXAMPLES_CONFLICT', {}, data)
 }
 
-export function exampleWithoutSchema (): ExceptionMessageData {
-  return {
-    level: 'opinion',
-    code: 'EXVCNF',
-    message: 'An example is great, but you should add a schema. A schema can provide more detailed information than an example',
-    metadata: {},
-    reference: ''
-  }
+export function exampleNotSerializable (example: any, schema: any, exception: Exception, data: Data): ExceptionMessageDataInput {
+  return getExceptionMessageData('EXAMPLE_EXAMPLES_CONFLICT', { example, exception, schema }, data)
 }
 
-export function exceedsNumberBounds (reference: string, boundBy: 'maximum' | 'minimum', allowEqual: boolean, boundValue: any, invalidValue: number): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'DVNBND',
-    message: 'Value must be ' +
-      (boundBy === 'maximum' ? 'less than' : 'greater than') +
-      (allowEqual ? ' or equal to' : '') +
-      smart(boundValue) + '. Received: ' + smart(invalidValue),
-    metadata: {
-      allowEqual,
-      boundBy,
-      boundValue,
-      invalidValue
-    },
-    reference
-  }
+export function exampleNotValid (example: any, schema: any, exception: Exception, data: Data): ExceptionMessageDataInput {
+  return getExceptionMessageData('EXAMPLE_NOT_VALID', { example, exception, schema }, data)
 }
 
-export function exceedsStringLengthBounds (reference: string, boundBy: 'maxLength' | 'minLength', boundValue: number, invalidValue: string): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'DVSBND',
-    message: 'Value must have length ' +
-      (boundBy === 'maxLength' ? 'less than' : 'greater than') +
-      ' or equal to' + String(boundValue) +
-      '. Received: ' + String(invalidValue) + ' (length of ' + String(invalidValue.length) + ')',
-    metadata: {
-      boundBy,
-      boundValue,
-      invalidValue
-    },
-    reference
-  }
+export function exampleValueExternalConflict (data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('EXAMPLE_VALUE_EXTERNAL_CONFLICT', {}, data)
 }
 
-export function exceedsSummaryLength (reference: string, summary: string): ExceptionMessageData {
+export function exampleWithoutSchema (data: Data): ExceptionMessageDataInput {
+  return getExceptionMessageData('EXAMPLE_WITHOUT_SCHEMA', {}, data)
+}
+
+export function exceedsNumberBounds (boundBy: 'maximum' | 'minimum', allowEqual: boolean, boundValue: any, invalidValue: number, data: DataR): ExceptionMessageDataInput {
+  const result = getExceptionMessageData('EXCEEDS_NUMBER_BOUNDS', { allowEqual, boundBy, boundValue, invalidValue }, data)
+  result.message = 'Value must be ' +
+    (boundBy === 'maximum' ? 'less than' : 'greater than') +
+    (allowEqual ? ' or equal to' : '') +
+    smart(boundValue) + '. Received: ' + smart(invalidValue)
+  return result
+}
+
+export function exceedsStringLengthBounds (boundBy: 'maxLength' | 'minLength', boundValue: number, invalidValue: string, data: DataR): ExceptionMessageDataInput {
+  const result = getExceptionMessageData('EXCEEDS_STRING_LENGTH_BOUNDS', { boundBy, boundValue, invalidValue }, data)
+  result.message = 'Value must have length ' +
+    (boundBy === 'maxLength' ? 'less than' : 'greater than') +
+    ' or equal to' + String(boundValue) +
+    '. Received: ' + String(invalidValue) + ' (length of ' + String(invalidValue.length) + ')'
+  return result
+}
+
+export function exceedsSummaryLength (summary: string, data: DataR): ExceptionMessageDataInput {
   const length = summary.length
-  return {
-    level: 'warn',
-    code: 'DVSLEN', // previously OPRSUM
-    message: 'Summary should be less than 120 characters. Current length: ' + String(length),
-    metadata: {
-      length: length,
-      summary
-    },
-    reference
-  }
+  return getExceptionMessageData('EXCEEDS_SUMMARY_LENGTH', { length, summary }, data)
 }
 
-export function extensionNotAllowed (reference: string): ExceptionMessageData {
-  return {
-    level: 'warn',
-    code: 'DVOEXT',
-    message: 'Schema extensions not allowed here',
-    metadata: {},
-    reference
-  }
+export function extensionNotAllowed (data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('EXTENSION_NOT_ALLOWED', {}, data)
 }
 
-export function invalidCookieExplode (reference: string, parameterName: string): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'COOKXP',
-    message: 'Cookies do not support exploded values for schemas of type array or object',
-    metadata: {
-      parameterName
-    },
-    reference
-  }
+export function invalidAdditionalPropertiesSchema (invalidSchema: any, data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('INVALID_ADDITIONAL_PROPERTIES_SCHEMA', { invalidSchema }, data)
 }
 
-export function invalidEmail (reference: string, invalidValue: any): ExceptionMessageData {
-  return {
-    level: 'warn',
-    code: 'DVIEML',
-    message: 'Value does not appear to be a valid email address: ' + smart(invalidValue),
-    metadata: {
-      invalidValue
-    },
-    reference
-  }
+// TODO: keep moving these over to error-codes.ts
+export function invalidCookieExplode (parameterName: string, data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('INVALID_COOKIE_EXPLODE', { parameterName }, data)
 }
 
-export function invalidMaxMin (minimum: any, maximum: any, minProperty: string, maxProperty: string): ExceptionMessageData {
-  return {
-    level: 'warn',
-    code: 'MAXMIN',
-    message: 'Property ' + minProperty + ' (' + smart(minimum) + ') must be less than ' + maxProperty + ' (' + smart(maximum) + ')',
-    metadata: {
-      maximum,
-      maxProperty,
-      minimum,
-      minProperty
-    },
-    reference: ''
-  }
+export function invalidEmail (invalidValue: any, data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('INVALID_EMAIL', { invalidValue }, data)
 }
 
-export function invalidMediaType (reference: string, mediaType: string): ExceptionMessageData {
-  return {
-    level: 'warn',
-    code: 'MEDTYP',
-    message: 'Media type appears invalid: ' + mediaType,
-    metadata: {
-      mediaType
-    },
-    reference
-  }
+export function invalidMaxMin (minimum: any, maximum: any, minProperty: string, maxProperty: string, data: Data): ExceptionMessageDataInput {
+  return getExceptionMessageData('INVALID_EMAIL', { minimum, maximum, minProperty, maxProperty }, data)
 }
 
-export function invalidOpenApiVersionNumber (reference: string, version: string): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'OAIVER',
-    message: 'OpenAPI specification version not supported: ' + version,
-    metadata: {
-      version
-    },
-    reference
-  }
+export function invalidMediaType (mediaType: string, data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('INVALID_MEDIA_TYPE', { mediaType }, data)
 }
 
-export function invalidResponseCode (code: string): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'RESCOD',
-    message: 'Invalid response code: ' + code,
-    metadata: {
-      code
-    },
-    reference: ''
-  }
+export function invalidOpenApiVersionNumber (version: string, data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('INVALID_OPENAPI_VERSION_NUMBER', { version }, data)
 }
 
-export function invalidResponseLinkKey (reference: string, key: string): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'RESLKY',
-    message: 'Invalid key used for link value: ' + key,
-    metadata: {
-      key
-    },
-    reference
-  }
+export function invalidResponseCode (code: string, data: Data): ExceptionMessageDataInput {
+  return getExceptionMessageData('INVALID_RESPONSE_CODE', { code }, data)
 }
 
-export function invalidSemanticVersionNumber (reference: string): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'OAISVN',
-    message: 'Value must be a semantic version number',
-    metadata: {},
-    reference
-  }
+export function invalidResponseLinkKey (key: string, data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('INVALID_RESPONSE_LINK_KEY', { key }, data)
 }
 
-export function invalidStyle (reference: string, style: string, type: string): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'STYSCH',
-    message: 'Style ' + style + ' is incompatible with schema type: ' + type,
-    metadata: {
-      style,
-      type
-    },
-    reference
-  }
+export function invalidSemanticVersionNumber (version: string, data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('INVALID_SEMANTIC_VERSION_NUMBER', { version }, data)
 }
 
-export function invalidType (reference: string, expectedType: string, invalidValue: any): ExceptionMessageData {
-  return {
-    level: 'error',
-    code: 'DVTYPE',
-    message: 'Invalid type. Expected ' + expectedType + '. Received: ' + smart(invalidValue),
-    metadata: {
-      expectedType,
-      invalidValue
-    },
-    reference
-  }
+export function invalidStyle (style: string, type: string, data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('INVALID_PARAMETER_STYLE', { style, type }, data)
 }
 
-export function invalidUrl (reference: string, invalidValue: any): ExceptionMessageData {
+export function invalidType (expectedType: string, invalidValue: any, data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('INVALID_TYPE', { expectedType, invalidValue }, data)
+}
+
+export function invalidUrl (invalidValue: any, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     code: 'DVIURL',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Value does not appear to be a valid URL: ' + smart(invalidValue),
     metadata: {
       invalidValue
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function invalidValue (reference: string, expected: string, value: any): ExceptionMessageData {
+export function invalidValue (expected: string, value: any, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'DTNVAL',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Value is not valid. Expected ' + expected + '. Received: ' + smart(value),
     metadata: {
       expected,
       value
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function invalidValueFormat (reference: string, expected: string, format: string, value: any): ExceptionMessageData {
+export function invalidValueFormat (expected: string, format: string, value: any, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'DTFRMT',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Expected ' + expected + ' of the format ' + format + '. Received: ' + smart(value),
     metadata: {
       expected,
       format,
       value
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function invalidVersionForComponent (reference: string, componentName: string, version: string): ExceptionMessageData {
+export function invalidVersionForComponent (componentName: string, version: string, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'DVVERS',
+    definition: data.definition,
+    locations: data.locations,
     message: componentName + ' object is not supported by OpenAPI specification version ' + version,
     metadata: {
       componentName,
       version
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function linkOperationConflict (reference: string): ExceptionMessageData {
+export function linkOperationConflict (data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'LNKCFL',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Must not define both operationId and operationRef',
     metadata: {},
-    reference
+    reference: data.reference
   }
 }
 
-export function loaderFailedToLoadResource (path: string, cause: string): ExceptionMessageData {
+export function loaderFailedToLoadResource (path: string, cause: string, data: Data): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'LOADLF',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Unable to load resource: ' + path + (cause.length > 0 ? '. ' + cause : ''),
     metadata: { cause, path },
     reference: ''
   }
 }
 
-export function loaderPathNotCached (path: string): ExceptionMessageData {
+export function loaderPathNotCached (path: string, data: Data): ExceptionMessageDataInput {
   return {
-    message: 'Cannot find node for path: "' + path,
-    code: 'LOADCA',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
+    code: 'LOADCA',
+    definition: data.definition,
+    locations: data.locations,
+    message: 'Cannot find node for path: "' + path,
     metadata: { path },
     reference: ''
   }
 }
 
-export function loaderNotAvailable (path: string): ExceptionMessageData {
+export function loaderNotAvailable (path: string, data: Data): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'LOADNA',
+    definition: data.definition,
+    locations: data.locations,
     message: 'No defined loaders were able to load the path: ' + path,
     metadata: { path },
     reference: ''
   }
 }
 
-export function mediaTypeSchemaMustBeObject (reference: string, type: string): ExceptionMessageData {
+export function mediaTypeSchemaMustBeObject (type: string, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'MEDSCO',
+    definition: data.definition,
+    locations: data.locations,
     message: 'MediaType schema must be of type "object". Received type: ' + type,
     metadata: { type },
-    reference: ''
+    reference: data.reference
   }
 }
 
-export function missingRequiredProperties (reference: string, properties: string[]): ExceptionMessageData {
+export function missingRequiredProperties (properties: string[], data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'DVPREQ',
+    definition: data.definition,
+    locations: data.locations,
     message: properties.length === 1
       ? 'Missing required property: ' + properties[0]
       : 'Missing required properties: ' + properties.join(', '),
     metadata: {
       properties
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function mustNotBeNull (reference: string): ExceptionMessageData {
+export function mustNotBeNull (data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'DVPREQ',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Value must not be null.',
     metadata: {},
-    reference
+    reference: data.reference
   }
 }
 
-export function noPathsDefined (): ExceptionMessageData {
+export function noPathsDefined (data: Data): ExceptionMessageDataInput {
   return {
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     code: 'PTHSND',
+    definition: data.definition,
+    locations: data.locations,
     message: 'No paths defined',
     metadata: {},
     reference: ''
   }
 }
 
-export function notMultipleOf (reference: string, multipleOf: number, value: any): ExceptionMessageData {
+export function notMultipleOf (multipleOf: number, value: any, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'DTMULT',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Expected a multiple of ' + String(multipleOf) + '. Received: ' + smart(value),
     metadata: {
       multipleOf,
       value
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function operationMethodShouldNotHaveBody (reference: string, method: string): ExceptionMessageData {
+export function operationMethodShouldNotHaveBody (method: string, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     code: 'OPRBDY',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Including a request body with a ' + method.toUpperCase() + ' request is against the REST specification. Additionally, some of your network infrastructure may not support a body in this method',
     metadata: {
       method
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function operationIdMustBeUnique (reference: string, operationId: string, conflicts: any[]): ExceptionMessageData {
+export function operationIdMustBeUnique (operationId: string, conflicts: any[], data: DataR): ExceptionMessageDataInput {
   return {
-    get active (): boolean {
+    active (): boolean {
       return conflicts.length > 1
     },
+    alternateLevels: [],
     level: 'error',
     code: 'OPRIID',
+    definition: data.definition,
+    locations: data.locations,
     message: 'The operationId "' + operationId + '" must be unique.',
     metadata: {
       get conflicts (): string[] {
@@ -497,14 +367,17 @@ export function operationIdMustBeUnique (reference: string, operationId: string,
       },
       operationId
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function pathEndingsInconsistent (pathsWithTrailingSlash: string[], pathsWithoutTrailingSlash: string[]): ExceptionMessageData {
+export function pathEndingsInconsistent (pathsWithTrailingSlash: string[], pathsWithoutTrailingSlash: string[], data: Data): ExceptionMessageDataInput {
   return {
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     code: 'PTHINC',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Path endings are inconsistent. Some paths end with a slash and some do not.',
     metadata: {
       pathsWithTrailingSlash,
@@ -514,87 +387,111 @@ export function pathEndingsInconsistent (pathsWithTrailingSlash: string[], paths
   }
 }
 
-export function pathMissingMethods (reference: string, path: string): ExceptionMessageData {
+export function pathMissingMethods (path: string, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     code: 'NOMTHD',
+    definition: data.definition,
+    locations: data.locations,
     message: 'No methods defined for path: ' + path,
     metadata: {
       path
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function pathParameterMustBeRequired (reference: string, parameterName: string): ExceptionMessageData {
+export function pathParameterMustBeRequired (parameterName: string, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'PATREQ',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Path parameters must be marked as required. Parameter: ' + parameterName,
     metadata: {
       parameterName
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function propertyNotAllowed (reference: string, propertyName: string, reason: string): ExceptionMessageData {
+export function propertyNotAllowed (propertyName: string, reason: string, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'DVPNAL',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Property "' + propertyName + '" not allowed.' + (reason.length > 0 ? ' ' + reason : ''),
     metadata: {
       propertyName,
       reason
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function randomPasswordWarning (): ExceptionMessageData {
+export function randomPasswordWarning (data: Data): ExceptionMessageDataInput {
   return {
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     code: 'DTRPAS',
+    definition: data.definition,
+    locations: data.locations,
     message: 'It may not be safe to use this random value as a password',
     metadata: {},
     reference: ''
   }
 }
 
-export function refInfiniteLoop (): ExceptionMessageData {
+export function refInfiniteLoop (data: Data): ExceptionMessageDataInput {
   return {
-    message: 'Unresolvable infinite loop',
+    alternateLevels: [],
+    level: 'error',
     code: 'REFPIL',
-    level: 'error',
+    definition: data.definition,
+    locations: data.locations,
+    message: 'Unresolvable infinite loop',
     metadata: {},
     reference: ''
   }
 }
 
-export function refInvalidStart (): ExceptionMessageData {
+export function refInvalidStart (data: Data): ExceptionMessageDataInput {
   return {
-    message: 'References must start with #/',
+    alternateLevels: [],
+    level: 'error',
     code: 'REFINS',
-    level: 'error',
+    definition: data.definition,
+    locations: data.locations,
+    message: 'References must start with #/',
     metadata: {},
     reference: ''
   }
 }
 
-export function refNotResolved (ref: string, from: string): ExceptionMessageData {
+export function refNotResolved (ref: string, from: string, data: Data): ExceptionMessageDataInput {
   return {
-    message: 'Cannot resolve reference "' + ref + '" from "' + from + '"',
-    code: 'REFTNF',
+    alternateLevels: [],
     level: 'error',
+    code: 'REFTNF',
+    definition: data.definition,
+    locations: data.locations,
+    message: 'Cannot resolve reference "' + ref + '" from "' + from + '"',
     metadata: { ref, from },
     reference: ''
   }
 }
 
-export function responseBodyNotAllowed (type: 'schema' | 'content'): ExceptionMessageData {
+export function responseBodyNotAllowed (type: 'schema' | 'content', data: Data): ExceptionMessageDataInput {
   return {
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     code: 'RESNBD',
+    definition: data.definition,
+    locations: data.locations,
     message: 'A 204 response must not contain a body but this response has a defined ' + type,
     metadata: {
       type
@@ -603,134 +500,170 @@ export function responseBodyNotAllowed (type: 'schema' | 'content'): ExceptionMe
   }
 }
 
-export function responseRequired (reference: string): ExceptionMessageData {
+export function responseRequired (data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'RESNOV',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Responses object must define at least one response',
     metadata: {},
-    reference
+    reference: data.reference
   }
 }
 
-export function responseShouldIncludeLocationHeader (): ExceptionMessageData {
+export function responseShouldIncludeLocationHeader (data: Data): ExceptionMessageDataInput {
   return {
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     code: 'RESPHD',
+    definition: data.definition,
+    locations: data.locations,
     message: 'A 201 response for a POST request should return a location header and this is not documented in your OpenAPI document',
     metadata: {},
     reference: 'https://tools.ietf.org/html/rfc7231#section-4.3.3'
   }
 }
 
-export function responsesShouldIncludeSuccess (reference: string): ExceptionMessageData {
+export function responsesShouldIncludeSuccess (data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'RESNOS',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Responses object should define at least one success (200 level) response or a default response',
     metadata: {},
-    reference
+    reference: data.reference
   }
 }
 
-export function securityRequirementNotEmptyArray (reference: string, major: number): ExceptionMessageData {
+export function securityRequirementNotEmptyArray (major: number, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'SSNEAR',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Security requirement value must be an empty array unless associated security scheme type is ' +
       (major === 2 ? 'oauth2' : 'either oauth2 or openIdConnect'),
     metadata: {},
-    reference
+    reference: data.reference
   }
 }
 
-export function securitySchemeMissingReference (reference: string, major: number): ExceptionMessageData {
+export function securitySchemeMissingReference (major: number, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'SSNAME',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Security scheme name must have an associated reference at ' +
       (major === 2 ? 'Swagger > SecurityDefinitions' : 'OpenAPI > Components > SecuritySchemes'),
     metadata: {},
-    reference
+    reference: data.reference
   }
 }
 
-export function securitySchemeNotUrl (reference: string): ExceptionMessageData {
+export function securitySchemeNotUrl (data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'SSOURL',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Value must be a URL',
     metadata: {},
-    reference
+    reference: data.reference
   }
 }
 
-export function swaggerBasePathInvalid (reference: string, basePath: string): ExceptionMessageData {
+export function swaggerBasePathInvalid (basePath: string, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'SWGBPT',
+    definition: data.definition,
+    locations: data.locations,
     message: 'The base path must start with a forward slash: ' + basePath,
     metadata: {
       basePath
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function swaggerBasePathTemplating (reference: string, basePath: string): ExceptionMessageData {
+export function swaggerBasePathTemplating (basePath: string, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'SWGBPT',
+    definition: data.definition,
+    locations: data.locations,
     message: 'The base path does not support path templating: ' + basePath,
     metadata: {
       basePath
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function swaggerHostDoesNotSupportPathTemplating (reference: string, host: string): ExceptionMessageData {
+export function swaggerHostDoesNotSupportPathTemplating (host: string, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'SWGHPT',
+    definition: data.definition,
+    locations: data.locations,
     message: 'The host does not support path templating: ' + host,
     metadata: {
       host
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function swaggerHostHasScheme (reference: string, host: string, scheme: string): ExceptionMessageData {
+export function swaggerHostHasScheme (host: string, scheme: string, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'SWGHPR',
+    definition: data.definition,
+    locations: data.locations,
     message: 'The host must not include the scheme: ' + scheme,
     metadata: {
       host,
       scheme
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function swaggerHostHasSubPath (reference: string, host: string, subPath: string): ExceptionMessageData {
+export function swaggerHostHasSubPath (host: string, subPath: string, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: [],
     level: 'error',
     code: 'SWGHBP',
+    definition: data.definition,
+    locations: data.locations,
     message: 'The host must not include sub path: ' + subPath,
     metadata: {
       host,
       subPath
     },
-    reference
+    reference: data.reference
   }
 }
 
-export function unknownTypeFormat (type: string, format: string): ExceptionMessageData {
+export function unknownTypeFormat (type: string, format: string, data: Data): ExceptionMessageDataInput {
   return {
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     code: 'SWGHBP',
+    definition: data.definition,
+    locations: data.locations,
     message: 'Non-standard format "' + format + '" used for type "' + type + '"',
     metadata: {
       format,
@@ -740,15 +673,18 @@ export function unknownTypeFormat (type: string, format: string): ExceptionMessa
   }
 }
 
-export function valueIgnored (reference: string, value: string, reason: string): ExceptionMessageData {
+export function valueIgnored (value: string, reason: string, data: DataR): ExceptionMessageDataInput {
   return {
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     code: 'IGNORD',
+    definition: data.definition,
+    locations: data.locations,
     message: 'The following value will be ignored: ' + value + '.' + (reason !== '' ? ' ' + reason : ''),
     metadata: {
       reason,
       value
     },
-    reference
+    reference: data.reference
   }
 }

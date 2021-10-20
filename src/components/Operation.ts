@@ -1,5 +1,12 @@
-import { OASComponent, Dereferenced, initializeData, SchemaObject, SpecMap, Version, Exception, Referencable } from './'
-import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
+import {
+  OASComponent,
+  Dereferenced,
+  Data,
+  Version,
+  Exception,
+  Referencable,
+  ComponentSchema
+} from './'
 import * as E from '../Exception/methods'
 import * as Callback from './Callback'
 import * as ExternalDocumentation from './ExternalDocumentation'
@@ -9,8 +16,6 @@ import * as RequestBody from './RequestBody'
 import * as Responses from './Responses'
 import * as SecurityRequirement from './SecurityRequirement'
 import * as Server from './Server'
-import { lookupLocation } from '../loader'
-import { ExceptionMessageData } from '../Exception/types'
 
 export interface Definition {
   [key: `x-${string}`]: any
@@ -50,31 +55,27 @@ export class Operation<HasReference=Dereferenced> extends OASComponent {
   readonly tags?: string[]
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', Operation, definition, version, arguments[2])
-    super(data)
+    super(Operation, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '2.0': 'https://spec.openapis.org/oas/v2.0#operation-object',
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#operation-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#operation-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#operation-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#operation-object'
-    }
+  static spec = {
+    '2.0': 'https://spec.openapis.org/oas/v2.0#operation-object',
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#operation-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#operation-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#operation-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#operation-object'
   }
 
-  static schemaGenerator (): SchemaObject {
+  static schemaGenerator (): ComponentSchema<Definition> {
     return {
-      type: 'object',
-      allowsSchemaExtensions: yes,
+      allowsSchemaExtensions: true,
       properties: [
         {
           name: 'callbacks',
           versions: ['3.x.x'],
           schema: {
             type: 'object',
-            allowsSchemaExtensions: no,
+            allowsSchemaExtensions: false,
             additionalProperties: {
               type: 'component',
               allowsRef: true,
@@ -96,7 +97,7 @@ export class Operation<HasReference=Dereferenced> extends OASComponent {
           name: 'deprecated',
           schema: {
             type: 'boolean',
-            default: no
+            default: false
           }
         },
         {
@@ -114,18 +115,7 @@ export class Operation<HasReference=Dereferenced> extends OASComponent {
         {
           name: 'operationId',
           schema: {
-            type: 'string',
-            after (data, def) {
-              const { definition, exception, metadata } = data
-              if (metadata.operationIdMap === undefined) metadata.operationIdMap = {}
-              if (metadata.operationIdMap[definition] === undefined) metadata.operationIdMap[definition] = []
-              metadata.operationIdMap[definition].push(data.component.data)
-
-              // this exception method had a dynamic active property that will determine if this is an error or not
-              const operationIdMustBeUnique = E.operationIdMustBeUnique(data.reference, definition, metadata.operationIdMap[definition])
-              addExceptionLocation(operationIdMustBeUnique, lookupLocation(def, 'operationId', 'value'))
-              exception.message(operationIdMustBeUnique)
-            }
+            type: 'string'
           }
         },
         {
@@ -155,28 +145,6 @@ export class Operation<HasReference=Dereferenced> extends OASComponent {
           schema: {
             type: 'component',
             allowsRef: true,
-            before: ({ component, exception }, def) => {
-              const method = component.data.key
-              let operationMethodShouldNotHaveBody: ExceptionMessageData
-              switch (method.toLowerCase()) {
-                case 'get':
-                  operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody('https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET', 'get')
-                  addExceptionLocation(operationMethodShouldNotHaveBody, lookupLocation(def, 'requestBody'))
-                  exception.message(operationMethodShouldNotHaveBody)
-                  break
-                case 'delete':
-                  operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody('https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET', 'delete')
-                  addExceptionLocation(operationMethodShouldNotHaveBody, lookupLocation(def, 'requestBody'))
-                  exception.message(operationMethodShouldNotHaveBody)
-                  break
-                case 'trace':
-                  operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody('https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET', 'trace')
-                  addExceptionLocation(operationMethodShouldNotHaveBody, lookupLocation(def, 'requestBody'))
-                  exception.message(operationMethodShouldNotHaveBody)
-                  break
-              }
-              return true
-            },
             component: RequestBody.RequestBody
           }
         },
@@ -193,7 +161,7 @@ export class Operation<HasReference=Dereferenced> extends OASComponent {
           versions: ['2.x'],
           schema: {
             type: 'string',
-            enum: () => ['http', 'https', 'ws', 'wss']
+            enum: ['http', 'https', 'ws', 'wss']
           }
         },
         {
@@ -219,15 +187,7 @@ export class Operation<HasReference=Dereferenced> extends OASComponent {
         {
           name: 'summary',
           schema: {
-            type: 'string',
-            after ({ definition, exception, reference }, def) {
-              if (definition.length >= 120) {
-                const exceedsSummaryLength = E.exceedsSummaryLength(reference, definition)
-                adjustExceptionLevel(def, exceedsSummaryLength)
-                addExceptionLocation(exceedsSummaryLength, lookupLocation(def, 'summary', 'value'))
-                exception.message(exceedsSummaryLength)
-              }
-            }
+            type: 'string'
           }
         },
         {
@@ -237,11 +197,70 @@ export class Operation<HasReference=Dereferenced> extends OASComponent {
             items: { type: 'string' }
           }
         }
-      ]
+      ],
+      builder: {
+        after (data) {
+          storeOperationDataInMetadataMap(data)
+        }
+      },
+      validator: {
+        before (data) {
+          const success = true
+
+          return success
+        },
+        after (data) {
+          storeOperationDataInMetadataMap(data)
+
+          const { definition, exception, key } = data.context
+          const { reference } = data.component
+
+          // check that if request body is specified that it is valid for the method
+          if (definition.requestBody !== undefined) {
+            const method = key.toLowerCase()
+            if (method === 'get' || method === 'trace') {
+              const operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody(method, {
+                definition,
+                locations: [{ node: definition, key: 'requestBody', type: 'key' }],
+                reference: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/' + method.toUpperCase()
+              })
+              exception.at('requestBody').message(operationMethodShouldNotHaveBody)
+            } else if (method === 'delete') {
+              const operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody(method, {
+                definition,
+                locations: [{ node: definition, key: 'requestBody', type: 'key' }],
+                reference: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE'
+              })
+              operationMethodShouldNotHaveBody.message = 'According to the REST specification it is not clear if the DELETE method should allow a body. Including a body here may cause problems.'
+              exception.at('requestBody').message(operationMethodShouldNotHaveBody)
+            }
+          }
+
+          // check that the summary length is valid
+          if (definition.summary !== undefined) {
+            if (definition.summary.length >= 120) {
+              const exceedsSummaryLength = E.exceedsSummaryLength(definition.summary, {
+                definition,
+                locations: [{ node: definition, key: 'summary', type: 'value' }],
+                reference
+              })
+              exception.message(exceedsSummaryLength)
+            }
+          }
+        }
+      }
     }
   }
 
   static validate (definition: Definition, version?: Version): Exception {
     return super.validate(definition, version, arguments[2])
   }
+}
+
+function storeOperationDataInMetadataMap (data: Data<Definition>): void {
+  const { metadata } = data.root
+  const { key } = data.context
+  if (metadata.operationIdMap === undefined) metadata.operationIdMap = {}
+  if (metadata.operationIdMap[key] === undefined) metadata.operationIdMap[key] = []
+  metadata.operationIdMap[key].push(data)
 }

@@ -1,4 +1,11 @@
-import { OASComponent, initializeData, Referencable, SchemaComponent, SchemaObject, SpecMap, Version, Exception } from './'
+import {
+  OASComponent,
+  Referencable,
+  Data,
+  Version,
+  Exception,
+  ComponentSchema, SchemaObject
+} from './'
 import rx from '../rx'
 import { addExceptionLocation, no, yes } from '../util'
 import * as E from '../Exception/methods'
@@ -15,7 +22,7 @@ export interface Definition {
   encoding?: Record<string, Encoding.Definition | Reference.Definition>
   example?: any
   examples?: Record<string, Example.Definition | Reference.Definition>
-  schema?: Schema.Definition | Reference.Definition
+  schema?: Schema.Definition3 | Reference.Definition
 }
 
 export class MediaType<HasReference=Dereferenced> extends OASComponent {
@@ -26,35 +33,78 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
   schema?: Referencable<HasReference, Schema.Schema>
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', MediaType, definition, version, arguments[2])
-    super(data)
+    super(MediaType, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#media-type-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#media-type-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#media-type-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#media-type-object'
-    }
+  static spec = {
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#media-type-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#media-type-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#media-type-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#media-type-object'
   }
 
-  static schemaGenerator (): SchemaObject {
-    return {
-      type: 'object',
-      allowsSchemaExtensions: yes,
-      after ({ built, chain, exception, key, reference }, component) {
-        const parent = chain[0]
-        if (parent !== undefined && parent.key === 'content' && !rx.mediaType.test(key)) {
-          const invalidMediaType = E.invalidMediaType(reference, key)
-          addExceptionLocation(invalidMediaType, lookupLocation(parent.definition, key, 'key'))
-          exception.message(invalidMediaType)
-        }
+  static schemaGenerator (data: Data): ComponentSchema<Definition> {
+    const { chain } = data.context
+    const encodingIgnored = chain[1]?.component.constructor !== RequestBody.RequestBody
 
-        if ('example' in built && 'examples' in built) {
-          const exampleExamplesConflict = E.exampleExamplesConflict(reference)
-          addExceptionLocation(exampleExamplesConflict, lookupLocation(component, 'example', 'key'), lookupLocation(component, 'examples', 'key'))
-          exception.message(exampleExamplesConflict)
+    return {
+      allowsSchemaExtensions: true,
+      validator: {
+        after (data) {
+          const { built, chain, definition, exception, key: mediaType } = data.context
+          const { reference } = data.component
+          const parent = chain[0]
+
+          // check that the media type appears valid
+          if (parent?.context.key === 'content' && !rx.mediaType.test(mediaType)) {
+            const invalidMediaType = E.invalidMediaType(mediaType, {
+              definition,
+              locations: [{ node: parent.context.definition, key: mediaType, type: 'key' }],
+              reference
+            })
+            exception.message(invalidMediaType)
+          }
+
+          // check for example vs examples conflict
+          if (built.example !== undefined && built.examples !== undefined) {
+            const exampleExamplesConflict = E.exampleExamplesConflict({
+              definition,
+              locations: [
+                { node: definition, key: 'example', type: 'key' },
+                { node: definition, key: 'examples', type: 'key' }
+              ],
+              reference
+            })
+            exception.message(exampleExamplesConflict)
+          }
+
+          // check that the schema type is object
+          if (definition.schema !== undefined) {
+            const schema = definition.schema
+            if (!('$ref' in schema) && schema.type !== 'object') {
+              const mediaTypeSchemaMustBeObject = E.mediaTypeSchemaMustBeObject(schema.type ?? '', {
+                definition,
+                locations: [{ node: definition, key: 'type', type: 'value' }],
+                reference
+              })
+              exception.message(mediaTypeSchemaMustBeObject)
+            }
+          }
+
+          // ensure that any properties in the encoding have a matching property in the schema properties
+          const schema = definition.schema ?? {}
+          if (!('$ref' in schema)) {
+            Object.keys(definition.encoding ?? {}).forEach(key => {
+              if (schema.properties?.[key] === undefined) {
+                const encodingNameNotMatched = E.encodingNameNotMatched(key, {
+                  definition,
+                  locations: [{ node: definition.encoding, key, type: 'key' }],
+                  reference
+                })
+                exception.at('encoding').at(key).message(encodingNameNotMatched)
+              }
+            })
+          }
         }
       },
       properties: [
@@ -63,14 +113,7 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
           schema: {
             type: 'component',
             allowsRef: true,
-            component: Schema.Schema,
-            after ({ definition, exception, reference }) {
-              if (definition.$ref === undefined && definition.type !== 'object') {
-                const mediaTypeSchemaMustBeObject = E.mediaTypeSchemaMustBeObject(reference, definition.type)
-                addExceptionLocation(mediaTypeSchemaMustBeObject, lookupLocation(definition, 'type', 'value'))
-                exception.message(mediaTypeSchemaMustBeObject)
-              }
-            }
+            component: Schema.Schema
           }
         },
         {
@@ -83,7 +126,7 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
           name: 'examples',
           schema: {
             type: 'object',
-            allowsSchemaExtensions: no,
+            allowsSchemaExtensions: false,
             additionalProperties: {
               type: 'component',
               allowsRef: true,
@@ -95,23 +138,12 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
           name: 'encoding',
           schema: {
             type: 'object',
-            allowsSchemaExtensions: no,
-            ignored ({ chain }) {
-              // ignore unless this resides within a request body
-              return chain[2]?.component.constructor !== RequestBody.RequestBody
-            },
+            allowsSchemaExtensions: false,
+            ignored: encodingIgnored,
             additionalProperties: {
               type: 'component',
               allowsRef: true,
-              component: Encoding.Encoding,
-              after ({ definition, exception, key, reference }, componentDef) {
-                // ensure that any properties in the encoding have a matching property in the schema properties
-                if (componentDef.schema?.properties?.[key] === undefined) {
-                  const encodingNameNotMatched = E.encodingNameNotMatched(reference)
-                  addExceptionLocation(encodingNameNotMatched, lookupLocation(definition, key, 'key'))
-                  exception.message(encodingNameNotMatched)
-                }
-              }
+              component: Encoding.Encoding
             }
           }
         }

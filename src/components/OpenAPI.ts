@@ -1,16 +1,11 @@
 import {
   OASComponent,
-  initializeData,
   LoaderOptions,
   normalizeLoaderOptions,
-  SchemaObject,
-  SpecMap,
   Version,
   Exception,
-  loadRoot, Dereferenced
+  loadRoot, Dereferenced, ComponentSchema
 } from './'
-import * as Loader from '../loader'
-import { addExceptionLocation, yes } from '../util'
 import * as E from '../Exception/methods'
 import * as Components from './Components'
 import * as ExternalDocumentation from './ExternalDocumentation'
@@ -19,7 +14,6 @@ import * as Paths from './Paths'
 import * as SecurityRequirement from './SecurityRequirement'
 import * as Server from './Server'
 import * as Tag from './Tag'
-import { LoaderMetadata, lookupLocation } from '../loader'
 import { Result } from '../Result'
 
 const rxVersion = /^\d+\.\d+\.\d+$/
@@ -36,6 +30,116 @@ export interface Definition {
   tags?: Tag.Definition[]
 }
 
+const openapiSchema: ComponentSchema<Definition> = {
+  allowsSchemaExtensions: true,
+  properties: [
+    {
+      name: 'components',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Components.Components
+      }
+    },
+    {
+      name: 'externalDocs',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: ExternalDocumentation.ExternalDocumentation
+      }
+    },
+    {
+      name: 'info',
+      required: true,
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Info.Info
+      }
+    },
+    {
+      name: 'openapi',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    },
+    {
+      name: 'paths',
+      required: true,
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Paths.Paths
+      }
+    },
+    {
+      name: 'security',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: SecurityRequirement.SecurityRequirement
+        }
+      }
+    },
+    {
+      name: 'servers',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: Server.Server
+        }
+      }
+    },
+    {
+      name: 'tags',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: Tag.Tag
+        }
+      }
+    }
+  ],
+  validator: {
+    before (data) {
+      const { definition, exception } = data.context
+      const { reference } = data.component
+
+      if (definition.openapi !== undefined) {
+        const openapiVersion = definition.openapi
+        if (!rxVersion.test(openapiVersion)) {
+          const invalidSemanticVersionNumber = E.invalidSemanticVersionNumber(openapiVersion, {
+            definition,
+            locations: [{ node: definition, key: 'openapi', type: 'value' }],
+            reference
+          })
+          exception.at('openapi').message(invalidSemanticVersionNumber)
+          return false
+        }
+        if (openapiVersion.split('.')[0] !== '3') {
+          const invalidOpenApiVersionNumber = E.invalidOpenApiVersionNumber(openapiVersion, {
+            definition,
+            locations: [{ node: definition, key: 'openapi', type: 'value' }],
+            reference
+          })
+          exception.at('openapi').message(invalidOpenApiVersionNumber)
+          return false
+        }
+      }
+
+      return true
+    }
+  }
+}
+
 export class OpenAPI<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
   readonly components?: Components.Components<HasReference>
@@ -48,17 +152,14 @@ export class OpenAPI<HasReference=Dereferenced> extends OASComponent {
   readonly tags?: Tag.Tag[]
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', OpenAPI, definition, version, arguments[2])
-    super(data)
+    super(OpenAPI, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#openapi-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#openapi-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#openapi-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#openapi-object'
-    }
+  static spec = {
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#openapi-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#openapi-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#openapi-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#openapi-object'
   }
 
   static async load (path: string, options?: LoaderOptions): Promise<Result<OpenAPI>> {
@@ -69,102 +170,8 @@ export class OpenAPI<HasReference=Dereferenced> extends OASComponent {
     return await loadRoot<OpenAPI>(OpenAPI, path, options)
   }
 
-  static schemaGenerator (): SchemaObject {
-    return {
-      type: 'object',
-      allowsSchemaExtensions: yes,
-      properties: [
-        {
-          name: 'components',
-          schema: {
-            type: 'component',
-            allowsRef: false,
-            component: Components.Components
-          }
-        },
-        {
-          name: 'externalDocs',
-          schema: {
-            type: 'component',
-            allowsRef: false,
-            component: ExternalDocumentation.ExternalDocumentation
-          }
-        },
-        {
-          name: 'info',
-          required: yes,
-          schema: {
-            type: 'component',
-            allowsRef: false,
-            component: Info.Info
-          }
-        },
-        {
-          name: 'openapi',
-          required: yes,
-          schema: {
-            type: 'string',
-            before: ({ definition, exception, reference }, component) => {
-              if (!rxVersion.test(definition)) {
-                const invalidSemanticVersionNumber = E.invalidSemanticVersionNumber(reference)
-                addExceptionLocation(invalidSemanticVersionNumber, lookupLocation(component, 'openapi', 'value'))
-                exception.message(invalidSemanticVersionNumber)
-                return false
-              }
-              if (definition.split('.')[0] !== '3') {
-                const invalidOpenApiVersionNumber = E.invalidOpenApiVersionNumber(reference, definition)
-                addExceptionLocation(invalidOpenApiVersionNumber, lookupLocation(component, 'openapi', 'value'))
-                exception.message(invalidOpenApiVersionNumber)
-                return false
-              }
-              return true
-            }
-          }
-        },
-        {
-          name: 'paths',
-          required: yes,
-          schema: {
-            type: 'component',
-            allowsRef: false,
-            component: Paths.Paths
-          }
-        },
-        {
-          name: 'security',
-          schema: {
-            type: 'array',
-            items: {
-              type: 'component',
-              allowsRef: false,
-              component: SecurityRequirement.SecurityRequirement
-            }
-          }
-        },
-        {
-          name: 'servers',
-          schema: {
-            type: 'array',
-            items: {
-              type: 'component',
-              allowsRef: false,
-              component: Server.Server
-            }
-          }
-        },
-        {
-          name: 'tags',
-          schema: {
-            type: 'array',
-            items: {
-              type: 'component',
-              allowsRef: false,
-              component: Tag.Tag
-            }
-          }
-        }
-      ]
-    }
+  static schemaGenerator (): ComponentSchema<Definition> {
+    return openapiSchema
   }
 
   static validate (definition: Definition, version?: Version): Exception {
