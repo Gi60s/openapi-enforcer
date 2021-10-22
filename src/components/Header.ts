@@ -7,6 +7,7 @@ import {
   Referencable, ComponentSchema
 } from './'
 import { noop } from '../util'
+import * as V from './helpers/common-validators'
 import * as E from '../Exception/methods'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as DataType from './helpers/DataTypes'
@@ -79,32 +80,8 @@ export class Header<HasReference=Dereferenced> extends PartialSchema.PartialSche
     }
     if (schema.validator === undefined) schema.validator = {}
     schema.validator.after = () => {
-      const { built, exception } = data.context
-      const { reference } = data.component
-
-      if (built.required === true && 'default' in built) {
-        const defaultRequiredConflict = E.defaultRequiredConflict({
-          definition,
-          locations: [
-            { node: definition, key: 'default', type: 'key' },
-            { node: definition, key: 'required', type: 'key' }
-          ]
-        })
-        exception.message(defaultRequiredConflict)
-      }
-
-      if (built.example !== undefined && built.examples !== undefined) {
-        const exampleExamplesConflict = E.exampleExamplesConflict({
-          definition,
-          locations: [
-            { node: definition, key: 'example', type: 'key' },
-            { node: definition, key: 'examples', type: 'key' }
-          ],
-          reference
-        })
-        exception.message(exampleExamplesConflict)
-      }
-
+      V.defaultRequiredConflict(data)
+      V.exampleExamplesConflict(data)
       partialValidator.after(data)
     }
 

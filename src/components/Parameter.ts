@@ -1,9 +1,6 @@
 import {
-  initializeData,
   Data,
   Dereferenced,
-  SchemaObject,
-  SpecMap,
   Version,
   SchemaProperty,
   Exception,
@@ -11,15 +8,16 @@ import {
   ComponentSchema
 } from './'
 import * as PartialSchema from './helpers/PartialSchema'
-import { addExceptionLocation, no, noop, yes } from '../util'
+import { noop } from '../util'
+import * as V from './helpers/common-validators'
 import * as E from '../Exception/methods'
 import * as Items from './Items'
 import * as Example from './Example'
 import * as Reference from './Reference'
 import * as Schema from './Schema'
 import * as DataType from './helpers/DataTypes'
-import { lookupLocation } from '../loader'
 import { SchemaDefinition3 } from '../index'
+import { examplesMatchSchema } from './helpers/common-validators'
 
 export type Definition = Definition2 | Definition3
 
@@ -240,22 +238,7 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
         versions: ['3.x.x'],
         schema: {
           type: 'boolean',
-          default: style === 'form', WORKING HERE
-          after (data: Data, def) {
-            const { definition: explode, exception, component } = data
-            data.component.finally.push(function () {
-              const parameter = component.data.built
-              if (parameter.schema !== undefined && !('$ref' in parameter.schema)) {
-                const type = parameter.schema.type
-                const { at, name } = def
-                if (at === 'cookie' && explode === true && (type === 'array' || type === 'object')) {
-                  const invalidCookieExplode = E.invalidCookieExplode(data.reference, name)
-                  addExceptionLocation(invalidCookieExplode, lookupLocation(def, 'explode', 'value'))
-                  exception.message(invalidCookieExplode)
-                }
-              }
-            })
-          }
+          default: ((definition as Definition3).style ?? styleDefault) === 'form'
         }
       }
     )
@@ -266,7 +249,6 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
       typeProperty.schema.enum = at === 'formData'
         ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
         : ['array', 'boolean', 'integer', 'number', 'string']
-      }
     }
 
     const v2Validator = {
@@ -281,17 +263,7 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
 
       if (major === 2) v2Validator.after(data)
 
-      // validate default and required are not both set
-      if (definition.required === true && 'default' in definition) {
-        const defaultRequiredConflict = E.defaultRequiredConflict({
-          definition,
-          locations: [
-            { node: definition, key: 'default', type: 'key' },
-            { node: definition, key: 'required', type: 'key' }
-          ]
-        })
-        exception.message(defaultRequiredConflict)
-      }
+      V.defaultRequiredConflict(data)
 
       // if parameter in path then validate that required is true
       if (at === 'path' && definition.required !== true) {
@@ -304,35 +276,8 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
       }
 
       if (major === 3) {
-        // validate example and examples are not both set
-        if ('example' in definition && 'examples' in definition) {
-          const exampleExamplesConflict = E.exampleExamplesConflict({
-            definition,
-            locations: [
-              { node: definition, key: 'example', type: 'key' },
-              { node: definition, key: 'examples', type: 'key' }
-            ],
-            reference
-          })
-          exception.message(exampleExamplesConflict)
-        }
-
-        // validate that example matches schema
-        if ('example' in definition) {
-          data.root.finally.push(() => {
-            // TODO: test if example matches schema
-          })
-        }
-
-        // validate that example matches schema
-        if ('examples' in definition) {
-          data.root.finally.push(() => {
-            const examples = definition.examples ?? {}
-            Object.keys(examples).forEach(key => {
-              // TODO: test if example matches schema
-            })
-          })
-        }
+        V.exampleExamplesConflict(data)
+        V.examplesMatchSchema(data)
 
         // if style is specified then check that it aligns with the schema type
         const built = data.context.built as Definition3
@@ -348,13 +293,25 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
               locations: [{ node: definition, key: 'style', type: 'value' }],
               reference
             })
-            exception.message(invalidStyle)
+            exception.at('style').message(invalidStyle)
           }
+        }
+
+        // if in "cookie" then validate that we're not exploding objects or arrays
+        if ('explode' in built && built.explode === true && (type === 'array' || type === 'object')) {
+          const invalidCookieExplode = E.invalidCookieExplode(definition.name, {
+            definition,
+            locations: [{ node: definition, key: 'explode', type: 'value' }],
+            reference
+          })
+          exception.at('explode').message(invalidCookieExplode)
         }
 
         // TODO: If type is "file", the consumes MUST be either "multipart/form-data", " application/x-www-form-urlencoded" or both and the parameter MUST be in "formData".
       }
     }
+
+    return schema
   }
 
   static validate (definition: Definition, version?: Version): Exception {

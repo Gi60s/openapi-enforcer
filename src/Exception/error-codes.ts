@@ -82,6 +82,14 @@ export const list: MessageTemplate[] = [
     message: 'Properties "example" and "examples" are mutually exclusive.'
   },
   {
+    id: 'EXAMPLE_MEDIA_TYPE_NOT_PRODUCED',
+    code: 'EXMTNP',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Example uses media type "${mediaType}" that is not listed in the possible list of produces: ${produces}'
+  },
+  {
     id: 'EXAMPLE_NOT_SERIALIZABLE',
     code: 'EXNOSE',
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],

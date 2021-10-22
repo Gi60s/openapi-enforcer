@@ -44,7 +44,7 @@ export interface Data<Definition=any> {
   // unchanging values
   root: {
     data: Data
-    finally: Array<(data: Data) => void>
+    lastly: Array<(data: Data) => void>
     loadCache: Record<string, any>
     major: number
     map: Map<any, MapItem[]>
@@ -225,7 +225,7 @@ export abstract class OASComponent<Definition=any> {
       : incomingData
     const { builder } = data.component.schema
     const { map } = data.root
-    data.context.built = this
+    data.context.built = this as unknown as Definition
 
     // register the use of this component with this definition
     if (!map.has(this.constructor)) map.set(this.constructor, [])
@@ -242,8 +242,8 @@ export abstract class OASComponent<Definition=any> {
     // run after function if set
     if (typeof builder?.after === 'function') builder.after(data)
 
-    // trigger finally hooks if this is root
-    if (incomingData === undefined) data.root.finally.forEach(fn => fn(data))
+    // trigger lastly hooks if this is root
+    if (incomingData === undefined) data.root.lastly.forEach(fn => fn(data))
   }
 
   static extend (): void {
@@ -294,8 +294,8 @@ export abstract class OASComponent<Definition=any> {
       // run after function if set
       if (typeof validator?.after === 'function') validator.after(data)
 
-      // trigger finally hooks if this is root
-      if (incomingData === undefined) root.finally.forEach(fn => fn(data))
+      // trigger lastly hooks if this is root
+      if (incomingData === undefined) root.lastly.forEach(fn => fn(data))
     }
 
     return exception
@@ -518,7 +518,7 @@ export function createComponentData<Definition> (action: 'constructing' | 'loadi
     root: data === undefined
       ? {
           data: null,
-          finally: [],
+          lastly: [],
           loadCache: {},
           major: parseInt(v.split('.')[0]),
           map: new Map(),
@@ -596,14 +596,14 @@ export async function loadRoot<T> (RootComponent: ExtendedComponent, path: strin
   // initialize data object
   const version: string = definition.openapi ?? definition.swagger
   const data = createComponentData('loading', RootComponent, definition, version as Version)
-  data.loadCache = config.cache as Record<string, any>
-  data.exception = exception
+  data.root.loadCache = config.cache as Record<string, any>
+  data.context.exception = exception
 
   // run validation then reset some data properties
   // @ts-expect-error
   if (options.validate === true) RootComponent.validate(definition, version, data)
-  data.map = new Map()
-  data.component.finally = []
+  data.root.map = new Map()
+  data.root.lastly = []
 
   // build the component if there are no errors
   if (exception.hasError) return new Result(definition, exception) // first param will be undefined because of error

@@ -1,12 +1,21 @@
-import { OASComponent, initializeData, Dereferenced, SchemaObject, SpecMap, Version, Exception, Referencable } from './'
-import { addExceptionLocation, adjustExceptionLevel, no, yes } from '../util'
+import {
+  OASComponent,
+  Dereferenced,
+  Version,
+  Exception,
+  Referencable,
+  ComponentSchema
+} from './'
+import { getAncestorComponent } from './helpers/traversal'
 import * as E from '../Exception/methods'
+import * as V from './helpers/common-validators'
+import { Operation } from './Operation'
+import { Swagger } from './Swagger'
 import * as Header from './Header'
 import * as Link from './Link'
 import * as MediaType from './MediaType'
 import * as Reference from './Reference'
 import * as Schema from './Schema'
-import { lookupLocation } from '../loader'
 
 const rxContentType = /^content-type$/i
 const rxLinkName = /^[a-zA-Z0-9.\-_]+$/
@@ -39,27 +48,23 @@ export class Response<HasReference=Dereferenced> extends OASComponent {
   readonly schema?: Schema.Schema
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', Response, definition, version, arguments[2])
-    super(data)
+    super(Response, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '3.0.0': 'https://spec.openapis.org/oas/v2.0#response-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#response-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#response-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#response-object'
-    }
+  static spec = {
+    '3.0.0': 'https://spec.openapis.org/oas/v2.0#response-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#response-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#response-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#response-object'
   }
 
-  static schemaGenerator (): SchemaObject {
+  static schemaGenerator (): ComponentSchema<Definition> {
     return {
-      type: 'object',
-      allowsSchemaExtensions: yes,
+      allowsSchemaExtensions: true,
       properties: [
         {
           name: 'description',
-          required: yes,
+          required: true,
           schema: {
             type: 'string'
           }
@@ -69,7 +74,7 @@ export class Response<HasReference=Dereferenced> extends OASComponent {
           versions: ['3.x.x'],
           schema: {
             type: 'object',
-            allowsSchemaExtensions: no,
+            allowsSchemaExtensions: false,
             additionalProperties: {
               type: 'component',
               allowsRef: false,
@@ -91,45 +96,9 @@ export class Response<HasReference=Dereferenced> extends OASComponent {
           versions: ['2.0'],
           schema: {
             type: 'object',
-            allowsSchemaExtensions: no,
+            allowsSchemaExtensions: false,
             additionalProperties: {
-              type: 'any',
-              after ({ built, chain, key, exception, definition: example }) {
-                // Validate that the key matches the Operation produces value, whether inherited or explicit.
-                // Reference: https://spec.openapis.org/oas/v2.0#example-object
-                // Operation > Responses > 200 > Response > examples > KEY > definition
-                // TODO: key validation
-                const operationData = chain[3]
-                if (operationData !== undefined) {
-
-                }
-
-                // validate the example if a schema is defined
-                const parent = chain[0]
-                if ('schema' in built) {
-                  const schema = built.schema as Schema.Schema
-                  const serialized = schema.serialize(example)
-                  if (serialized?.exception?.hasError === true) {
-                    const exampleNotSerializable = E.exampleNotSerializable(example, schema, serialized.exception)
-                    adjustExceptionLevel(parent?.definition, exampleNotSerializable)
-                    addExceptionLocation(exampleNotSerializable, lookupLocation(parent?.definition, key, 'value'))
-                    exception.message(exampleNotSerializable)
-                  } else {
-                    const error = schema.validate(serialized.value)
-                    if (error != null) {
-                      const exampleNotSerializable = E.exampleNotValid(example, schema, error)
-                      adjustExceptionLevel(parent?.definition, exampleNotSerializable)
-                      addExceptionLocation(exampleNotSerializable, lookupLocation(parent?.definition, key, 'value'))
-                      exception.message(exampleNotSerializable)
-                    }
-                  }
-                } else {
-                  const exampleWithoutSchema = E.exampleWithoutSchema()
-                  adjustExceptionLevel(parent?.definition, exampleWithoutSchema)
-                  addExceptionLocation(exampleWithoutSchema, lookupLocation(parent?.definition, key, 'value'))
-                  exception.message(exampleWithoutSchema)
-                }
-              }
+              type: 'any'
             }
           }
         },
@@ -137,11 +106,10 @@ export class Response<HasReference=Dereferenced> extends OASComponent {
           name: 'headers',
           schema: {
             type: 'object',
-            allowsSchemaExtensions: no,
+            allowsSchemaExtensions: false,
             additionalProperties: {
               type: 'component',
               allowsRef: true,
-              ignored: ({ key }) => rxContentType.test(key),
               component: Header.Header
             }
           }
@@ -151,23 +119,78 @@ export class Response<HasReference=Dereferenced> extends OASComponent {
           versions: ['3.x.x'],
           schema: {
             type: 'object',
-            allowsSchemaExtensions: no,
+            allowsSchemaExtensions: false,
             additionalProperties: {
               type: 'component',
               allowsRef: true,
-              component: Link.Link,
-              after ({ exception, chain, key, reference }) {
-                if (!rxLinkName.test(key)) {
-                  const invalidResponseLinkKey = E.invalidResponseLinkKey(reference, key)
-                  const parent = chain[0]
-                  addExceptionLocation(invalidResponseLinkKey, lookupLocation(parent?.definition, key, 'key'))
-                  exception.message(invalidResponseLinkKey)
+              component: Link.Link
+            }
+          }
+        }
+      ],
+      validator: {
+        after (data) {
+          const { built, definition, exception } = data.context
+          const { reference } = data.component
+          const { major } = data.root
+
+          if (major === 2) {
+            if ('examples' in built) {
+              const exampleMediaTypes = Object.keys(built.examples ?? {})
+
+              // Validate that the key matches the Operation produces value, whether inherited or explicit.
+              const operation = getAncestorComponent(data, Operation)
+              const swagger = getAncestorComponent(data, Swagger)
+              const produces: string[] = [].concat(operation?.context.built.produces ?? [], swagger?.context.built.produces ?? [])
+              exampleMediaTypes.forEach(type => {
+                if (!produces.includes(type)) {
+                  const exampleMediaTypeNotProduced = E.exampleMediaTypeNotProduced(type, produces, {
+                    definition,
+                    locations: [{ node: (definition as Definition2).examples, key: type, type: 'key' }],
+                    reference
+                  })
+                  exception.at('examples').at(type).message(exampleMediaTypeNotProduced)
                 }
+              })
+
+              if (built.schema !== undefined) {
+                if (!('$ref' in built.schema)) {
+                  const schema = new Schema.Schema(built.schema, '2.0')
+                  V.examplesMatchSchema(data, schema)
+                }
+              } else {
+                V.examplesMatchSchema(data, null)
+              }
+            }
+          } else if (major === 3) {
+            if ('links' in built) {
+              const keys = Object.keys(built.links ?? {})
+              keys.forEach(key => {
+                if (!rxLinkName.test(key)) {
+                  const invalidResponseLinkKey = E.invalidResponseLinkKey(key, {
+                    definition,
+                    locations: [{ node: (definition as Definition3).links, key, type: 'key' }],
+                    reference
+                  })
+                  exception.at('links').at(key).message(invalidResponseLinkKey)
+                }
+              })
+            }
+
+            if ('headers' in built) {
+              const contentTypeKey = Object.keys(built.headers ?? {}).find(key => key.toLowerCase() === 'content-type')
+              if (contentTypeKey !== undefined) {
+                const valueIgnored = E.valueIgnored(contentTypeKey, 'Response headers should not include Content-Type. The content type is already part of the Response definition.', {
+                  definition: definition,
+                  locations: [{ node: definition.headers, key: contentTypeKey, type: 'key' }],
+                  reference
+                })
+                exception.at('headers').message(valueIgnored)
               }
             }
           }
         }
-      ]
+      }
     }
   }
 

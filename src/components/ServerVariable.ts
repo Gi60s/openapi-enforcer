@@ -1,7 +1,5 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
-import { addExceptionLocation, yes } from '../util'
+import { OASComponent, Version, Exception, ComponentSchema } from './'
 import * as E from '../Exception/methods'
-import { lookupLocation } from '../loader'
 
 export interface Definition {
   [key: `x-${string}`]: any
@@ -17,23 +15,19 @@ export class ServerVariable extends OASComponent {
   readonly description?: string
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', ServerVariable, definition, version, arguments[2])
-    super(data)
+    super(ServerVariable, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#server-variable-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#server-variable-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#server-variable-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-variable-object'
-    }
+  static spec = {
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#server-variable-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#server-variable-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#server-variable-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-variable-object'
   }
 
-  static schemaGenerator (): SchemaObject {
+  static schemaGenerator (): ComponentSchema<Definition> {
     return {
-      type: 'object',
-      allowsSchemaExtensions: yes,
+      allowsSchemaExtensions: true,
       properties: [
         {
           name: 'enum',
@@ -41,20 +35,12 @@ export class ServerVariable extends OASComponent {
             type: 'array',
             items: {
               type: 'string'
-            },
-            after (data, def) {
-              const { built, exception } = data
-              if (built.length === 0) {
-                const enumMissingValues = E.enumMissingValues()
-                addExceptionLocation(enumMissingValues, lookupLocation(def, 'enum', 'value'))
-                exception.message(enumMissingValues)
-              }
             }
           }
         },
         {
           name: 'default',
-          required: yes,
+          required: true,
           schema: {
             type: 'string'
           }
@@ -65,7 +51,22 @@ export class ServerVariable extends OASComponent {
             type: 'string'
           }
         }
-      ]
+      ],
+      validator: {
+        after (data) {
+          const { built, definition, exception } = data.context
+
+          if (built.enum !== undefined) {
+            if (built.enum.length === 0) {
+              const enumMissingValues = E.enumMissingValues({
+                definition,
+                locations: [{ node: definition, key: 'enum', type: 'value' }]
+              })
+              exception.message(enumMissingValues)
+            }
+          }
+        }
+      }
     }
   }
 

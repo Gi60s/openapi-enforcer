@@ -33,17 +33,6 @@ interface ToPlainObjectResult {
   value?: any
 }
 
-export function adjustExceptionLevel (o: any, message: ExceptionMessageData): void {
-  if (o?.['x-enforcer'] !== undefined) {
-    const { exceptionCodeMap } = parseEnforcerExtensionDirective(o['x-enforcer'])
-    const code = message.code
-    if (code !== 'error' && code in exceptionCodeMap) {
-      message.originalLevel = message.level
-      message.level = exceptionCodeMap[code]
-    }
-  }
-}
-
 export function addExceptionLocation (message: ExceptionMessageData, ...locations: Array<Location|undefined>): void {
   const filtered: Location[] = locations.filter(l => l !== undefined) as Location[]
   if (filtered.length > 0) {

@@ -33,7 +33,7 @@ const schemaDiscriminator: ComponentSchema<Definition> = {
       const { mapping } = componentDef
 
       if (mapping !== undefined) {
-        componentData.root.finally.push((rootData) => {
+        componentData.root.lastly.push((rootData) => {
           const data = componentData.context.children.mapping
           const { loadCache, map, version } = data.root
           const { definition, exception } = data.context
@@ -77,7 +77,7 @@ const schemaDiscriminator: ComponentSchema<Definition> = {
       const ancestor = componentData.context.chain[0]
 
       if (mapping !== undefined) {
-        componentData.root.finally.push((rootData) => {
+        componentData.root.lastly.push((rootData) => {
           const data = componentData.context.children.mapping
           const { loadCache } = data.root
           const { definition, exception } = data.context

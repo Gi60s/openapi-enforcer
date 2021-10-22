@@ -1,11 +1,16 @@
-import { OASComponent, Dereferenced, initializeData, SchemaObject, SpecMap, Version, Exception, Referencable } from './'
-import { addExceptionLocation, adjustExceptionLevel, yes } from '../util'
+import {
+  OASComponent,
+  Dereferenced,
+  Version,
+  Exception,
+  Referencable,
+  ComponentSchema
+} from './'
 import * as E from '../Exception/methods'
 import * as Operation from './Operation'
 import * as Parameter from './Parameter'
 import * as Reference from './Reference'
 import * as Server from './Server'
-import { lookupLocation } from '../loader'
 
 const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']
 
@@ -25,6 +30,142 @@ export interface Definition {
   summary?: string
 }
 
+const schemaPathItem: ComponentSchema<Definition> = {
+  allowsSchemaExtensions: true,
+  validator: {
+    after (data) {
+      const {
+        built,
+        definition,
+        exception,
+        key
+      } = data.context
+      const { reference } = data.component
+
+      const length = methods.length
+      let hasMethod = false
+      for (let i = 0; i < length; i++) {
+        if (methods[i] in built) {
+          hasMethod = true
+          break
+        }
+      }
+      if (!hasMethod) {
+        const pathMissingMethods = E.pathMissingMethods(key, {
+          definition,
+          locations: [{ node: definition }],
+          reference
+        })
+        exception.message(pathMissingMethods)
+      }
+    }
+  },
+  properties: [
+    {
+      name: 'parameters',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: Parameter.Parameter
+        }
+      }
+    },
+    {
+      name: 'delete',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Operation.Operation
+      }
+    },
+    {
+      name: 'description',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'string'
+      }
+    },
+    {
+      name: 'get',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Operation.Operation
+      }
+    },
+    {
+      name: 'head',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Operation.Operation
+      }
+    },
+    {
+      name: 'options',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Operation.Operation
+      }
+    },
+    {
+      name: 'patch',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Operation.Operation
+      }
+    },
+    {
+      name: 'put',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Operation.Operation
+      }
+    },
+    {
+      name: 'post',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Operation.Operation
+      }
+    },
+    {
+      name: 'trace',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Operation.Operation
+      }
+    },
+    {
+      name: 'servers',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: Server.Server
+        }
+      }
+    },
+    {
+      name: 'summary',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'string'
+      }
+    }
+  ]
+}
+
 export class PathItem<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
   delete?: Operation.Operation<HasReference>
@@ -41,145 +182,19 @@ export class PathItem<HasReference=Dereferenced> extends OASComponent {
   summary?: string
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', PathItem, definition, version, arguments[2])
-    super(data)
+    super(PathItem, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '2.0': 'https://spec.openapis.org/oas/v2.0#path-item-object',
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#path-item-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#path-item-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#path-item-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#path-item-object'
-    }
+  static spec = {
+    '2.0': 'https://spec.openapis.org/oas/v2.0#path-item-object',
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#path-item-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#path-item-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#path-item-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#path-item-object'
   }
 
-  static schemaGenerator (): SchemaObject {
-    return {
-      type: 'object',
-      allowsSchemaExtensions: yes,
-      after ({ definition, exception, reference, key }, def) {
-        const length = methods.length
-        let hasMethod = false
-        for (let i = 0; i < length; i++) {
-          if (methods[i] in definition) {
-            hasMethod = true
-            break
-          }
-        }
-        if (!hasMethod) {
-          const pathMissingMethods = E.pathMissingMethods(reference, key)
-          adjustExceptionLevel(def, pathMissingMethods)
-          addExceptionLocation(pathMissingMethods, lookupLocation(def))
-          exception.message(pathMissingMethods)
-        }
-      },
-      properties: [
-        {
-          name: 'parameters',
-          schema: {
-            type: 'array',
-            items: {
-              type: 'component',
-              allowsRef: true,
-              component: Parameter.Parameter
-            }
-          }
-        },
-        {
-          name: 'delete',
-          schema: {
-            type: 'component',
-            allowsRef: false,
-            component: Operation.Operation
-          }
-        },
-        {
-          name: 'description',
-          versions: ['3.x.x'],
-          schema: {
-            type: 'string'
-          }
-        },
-        {
-          name: 'get',
-          schema: {
-            type: 'component',
-            allowsRef: false,
-            component: Operation.Operation
-          }
-        },
-        {
-          name: 'head',
-          schema: {
-            type: 'component',
-            allowsRef: false,
-            component: Operation.Operation
-          }
-        },
-        {
-          name: 'options',
-          schema: {
-            type: 'component',
-            allowsRef: false,
-            component: Operation.Operation
-          }
-        },
-        {
-          name: 'patch',
-          schema: {
-            type: 'component',
-            allowsRef: false,
-            component: Operation.Operation
-          }
-        },
-        {
-          name: 'put',
-          schema: {
-            type: 'component',
-            allowsRef: false,
-            component: Operation.Operation
-          }
-        },
-        {
-          name: 'post',
-          schema: {
-            type: 'component',
-            allowsRef: false,
-            component: Operation.Operation
-          }
-        },
-        {
-          name: 'trace',
-          versions: ['3.x.x'],
-          schema: {
-            type: 'component',
-            allowsRef: false,
-            component: Operation.Operation
-          }
-        },
-        {
-          name: 'servers',
-          versions: ['3.x.x'],
-          schema: {
-            type: 'array',
-            items: {
-              type: 'component',
-              allowsRef: false,
-              component: Server.Server
-            }
-          }
-        },
-        {
-          name: 'summary',
-          versions: ['3.x.x'],
-          schema: {
-            type: 'string'
-          }
-        }
-      ]
-    }
+  static schemaGenerator (): ComponentSchema<Definition> {
+    return schemaPathItem
   }
 
   static validate (definition: Definition, version?: Version): Exception {

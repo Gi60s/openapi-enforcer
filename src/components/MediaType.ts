@@ -4,17 +4,16 @@ import {
   Data,
   Version,
   Exception,
-  ComponentSchema, SchemaObject
+  ComponentSchema
 } from './'
 import rx from '../rx'
-import { addExceptionLocation, no, yes } from '../util'
 import * as E from '../Exception/methods'
+import * as V from './helpers/common-validators'
 import * as Encoding from './Encoding'
 import * as Example from './Example'
 import * as Reference from './Reference'
 import * as RequestBody from './RequestBody'
 import * as Schema from './Schema'
-import { lookupLocation } from '../loader'
 import { Dereferenced } from './Reference'
 
 export interface Definition {
@@ -66,17 +65,7 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
           }
 
           // check for example vs examples conflict
-          if (built.example !== undefined && built.examples !== undefined) {
-            const exampleExamplesConflict = E.exampleExamplesConflict({
-              definition,
-              locations: [
-                { node: definition, key: 'example', type: 'key' },
-                { node: definition, key: 'examples', type: 'key' }
-              ],
-              reference
-            })
-            exception.message(exampleExamplesConflict)
-          }
+          V.exampleExamplesConflict(data)
 
           // check that the schema type is object
           if (definition.schema !== undefined) {

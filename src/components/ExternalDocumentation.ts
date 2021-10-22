@@ -1,8 +1,6 @@
 import { OASComponent, Data, Version, Exception, ComponentSchema } from './'
-import { addExceptionLocation, yes } from '../util'
 import rx from '../rx'
 import * as E from '../Exception/methods'
-import { lookupLocation } from '../loader'
 
 export interface Definition {
   [key: `x-${string}`]: any

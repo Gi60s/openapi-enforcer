@@ -1,5 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
-import { yes } from '../util'
+import { OASComponent, Version, Exception, ComponentSchema } from './'
 
 export interface Definition {
   [key: `x-${string}`]: any
@@ -8,6 +7,32 @@ export interface Definition {
   prefix?: string
   attribute?: boolean
   wrapped?: boolean
+}
+
+const schemaXml: ComponentSchema<Definition> = {
+  allowsSchemaExtensions: true,
+  properties: [
+    {
+      name: 'name',
+      schema: { type: 'string' }
+    },
+    {
+      name: 'namespace',
+      schema: { type: 'string' }
+    },
+    {
+      name: 'prefix',
+      schema: { type: 'string' }
+    },
+    {
+      name: 'attribute',
+      schema: { type: 'boolean' }
+    },
+    {
+      name: 'wrapped',
+      schema: { type: 'boolean' }
+    }
+  ]
 }
 
 export class Xml extends OASComponent {
@@ -19,47 +44,19 @@ export class Xml extends OASComponent {
   readonly wrapped?: boolean
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', Xml, definition, version, arguments[2])
-    super(data)
+    super(Xml, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '2.0': 'https://spec.openapis.org/oas/v2.0#xml-object',
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#xml-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#xml-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#xml-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#xml-object'
-    }
+  static spec = {
+    '2.0': 'https://spec.openapis.org/oas/v2.0#xml-object',
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#xml-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#xml-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#xml-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#xml-object'
   }
 
-  static schemaGenerator (): SchemaObject {
-    return {
-      type: 'object',
-      allowsSchemaExtensions: yes,
-      properties: [
-        {
-          name: 'name',
-          schema: { type: 'string' }
-        },
-        {
-          name: 'namespace',
-          schema: { type: 'string' }
-        },
-        {
-          name: 'prefix',
-          schema: { type: 'string' }
-        },
-        {
-          name: 'attribute',
-          schema: { type: 'boolean' }
-        },
-        {
-          name: 'wrapped',
-          schema: { type: 'boolean' }
-        }
-      ]
-    }
+  static schemaGenerator (): ComponentSchema<Definition> {
+    return schemaXml
   }
 
   static validate (definition: Definition, version?: Version): Exception {

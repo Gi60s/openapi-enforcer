@@ -54,8 +54,12 @@ export function exampleExamplesConflict (data: DataR): ExceptionMessageDataInput
   return getExceptionMessageData('EXAMPLE_EXAMPLES_CONFLICT', {}, data)
 }
 
+export function exampleMediaTypeNotProduced (mediaType: string, produces: string[], data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('EXAMPLE_MEDIA_TYPE_NOT_PRODUCED', { mediaType, produces }, data)
+}
+
 export function exampleNotSerializable (example: any, schema: any, exception: Exception, data: Data): ExceptionMessageDataInput {
-  return getExceptionMessageData('EXAMPLE_EXAMPLES_CONFLICT', { example, exception, schema }, data)
+  return getExceptionMessageData('EXAMPLE_NOT_SERIALIZABLE', { example, exception, schema }, data)
 }
 
 export function exampleNotValid (example: any, schema: any, exception: Exception, data: Data): ExceptionMessageDataInput {

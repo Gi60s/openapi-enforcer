@@ -1,8 +1,6 @@
 import * as DataType from './DataTypes'
 import { Data, ExtendedComponent, OASComponent, ComponentSchema } from '../index'
-import { addExceptionLocation, adjustExceptionLevel } from '../../util'
 import * as E from '../../Exception/methods'
-import { lookupLocation } from '../../loader'
 
 /**
  * This file is for code reuse between the following OpenAPI specification objects:
@@ -197,7 +195,7 @@ export function schemaGenerator<Definition> (referenceComponentClass: any, data:
 
         // validate default value against the schema
         if ('default' in built) {
-          root.finally.push(() => {
+          root.lastly.push(() => {
             // TODO: validate default
             const defaultValueDoesNotMatchSchema = E.defaultValueDoesNotMatchSchema(reference, built.default)
           })

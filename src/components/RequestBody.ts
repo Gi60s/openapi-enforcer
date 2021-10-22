@@ -1,5 +1,4 @@
-import { OASComponent, initializeData, SchemaObject, SpecMap, Version, Exception } from './'
-import { yes } from '../util'
+import { OASComponent, Version, Exception, ComponentSchema } from './'
 import * as MediaType from './MediaType'
 
 export interface Definition {
@@ -9,6 +8,33 @@ export interface Definition {
   required?: boolean
 }
 
+const requestBodySchema: ComponentSchema<Definition> = {
+  allowsSchemaExtensions: true,
+  properties: [
+    {
+      name: 'description',
+      schema: { type: 'string' }
+    },
+    {
+      name: 'content',
+      required: true,
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: true,
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: MediaType.MediaType
+        }
+      }
+    },
+    {
+      name: 'required',
+      schema: { type: 'boolean' }
+    }
+  ]
+}
+
 export class RequestBody extends OASComponent {
   readonly [key: `x-${string}`]: any
   description?: string
@@ -16,47 +42,18 @@ export class RequestBody extends OASComponent {
   required?: boolean
 
   constructor (definition: Definition, version?: Version) {
-    const data = initializeData('constructing', RequestBody, definition, version, arguments[2])
-    super(data)
+    super(RequestBody, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#request-body-object',
-      '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#request-body-object',
-      '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#request-body-object',
-      '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#request-body-object'
-    }
+  static spec = {
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#request-body-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#request-body-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#request-body-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#request-body-object'
   }
 
-  static schemaGenerator (): SchemaObject {
-    return {
-      type: 'object',
-      allowsSchemaExtensions: yes,
-      properties: [
-        {
-          name: 'description',
-          schema: { type: 'string' }
-        },
-        {
-          name: 'content',
-          required: yes,
-          schema: {
-            type: 'object',
-            allowsSchemaExtensions: yes,
-            additionalProperties: {
-              type: 'component',
-              allowsRef: false,
-              component: MediaType.MediaType
-            }
-          }
-        },
-        {
-          name: 'required',
-          schema: { type: 'boolean' }
-        }
-      ]
-    }
+  static schemaGenerator (): ComponentSchema<Definition> {
+    return requestBodySchema
   }
 
   static validate (definition: Definition, version?: Version): Exception {
