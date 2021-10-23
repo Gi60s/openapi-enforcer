@@ -277,7 +277,9 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
 
       if (major === 3) {
         V.exampleExamplesConflict(data)
-        V.examplesMatchSchema(data)
+        if (definition.schema !== undefined && !('$ref' in definition.schema)) {
+          V.examplesMatchSchema(data, new Schema.Schema(definition.schema))
+        }
 
         // if style is specified then check that it aligns with the schema type
         const built = data.context.built as Definition3

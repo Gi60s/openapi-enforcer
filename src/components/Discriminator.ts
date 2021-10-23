@@ -36,7 +36,7 @@ const schemaDiscriminator: ComponentSchema<Definition> = {
         componentData.root.lastly.push((rootData) => {
           const data = componentData.context.children.mapping
           const { loadCache, map, version } = data.root
-          const { definition, exception } = data.context
+          const { definition } = data.context
 
           const loc = lookupLocation(definition)
           const hasRootNodePath = typeof loc?.source === 'string'
@@ -49,8 +49,8 @@ const schemaDiscriminator: ComponentSchema<Definition> = {
 
               // lookup the node by reference if loaded, otherwise traverse off the root node
               const node = hasRootNodePath
-                ? getReferenceNode(loadCache, rootNodePath, ref, new Exception('')) // passing in new exception because we're ignoring an errors here
-                : traverse(rootData.context.built, ref, rootNodePath, exception.at(key))
+                ? getReferenceNode(loadCache, rootNodePath, ref) // passing in new exception because we're ignoring an errors here
+                : traverse(rootData.context.built, ref)
 
               if (node === undefined) {
                 // @ts-expect-error
@@ -92,8 +92,8 @@ const schemaDiscriminator: ComponentSchema<Definition> = {
 
               // lookup the node by reference if loaded, otherwise traverse off the root node
               const node = hasRootNodePath
-                ? getReferenceNode(loadCache, rootNodePath, ref, new Exception('')) // passing in new exception because we're ignoring an errors here
-                : traverse(rootData.context.built, ref, rootNodePath, exception.at(key))
+                ? getReferenceNode(loadCache, rootNodePath, ref)
+                : traverse(rootData.context.built, ref)
 
               if (node !== undefined) {
                 data.context.built[key] = node

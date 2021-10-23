@@ -8,7 +8,6 @@ import {
 } from './'
 import { noop } from '../util'
 import * as V from './helpers/common-validators'
-import * as E from '../Exception/methods'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as DataType from './helpers/DataTypes'
 import * as Example from './Example'

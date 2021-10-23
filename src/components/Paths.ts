@@ -53,6 +53,31 @@ const schemaPaths: ComponentSchema<Definition> = {
         })
         exception.message(pathEndingsInconsistent)
       }
+
+      // check for duplicate operation ids
+      data.root.lastly.push(() => {
+        const map = data.root.metadata.operationIdMap
+        Object.keys(map).forEach(operationId => {
+          const operationDataArray = map[operationId]
+
+          // if there is an operationId that belongs to more than one operation then we have a problem
+          if (operationDataArray.length > 1) {
+            const { reference } = operationDataArray[0].component
+            E.operationIdMustBeUnique(operationId, operationDataArray, {
+              definition, // paths object definition
+              locations: operationDataArray.map(operationData => {
+                const { definition: node } = operationData.context
+                return {
+                  node,
+                  key: 'operationId',
+                  type: 'value'
+                }
+              }),
+              reference
+            })
+          }
+        })
+      })
     }
   },
   additionalProperties: {
@@ -62,6 +87,7 @@ const schemaPaths: ComponentSchema<Definition> = {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Paths<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
   readonly [path: string]: PathItem.PathItem<HasReference>

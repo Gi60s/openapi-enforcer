@@ -231,7 +231,6 @@ export class Operation<HasReference=Dereferenced> extends OASComponent {
                 locations: [{ node: definition, key: 'requestBody', type: 'key' }],
                 reference: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE'
               })
-              operationMethodShouldNotHaveBody.message = 'According to the REST specification it is not clear if the DELETE method should allow a body. Including a body here may cause problems.'
               exception.at('requestBody').message(operationMethodShouldNotHaveBody)
             }
           }
