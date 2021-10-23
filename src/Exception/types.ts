@@ -9,7 +9,6 @@ export interface LocationInput {
 }
 
 export interface ExceptionMessageData {
-  active?: () => boolean
   alternateLevels: Level[]
   code: string
   definition?: any
@@ -22,7 +21,6 @@ export interface ExceptionMessageData {
 }
 
 export interface ExceptionMessageDataInput {
-  active?: () => boolean
   alternateLevels: Level[]
   code: string
   definition: any

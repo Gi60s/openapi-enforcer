@@ -1,3 +1,4 @@
+import { Data } from '../components'
 import { ExceptionMessageDataInput, LocationInput, Level } from './types'
 import { smart } from '../util'
 
@@ -232,11 +233,284 @@ export const list: MessageTemplate[] = [
     message: 'Invalid type. Expected ${expectedType}. Received: ${invalidValue}'
   },
   {
-    id: '',
-    code: '',
+    id: 'INVALID_URL',
+    code: 'INVURL',
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
-    level: '',
-    message: ''
+    level: 'warn',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Value does not appear to be a valid URL: ${invalidUrl}'
+  },
+  {
+    id: 'INVALID_VALUE',
+    code: 'INVVAL',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Value is not valid. Expected "${expected}". Received: ${invalidValue}'
+  },
+  {
+    id: 'INVALID_VALUE_FORMAT',
+    code: 'INVAFO',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Expected ${type} of the format ${format}. Received: ${invalidValue}'
+  },
+  {
+    id: 'INVALID_VERSION_FOR_COMPONENT',
+    code: 'INVEFC',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: '${componentName} object is not supported by the OpenAPI specification version ${version}.'
+  },
+  {
+    id: 'LINK_OPERATION_CONFLICT',
+    code: 'LIOPCO',
+    alternateLevels: [],
+    level: 'error',
+    message: 'The operationId and operationRef are mutually exclusive.'
+  },
+  {
+    id: 'LOADER_FAILED_TO_LOAD_RESOURCE',
+    code: 'LOFTLR',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Unable to load resource: ${path}. Cause: ${cause}.'
+  },
+  {
+    id: 'LOADER_PATH_NOT_CACHED',
+    code: 'LOPANC',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Cannot find node for path: ${path}'
+  },
+  {
+    id: 'LOADER_NOT_AVAILABLE',
+    code: 'LONOAV',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'No defined loaders were able to load the path: ${path}'
+  },
+  {
+    id: 'MEDIA_TYPE_SCHEMA_MUST_BE_OBJECT',
+    code: 'MTSMBO',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'MediaType schema must be of type "object". Received type: ${type}'
+  },
+  {
+    id: 'MISSING_REQUIRED_PROPERTIES',
+    code: 'MIMEPR',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Missing required properties: ${properties}'
+  },
+  {
+    id: 'MUST_NOT_BE_NULL',
+    code: 'MUNOBN',
+    alternateLevels: [],
+    level: 'error',
+    message: 'Value must not be null.'
+  },
+  {
+    id: 'NO_PATHS_DEFINED',
+    code: 'NOPADE',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    message: 'No paths defined.'
+  },
+  {
+    id: 'NOT_MULTIPLE_OF',
+    code: 'NOMUOF',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Expected a multiple of ${multipleOf}. Received: ${invalidValue}'
+  },
+  {
+    id: 'OPERATION_METHOD_REQUEST_BODY_NOT_ADVISED',
+    code: 'OMRBNA',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Including a request body with a ${upperMethod} request is not advised. Some implementations may reject ${upperMethod} requests that contain a request body.'
+  },
+  {
+    id: 'OPERATION_ID_MUST_BE_UNIQUE',
+    code: 'OPIMBU',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'The operationId ${operationId} must be unique for each operation.'
+  },
+  {
+    id: 'PATH_ENDINGS_INCONSISTENT',
+    code: 'PAENIN',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    message: 'Path endings are inconsistent. Some paths end with a slash and some do not. This may cause confusion for users of your API.'
+  },
+  {
+    id: 'PATH_MISSING_METHODS',
+    code: 'PAMIME',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'No methods defined for path: ${path}'
+  },
+  {
+    id: 'PATH_PARAMETER_MUST_BE_REQUIRED',
+    code: 'PAPMBR',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Path parameters must be marked as required. Parameter: ${parameterName}'
+  },
+  {
+    id: 'PROPERTY_NOT_ALLOWED',
+    code: 'PRNOAL',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Property ${propertyName} not allowed. ${reason}'
+  },
+  {
+    id: 'RANDOM_PASSWORD_WARNING',
+    code: 'RAPAWA',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    message: 'It may not be safe to use this random value as a password. Passwords generated here are not cryptographically secure.'
+  },
+  {
+    id: 'REF_INFINITE_LOOP',
+    code: 'REINLO',
+    alternateLevels: [],
+    level: 'error',
+    message: 'Reference is an unresolvable infinite loop.'
+  },
+  {
+    id: 'REF_INVALID_START',
+    code: 'REINST',
+    alternateLevels: [],
+    level: 'error',
+    message: 'References must start with #/'
+  },
+  {
+    id: 'REF_NOT_RESOLVED',
+    code: 'RENORE',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Cannot resolve reference ${ref} from ${from}.'
+  },
+  {
+    id: 'RESPONSE_BODY_NOT_ALLOWED',
+    code: 'REBONA',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'A 204 response must not contain a body but this response has a defined ${type}.'
+  },
+  {
+    id: 'RESPONSE_REQUIRED',
+    code: 'RESREQ',
+    alternateLevels: [],
+    level: 'error',
+    message: 'Responses object must define at least one response.'
+  },
+  {
+    id: 'RESPONSE_SHOULD_INCLUDE_LOCATION_HEADER',
+    code: 'RESILC',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    message: 'A 201 response for a POST request should return a location header and this is not documented in your OpenAPI document.'
+  },
+  {
+    id: 'RESPONSE_SHOULD_INCLUDE_SUCCESS',
+    code: 'RESHIS',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    message: 'Responses object should define at least one success (200 level) response or a default response.'
+  },
+  {
+    id: 'SECURITY_REQUIREMENT_NOT_EMPTY_ARRAY',
+    code: 'SERNEA',
+    alternateLevels: [],
+    level: 'error',
+    message: 'Security requirement value must be an empty array unless associated security scheme type is oauth2 or openIdConnect.'
+  },
+  {
+    id: 'SECURITY_SCHEME_MISSING_REFERENCE',
+    code: 'SESCMR',
+    alternateLevels: [],
+    level: 'error',
+    message: 'Security scheme name must have an associated reference in the SecurityDefinitions (OAS 2) or SecuritySchemes (OAS 3).'
+  },
+  {
+    id: 'SECURITY_SCHEME_NOT_URL',
+    code: 'SESCNU',
+    alternateLevels: [],
+    level: 'error',
+    message: 'Value must be a URL.'
+  },
+  {
+    id: 'SWAGGER_BASE_PATH_INVALID',
+    code: 'SWBAPI',
+    alternateLevels: [],
+    level: 'error',
+    message: 'The base path must start with a forward slash.'
+  },
+  {
+    id: 'SWAGGER_BASE_PATH_TEMPLATING',
+    code: 'SWBAPT',
+    alternateLevels: [],
+    level: 'error',
+    message: 'The base path does not support path templating.'
+  },
+  {
+    id: 'SWAGGER_HOST_DOES_NOT_SUPPORT_PATH_TEMPLATING',
+    code: 'SHDNSP',
+    alternateLevels: [],
+    level: 'error',
+    message: 'The host does not support path templating.'
+  },
+  {
+    id: 'SWAGGER_HOST_HAS_SCHEME',
+    code: 'SWHOHS',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'The host must not include the scheme: ${scheme}'
+  },
+  {
+    id: 'SWAGGER_HOST_HAS_SUBPATH',
+    code: 'SWHHAS',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'The host must not include sub path: ${subPath}'
+  },
+  {
+    id: 'UNKNOWN_TYPE_FORMAT',
+    code: 'UNTYFO',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Non-standard format "${format}" used for type "${type}".'
+  },
+  {
+    id: 'VALUE_IGNORED',
+    code: 'VALIGN',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'The following value will be ignored: ${value}. ${reason}'
   },
   // {
   //   id: '',
@@ -256,7 +530,7 @@ export const list: MessageTemplate[] = [
 ]
 
 export function getExceptionMessageData (id: string, inputs: Record<string, any>, context: Context): ExceptionMessageDataInput {
-  // populate the
+  // populate the data input
   const item = list.find(o => o.id === id)
   const result: ExceptionMessageDataInput = Object.assign({}, item, {
     definition: context.definition,

@@ -3,7 +3,6 @@ import * as E from './Exception/methods'
 import jsonParser, { ArrayNode, LiteralNode, Location, ObjectNode, ValueNode } from 'json-to-ast'
 import * as yamlParser from 'yaml-ast-parser'
 import { Result as ResultObject } from './Result'
-import * as util from './util'
 import Adapter from './adapter'
 
 const adapter = Adapter()
@@ -75,27 +74,23 @@ export function define (loader: Loader): void {
 }
 
 // using a load cache, look up a node by its path
-export function getReferenceNode (loadMap: Record<string, any>, rootNodePath: string, ref: string, exception: Exception): any {
+export function getReferenceNode (loadMap: Record<string, any>, rootNodePath: string, ref: string): any {
   const rootNode = loadMap[rootNodePath]
-  if (rootNode === undefined) {
-    const message = E.loaderPathNotCached(rootNodePath)
-    exception.message(message)
+
+  if (rootNode === undefined) return
+  if (ref.startsWith('#/')) {
+    return traverse(rootNode, ref)
   } else {
-    if (ref.startsWith('#/')) {
-      return traverse(rootNode, ref, rootNodePath, exception)
+    const dirPath = adapter.path.dirname(rootNodePath)
+    let [childPath, subRef] = ref.split('#/')
+    childPath = adapter.path.resolve(dirPath, childPath)
+    const node = loadMap[childPath]
+
+    if (node === undefined) return undefined
+    if (subRef === undefined) {
+      return node
     } else {
-      const dirPath = adapter.path.dirname(rootNodePath)
-      let [childPath, subRef] = ref.split('#/')
-      childPath = adapter.path.resolve(dirPath, childPath)
-      const node = loadMap[childPath]
-      if (node === undefined) {
-        const message = E.loaderPathNotCached(childPath)
-        exception.message(message)
-      } else if (subRef === undefined) {
-        return node
-      } else {
-        return traverse(node, '#/' + subRef, childPath, exception)
-      }
+      return traverse(node, '#/' + subRef)
     }
   }
 }
@@ -126,7 +121,7 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
 
       // local reference
       if (ref.startsWith('#/')) {
-        n = traverse(node, ref, path, data.exception)
+        n = traverse(node, ref)
 
       // reference to other location
       } else {
@@ -136,17 +131,25 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
         if (subRef === undefined) {
           n = node
         } else if (node !== undefined) {
-          n = traverse(node, '#/' + subRef, childPath, data.exception)
+          n = traverse(node, '#/' + subRef)
         }
       }
 
-      if (n !== undefined) {
-        // TODO: handle case where parent === null
-        parent[key] = n
-      } else {
-        const message = E.refNotResolved(ref, path)
-        util.addExceptionLocation(message, lookupLocation(node))
+      if (n === undefined) {
+        const message = E.refNotResolved(ref, path, {
+          definition: parent[key],
+          locations: [{
+            node: parent,
+            key,
+            type: 'value'
+          }]
+        })
         data.exception.message(message)
+      } else if (parent === null) {
+        // no parent means that the root node had the $ref
+        return n
+      } else {
+        parent[key] = n
       }
     }
   }
@@ -307,7 +310,10 @@ async function runLoaders (path: string, data: LoaderMetadata): Promise<any> {
     }
   }
 
-  data.exception?.message(E.loaderNotAvailable(path))
+  data.exception?.message(E.loaderNotAvailable(path, {
+    definition: undefined,
+    locations: []
+  }))
 }
 
 function processJsonAst (data: ValueNode): any {
@@ -415,7 +421,7 @@ function processYamlAst (data: any, source: string, lineEndings: LineEnding[]): 
   }
 }
 
-export function traverse (node: any, path: string, fromPath: string, exception: Exception): any {
+export function traverse (node: any, path: string): any {
   if (path === '') return node
 
   const keys = path.substring(2).split('/')
@@ -426,9 +432,6 @@ export function traverse (node: any, path: string, fromPath: string, exception: 
       if (o !== null && typeof o === 'object' && key in o) {
         o = o[key]
       } else {
-        const message = E.refNotResolved(path, fromPath)
-        util.addExceptionLocation(message, lookupLocation(node))
-        exception.message(message)
         return
       }
     }
@@ -446,7 +449,7 @@ define(async function (path, data) {
     const res = await adapter.request(path)
     const contentType = res.headers['content-type']
     if (res.status < 200 || res.status >= 300) {
-      data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected response code: ' + String(res.status)))
+      data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected response code: ' + String(res.status), { definition: undefined, locations: [] }))
       return { loaded: false }
     } else {
       const result: LoaderMatch = {
@@ -461,7 +464,7 @@ define(async function (path, data) {
       return result
     }
   } catch (err: any) {
-    data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected error: ' + (err.toString() as string)))
+    data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected error: ' + (err.toString() as string), { definition: undefined, locations: [] }))
     return { loaded: false }
   }
 })
@@ -490,7 +493,7 @@ define(async function (path, data) {
         if (err.code === 'ENOENT') {
           resolve({ loaded: false })
         } else {
-          data?.exception?.message(E.loaderFailedToLoadResource(path, 'File could not load' + (err.code !== undefined ? ': ' + String(err.code) : '')))
+          data?.exception?.message(E.loaderFailedToLoadResource(path, 'File could not load' + (err.code !== undefined ? ': ' + String(err.code) : ''), { definition: undefined, locations: [] }))
           resolve({ loaded: false })
         }
       }

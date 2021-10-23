@@ -60,7 +60,6 @@ export class Exception {
   public message (data: ExceptionMessageDataInput): ExceptionMessageData {
     // create initial message object
     const messageData: ExceptionMessageData = {
-      active: data.active ?? (() => true),
       alternateLevels: data.alternateLevels ?? [],
       code: data.code,
       definition: typeof data.definition === 'object' && data.definition !== null ? data.definition : undefined,
@@ -278,11 +277,9 @@ function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, cont
   // sort messages into groups
   data.messages
     .forEach(message => {
-      if (message.active === undefined || message.active()) {
-        const level = message.level
-        result.messages[level].push(message)
-        result.hasException[level] = true
-      }
+      const level = message.level
+      result.messages[level].push(message)
+      result.hasException[level] = true
     })
 
   // filter out the children that have messages
