@@ -12,3 +12,4 @@ export { Parameter, Definition as ParameterDefinition } from './components/v2/Pa
 export { PathItem, Definition as PathItemDefinition } from './components/v2/PathItem'
 export { Paths, Definition as PathsDefinition } from './components/v2/Paths'
 export { Reference, Dereferenced, Referenced, ReferencedUnknown, Definition as ReferenceDefinition } from './components/Reference'
+export { Response, Definition as ResponseDefinition } from './components/v2/Response'
