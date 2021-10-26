@@ -7,7 +7,7 @@ import {
 import { Operation as CoreOperation, Definition as CoreDefinition } from '../Operation'
 import * as Callback from './Callback'
 import * as Reference from '../Reference'
-import * as RequestBody from '../RequestBody'
+import * as RequestBody from './RequestBody'
 import * as Server from '../Server'
 
 export interface Definition extends CoreDefinition {

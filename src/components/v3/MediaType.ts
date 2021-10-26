@@ -12,7 +12,7 @@ import * as V from '../helpers/common-validators'
 import * as Encoding from './Encoding'
 import * as Example from './Example'
 import * as Reference from '../Reference'
-import * as RequestBody from '../RequestBody'
+import * as RequestBody from './RequestBody'
 import * as Schema from '../Schema'
 import { Dereferenced } from '../Reference'
 
