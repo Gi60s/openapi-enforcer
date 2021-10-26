@@ -1,5 +1,5 @@
 import { OASComponent, Version, Exception, ComponentSchema } from './'
-import * as MediaType from './MediaType'
+import * as MediaType from './v3/MediaType'
 
 export interface Definition {
   [key: `x-${string}`]: any

@@ -1,5 +1,5 @@
-import { OASComponent, ComponentSchema, Version, Exception } from './'
-import * as PathItem from './PathItem'
+import { OASComponent, ComponentSchema, Version, Exception } from '../index'
+import * as PathItem from '../PathItem'
 
 export interface Definition {
   [key: `x-${string}`]: any

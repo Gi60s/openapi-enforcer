@@ -6,12 +6,12 @@ import {
   Version,
   Exception,
   ComponentSchema
-} from './'
-import * as E from '../Exception/methods'
-import rx from '../rx'
-import * as Header from './Header'
-import * as Reference from './Reference'
-import { Definition3 as SchemaDefinition } from './Schema'
+} from '../index'
+import * as E from '../../Exception/methods'
+import rx from '../../rx'
+import * as Header from '../Header'
+import * as Reference from '../Reference'
+import { Definition3 as SchemaDefinition } from '../Schema'
 import { Definition as MediaTypeDefinition } from './MediaType'
 
 export interface Definition {

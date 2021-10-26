@@ -1,6 +1,6 @@
 import { OASComponent, Data, Version, Exception, ComponentSchema } from './'
 import * as E from '../Exception/methods'
-import * as OAuthFlows from './OAuthFlows'
+import * as OAuthFlows from './v3/OAuthFlows'
 
 const rxUrl = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/
 

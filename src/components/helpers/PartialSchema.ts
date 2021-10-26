@@ -50,11 +50,6 @@ export abstract class PartialSchema<Items> extends OASComponent {
   readonly uniqueItems?: boolean
 }
 
-export function defineDataType (referenceComponentClass: any, type: DataType.Type, format: string, definition: DataType.Definition): void {
-  const dataTypes = initializeDataTypes(referenceComponentClass)
-  dataTypes.define(type, format, definition)
-}
-
 export function schemaGenerator<Definition> (referenceComponentClass: any, data: Data): ComponentSchema<Definition> {
   const { context, root } = data
   const dataTypes = initializeDataTypes(referenceComponentClass)

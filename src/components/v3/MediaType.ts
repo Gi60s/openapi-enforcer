@@ -5,16 +5,16 @@ import {
   Version,
   Exception,
   ComponentSchema
-} from './'
-import rx from '../rx'
-import * as E from '../Exception/methods'
-import * as V from './helpers/common-validators'
+} from '../index'
+import rx from '../../rx'
+import * as E from '../../Exception/methods'
+import * as V from '../helpers/common-validators'
 import * as Encoding from './Encoding'
 import * as Example from './Example'
-import * as Reference from './Reference'
-import * as RequestBody from './RequestBody'
-import * as Schema from './Schema'
-import { Dereferenced } from './Reference'
+import * as Reference from '../Reference'
+import * as RequestBody from '../RequestBody'
+import * as Schema from '../Schema'
+import { Dereferenced } from '../Reference'
 
 export interface Definition {
   [key: `x-${string}`]: any

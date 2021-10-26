@@ -1,7 +1,7 @@
-import { OASComponent, Version, Exception, ComponentSchema } from './'
-import * as E from '../Exception/methods'
-import * as Parameter from './Parameter'
-import * as Server from './Server'
+import { OASComponent, Version, Exception, ComponentSchema } from '../index'
+import * as E from '../../Exception/methods'
+import * as Parameter from '../Parameter'
+import * as Server from '../Server'
 
 export interface Definition {
   [key: `x-${string}`]: any

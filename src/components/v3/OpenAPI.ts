@@ -5,16 +5,17 @@ import {
   Version,
   Exception,
   loadRoot, Dereferenced, ComponentSchema
-} from './'
-import * as E from '../Exception/methods'
+} from '../index'
+import * as E from '../../Exception/methods'
 import * as Components from './Components'
-import * as ExternalDocumentation from './ExternalDocumentation'
-import * as Info from './Info'
-import * as Paths from './Paths'
-import * as SecurityRequirement from './SecurityRequirement'
-import * as Server from './Server'
-import * as Tag from './Tag'
-import { Result } from '../Result'
+import * as ExternalDocumentation from '../ExternalDocumentation'
+import * as Info from '../Info'
+import * as Paths from '../Paths'
+import * as SecurityRequirement from '../SecurityRequirement'
+import * as Server from '../Server'
+import * as Tag from '../Tag'
+import { Result } from '../../Result'
+import { base as rootDataTypes } from '../helpers/DataTypes'
 
 const rxVersion = /^\d+\.\d+\.\d+$/
 
@@ -161,6 +162,9 @@ export class OpenAPI<HasReference=Dereferenced> extends OASComponent {
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#openapi-object',
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#openapi-object'
   }
+
+  // data types that apply to everything
+  static dataType = rootDataTypes
 
   static async load (path: string, options?: LoaderOptions): Promise<Result<OpenAPI>> {
     options = normalizeLoaderOptions(options)

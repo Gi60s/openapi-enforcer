@@ -1,7 +1,7 @@
-import { OASComponent, Version, Exception, ComponentSchema, Reference } from './'
-import * as Schema from './Schema'
-import { lookupLocation, getReferenceNode, traverse } from '../loader'
-import * as E from '../Exception/methods'
+import { OASComponent, Version, Exception, ComponentSchema, Reference } from '../index'
+import * as Schema from '../Schema'
+import { lookupLocation, getReferenceNode, traverse } from '../../loader'
+import * as E from '../../Exception/methods'
 
 export interface Definition {
   propertyName: string

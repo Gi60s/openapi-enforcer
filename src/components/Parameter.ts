@@ -5,63 +5,232 @@ import {
   SchemaProperty,
   Exception,
   Referencable,
-  ComponentSchema
+  ComponentSchema, ExtendedComponent
 } from './'
 import * as PartialSchema from './helpers/PartialSchema'
 import { noop } from '../util'
 import * as V from './helpers/common-validators'
 import * as E from '../Exception/methods'
-import * as Items from './Items'
-import * as Example from './Example'
-import * as Reference from './Reference'
+import * as Items from './v2/Items'
+import * as Example from './v3/Example'
 import * as Schema from './Schema'
-import * as DataType from './helpers/DataTypes'
 import { SchemaDefinition3 } from '../index'
-import { examplesMatchSchema } from './helpers/common-validators'
+import { base as rootDataTypeStore, DataTypeStore } from './helpers/DataTypes'
+import { Definition as Definition2 } from './v2/Parameter'
+import { Definition as Definition3 } from './v3/Parameter'
 
 export type Definition = Definition2 | Definition3
 
-export interface Definition2 extends PartialSchema.Definition<Items.Definition> {
-  [key: `x-${string}`]: any
-  name: string
-  in: 'body' | 'formData' | 'header' | 'path' | 'query'
-  allowEmptyValue?: boolean
-  collectionFormat?: 'csv' | 'multi' | 'pipes' | 'ssv' | 'tsv'
-  default?: any
-  description?: string
-  enum?: any[]
-  exclusiveMaximum?: boolean
-  exclusiveMinimum?: boolean
-  format?: string
-  items?: Items.Definition
-  maxItems?: number
-  minItems?: number
-  maxLength?: number
-  minLength?: number
-  maximum?: number
-  minimum?: number
-  multipleOf?: number
-  pattern?: string
-  required?: boolean
-  schema?: Schema.Definition2
-  type?: 'array' | 'boolean' | 'file' | 'integer' | 'number' | 'string'
-  uniqueItems?: boolean
-}
+export const parameterDataType = new DataTypeStore(rootDataTypeStore)
 
-export interface Definition3 {
-  [key: `x-${string}`]: any
-  name: string
-  in: 'cookie' | 'header' | 'path' | 'query'
-  allowEmptyValue?: boolean
-  allowReserved?: boolean
-  deprecated?: boolean // defaults to false
-  description?: string
-  example?: any
-  examples?: Record<string, Example.Definition | Reference.Definition>
-  explode?: boolean
-  required?: boolean
-  schema?: Schema.Definition3 | Reference.Definition
-  style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'simple' | 'spaceDelimited' | 'pipeDelimited'
+export function schemaGenerator (Component: ExtendedComponent, data: Data): ComponentSchema<Definition> {
+  const schema: ComponentSchema<Definition> = data.root.major === 2
+    ? PartialSchema.schemaGenerator(Component, data)
+    : { allowsSchemaExtensions: false, properties: [] }
+
+  const { definition } = data.context
+  const at = definition.in
+  const type = 'type' in definition ? definition.type : ''
+  const isQueryOrFormData = at === 'query' || at === 'formData'
+
+  const styleDefault = at === 'cookie'
+    ? 'form'
+    : (at === 'header' || at === 'path' || at === 'query') ? 'simple' : ''
+  const styleEnum = at === 'cookie'
+    ? ['form']
+    : at === 'header'
+      ? ['simple']
+      : at === 'path'
+        ? ['simple', 'label', 'matrix']
+        : at === 'query'
+          ? ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject']
+          : []
+
+  // add additional properties
+  schema.properties?.push(
+    {
+      name: 'name',
+      required: true,
+      schema: { type: 'string' }
+    },
+    {
+      name: 'in',
+      required: true,
+      schema: { type: 'string' }
+    },
+    {
+      name: 'allowEmptyValue',
+      notAllowed: isQueryOrFormData ? undefined : 'Only allowed if "in" is query or formData.',
+      schema: {
+        type: 'boolean',
+        default: false
+      }
+    },
+    {
+      name: 'allowReserved',
+      versions: ['3.x.x'],
+      notAllowed: at === 'query' ? undefined : 'Property only allowed for "query" parameters.',
+      schema: {
+        type: 'boolean',
+        default: false
+      }
+    },
+    {
+      name: 'collectionFormat',
+      versions: ['2.x'],
+      notAllowed: type === 'array' && isQueryOrFormData ? undefined : 'Property only allowed when "type" is "array" and when "in" is "formData" or "query".',
+      schema: {
+        type: 'string',
+        default: 'csv',
+        enum: ['csv', 'ssv', 'tsv', 'pipes', 'multi']
+      }
+    },
+    {
+      name: 'deprecated',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'boolean',
+        default: false
+      }
+    },
+    {
+      name: 'description',
+      schema: { type: 'string' }
+    },
+    {
+      name: 'example',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'any'
+      }
+    },
+    {
+      name: 'examples',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: false,
+        additionalProperties: {
+          type: 'any'
+        }
+      }
+    },
+    {
+      name: 'required',
+      schema: {
+        type: 'boolean',
+        default: false
+      }
+    },
+    {
+      name: 'schema',
+      versions: ['2.x'],
+      notAllowed: at === 'body' ? undefined : 'Property only allowed if "in" is set to "body".',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Schema.Schema
+      }
+    },
+    {
+      name: 'schema',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'component',
+        allowsRef: true,
+        component: Schema.Schema
+      }
+    },
+    {
+      name: 'style',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'string',
+        default: styleDefault,
+        enum: styleEnum
+      }
+    },
+    {
+      name: 'explode',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'boolean',
+        default: ((definition as Definition3).style ?? styleDefault) === 'form'
+      }
+    }
+  )
+
+  // modify the type property to also include "file" if "in" is set to "formData"
+  const typeProperty = schema.properties?.find((prop: SchemaProperty) => prop.name === 'type')
+  if (typeProperty !== undefined) {
+    typeProperty.schema.enum = at === 'formData'
+      ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
+      : ['array', 'boolean', 'integer', 'number', 'string']
+  }
+
+  const v2Validator = {
+    before: schema.validator?.before ?? (() => true),
+    after: schema.validator?.after ?? noop
+  }
+  if (schema.validator === undefined) schema.validator = {}
+  schema.validator.after = (data) => {
+    const { major } = data.root
+    const { reference } = data.component
+    const { exception } = data.context
+
+    if (major === 2) v2Validator.after(data)
+
+    V.defaultRequiredConflict(data)
+
+    // if parameter in path then validate that required is true
+    if (at === 'path' && definition.required !== true) {
+      const pathParameterMustBeRequired = E.pathParameterMustBeRequired(definition.name, {
+        definition,
+        locations: ['required' in definition ? { node: definition, key: 'required', type: 'value' } : { node: definition }],
+        reference
+      })
+      exception.message(pathParameterMustBeRequired)
+    }
+
+    if (major === 3) {
+      V.exampleExamplesConflict(data)
+      if (definition.schema !== undefined && !('$ref' in definition.schema)) {
+        V.examplesMatchSchema(data, new Schema.Schema(definition.schema))
+      }
+
+      // if style is specified then check that it aligns with the schema type
+      const built = data.context.built as Definition3
+      const type = (built.schema as SchemaDefinition3)?.type ?? ''
+      const style = built.style ?? ''
+      if (type !== '') {
+        if ((style !== 'form') &&
+          !(style === 'spaceDelimited' && type === 'array') &&
+          !(style === 'pipeDelimited' && type === 'array') &&
+          !(style === 'deepObject' && type === 'object')) {
+          const invalidStyle = E.invalidStyle(style, type, {
+            definition,
+            locations: [{ node: definition, key: 'style', type: 'value' }],
+            reference
+          })
+          exception.at('style').message(invalidStyle)
+        }
+      }
+
+      // if in "cookie" then validate that we're not exploding objects or arrays
+      if ('explode' in built && built.explode === true && (type === 'array' || type === 'object')) {
+        const invalidCookieExplode = E.invalidCookieExplode(definition.name, {
+          definition,
+          locations: [{ node: definition, key: 'explode', type: 'value' }],
+          reference
+        })
+        exception.at('explode').message(invalidCookieExplode)
+      }
+
+      // TODO: If type is "file", the consumes MUST be either "multipart/form-data", " application/x-www-form-urlencoded" or both and the parameter MUST be in "formData".
+    }
+  }
+
+  return schema
 }
 
 export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialSchema<Items.Items> {
@@ -90,9 +259,7 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
     super(Parameter, definition, version, arguments[2])
   }
 
-  static defineDataType (type: DataType.Type, format: string, definition: DataType.Definition): void {
-    PartialSchema.defineDataType(Parameter, type, format, definition)
-  }
+  static dataType = parameterDataType
 
   static spec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#parameter-object',
@@ -100,220 +267,6 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#parameter-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#parameter-object',
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#parameter-object'
-  }
-
-  static schemaGenerator (data: Data<Definition>): ComponentSchema<Definition> {
-    // copy schema from partial schema generator
-    const schema = PartialSchema.schemaGenerator(Parameter, data)
-
-    const { definition } = data.context
-    const at = definition.in
-    const type = 'type' in definition ? definition.type : ''
-    const isQueryOrFormData = at === 'query' || at === 'formData'
-
-    const styleDefault = at === 'cookie'
-      ? 'form'
-      : (at === 'header' || at === 'path' || at === 'query') ? 'simple' : ''
-    const styleEnum = at === 'cookie'
-      ? ['form']
-      : at === 'header'
-        ? ['simple']
-        : at === 'path'
-          ? ['simple', 'label', 'matrix']
-          : at === 'query'
-            ? ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject']
-            : []
-
-    // mark properties from partial schema as applicable only to version 2.x
-    schema.properties?.forEach((property: SchemaProperty) => {
-      property.versions = ['2.x']
-    })
-
-    // add additional properties
-    schema.properties?.push(
-      {
-        name: 'name',
-        required: true,
-        schema: { type: 'string' }
-      },
-      {
-        name: 'in',
-        required: true,
-        schema: { type: 'string' }
-      },
-      {
-        name: 'allowEmptyValue',
-        notAllowed: isQueryOrFormData ? undefined : 'Only allowed if "in" is query or formData.',
-        schema: {
-          type: 'boolean',
-          default: false
-        }
-      },
-      {
-        name: 'allowReserved',
-        versions: ['3.x.x'],
-        notAllowed: at === 'query' ? undefined : 'Property only allowed for "query" parameters.',
-        schema: {
-          type: 'boolean',
-          default: false
-        }
-      },
-      {
-        name: 'collectionFormat',
-        versions: ['2.x'],
-        notAllowed: type === 'array' && isQueryOrFormData ? undefined : 'Property only allowed when "type" is "array" and when "in" is "formData" or "query".',
-        schema: {
-          type: 'string',
-          default: 'csv',
-          enum: ['csv', 'ssv', 'tsv', 'pipes', 'multi']
-        }
-      },
-      {
-        name: 'deprecated',
-        versions: ['3.x.x'],
-        schema: {
-          type: 'boolean',
-          default: false
-        }
-      },
-      {
-        name: 'description',
-        schema: { type: 'string' }
-      },
-      {
-        name: 'example',
-        versions: ['3.x.x'],
-        schema: {
-          type: 'any'
-        }
-      },
-      {
-        name: 'examples',
-        versions: ['3.x.x'],
-        schema: {
-          type: 'object',
-          allowsSchemaExtensions: false,
-          additionalProperties: {
-            type: 'any'
-          }
-        }
-      },
-      {
-        name: 'required',
-        schema: {
-          type: 'boolean',
-          default: false
-        }
-      },
-      {
-        name: 'schema',
-        versions: ['2.x'],
-        notAllowed: at === 'body' ? undefined : 'Property only allowed if "in" is set to "body".',
-        schema: {
-          type: 'component',
-          allowsRef: false,
-          component: Schema.Schema
-        }
-      },
-      {
-        name: 'schema',
-        versions: ['3.x.x'],
-        schema: {
-          type: 'component',
-          allowsRef: true,
-          component: Schema.Schema
-        }
-      },
-      {
-        name: 'style',
-        versions: ['3.x.x'],
-        schema: {
-          type: 'string',
-          default: styleDefault,
-          enum: styleEnum
-        }
-      },
-      {
-        name: 'explode',
-        versions: ['3.x.x'],
-        schema: {
-          type: 'boolean',
-          default: ((definition as Definition3).style ?? styleDefault) === 'form'
-        }
-      }
-    )
-
-    // modify the type property to also include "file" if "in" is set to "formData"
-    const typeProperty = schema.properties?.find((prop: SchemaProperty) => prop.name === 'type')
-    if (typeProperty !== undefined) {
-      typeProperty.schema.enum = at === 'formData'
-        ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
-        : ['array', 'boolean', 'integer', 'number', 'string']
-    }
-
-    const v2Validator = {
-      before: schema.validator?.before ?? (() => true),
-      after: schema.validator?.after ?? noop
-    }
-    if (schema.validator === undefined) schema.validator = {}
-    schema.validator.after = (data) => {
-      const { major } = data.root
-      const { reference } = data.component
-      const { exception } = data.context
-
-      if (major === 2) v2Validator.after(data)
-
-      V.defaultRequiredConflict(data)
-
-      // if parameter in path then validate that required is true
-      if (at === 'path' && definition.required !== true) {
-        const pathParameterMustBeRequired = E.pathParameterMustBeRequired(definition.name, {
-          definition,
-          locations: ['required' in definition ? { node: definition, key: 'required', type: 'value' } : { node: definition }],
-          reference
-        })
-        exception.message(pathParameterMustBeRequired)
-      }
-
-      if (major === 3) {
-        V.exampleExamplesConflict(data)
-        if (definition.schema !== undefined && !('$ref' in definition.schema)) {
-          V.examplesMatchSchema(data, new Schema.Schema(definition.schema))
-        }
-
-        // if style is specified then check that it aligns with the schema type
-        const built = data.context.built as Definition3
-        const type = (built.schema as SchemaDefinition3)?.type ?? ''
-        const style = built.style ?? ''
-        if (type !== '') {
-          if ((style !== 'form') &&
-            !(style === 'spaceDelimited' && type === 'array') &&
-            !(style === 'pipeDelimited' && type === 'array') &&
-            !(style === 'deepObject' && type === 'object')) {
-            const invalidStyle = E.invalidStyle(style, type, {
-              definition,
-              locations: [{ node: definition, key: 'style', type: 'value' }],
-              reference
-            })
-            exception.at('style').message(invalidStyle)
-          }
-        }
-
-        // if in "cookie" then validate that we're not exploding objects or arrays
-        if ('explode' in built && built.explode === true && (type === 'array' || type === 'object')) {
-          const invalidCookieExplode = E.invalidCookieExplode(definition.name, {
-            definition,
-            locations: [{ node: definition, key: 'explode', type: 'value' }],
-            reference
-          })
-          exception.at('explode').message(invalidCookieExplode)
-        }
-
-        // TODO: If type is "file", the consumes MUST be either "multipart/form-data", " application/x-www-form-urlencoded" or both and the parameter MUST be in "formData".
-      }
-    }
-
-    return schema
   }
 
   static validate (definition: Definition, version?: Version): Exception {

@@ -5,6 +5,11 @@
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": "dist/index.js",
+    "./v2": "dist/v2.js",
+    "./v3": "dist/v3.js"
+  },
   "directories": {
     "test": "test",
     "src": "src"

@@ -12,11 +12,12 @@ import {
 import { noop } from '../util'
 import { Result } from '../Result'
 import * as PartialSchema from './helpers/PartialSchema'
-import * as Discriminator from './Discriminator'
+import * as Discriminator from './v3/Discriminator'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import * as Xml from './Xml'
 import * as DataType from './helpers/DataTypes'
 import * as E from '../Exception/methods'
+import { base as rootDataTypeStore, DataTypeStore } from './helpers/DataTypes'
 
 export type Definition = Definition2 | Definition3
 
@@ -50,6 +51,8 @@ export interface Definition3 extends DefinitionBase<Definition3> {
   oneOf?: Array<Definition | Reference>
   writeOnly?: boolean
 }
+
+const schemaDataType = new DataTypeStore(rootDataTypeStore)
 
 export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSchema<Schema> {
   readonly [key: `x-${string}`]: any
@@ -105,9 +108,7 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
     return undefined
   }
 
-  static defineDataType (type: DataType.Type, format: string, definition: DataType.Definition): void {
-    PartialSchema.defineDataType(Schema, type, format, definition)
-  }
+  static dataType = schemaDataType
 
   static spec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#schema-object',

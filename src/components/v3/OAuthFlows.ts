@@ -1,4 +1,4 @@
-import { OASComponent, Version, Exception, ComponentSchema } from './'
+import { OASComponent, Version, Exception, ComponentSchema } from '../index'
 import * as OAuthFlow from './OAuthFlow'
 
 export interface Definition {

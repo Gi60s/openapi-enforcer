@@ -7,7 +7,7 @@ import {
 import { Result } from '../Result'
 import * as E from '../Exception/methods'
 import rx from '../rx'
-import * as Definitions from './Definitions'
+import * as Definitions from './v2/Definitions'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import * as Info from './Info'
 import * as Parameter from './Parameter'
@@ -16,6 +16,7 @@ import * as Response from './Response'
 import * as SecurityScheme from './SecurityScheme'
 import * as SecurityRequirement from './SecurityRequirement'
 import * as Tag from './Tag'
+import { base as rootDataTypes } from './helpers/DataTypes'
 
 const rxHostParts = /^(?:(https?|wss?):\/\/)?(.+?)(\/.+)?$/
 const rxPathTemplating = /[{}]/
@@ -293,6 +294,9 @@ export class Swagger<HasReference=Dereferenced> extends OASComponent {
   static spec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#swagger-object'
   }
+
+  // data types that apply to everything
+  static dataType = rootDataTypes
 
   static async load (path: string, options?: LoaderOptions): Promise<Result<Swagger>> {
     return await loadRoot<Swagger>(Swagger, path, options)

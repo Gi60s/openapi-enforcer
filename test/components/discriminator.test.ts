@@ -1,5 +1,5 @@
-import { OpenAPI } from '../../src/components/OpenAPI'
-import { Discriminator } from '../../src/components/Discriminator'
+import { OpenAPI } from '../../src/components/v3/OpenAPI'
+import { Discriminator } from '../../src/components/v3/Discriminator'
 import { expect } from 'chai'
 import path from 'path'
 import { resourcesDirectory } from '../util/helpers'

@@ -4,8 +4,8 @@ import {
   Exception,
   Dereferenced,
   ComponentSchema
-} from './'
-import * as Schema from './Schema'
+} from '../index'
+import * as Schema from '../Schema'
 
 export interface Definition {
   [name: string]: Schema.Definition2

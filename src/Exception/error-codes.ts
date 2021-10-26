@@ -1,4 +1,3 @@
-import { Data } from '../components'
 import { ExceptionMessageDataInput, LocationInput, Level } from './types'
 import { smart } from '../util'
 

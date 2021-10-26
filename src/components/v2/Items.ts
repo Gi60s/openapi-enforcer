@@ -1,12 +1,14 @@
-import { Data, SpecMap, Exception, Version, ComponentSchema } from './'
-import * as PartialSchema from './helpers/PartialSchema'
-import * as DataType from './helpers/DataTypes'
+import { Data, SpecMap, Exception, Version, ComponentSchema } from '../index'
+import * as PartialSchema from '../helpers/PartialSchema'
+import { base as rootDataTypeStore, DataTypeStore } from '../helpers/DataTypes'
 
 export interface Definition extends PartialSchema.Definition<Definition> {
   [key: `x-${string}`]: any
   collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
 }
+
+const itemsDataType = new DataTypeStore(rootDataTypeStore)
 
 export class Items extends PartialSchema.PartialSchema<Items> {
   readonly [key: `x-${string}`]: any
@@ -17,9 +19,7 @@ export class Items extends PartialSchema.PartialSchema<Items> {
     super(Items, definition, version, arguments[2])
   }
 
-  static defineDataType (type: DataType.Type, format: string, definition: DataType.Definition): void {
-    PartialSchema.defineDataType(Items, type, format, definition)
-  }
+  static dataType = itemsDataType
 
   static get spec (): SpecMap {
     return {

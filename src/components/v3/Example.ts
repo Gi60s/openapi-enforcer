@@ -1,6 +1,6 @@
-import { OASComponent, Data, Version, Exception, ComponentSchema } from './'
-import * as E from '../Exception/methods'
-import rx from '../rx'
+import { OASComponent, Data, Version, Exception, ComponentSchema } from '../index'
+import * as E from '../../Exception/methods'
+import rx from '../../rx'
 
 export interface Definition {
   [key: `x-${string}`]: any

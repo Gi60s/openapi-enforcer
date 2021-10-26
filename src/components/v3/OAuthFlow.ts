@@ -1,4 +1,4 @@
-import { OASComponent, Data, Version, Exception, ComponentSchema } from './index'
+import { OASComponent, Data, Version, Exception, ComponentSchema } from '../index'
 
 export interface Definition {
   [key: `x-${string}`]: any

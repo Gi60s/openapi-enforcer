@@ -5,17 +5,17 @@ import {
   Version,
   Exception,
   ComponentSchema
-} from './'
+} from '../index'
 import * as Callback from './Callback'
 import * as Example from './Example'
-import * as Header from './Header'
+import * as Header from '../Header'
 import * as Link from './Link'
-import * as Parameter from './Parameter'
-import * as Reference from './Reference'
-import * as RequestBody from './RequestBody'
-import * as Response from './Response'
-import * as Schema from './Schema'
-import * as SecurityScheme from './SecurityScheme'
+import * as Parameter from '../Parameter'
+import * as Reference from '../Reference'
+import * as RequestBody from '../RequestBody'
+import * as Response from '../Response'
+import * as Schema from '../Schema'
+import * as SecurityScheme from '../SecurityScheme'
 
 export interface Definition {
   [key: `x-${string}`]: any
