@@ -1,16 +1,7 @@
 import { OASComponent, ComponentSchema, Version, Exception } from './'
-import * as Contact from './Contact'
-import * as License from './License'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  title: string
-  description?: string
-  termsOfService?: string
-  contact?: Contact.Definition
-  license?: License.Definition
-  version: string
-}
+import { Contact } from './Contact'
+import { License } from './License'
+import { Info as Definition } from './helpers/DefinitionTypes'
 
 const infoSchema: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,
@@ -33,7 +24,7 @@ const infoSchema: ComponentSchema<Definition> = {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: Contact.Contact
+        component: Contact
       }
     },
     {
@@ -41,7 +32,7 @@ const infoSchema: ComponentSchema<Definition> = {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: License.License
+        component: License
       }
     },
     {
@@ -57,8 +48,8 @@ export class Info extends OASComponent<Definition> {
   readonly title!: string
   readonly description?: string
   readonly termsOfService?: string
-  readonly contact?: Contact.Contact
-  readonly license?: License.License
+  readonly contact?: Contact
+  readonly license?: License
   readonly version!: string
 
   constructor (definition: Definition, version?: Version) {

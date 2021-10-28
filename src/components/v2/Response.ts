@@ -6,21 +6,16 @@ import {
   ComponentSchema
 } from '../'
 import { Operation } from './Operation'
-import * as Header from './Header'
-import * as Reference from '../Reference'
-import * as Schema from '../Schema'
+import { Header } from './Header'
+import { Schema } from './Schema'
+import { Swagger } from './Swagger'
 import * as Core from '../Response'
-
-export interface Definition extends Core.Definition {
-  examples?: Record<string, any>
-  headers?: Record<string, Header.Definition>
-  schema?: Schema.Definition2 | Reference.Definition
-}
+import { Response2 as Definition } from '../helpers/DefinitionTypes'
 
 export class Response<HasReference=Dereferenced> extends Core.Response {
   readonly examples?: Record<string, any>
-  readonly headers?: Record<string, Referencable<HasReference, Header.Header>>
-  readonly schema?: Schema.Schema
+  readonly headers?: Record<string, Referencable<HasReference, Header>>
+  readonly schema?: Schema
 
   constructor (definition: Definition, version?: Version) {
     super(Response, definition, version, arguments[2])
@@ -32,11 +27,12 @@ export class Response<HasReference=Dereferenced> extends Core.Response {
 
   static schemaGenerator (): ComponentSchema<Definition> {
     return Core.schemaGenerator({
-      Link: undefined as unknown,
-      Header: Header.Header,
-      MediaType: undefined as unknown,
-      Operation: Operation,
-      Schema: Schema.Schema
+      Link: undefined,
+      Header,
+      MediaType: undefined,
+      Operation,
+      Schema: Schema,
+      Swagger: Swagger
     })
   }
 

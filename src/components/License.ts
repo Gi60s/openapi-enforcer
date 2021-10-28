@@ -1,10 +1,5 @@
 import { OASComponent, Version, Exception, ComponentSchema } from './'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  name: string
-  url?: string
-}
+import { License as Definition } from './helpers/DefinitionTypes'
 
 const licenseSchema: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,

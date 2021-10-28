@@ -1,17 +1,7 @@
 import { OASComponent, Version, Exception, ComponentSchema } from '../index'
 import * as E from '../../Exception/methods'
-import * as Parameter from '../Parameter'
-import * as Server from '../Server'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  description?: string
-  operationId?: string
-  operationRef?: string
-  parameters?: Record<string, Parameter.Definition>
-  requestBody?: any
-  server?: Server.Definition
-}
+import { Server } from './Server'
+import { Link3 as Definition } from '../helpers/DefinitionTypes'
 
 const linkSchema: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,
@@ -73,7 +63,7 @@ const linkSchema: ComponentSchema<Definition> = {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: Server.Server
+        component: Server
       }
     }
   ]
@@ -86,7 +76,7 @@ export class Link extends OASComponent {
   readonly operationRef?: string
   readonly parameters?: Record<string, string>
   readonly requestBody?: any
-  readonly server?: Server.Server
+  readonly server?: Server
 
   constructor (definition: Definition, version?: Version) {
     super(Link, definition, version, arguments[2])

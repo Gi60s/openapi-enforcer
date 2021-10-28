@@ -1,15 +1,10 @@
 import { Version, Exception, Data, ComponentSchema } from '../'
+import { Schema } from './Schema'
 import { headerDataTypes, schemaGenerator } from '../Header'
-import * as PartialSchema from '../helpers/PartialSchema'
+import { PartialSchema } from '../helpers/PartialSchema'
+import { Header2 as Definition } from '../helpers/DefinitionTypes'
 
-export interface Definition extends PartialSchema.Definition<Definition> {
-  [key: `x-${string}`]: any
-  collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
-  description?: string
-  type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
-}
-
-export class Header extends PartialSchema.PartialSchema<Header> {
+export class Header extends PartialSchema<Header> {
   readonly [key: `x-${string}`]: any
   readonly collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   readonly type!: 'array' | 'boolean' | 'integer' | 'number' | 'string'
@@ -26,7 +21,10 @@ export class Header extends PartialSchema.PartialSchema<Header> {
   static dataType = headerDataTypes
 
   static schemaGenerator (data: Data): ComponentSchema<Definition> {
-    return schemaGenerator(Header, data)
+    return schemaGenerator({
+      Header,
+      Schema
+    }, data)
   }
 
   static validate (definition: Definition, version?: Version): Exception {

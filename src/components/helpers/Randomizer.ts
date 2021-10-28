@@ -1,4 +1,4 @@
-import { isNumber, round } from '../../util'
+import { isNumber, round } from '../../utils/util'
 
 export interface RandomBuffer {
   maxLength?: number

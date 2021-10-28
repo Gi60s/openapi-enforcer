@@ -1,12 +1,8 @@
 import { OASComponent, Version, Exception, ComponentSchema, Reference } from '../index'
-import * as Schema from '../Schema'
-import { lookupLocation, getReferenceNode, traverse } from '../../loader'
+import { Schema } from '../Schema'
+import { lookupLocation, getReferenceNode, traverse } from '../../utils/loader'
 import * as E from '../../Exception/methods'
-
-export interface Definition {
-  propertyName: string
-  mapping?: Record<string, string>
-}
+import { Discriminator3 as Definition } from '../helpers/DefinitionTypes'
 
 const schemaDiscriminator: ComponentSchema<Definition> = {
   allowsSchemaExtensions: false,
@@ -56,7 +52,7 @@ const schemaDiscriminator: ComponentSchema<Definition> = {
                 // @ts-expect-error
                 built[key] = new Reference({ $ref: ref }, version, data)
               } else {
-                const store = map.get(Schema.Schema)
+                const store = map.get(Schema)
                 const found = store?.find(item => item.definition === node)
                 if (found === undefined) {
                   // @ts-expect-error
@@ -132,7 +128,7 @@ const schemaDiscriminator: ComponentSchema<Definition> = {
 
 export class Discriminator extends OASComponent {
   readonly propertyName!: string
-  readonly mapping?: Record<string, Schema.Schema>
+  readonly mapping?: Record<string, Schema>
 
   constructor (definition: Definition, version?: Version) {
     super(Discriminator, definition, version, arguments[2])

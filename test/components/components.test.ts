@@ -9,9 +9,9 @@ import {
   Response,
   Schema,
   SecurityScheme
-} from '../../src'
+} from '../../src/v3'
 import { expect } from 'chai'
-import { minimal } from '../util/helpers'
+import { minimal } from '../../test-copy/helpers'
 
 describe('Components component', () => {
   describe('build', () => {

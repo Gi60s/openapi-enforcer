@@ -1,12 +1,6 @@
 import { OASComponent, Version, Exception, ComponentSchema } from '../index'
-import * as MediaType from './MediaType'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  description?: string
-  content: Record<string, MediaType.Definition>
-  required?: boolean
-}
+import { MediaType } from './MediaType'
+import { RequestBody3 as Definition } from '../helpers/DefinitionTypes'
 
 const requestBodySchema: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,
@@ -24,7 +18,7 @@ const requestBodySchema: ComponentSchema<Definition> = {
         additionalProperties: {
           type: 'component',
           allowsRef: false,
-          component: MediaType.MediaType
+          component: MediaType
         }
       }
     },
@@ -38,7 +32,7 @@ const requestBodySchema: ComponentSchema<Definition> = {
 export class RequestBody extends OASComponent {
   readonly [key: `x-${string}`]: any
   description?: string
-  content!: Record<string, MediaType.MediaType>
+  content!: Record<string, MediaType>
   required?: boolean
 
   constructor (definition: Definition, version?: Version) {

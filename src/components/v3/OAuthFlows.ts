@@ -1,13 +1,6 @@
 import { OASComponent, Version, Exception, ComponentSchema } from '../index'
-import * as OAuthFlow from './OAuthFlow'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  authorizationCode?: OAuthFlow.Definition
-  clientCredentials?: OAuthFlow.Definition
-  implicit?: OAuthFlow.Definition
-  password?: OAuthFlow.Definition
-}
+import { OAuthFlow } from './OAuthFlow'
+import { OAuthFlows3 as Definition } from '../helpers/DefinitionTypes'
 
 const oauthFlowsSchema: ComponentSchema<Definition> = {
   allowsSchemaExtensions: false,
@@ -17,7 +10,7 @@ const oauthFlowsSchema: ComponentSchema<Definition> = {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: OAuthFlow.OAuthFlow
+        component: OAuthFlow
       }
     },
     {
@@ -25,7 +18,7 @@ const oauthFlowsSchema: ComponentSchema<Definition> = {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: OAuthFlow.OAuthFlow
+        component: OAuthFlow
       }
     },
     {
@@ -33,7 +26,7 @@ const oauthFlowsSchema: ComponentSchema<Definition> = {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: OAuthFlow.OAuthFlow
+        component: OAuthFlow
       }
     },
     {
@@ -41,7 +34,7 @@ const oauthFlowsSchema: ComponentSchema<Definition> = {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: OAuthFlow.OAuthFlow
+        component: OAuthFlow
       }
     }
   ]
@@ -49,10 +42,10 @@ const oauthFlowsSchema: ComponentSchema<Definition> = {
 
 export class OAuthFlows extends OASComponent {
   readonly [key: `x-${string}`]: any
-  readonly authorizationCode?: OAuthFlow.OAuthFlow
-  readonly clientCredentials?: OAuthFlow.OAuthFlow
-  readonly implicit?: OAuthFlow.OAuthFlow
-  readonly password?: OAuthFlow.OAuthFlow
+  readonly authorizationCode?: OAuthFlow
+  readonly clientCredentials?: OAuthFlow
+  readonly implicit?: OAuthFlow
+  readonly password?: OAuthFlow
 
   constructor (definition: Definition, version?: Version) {
     super(OAuthFlows, definition, version, arguments[2])

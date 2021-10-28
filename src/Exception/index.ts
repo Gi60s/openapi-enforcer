@@ -1,12 +1,12 @@
-import Adapter from '../adapter'
+import { adapter } from '../utils/adapter'
 import { ExceptionMessageData, ExceptionMessageDataInput, Level } from './types'
-import * as Config from '../config'
-import { lookupLocation } from '../loader'
+import * as Config from '../utils/config'
+import { lookupLocation } from '../utils/loader'
 import { Location } from 'json-to-ast'
-import { parseEnforcerExtensionDirective } from '../util'
+import { parseEnforcerExtensionDirective } from '../utils/util'
 import { getExceptionMessageData } from './error-codes'
 
-const { inspect, eol } = Adapter()
+const { inspect, eol } = adapter()
 const exceptionMap = new WeakMap<Exception, ExceptionPreReport>()
 const levels: Level[] = ['error', 'warn', 'opinion', 'ignore']
 
@@ -39,6 +39,10 @@ interface ExceptionPreReport {
     opinion: ExceptionMessageData[]
     ignore: ExceptionMessageData[]
   }
+}
+
+type ExceptionReportDetailsItem = ExceptionMessageData & {
+  breadcrumbs: string[]
 }
 
 export class Exception {
@@ -77,7 +81,7 @@ export class Exception {
     // check to see if the exception level should be changed based on either
     // 1. the definition x-enforcer directive or
     // 2. by global configuration
-    const configLevels = Config.get().exceptions?.codes
+    const configLevels = Config.get().exceptions?.levels
     let invalidLevelChange: { level: Level, newLevel: Level, id: string, code: string, allowedLevels: string, alternateLevels: Level[] } | null = null
     const directive: string | undefined = messageData.definition?.['x-enforcer']
     const newLevel: Level | undefined = directive !== undefined
@@ -180,16 +184,15 @@ Exception.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
 
 class ExceptionReport {
   public readonly message: string
-  public readonly messageDetails: Array<{
-    data: ExceptionMessageData
-    path: string[]
-  }>
+  public readonly exceptions: ExceptionReportDetailsItem[]
 
   constructor (level: Level, data: ExceptionPreReport, header: string) {
+    const { exceptions: config } = Config.get()
     this.message = 'Nothing to report'
-    this.messageDetails = []
-    const reportMessage = getReport(this, level, data, '  ', false, [])
-    if (this.messageDetails.length > 0) {
+    this.exceptions = []
+    const extra = { footnotes: '' }
+    const reportMessage = getReport(this, level, data, '  ', false, [], extra)
+    if (this.exceptions.length > 0) {
       switch (level) {
         case 'error':
           header = header.replace('[TYPE]', 'errors')
@@ -205,15 +208,16 @@ class ExceptionReport {
           break
       }
       this.message = header + reportMessage
+      if (config.details === 'footnote' && extra.footnotes.length > 0) this.message += eol + eol + extra.footnotes
     }
   }
 
   get count (): number {
-    return this.messageDetails.length
+    return this.exceptions.length
   }
 
   get hasException (): boolean {
-    return this.messageDetails.length > 0
+    return this.exceptions.length > 0
   }
 
   toString (): string { return this.message }
@@ -298,8 +302,9 @@ function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, cont
   return result
 }
 
-function getReport (report: ExceptionReport, level: Level, data: ExceptionPreReport, indent: string, isContinue: boolean, path: string[]): string {
+function getReport (report: ExceptionReport, level: Level, data: ExceptionPreReport, indent: string, isContinue: boolean, path: string[], extra: { footnotes: string }): string {
   const indentPlus = indent + '  '
+  const { exceptions: config } = Config.get()
   let result: string = ''
 
   const { children, hasException, messages } = data
@@ -312,33 +317,70 @@ function getReport (report: ExceptionReport, level: Level, data: ExceptionPreRep
         if (messages[level].length === 0) {
           const willContinue = activeChildrenCount[level] === 1
           result += (isContinue ? ' > ' : eol + indent + 'at: ') + key +
-            getReport(report, level, child.data, willContinue ? indent : indentPlus, willContinue, path.concat([key]))
+            getReport(report, level, child.data, willContinue ? indent : indentPlus, willContinue, path.concat([key]), extra)
         } else if (isContinue) {
-          result += ' > ' + key + getReport(report, level, child.data, indentPlus, false, path.concat([key]))
+          result += ' > ' + key + getReport(report, level, child.data, indentPlus, false, path.concat([key]), extra)
         } else {
           result += eol + indent + 'at: ' + key +
-            getReport(report, level, child.data, indentPlus, false, path.concat([key]))
+            getReport(report, level, child.data, indentPlus, false, path.concat([key]), extra)
         }
       }
     })
 
-    messages[level].forEach(message => {
+    messages[level].forEach((message) => {
+      const index = report.exceptions.length
       result += eol + indent + message.message
-      if (message.locations !== undefined) {
-        result += ' [' + message.locations.map(l => {
-          let str = l.source !== undefined
-            ? String(l.source) + ':'
-            : ''
-          str += String(l.start.line) + ':' + String(l.start.column)
-          return str
-        }).join(', ') + ']'
+
+      if (config.details === 'all') {
+        const indentPlus = indent + '  '
+        result += eol + indentPlus + getExceptionDetailsReport(indentPlus, path, message)
+      } else if (config.details === 'breadcrumbs') {
+        result += eol + indent + '  breadcrumbs: /' + (path.length > 0 ? ' > ' + path.join(' > ') : '')
+      } else if (config.details === 'code') {
+        result += ' [' + message.code + ']'
+      } else if (config.details === 'footnote') {
+        const sIndex = '[' + String(index) + ']'
+        const footnoteIndent = ' '.repeat(sIndex.length)
+        result += ' ' + sIndex
+        extra.footnotes += sIndex + getExceptionDetailsReport(footnoteIndent, path, message)
+      } else if (config.details === 'id') {
+        result += ' [' + message.id + ']'
+      } else if (config.details === 'locations') {
+        if (message.locations.length > 0) {
+          result += ' (' + message.locations.map(l => {
+            let s = ''
+            if (l.source !== null) s += l.source + ':'
+            s += String(l.start.line) + ':' + String(l.start.column)
+            return s
+          }).join(', ') + ')'
+        }
       }
-      report.messageDetails.push({
-        data: message,
-        path: path
-      })
+
+      // TODO: add for details equals 'locations', 'detailed', 'breadcrumbs', 'all', 'index'
+
+      report.exceptions.push(Object.assign({}, message, { breadcrumbs: path }))
     })
   }
 
+  return result
+}
+
+function getExceptionDetailsReport (indent: string, path: string[], message: ExceptionMessageData): string {
+  let result = ''
+
+  // indent not added to first line only
+  result += 'breadcrumbs: /' + (path.length > 0 ? ' > ' : '') + path.join(' > ') + eol +
+    indent + 'code: ' + message.code + eol +
+    indent + 'id: ' + message.id
+  if (message.locations !== undefined && message.locations.length > 0) {
+    const indentPlus = indent + '  '
+    result += eol + indent + 'locations:'
+    message.locations.forEach(l => {
+      result += eol + indentPlus
+      if (l.source !== null) result += l.source + ':'
+      result += String(l.start.line) + ':' + String(l.start.column)
+    })
+  }
+  if (message.reference.length > 0) result += eol + indent + 'reference: ' + message.reference
   return result
 }

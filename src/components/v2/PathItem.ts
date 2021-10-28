@@ -3,16 +3,19 @@ import {
   Dereferenced,
   Version,
   Exception,
-  ComponentSchema
+  ComponentSchema, Referencable
 } from '../'
-import * as Operation from './Operation'
+import { Operation } from './Operation'
 import * as Core from '../PathItem'
-export { Definition } from '../PathItem'
+import { Parameter } from './Parameter'
+import { PathItem2 as Definition } from '../helpers/DefinitionTypes'
 
 const methods = Core.methods.concat(['trace'])
 
 export class PathItem<HasReference=Dereferenced> extends Core.PathItem<HasReference> {
-  constructor (definition: Core.Definition, version?: Version) {
+  parameters?: Array<Referencable<HasReference, Parameter<HasReference>>>
+
+  constructor (definition: Definition, version?: Version) {
     super(PathItem, definition, version, arguments[2])
   }
 
@@ -20,11 +23,14 @@ export class PathItem<HasReference=Dereferenced> extends Core.PathItem<HasRefere
     '2.0': 'https://spec.openapis.org/oas/v2.0#path-item-object'
   }
 
-  static schemaGenerator (data: Data): ComponentSchema<Core.Definition> {
-    return Core.schemaGenerator(Operation.Operation, methods, data)
+  static schemaGenerator (data: Data): ComponentSchema<Definition> {
+    return Core.schemaGenerator({
+      Operation: Operation,
+      Parameter: Parameter
+    }, methods, data)
   }
 
-  static validate (definition: Core.Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): Exception {
     return super.validate(definition, version, arguments[2])
   }
 }

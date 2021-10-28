@@ -1,9 +1,5 @@
 # Validator Built vs Defined
 
-## Status
-
-Proposed
-
 ## Context
 
 Validator functions `before` and `after` can perform custom validations based on either the `definition` or `built` data.

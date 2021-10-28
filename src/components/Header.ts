@@ -2,23 +2,27 @@ import {
   Data,
   ComponentSchema, ExtendedComponent
 } from './'
-import { noop } from '../util'
+import { noop } from '../utils/util'
 import * as V from './helpers/common-validators'
 import * as PartialSchema from './helpers/PartialSchema'
-import * as Schema from './Schema'
 import { base as dataTypeRoot, DataTypeStore } from './helpers/DataTypes'
-import { Definition as Definition2 } from './v2/Header'
-import { Definition as Definition3 } from './v3/Header'
+import { Header2 as Definition2, Header3 as Definition3 } from './helpers/DefinitionTypes'
 
-export type Definition = Definition2 | Definition3
+interface ComponentsMap {
+  Header: ExtendedComponent
+  Schema: ExtendedComponent
+}
 
 export const headerDataTypes = new DataTypeStore(dataTypeRoot)
 
-export function schemaGenerator (Component: ExtendedComponent, data: Data): ComponentSchema<Definition> {
+export function schemaGenerator (components: ComponentsMap, data: Data): ComponentSchema<Definition2 | Definition3> {
+  const { major } = data.root
   const { definition } = data.context
 
   // copy schema from partial schema generator
-  const schema = PartialSchema.schemaGenerator(Component, data)
+  const schema: ComponentSchema = major === 2
+    ? PartialSchema.schemaGenerator(components.Header, data)
+    : { allowsSchemaExtensions: true, properties: [] }
 
   const partialValidator = {
     after: schema.validator?.after ?? noop
@@ -30,7 +34,7 @@ export function schemaGenerator (Component: ExtendedComponent, data: Data): Comp
     partialValidator.after(data)
   }
 
-  // the "type" is required for headers
+  // the "type" is required for headers v2
   const typePropertyDefinition = schema.properties?.find(v => v.name === 'type')
   if (typePropertyDefinition !== undefined) typePropertyDefinition.required = true
 
@@ -88,7 +92,7 @@ export function schemaGenerator (Component: ExtendedComponent, data: Data): Comp
       schema: {
         type: 'component',
         allowsRef: true,
-        component: Schema.Schema
+        component: components.Schema
       }
     }
   )

@@ -1,18 +1,27 @@
-import * as Config from '../config'
+import * as Config from '../utils/config'
 import { Exception } from '../Exception'
 import * as E from '../Exception/methods'
-import rx from '../rx'
-import { copy, isObject, same, smart } from '../util'
-import { LoaderMetadata } from '../loader'
-import { Result } from '../Result'
-import * as Loader from '../loader'
-import { Definition as OperationDefinition } from './Operation'
-import { Definition as SecuritySchemeDefinition } from './SecurityScheme'
+import rx from '../utils/rx'
+import { copy, isObject, same, smart } from '../utils/util'
+import { LoaderMetadata } from '../utils/loader'
+import { Result } from '../utils/Result'
+import * as Loader from '../utils/loader'
 import { ExceptionMessageDataInput } from '../Exception/types'
+import {
+  Operation2 as OperationDefinition2,
+  Operation3 as OperationDefinition3,
+  SecurityScheme2 as SecuritySchemeDefinition2,
+  SecurityScheme3 as SecuritySchemeDefinition3,
+  Reference as ReferenceDefinition
+} from './helpers/DefinitionTypes'
 
 export {
-  Exception
+  Exception,
+  ReferenceDefinition
 }
+
+type OperationDefinition = OperationDefinition2 | OperationDefinition3
+type SecuritySchemeDefinition = SecuritySchemeDefinition2 | SecuritySchemeDefinition3
 
 export interface ComponentSchema<Definition=any> {
   // define whether the component allows "x-"" extensions
@@ -220,9 +229,7 @@ export interface ExtendedComponent<T extends OASComponent=any> {
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export abstract class OASComponent<Definition=any> {
   protected constructor (Component: ExtendedComponent, definition: Definition, version?: Version, incomingData?: Data<Definition>) {
-    const data: Data<Definition> = incomingData === undefined
-      ? createComponentData('constructing', Component, definition, version, incomingData)
-      : incomingData
+    const data: Data<Definition> = createComponentData('constructing', Component, definition, version, incomingData)
     const { builder } = data.component.schema
     const { map } = data.root
     data.context.built = this as unknown as Definition
@@ -250,9 +257,7 @@ export abstract class OASComponent<Definition=any> {
 
   }
 
-  static get spec (): SpecMap {
-    return {}
-  }
+  static spec = {}
 
   static schemaGenerator (data: Data): ComponentSchema {
     return {
@@ -302,10 +307,6 @@ export abstract class OASComponent<Definition=any> {
   }
 }
 
-export interface ReferenceDefinition {
-  $ref: string
-}
-
 const referenceSchema: ComponentSchema<ReferenceDefinition> = {
   allowsSchemaExtensions: false,
   properties: [
@@ -351,6 +352,10 @@ export class Reference extends OASComponent {
 
   static schemaGenerator (): ComponentSchema<ReferenceDefinition> {
     return referenceSchema
+  }
+
+  static validate (definition: ReferenceDefinition, version?: Version): Exception {
+    return super.validate(definition, version, arguments[2])
   }
 }
 
@@ -463,7 +468,7 @@ function buildObjectProperties (context: any, data: Data): void {
       value = build(child)
       found = true
     } else if ('default' in prop.schema && allowed) {
-      value = prop.schema.default(child, componentDef)
+      value = prop.schema.default
       found = true
     }
     if (value !== undefined) context[name] = value
@@ -755,6 +760,7 @@ export function validate (data: Data): boolean {
     return mappable(component, data, {}, built => {
       const componentData = createComponentData('validating', component, definition, version, data)
       componentData.context.built = built
+      // @ts-expect-error
       const exception = component.validate(definition, version, componentData)
       const success = !exception.hasError
       return success
@@ -778,7 +784,7 @@ export function validate (data: Data): boolean {
         reference
       })
       const { level } = exception.message(invalidType)
-      success = level === 'error'
+      if (level === 'error') success = false
     }
     if (s.maximum !== undefined && definition > s.maximum) {
       const exceedsNumberBounds = E.exceedsNumberBounds('maximum', true, s.maximum, definition, {
@@ -787,7 +793,7 @@ export function validate (data: Data): boolean {
         reference
       })
       const { level } = exception.message(exceedsNumberBounds)
-      success = level === 'error'
+      if (level === 'error') success = false
     }
     if (s.minimum !== undefined && definition < s.minimum) {
       const exceedsNumberBounds = E.exceedsNumberBounds('minimum', true, s.minimum, definition, {
@@ -796,7 +802,7 @@ export function validate (data: Data): boolean {
         reference
       })
       const { level } = exception.message(exceedsNumberBounds)
-      success = level === 'error'
+      if (level === 'error') success = false
     }
     if (success) context.built = true
     return success
@@ -924,7 +930,7 @@ export function validate (data: Data): boolean {
           reference
         })
         const { level } = exception.message(eMissingRequiredProperties)
-        success = level === 'error'
+        if (level === 'error') success = false
       }
 
       if (success) context.built = built

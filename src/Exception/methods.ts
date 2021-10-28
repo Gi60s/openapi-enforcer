@@ -1,9 +1,10 @@
 import { Exception } from './'
 import { ExceptionMessageDataInput, LocationInput } from './types'
 import { Data as ValidatorData } from '../components'
-import { Definition as OperationDefinition } from '../components/Operation'
-import { smart } from '../util'
-import { getExceptionMessageData } from './error-codes'
+import { Operation2 as OperationDefinition2, Operation3 as OperationDefinition3 } from '../components/helpers/DefinitionTypes'
+import { getExceptionMessageData, smart } from './error-codes'
+
+type OperationDefinition = OperationDefinition2 | OperationDefinition3
 
 interface Data {
   definition: any
@@ -47,8 +48,8 @@ export function enumMissingValues (data: Data): ExceptionMessageDataInput {
 export function enumNotMet (acceptableValues: any[], invalidValue: any, data: DataR): ExceptionMessageDataInput {
   const result = getExceptionMessageData('ENUM_NOT_MET', { acceptableValues, invalidValue }, data)
   result.message = acceptableValues.length > 1
-    ? 'Value must be one of: ' + acceptableValues.map(v => smart(v)).join(', ') + '. Received: ' + smart(invalidValue)
-    : 'Value must equal: ' + smart(acceptableValues[0]) + '. Received: ' + smart(invalidValue)
+    ? 'Value must be one of: ' + smart(acceptableValues, true) + '. Received: ' + smart(invalidValue, true)
+    : 'Value must equal: ' + smart(acceptableValues[0], true) + '. Received: ' + smart(invalidValue, true)
   return result
 }
 
@@ -76,8 +77,12 @@ export function exampleWithoutSchema (data: Data): ExceptionMessageDataInput {
   return getExceptionMessageData('EXAMPLE_WITHOUT_SCHEMA', {}, data)
 }
 
-export function exceedsNumberBounds (boundBy: 'maximum' | 'minimum', allowEqual: boolean, boundValue: any, invalidValue: number, data: DataR): ExceptionMessageDataInput {
-  const result = getExceptionMessageData('EXCEEDS_NUMBER_BOUNDS', { allowEqual, boundBy, boundValue, invalidValue }, data)
+export function exceedsNumberBounds (boundBy: 'maximum' | 'minimum', allowEqual: boolean, boundValue: any, invalidValue: number, data?: DataR): ExceptionMessageDataInput {
+  const result = getExceptionMessageData('EXCEEDS_NUMBER_BOUNDS', { allowEqual, boundBy, boundValue, invalidValue }, data ?? {
+    definition: null,
+    locations: [],
+    reference: ''
+  })
   result.message = 'Value must be ' +
     (boundBy === 'maximum' ? 'less than' : 'greater than') +
     (allowEqual ? ' or equal to' : '') +
@@ -152,10 +157,6 @@ export function invalidUrl (invalidValue: any, data: DataR): ExceptionMessageDat
   return getExceptionMessageData('INVALID_URL', { invalidValue }, data)
 }
 
-export function invalidValue (expected: string, invalidValue: any, data: DataR): ExceptionMessageDataInput {
-  return getExceptionMessageData('INVALID_VALUE', { expected, invalidValue }, data)
-}
-
 export function invalidValueFormat (type: string, format: string, invalidValue: any, data: DataR): ExceptionMessageDataInput {
   return getExceptionMessageData('INVALID_VALUE_FORMAT', { type, format, invalidValue }, data)
 }
@@ -199,10 +200,6 @@ export function noPathsDefined (data: Data): ExceptionMessageDataInput {
   return getExceptionMessageData('NO_PATHS_DEFINED', { }, data)
 }
 
-export function notMultipleOf (multipleOf: number, invalidValue: any, data: DataR): ExceptionMessageDataInput {
-  return getExceptionMessageData('NOT_MULTIPLE_OF', { invalidValue, multipleOf }, data)
-}
-
 export function operationMethodShouldNotHaveBody (method: string, data: DataR): ExceptionMessageDataInput {
   return getExceptionMessageData('OPERATION_METHOD_REQUEST_BODY_NOT_ADVISED', { method, upperMethod: method.toUpperCase() }, data)
 }
@@ -230,10 +227,6 @@ export function pathParameterMustBeRequired (parameterName: string, data: DataR)
 
 export function propertyNotAllowed (propertyName: string, reason: string, data: DataR): ExceptionMessageDataInput {
   return getExceptionMessageData('PROPERTY_NOT_ALLOWED', { propertyName, reason }, data)
-}
-
-export function randomPasswordWarning (data: Data): ExceptionMessageDataInput {
-  return getExceptionMessageData('RANDOM_PASSWORD_WARNING', { }, data)
 }
 
 export function refInfiniteLoop (data: Data): ExceptionMessageDataInput {
@@ -310,4 +303,34 @@ export function unknownTypeFormat (type: string, format: string, data: Data): Ex
 
 export function valueIgnored (value: string, reason: string, data: DataR): ExceptionMessageDataInput {
   return getExceptionMessageData('VALUE_IGNORED', { value, reason }, data)
+}
+
+/* /////////////////////////////////
+//                                //
+//  NON-SCHEMA VALIDATION ERRORS  //
+//                                //
+///////////////////////////////// */
+
+export function invalidValue (expected: string, invalidValue: any): ExceptionMessageDataInput {
+  return getExceptionMessageData('INVALID_VALUE', { expected, invalidValue }, {
+    definition: null,
+    locations: [],
+    reference: ''
+  })
+}
+
+export function notMultipleOf (multipleOf: number, invalidValue: any): ExceptionMessageDataInput {
+  return getExceptionMessageData('NOT_MULTIPLE_OF', { invalidValue, multipleOf }, {
+    definition: null,
+    locations: [],
+    reference: ''
+  })
+}
+
+export function randomPasswordWarning (): ExceptionMessageDataInput {
+  return getExceptionMessageData('RANDOM_PASSWORD_WARNING', { }, {
+    definition: null,
+    locations: [],
+    reference: ''
+  })
 }

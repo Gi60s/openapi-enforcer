@@ -2,24 +2,21 @@ import {
   Dereferenced,
   Version,
   Exception,
-  Referencable
+  Referencable, ComponentSchema
 } from '../'
-import { Operation as CoreOperation, Definition as CoreDefinition } from '../Operation'
-import * as Callback from './Callback'
-import * as Reference from '../Reference'
-import * as RequestBody from './RequestBody'
-import * as Server from '../Server'
+import * as Core from '../Operation'
+import { Callback } from './Callback'
+import { RequestBody } from './RequestBody'
+import { Server } from './Server'
+import { Parameter } from './Parameter'
+import { Responses } from './Responses'
+import { Operation3 as Definition } from '../helpers/DefinitionTypes'
 
-export interface Definition extends CoreDefinition {
-  callbacks?: Record<string, Callback.Definition | Reference.Definition>
-  requestBody?: RequestBody.Definition | Reference.Definition
-  servers?: Server.Definition[]
-}
-
-export class Operation<HasReference=Dereferenced> extends CoreOperation<HasReference> {
-  readonly callbacks?: Record<string, Referencable<HasReference, Callback.Callback>>
-  readonly requestBody?: Referencable<HasReference, RequestBody.RequestBody>
-  readonly servers?: Server.Server[]
+export class Operation<HasReference=Dereferenced> extends Core.Operation<HasReference> {
+  readonly callbacks?: Record<string, Referencable<HasReference, Callback>>
+  readonly parameters?: Array<Parameter<HasReference>>
+  readonly requestBody?: Referencable<HasReference, RequestBody>
+  readonly servers?: Server[]
 
   constructor (definition: Definition, version?: Version) {
     super(Operation, definition, version, arguments[2])
@@ -32,7 +29,12 @@ export class Operation<HasReference=Dereferenced> extends CoreOperation<HasRefer
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#operation-object'
   }
 
-  static schemaGenerator = CoreOperation.schemaGenerator
+  static schemaGenerator (): ComponentSchema<Definition> {
+    return Core.schemaGenerator({
+      Parameter: Parameter,
+      Responses: Responses
+    })
+  }
 
   static validate (definition: Definition, version?: Version): Exception {
     return super.validate(definition, version, arguments[2])

@@ -5,24 +5,21 @@ import {
   Dereferenced,
   ComponentSchema
 } from '../index'
-import * as Schema from '../Schema'
-
-export interface Definition {
-  [name: string]: Schema.Definition2
-}
+import { Schema2 as Definition } from '../helpers/DefinitionTypes'
+import { Schema } from './Schema'
 
 const schemaDefinition: ComponentSchema<Definition> = {
   allowsSchemaExtensions: false,
   additionalProperties: {
     type: 'component',
     allowsRef: false,
-    component: Schema.Schema
+    component: Schema
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Definitions<HasReference=Dereferenced> extends OASComponent {
-  readonly [name: string]: Schema.Schema<HasReference>
+  readonly [name: string]: Schema<HasReference>
 
   constructor (definition: Definition, version?: Version) {
     super(Definitions, definition, version, arguments[2])

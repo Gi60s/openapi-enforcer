@@ -1,34 +1,11 @@
-import { OASComponent, Data, Version, Exception, ComponentSchema } from './'
+import { OASComponent, Data, ComponentSchema } from './'
 import * as E from '../Exception/methods'
 import * as OAuthFlows from './v3/OAuthFlows'
+import { SecurityScheme2 as Definition2, SecurityScheme3 as Definition3 } from './helpers/DefinitionTypes'
 
 const rxUrl = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/
 
-export type Definition = Definition2 | Definition3
-
-export interface Definition2 {
-  [key: `x-${string}`]: any
-  authorizationUrl: string
-  description?: string
-  flow: string
-  in: string
-  name: string
-  scopes: Record<string, string>
-  tokenUrl: string
-  type: string
-}
-
-export interface Definition3 {
-  [key: `x-${string}`]: any
-  bearerFormat?: string
-  description?: string
-  flows: string
-  in: string
-  name: string
-  openIdConnectUrl: string
-  scheme: string
-  type: string
-}
+type Definition = Definition2 | Definition3
 
 export class SecurityScheme extends OASComponent {
   readonly [key: `x-${string}`]: any
@@ -36,30 +13,6 @@ export class SecurityScheme extends OASComponent {
   readonly in!: string
   readonly name!: string
   readonly type!: string
-
-  // v2
-  readonly authorizationUrl?: string
-  readonly flow?: string
-  readonly scopes?: Record<string, string>
-  readonly tokenUrl?: string
-
-  // v3
-  readonly bearerFormat?: string
-  readonly flows?: string
-  readonly openIdConnectUrl?: string
-  readonly scheme?: string
-
-  constructor (definition: Definition, version?: Version) {
-    super(SecurityScheme, definition, version, arguments[2])
-  }
-
-  static spec = {
-    '2.0': 'https://spec.openapis.org/oas/v2.0#security-scheme-object',
-    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#security-scheme-object',
-    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#security-scheme-object',
-    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#security-scheme-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-scheme-object'
-  }
 
   static schemaGenerator (data: Data): ComponentSchema<Definition> {
     const { definition, exception } = data.context
@@ -184,9 +137,5 @@ export class SecurityScheme extends OASComponent {
         }
       }
     }
-  }
-
-  static validate (definition: Definition, version?: Version): Exception {
-    return super.validate(definition, version, arguments[2])
   }
 }

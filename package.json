@@ -4,11 +4,11 @@
   "version": "2.0.0",
   "description": "",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/exports/index.d.ts",
   "exports": {
-    ".": "dist/index.js",
-    "./v2": "dist/v2.js",
-    "./v3": "dist/v3.js"
+    ".": "dist/exports/index.js",
+    "./v2": "dist/exports/v2.js",
+    "./v3": "dist/exports/v3.js"
   },
   "directories": {
     "test": "test",
@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.19",
+    "@types/expect": "^24.3.0",
     "@types/json-to-ast": "^2.1.1",
     "@types/mocha": "^7.0.2",
     "@types/node": "^13.13.52",
@@ -32,15 +33,17 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.3.1",
     "eslint-plugin-standard": "^4.1.0",
+    "esm": "^3.2.25",
     "mocha": "^8.4.0",
     "nyc": "^15.1.0",
     "snazzy": "^9.0.0",
     "ts-loader": "^8.0.2",
+    "ts-mocha": "^8.0.0",
     "ts-node": "^9.1.1",
     "typedoc": "^0.17.6",
     "typescript": "^4.4.0-dev.20210624",
-    "webpack": "^5.41.1",
-    "webpack-cli": "^3.3.12"
+    "webpack": "^5.60.0",
+    "webpack-cli": "^4.9.1"
   },
   "scripts": {
     "build": "tsc",
@@ -50,7 +53,8 @@
     "dev": "tsc --watch",
     "lint": "ts-standard --verbose | snazzy",
     "lint:fix": "ts-standard --fix --verbose | snazzy",
-    "test": "mocha test/**/*.test.ts --require ts-node/register --require test/util/hooks.ts --recursive",
+    "test": "mocha dist/test/**/*.test.js --recursive",
+    "test:ts": "mocha test/**/*.test.ts --require ts-node/register --recursive",
     "test:watch": "npm test -- --watch --watch-files src test"
   },
   "author": "James Speirs <james.speirs@gmail.com>",

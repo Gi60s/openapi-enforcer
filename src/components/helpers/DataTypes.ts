@@ -1,10 +1,10 @@
 import { Exception } from '../../Exception'
 import * as E from '../../Exception/methods'
 import * as random from './Randomizer'
-import { isValidDateString } from '../../util'
+import { isValidDateString } from '../../utils/util'
 import { Definition as Schema } from '../Schema'
 import RandExp from 'randexp'
-import rx from '../../rx'
+import rx from '../../utils/rx'
 
 const dataTypeWarnings: { [k: string]: boolean } = {}
 // const handlers: { 'common-define': Function[] } = { 'common-define': [] }
@@ -186,7 +186,7 @@ base.defineMultiple({ integer: ['', 'int32', 'int64'], number: ['', 'float', 'do
     } else {
       validateMaxMin(exception, schema, 'integer', 'maximum', 'minimum', true, value, schema.maximum as number, schema.minimum as number)
       if (schema.multipleOf !== undefined && value % schema.multipleOf !== 0) {
-        exception.message(E.notMultipleOf('', schema.multipleOf, value))
+        exception.message(E.notMultipleOf(schema.multipleOf, value))
       }
     }
   }
@@ -200,13 +200,12 @@ base.defineMultiple({ string: ['', 'password'] }, {
     if (schema.pattern !== undefined) {
       return new RandExp(schema.pattern).gen()
     } else {
-
+      const { min, max } = determineMaxMin(schema, 'minLength', 'maxLength', options.numberVariation ?? 20)
+      return random.text({
+        maxLength: max,
+        minLength: min
+      })
     }
-    const { min, max } = determineMaxMin(schema, 'minLength', 'maxLength', options.numberVariation ?? 20)
-    return random.text({
-      maxLength: max,
-      minLength: min
-    })
   }
 })
 
@@ -245,7 +244,7 @@ base.define('string', 'date', {
     } else if (isValidDateString('date', value)) {
       return new Date(value)
     } else {
-      exception.message(E.invalidValue('', 'a valid date', value))
+      exception.message(E.invalidValue('a valid date', value))
       return null
     }
   },
@@ -270,7 +269,7 @@ base.define('string', 'date-time', {
     } else if (isValidDateString('date-time', value)) {
       return new Date(value)
     } else {
-      exception.message(E.invalidValue('', 'a valid date', value))
+      exception.message(E.invalidValue('a valid date', value))
       return null
     }
   },
@@ -312,11 +311,11 @@ function randomDate ({ options, schema }: { options: RandomOptions, schema: Sche
 function validateMaxMin (exception: Exception, schema: { [key: string]: any, exclusiveMaximum?: boolean, exclusiveMinimum?: boolean }, type: string, maxProperty: string, minProperty: string, exclusives: boolean, value: any, maximum: number, minimum: number): void {
   if (maxProperty in schema) {
     if (exclusives && schema.exclusiveMaximum === true && value >= maximum) {
-      exception.message(E.exceedsNumberBounds('', 'maximum', true,
+      exception.message(E.exceedsNumberBounds('maximum', true,
         schema.serialize(schema[maxProperty]).value,
         schema.serialize(value).value))
     } else if (value > maximum) {
-      exception.message(E.exceedsNumberBounds('', 'maximum', false,
+      exception.message(E.exceedsNumberBounds('maximum', false,
         schema.serialize(schema[maxProperty]).value,
         schema.serialize(value).value))
     }
@@ -324,11 +323,11 @@ function validateMaxMin (exception: Exception, schema: { [key: string]: any, exc
 
   if (minProperty in schema) {
     if (exclusives && schema.exclusiveMinimum === true && value <= minimum) {
-      exception.message(E.exceedsNumberBounds('', 'minimum', true,
+      exception.message(E.exceedsNumberBounds('minimum', true,
         schema.serialize(schema[minProperty]).value,
         schema.serialize(value).value))
     } else if (value < minimum) {
-      exception.message(E.exceedsNumberBounds('', 'minimum', false,
+      exception.message(E.exceedsNumberBounds('minimum', false,
         schema.serialize(schema[minProperty]).value,
         schema.serialize(value).value))
     }

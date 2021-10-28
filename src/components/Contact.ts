@@ -1,13 +1,7 @@
-import { OASComponent, ComponentSchema, Exception, Version } from './'
+import { OASComponent, ComponentSchema, Exception, Version } from './index'
 import * as E from '../Exception/methods'
-import rx from '../rx'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  name?: string
-  url?: string
-  email?: string
-}
+import rx from '../utils/rx'
+import { Contact as Definition } from './helpers/DefinitionTypes'
 
 const contactSchema: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,

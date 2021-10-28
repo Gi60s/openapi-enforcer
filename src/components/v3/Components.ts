@@ -6,29 +6,16 @@ import {
   Exception,
   ComponentSchema
 } from '../index'
-import * as Callback from './Callback'
-import * as Example from './Example'
-import * as Header from '../Header'
-import * as Link from './Link'
-import * as Parameter from '../Parameter'
-import * as Reference from '../Reference'
-import * as RequestBody from './RequestBody'
-import * as Response from '../Response'
-import * as Schema from '../Schema'
-import * as SecurityScheme from '../SecurityScheme'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  callbacks?: Record<string, Callback.Definition | Reference.Definition>
-  examples?: Record<string, Example.Definition | Reference.Definition>
-  headers?: Record<string, Header.Definition | Reference.Definition>
-  links?: Record<string, Link.Definition | Reference.Definition>
-  parameters?: Record<string, Parameter.Definition | Reference.Definition>
-  requestBodies?: Record<string, RequestBody.Definition | Reference.Definition>
-  responses?: Record<string, Response.Definition | Reference.Definition>
-  schemas?: Record<string, Schema.Definition | Reference.Definition>
-  securitySchemes?: Record<string, SecurityScheme.Definition | Reference.Definition>
-}
+import { Callback } from './Callback'
+import { Example } from './Example'
+import { Header } from './Header'
+import { Link } from './Link'
+import { Parameter } from './Parameter'
+import { RequestBody } from './RequestBody'
+import { Response } from './Response'
+import { Schema } from './Schema'
+import { SecurityScheme } from './SecurityScheme'
+import { Components3 as Definition } from '../helpers/DefinitionTypes'
 
 const schemaComponent: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,
@@ -41,7 +28,7 @@ const schemaComponent: ComponentSchema<Definition> = {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: Callback.Callback
+          component: Callback
         }
       }
     }, {
@@ -52,7 +39,7 @@ const schemaComponent: ComponentSchema<Definition> = {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: Example.Example
+          component: Example
         }
       }
     }, {
@@ -63,7 +50,7 @@ const schemaComponent: ComponentSchema<Definition> = {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: Header.Header
+          component: Header
         }
       }
     }, {
@@ -74,7 +61,7 @@ const schemaComponent: ComponentSchema<Definition> = {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: Link.Link
+          component: Link
         }
       }
     }, {
@@ -85,7 +72,7 @@ const schemaComponent: ComponentSchema<Definition> = {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: Parameter.Parameter
+          component: Parameter
         }
       }
     }, {
@@ -96,7 +83,7 @@ const schemaComponent: ComponentSchema<Definition> = {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: RequestBody.RequestBody
+          component: RequestBody
         }
       }
     }, {
@@ -107,7 +94,7 @@ const schemaComponent: ComponentSchema<Definition> = {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: Response.Response
+          component: Response
         }
       }
     }, {
@@ -118,7 +105,7 @@ const schemaComponent: ComponentSchema<Definition> = {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: Schema.Schema
+          component: Schema
         }
       }
     }, {
@@ -129,7 +116,7 @@ const schemaComponent: ComponentSchema<Definition> = {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: SecurityScheme.SecurityScheme
+          component: SecurityScheme
         }
       }
     }
@@ -154,15 +141,15 @@ const schemaComponent: ComponentSchema<Definition> = {
 
 export class Components<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
-  readonly callbacks?: Record<string, Referencable<HasReference, Callback.Callback>>
-  readonly examples?: Record<string, Referencable<HasReference, Example.Example>>
-  readonly headers?: Record<string, Referencable<HasReference, Header.Header<HasReference>>>
-  readonly links?: Record<string, Referencable<HasReference, Link.Link>>
-  readonly parameters?: Record<string, Referencable<HasReference, Parameter.Parameter<HasReference>>>
-  readonly requestBodies?: Record<string, Referencable<HasReference, RequestBody.RequestBody>>
-  readonly responses?: Record<string, Referencable<HasReference, Response.Response<HasReference>>>
-  readonly schemas?: Record<string, Referencable<HasReference, Schema.Schema>>
-  readonly securitySchemes?: Record<string, Referencable<HasReference, SecurityScheme.SecurityScheme>>
+  readonly callbacks?: Record<string, Referencable<HasReference, Callback>>
+  readonly examples?: Record<string, Referencable<HasReference, Example>>
+  readonly headers?: Record<string, Referencable<HasReference, Header<HasReference>>>
+  readonly links?: Record<string, Referencable<HasReference, Link>>
+  readonly parameters?: Record<string, Referencable<HasReference, Parameter<HasReference>>>
+  readonly requestBodies?: Record<string, Referencable<HasReference, RequestBody>>
+  readonly responses?: Record<string, Referencable<HasReference, Response<HasReference>>>
+  readonly schemas?: Record<string, Referencable<HasReference, Schema>>
+  readonly securitySchemes?: Record<string, Referencable<HasReference, SecurityScheme>>
 
   constructor (definition: Definition, version?: Version) {
     super(Components, definition, version, arguments[2])

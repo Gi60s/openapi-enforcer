@@ -1,13 +1,5 @@
 import { OASComponent, Version, Exception, ComponentSchema } from './'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  name?: string
-  namespace?: string
-  prefix?: string
-  attribute?: boolean
-  wrapped?: boolean
-}
+import { Xml as Definition } from './helpers/DefinitionTypes'
 
 const schemaXml: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,

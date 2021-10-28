@@ -1,35 +1,27 @@
 import {
   OASComponent,
   Referencable,
+  Dereferenced,
   Data,
   Version,
   Exception,
   ComponentSchema
 } from '../index'
-import rx from '../../rx'
+import rx from '../../utils/rx'
 import * as E from '../../Exception/methods'
 import * as V from '../helpers/common-validators'
-import * as Encoding from './Encoding'
-import * as Example from './Example'
-import * as Reference from '../Reference'
-import * as RequestBody from './RequestBody'
-import * as Schema from '../Schema'
-import { Dereferenced } from '../Reference'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  encoding?: Record<string, Encoding.Definition | Reference.Definition>
-  example?: any
-  examples?: Record<string, Example.Definition | Reference.Definition>
-  schema?: Schema.Definition3 | Reference.Definition
-}
+import { Encoding } from './Encoding'
+import { Example } from './Example'
+import { RequestBody } from './RequestBody'
+import { Schema } from './Schema'
+import { MediaType3 as Definition } from '../helpers/DefinitionTypes'
 
 export class MediaType<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
-  encoding?: Record<string, Referencable<HasReference, Encoding.Encoding<HasReference>>>
+  encoding?: Record<string, Referencable<HasReference, Encoding<HasReference>>>
   example?: any
-  examples?: Record<string, Referencable<HasReference, Example.Example>>
-  schema?: Referencable<HasReference, Schema.Schema>
+  examples?: Record<string, Referencable<HasReference, Example>>
+  schema?: Referencable<HasReference, Schema>
 
   constructor (definition: Definition, version?: Version) {
     super(MediaType, definition, version, arguments[2])
@@ -44,7 +36,7 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
 
   static schemaGenerator (data: Data): ComponentSchema<Definition> {
     const { chain } = data.context
-    const encodingIgnored = chain[1]?.component.constructor !== RequestBody.RequestBody
+    const encodingIgnored = chain[1]?.component.constructor !== RequestBody
 
     return {
       allowsSchemaExtensions: true,
@@ -68,8 +60,8 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
           V.exampleExamplesConflict(data)
 
           // check that the schema type is object
-          if (definition.schema !== undefined) {
-            const schema = definition.schema
+          if (built.schema !== undefined) {
+            const schema = built.schema
             if (!('$ref' in schema) && schema.type !== 'object') {
               const mediaTypeSchemaMustBeObject = E.mediaTypeSchemaMustBeObject(schema.type ?? '', {
                 definition,
@@ -81,9 +73,9 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
           }
 
           // ensure that any properties in the encoding have a matching property in the schema properties
-          const schema = definition.schema ?? {}
+          const schema = built.schema ?? {}
           if (!('$ref' in schema)) {
-            Object.keys(definition.encoding ?? {}).forEach(key => {
+            Object.keys(built.encoding ?? {}).forEach(key => {
               if (schema.properties?.[key] === undefined) {
                 const encodingNameNotMatched = E.encodingNameNotMatched(key, {
                   definition,
@@ -102,7 +94,7 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
           schema: {
             type: 'component',
             allowsRef: true,
-            component: Schema.Schema
+            component: Schema
           }
         },
         {
@@ -119,7 +111,7 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
             additionalProperties: {
               type: 'component',
               allowsRef: true,
-              component: Example.Example
+              component: Example
             }
           }
         },
@@ -132,7 +124,7 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
             additionalProperties: {
               type: 'component',
               allowsRef: true,
-              component: Encoding.Encoding
+              component: Encoding
             }
           }
         }

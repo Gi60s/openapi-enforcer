@@ -1,12 +1,6 @@
 import { OASComponent, Version, Exception, ComponentSchema } from './'
-import * as ExternalDocumentation from './ExternalDocumentation'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  name: string
-  description?: string
-  externalDocs?: ExternalDocumentation.Definition
-}
+import { ExternalDocumentation } from './ExternalDocumentation'
+import { Tag as Definition } from './helpers/DefinitionTypes'
 
 const schemaTag: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,
@@ -25,7 +19,7 @@ const schemaTag: ComponentSchema<Definition> = {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: ExternalDocumentation.ExternalDocumentation
+        component: ExternalDocumentation
       }
     }
   ]
@@ -35,7 +29,7 @@ export class Tag extends OASComponent {
   readonly [key: `x-${string}`]: any
   readonly name!: string
   readonly description?: string
-  readonly externalDocs?: ExternalDocumentation.ExternalDocumentation
+  readonly externalDocs?: ExternalDocumentation
 
   constructor (definition: Definition, version?: Version) {
     super(Tag, definition, version, arguments[2])

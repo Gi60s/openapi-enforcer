@@ -1,5 +1,4 @@
 import { ExceptionMessageDataInput, LocationInput, Level } from './types'
-import { smart } from '../util'
 
 export interface Context {
   definition: any
@@ -34,7 +33,7 @@ export const list: MessageTemplate[] = [
     id: 'DEFAULT_VALUE_DOES_NOT_MATCH_SCHEMA',
     code: 'DVDNMS',
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
-    level: 'error',
+    level: 'warn',
     // eslint-disable-next-line no-template-curly-in-string
     message: 'Default value ${defaultValue} does not match its associated schema.'
   },
@@ -229,7 +228,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: [],
     level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'Invalid type. Expected ${expectedType}. Received: ${invalidValue}'
+    message: 'Invalid type. Expected ${expectedType}. Received: $${invalidValue}'
   },
   {
     id: 'INVALID_URL',
@@ -245,7 +244,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: [],
     level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'Value is not valid. Expected "${expected}". Received: ${invalidValue}'
+    message: 'Value is not valid. Expected $${expected}. Received: $${invalidValue}'
   },
   {
     id: 'INVALID_VALUE_FORMAT',
@@ -304,7 +303,7 @@ export const list: MessageTemplate[] = [
   },
   {
     id: 'MISSING_REQUIRED_PROPERTIES',
-    code: 'MIMEPR',
+    code: 'MIREPR',
     alternateLevels: [],
     level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
@@ -366,7 +365,7 @@ export const list: MessageTemplate[] = [
   {
     id: 'PATH_PARAMETER_MUST_BE_REQUIRED',
     code: 'PAPMBR',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: [],
     level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
     message: 'Path parameters must be marked as required. Parameter: ${parameterName}'
@@ -377,7 +376,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'Property ${propertyName} not allowed. ${reason}'
+    message: 'Property $${propertyName} not allowed. ${reason}'
   },
   {
     id: 'RANDOM_PASSWORD_WARNING',
@@ -541,9 +540,25 @@ export function getExceptionMessageData (id: string, inputs: Record<string, any>
   // perform string replacement on the message
   Object.keys(inputs).forEach(key => {
     const value: any = inputs[key]
+    const rxQuoted = new RegExp('\\$\\${' + key + '}', 'g')
+    result.message = result.message.replace(rxQuoted, smart(value, true))
     const rx = new RegExp('\\${' + key + '}', 'g')
-    result.message = result.message.replace(rx, smart(value))
+    result.message = result.message.replace(rx, smart(value, false))
   })
 
   return result
+}
+
+export function smart (value: any, addQuotationMarksToStrings: boolean): string {
+  if (typeof value === 'string') {
+    return addQuotationMarksToStrings
+      ? '"' + value.replace(/"/g, '\\"') + '"'
+      : value
+  } else if (value instanceof Date) {
+    return isNaN(+value) ? 'invalid date object' : value.toISOString()
+  } else if (Array.isArray(value)) {
+    return value.map(v => smart(v, addQuotationMarksToStrings)).join(', ')
+  } else {
+    return String(value)
+  }
 }

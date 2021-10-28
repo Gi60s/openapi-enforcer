@@ -1,12 +1,7 @@
-import { OASComponent, Data, Version, Exception, ComponentSchema } from './'
-import rx from '../rx'
+import { OASComponent, Version, Exception, ComponentSchema } from './index'
+import rx from '../utils/rx'
 import * as E from '../Exception/methods'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  description?: string
-  url: string
-}
+import { ExternalDocumentation as Definition } from './helpers/DefinitionTypes'
 
 const externalDocumentationSchema: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,

@@ -1,6 +1,6 @@
-import { Callback } from '../../src'
+import { Callback } from '../../src/v3'
 import { expect } from 'chai'
-import { minimal } from '../util/helpers'
+import { minimal } from '../../test-copy/helpers'
 
 describe('Callback component', () => {
   describe('build', () => {

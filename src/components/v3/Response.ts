@@ -6,21 +6,15 @@ import {
   ComponentSchema
 } from '../'
 import { Operation } from './Operation'
-import * as Header from './Header'
-import * as Reference from '../Reference'
+import { Header } from './Header'
 import * as Core from '../Response'
-import { MediaType, Definition as MediaTypeDefinition } from './MediaType'
-import { Link, Definition as LinkDefinition } from './Link'
-
-export interface Definition extends Core.Definition {
-  content?: Record<string, MediaTypeDefinition>
-  headers?: Record<string, Header.Definition | Reference.Definition>
-  links?: Record<string, LinkDefinition | Reference.Definition>
-}
+import { MediaType } from './MediaType'
+import { Link } from './Link'
+import { Response3 as Definition } from '../helpers/DefinitionTypes'
 
 export class Response<HasReference=Dereferenced> extends Core.Response {
   readonly content?: Record<string, MediaType<HasReference>>
-  readonly headers?: Record<string, Referencable<HasReference, Header.Header<HasReference>>>
+  readonly headers?: Record<string, Referencable<HasReference, Header<HasReference>>>
   readonly links?: Record<string, Referencable<HasReference, Link>>
 
   constructor (definition: Definition, version?: Version) {
@@ -36,11 +30,12 @@ export class Response<HasReference=Dereferenced> extends Core.Response {
 
   static schemaGenerator (): ComponentSchema<Definition> {
     return Core.schemaGenerator({
-      Link: Link,
-      Header: Header.Header,
+      Link,
+      Header,
       MediaType,
       Operation,
-      Schema: undefined as unknown
+      Schema: undefined,
+      Swagger: undefined
     })
   }
 

@@ -3,26 +3,21 @@ import {
   Dereferenced,
   Version,
   Exception,
-  ComponentSchema
+  ComponentSchema, Referencable
 } from '../'
-import * as Operation from './Operation'
-import * as Server from '../Server'
-
+import { Operation } from './Operation'
+import { Server } from './Server'
+import { Parameter } from './Parameter'
 import * as Core from '../PathItem'
+import { PathItem3 as Definition } from '../helpers/DefinitionTypes'
 
 const methods = Core.methods.concat(['trace'])
 
-export interface Definition extends Core.Definition {
-  description?: string
-  trace?: Operation.Definition
-  servers?: Server.Definition[]
-  summary?: string
-}
-
 export class PathItem<HasReference=Dereferenced> extends Core.PathItem<HasReference> {
   description?: string
-  trace?: Operation.Operation<HasReference>
-  servers?: Server.Server[]
+  parameters?: Array<Referencable<HasReference, Parameter<HasReference>>>
+  trace?: Operation<HasReference>
+  servers?: Server[]
   summary?: string
 
   constructor (definition: Definition, version?: Version) {
@@ -37,7 +32,10 @@ export class PathItem<HasReference=Dereferenced> extends Core.PathItem<HasRefere
   }
 
   static schemaGenerator (data: Data): ComponentSchema<Definition> {
-    return Core.schemaGenerator(Operation.Operation, methods, data)
+    return Core.schemaGenerator({
+      Operation: Operation,
+      Parameter: Parameter
+    }, methods, data)
   }
 
   static validate (definition: Definition, version?: Version): Exception {

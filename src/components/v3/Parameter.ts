@@ -6,26 +6,10 @@ import {
   Referencable,
   ComponentSchema, OASComponent
 } from '../'
-import * as Example from './Example'
-import * as Reference from '../Reference'
-import * as Schema from '../Schema'
-import { parameterDataType, schemaGenerator } from '../Parameter'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  name: string
-  in: 'cookie' | 'header' | 'path' | 'query'
-  allowEmptyValue?: boolean
-  allowReserved?: boolean
-  deprecated?: boolean // defaults to false
-  description?: string
-  example?: any
-  examples?: Record<string, Example.Definition | Reference.Definition>
-  explode?: boolean
-  required?: boolean
-  schema?: Schema.Definition3 | Reference.Definition
-  style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'simple' | 'spaceDelimited' | 'pipeDelimited'
-}
+import { Example } from './Example'
+import { Schema } from './Schema'
+import * as Core from '../Parameter'
+import { Parameter3 as Definition } from '../helpers/DefinitionTypes'
 
 export class Parameter<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
@@ -34,13 +18,13 @@ export class Parameter<HasReference=Dereferenced> extends OASComponent {
   readonly allowEmptyValue?: boolean
   readonly description?: string
   readonly required?: boolean
-  readonly schema?: Referencable<HasReference, Schema.Schema>
+  readonly schema?: Referencable<HasReference, Schema>
 
   // v3 properties
   readonly allowReserved?: boolean
   readonly deprecated?: boolean
   readonly example?: any
-  readonly examples?: Record<string, Referencable<HasReference, Example.Example>>
+  readonly examples?: Record<string, Referencable<HasReference, Example>>
   readonly explode?: boolean
   readonly style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'simple' | 'spaceDelimited' | 'pipeDelimited'
 
@@ -48,7 +32,7 @@ export class Parameter<HasReference=Dereferenced> extends OASComponent {
     super(Parameter, definition, version, arguments[2])
   }
 
-  static dataType = parameterDataType
+  static dataType = Core.parameterDataType
 
   static spec = {
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#parameter-object',
@@ -58,7 +42,10 @@ export class Parameter<HasReference=Dereferenced> extends OASComponent {
   }
 
   static schemaGenerator (data: Data<Definition>): ComponentSchema<Definition> {
-    return schemaGenerator(Parameter, data)
+    return Core.schemaGenerator({
+      Parameter,
+      Schema: Schema
+    }, data)
   }
 
   static validate (definition: Definition, version?: Version): Exception {

@@ -7,31 +7,19 @@ import {
   Referencable, ComponentSchema
 } from '../'
 import { headerDataTypes, schemaGenerator } from '../Header'
-import * as Example from './Example'
-import * as Reference from '../Reference'
-import * as Schema from '../Schema'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  deprecated?: boolean // defaults to false
-  description?: string
-  example?: any
-  examples?: Record<string, Example.Definition | Reference.Definition>
-  explode?: boolean
-  required?: boolean
-  schema?: Schema.Definition3 | Reference.Definition
-  style?: 'simple'
-}
+import { Example } from './Example'
+import { Schema } from './Schema'
+import { Header3 as Definition } from '../helpers/DefinitionTypes'
 
 export class Header<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
   deprecated?: boolean // defaults to false
   description?: string
   example?: any
-  examples?: Record<string, Referencable<HasReference, Example.Definition>>
+  examples?: Record<string, Referencable<HasReference, Example>>
   explode?: boolean
   required?: boolean
-  schema?: Referencable<HasReference, Schema.Schema>
+  schema?: Referencable<HasReference, Schema>
   style?: 'simple'
 
   constructor (definition: Definition, version?: Version) {
@@ -49,7 +37,10 @@ export class Header<HasReference=Dereferenced> extends OASComponent {
   static dataType = headerDataTypes
 
   static schemaGenerator (data: Data): ComponentSchema<Definition> {
-    return schemaGenerator(Header, data)
+    return schemaGenerator({
+      Header,
+      Schema: Schema
+    }, data)
   }
 
   static validate (definition: Definition, version?: Version): Exception {

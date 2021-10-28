@@ -5,10 +5,9 @@ import {
   Dereferenced,
   ComponentSchema
 } from '../'
-import * as PathItem from './PathItem'
+import { PathItem } from './PathItem'
 import * as Core from '../Paths'
-
-export type Definition = Core.Definition<PathItem.Definition>
+import { Paths2 as Definition } from '../helpers/DefinitionTypes'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Paths<HasReference=Dereferenced> extends Core.Paths<HasReference> {
@@ -21,7 +20,7 @@ export class Paths<HasReference=Dereferenced> extends Core.Paths<HasReference> {
   }
 
   static schemaGenerator (data: Data): ComponentSchema<Definition> {
-    return Core.schemaGenerator(PathItem.PathItem, data)
+    return Core.schemaGenerator(PathItem)
   }
 
   static validate (definition: Definition, version?: Version): Exception {

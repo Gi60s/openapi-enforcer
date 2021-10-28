@@ -1,12 +1,5 @@
 import { OASComponent, Data, Version, Exception, ComponentSchema } from '../index'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  authorizationUrl?: string
-  refreshUrl?: string
-  scopes: string[]
-  tokenUrl?: string
-}
+import { OAuthFlow3 as Definition } from '../helpers/DefinitionTypes'
 
 export class OAuthFlow extends OASComponent {
   readonly [key: `x-${string}`]: any

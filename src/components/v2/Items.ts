@@ -1,12 +1,7 @@
 import { Data, SpecMap, Exception, Version, ComponentSchema } from '../index'
 import * as PartialSchema from '../helpers/PartialSchema'
 import { base as rootDataTypeStore, DataTypeStore } from '../helpers/DataTypes'
-
-export interface Definition extends PartialSchema.Definition<Definition> {
-  [key: `x-${string}`]: any
-  collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
-  type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
-}
+import { Items2 as Definition } from '../helpers/DefinitionTypes'
 
 const itemsDataType = new DataTypeStore(rootDataTypeStore)
 

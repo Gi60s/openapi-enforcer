@@ -8,27 +8,16 @@ import {
   ComponentSchema
 } from '../index'
 import * as E from '../../Exception/methods'
-import rx from '../../rx'
-import * as Header from '../Header'
-import * as Reference from '../Reference'
-import { Definition3 as SchemaDefinition } from '../Schema'
-import { Definition as MediaTypeDefinition } from './MediaType'
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  allowReserved?: boolean
-  contentType?: string
-  explode?: boolean
-  headers?: Record<string, Header.Definition | Reference.Definition>
-  style?: 'form' | 'spaceDelimited' | 'pipeDelimited' | 'deepObject'
-}
+import rx from '../../utils/rx'
+import { Header } from './Header'
+import { Encoding3 as Definition, MediaType3 as MediaTypeDefinition, Schema3 as SchemaDefinition } from '../helpers/DefinitionTypes'
 
 export class Encoding<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
   readonly allowReserved?: boolean
   readonly contentType?: string
   readonly explode?: boolean
-  readonly headers?: Record<string, Referencable<HasReference, Header.Header<HasReference>>>
+  readonly headers?: Record<string, Referencable<HasReference, Header<HasReference>>>
   readonly style!: 'form' | 'spaceDelimited' | 'pipeDelimited' | 'deepObject'
 
   constructor (definition: Definition, version?: Version) {
@@ -108,7 +97,7 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
             additionalProperties: {
               type: 'component',
               allowsRef: true,
-              component: Header.Header
+              component: Header
             }
           }
         },
@@ -122,7 +111,7 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
         }
       ],
       validator: {
-        after (data) {
+        after () {
           // additional "style" property validation
           // The Encoding Object may only exist for requestBodies where the
           // media type is multipart or application/x-www-form-urlencoded

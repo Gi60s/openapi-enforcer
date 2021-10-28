@@ -1,32 +1,21 @@
 import {
-  Data,
   OASComponent,
-  Dereferenced,
-  Version,
-  Exception,
   ComponentSchema, ExtendedComponent
 } from './'
 import { getAncestorComponent } from './helpers/traversal'
 import * as E from '../Exception/methods'
 import * as V from './helpers/common-validators'
-import { Swagger } from './Swagger'
-import * as Schema from './Schema'
-import { Definition as Definition2 } from './v2/Response'
-import { Definition as Definition3 } from './v3/Response'
+import { Response2 as Definition2, Response3 as Definition3 } from './helpers/DefinitionTypes'
 
 const rxLinkName = /^[a-zA-Z0-9.\-_]+$/
 
-export interface Definition {
-  [key: `x-${string}`]: any
-  description: string
-}
-
 interface ComponentsMap {
-  Link: ExtendedComponent | unknown
-  Header: ExtendedComponent | unknown
-  MediaType: ExtendedComponent | unknown
-  Operation: ExtendedComponent | unknown
-  Schema: ExtendedComponent | unknown
+  Link: ExtendedComponent | undefined
+  Header: ExtendedComponent | undefined
+  MediaType: ExtendedComponent | undefined
+  Operation: ExtendedComponent | undefined
+  Schema: ExtendedComponent | undefined
+  Swagger: ExtendedComponent | undefined
 }
 
 export function schemaGenerator (components: ComponentsMap): ComponentSchema {
@@ -111,7 +100,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
 
             // Validate that the key matches the Operation produces value, whether inherited or explicit.
             const operation = getAncestorComponent(data, components.Operation as ExtendedComponent)
-            const swagger = getAncestorComponent(data, Swagger)
+            const swagger = getAncestorComponent(data, components.Swagger as ExtendedComponent)
             const produces: string[] = [].concat(operation?.context.built.produces ?? [], swagger?.context.built.produces ?? [])
             exampleMediaTypes.forEach(type => {
               if (!produces.includes(type)) {
@@ -126,7 +115,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
 
             if (built.schema !== undefined) {
               if (!('$ref' in built.schema)) {
-                const schema = new Schema.Schema(built.schema, '2.0')
+                const schema = new (components.Schema as ExtendedComponent)(built.schema, '2.0')
                 V.examplesMatchSchema(data, schema)
               }
             } else {
@@ -168,13 +157,4 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
 export class Response extends OASComponent {
   readonly [key: `x-${string}`]: any
   readonly description!: string
-
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor (Component: ExtendedComponent, definition: Definition2 | Definition3, version?: Version, data?: Data) {
-    super(Component, definition, version, data)
-  }
-
-  static validate (definition: Definition, version?: Version, data?: Data): Exception {
-    return super.validate(definition, version, data)
-  }
 }

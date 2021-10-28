@@ -8,30 +8,20 @@ import {
   ComponentSchema, ExtendedComponent
 } from './'
 import * as E from '../Exception/methods'
-import * as Operation from './Operation'
-import * as Parameter from './Parameter'
-import * as Reference from './Reference'
-import * as Server from './Server'
+import { Operation } from './Operation'
+import { Server } from './v3/Server'
+import { PathItem2 as Definition2, PathItem3 as Definition3 } from './helpers/DefinitionTypes'
 
 export const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch']
 
-export interface Definition {
-  [key: `x-${string}`]: any
-  delete?: Operation.Definition
-  description?: string
-  get?: Operation.Definition
-  head?: Operation.Definition
-  options?: Operation.Definition
-  parameters?: Array<Parameter.Definition | Reference.Definition>
-  patch?: Operation.Definition
-  put?: Operation.Definition
-  post?: Operation.Definition
-  trace?: Operation.Definition
-  servers?: Server.Definition[]
-  summary?: string
+type Definition = Definition2 | Definition3
+
+interface ComponentsMap {
+  Operation: ExtendedComponent
+  Parameter: ExtendedComponent
 }
 
-export function schemaGenerator (Operation: ExtendedComponent, methods: string[], data: Data): ComponentSchema {
+export function schemaGenerator (components: ComponentsMap, methods: string[], data: Data): ComponentSchema {
   return {
     allowsSchemaExtensions: true,
     validator: {
@@ -70,7 +60,7 @@ export function schemaGenerator (Operation: ExtendedComponent, methods: string[]
           items: {
             type: 'component',
             allowsRef: true,
-            component: Parameter.Parameter
+            component: components.Parameter
           }
         }
       },
@@ -79,7 +69,7 @@ export function schemaGenerator (Operation: ExtendedComponent, methods: string[]
         schema: {
           type: 'component',
           allowsRef: false,
-          component: Operation
+          component: components.Operation
         }
       },
       {
@@ -94,7 +84,7 @@ export function schemaGenerator (Operation: ExtendedComponent, methods: string[]
         schema: {
           type: 'component',
           allowsRef: false,
-          component: Operation
+          component: components.Operation
         }
       },
       {
@@ -102,7 +92,7 @@ export function schemaGenerator (Operation: ExtendedComponent, methods: string[]
         schema: {
           type: 'component',
           allowsRef: false,
-          component: Operation
+          component: components.Operation
         }
       },
       {
@@ -110,7 +100,7 @@ export function schemaGenerator (Operation: ExtendedComponent, methods: string[]
         schema: {
           type: 'component',
           allowsRef: false,
-          component: Operation
+          component: components.Operation
         }
       },
       {
@@ -118,7 +108,7 @@ export function schemaGenerator (Operation: ExtendedComponent, methods: string[]
         schema: {
           type: 'component',
           allowsRef: false,
-          component: Operation
+          component: components.Operation
         }
       },
       {
@@ -126,7 +116,7 @@ export function schemaGenerator (Operation: ExtendedComponent, methods: string[]
         schema: {
           type: 'component',
           allowsRef: false,
-          component: Operation
+          component: components.Operation
         }
       },
       {
@@ -134,7 +124,7 @@ export function schemaGenerator (Operation: ExtendedComponent, methods: string[]
         schema: {
           type: 'component',
           allowsRef: false,
-          component: Operation
+          component: components.Operation
         }
       },
       {
@@ -143,7 +133,7 @@ export function schemaGenerator (Operation: ExtendedComponent, methods: string[]
         schema: {
           type: 'component',
           allowsRef: false,
-          component: Operation
+          component: components.Operation
         }
       },
       {
@@ -154,7 +144,7 @@ export function schemaGenerator (Operation: ExtendedComponent, methods: string[]
           items: {
             type: 'component',
             allowsRef: false,
-            component: Server.Server
+            component: Server
           }
         }
       },
@@ -171,14 +161,14 @@ export function schemaGenerator (Operation: ExtendedComponent, methods: string[]
 
 export class PathItem<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
-  delete?: Operation.Operation<HasReference>
-  get?: Operation.Operation<HasReference>
-  head?: Operation.Operation<HasReference>
-  options?: Operation.Operation<HasReference>
-  parameters?: Array<Referencable<HasReference, Parameter.Parameter<HasReference>>>
-  patch?: Operation.Operation<HasReference>
-  put?: Operation.Operation<HasReference>
-  post?: Operation.Operation<HasReference>
+  delete?: Operation<HasReference>
+  get?: Operation<HasReference>
+  head?: Operation<HasReference>
+  options?: Operation<HasReference>
+  parameters?: Array<Referencable<HasReference, any>> // Parameter.Parameter<HasReference> - see inheriting classes for specifics
+  patch?: Operation<HasReference>
+  put?: Operation<HasReference>
+  post?: Operation<HasReference>
 
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
   constructor (Component: ExtendedComponent, definition: Definition, version?: Version, data?: Data) {

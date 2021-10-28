@@ -7,29 +7,18 @@ import {
   loadRoot, Dereferenced, ComponentSchema
 } from '../index'
 import * as E from '../../Exception/methods'
-import * as Components from './Components'
-import * as ExternalDocumentation from '../ExternalDocumentation'
-import * as Info from '../Info'
-import * as Paths from '../Paths'
-import * as SecurityRequirement from '../SecurityRequirement'
-import * as Server from '../Server'
-import * as Tag from '../Tag'
-import { Result } from '../../Result'
+import { Components } from './Components'
+import { ExternalDocumentation } from '../ExternalDocumentation'
+import { Info } from '../Info'
+import { Paths } from './Paths'
+import { SecurityRequirement } from '../SecurityRequirement'
+import { Server } from './Server'
+import { Tag } from '../Tag'
+import { Result } from '../../utils/Result'
 import { base as rootDataTypes } from '../helpers/DataTypes'
+import { OpenAPI3 as Definition } from '../helpers/DefinitionTypes'
 
 const rxVersion = /^\d+\.\d+\.\d+$/
-
-export interface Definition {
-  [key: `x-${string}`]: any
-  components?: Components.Definition
-  externalDocs?: ExternalDocumentation.Definition
-  info: Info.Definition
-  openapi: string
-  paths: Paths.Definition
-  security?: SecurityRequirement.Definition[]
-  servers?: Server.Definition[]
-  tags?: Tag.Definition[]
-}
 
 const openapiSchema: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,
@@ -39,7 +28,7 @@ const openapiSchema: ComponentSchema<Definition> = {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: Components.Components
+        component: Components
       }
     },
     {
@@ -47,7 +36,7 @@ const openapiSchema: ComponentSchema<Definition> = {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: ExternalDocumentation.ExternalDocumentation
+        component: ExternalDocumentation
       }
     },
     {
@@ -56,7 +45,7 @@ const openapiSchema: ComponentSchema<Definition> = {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: Info.Info
+        component: Info
       }
     },
     {
@@ -72,7 +61,7 @@ const openapiSchema: ComponentSchema<Definition> = {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: Paths.Paths
+        component: Paths
       }
     },
     {
@@ -82,7 +71,7 @@ const openapiSchema: ComponentSchema<Definition> = {
         items: {
           type: 'component',
           allowsRef: false,
-          component: SecurityRequirement.SecurityRequirement
+          component: SecurityRequirement
         }
       }
     },
@@ -93,7 +82,7 @@ const openapiSchema: ComponentSchema<Definition> = {
         items: {
           type: 'component',
           allowsRef: false,
-          component: Server.Server
+          component: Server
         }
       }
     },
@@ -104,7 +93,7 @@ const openapiSchema: ComponentSchema<Definition> = {
         items: {
           type: 'component',
           allowsRef: false,
-          component: Tag.Tag
+          component: Tag
         }
       }
     }
@@ -143,14 +132,14 @@ const openapiSchema: ComponentSchema<Definition> = {
 
 export class OpenAPI<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
-  readonly components?: Components.Components<HasReference>
-  readonly externalDocs?: ExternalDocumentation.ExternalDocumentation
-  readonly info!: Info.Info
+  readonly components?: Components<HasReference>
+  readonly externalDocs?: ExternalDocumentation
+  readonly info!: Info
   readonly openapi!: string
-  readonly paths!: Paths.Paths<HasReference>
-  readonly security?: SecurityRequirement.SecurityRequirement[]
-  readonly servers?: Server.Server[]
-  readonly tags?: Tag.Tag[]
+  readonly paths!: Paths<HasReference>
+  readonly security?: SecurityRequirement[]
+  readonly servers?: Server[]
+  readonly tags?: Tag[]
 
   constructor (definition: Definition, version?: Version) {
     super(OpenAPI, definition, version, arguments[2])
