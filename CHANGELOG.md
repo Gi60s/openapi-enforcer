@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.15.5
+
+### Fixed
+
+- **Deserialized Byte Examples Cannot Be Frozen**
+
+  If an example was given for format type "byte" then when the enforcer would deserialize that value to a Buffer. One deserialized it would attempt to freeze the object, but Buffers cannot be frozen and this would throw an error. Now Buffers will not attempt to be frozen.
+
 ## 1.15.4
 
 ### Fixed
@@ -11,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Fixed Case-Sensitivity Issue with Response Headers**
 
   Response headers that had anything except lowercase values would incorrectly not run through validation. Thanks to @dziegelbein for the PR that included the issue, fix, and tests.
+
 ## 1.15.2
 
 ### Fixed
