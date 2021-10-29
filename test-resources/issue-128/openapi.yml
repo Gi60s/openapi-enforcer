@@ -1,0 +1,35 @@
+openapi: 3.0.1
+info:
+  title: Order Response
+  version: 1.0.0
+paths:
+  /order-response:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderResponse'
+      responses:
+        '200':
+          description: Success
+components:
+  schemas:
+    OrderResponse:
+      type: object
+      properties:
+        orderId:
+          type: string
+        documents:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: doc1
+              doc:
+                type: string
+                format: byte
+                example: dXNlckBkb21haW4uY29tOnBhc3N3b3Jk

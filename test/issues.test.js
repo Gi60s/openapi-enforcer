@@ -230,4 +230,11 @@ describe('documented issues fixes', () => {
 
     })
 
+    describe('issue-128 - format "byte" example', () => {
+        it('will pass a valid byte example', async () => {
+            const [ , err ] = await Enforcer(path.resolve(resourcesPath, 'issue-128/openapi.yml'), { fullResult: true });
+            console.log(err)
+        })
+    })
+
 });

@@ -202,7 +202,7 @@ function findMediaMatch(input, store) {
 }
 
 function freeze (value) {
-    if (!value || typeof value !== 'object') return value;
+    if (!value || typeof value !== 'object' || value instanceof Buffer) return value;
     if (value instanceof Date) {
         value.setDate = dateIsFrozen;
         value.setFullYear= dateIsFrozen;
