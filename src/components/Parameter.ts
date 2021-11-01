@@ -4,6 +4,7 @@ import {
   ComponentSchema, ExtendedComponent
 } from './'
 import * as PartialSchema from './helpers/PartialSchema'
+import * as Serilizer from './helpers/serializer'
 import { noop } from '../utils/util'
 import * as V from './helpers/common-validators'
 import * as E from '../Exception/methods'
@@ -33,19 +34,7 @@ export function schemaGenerator (components: ComponentMap, data: Data): Componen
   const at = definition.in
   const type = 'type' in definition ? definition.type : ''
   const isQueryOrFormData = at === 'query' || at === 'formData'
-
-  const styleDefault = at === 'cookie'
-    ? 'form'
-    : (at === 'header' || at === 'path' || at === 'query') ? 'simple' : ''
-  const styleEnum = at === 'cookie'
-    ? ['form']
-    : at === 'header'
-      ? ['simple']
-      : at === 'path'
-        ? ['simple', 'label', 'matrix']
-        : at === 'query'
-          ? ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject']
-          : []
+  const { allowedStyles, defaultExplode, defaultStyle } = Serilizer.getValidatorSettings(at)
 
   // add additional properties
   schema.properties?.push(
@@ -147,8 +136,8 @@ export function schemaGenerator (components: ComponentMap, data: Data): Componen
       versions: ['3.x.x'],
       schema: {
         type: 'string',
-        default: styleDefault,
-        enum: styleEnum
+        default: defaultStyle,
+        enum: allowedStyles
       }
     },
     {
@@ -156,7 +145,7 @@ export function schemaGenerator (components: ComponentMap, data: Data): Componen
       versions: ['3.x.x'],
       schema: {
         type: 'boolean',
-        default: ((definition as Definition3).style ?? styleDefault) === 'form'
+        default: defaultExplode
       }
     }
   )
@@ -204,10 +193,8 @@ export function schemaGenerator (components: ComponentMap, data: Data): Componen
       const type = (built.schema as SchemaDefinition3)?.type ?? ''
       const style = built.style ?? ''
       if (type !== '') {
-        if ((style !== 'form') &&
-          !(style === 'spaceDelimited' && type === 'array') &&
-          !(style === 'pipeDelimited' && type === 'array') &&
-          !(style === 'deepObject' && type === 'object')) {
+        const validStyle = Serilizer.styleMatchesType(built.in, style, type, built.explode as boolean)
+        if (!validStyle) {
           const invalidStyle = E.invalidStyle(style, type, {
             definition,
             locations: [{ node: definition, key: 'style', type: 'value' }],
@@ -217,14 +204,17 @@ export function schemaGenerator (components: ComponentMap, data: Data): Componen
         }
       }
 
-      // if in "cookie" then validate that we're not exploding objects or arrays
-      if ('explode' in built && built.explode === true && (type === 'array' || type === 'object')) {
-        const invalidCookieExplode = E.invalidCookieExplode(definition.name, {
-          definition,
-          locations: [{ node: definition, key: 'explode', type: 'value' }],
-          reference
-        })
-        exception.at('explode').message(invalidCookieExplode)
+      // ensure that the explode value is valid
+      if ('explode' in built) {
+        const validExplode = Serilizer.styleMatchesExplode(built.in, style, built.explode as boolean)
+        if (!validExplode) {
+          const invalidCookieExplode = E.invalidCookieExplode(definition.name, {
+            definition,
+            locations: [{ node: definition, key: 'explode', type: 'value' }],
+            reference
+          })
+          exception.at('explode').message(invalidCookieExplode)
+        }
       }
 
       // TODO: If type is "file", the consumes MUST be either "multipart/form-data", " application/x-www-form-urlencoded" or both and the parameter MUST be in "formData".

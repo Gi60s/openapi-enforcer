@@ -2,11 +2,21 @@ import { OpenAPI } from '../../src/components/v3/OpenAPI'
 import { Discriminator } from '../../src/components/v3/Discriminator'
 import { expect } from 'chai'
 import path from 'path'
-import { resourcesDirectory } from '../../test-copy/helpers'
+import { resourcesDirectory, staticFileServer, StaticFileServer } from '../helper'
 import { load } from '../../src/utils/loader'
 import { Reference } from '../../src/v3'
 
 describe('Discriminator component', () => {
+  let server: StaticFileServer
+
+  before(async () => {
+    server = await staticFileServer(resourcesDirectory)
+  })
+
+  after(function () {
+    server.stop()
+  })
+
   describe('build', () => {
     it('can build', function () {
       // @ts-expect-error
@@ -91,11 +101,14 @@ describe('Discriminator component', () => {
       })
 
       it('will error on unresolvable mappings when using assigned value', async function () {
+        // use the loader to load yaml file and convert to JavaScript object
         const filePath = path.resolve(resourcesDirectory, 'discriminator', 'missing-mapping.yml')
-        const [definition] = await load(filePath, { dereference: false })
-        const result = await OpenAPI.validate(JSON.parse(JSON.stringify(definition)))
-        expect(result.error?.count).to.equal(1)
-        expect(result.error).to.match(/Cannot resolve reference "#\/components\/schemas\/Lizard" from "In process assignment"/)
+        const [content] = await load(filePath, { dereference: false })
+        const definition = JSON.parse(JSON.stringify(content))
+
+        const { error } = await OpenAPI.validate(definition)
+        expect(error?.count).to.equal(1)
+        expect(error).to.match(/Cannot resolve reference "#\/components\/schemas\/Lizard" from "In process assignment"/)
       })
     })
   })

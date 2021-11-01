@@ -182,7 +182,7 @@ export class Exception {
 // overwrite exception iterator, use array iterator
 Exception.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
 
-class ExceptionReport {
+export class ExceptionReport {
   public readonly message: string
   public readonly exceptions: ExceptionReportDetailsItem[]
 

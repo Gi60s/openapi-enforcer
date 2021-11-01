@@ -35,7 +35,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'Default value ${defaultValue} does not match its associated schema.'
+    message: 'Default value $${defaultValue} does not match its associated schema.'
   },
   {
     id: 'ENCODING_NAME_NOT_MATCHED',
@@ -43,7 +43,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: [],
     level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'Encoding name "${encodingName}" must match a property name in the media type\'s schema'
+    message: 'Encoding name $${encodingName} must match a property name in the media type\'s schema'
   },
   {
     id: 'ENCODING_HEADER_CONTENT_TYPE',
@@ -86,7 +86,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'Example uses media type "${mediaType}" that is not listed in the possible list of produces: ${produces}'
+    message: 'Example uses media type $${mediaType} that is not listed in the possible list of produces: ${produces}'
   },
   {
     id: 'EXAMPLE_NOT_SERIALIZABLE',
@@ -173,7 +173,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'Property ${minProperty} (${minimum}) must be less than ${maxProperty} ($maximum}).'
+    message: 'Property $${minProperty} (${minimum}) must be less than $${maxProperty} ($maximum}).'
   },
   {
     id: 'INVALID_MEDIA_TYPE',
@@ -220,7 +220,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: [],
     level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'Style {$style} is incompatible with schema type: ${type}'
+    message: 'Style $${style} is incompatible with schema type: ${type}'
   },
   {
     id: 'INVALID_TYPE',
@@ -252,7 +252,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: [],
     level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'Expected ${type} of the format ${format}. Received: ${invalidValue}'
+    message: 'Expected $${type} of the format $${format}. Received: ${invalidValue}'
   },
   {
     id: 'INVALID_VERSION_FOR_COMPONENT',
@@ -345,7 +345,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: [],
     level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'The operationId ${operationId} must be unique for each operation.'
+    message: 'The operationId $${operationId} must be unique for each operation.'
   },
   {
     id: 'PATH_ENDINGS_INCONSISTENT',
@@ -369,6 +369,14 @@ export const list: MessageTemplate[] = [
     level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
     message: 'Path parameters must be marked as required. Parameter: ${parameterName}'
+  },
+  {
+    id: 'PROPERTY_IGNORED',
+    code: 'PROIGN',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Property ignored: ${value}. ${reason}'
   },
   {
     id: 'PROPERTY_NOT_ALLOWED',
@@ -405,7 +413,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: [],
     level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'Cannot resolve reference ${ref} from ${from}.'
+    message: 'Cannot resolve reference $${ref} from $${from}.'
   },
   {
     id: 'RESPONSE_BODY_NOT_ALLOWED',
@@ -500,7 +508,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'Non-standard format "${format}" used for type "${type}".'
+    message: 'Non-standard format $${format} used for type $${type}.'
   },
   {
     id: 'VALUE_IGNORED',
@@ -523,7 +531,7 @@ export const list: MessageTemplate[] = [
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
     // eslint-disable-next-line no-template-curly-in-string
-    message: 'Unable to change exception level for ${id} [${code}] to "${newLevel}". Accepted levels include: "${allowedLevels}'
+    message: 'Unable to change exception level for ${id} [${code}] to $${newLevel}. Accepted levels include: ${allowedLevels}'
   }
 ]
 

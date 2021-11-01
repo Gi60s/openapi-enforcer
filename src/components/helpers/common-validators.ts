@@ -1,6 +1,7 @@
 import { Data } from '../'
 import { Schema } from '../Schema'
 import * as E from '../../Exception/methods'
+import * as Serializer from './serializer'
 
 export function defaultRequiredConflict (data: Data): boolean {
   const { built, exception, definition } = data.context

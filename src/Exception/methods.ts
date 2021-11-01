@@ -86,7 +86,7 @@ export function exceedsNumberBounds (boundBy: 'maximum' | 'minimum', allowEqual:
   result.message = 'Value must be ' +
     (boundBy === 'maximum' ? 'less than' : 'greater than') +
     (allowEqual ? ' or equal to' : '') +
-    smart(boundValue) + '. Received: ' + smart(invalidValue)
+    smart(boundValue, false) + '. Received: ' + smart(invalidValue, false)
   return result
 }
 
@@ -223,6 +223,10 @@ export function pathMissingMethods (path: string, data: DataR): ExceptionMessage
 
 export function pathParameterMustBeRequired (parameterName: string, data: DataR): ExceptionMessageDataInput {
   return getExceptionMessageData('PATH_PARAMETER_MUST_BE_REQUIRED', { parameterName }, data)
+}
+
+export function propertyIgnored (value: string, reason: string, data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('PROPERTY_IGNORED', { value, reason }, data)
 }
 
 export function propertyNotAllowed (propertyName: string, reason: string, data: DataR): ExceptionMessageDataInput {

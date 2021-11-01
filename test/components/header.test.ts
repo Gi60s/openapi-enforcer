@@ -2,7 +2,7 @@ import { Header as Header2, HeaderDefinition as HeaderDefinition2 } from '../../
 // import { Header as Header3, HeaderDefinition as HeaderDefinition3 } from '../../src/v3'
 import { expect } from 'chai'
 
-describe.only('Header component', () => {
+describe('Header component', () => {
   describe('v2', () => {
     describe('build', () => {
       it('can build', () => {

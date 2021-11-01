@@ -1,7 +1,7 @@
 import { Info } from '../../src/v2'
 import { expect } from 'chai'
 
-describe.only('Info component', () => {
+describe('Info component', () => {
   describe('build', () => {
     it('can build', function () {
       const contact = new Info({ title: '', version: '' })
@@ -13,7 +13,7 @@ describe.only('Info component', () => {
     it('has required properties', function () {
       // @ts-expect-error
       const [error] = Info.validate({})
-      expect(error).to.equal(undefined)
+      expect(error).to.match(/Missing required properties: title, version/)
     })
 
     it('allows extensions', () => {

@@ -4,19 +4,19 @@ import path from 'path'
 import fs from 'fs'
 import * as Helper from '../helper'
 
-const resources = path.resolve(__dirname, '..', '..', 'test-resources')
+const loaderResources = path.resolve(Helper.resourcesDirectory, 'loader')
 
 describe('loader and lookupLocation', () => {
   describe('json', () => {
     it('can load a valid json file', async function () {
-      const filePath = path.resolve(resources, 'loader', 'all-types.json')
+      const filePath = path.resolve(loaderResources, 'all-types.json')
       const [object] = await load(filePath)
       const json = JSON.parse(fs.readFileSync(filePath, 'utf8'))
       expect(object).to.deep.equal(json)
     })
 
     it('will produce errors for an invalid json file', async function () {
-      const filePath = path.resolve(resources, 'loader', 'invalid.json')
+      const filePath = path.resolve(loaderResources, 'invalid.json')
       let count = 0
       try {
         await load(filePath)
@@ -27,7 +27,7 @@ describe('loader and lookupLocation', () => {
     })
 
     it('can correctly locate an array', async function () {
-      const [object] = await load(path.resolve(resources, 'loader', 'all-types.json'))
+      const [object] = await load(path.resolve(loaderResources, 'all-types.json'))
       const result = lookupLocation(object.array)
       if (result === undefined) throw Error('Should have found reference')
 
@@ -38,7 +38,7 @@ describe('loader and lookupLocation', () => {
     })
 
     it('can correctly locate an array index', async function () {
-      const [object] = await load(path.resolve(resources, 'loader', 'all-types.json'))
+      const [object] = await load(path.resolve(loaderResources, 'all-types.json'))
       const result = lookupLocation(object.array, 0)
       if (result === undefined) throw Error('Should have found reference')
 
@@ -49,7 +49,7 @@ describe('loader and lookupLocation', () => {
     })
 
     it('can correctly locate an object property', async function () {
-      const [object] = await load(path.resolve(resources, 'loader', 'all-types.json'))
+      const [object] = await load(path.resolve(loaderResources, 'all-types.json'))
       const result = lookupLocation(object, 'boolean')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -60,7 +60,7 @@ describe('loader and lookupLocation', () => {
     })
 
     it('can correctly locate an object property key', async function () {
-      const [object] = await load(path.resolve(resources, 'loader', 'all-types.json'))
+      const [object] = await load(path.resolve(loaderResources, 'all-types.json'))
       const result = lookupLocation(object, 'boolean', 'key')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -71,7 +71,7 @@ describe('loader and lookupLocation', () => {
     })
 
     it('can correctly locate an object property value', async function () {
-      const [object] = await load(path.resolve(resources, 'loader', 'all-types.json'))
+      const [object] = await load(path.resolve(loaderResources, 'all-types.json'))
       const result = lookupLocation(object, 'boolean', 'value')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -85,7 +85,7 @@ describe('loader and lookupLocation', () => {
   describe('yaml', () => {
     it('can load a valid yaml file', async function () {
       try {
-        await load(path.resolve(resources, 'loader', 'all-types.yaml'))
+        await load(path.resolve(loaderResources, 'all-types.yaml'))
         throw Error('Expected error')
       } catch (e) {
         expect(e).to.match(/Expected error/)
@@ -93,7 +93,7 @@ describe('loader and lookupLocation', () => {
     })
 
     it('will produce errors for an invalid yaml file', async function () {
-      const filePath = path.resolve(resources, 'loader', 'invalid.yml')
+      const filePath = path.resolve(loaderResources, 'invalid.yml')
       let count = 0
       try {
         await load(filePath)
@@ -104,7 +104,7 @@ describe('loader and lookupLocation', () => {
     })
 
     it('can correctly locate an array', async function () {
-      const [object] = await load(path.resolve(resources, 'loader', 'all-types.yaml'))
+      const [object] = await load(path.resolve(loaderResources, 'all-types.yaml'))
       const result = lookupLocation(object.array)
       if (result === undefined) throw Error('Should have found reference')
 
@@ -115,7 +115,7 @@ describe('loader and lookupLocation', () => {
     })
 
     it('can correctly locate an array index', async function () {
-      const [object] = await load(path.resolve(resources, 'loader', 'all-types.yaml'))
+      const [object] = await load(path.resolve(loaderResources, 'all-types.yaml'))
       const result = lookupLocation(object.array, 0)
       if (result === undefined) throw Error('Should have found reference')
 
@@ -126,7 +126,7 @@ describe('loader and lookupLocation', () => {
     })
 
     it('can correctly locate an object property', async function () {
-      const [object] = await load(path.resolve(resources, 'loader', 'all-types.yaml'))
+      const [object] = await load(path.resolve(loaderResources, 'all-types.yaml'))
       const result = lookupLocation(object, 'boolean')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -137,7 +137,7 @@ describe('loader and lookupLocation', () => {
     })
 
     it('can correctly locate an object property key', async function () {
-      const [object] = await load(path.resolve(resources, 'loader', 'all-types.yaml'))
+      const [object] = await load(path.resolve(loaderResources, 'all-types.yaml'))
       const result = lookupLocation(object, 'boolean', 'key')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -148,7 +148,7 @@ describe('loader and lookupLocation', () => {
     })
 
     it('can correctly locate an object property value', async function () {
-      const [object] = await load(path.resolve(resources, 'loader', 'all-types.yaml'))
+      const [object] = await load(path.resolve(loaderResources, 'all-types.yaml'))
       const result = lookupLocation(object, 'boolean', 'value')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -162,7 +162,7 @@ describe('loader and lookupLocation', () => {
   describe('dereference', () => {
     describe('file system', () => {
       it('can dereference within a file and outside a file', async function () {
-        const [node] = await load(path.resolve(resources, 'refs', 'openapi.yml'))
+        const [node] = await load(path.resolve(Helper.resourcesDirectory, 'refs', 'openapi.yml'))
         expect(node.paths['/employees'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('employee')
         expect(node.paths['/students'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('student')
       })
@@ -172,7 +172,7 @@ describe('loader and lookupLocation', () => {
       let server: Helper.StaticFileServer
 
       before(async () => {
-        server = await Helper.staticFileServer(resources)
+        server = await Helper.staticFileServer(Helper.resourcesDirectory)
       })
 
       after(() => {

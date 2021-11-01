@@ -23,7 +23,7 @@ describe('Components component', () => {
     it('can define schemas', function () {
       const components = new Components({
         schemas: {
-          Name: minimal(Schema)
+          Name: minimal(Schema, '3.x')
         }
       })
       expect(components.schemas?.Name).to.be.instanceOf(Schema)
@@ -32,7 +32,7 @@ describe('Components component', () => {
     it('can define responses', function () {
       const components = new Components({
         responses: {
-          Success: minimal(Response)
+          Success: minimal(Response, '3.x')
         }
       })
       expect(components.responses?.Success).to.be.instanceOf(Response)
@@ -41,7 +41,7 @@ describe('Components component', () => {
     it('can define parameters', function () {
       const components = new Components({
         parameters: {
-          Foo: minimal(Parameter)
+          Foo: minimal(Parameter, '3.x')
         }
       })
       expect(components.parameters?.Foo).to.be.instanceOf(Parameter)
@@ -50,7 +50,7 @@ describe('Components component', () => {
     it('can define examples', function () {
       const components = new Components({
         examples: {
-          Foo: minimal(Example)
+          Foo: minimal(Example, '3.x')
         }
       })
       expect(components.examples?.Foo).to.be.instanceOf(Example)
@@ -59,7 +59,7 @@ describe('Components component', () => {
     it('can define RequestBodies', function () {
       const components = new Components({
         requestBodies: {
-          Foo: minimal(RequestBody)
+          Foo: minimal(RequestBody, '3.x')
         }
       })
       expect(components.requestBodies?.Foo).to.be.instanceOf(RequestBody)
@@ -68,7 +68,7 @@ describe('Components component', () => {
     it('can define Headers', function () {
       const components = new Components({
         headers: {
-          Foo: minimal(Header)
+          Foo: minimal(Header, '3.x')
         }
       })
       expect(components.headers?.Foo).to.be.instanceOf(Header)
@@ -77,7 +77,7 @@ describe('Components component', () => {
     it('can define SecuritySchemes', function () {
       const components = new Components({
         securitySchemes: {
-          Foo: minimal(SecurityScheme)
+          Foo: minimal(SecurityScheme, '3.x')
         }
       })
       expect(components.securitySchemes?.Foo).to.be.instanceOf(SecurityScheme)
@@ -86,7 +86,7 @@ describe('Components component', () => {
     it('can define Links', function () {
       const components = new Components({
         links: {
-          Foo: minimal(Link)
+          Foo: minimal(Link, '3.x')
         }
       })
       expect(components.links?.Foo).to.be.instanceOf(Link)
@@ -95,7 +95,7 @@ describe('Components component', () => {
     it('can define Callback', function () {
       const components = new Components({
         callbacks: {
-          Foo: minimal(Callback)
+          Foo: minimal(Callback, '3.x')
         }
       })
       expect(components.callbacks?.Foo).to.be.instanceOf(Callback)
@@ -132,7 +132,7 @@ describe('Components component', () => {
       it('can define valid schemas', function () {
         const [error] = Components.validate({
           schemas: {
-            Name: minimal(Schema)
+            Name: minimal(Schema, '3.x')
           }
         })
         expect(error).to.equal(undefined)
@@ -169,7 +169,7 @@ describe('Components component', () => {
       it('can define valid responses', function () {
         const [error] = Components.validate({
           responses: {
-            Success: minimal(Response)
+            Success: minimal(Response, '3.x')
           }
         })
         expect(error).to.equal(undefined)
@@ -204,11 +204,12 @@ describe('Components component', () => {
       })
 
       it('can define valid parameters', function () {
-        const [error] = Components.validate({
+        const definition = {
           parameters: {
-            MyParam: minimal(Parameter)
+            MyParam: minimal(Parameter, '3.x')
           }
-        })
+        }
+        const [error] = Components.validate(definition)
         expect(error).to.equal(undefined)
       })
 

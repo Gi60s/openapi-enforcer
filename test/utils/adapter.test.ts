@@ -1,6 +1,5 @@
 import { adapter as Adapter } from '../../src/utils/adapter'
 import { expect } from 'chai'
-import path from 'path'
 
 const adapter = Adapter()
 

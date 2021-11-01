@@ -1,6 +1,7 @@
 import { Swagger } from '../../src/components/v2/Swagger'
 import { initTestLoader, registerContent } from '../../test-copy/helpers'
 import { expect } from 'chai'
+import * as Helper from '../helper'
 
 const swagger = '2.0'
 const info = { title: '', version: '' }
@@ -29,7 +30,7 @@ describe('Swagger component', () => {
     it('will validate a loaded document by default', async () => {
       const { error } = await Swagger.load('swagger.json')
       expect(error).to.match(/One or more errors found while loading Swagger document/)
-      expect(error?.count).to.equal(3)
+      expect(error?.count).to.equal(1)
     })
   })
 
@@ -44,7 +45,7 @@ describe('Swagger component', () => {
       const exception = Swagger.validate({ swagger, info, paths, 'x-foo': 'foo' })
       const { warning } = exception
       expect(warning?.count).to.equal(1)
-      expect(warning?.messageDetails[0].data.code).not.to.equal('DVOEXT')
+      expect(warning?.exceptions[0].code).not.to.equal('EXNOAL')
     })
 
     it('cannot have invalid properties', function () {
@@ -93,7 +94,7 @@ describe('Swagger component', () => {
         const exception = Swagger.validate({ swagger, info: { $ref: '' }, paths })
         const { warning } = exception
         expect(warning?.count).to.equal(2)
-        expect(warning?.messageDetails[0].data.code).to.equal('DVCREF')
+        expect(warning?.exceptions[0].code).to.equal('RENOAL')
       })
     })
 
@@ -159,7 +160,7 @@ describe('Swagger component', () => {
 
       it('must start with a forward slash', function () {
         const [error] = Swagger.validate({ swagger, info, paths, basePath: 'bar' })
-        expect(error).to.match(/The base path must start with a forward slash: bar/)
+        expect(error).to.match(/The base path must start with a forward slash/)
       })
 
       it('it must not include path templating', function () {
@@ -228,7 +229,7 @@ describe('Swagger component', () => {
         // two valid, two invalid
         const { warning } = Swagger.validate({ swagger, info, paths, consumes: ['application/json', 'foo/bar', 'text/plain', 'cow/bell'] })
         expect(warning?.count).to.equal(3)
-        expect(warning?.messageDetails.filter(item => item.data.code === 'MEDTYP').length).to.equal(2)
+        expect(warning?.exceptions.filter(item => item.code === 'INMETY').length).to.equal(2)
       })
     })
 
@@ -254,7 +255,7 @@ describe('Swagger component', () => {
         // two valid, two invalid
         const { warning } = Swagger.validate({ swagger, info, paths, produces: ['application/json', 'foo/bar', 'text/plain', 'cow/bell'] })
         expect(warning?.count).to.equal(3)
-        expect(warning?.messageDetails.filter(item => item.data.code === 'MEDTYP').length).to.equal(2)
+        expect(warning?.exceptions.filter(item => item.code === 'INMETY').length).to.equal(2)
       })
     })
 
@@ -279,14 +280,14 @@ describe('Swagger component', () => {
       it('will warn if no paths are defined', () => {
         const { warning } = Swagger.validate({ swagger, info, paths })
         expect(warning?.count).to.equal(1)
-        expect(warning?.messageDetails[0].data.code).to.equal('PTHSND')
+        expect(warning?.exceptions[0].code).to.equal('NOPADE')
       })
 
       it('will warn if $ref is used', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths: { $ref: '' } })
         expect(warning?.count).to.equal(1)
-        expect(warning?.messageDetails[0].data.code).to.equal('DVCREF')
+        expect(warning?.exceptions[0].code).to.equal('RENOAL')
       })
     })
 
@@ -306,7 +307,7 @@ describe('Swagger component', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, definitions: { $ref: '' } })
         expect(warning?.count).to.equal(2)
-        expect(warning?.messageDetails[0].data.code).to.equal('DVCREF')
+        expect(warning?.exceptions[0].code).to.equal('RENOAL')
       })
     })
 
@@ -326,7 +327,7 @@ describe('Swagger component', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, parameters: { $ref: '' } })
         expect(warning?.count).to.equal(2)
-        expect(warning?.messageDetails[0].data.code).to.equal('DVCREF')
+        Helper.exceptionHasCode(warning, 'RENOAL', true)
       })
     })
 
@@ -346,7 +347,7 @@ describe('Swagger component', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, responses: { $ref: '' } })
         expect(warning?.count).to.equal(2)
-        expect(warning?.messageDetails[1].data.code).to.equal('DVCREF')
+        Helper.exceptionHasCode(warning, 'RENOAL', true)
       })
     })
 
@@ -366,7 +367,7 @@ describe('Swagger component', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, securityDefinitions: { $ref: '' } })
         expect(warning?.count).to.equal(2)
-        expect(warning?.messageDetails[1].data.code).to.equal('DVCREF')
+        Helper.exceptionHasCode(warning, 'RENOAL', true)
       })
     })
 
@@ -386,7 +387,7 @@ describe('Swagger component', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, security: { $ref: '' } })
         expect(warning?.count).to.equal(2)
-        expect(warning?.messageDetails[1].data.code).to.equal('DVCREF')
+        Helper.exceptionHasCode(warning, 'RENOAL', true)
       })
     })
 
@@ -406,7 +407,7 @@ describe('Swagger component', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, tags: { $ref: '' } })
         expect(warning?.count).to.equal(2)
-        expect(warning?.messageDetails[1].data.code).to.equal('DVCREF')
+        Helper.exceptionHasCode(warning, 'RENOAL', true)
       })
     })
 
@@ -426,7 +427,7 @@ describe('Swagger component', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, externalDocs: { $ref: '' } })
         expect(warning?.count).to.equal(2)
-        expect(warning?.messageDetails[0].data.code).to.equal('DVCREF')
+        expect(warning?.exceptions[0].code).to.equal('RENOAL')
       })
     })
   })

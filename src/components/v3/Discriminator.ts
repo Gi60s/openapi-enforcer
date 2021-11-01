@@ -1,5 +1,5 @@
 import { OASComponent, Version, Exception, ComponentSchema, Reference } from '../index'
-import { Schema } from '../Schema'
+import { Schema } from './Schema'
 import { lookupLocation, getReferenceNode, traverse } from '../../utils/loader'
 import * as E from '../../Exception/methods'
 import { Discriminator3 as Definition } from '../helpers/DefinitionTypes'
@@ -41,7 +41,8 @@ const schemaDiscriminator: ComponentSchema<Definition> = {
           Object.keys(definition)
             .forEach(key => {
               const ref = definition[key]
-              const { built } = data.context.built
+              const { built } = componentData.context
+              const mapping = built.mapping ?? {}
 
               // lookup the node by reference if loaded, otherwise traverse off the root node
               const node = hasRootNodePath
@@ -50,15 +51,15 @@ const schemaDiscriminator: ComponentSchema<Definition> = {
 
               if (node === undefined) {
                 // @ts-expect-error
-                built[key] = new Reference({ $ref: ref }, version, data)
+                mapping[key] = new Reference({ $ref: ref }, version, data)
               } else {
                 const store = map.get(Schema)
                 const found = store?.find(item => item.definition === node)
                 if (found === undefined) {
                   // @ts-expect-error
-                  built[key] = new Reference({ $ref: ref }, version, data)
+                  mapping[key] = new Reference({ $ref: ref }, version, data)
                 } else {
-                  built[key] = found.instance
+                  mapping[key] = found.instance
                 }
               }
             })
@@ -75,7 +76,7 @@ const schemaDiscriminator: ComponentSchema<Definition> = {
       if (mapping !== undefined) {
         componentData.root.lastly.push((rootData) => {
           const data = componentData.context.children.mapping
-          const { loadCache } = data.root
+          const { loadCache, loadOptions } = data.root
           const { definition, exception } = data.context
 
           const loc = lookupLocation(definition)
@@ -93,31 +94,12 @@ const schemaDiscriminator: ComponentSchema<Definition> = {
 
               if (node !== undefined) {
                 data.context.built[key] = node
-              } else if (hasRootNodePath) {
-                // If the node wasn't found and it had a root path then it's possible that the
-                // object was not dereferenced, so we'll check that by looking at associated
-                // allOf/anyOf/oneOf for a match before producing an exception message. If a match
-                // is found then it has not been dereferenced.
-                const ancestorKey = ['allOf', 'anyOf', 'oneOf'].find(k => ancestor?.context.definition[k] !== undefined)
-                let isDereferenced: boolean = true
-                if (ancestorKey !== undefined) {
-                  const items: any[] = ancestor.context.definition[ancestorKey]
-                  const length = items.length
-                  for (let i = 0; i < length; i++) {
-                    if (items[i]?.$ref === ref) {
-                      isDereferenced = false
-                      break
-                    }
-                  }
-                }
-
-                if (!isDereferenced) {
-                  const refNotResolved = E.refNotResolved(ref, rootNodePath, {
-                    definition,
-                    locations: [{ node: definition, key, type: 'value' }]
-                  })
-                  exception.message(refNotResolved)
-                }
+              } else if (loadOptions.dereference === true) {
+                const refNotResolved = E.refNotResolved(ref, rootNodePath, {
+                  definition,
+                  locations: [{ node: definition, key, type: 'value' }]
+                })
+                exception.message(refNotResolved)
               }
             })
         })

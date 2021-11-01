@@ -1,4 +1,5 @@
 import {
+  findAncestor,
   OASComponent,
   Data,
   Dereferenced,
@@ -10,7 +11,9 @@ import {
 import * as E from '../../Exception/methods'
 import rx from '../../utils/rx'
 import { Header } from './Header'
+import { MediaType } from './MediaType'
 import { Encoding3 as Definition, MediaType3 as MediaTypeDefinition, Schema3 as SchemaDefinition } from '../helpers/DefinitionTypes'
+import * as Serilizer from '../helpers/serializer'
 
 export class Encoding<HasReference=Dereferenced> extends OASComponent {
   readonly [key: `x-${string}`]: any
@@ -39,28 +42,20 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
     // Request Body Object: content -> Map<string, Media Type Object>
     // Media Type Object: encoding -> Encoding Object (this object)
     const ignoreStyle = checkIfIgnored(data, 'style', 'application/x-www-form-urlencoded', 'The "style" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
-    const { chain, exception, definition, built } = data.context
+    const ignoreAllowReserved = checkIfIgnored(data, 'allowReserved', 'application/x-www-form-urlencoded', 'The "allowReserved" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
+    const ignoreExplode = checkIfIgnored(data, 'explode', 'application/x-www-form-urlencoded', 'The "explode" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
+    const { exception, definition, key } = data.context
     const { reference } = data.component
 
-    const mediaTypeData: Data<MediaTypeDefinition> = chain[1]
-    const mediaTypeDefinition = mediaTypeData?.context.built
-    const schema: SchemaDefinition | null = '$ref' in (mediaTypeDefinition.schema ?? {})
+    const mediaTypeData = findAncestor<MediaTypeDefinition>(data, MediaType)
+    const mediaTypeDefinition = mediaTypeData?.context.built ?? {}
+    const mediaTypeSchema: SchemaDefinition = mediaTypeDefinition.schema === undefined || '$ref' in mediaTypeDefinition.schema
       ? {}
-      : mediaTypeDefinition.schema as SchemaDefinition
-    const type = schema.type ?? ''
-
-    const contentTypeDefault = (() => {
-      if (mediaTypeData !== undefined) {
-        if (schema.type === 'string' && schema.format === 'binary') return 'application/octet-stream'
-        if (schema.type === 'object') return 'application/json'
-        if (schema.type === 'array') {
-          const i = schema.items as SchemaDefinition
-          if (i.type === 'string' && i.format === 'binary') return 'application/octet-stream'
-          if (i.type === 'object' || i.type === 'array') return 'application/json'
-        }
-      }
-      return 'text/plain'
-    })()
+      : mediaTypeDefinition.schema
+    const encodingSchema: SchemaDefinition = (mediaTypeSchema.properties?.[key] ?? {}) as SchemaDefinition // this may be a Reference but for what I'm doing I can ignore that case.
+    const type = encodingSchema.type ?? ''
+    const contentTypeDefault = getDefaultContentType(encodingSchema, mediaTypeData)
+    const { allowedStyles, defaultStyle, defaultExplode } = Serilizer.getValidatorSettings('query')
 
     return {
       allowsSchemaExtensions: true,
@@ -69,8 +64,8 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
           name: 'style',
           schema: {
             type: 'string',
-            default: 'form',
-            enum: ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'],
+            default: defaultStyle,
+            enum: allowedStyles,
             ignored: ignoreStyle
           }
         },
@@ -86,7 +81,7 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
           schema: {
             type: 'boolean',
             default: false,
-            ignored: checkIfIgnored(data, 'allowReserved', 'application/x-www-form-urlencoded', 'The "allowReserved" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
+            ignored: ignoreAllowReserved
           }
         },
         {
@@ -105,22 +100,22 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
           name: 'explode',
           schema: {
             type: 'boolean',
-            default: built.style === 'form',
-            ignored: checkIfIgnored(data, 'explode', 'application/x-www-form-urlencoded', 'The "explode" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
+            default: defaultExplode,
+            ignored: ignoreExplode
           }
         }
       ],
       validator: {
         after () {
+          const { built } = data.context
+
           // additional "style" property validation
           // The Encoding Object may only exist for requestBodies where the
           // media type is multipart or application/x-www-form-urlencoded
           if (!ignoreStyle) {
-            const style = definition.style
-            if ((style !== 'form') &&
-              !(style === 'spaceDelimited' && type === 'array') &&
-              !(style === 'pipeDelimited' && type === 'array') &&
-              !(style === 'deepObject' && type === 'object')) {
+            const style = built.style
+            const validStyle = Serilizer.styleMatchesType('query', style, type, built.explode)
+            if (!validStyle) {
               const invalidStyle = E.invalidStyle(style, type, {
                 definition,
                 locations: [{ node: definition, key: 'style', type: 'value' }],
@@ -130,8 +125,8 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
             }
           }
 
-          if ('contentType' in definition) {
-            const contentType = definition.contentType
+          if ('contentType' in built) {
+            const contentType = built.contentType
             if (!rx.mediaType.test(contentType)) {
               const invalidMediaType = E.invalidMediaType(contentType, {
                 definition,
@@ -142,8 +137,8 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
             }
           }
 
-          if ('headers' in definition) {
-            const contentTypeKey = Object.keys(definition.headers).find(key => key.toLowerCase() === 'content-type')
+          if ('headers' in built) {
+            const contentTypeKey = Object.keys(built.headers).find(key => key.toLowerCase() === 'content-type')
             if (contentTypeKey !== undefined) {
               const valueIgnored = E.valueIgnored(contentTypeKey, 'Encoding headers should not include Content-Type. That is already part of the Encoding definition under the "contentType" property.', {
                 definition: definition,
@@ -163,20 +158,25 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
   }
 }
 
-function checkIfIgnored (data: Data, key: string, allowedMediaType: RegExp | string, reason: string): boolean {
-  const { chain, definition, exception } = data.context
-  const { reference } = data.component
+function getDefaultContentType (encodingSchema: SchemaDefinition, mediaTypeData: Data | undefined): string {
+  if (mediaTypeData !== undefined) {
+    if (encodingSchema.type === 'string' && encodingSchema.format === 'binary') return 'application/octet-stream'
+    if (encodingSchema.type === 'object') return 'application/json'
+    if (encodingSchema.type === 'array') {
+      const i = encodingSchema.items as SchemaDefinition
+      if (i.type === 'string' && i.format === 'binary') return 'application/octet-stream'
+      if (i.type === 'object' || i.type === 'array') return 'application/json'
+    }
+  }
+  return 'text/plain'
+}
+
+function checkIfIgnored (data: Data, key: string, allowedMediaType: RegExp | string, reason: string): false | string {
+  const { chain } = data.context
   const contextKey = chain[1]?.context.key
+  if (contextKey === undefined) return false // if we have no context then we'll not ignore
   const ignore = typeof allowedMediaType === 'string'
     ? !contextKey.includes(allowedMediaType)
     : !allowedMediaType.test(contextKey)
-  if (ignore && definition !== undefined) {
-    const valueIgnored = E.valueIgnored(reference, reason, {
-      definition,
-      locations: [{ node: chain[0].context.definition, key: key }],
-      reference
-    })
-    exception.message(valueIgnored)
-  }
-  return ignore
+  return ignore ? reason : false
 }

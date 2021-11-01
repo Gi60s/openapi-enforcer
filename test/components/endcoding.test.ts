@@ -262,25 +262,26 @@ describe('Encoding component', () => {
 
       it('should not include content-type header', () => {
         encoding.x = { headers: { 'Content-Type': { schema: { type: 'string' } } } }
-        console.log(JSON.stringify(def, null, 2))
         const { warning } = RequestBody.validate(def)
         expect(warning).to.match(/Encoding headers should not include Content-Type/)
       })
     })
 
     describe('property: style', function () {
+      let xSchema: SchemaDefinition
       let encoding: Record<string, EncodingDefinition>
       let def: RequestBodyDefinition
 
       beforeEach(() => {
         encoding = {}
+        xSchema = { type: 'string' }
         def = {
           content: {
             'application/x-www-form-urlencoded': {
               schema: {
                 type: 'object',
                 properties: {
-                  x: { type: 'string' }
+                  x: xSchema
                 }
               },
               encoding
@@ -296,18 +297,23 @@ describe('Encoding component', () => {
       })
 
       it('can be "spaceDelimited"', () => {
+        xSchema.type = 'array'
+        xSchema.items = { type: 'string' }
         encoding.x = { style: 'spaceDelimited' }
         const { error } = RequestBody.validate(def)
         expect(error).to.equal(undefined)
       })
 
       it('can be "pipeDelimited"', () => {
+        xSchema.type = 'array'
+        xSchema.items = { type: 'string' }
         encoding.x = { style: 'pipeDelimited' }
         const { error } = RequestBody.validate(def)
         expect(error).to.equal(undefined)
       })
 
       it('can be "deepObject"', () => {
+        xSchema.type = 'object'
         encoding.x = { style: 'deepObject' }
         const { error } = RequestBody.validate(def)
         expect(error).to.equal(undefined)
@@ -321,10 +327,12 @@ describe('Encoding component', () => {
       })
 
       it('will warn about the value being ignored if not within application/x-www-form-urlencoded', () => {
-        const { warning } = Encoding.validate({
-          style: 'form'
-        })
-        expect(warning).to.match(/The following value will be ignored: form/)
+        def.content['text/plain'] = def.content['application/x-www-form-urlencoded']
+        delete def.content['application/x-www-form-urlencoded']
+        encoding.x = { style: 'form' }
+        const { warning } = RequestBody.validate(def)
+        expect(warning).to.match(/Property ignored: style/)
+        expect(warning?.count).to.equal(1)
       })
     })
 

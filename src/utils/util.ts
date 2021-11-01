@@ -161,6 +161,43 @@ export function isValidDateString (format: 'date' | 'date-time', value: string):
     date.getUTCMilliseconds() === millisecond)
 }
 
+export function merge (input: any, source: any): any {
+  if (Array.isArray(input)) {
+    if (source === undefined) return input
+    if (Array.isArray(source)) {
+      const length = input.length > source.length ? input.length : source.length
+      const result: any[] = []
+      for (let i = 0; i < length; i++) {
+        if (input[i] === undefined) {
+          result.push(source)
+        } else {
+          result.push(merge(input[i], source[i]))
+        }
+      }
+      return result
+    }
+  } else if (typeof input === 'object') {
+    if (input === null) return null
+    if (typeof source === 'object') {
+      if (source === null) return input
+      const keys = Array.from(new Set(Object.keys(input).concat(Object.keys(source))))
+      const result: any = {}
+      keys.forEach(key => {
+        if (input[key] === undefined) {
+          result[key] = source[key]
+        } else {
+          result[key] = merge(input[key], source[key])
+        }
+      })
+      return result
+    } else {
+      return input
+    }
+  } else {
+    return input
+  }
+}
+
 export function no (): false {
   return false
 }

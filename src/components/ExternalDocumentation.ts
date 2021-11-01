@@ -47,7 +47,7 @@ export class ExternalDocumentation extends OASComponent {
     super(ExternalDocumentation, definition, version, arguments[2])
   }
 
-  static = {
+  static spec = {
     '2.0': 'https://spec.openapis.org/oas/v3.0.0#external-documentation-object',
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#external-documentation-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#external-documentation-object',

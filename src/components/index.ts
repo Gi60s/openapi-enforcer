@@ -1,8 +1,8 @@
-import * as Config from '../utils/config'
+// import * as Config from '../utils/config'
 import { Exception } from '../Exception'
 import * as E from '../Exception/methods'
 import rx from '../utils/rx'
-import { copy, isObject, same, smart } from '../utils/util'
+import { copy, getLatestSpecVersion, isObject, same, smart } from '../utils/util'
 import { LoaderMetadata } from '../utils/loader'
 import { Result } from '../utils/Result'
 import * as Loader from '../utils/loader'
@@ -55,6 +55,7 @@ export interface Data<Definition=any> {
     data: Data
     lastly: Array<(data: Data) => void>
     loadCache: Record<string, any>
+    loadOptions: Loader.Options
     major: number
     map: Map<any, MapItem[]>
     metadata: {
@@ -81,7 +82,7 @@ export interface Data<Definition=any> {
   // always changing values
   context: {
     built: Definition
-    chain: Data[]
+    chain: Chain
     children: { [p: string]: Data }
     definition: Definition
     exception: Exception
@@ -110,7 +111,7 @@ interface SchemaBase {
   enum?: any[]
 
   // Determine if validation should be skipped.
-  ignored?: boolean
+  ignored?: false | string
 
   // Determine if value can be null
   nullable?: boolean
@@ -277,6 +278,8 @@ export abstract class OASComponent<Definition=any> {
     const reference = data.component.reference
     const parent = chain[0]
 
+    if (incomingData !== undefined) context.built = incomingData.context.built
+
     // check that this component is allowed for the active version
     if (component.spec[v] === undefined) {
       const invalidVersionForComponent = E.invalidVersionForComponent(component.name, v, {
@@ -294,7 +297,7 @@ export abstract class OASComponent<Definition=any> {
     }
 
     // run schema validators
-    const success = validate(data)
+    const success = validateObjectProperties(data.context.built, data)
     if (success) {
       // run after function if set
       if (typeof validator?.after === 'function') validator.after(data)
@@ -452,19 +455,21 @@ export function build (data: Data): any {
 // similar to the build function but instead of returning the built value it inserts it into the context object
 function buildObjectProperties (context: any, data: Data): void {
   const { definition } = data.context
-  const { definition: componentDef } = data.component
   const schema = data.context.schema as SchemaObject
   const properties = schema.properties !== undefined ? schema.properties : []
   const remainingProperties: string[] = Object.keys(definition)
   properties.forEach((prop: SchemaProperty) => {
     const name = prop.name
-    const child = createChildData(data, definition[name], name, prop.schema)
+    const propSchema = prop.schema
+    const child = createChildData(data, definition[name], name, propSchema)
     const allowed = prop.notAllowed === undefined
 
     // get the built value
     let value: any
     let found = false
-    if (name in definition) {
+    if (typeof propSchema.ignored === 'string') {
+      found = true
+    } else if (name in definition) {
       value = build(child)
       found = true
     } else if ('default' in prop.schema && allowed) {
@@ -516,7 +521,7 @@ export function createChildData (data: Data, definition: any, key: string, schem
 }
 
 export function createComponentData<Definition> (action: 'constructing' | 'loading' | 'validating', component: ExtendedComponent, definition: Definition, version?: Version, data?: Data): Data {
-  const v: Version = version === undefined ? Config.get().version : version
+  const v: Version = version === undefined ? getLatestSpecVersion(component.spec) as Version : version
 
   const componentData: Data = {
     // @ts-expect-error - allow root.data to equal null
@@ -525,6 +530,7 @@ export function createComponentData<Definition> (action: 'constructing' | 'loadi
           data: null,
           lastly: [],
           loadCache: {},
+          loadOptions: { dereference: true },
           major: parseInt(v.split('.')[0]),
           map: new Map(),
           metadata: {
@@ -537,14 +543,14 @@ export function createComponentData<Definition> (action: 'constructing' | 'loadi
     component: {
       constructor: component,
       // @ts-expect-error
-      data: data === undefined ? null : data,
+      data: null,
       definition,
       reference: component.spec[v] as string,
       schema: { allowsSchemaExtensions: true } // schema will be replaced momentarily
     },
     context: {
       built: {},
-      chain: data?.context.chain ?? [],
+      chain: data?.context.chain ?? new Chain(),
       children: data?.context.children ?? {},
       definition: definition,
       exception: data?.context.exception ?? new Exception('One or more [TYPE] found while ' + action + ' ' + component.name + ' object' + ':'),
@@ -555,12 +561,10 @@ export function createComponentData<Definition> (action: 'constructing' | 'loadi
       }
     }
   }
+  componentData.component.data = componentData
 
-  // if this is the root data object then assign root and component data properties to self
-  if (data === undefined) {
-    componentData.root.data = componentData
-    componentData.component.data = componentData
-  }
+  // if this is the root data object then assign root to self
+  if (data === undefined) componentData.root.data = componentData
 
   // generate component schema and assign to component data
   const componentSchema = component.schemaGenerator(componentData)
@@ -573,6 +577,29 @@ export function createComponentData<Definition> (action: 'constructing' | 'loadi
   }
 
   return componentData
+}
+
+class Chain extends Array<Data> {
+  toString (): string {
+    const start = this.length - 1
+    const ar: string[] = []
+    for (let i = start; i >= 0; i--) {
+      let node: Data = this[i]
+      let value = node.context.key
+      if (node === node.component.data) value += ' [' + node.component.constructor.name + ']'
+      node = node.context.chain[0]
+      ar.push(value)
+    }
+    return ar.join(' > ')
+  }
+}
+
+export function findAncestor<Definition> (data: Data, component: ExtendedComponent): Data<Definition> | undefined {
+  let node: Data | undefined = data.component.data
+  do {
+    node = node.context.chain[0]?.component.data
+    if (node?.component.constructor === component) return node
+  } while (node !== undefined)
 }
 
 export function normalizeLoaderOptions (options?: LoaderOptions): Required<LoaderOptions> {
@@ -591,7 +618,8 @@ export async function loadRoot<T> (RootComponent: ExtendedComponent, path: strin
     cache: {},
     exception: new Exception('One or more [TYPE] found while loading ' + RootComponent.name + ' document')
   }
-  const loaded = await Loader.load(path, { dereference: options.dereference }, config)
+  const loadOptions: Loader.Options = { dereference: options.dereference }
+  const loaded = await Loader.load(path, loadOptions, config)
 
   // if there is an error then return now
   const [definition] = loaded
@@ -602,11 +630,14 @@ export async function loadRoot<T> (RootComponent: ExtendedComponent, path: strin
   const version: string = definition.openapi ?? definition.swagger
   const data = createComponentData('loading', RootComponent, definition, version as Version)
   data.root.loadCache = config.cache as Record<string, any>
+  data.root.loadOptions = loadOptions
   data.context.exception = exception
 
   // run validation then reset some data properties
-  // @ts-expect-error
-  if (options.validate === true) RootComponent.validate(definition, version, data)
+  if (options.validate === true) {
+    RootComponent.validate(definition, version as Version, data)
+    data.root.lastly.forEach(fn => fn(data)) // we have to run lastly here because we passed the "data" into the validate function
+  }
   data.root.map = new Map()
   data.root.lastly = []
 
@@ -614,13 +645,14 @@ export async function loadRoot<T> (RootComponent: ExtendedComponent, path: strin
   if (exception.hasError) return new Result(definition, exception) // first param will be undefined because of error
   // @ts-expect-error
   const component = new RootComponent(definition, version, data)
+  data.root.lastly.forEach(fn => fn(data)) // we have to run lastly here because we passed the "data" into the constructor function
   return new Result(component, exception)
 }
 
 // return true if additional validation can occur, false if it should not
 export function validate (data: Data): boolean {
   const { context } = data
-  const { chain, exception } = context
+  const { chain, exception, key } = context
   const { definition: componentDef, reference } = data.component
   const { map, version } = data.root
   const schema = context.schema as SchemaAny
@@ -628,7 +660,17 @@ export function validate (data: Data): boolean {
   let definition = context.definition
 
   // if this definition should be ignored
-  if (schema.ignored === true) return false
+  if (typeof schema.ignored === 'string') {
+    if (definition !== undefined && key !== '') {
+      const propertyIgnored = E.propertyIgnored(key, schema.ignored, {
+        definition,
+        locations: [{ node: chain[0].context.definition, key: key }],
+        reference
+      })
+      exception.message(propertyIgnored)
+    }
+    return false
+  }
 
   // if null then validate nullable
   if (definition === null) {
@@ -666,7 +708,9 @@ export function validate (data: Data): boolean {
 
   // $ref property is only allowed for components, and only some of those. The exception is the Reference component that does allow it.
   const isRefComponent = data.component.constructor === Reference
+  let hasAccountedForRefError = false
   if (typeof definition === 'object' && '$ref' in definition && schema.type !== 'any' && schema.type !== 'component' && !isRefComponent) {
+    hasAccountedForRefError = true
     const $refNotAllowed = E.$refNotAllowed({
       definition,
       locations: [{ node: parent?.context.definition, key: parent?.context.key, type: 'key' }],
@@ -678,7 +722,7 @@ export function validate (data: Data): boolean {
 
   // check if refs allowed and ref is set
   const hasRef = typeof definition === 'object' && '$ref' in definition
-  if (hasRef && !isRefComponent) {
+  if (hasRef && !isRefComponent && !hasAccountedForRefError) {
     const s = schema as unknown as SchemaComponent
     if (!s.allowsRef) {
       const $refNotAllowed = E.$refNotAllowed({
@@ -758,10 +802,10 @@ export function validate (data: Data): boolean {
     const component = hasRef ? Reference : s.component
 
     return mappable(component, data, {}, built => {
-      const componentData = createComponentData('validating', component, definition, version, data)
-      componentData.context.built = built
+      // const componentData = createComponentData('validating', component, definition, version, data)
+      // componentData.context.built = built
       // @ts-expect-error
-      const exception = component.validate(definition, version, componentData)
+      const exception = component.validate(definition, version, data)
       const success = !exception.hasError
       return success
     })
@@ -819,122 +863,125 @@ export function validate (data: Data): boolean {
     }
 
     return mappable(schema, data, {}, (built) => {
-      const schema = data.context.schema as SchemaObject
-
-      const schemaProperties = schema.properties !== undefined ? schema.properties : []
-      const missingRequiredProperties: string[] = []
-      const validatedProperties: string[] = []
-      const childrenData: { [key: string]: Data } = {}
-      const notAllowed: NotAllowed[] = []
-
-      // identify which properties are compatible with this version
-      const versionProperties = schemaProperties
-        .filter(prop => prop.versions === undefined || versionMatch(version, prop.versions))
-        .map(prop => prop.name)
-
-      // validate named properties and set defaults
-      let success = true
-      schemaProperties.forEach(prop => {
-        const name = prop.name
-        const child = childrenData[name] = createChildData(data, definition[name], name, prop.schema)
-        const allowed = prop.notAllowed === undefined
-        const versionMismatch = prop.versions !== undefined ? !versionMatch(version, prop.versions) : false
-        if (name in definition) {
-          validatedProperties.push(name)
-          if (versionMismatch) {
-            if (!versionProperties.includes(name)) {
-              notAllowed.push({
-                name,
-                reason: 'Not part of OpenAPI specification version ' + version
-              })
-            }
-          } else if (!allowed) {
-            notAllowed.push({
-              name,
-              reason: prop.notAllowed as string
-            })
-          } else {
-            const childSuccess = validate(child)
-            if (childSuccess) built[name] = child.context.built
-            success = success && childSuccess
-          }
-        } else if (prop.required === true && allowed) {
-          missingRequiredProperties.push(name)
-        } else if ('default' in prop.schema && allowed) {
-          built[name] = child.context.built = prop.schema.default
-        }
-      })
-
-      // validate other definition properties
-      const additionalProperties: Schema | boolean = (() => {
-        if (schema.additionalProperties === undefined) return false
-        if (typeof schema.additionalProperties === 'boolean') return schema.additionalProperties
-        return schema.additionalProperties
-      })()
-      Object.keys(definition).forEach(key => {
-        // if property already validated then don't validate against additionalProperties
-        if (validatedProperties.includes(key)) return
-
-        // if a schema extension
-        if (rx.extension.test(key)) {
-          if (!schema.allowsSchemaExtensions && key !== 'x-enforcer') {
-            const extensionNotAllowed = E.extensionNotAllowed({
-              definition: definition[key],
-              locations: [{ node: definition, key, type: 'key' }],
-              reference
-            })
-            exception.message(extensionNotAllowed)
-            if (extensionNotAllowed.level === 'error') success = false
-          }
-          return
-        }
-
-        // validate property
-        const def = definition[key]
-        if (additionalProperties === false) {
-          notAllowed.push({
-            name: key,
-            reason: 'Property not part of the specification.'
-          })
-        } else if (additionalProperties !== true) {
-          const child = createChildData(data, def, key, additionalProperties)
-          const childSuccess = validate(child)
-          if (childSuccess) built[key] = child.context.built
-          success = success && childSuccess
-        } else {
-          built[key] = def
-        }
-      })
-
-      // report any properties that are not allowed
-      if (notAllowed.length > 0) {
-        let notAllowedErrorCount = 0
-        notAllowed.sort((a: NotAllowed, b: NotAllowed) => a.name < b.name ? -1 : 1)
-        notAllowed.forEach(reason => {
-          const propertyNotAllowed = E.propertyNotAllowed(reason.name, reason.reason, {
-            definition,
-            locations: [{ node: definition, key: reason.name, type: 'key' }],
-            reference
-          })
-          const { level } = exception.message(propertyNotAllowed)
-          if (level === 'error') notAllowedErrorCount++
-        })
-        if (notAllowedErrorCount > 0) success = false
-      }
-
-      // report on missing required properties
-      if (missingRequiredProperties.length > 0) {
-        const eMissingRequiredProperties = E.missingRequiredProperties(missingRequiredProperties, {
-          definition,
-          locations: [{ node: definition }],
-          reference
-        })
-        const { level } = exception.message(eMissingRequiredProperties)
-        if (level === 'error') success = false
-      }
-
+      const success = validateObjectProperties(built, data)
       if (success) context.built = built
       return success
+      // const schema = data.context.schema as SchemaObject
+      //
+      // const schemaProperties = schema.properties !== undefined ? schema.properties : []
+      // const missingRequiredProperties: string[] = []
+      // const validatedProperties: string[] = []
+      // const childrenData: { [key: string]: Data } = {}
+      // const notAllowed: NotAllowed[] = []
+      //
+      // // identify which properties are compatible with this version
+      // const versionProperties = schemaProperties
+      //   .filter(prop => prop.versions === undefined || versionMatch(version, prop.versions))
+      //   .map(prop => prop.name)
+      //
+      // // validate named properties and set defaults
+      // let success = true
+      // schemaProperties.forEach(prop => {
+      //   const name = prop.name
+      //   const child = childrenData[name] = createChildData(data, definition[name], name, prop.schema)
+      //   const allowed = prop.notAllowed === undefined
+      //   const versionMismatch = prop.versions !== undefined ? !versionMatch(version, prop.versions) : false
+      //   if (name in definition) {
+      //     validatedProperties.push(name)
+      //     if (versionMismatch) {
+      //       if (!versionProperties.includes(name)) {
+      //         notAllowed.push({
+      //           name,
+      //           reason: 'Not part of OpenAPI specification version ' + version
+      //         })
+      //       }
+      //     } else if (!allowed) {
+      //       notAllowed.push({
+      //         name,
+      //         reason: prop.notAllowed as string
+      //       })
+      //     } else {
+      //       const childSuccess = validate(child)
+      //       if (childSuccess) built[name] = child.context.built
+      //       success = success && childSuccess
+      //     }
+      //   } else if (prop.required === true && allowed) {
+      //     missingRequiredProperties.push(name)
+      //   } else if ('default' in prop.schema && allowed) {
+      //     built[name] = child.context.built = prop.schema.default
+      //   }
+      // })
+      //
+      // // validate other definition properties
+      // const additionalProperties: Schema | boolean = (() => {
+      //   if (schema.additionalProperties === undefined) return false
+      //   if (typeof schema.additionalProperties === 'boolean') return schema.additionalProperties
+      //   return schema.additionalProperties
+      // })()
+      // Object.keys(definition).forEach(key => {
+      //   // if property already validated then don't validate against additionalProperties
+      //   if (validatedProperties.includes(key)) return
+      //
+      //   // if a schema extension
+      //   if (rx.extension.test(key)) {
+      //     if (!schema.allowsSchemaExtensions && key !== 'x-enforcer') {
+      //       const extensionNotAllowed = E.extensionNotAllowed({
+      //         definition: definition[key],
+      //         locations: [{ node: definition, key, type: 'key' }],
+      //         reference
+      //       })
+      //       exception.message(extensionNotAllowed)
+      //       if (extensionNotAllowed.level === 'error') success = false
+      //     }
+      //     return
+      //   }
+      //
+      //   // validate property
+      //   const def = definition[key]
+      //   if (additionalProperties === false) {
+      //     notAllowed.push({
+      //       name: key,
+      //       reason: 'Property not part of the specification.'
+      //     })
+      //   } else if (additionalProperties !== true) {
+      //     const child = createChildData(data, def, key, additionalProperties)
+      //     const childSuccess = validate(child)
+      //     if (childSuccess) built[key] = child.context.built
+      //     success = success && childSuccess
+      //   } else {
+      //     built[key] = def
+      //   }
+      // })
+      //
+      // // report any properties that are not allowed
+      // if (notAllowed.length > 0) {
+      //   let notAllowedErrorCount = 0
+      //   notAllowed.sort((a: NotAllowed, b: NotAllowed) => a.name < b.name ? -1 : 1)
+      //   notAllowed.forEach(reason => {
+      //     const propertyNotAllowed = E.propertyNotAllowed(reason.name, reason.reason, {
+      //       definition,
+      //       locations: [{ node: definition, key: reason.name, type: 'key' }],
+      //       reference
+      //     })
+      //     const { level } = exception.message(propertyNotAllowed)
+      //     if (level === 'error') notAllowedErrorCount++
+      //   })
+      //   if (notAllowedErrorCount > 0) success = false
+      // }
+      //
+      // // report on missing required properties
+      // if (missingRequiredProperties.length > 0) {
+      //   const eMissingRequiredProperties = E.missingRequiredProperties(missingRequiredProperties, {
+      //     definition,
+      //     locations: [{ node: definition }],
+      //     reference
+      //   })
+      //   const { level } = exception.message(eMissingRequiredProperties)
+      //   if (level === 'error') success = false
+      // }
+      //
+      // if (success) context.built = built
+      // return success
     })
   } else if (schema.type === 'oneOf') {
     const s = schema as unknown as SchemaOneOf
@@ -985,6 +1032,128 @@ export function validate (data: Data): boolean {
   } else {
     return false
   }
+}
+
+function validateObjectProperties (context: any, data: Data): boolean {
+  const { definition, exception } = data.context
+  const { reference } = data.component
+  const schema = data.context.schema as SchemaObject
+  const version = data.root.version
+
+  const schemaProperties = schema.properties !== undefined ? schema.properties : []
+  const missingRequiredProperties: string[] = []
+  const validatedProperties: string[] = []
+  const childrenData: { [key: string]: Data } = {}
+  const notAllowed: NotAllowed[] = []
+
+  // identify which properties are compatible with this version
+  const versionProperties = schemaProperties
+    .filter(prop => prop.versions === undefined || versionMatch(version, prop.versions))
+    .map(prop => prop.name)
+
+  // validate named properties and set defaults
+  let success = true
+  schemaProperties.forEach(prop => {
+    const name = prop.name
+    const child = childrenData[name] = createChildData(data, definition[name], name, prop.schema)
+    const allowed = prop.notAllowed === undefined
+    const versionMismatch = prop.versions !== undefined ? !versionMatch(version, prop.versions) : false
+    if (name in definition) {
+      validatedProperties.push(name)
+      if (versionMismatch) {
+        if (!versionProperties.includes(name)) {
+          notAllowed.push({
+            name,
+            reason: 'Not part of OpenAPI specification version ' + version
+          })
+        }
+      } else if (!allowed) {
+        notAllowed.push({
+          name,
+          reason: prop.notAllowed as string
+        })
+      } else {
+        const childSuccess = validate(child)
+        if (childSuccess) context[name] = child.context.built
+        success = success && childSuccess
+      }
+    } else if (prop.required === true && allowed) {
+      missingRequiredProperties.push(name)
+    } else if ('default' in prop.schema && allowed) {
+      context[name] = child.context.built = prop.schema.default
+    }
+  })
+
+  // validate other definition properties
+  const additionalProperties: Schema | boolean = (() => {
+    if (schema.additionalProperties === undefined) return false
+    if (typeof schema.additionalProperties === 'boolean') return schema.additionalProperties
+    return schema.additionalProperties
+  })()
+  Object.keys(definition).forEach(key => {
+    // if property already validated then don't validate against additionalProperties
+    if (validatedProperties.includes(key)) return
+
+    // if a schema extension
+    if (rx.extension.test(key)) {
+      if (!schema.allowsSchemaExtensions && key !== 'x-enforcer') {
+        const extensionNotAllowed = E.extensionNotAllowed({
+          definition: definition[key],
+          locations: [{ node: definition, key, type: 'key' }],
+          reference
+        })
+        exception.message(extensionNotAllowed)
+        if (extensionNotAllowed.level === 'error') success = false
+      }
+      return
+    }
+
+    // validate property
+    const def = definition[key]
+    if (additionalProperties === false) {
+      notAllowed.push({
+        name: key,
+        reason: 'Property not part of the specification.'
+      })
+    } else if (additionalProperties !== true) {
+      const child = createChildData(data, def, key, additionalProperties)
+      const childSuccess = validate(child)
+      if (childSuccess) context[key] = child.context.built
+      success = success && childSuccess
+    } else {
+      context[key] = def
+    }
+  })
+
+  // report any properties that are not allowed
+  if (notAllowed.length > 0) {
+    let notAllowedErrorCount = 0
+    notAllowed.sort((a: NotAllowed, b: NotAllowed) => a.name < b.name ? -1 : 1)
+    notAllowed.forEach(reason => {
+      const propertyNotAllowed = E.propertyNotAllowed(reason.name, reason.reason, {
+        definition,
+        locations: [{ node: definition, key: reason.name, type: 'key' }],
+        reference
+      })
+      const { level } = exception.message(propertyNotAllowed)
+      if (level === 'error') notAllowedErrorCount++
+    })
+    if (notAllowedErrorCount > 0) success = false
+  }
+
+  // report on missing required properties
+  if (missingRequiredProperties.length > 0) {
+    const eMissingRequiredProperties = E.missingRequiredProperties(missingRequiredProperties, {
+      definition,
+      locations: [{ node: definition }],
+      reference
+    })
+    const { level } = exception.message(eMissingRequiredProperties)
+    if (level === 'error') success = false
+  }
+
+  // if (success) context.built = built
+  return success
 }
 
 function mappable (key: any, data: Data, value: any, handler: (value: any) => any): any {
