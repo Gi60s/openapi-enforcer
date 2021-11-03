@@ -3,10 +3,10 @@ import {
   LoaderOptions,
   normalizeLoaderOptions,
   Version,
-  Exception,
+  DefinitionException,
   loadRoot, Dereferenced, ComponentSchema
 } from '../index'
-import * as E from '../../Exception/methods'
+import * as E from '../../DefinitionException/methods'
 import { Components } from './Components'
 import { ExternalDocumentation } from '../ExternalDocumentation'
 import { Info } from '../Info'
@@ -167,7 +167,7 @@ export class OpenAPI<HasReference=Dereferenced> extends OASComponent {
     return openapiSchema
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

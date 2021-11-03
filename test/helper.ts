@@ -1,7 +1,7 @@
 import http from 'http'
 import path from 'path'
 import fs from 'fs'
-import { ExceptionReport } from '../src/Exception'
+import { ExceptionReport } from '../src/DefinitionException'
 
 export interface StaticFileServer {
   port: string
@@ -10,7 +10,7 @@ export interface StaticFileServer {
 
 export function exceptionHasCode (exceptionReport: ExceptionReport | undefined, code: string, throwError: boolean): boolean {
   if (exceptionReport === undefined) {
-    if (throwError) throw new Error('Exception report is empty. Expected to find code: ' + code)
+    if (throwError) throw new Error('DefinitionException report is empty. Expected to find code: ' + code)
     return false
   }
   const exceptions = exceptionReport.exceptions
@@ -18,7 +18,7 @@ export function exceptionHasCode (exceptionReport: ExceptionReport | undefined, 
   for (let i = 0; i < length; i++) {
     if (exceptions[i].code === code) return true
   }
-  if (throwError) throw new Error('Exception report expected to find code: ' + code)
+  if (throwError) throw new Error('DefinitionException report expected to find code: ' + code)
   return false
 }
 

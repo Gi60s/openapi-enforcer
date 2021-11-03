@@ -1,6 +1,6 @@
 import { Data } from '../'
 import { Schema } from '../Schema'
-import * as E from '../../Exception/methods'
+import * as E from '../../DefinitionException/methods'
 import * as Serializer from './serializer'
 
 export function defaultRequiredConflict (data: Data): boolean {

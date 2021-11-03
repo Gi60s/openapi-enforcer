@@ -1,5 +1,5 @@
-import { OASComponent, Version, Exception, ComponentSchema } from './'
-import * as E from '../Exception/methods'
+import { OASComponent, Version, DefinitionException, ComponentSchema } from './'
+import * as E from '../DefinitionException/methods'
 import { SecurityRequirement as Definition } from './helpers/DefinitionTypes'
 
 const securityRequirementSchema: ComponentSchema<Definition> = {
@@ -63,7 +63,7 @@ export class SecurityRequirement extends OASComponent {
     return securityRequirementSchema
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

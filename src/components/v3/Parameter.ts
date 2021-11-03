@@ -2,7 +2,7 @@ import {
   Data,
   Dereferenced,
   Version,
-  Exception,
+  DefinitionException,
   Referencable,
   ComponentSchema, OASComponent
 } from '../'
@@ -48,7 +48,7 @@ export class Parameter<HasReference=Dereferenced> extends OASComponent {
     }, data)
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

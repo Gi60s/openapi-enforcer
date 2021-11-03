@@ -1,4 +1,4 @@
-import { Exception, Version } from '../index'
+import { DefinitionException, Version } from '../index'
 import * as Core from '../SecurityScheme'
 import { SecurityScheme2 as Definition } from '../helpers/DefinitionTypes'
 
@@ -16,7 +16,7 @@ export class SecurityScheme extends Core.SecurityScheme {
     '2.0': 'https://spec.openapis.org/oas/v2.0#security-scheme-object'
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

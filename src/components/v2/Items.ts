@@ -1,4 +1,4 @@
-import { Data, SpecMap, Exception, Version, ComponentSchema } from '../index'
+import { Data, SpecMap, DefinitionException, Version, ComponentSchema } from '../index'
 import * as PartialSchema from '../helpers/PartialSchema'
 import { base as rootDataTypeStore, DataTypeStore } from '../helpers/DataTypes'
 import { Items2 as Definition } from '../helpers/DefinitionTypes'
@@ -38,7 +38,7 @@ export class Items extends PartialSchema.PartialSchema<Items> {
     return schema
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

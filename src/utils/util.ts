@@ -1,5 +1,5 @@
 import rx from './rx'
-import { ExceptionMessageData, Level } from '../Exception/types'
+import { ExceptionMessageData, Level } from '../DefinitionException/types'
 import { Location } from 'json-to-ast'
 import { SpecMap, Version } from '../components'
 
@@ -367,7 +367,7 @@ export function yes (): true {
   return true
 }
 
-// export function validateMaxMin (exception: Exception, schema: { [key: string]: any, exclusiveMaximum?: boolean, exclusiveMinimum?: boolean }, type: string, maxProperty: string, minProperty: string, exclusives: boolean, value: any, maximum: number, minimum: number): void {
+// export function validateMaxMin (exception: DefinitionException, schema: { [key: string]: any, exclusiveMaximum?: boolean, exclusiveMinimum?: boolean }, type: string, maxProperty: string, minProperty: string, exclusives: boolean, value: any, maximum: number, minimum: number): void {
 //   if (maxProperty in schema) {
 //     if (exclusives && schema.exclusiveMaximum === true && value >= maximum) {
 //       exception.message('Expected ' + type + ' to be less than ' +

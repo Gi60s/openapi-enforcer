@@ -1,7 +1,7 @@
 import {
   OASComponent,
   Version,
-  Exception,
+  DefinitionException,
   Dereferenced,
   ComponentSchema
 } from '../index'
@@ -33,7 +33,7 @@ export class Definitions<HasReference=Dereferenced> extends OASComponent {
     return schemaDefinition
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

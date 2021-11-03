@@ -5,10 +5,10 @@ import {
   Dereferenced,
   Referencable,
   Version,
-  Exception,
+  DefinitionException,
   ComponentSchema
 } from '../index'
-import * as E from '../../Exception/methods'
+import * as E from '../../DefinitionException/methods'
 import rx from '../../utils/rx'
 import { Header } from './Header'
 import { MediaType } from './MediaType'
@@ -153,7 +153,7 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
     }
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

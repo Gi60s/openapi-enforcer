@@ -1,4 +1,4 @@
-import { OASComponent, Data, Version, Exception, ComponentSchema } from '../index'
+import { OASComponent, Data, Version, DefinitionException, ComponentSchema } from '../index'
 import { OAuthFlow3 as Definition } from '../helpers/DefinitionTypes'
 
 export class OAuthFlow extends OASComponent {
@@ -58,7 +58,7 @@ export class OAuthFlow extends OASComponent {
     }
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

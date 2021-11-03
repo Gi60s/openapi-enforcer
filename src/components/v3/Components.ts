@@ -3,7 +3,7 @@ import {
   Dereferenced,
   Referencable,
   Version,
-  Exception,
+  DefinitionException,
   ComponentSchema
 } from '../index'
 import { Callback } from './Callback'
@@ -166,7 +166,7 @@ export class Components<HasReference=Dereferenced> extends OASComponent {
     return schemaComponent
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

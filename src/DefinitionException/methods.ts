@@ -1,4 +1,4 @@
-import { Exception } from './'
+import { DefinitionException } from './'
 import { ExceptionMessageDataInput, LocationInput } from './types'
 import { Data as ValidatorData } from '../components'
 import { Operation2 as OperationDefinition2, Operation3 as OperationDefinition3 } from '../components/helpers/DefinitionTypes'
@@ -61,11 +61,11 @@ export function exampleMediaTypeNotProduced (mediaType: string, produces: string
   return getExceptionMessageData('EXAMPLE_MEDIA_TYPE_NOT_PRODUCED', { mediaType, produces }, data)
 }
 
-export function exampleNotSerializable (example: any, schema: any, exception: Exception, data: Data): ExceptionMessageDataInput {
+export function exampleNotSerializable (example: any, schema: any, exception: DefinitionException, data: Data): ExceptionMessageDataInput {
   return getExceptionMessageData('EXAMPLE_NOT_SERIALIZABLE', { example, exception, schema }, data)
 }
 
-export function exampleNotValid (example: any, schema: any, exception: Exception, data: Data): ExceptionMessageDataInput {
+export function exampleNotValid (example: any, schema: any, exception: DefinitionException, data: Data): ExceptionMessageDataInput {
   return getExceptionMessageData('EXAMPLE_NOT_VALID', { example, exception, schema }, data)
 }
 

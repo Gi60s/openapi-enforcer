@@ -1,5 +1,5 @@
 import { Version } from '../components'
-import { Level } from '../Exception/types'
+import { Level } from '../DefinitionException/types'
 
 export type CodeLevels = Record<string, Level>
 

@@ -3,7 +3,7 @@ import {
   Dereferenced,
   ComponentSchema, ExtendedComponent
 } from './'
-import * as E from '../Exception/methods'
+import * as E from '../DefinitionException/methods'
 import {
   Response2 as ResponseDefinition2,
   Response3 as ResponseDefinition3

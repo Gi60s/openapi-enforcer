@@ -1,4 +1,4 @@
-import { OASComponent, ComponentSchema, Version, Exception } from './'
+import { OASComponent, ComponentSchema, Version, DefinitionException } from './'
 import { Contact } from './Contact'
 import { License } from './License'
 import { Info as Definition } from './helpers/DefinitionTypes'
@@ -68,7 +68,7 @@ export class Info extends OASComponent<Definition> {
     return infoSchema
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

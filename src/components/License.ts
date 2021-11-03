@@ -1,4 +1,4 @@
-import { OASComponent, Version, Exception, ComponentSchema } from './'
+import { OASComponent, Version, DefinitionException, ComponentSchema } from './'
 import { License as Definition } from './helpers/DefinitionTypes'
 
 const licenseSchema: ComponentSchema<Definition> = {
@@ -37,7 +37,7 @@ export class License extends OASComponent {
     return licenseSchema
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

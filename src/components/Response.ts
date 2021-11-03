@@ -3,7 +3,7 @@ import {
   ComponentSchema, ExtendedComponent
 } from './'
 import { getAncestorComponent } from './helpers/traversal'
-import * as E from '../Exception/methods'
+import * as E from '../DefinitionException/methods'
 import * as V from './helpers/common-validators'
 import { Response2 as Definition2, Response3 as Definition3 } from './helpers/DefinitionTypes'
 

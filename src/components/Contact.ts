@@ -1,5 +1,5 @@
-import { OASComponent, ComponentSchema, Exception, Version } from './index'
-import * as E from '../Exception/methods'
+import { OASComponent, ComponentSchema, DefinitionException, Version } from './index'
+import * as E from '../DefinitionException/methods'
 import rx from '../utils/rx'
 import { Contact as Definition } from './helpers/DefinitionTypes'
 
@@ -77,7 +77,7 @@ export class Contact extends OASComponent {
     return contactSchema
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

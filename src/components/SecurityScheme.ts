@@ -1,5 +1,5 @@
 import { OASComponent, Data, ComponentSchema } from './'
-import * as E from '../Exception/methods'
+import * as E from '../DefinitionException/methods'
 import * as OAuthFlows from './v3/OAuthFlows'
 import { SecurityScheme2 as Definition2, SecurityScheme3 as Definition3 } from './helpers/DefinitionTypes'
 

@@ -1,12 +1,12 @@
 // import * as Config from '../utils/config'
-import { Exception } from '../Exception'
-import * as E from '../Exception/methods'
+import { DefinitionException } from '../DefinitionException'
+import * as E from '../DefinitionException/methods'
 import rx from '../utils/rx'
 import { copy, getLatestSpecVersion, isObject, same, smart } from '../utils/util'
 import { LoaderMetadata } from '../utils/loader'
 import { Result } from '../utils/Result'
 import * as Loader from '../utils/loader'
-import { ExceptionMessageDataInput } from '../Exception/types'
+import { ExceptionMessageDataInput } from '../DefinitionException/types'
 import {
   Operation2 as OperationDefinition2,
   Operation3 as OperationDefinition3,
@@ -16,7 +16,7 @@ import {
 } from './helpers/DefinitionTypes'
 
 export {
-  Exception,
+  DefinitionException,
   ReferenceDefinition
 }
 
@@ -85,7 +85,7 @@ export interface Data<Definition=any> {
     chain: Chain
     children: { [p: string]: Data }
     definition: Definition
-    exception: Exception
+    exception: DefinitionException
     key: string
     schema: Schema
   }
@@ -224,7 +224,7 @@ export interface ExtendedComponent<T extends OASComponent=any> {
   new (definition: any, version?: Version, ...args: any[]): T
   spec: SpecMap
   schemaGenerator: (data: Data) => ComponentSchema
-  validate: (definition: any, version?: Version, ...args: any[]) => Exception
+  validate: (definition: any, version?: Version, ...args: any[]) => DefinitionException
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -268,7 +268,7 @@ export abstract class OASComponent<Definition=any> {
 
   // All classes that inherit this static method will overwrite it and call it directly, hiding the
   // third parameters from users of the library.
-  static validate (definition: any, version?: Version, incomingData?: Data): Exception {
+  static validate (definition: any, version?: Version, incomingData?: Data): DefinitionException {
     const component = this as unknown as ExtendedComponent
     const data: Data = createComponentData('validating', component, definition, version, incomingData)
     const { context, root } = data
@@ -357,7 +357,7 @@ export class Reference extends OASComponent {
     return referenceSchema
   }
 
-  static validate (definition: ReferenceDefinition, version?: Version): Exception {
+  static validate (definition: ReferenceDefinition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }
@@ -553,7 +553,7 @@ export function createComponentData<Definition> (action: 'constructing' | 'loadi
       chain: data?.context.chain ?? new Chain(),
       children: data?.context.children ?? {},
       definition: definition,
-      exception: data?.context.exception ?? new Exception('One or more [TYPE] found while ' + action + ' ' + component.name + ' object' + ':'),
+      exception: data?.context.exception ?? new DefinitionException('One or more [TYPE] found while ' + action + ' ' + component.name + ' object' + ':'),
       key: data?.context.key ?? '',
       schema: {
         type: 'object',
@@ -616,14 +616,14 @@ export async function loadRoot<T> (RootComponent: ExtendedComponent, path: strin
   // load file with dereference
   const config: LoaderMetadata = {
     cache: {},
-    exception: new Exception('One or more [TYPE] found while loading ' + RootComponent.name + ' document')
+    exception: new DefinitionException('One or more [TYPE] found while loading ' + RootComponent.name + ' document')
   }
   const loadOptions: Loader.Options = { dereference: options.dereference }
   const loaded = await Loader.load(path, loadOptions, config)
 
   // if there is an error then return now
   const [definition] = loaded
-  const exception = loaded.exception as Exception
+  const exception = loaded.exception as DefinitionException
   if (loaded.hasError) return new Result(definition, exception) // first param will be undefined because of error
 
   // initialize data object

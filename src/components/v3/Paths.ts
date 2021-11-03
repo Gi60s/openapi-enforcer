@@ -1,7 +1,7 @@
 import {
   Data,
   Version,
-  Exception,
+  DefinitionException,
   Dereferenced,
   ComponentSchema
 } from '../'
@@ -26,7 +26,7 @@ export class Paths<HasReference=Dereferenced> extends Core.Paths<HasReference> {
     return Core.schemaGenerator(PathItem)
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

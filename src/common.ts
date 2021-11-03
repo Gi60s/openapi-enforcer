@@ -8,13 +8,13 @@ export {
 
 // export exception class and interfaces
 export {
-  Exception,
+  DefinitionException,
   ErrorReport as ExceptionErrorReport,
   WarningReport as ExceptionWarningReport,
   OpinionReport as ExceptionOpinionReport,
   IgnoredReport as ExceptionIgnoredReport
-} from './Exception'
-export { Level as ExceptionLevel, ExceptionMessageData } from './Exception/types'
+} from './DefinitionException'
+export { Level as ExceptionLevel, ExceptionMessageData } from './DefinitionException/types'
 
 // export result interface
 export { Result } from './utils/Result'

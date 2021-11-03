@@ -1,5 +1,5 @@
-import { Exception } from '../Exception'
-import * as E from '../Exception/methods'
+import { DefinitionException } from '../DefinitionException'
+import * as E from '../DefinitionException/methods'
 import jsonParser, { ArrayNode, LiteralNode, Location, ObjectNode, ValueNode } from 'json-to-ast'
 import * as yamlParser from 'yaml-ast-parser'
 import { Result as ResultObject } from './Result'
@@ -36,7 +36,7 @@ interface LoaderMismatch {
 export interface LoaderMetadata {
   callerPath?: string
   cache?: Record<string, any>
-  exception?: Exception
+  exception?: DefinitionException
 }
 
 interface LookupLocation {
@@ -101,7 +101,7 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
   if (options.dereference === undefined) options.dereference = true
 
   if (data === undefined || data === null) data = {}
-  if (data.exception === undefined) data.exception = new Exception('Unable to load ' + path)
+  if (data.exception === undefined) data.exception = new DefinitionException('Unable to load ' + path)
   if (data.cache === undefined) data.cache = {}
 
   // load content and cache it

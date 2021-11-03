@@ -1,7 +1,7 @@
-import { OASComponent, Version, Exception, ComponentSchema, Reference } from '../index'
+import { OASComponent, Version, DefinitionException, ComponentSchema, Reference } from '../index'
 import { Schema } from './Schema'
 import { lookupLocation, getReferenceNode, traverse } from '../../utils/loader'
-import * as E from '../../Exception/methods'
+import * as E from '../../DefinitionException/methods'
 import { Discriminator3 as Definition } from '../helpers/DefinitionTypes'
 
 const schemaDiscriminator: ComponentSchema<Definition> = {
@@ -127,7 +127,7 @@ export class Discriminator extends OASComponent {
     return schemaDiscriminator
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

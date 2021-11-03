@@ -7,7 +7,7 @@ import { parseEnforcerExtensionDirective } from '../utils/util'
 import { getExceptionMessageData } from './error-codes'
 
 const { inspect, eol } = adapter()
-const exceptionMap = new WeakMap<Exception, ExceptionPreReport>()
+const exceptionMap = new WeakMap<DefinitionException, ExceptionPreReport>()
 const levels: Level[] = ['error', 'warn', 'opinion', 'ignore']
 
 interface ExceptionData<T> {
@@ -26,7 +26,7 @@ interface ExceptionPreReport {
     at: string
     data: ExceptionPreReport
   }>
-  exception: Exception
+  exception: DefinitionException
   hasException: {
     error: boolean
     warn: boolean
@@ -45,18 +45,18 @@ type ExceptionReportDetailsItem = ExceptionMessageData & {
   breadcrumbs: string[]
 }
 
-export class Exception {
+export class DefinitionException {
   public header: string | undefined
-  public data: ExceptionData<Exception> = { at: {}, messages: [] }
+  public data: ExceptionData<DefinitionException> = { at: {}, messages: [] }
 
   constructor (header?: string) {
     this.header = header
   }
 
-  public at (key: string | number): Exception {
+  public at (key: string | number): DefinitionException {
     const at = this.data.at
     if (!(key in at)) {
-      at[key] = new Exception()
+      at[key] = new DefinitionException()
     }
     return at[key]
   }
@@ -180,7 +180,7 @@ export class Exception {
 }
 
 // overwrite exception iterator, use array iterator
-Exception.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
+DefinitionException.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
 
 export class ExceptionReport {
   public readonly message: string
@@ -236,7 +236,7 @@ export class WarningReport extends ExceptionReport {}
 export class OpinionReport extends ExceptionReport {}
 export class IgnoredReport extends ExceptionReport {}
 
-function getCachedPreReport (exception: Exception): ExceptionPreReport {
+function getCachedPreReport (exception: DefinitionException): ExceptionPreReport {
   const config = Config.get().exceptions
   const existing = exceptionMap.get(exception)
   const data = existing ?? runPreReport(config, exception)
@@ -244,7 +244,7 @@ function getCachedPreReport (exception: Exception): ExceptionPreReport {
   return data
 }
 
-function getReportByType (level: Level, exception: Exception): ExceptionReport | undefined {
+function getReportByType (level: Level, exception: DefinitionException): ExceptionReport | undefined {
   const config = Config.get().exceptions
   const data = runPreReport(config, exception)
   if (!data.hasException[level]) return
@@ -253,7 +253,7 @@ function getReportByType (level: Level, exception: Exception): ExceptionReport |
   return new ErrorReport(level, data, header)
 }
 
-function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, context: Exception): ExceptionPreReport {
+function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, context: DefinitionException): ExceptionPreReport {
   const data = context.data
   const result: ExceptionPreReport = {
     activeChildrenCount: {

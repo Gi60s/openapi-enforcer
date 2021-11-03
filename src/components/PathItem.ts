@@ -3,11 +3,11 @@ import {
   OASComponent,
   Dereferenced,
   Version,
-  Exception,
+  DefinitionException,
   Referencable,
   ComponentSchema, ExtendedComponent
 } from './'
-import * as E from '../Exception/methods'
+import * as E from '../DefinitionException/methods'
 import { Operation } from './Operation'
 import { Server } from './v3/Server'
 import { PathItem2 as Definition2, PathItem3 as Definition3 } from './helpers/DefinitionTypes'
@@ -175,7 +175,7 @@ export class PathItem<HasReference=Dereferenced> extends OASComponent {
     super(Component, definition, version, data)
   }
 
-  static validate (definition: Definition, version?: Version, data?: Data): Exception {
+  static validate (definition: Definition, version?: Version, data?: Data): DefinitionException {
     return super.validate(definition, version, data)
   }
 }

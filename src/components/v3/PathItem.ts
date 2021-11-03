@@ -2,7 +2,7 @@ import {
   Data,
   Dereferenced,
   Version,
-  Exception,
+  DefinitionException,
   ComponentSchema, Referencable
 } from '../'
 import { Operation } from './Operation'
@@ -38,7 +38,7 @@ export class PathItem<HasReference=Dereferenced> extends Core.PathItem<HasRefere
     }, methods, data)
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

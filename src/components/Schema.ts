@@ -5,17 +5,19 @@ import {
   Data,
   SchemaArray,
   SchemaComponent,
-  Exception,
+  DefinitionException,
   ComponentSchema, ExtendedComponent
 } from './'
+import { Exception } from '../utils/Exception'
 import { noop } from '../utils/util'
 import { Result } from '../utils/Result'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import * as Xml from './Xml'
-import * as E from '../Exception/methods'
+import * as E from '../DefinitionException/methods'
 import { base as rootDataTypeStore, DataTypeStore } from './helpers/DataTypes'
 import { Schema2 as Definition2, Schema3 as Definition3 } from './helpers/DefinitionTypes'
+import * as SchemaHelper from './helpers/schema-functions'
 
 type Definition = Definition2 | Definition3
 
@@ -24,7 +26,28 @@ interface ComponentsMap {
   Schema: ExtendedComponent | unknown
 }
 
+export interface ValidateOptions {
+  readWriteMode?: 'read' | 'write'
+  validateEnum?: boolean
+}
+
+type HookName = 'afterDeserialize' | 'afterSerialize' | 'afterValidate' | 'beforeDeserialize' | 'beforeSerialize' | 'beforeValidate'
+type HookHandler = (value: any, schema: Schema, exception: Exception) => HookHandlerResult | undefined
+interface HookHandlerResult {
+  done: boolean
+  hasError?: boolean
+  value: any
+}
+
 const schemaDataType = new DataTypeStore(rootDataTypeStore)
+const hookStore: Record<HookName, HookHandler[]> = {
+  afterDeserialize: [],
+  afterSerialize: [],
+  afterValidate: [],
+  beforeDeserialize: [],
+  beforeSerialize: [],
+  beforeValidate: []
+}
 
 export function schemaGenerator (components: ComponentsMap, data: Data): ComponentSchema<Definition> {
   const { major } = data.root
@@ -258,6 +281,10 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
     return new Result<any>(null)
   }
 
+  discriminate (value: any): { key: string, name: string, schema: Schema | null } {
+
+  }
+
   populate (value: any): Result {
     // TODO: this function
     return new Result<any>(null)
@@ -268,19 +295,62 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
     return new Result<any>(null)
   }
 
-  serialize (value: any): Result {
+  serialize (value: any): Result<string> {
     // TODO: this function
-    return new Result<any>(null)
+    return new Result<string>('')
   }
 
-  validate (value: any): Exception | undefined {
-    // TODO: this function
-    return undefined
+  validate (value: any, options?: ValidateOptions): Exception | undefined {
+    const exception = new Exception('One or more exceptions occurred while validating object against schema:')
+    if (options === undefined) options = {}
+    // @ts-expect-error
+    const { result } = SchemaHelper.validate(this, value, new Map(), exception, options)
+    return result === true ? undefined : exception
   }
 
   static dataType = schemaDataType
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static hook (type: HookName, handler: HookHandler): void {
+    const index = hookStore[type].indexOf(handler)
+    if (index === -1) hookStore[type].push(handler)
+  }
+
+  static unhook (type: HookName, handler: HookHandler): void {
+    const index = hookStore[type].indexOf(handler)
+    if (index !== -1) hookStore[type].splice(index, 1)
+  }
+
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
+  }
+}
+
+export function runHooks (type: HookName, value: any, schema: Schema, exception: Exception, checkForErrors = false): HookHandlerResult {
+  const hooks = hookStore[type]
+  const length = hooks.length
+  const hasError = checkForErrors && length > 0 ? exception.hasException : false
+  let newValue: any = value
+
+  if (!hasError) {
+    for (let i = 0; i < length; i++) {
+      const result = hooks[i](newValue, schema, exception)
+      if (result !== undefined) {
+        const hasErrorReturned = result.hasError === true || (result.hasError === undefined && exception.hasException)
+        if ('value' in result) newValue = result.value
+        if (result.done || hasErrorReturned) {
+          return {
+            done: result.done || hasErrorReturned,
+            hasError: hasErrorReturned,
+            value: newValue
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    done: hasError,
+    hasError,
+    value: newValue
   }
 }

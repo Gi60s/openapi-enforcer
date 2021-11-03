@@ -1,7 +1,7 @@
 import * as PartialSchema from '../helpers/PartialSchema'
 import { Items } from './Items'
 import { Schema } from './Schema'
-import { ComponentSchema, Data, Dereferenced, Exception, Referencable, Version } from '../index'
+import { ComponentSchema, Data, Dereferenced, DefinitionException, Referencable, Version } from '../index'
 import * as Core from '../Parameter'
 import { Parameter2 as Definition } from '../helpers/DefinitionTypes'
 
@@ -33,7 +33,7 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
     }, data)
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

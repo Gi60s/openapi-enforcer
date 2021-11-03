@@ -1,6 +1,6 @@
 import * as DataType from './DataTypes'
-import { Data, ExtendedComponent, OASComponent, ComponentSchema } from '../index'
-import * as E from '../../Exception/methods'
+import { Data, ExtendedComponent, OASComponent, ComponentSchema, SchemaProperty } from '../index'
+import * as E from '../../DefinitionException/methods'
 
 /**
  * This file is for code reuse between the following OpenAPI specification objects:
@@ -57,21 +57,60 @@ export function schemaGenerator<Definition> (referenceComponentClass: any, data:
   const { definition, exception } = context
   const type: string = definition.type
   const format: string | undefined = definition.format
+  const def = definition
 
   const isArray = type === 'array'
   const isNumeric = dataTypes.getDefinition(type as DataType.Type, format)?.isNumeric ?? false
   const isString = type === 'string'
 
+  const typeProperty: SchemaProperty = {
+    name: 'type',
+    schema: {
+      type: 'string',
+      enum: ['array', 'boolean', 'integer', 'number', 'string']
+    }
+  }
+
+  // attempt to determine default type based on other properties in the definition
+  // if schema has allOf, anyOf, not, or oneOf then there is no default type
+  if (!('allOf' in def || 'anyOf' in def || 'not' in def || 'oneOf' in def)) {
+    let defaultType: string = ''
+
+    if ('discriminator' in def) {
+      // only objects can use the discriminator, so if that property exists then it must be an object
+      defaultType = 'object'
+    } else if ('items' in def || 'maxItems' in def || 'minItems' in def || 'uniqueItems' in def) {
+      defaultType = 'array'
+    } else if ('additionalProperties' in def || 'properties' in def || 'maxProperties' in def || 'minProperties' in def) {
+      defaultType = 'object'
+    } else if ('maxLength' in def || 'minLength' in def || 'pattern' in def) {
+      defaultType = 'string'
+    } else if ('maximum' in def || 'minimum' in def || 'exclusiveMaximum' in def || 'exclusiveMinimum' in def || 'multipleOf' in def) {
+      defaultType = 'number'
+      if ('mutipleOf' in def && !isNaN(def.multipleOf) && def.multipleOf % 1 === 0) defaultType = 'integer'
+    } else if ('default' in def) {
+      const value = def.default
+      if (Array.isArray(value)) {
+        defaultType = 'array'
+      } else {
+        defaultType = typeof value
+      }
+    } else if ('enum' in def && def.enum.length > 0) {
+      const value = def.enum[0]
+      if (Array.isArray(value)) {
+        defaultType = 'array'
+      } else {
+        defaultType = typeof value
+      }
+    }
+
+    if (defaultType !== '') typeProperty.schema.default = defaultType
+  }
+
   return {
     allowsSchemaExtensions: true,
     properties: [
-      {
-        name: 'type',
-        schema: {
-          type: 'string',
-          enum: ['array', 'boolean', 'integer', 'number', 'string']
-        }
-      },
+      typeProperty,
       {
         name: 'format',
         notAllowed: type === 'array' || type === 'object' ? 'Format cannot be specified for type ' + type + '.' : undefined,

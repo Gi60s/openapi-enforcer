@@ -1,4 +1,4 @@
-import { OASComponent, Version, Exception, ComponentSchema } from './'
+import { OASComponent, Version, DefinitionException, ComponentSchema } from './'
 import { Xml as Definition } from './helpers/DefinitionTypes'
 
 const schemaXml: ComponentSchema<Definition> = {
@@ -51,7 +51,7 @@ export class Xml extends OASComponent {
     return schemaXml
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

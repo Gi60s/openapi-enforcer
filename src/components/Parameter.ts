@@ -7,7 +7,7 @@ import * as PartialSchema from './helpers/PartialSchema'
 import * as Serilizer from './helpers/serializer'
 import { noop } from '../utils/util'
 import * as V from './helpers/common-validators'
-import * as E from '../Exception/methods'
+import * as E from '../DefinitionException/methods'
 import { base as rootDataTypeStore, DataTypeStore } from './helpers/DataTypes'
 import { Schema as Schema3 } from './v3/Schema'
 import {

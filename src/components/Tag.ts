@@ -1,4 +1,4 @@
-import { OASComponent, Version, Exception, ComponentSchema } from './'
+import { OASComponent, Version, DefinitionException, ComponentSchema } from './'
 import { ExternalDocumentation } from './ExternalDocumentation'
 import { Tag as Definition } from './helpers/DefinitionTypes'
 
@@ -47,7 +47,7 @@ export class Tag extends OASComponent {
     return schemaTag
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

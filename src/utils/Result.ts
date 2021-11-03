@@ -1,4 +1,4 @@
-import { Exception, ErrorReport, WarningReport, OpinionReport, IgnoredReport } from '../Exception'
+import { DefinitionException, ErrorReport, WarningReport, OpinionReport, IgnoredReport } from '../DefinitionException'
 
 export class Result <T=any> {
   readonly '0'?: T
@@ -6,9 +6,9 @@ export class Result <T=any> {
   readonly '2'?: WarningReport
   readonly '3'?: OpinionReport
   readonly '4'?: IgnoredReport
-  readonly exception?: Exception
+  readonly exception?: DefinitionException
 
-  constructor (value: T | undefined, exception?: Exception) {
+  constructor (value: T | undefined, exception?: DefinitionException) {
     const [error, warn, opinion, ignore] = exception ?? []
     if (error === undefined) this[0] = value
     if (error !== undefined) this[1] = error

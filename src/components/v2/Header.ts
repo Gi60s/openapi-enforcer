@@ -1,4 +1,4 @@
-import { Version, Exception, Data, ComponentSchema } from '../'
+import { Version, DefinitionException, Data, ComponentSchema } from '../'
 import { Schema } from './Schema'
 import { headerDataTypes, schemaGenerator } from '../Header'
 import { PartialSchema } from '../helpers/PartialSchema'
@@ -27,7 +27,7 @@ export class Header extends PartialSchema<Header> {
     }, data)
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

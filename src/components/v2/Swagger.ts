@@ -1,11 +1,11 @@
 import {
   OASComponent,
-  Exception,
+  DefinitionException,
   LoaderOptions,
   loadRoot, Dereferenced, ComponentSchema
 } from '../index'
 import { Result } from '../../utils/Result'
-import * as E from '../../Exception/methods'
+import * as E from '../../DefinitionException/methods'
 import rx from '../../utils/rx'
 import { Definitions } from './Definitions'
 import { ExternalDocumentation } from '../ExternalDocumentation'
@@ -288,7 +288,7 @@ export class Swagger<HasReference=Dereferenced> extends OASComponent {
     return schemaSwagger
   }
 
-  static validate (definition: Definition): Exception {
+  static validate (definition: Definition): DefinitionException {
     return super.validate(definition, '2.0', arguments[2])
   }
 }

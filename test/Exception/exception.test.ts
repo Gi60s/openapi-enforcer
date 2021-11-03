@@ -1,8 +1,8 @@
 import { adapter as Adapter } from '../../src/utils/adapter'
 import { expect } from 'chai'
 import * as Config from '../../src/utils/config'
-import { Exception } from '../../src/Exception'
-import { Level } from '../../src/Exception/types'
+import { DefinitionException } from '../../src/DefinitionException'
+import { Level } from '../../src/DefinitionException/types'
 
 const { eol } = Adapter()
 
@@ -472,11 +472,11 @@ describe('Exception', () => {
 })
 
 class X {
-  private readonly exception: Exception
+  private readonly exception: DefinitionException
   private readonly parent: X | null
 
-  constructor (exception?: Exception, parent?: X) {
-    this.exception = exception ?? new Exception('Header')
+  constructor (exception?: DefinitionException, parent?: X) {
+    this.exception = exception ?? new DefinitionException('Header')
     this.parent = parent ?? null
   }
 

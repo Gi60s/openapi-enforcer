@@ -1,7 +1,7 @@
-import { list } from '../../src/Exception/error-codes'
+import { list } from '../../src/DefinitionException/error-codes'
 import { expect } from 'chai'
 
-describe('Exception error-codes', () => {
+describe('DefinitionException error-codes', () => {
   it('has a unique id for each error', () => {
     const duplicates = findDuplicates('id')
     if (duplicates.length > 0) console.log('Duplicates ids: ' + duplicates.join(', '))

@@ -1,4 +1,4 @@
-import { ComponentSchema, Dereferenced, Exception, Version } from '../index'
+import { ComponentSchema, Dereferenced, DefinitionException, Version } from '../index'
 import * as Core from '../Responses'
 import * as Response from './Response'
 import { Responses3 as Definition } from '../helpers/DefinitionTypes'
@@ -24,7 +24,7 @@ export class Responses<HasReference=Dereferenced> extends Core.Responses {
     })
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

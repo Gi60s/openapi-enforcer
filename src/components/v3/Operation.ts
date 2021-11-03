@@ -1,7 +1,7 @@
 import {
   Dereferenced,
   Version,
-  Exception,
+  DefinitionException,
   Referencable, ComponentSchema
 } from '../'
 import * as Core from '../Operation'
@@ -36,7 +36,7 @@ export class Operation<HasReference=Dereferenced> extends Core.Operation<HasRefe
     })
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

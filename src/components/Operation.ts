@@ -2,10 +2,10 @@ import {
   OASComponent,
   Data,
   Version,
-  Exception,
+  DefinitionException,
   ComponentSchema, ExtendedComponent, Dereferenced
 } from './'
-import * as E from '../Exception/methods'
+import * as E from '../DefinitionException/methods'
 import { Callback } from './v3/Callback'
 import { ExternalDocumentation } from './ExternalDocumentation'
 import { RequestBody } from './v3/RequestBody'
@@ -224,7 +224,7 @@ export class Operation<HasReference=Dereferenced> extends OASComponent {
     super(Component, definition, version, data)
   }
 
-  static validate (definition: Definition, version?: Version, data?: Data): Exception {
+  static validate (definition: Definition, version?: Version, data?: Data): DefinitionException {
     return super.validate(definition, version, data)
   }
 }

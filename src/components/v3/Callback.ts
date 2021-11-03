@@ -1,4 +1,4 @@
-import { OASComponent, ComponentSchema, Version, Exception } from '../index'
+import { OASComponent, ComponentSchema, Version, DefinitionException } from '../index'
 import { PathItem } from './PathItem'
 import { Callback3 as Definition } from '../helpers/DefinitionTypes'
 
@@ -30,7 +30,7 @@ export class Callback extends OASComponent {
     return callbackSchema
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

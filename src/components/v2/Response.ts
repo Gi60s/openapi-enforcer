@@ -1,7 +1,7 @@
 import {
   Dereferenced,
   Version,
-  Exception,
+  DefinitionException,
   Referencable,
   ComponentSchema
 } from '../'
@@ -36,7 +36,7 @@ export class Response<HasReference=Dereferenced> extends Core.Response {
     })
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

@@ -3,7 +3,7 @@ import {
   OASComponent,
   Dereferenced,
   Version,
-  Exception,
+  DefinitionException,
   Referencable, ComponentSchema
 } from '../'
 import { headerDataTypes, schemaGenerator } from '../Header'
@@ -43,7 +43,7 @@ export class Header<HasReference=Dereferenced> extends OASComponent {
     }, data)
   }
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }

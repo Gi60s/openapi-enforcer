@@ -1,7 +1,7 @@
 import {
   Dereferenced,
   Version,
-  Exception
+  DefinitionException
 } from '../'
 import * as Core from '../Operation'
 import { Parameter } from './Parameter'
@@ -23,7 +23,7 @@ export class Operation<HasReference=Dereferenced> extends Core.Operation<HasRefe
 
   static schemaGenerator = Core.Operation.schemaGenerator
 
-  static validate (definition: Definition, version?: Version): Exception {
+  static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
 }
