@@ -14,7 +14,6 @@ import {
   SecurityScheme3 as SecuritySchemeDefinition3,
   Reference as ReferenceDefinition
 } from './helpers/DefinitionTypes'
-import { exceedsArrayLengthBounds } from '../DefinitionException/methods'
 
 export {
   DefinitionException,
@@ -31,7 +30,7 @@ export interface ComponentSchema<Definition=any> {
   properties?: SchemaProperty[]
   builder?: {
     // Run post-build code. Errors can be produced here, but should generally not be as that is the job of the validator.
-    after?: (data: Data<Definition>) => void
+    after?: (data: Data<Definition>, enforcer: EnforcerController<Definition>) => void
 
     // Run pre-build code. Returning false will stop follow up building. Errors can be produced here, but should generally not be as that is the job of the validator.
     before?: (data: Data<Definition>) => boolean
@@ -64,7 +63,7 @@ export interface Data<Definition=any> {
   // unchanging values
   root: {
     data: Data
-    lastly: Array<(data: Data) => void>
+    lastly: Lastly
     loadCache: Record<string, any>
     loadOptions: Loader.Options
     major: number
@@ -92,6 +91,14 @@ export interface Data<Definition=any> {
     key: string
     schema: Schema
   }
+}
+
+export interface EnforcerController<Definition> {
+  [key: string]: any
+  data: Data<Definition>
+  metadata: DataMetadata
+  findAncestor: <T>(component: ExtendedComponent) => T | undefined
+  findAncestorData: (component: ExtendedComponent) => Data<Definition> | undefined
 }
 
 export interface LoaderOptions {
@@ -234,12 +241,7 @@ export interface ExtendedComponent<T extends OASComponent=any> {
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export abstract class OASComponent<Definition=any> {
-  protected readonly enforcer: {
-    data: Data<Definition>
-    metadata: DataMetadata
-    findAncestor: <T>(component: ExtendedComponent) => T | undefined
-    findAncestorData: (component: ExtendedComponent) => Data<Definition> | undefined
-  }
+  readonly enforcer: EnforcerController<Definition>
 
   protected constructor (Component: ExtendedComponent, definition: Definition, version?: Version, incomingData?: Data<Definition>) {
     const data: Data<Definition> = createComponentData('constructing', Component, definition, version, incomingData)
@@ -272,10 +274,10 @@ export abstract class OASComponent<Definition=any> {
     buildObjectProperties(this, data)
 
     // run after function if set
-    if (typeof builder?.after === 'function') builder.after(data)
+    if (typeof builder?.after === 'function') builder.after(data, this.enforcer)
 
     // trigger lastly hooks if this is root
-    if (incomingData === undefined) data.root.lastly.forEach(fn => fn(data))
+    if (incomingData === undefined) data.root.lastly.run(data)
   }
 
   static extend (): void {
@@ -327,7 +329,7 @@ export abstract class OASComponent<Definition=any> {
       if (typeof validator?.after === 'function') validator.after(data)
 
       // trigger lastly hooks if this is root
-      if (incomingData === undefined) root.lastly.forEach(fn => fn(data))
+      if (incomingData === undefined) root.lastly.run(data)
     }
 
     return exception
@@ -552,7 +554,7 @@ export function createComponentData<Definition> (action: 'constructing' | 'loadi
     root: data === undefined
       ? {
           data: null,
-          lastly: [],
+          lastly: new Lastly(),
           loadCache: {},
           loadOptions: { dereference: true },
           major: parseInt(v.split('.')[0]),
@@ -618,6 +620,32 @@ class Chain extends Array<Data> {
   }
 }
 
+class Lastly extends Array<(data: Data) => void> {
+  private completedData: Data | undefined = undefined
+
+  push (...items: Array<(data: Data) => void>): number {
+    let count = super.push(...items)
+    if (this.completedData !== undefined) {
+      this.run(this.completedData)
+      count = 0
+    }
+    return count
+  }
+
+  run (data: Data): void {
+    let done = false
+    do {
+      const fn = this.shift()
+      if (fn === undefined) {
+        done = true
+      } else {
+        fn(data)
+      }
+    } while (!done)
+    this.completedData = data
+  }
+}
+
 export function findAncestor<Definition> (data: Data, component: ExtendedComponent): Data<Definition> | undefined {
   let node: Data | undefined = data.component.data
   do {
@@ -660,16 +688,16 @@ export async function loadRoot<T> (RootComponent: ExtendedComponent, path: strin
   // run validation then reset some data properties
   if (options.validate === true) {
     RootComponent.validate(definition, version as Version, data)
-    data.root.lastly.forEach(fn => fn(data)) // we have to run lastly here because we passed the "data" into the validate function
+    data.root.lastly.run(data) // we have to run lastly here because we passed the "data" into the validate function
   }
   data.root.map = new Map()
-  data.root.lastly = []
+  data.root.lastly = new Lastly()
 
   // build the component if there are no errors
   if (exception.hasError) return new Result(definition, exception) // first param will be undefined because of error
   // @ts-expect-error
   const component = new RootComponent(definition, version, data)
-  data.root.lastly.forEach(fn => fn(data)) // we have to run lastly here because we passed the "data" into the constructor function
+  data.root.lastly.run(data) // we have to run lastly here because we passed the "data" into the constructor function
   return new Result(component, exception)
 }
 
