@@ -14,6 +14,7 @@ import {
   SecurityScheme3 as SecuritySchemeDefinition3,
   Reference as ReferenceDefinition
 } from './helpers/DefinitionTypes'
+import { exceedsArrayLengthBounds } from '../DefinitionException/methods'
 
 export {
   DefinitionException,
@@ -49,6 +50,16 @@ interface MapItem {
   instance: any
 }
 
+interface DataMetadata {
+  [key: string]: any
+  operationIdMap: {
+    [operationId: string]: Array<Data<OperationDefinition>>
+  }
+  securitySchemes: {
+    [name: string]: Data<SecuritySchemeDefinition>
+  }
+}
+
 export interface Data<Definition=any> {
   // unchanging values
   root: {
@@ -58,15 +69,7 @@ export interface Data<Definition=any> {
     loadOptions: Loader.Options
     major: number
     map: Map<any, MapItem[]>
-    metadata: {
-      [key: string]: any
-      operationIdMap: {
-        [operationId: string]: Array<Data<OperationDefinition>>
-      }
-      securitySchemes: {
-        [name: string]: Data<SecuritySchemeDefinition>
-      }
-    }
+    metadata: DataMetadata
     version: Version
   }
 
@@ -159,6 +162,8 @@ export interface SchemaAny extends SchemaBase {
 export interface SchemaArray extends SchemaBase {
   type: 'array'
   items: Schema
+  maxItems?: number
+  minItems?: number
 }
 
 export interface SchemaBoolean extends SchemaBase {
@@ -229,11 +234,30 @@ export interface ExtendedComponent<T extends OASComponent=any> {
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export abstract class OASComponent<Definition=any> {
+  protected readonly enforcer: {
+    data: Data<Definition>
+    metadata: DataMetadata
+    findAncestor: <T>(component: ExtendedComponent) => T | undefined
+    findAncestorData: (component: ExtendedComponent) => Data<Definition> | undefined
+  }
+
   protected constructor (Component: ExtendedComponent, definition: Definition, version?: Version, incomingData?: Data<Definition>) {
     const data: Data<Definition> = createComponentData('constructing', Component, definition, version, incomingData)
     const { builder } = data.component.schema
     const { map } = data.root
     data.context.built = this as unknown as Definition
+    this.enforcer = {
+      data,
+      metadata: data.root.metadata,
+      findAncestor<T> (component: ExtendedComponent): T | undefined {
+        const ancestorData = findAncestor(data, component as unknown as ExtendedComponent)
+        if (ancestorData === undefined) return
+        return ancestorData.context.built as T
+      },
+      findAncestorData (component: ExtendedComponent): Data<Definition> | undefined {
+        return findAncestor(data, component)
+      }
+    }
 
     // register the use of this component with this definition
     if (!map.has(this.constructor)) map.set(this.constructor, [])
@@ -241,7 +265,7 @@ export abstract class OASComponent<Definition=any> {
 
     // run before function if set
     if (typeof builder?.before === 'function') {
-      if (!builder.before(data)) return data.context.exception
+      if (!builder.before(data)) return
     }
 
     // run build
@@ -762,6 +786,25 @@ export function validate (data: Data): boolean {
       context.built = storeItem.instance
       if (!map.has(schema)) map.set(schema, [])
       map.get(schema)?.push(storeItem)
+
+      // validate the correct number of items
+      const itemCount = definition.length
+      if (s.minItems !== undefined && itemCount < s.minItems) {
+        const exceedsArrayLengthBounds = E.exceedsArrayLengthBounds('minItems', s.minItems, itemCount, {
+          definition,
+          locations: [{ node: parent?.context.definition, key: parent?.context.key, type: 'both' }]
+        })
+        const { level } = exception.message(exceedsArrayLengthBounds)
+        if (level === 'error') return false
+      }
+      if (s.maxItems !== undefined && itemCount > s.maxItems) {
+        const exceedsArrayLengthBounds = E.exceedsArrayLengthBounds('maxItems', s.maxItems, itemCount, {
+          definition,
+          locations: [{ node: parent?.context.definition, key: parent?.context.key, type: 'both' }]
+        })
+        const { level } = exception.message(exceedsArrayLengthBounds)
+        if (level === 'error') return false
+      }
 
       // process each item in the array
       let success = true
