@@ -6,7 +6,7 @@ import {
   DefinitionException,
   Referencable, ComponentSchema
 } from '../'
-import { headerDataTypes, schemaGenerator } from '../Header'
+import { schemaGenerator } from '../Header'
 import { Example } from './Example'
 import { Schema } from './Schema'
 import { Header3 as Definition } from '../helpers/DefinitionTypes'
@@ -32,9 +32,6 @@ export class Header<HasReference=Dereferenced> extends OASComponent {
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#header-object',
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#header-object'
   }
-
-  // data types that apply to Header v2 and v3
-  static dataType = headerDataTypes
 
   static schemaGenerator (data: Data): ComponentSchema<Definition> {
     return schemaGenerator({

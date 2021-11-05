@@ -32,8 +32,6 @@ export class Parameter<HasReference=Dereferenced> extends OASComponent {
     super(Parameter, definition, version, arguments[2])
   }
 
-  static dataType = Core.parameterDataType
-
   static spec = {
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#parameter-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#parameter-object',

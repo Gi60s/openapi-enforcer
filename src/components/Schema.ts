@@ -1,5 +1,6 @@
 import {
   Version,
+  EnforcerController,
   Dereferenced,
   Referencable,
   Data,
@@ -15,9 +16,9 @@ import * as PartialSchema from './helpers/PartialSchema'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import * as Xml from './Xml'
 import * as E from '../DefinitionException/methods'
-import { base as rootDataTypeStore, DataTypeStore } from './helpers/DataTypes'
 import { Schema2 as Definition2, Schema3 as Definition3 } from './helpers/DefinitionTypes'
 import * as SchemaHelper from './helpers/schema-functions'
+import { allOfConflictingSchemaTypes } from '../DefinitionException/methods'
 
 type Definition = Definition2 | Definition3
 
@@ -28,25 +29,6 @@ interface ComponentsMap {
 
 export interface ValidateOptions {
   readWriteMode?: 'read' | 'write'
-  validateEnum?: boolean
-}
-
-type HookName = 'afterDeserialize' | 'afterSerialize' | 'afterValidate' | 'beforeDeserialize' | 'beforeSerialize' | 'beforeValidate'
-type HookHandler = (value: any, schema: Schema, exception: Exception) => HookHandlerResult | undefined
-interface HookHandlerResult {
-  done: boolean
-  hasError?: boolean
-  value: any
-}
-
-const schemaDataType = new DataTypeStore(rootDataTypeStore)
-const hookStore: Record<HookName, HookHandler[]> = {
-  afterDeserialize: [],
-  afterSerialize: [],
-  afterValidate: [],
-  beforeDeserialize: [],
-  beforeSerialize: [],
-  beforeValidate: []
 }
 
 export function schemaGenerator (components: ComponentsMap, data: Data): ComponentSchema<Definition> {
@@ -56,6 +38,7 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
 
   const schemaArray: SchemaArray = {
     type: 'array',
+    minItems: 1,
     items: {
       type: 'component',
       allowsRef: true,
@@ -103,8 +86,53 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
     return success
   }
 
+  if (schema.builder === undefined) schema.builder = {}
+  schema.builder.after = (data: Data, enforcer) => {
+    const { built } = data.context
+    if (built.allOf !== undefined) {
+      let type = ''
+      let format = ''
+      built.allOf.forEach((schema: any) => {
+        if ('type' in schema) type = schema.type
+        if ('format' in schema) format = schema.format
+      })
+      enforcer.allOf = { type, format }
+    }
+  }
+
   schema.validator.after = (data: Data) => {
     const { built } = data.context
+
+    // look in "allOf" for conflicting types or formats
+    if (built.allOf !== undefined) {
+      const types = new Set<string>()
+      const formats = new Set<string>()
+
+      // look at all types and formats
+      built.allOf.forEach((schema: any) => {
+        if ('type' in schema) types.add(schema.type)
+        if ('format' in schema) formats.add(schema.format)
+      })
+
+      const typesArray = Array.from(types)
+      if (typesArray.length > 1) {
+        const allOfConflictingSchemaTypes = E.allOfConflictingSchemaTypes(typesArray, {
+          definition,
+          locations: [{ node: definition, key: 'allOf', type: 'value' }]
+        })
+        exception.at('allOf').message(allOfConflictingSchemaTypes)
+      }
+
+      const formatsArray = Array.from(formats)
+      if (typesArray.length > 1) {
+        const allOfConflictingSchemaFormats = E.allOfConflictingSchemaFormats(formatsArray, {
+          definition,
+          locations: [{ node: definition, key: 'allOf', type: 'value' }]
+        })
+        exception.at('allOf').message(allOfConflictingSchemaFormats)
+      }
+    }
+
     if (built.type === 'object') {
       PartialSchema.validateMaxMin(data, 'minProperties', 'maxProperties')
     }
@@ -260,8 +288,14 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
 }
 
 export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSchema<Schema> {
+  readonly enforcer!: EnforcerController<Definition> & {
+    allOf?: {
+      type: string
+      format: string
+    }
+  }
+
   readonly [key: `x-${string}`]: any
-  readonly foo!: Referencable<HasReference, Schema<HasReference>>
   readonly additionalProperties?: Referencable<HasReference, Schema<HasReference>> | boolean
   readonly allOf?: Array<Referencable<HasReference, Schema<HasReference>>>
   readonly description?: string
@@ -282,7 +316,7 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
   }
 
   discriminate (value: any): { key: string, name: string, schema: Schema | null } {
-
+    return { key: '', name: '', schema: null }
   }
 
   populate (value: any): Result {
@@ -290,7 +324,8 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
     return new Result<any>(null)
   }
 
-  random (value: any): Result {
+  random (value: any, options: { decimalPlaces: number, variation: number }): Result {
+    // const exception = new Exception('Unable to generate random value:')
     // TODO: this function
     return new Result<any>(null)
   }
@@ -308,49 +343,7 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
     return result === true ? undefined : exception
   }
 
-  static dataType = schemaDataType
-
-  static hook (type: HookName, handler: HookHandler): void {
-    const index = hookStore[type].indexOf(handler)
-    if (index === -1) hookStore[type].push(handler)
-  }
-
-  static unhook (type: HookName, handler: HookHandler): void {
-    const index = hookStore[type].indexOf(handler)
-    if (index !== -1) hookStore[type].splice(index, 1)
-  }
-
   static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
-  }
-}
-
-export function runHooks (type: HookName, value: any, schema: Schema, exception: Exception, checkForErrors = false): HookHandlerResult {
-  const hooks = hookStore[type]
-  const length = hooks.length
-  const hasError = checkForErrors && length > 0 ? exception.hasException : false
-  let newValue: any = value
-
-  if (!hasError) {
-    for (let i = 0; i < length; i++) {
-      const result = hooks[i](newValue, schema, exception)
-      if (result !== undefined) {
-        const hasErrorReturned = result.hasError === true || (result.hasError === undefined && exception.hasException)
-        if ('value' in result) newValue = result.value
-        if (result.done || hasErrorReturned) {
-          return {
-            done: result.done || hasErrorReturned,
-            hasError: hasErrorReturned,
-            value: newValue
-          }
-        }
-      }
-    }
-  }
-
-  return {
-    done: hasError,
-    hasError,
-    value: newValue
   }
 }

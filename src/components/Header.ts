@@ -5,15 +5,12 @@ import {
 import { noop } from '../utils/util'
 import * as V from './helpers/common-validators'
 import * as PartialSchema from './helpers/PartialSchema'
-import { base as dataTypeRoot, DataTypeStore } from './helpers/DataTypes'
 import { Header2 as Definition2, Header3 as Definition3 } from './helpers/DefinitionTypes'
 
 interface ComponentsMap {
   Header: ExtendedComponent
   Schema: ExtendedComponent
 }
-
-export const headerDataTypes = new DataTypeStore(dataTypeRoot)
 
 export function schemaGenerator (components: ComponentsMap, data: Data): ComponentSchema<Definition2 | Definition3> {
   const { major } = data.root

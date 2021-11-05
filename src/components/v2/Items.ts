@@ -1,9 +1,6 @@
 import { Data, SpecMap, DefinitionException, Version, ComponentSchema } from '../index'
 import * as PartialSchema from '../helpers/PartialSchema'
-import { base as rootDataTypeStore, DataTypeStore } from '../helpers/DataTypes'
 import { Items2 as Definition } from '../helpers/DefinitionTypes'
-
-const itemsDataType = new DataTypeStore(rootDataTypeStore)
 
 export class Items extends PartialSchema.PartialSchema<Items> {
   readonly [key: `x-${string}`]: any
@@ -13,8 +10,6 @@ export class Items extends PartialSchema.PartialSchema<Items> {
   constructor (definition: Definition, version?: Version) {
     super(Items, definition, version, arguments[2])
   }
-
-  static dataType = itemsDataType
 
   static get spec (): SpecMap {
     return {

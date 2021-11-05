@@ -2,6 +2,7 @@ import { ComponentSchema, Data, Dereferenced, Referencable, Version } from '../i
 import * as Core from '../Schema'
 import * as Discriminator from '../v3/Discriminator'
 import { Schema3 as Definition } from '../helpers/DefinitionTypes'
+import { OpenAPI } from '../../v3'
 
 export class Schema<HasReference=Dereferenced> extends Core.Schema<HasReference> {
   readonly discriminator?: Discriminator.Discriminator
@@ -14,6 +15,23 @@ export class Schema<HasReference=Dereferenced> extends Core.Schema<HasReference>
 
   constructor (definition: Definition, version?: Version) {
     super(Schema, definition, version, arguments[2])
+  }
+
+  discriminate (value: any): { key: string, name: string, schema: Schema | null } {
+    if (this.discriminator === undefined) {
+      throw Error('Unable to discriminate on an object with no discriminator.')
+    } else {
+      const key = this.discriminator?.propertyName
+      const name = value?.[key] ?? ''
+      if (name === '') return { key, name, schema: null }
+
+      let schema = this.discriminator?.mapping?.[name]
+      if (schema === undefined) {
+        const openapi = this.enforcer.findAncestor<OpenAPI>(OpenAPI)
+        schema = openapi?.components?.schemas?.[name]
+      }
+      return { key, name, schema: schema ?? null }
+    }
   }
 
   static schemaGenerator (data: Data): ComponentSchema<Definition> {

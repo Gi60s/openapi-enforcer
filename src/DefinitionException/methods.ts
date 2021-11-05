@@ -1,4 +1,5 @@
 import { DefinitionException } from './'
+import { Exception } from '../utils/Exception'
 import { ExceptionMessageDataInput, LocationInput } from './types'
 import { Data as ValidatorData } from '../components'
 import { Operation2 as OperationDefinition2, Operation3 as OperationDefinition3 } from '../components/helpers/DefinitionTypes'
@@ -19,6 +20,14 @@ interface DataR {
 
 export function $refNotAllowed (data: DataR): ExceptionMessageDataInput {
   return getExceptionMessageData('$REF_NOT_ALLOWED', {}, data)
+}
+
+export function allOfConflictingSchemaTypes (types: string[], data: Data): ExceptionMessageDataInput {
+  return getExceptionMessageData('ALL_OF_CONFLICTING_SCHEMA_TYPES', { types }, data)
+}
+
+export function allOfConflictingSchemaFormats (formats: string[], data: Data): ExceptionMessageDataInput {
+  return getExceptionMessageData('ALL_OF_CONFLICTING_SCHEMA_FORMATS', { formats }, data)
 }
 
 export function defaultRequiredConflict (data: Data): ExceptionMessageDataInput {
@@ -65,7 +74,7 @@ export function exampleNotSerializable (example: any, schema: any, exception: De
   return getExceptionMessageData('EXAMPLE_NOT_SERIALIZABLE', { example, exception, schema }, data)
 }
 
-export function exampleNotValid (example: any, schema: any, exception: DefinitionException, data: Data): ExceptionMessageDataInput {
+export function exampleNotValid (example: any, schema: any, exception: Exception, data: Data): ExceptionMessageDataInput {
   return getExceptionMessageData('EXAMPLE_NOT_VALID', { example, exception, schema }, data)
 }
 
@@ -75,6 +84,14 @@ export function exampleValueExternalConflict (data: DataR): ExceptionMessageData
 
 export function exampleWithoutSchema (data: Data): ExceptionMessageDataInput {
   return getExceptionMessageData('EXAMPLE_WITHOUT_SCHEMA', {}, data)
+}
+
+export function exceedsArrayLengthBounds (boundBy: 'maxItems' | 'minItems', boundValue: number, actualCount: string, data: Data): ExceptionMessageDataInput {
+  const result = getExceptionMessageData('EXCEEDS_ARRAY_LENGTH_BOUNDS', { boundBy, boundValue, actualCount }, data)
+  result.message = 'Array must have ' +
+    (boundBy === 'maxItems' ? 'at most ' : 'at least ') + String(boundValue) +
+    ' items. Array contains ' + String(actualCount) + ' items.'
+  return result
 }
 
 export function exceedsNumberBounds (boundBy: 'maximum' | 'minimum', allowEqual: boolean, boundValue: any, invalidValue: number, data?: DataR): ExceptionMessageDataInput {

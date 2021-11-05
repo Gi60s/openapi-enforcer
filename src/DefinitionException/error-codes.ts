@@ -23,6 +23,22 @@ export const list: MessageTemplate[] = [
     message: 'Reference not allowed here.'
   },
   {
+    id: 'ALL_OF_CONFLICTING_SCHEMA_TYPES',
+    code: 'ALOCST',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Subschemas within "allOf" should be able to resolve to the same type. Types found: $${types}'
+  },
+  {
+    id: 'ALL_OF_CONFLICTING_SCHEMA_FORMATS',
+    code: 'ALOCSF',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Subschemas within "allOf" should be able to resolve to the same type formats. Formats found: $${format}'
+  },
+  {
     id: 'DEFAULT_REQUIRED_CONFLICT',
     code: 'DERECO',
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
@@ -115,6 +131,13 @@ export const list: MessageTemplate[] = [
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'opinion',
     message: 'An example is great, but you should add a schema. A schema can provide more detailed information than an example.'
+  },
+  {
+    id: 'EXCEEDS_ARRAY_LENGTH_BOUNDS',
+    code: 'EXARLB',
+    alternateLevels: [],
+    level: 'error',
+    message: 'Array length exceeds bounds.'
   },
   {
     id: 'EXCEEDS_NUMBER_BOUNDS',

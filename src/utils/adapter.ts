@@ -4,6 +4,7 @@ const rxHttp = /^https?:\/\//
 const rxUrlParts = /^(https?):\/\/(.+?)(?:\/|$)(.*)/
 
 export interface Adapter {
+  context: 'browser' | 'nodejs'
   cwd: string
   eol: string
   inspect: any
@@ -15,7 +16,7 @@ export interface Adapter {
   sep: string
 }
 
-export function adapter (): Adapter {
+export const adapter: Adapter = (() => {
   if (typeof XMLHttpRequest !== 'undefined') {
     return browser()
   } else if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
@@ -23,11 +24,12 @@ export function adapter (): Adapter {
   } else {
     throw Error('Unknown runtime environment')
   }
-}
+})()
 
 function browser (): Adapter {
   const [url] = window.location.href.split('?')
   return {
+    context: 'browser',
     cwd: /\.[a-z0-9]+$/.test(url) ? dirnameUrl(url) : url,
     eol: navigator.appVersion.includes('Win') ? '\r\n' : '\n',
     inspect: 'inspect',
@@ -70,6 +72,7 @@ function node (): Adapter {
   const Util = require('util')
 
   return {
+    context: 'nodejs',
     cwd: process.cwd(),
     eol: os.EOL,
     inspect: Util.inspect?.custom ?? 'inspect',

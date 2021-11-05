@@ -20,8 +20,6 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
     super(Parameter, definition, version, arguments[2])
   }
 
-  static dataType = Core.parameterDataType
-
   static spec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#parameter-object'
   }

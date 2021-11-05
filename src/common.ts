@@ -1,12 +1,15 @@
 import * as loader from './utils/loader'
 import * as config from './utils/config'
+import * as random from './components/helpers/Randomizer'
 
 export {
   config,
-  loader
+  loader,
+  random
 }
 
 // export exception class and interfaces
+export { Exception } from './utils/Exception'
 export {
   DefinitionException,
   ErrorReport as ExceptionErrorReport,
@@ -20,7 +23,13 @@ export { Level as ExceptionLevel, ExceptionMessageData } from './DefinitionExcep
 export { Result } from './utils/Result'
 
 // export dataTypes
-export { base as dataTypes } from './components/helpers/DataTypes'
+export {
+  getDataTypeDefinition,
+  extendDataTypeDefinition,
+  setDataTypeDefinition,
+  DataType,
+  DataTypeRegistry // useful for expanding typings
+} from './components/helpers/DataTypes'
 
 // take an object and bundle it so that it can be converted to a JSON string
 export function bundle (object: any): any {

@@ -1,5 +1,5 @@
-import * as DataType from './DataTypes'
-import { Data, ExtendedComponent, OASComponent, ComponentSchema, SchemaProperty } from '../index'
+import { getDataTypeDefinition, getNoopTypeDefinition, DataType } from './DataTypes'
+import { Data, OASComponent, ComponentSchema, SchemaProperty } from '../index'
 import * as E from '../../DefinitionException/methods'
 
 /**
@@ -9,8 +9,6 @@ import * as E from '../../DefinitionException/methods'
  * - Header (v2)
  * - Schema (v2 and v3)
  */
-
-const dataTypesMap: Map<any, DataType.DataTypeStore> = new Map()
 
 export interface Definition<Items> {
   default?: any
@@ -42,25 +40,25 @@ export abstract class PartialSchema<Items> extends OASComponent {
   readonly minItems?: number
   readonly maxLength?: number
   readonly minLength?: number
-  readonly maximum?: number | string
-  readonly minimum?: number | string
-  readonly multipleOf?: number | string
-  readonly pattern?: string
+  readonly maximum?: number
+  readonly minimum?: number
+  readonly multipleOf?: number
+  readonly pattern?: RegExp
   readonly type?: string
   readonly uniqueItems?: boolean
 }
 
 export function schemaGenerator<Definition> (referenceComponentClass: any, data: Data): ComponentSchema<Definition> {
   const { context, root } = data
-  const dataTypes = initializeDataTypes(referenceComponentClass)
   const { reference } = data.component
   const { definition, exception } = context
   const type: string = definition.type
   const format: string | undefined = definition.format
   const def = definition
+  const dataType = getDataTypeDefinition(type, format) ?? getNoopTypeDefinition()
 
   const isArray = type === 'array'
-  const isNumeric = dataTypes.getDefinition(type as DataType.Type, format)?.isNumeric ?? false
+  const isNumeric = dataType.toNumber !== null
   const isString = type === 'string'
 
   const typeProperty: SchemaProperty = {
@@ -241,8 +239,8 @@ export function schemaGenerator<Definition> (referenceComponentClass: any, data:
 
         if (built.format !== undefined) {
           const format = built.format
-          const def = dataTypes.getDefinition(type as DataType.Type, format)
-          if (def === undefined) {
+          const dataType = getDataTypeDefinition(type, format)
+          if (dataType === undefined) {
             const unknownTypeFormat = E.unknownTypeFormat(type, format, {
               definition: format,
               locations: [{ node: definition, key: 'format', type: 'value' }]
@@ -262,18 +260,6 @@ export function schemaGenerator<Definition> (referenceComponentClass: any, data:
       }
     }
   }
-}
-
-function initializeDataTypes (component: ExtendedComponent): DataType.DataTypeStore {
-  if (!dataTypesMap.has(component)) dataTypesMap.set(component, new DataType.DataTypeStore(DataType.base))
-  const store = dataTypesMap.get(component) as DataType.DataTypeStore
-
-  // if the common data type gets new data then clear the schemaGenerator cache
-  // DataType.on('common-define', () => {
-  //   clearCache(component)
-  // })
-
-  return store
 }
 
 export function validateMaxMin (data: Data, minKey: string, maxKey: string): void {

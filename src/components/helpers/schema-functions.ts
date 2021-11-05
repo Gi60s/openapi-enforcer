@@ -1,8 +1,9 @@
 import { Exception } from '../../utils/Exception'
-import { runHooks, ValidateOptions, Schema as BaseSchema } from '../Schema'
+import { ValidateOptions } from '../Schema'
 import { Schema as Schema2 } from '../v2/Schema'
 import { Schema as Schema3 } from '../v3/Schema'
 import { isObject, same, smart } from '../../utils/util'
+import { getDataTypeDefinition } from './DataTypes'
 
 type Schema = Schema2 | Schema3
 
@@ -52,56 +53,44 @@ export class MapStore<R> {
   }
 }
 
-function maxMin (exception: Exception, schema: Schema, type: string, maxProperty: string, minProperty: string, exclusives: boolean, value: any, maximum: number, minimum: number): boolean {
-  let valid = true
-  if (maxProperty in schema) {
-    // @ts-expect-error
-    const max: any = schema[maxProperty]
-    if (exclusives && schema.exclusiveMaximum === true && value >= maximum) {
-      exception.message('Expected ' + type + ' to be less than ' +
-        smart(schema.serialize(max).value) + '. Received: ' +
-        smart(schema.serialize(value).value))
-      valid = false
-    } else if (value > maximum) {
-      exception.message('Expected ' + type + ' to be less than or equal to ' +
-        smart(schema.serialize(max).value) + '. Received: ' +
-        smart(schema.serialize(value).value))
-      valid = false
-    }
+export function deserialize (schema: Schema, value: any, map: MapStore<any>, exception: Exception): MapItem<any> {
+  // watch for values that have already been deserialized against this value
+  const mapped = map.get(schema, value)
+  if (mapped.result !== undefined) return mapped
+
+  // handle nullable
+  if (value === null && (schema['x-nullable'] === true || ('nullable' in schema && schema.nullable === true))) {
+    return mapped.setResult(true)
   }
 
-  if (minProperty in schema) {
-    // @ts-expect-error
-    const min: any = schema[minProperty]
-    if (exclusives && schema.exclusiveMinimum === true && value <= minimum) {
-      exception.message('Expected ' + type + ' to be greater than ' +
-        smart(schema.serialize(min).value) + '. Received: ' +
-        smart(schema.serialize(value).value))
-      valid = false
-    } else if (value < minimum) {
-      exception.message('Expected ' + type + ' to be greater than or equal to ' +
-        smart(schema.serialize(min).value) + '. Received: ' +
-        smart(schema.serialize(value).value))
-      valid = false
+  if (schema.allOf !== undefined) {
+    const { type, format } = schema.enforcer.allOf ?? { type: '', format: '' }
+    working here
+
+    const exception2 = exception.at('allOf')
+    if (schema.allOf[0].type === 'object') {
+      const result = {}
+      schema.allOf.forEach((schema, index) => {
+        const v = runDeserialize(exception2.at(index), map, schema, originalValue, options)
+        Object.assign(result, v)
+      })
+      return hooks.after(schema, 'afterDeserialize', Object.assign(value, result), exception)
+    } else {
+      return runDeserialize(exception2.at('0'), map, schema.allOf[0], originalValue, options)
     }
   }
-  return valid
 }
 
+// validate a deserialized value
+// TODO: how to handle validation if the schema is a dereferenced object?
 export function validate (schema: Schema, value: any, map: MapStore<boolean>, exception: Exception, options: ValidateOptions): MapItem<boolean> {
   // watch for values that have already been validated against this value
   const mapped = map.get(schema, value)
   if (mapped.result !== undefined) return mapped
 
-  const hookResult = runHooks('beforeValidate', value, schema, exception)
-  if (hookResult.hasError === true) return mapped.setResult(false)
-  value = hookResult.value
-  if (hookResult.done) return mapped.setResult(true)
-
   // check for nullable
   if (value === null && (schema['x-nullable'] === true || ('nullable' in schema && schema.nullable === true))) {
-    const hookResult = runHooks('afterValidate', value, schema, exception)
-    return mapped.setResult(hookResult.hasError !== true)
+    return mapped.setResult(true)
   }
 
   let valid: boolean = true
@@ -244,8 +233,15 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
       }
 
       // validate number of properties
-      const maxMinValid = maxMin(exception, schema, 'object property count', 'maxProperties', 'minProperties', false, keys.length, schema.maxProperties, schema.minProperties)
-      if (!maxMinValid) valid = false
+      const propertyCount = Object.keys(properties).length
+      if (schema.maxProperties !== undefined && propertyCount > schema.maxProperties) {
+        exception.message('Object with ' + String(propertyCount) + ' properties has more than the maximum number of allowed properties: ' + String(schema.maxProperties))
+        valid = false
+      }
+      if (schema.minProperties !== undefined && propertyCount < schema.minProperties) {
+        exception.message('Object with ' + String(propertyCount) + ' properties has less than the minimum number of allowed properties: ' + String(schema.maxProperties))
+        valid = false
+      }
 
       // if a discriminator is present then validate discriminator mapping
       if (schema.discriminator !== undefined) {
@@ -259,30 +255,20 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
         } // else - already taken care of because it's a missing required error
       }
     }
-  } else if (typeof schema.type === 'string') {
-    // run data type validator
-    const dataType = BaseSchema.dataType.getDefinition(schema.type, schema.format)
-    if (dataType !== undefined && 'validate' in dataType) {
-      // TODO: find a way to make the Exception fit in with the DefinitionException
-      const result = dataType.validate({ exception, schema, value })
-      if (result === false) valid = false
-    }
-
-    if (schema.type === 'boolean') {
-      if (typeof value !== 'boolean') {
-        exception.message('Expected a boolean. Received: ' + smart(value))
+  } else {
+    // validate primitive data types
+    // @ts-expect-error
+    if (schema.type !== undefined && schema.type !== '') {
+      const dataType = getDataTypeDefinition(schema.type, schema.format)
+      if (dataType !== undefined) {
+        valid = valid && dataType.validate(schema, exception, value)
+      } else {
         valid = false
       }
-    } else if (schema.type === 'integer') {
-      // TODO: add logic
-    } else if (schema.type === 'number') {
-      // TODO: add logic
-    } else if (schema.type === 'string') {
-      // TODO: add logic
     }
   }
 
-  if (schema.enum !== undefined && options.validateEnum !== false) {
+  if (schema.enum !== undefined) {
     const length = schema.enum.length
     let found = false
     for (let i = 0; i < length; i++) {
@@ -295,13 +281,6 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
       exception.message('Value ' + smart(value) + ' did not meet enum requirements')
       valid = false
     }
-  }
-
-  // if there are no exceptions so far then run afterValidate hooks
-  if (valid) {
-    const hookResult = runHooks('afterValidate', value, schema, exception, false)
-    if (hookResult.hasError === true) valid = false
-    if (hookResult.done) return mapped.setResult(true)
   }
 
   return mapped.setResult(valid)

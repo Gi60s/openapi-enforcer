@@ -1,4 +1,5 @@
 import { isNumber, round } from '../../utils/util'
+import RandExp from 'randexp'
 
 export interface RandomBuffer {
   maxLength?: number
@@ -92,35 +93,41 @@ export class RandomError extends Error {
 
 }
 
-export function text ({ minLength = 1, maxLength = 250 }: RandomText = {}): string {
+export function text (options: RandomText = {}): string {
+  const { minLength = 1, maxLength = 250 } = options
   const length = number({ min: minLength, max: maxLength }) + 1
-  let result = ''
-  let punctuationIndex = 1
-  let uc = true
-  while (result.length < length) {
-    const index = Math.floor(Math.random() * wordCount)
-    let word = words[index]
-    if (uc) word = word[0].toUpperCase() + word.substring(1)
-    uc = false
-    result += word
-    if (Math.random() >= punctuationIndex) {
-      punctuationIndex = 1
-      const index = Math.floor(Math.random() * punctuationCount)
-      const punct = punctuation[index]
-      if (/[.!?]/.test(punct)) uc = true
-      result += punct
-    } else {
-      punctuationIndex *= 0.9
+
+  if (options.pattern !== undefined) {
+    return new RandExp(options.pattern).gen()
+  } else {
+    let result = ''
+    let punctuationIndex = 1
+    let uc = true
+    while (result.length < length) {
+      const index = Math.floor(Math.random() * wordCount)
+      let word = words[index]
+      if (uc) word = word[0].toUpperCase() + word.substring(1)
+      uc = false
+      result += word
+      if (Math.random() >= punctuationIndex) {
+        punctuationIndex = 1
+        const index = Math.floor(Math.random() * punctuationCount)
+        const punct = punctuation[index]
+        if (/[.!?]/.test(punct)) uc = true
+        result += punct
+      } else {
+        punctuationIndex *= 0.9
+      }
+      result += ' '
     }
-    result += ' '
+    result = result.trim()
+    result = result.replace(/[,.:;!?]$/, '') // if ends in punctuation then remove it
+    if (maxLength > 5) {
+      if (result.length >= maxLength) result = result.substr(0, maxLength - 1)
+      result += '.'
+    } else if (result.length > maxLength) {
+      result = result.substr(0, maxLength)
+    }
+    return result
   }
-  result = result.trim()
-  result = result.replace(/[,.:;!?]$/, '') // if ends in punctuation then remove it
-  if (maxLength > 5) {
-    if (result.length >= maxLength) result = result.substr(0, maxLength - 1)
-    result += '.'
-  } else if (result.length > maxLength) {
-    result = result.substr(0, maxLength)
-  }
-  return result
 }
