@@ -4,7 +4,7 @@ import * as E from '../DefinitionException/methods'
 import rx from '../utils/rx'
 import { copy, getLatestSpecVersion, isObject, same, smart } from '../utils/util'
 import { LoaderMetadata } from '../utils/loader'
-import { Result } from '../utils/Result'
+import { DefinitionResult } from '../DefinitionException/DefinitionResult'
 import * as Loader from '../utils/loader'
 import { ExceptionMessageDataInput } from '../DefinitionException/types'
 import {
@@ -239,16 +239,18 @@ export interface ExtendedComponent<T extends OASComponent=any> {
   validate: (definition: any, version?: Version, ...args: any[]) => DefinitionException
 }
 
+export const Enforcer = Symbol('Enforcer')
+
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export abstract class OASComponent<Definition=any> {
-  readonly enforcer: EnforcerController<Definition>
+  readonly [Enforcer]: EnforcerController<Definition>
 
   protected constructor (Component: ExtendedComponent, definition: Definition, version?: Version, incomingData?: Data<Definition>) {
     const data: Data<Definition> = createComponentData('constructing', Component, definition, version, incomingData)
     const { builder } = data.component.schema
     const { map } = data.root
     data.context.built = this as unknown as Definition
-    this.enforcer = {
+    this[Enforcer] = {
       data,
       metadata: data.root.metadata,
       findAncestor<T> (component: ExtendedComponent): T | undefined {
@@ -274,7 +276,7 @@ export abstract class OASComponent<Definition=any> {
     buildObjectProperties(this, data)
 
     // run after function if set
-    if (typeof builder?.after === 'function') builder.after(data, this.enforcer)
+    if (typeof builder?.after === 'function') builder.after(data, this[Enforcer])
 
     // trigger lastly hooks if this is root
     if (incomingData === undefined) data.root.lastly.run(data)
@@ -459,7 +461,11 @@ export function build (data: Data): any {
       if (match === undefined) {
         throw Error('Definition does not meet any of the possible conditions. Received: ' + smart(definition))
       } else {
-        const child = Object.assign({}, data, { schema: match.schema })
+        const child = {
+          root: data.root,
+          component: data.component,
+          context: Object.assign({}, data.context, { schema: match.schema })
+        }
         return build(child)
       }
     } else if (schema.type === 'object') {
@@ -662,7 +668,7 @@ export function normalizeLoaderOptions (options?: LoaderOptions): Required<Loade
 }
 
 // this is the code for loading either the OpenAPI or Swagger document
-export async function loadRoot<T> (RootComponent: ExtendedComponent, path: string, options?: LoaderOptions): Promise<Result<T>> {
+export async function loadRoot<T> (RootComponent: ExtendedComponent, path: string, options?: LoaderOptions): Promise<DefinitionResult<T>> {
   options = normalizeLoaderOptions(options)
 
   // load file with dereference
@@ -676,7 +682,7 @@ export async function loadRoot<T> (RootComponent: ExtendedComponent, path: strin
   // if there is an error then return now
   const [definition] = loaded
   const exception = loaded.exception as DefinitionException
-  if (loaded.hasError) return new Result(definition, exception) // first param will be undefined because of error
+  if (loaded.hasError) return new DefinitionResult(definition, exception) // first param will be undefined because of error
 
   // initialize data object
   const version: string = definition.openapi ?? definition.swagger
@@ -694,11 +700,11 @@ export async function loadRoot<T> (RootComponent: ExtendedComponent, path: strin
   data.root.lastly = new Lastly()
 
   // build the component if there are no errors
-  if (exception.hasError) return new Result(definition, exception) // first param will be undefined because of error
+  if (exception.hasError) return new DefinitionResult(definition, exception) // first param will be undefined because of error
   // @ts-expect-error
   const component = new RootComponent(definition, version, data)
   data.root.lastly.run(data) // we have to run lastly here because we passed the "data" into the constructor function
-  return new Result(component, exception)
+  return new DefinitionResult(component, exception)
 }
 
 // return true if additional validation can occur, false if it should not

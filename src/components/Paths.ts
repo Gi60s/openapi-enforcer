@@ -4,7 +4,7 @@ import {
   Version,
   DefinitionException,
   Dereferenced,
-  ComponentSchema, ExtendedComponent
+  ComponentSchema, ExtendedComponent, EnforcerController
 } from './'
 import * as E from '../DefinitionException/methods'
 import { PathItem } from './PathItem'

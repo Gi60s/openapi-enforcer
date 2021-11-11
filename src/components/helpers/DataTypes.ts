@@ -71,9 +71,11 @@ const noopDefinition: DataType<any, any> = {
 
 export function getDataTypeDefinition (type: string, format?: string): DataType<any, any> | undefined {
   if (type === undefined || type === '') {
-    throw Error('Type not specified')
+    // throw Error('Type not specified')
+    return undefined
   } else if (!(type in DataTypes)) {
-    throw Error('Type is not defined: ' + type)
+    // throw Error('Type is not defined: ' + type)
+    return undefined
   } else {
     const formatNotSpecified = format === undefined || format === ''
     const formatKey = formatNotSpecified ? 'default' : format
@@ -138,8 +140,8 @@ setDataTypeDefinition<number, number>({
   type: 'number',
   format: 'default',
   constructors: [],
-  deserialize: function (value: number): number {
-    return value
+  deserialize: function (value: string | number): number {
+    return +value
   },
   random: function (schema: Schema): number {
     const { max, min } = determineMaxMin(this, schema, 'maximum', 'minimum', 1000)

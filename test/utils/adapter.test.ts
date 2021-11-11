@@ -1,7 +1,5 @@
-import { adapter as Adapter } from '../../src/utils/adapter'
+import { adapter } from '../../src/utils/adapter'
 import { expect } from 'chai'
-
-const adapter = Adapter()
 
 describe('adapter', () => {
   describe('path', () => {

@@ -14,7 +14,7 @@ import { Paths } from './Paths'
 import { SecurityRequirement } from '../SecurityRequirement'
 import { Server } from './Server'
 import { Tag } from '../Tag'
-import { Result } from '../../utils/Result'
+import { DefinitionResult } from '../../DefinitionException/DefinitionResult'
 import { OpenAPI3 as Definition } from '../helpers/DefinitionTypes'
 
 const rxVersion = /^\d+\.\d+\.\d+$/
@@ -151,7 +151,7 @@ export class OpenAPI<HasReference=Dereferenced> extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#openapi-object'
   }
 
-  static async load (path: string, options?: LoaderOptions): Promise<Result<OpenAPI>> {
+  static async load (path: string, options?: LoaderOptions): Promise<DefinitionResult<OpenAPI>> {
     options = normalizeLoaderOptions(options)
     if (options.dereference === true) {
       return await loadRoot<OpenAPI<Dereferenced>>(OpenAPI, path, options)

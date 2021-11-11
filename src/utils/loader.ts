@@ -2,10 +2,9 @@ import { DefinitionException } from '../DefinitionException'
 import * as E from '../DefinitionException/methods'
 import jsonParser, { ArrayNode, LiteralNode, Location, ObjectNode, ValueNode } from 'json-to-ast'
 import * as yamlParser from 'yaml-ast-parser'
-import { Result as ResultObject } from './Result'
-import { adapter as Adapter } from './adapter'
+import { DefinitionResult as ResultObject } from '../DefinitionException/DefinitionResult'
+import { adapter } from './adapter'
 
-const adapter = Adapter()
 const loaders: Loader[] = []
 const lookupLocationMap = new WeakMap<any, LookupLocation>()
 const rxJson = /\.json$/

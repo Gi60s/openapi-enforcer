@@ -6,7 +6,7 @@ import { Location } from 'json-to-ast'
 import { parseEnforcerExtensionDirective } from '../utils/util'
 import { getExceptionMessageData } from './error-codes'
 
-const { inspect, eol } = adapter()
+const { inspect, eol } = adapter
 const exceptionMap = new WeakMap<DefinitionException, ExceptionPreReport>()
 const levels: Level[] = ['error', 'warn', 'opinion', 'ignore']
 

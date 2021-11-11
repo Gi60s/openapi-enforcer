@@ -1,6 +1,7 @@
-import { getDataTypeDefinition, getNoopTypeDefinition, DataType } from './DataTypes'
+import { getDataTypeDefinition, getNoopTypeDefinition } from './DataTypes'
 import { Data, OASComponent, ComponentSchema, SchemaProperty } from '../index'
 import * as E from '../../DefinitionException/methods'
+import { determineTypes } from './schema-functions'
 
 /**
  * This file is for code reuse between the following OpenAPI specification objects:
@@ -72,36 +73,7 @@ export function schemaGenerator<Definition> (referenceComponentClass: any, data:
   // attempt to determine default type based on other properties in the definition
   // if schema has allOf, anyOf, not, or oneOf then there is no default type
   if (!('allOf' in def || 'anyOf' in def || 'not' in def || 'oneOf' in def)) {
-    let defaultType: string = ''
-
-    if ('discriminator' in def) {
-      // only objects can use the discriminator, so if that property exists then it must be an object
-      defaultType = 'object'
-    } else if ('items' in def || 'maxItems' in def || 'minItems' in def || 'uniqueItems' in def) {
-      defaultType = 'array'
-    } else if ('additionalProperties' in def || 'properties' in def || 'maxProperties' in def || 'minProperties' in def) {
-      defaultType = 'object'
-    } else if ('maxLength' in def || 'minLength' in def || 'pattern' in def) {
-      defaultType = 'string'
-    } else if ('maximum' in def || 'minimum' in def || 'exclusiveMaximum' in def || 'exclusiveMinimum' in def || 'multipleOf' in def) {
-      defaultType = 'number'
-      if ('mutipleOf' in def && !isNaN(def.multipleOf) && def.multipleOf % 1 === 0) defaultType = 'integer'
-    } else if ('default' in def) {
-      const value = def.default
-      if (Array.isArray(value)) {
-        defaultType = 'array'
-      } else {
-        defaultType = typeof value
-      }
-    } else if ('enum' in def && def.enum.length > 0) {
-      const value = def.enum[0]
-      if (Array.isArray(value)) {
-        defaultType = 'array'
-      } else {
-        defaultType = typeof value
-      }
-    }
-
+    const { type: defaultType } = determineTypes(def, new Map()).get(false)
     if (defaultType !== '') typeProperty.schema.default = defaultType
   }
 

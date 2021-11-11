@@ -1,10 +1,10 @@
-import { adapter as Adapter } from '../../src/utils/adapter'
+import { adapter } from '../../src/utils/adapter'
 import { expect } from 'chai'
 import * as Config from '../../src/utils/config'
 import { DefinitionException } from '../../src/DefinitionException'
 import { Level } from '../../src/DefinitionException/types'
 
-const { eol } = Adapter()
+const { eol } = adapter
 
 describe('Exception', () => {
   describe('report formatting', () => {

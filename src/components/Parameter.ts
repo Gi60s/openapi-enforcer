@@ -8,7 +8,6 @@ import * as Serilizer from './helpers/serializer'
 import { noop } from '../utils/util'
 import * as V from './helpers/common-validators'
 import * as E from '../DefinitionException/methods'
-import { base as rootDataTypeStore, DataTypeStore } from './helpers/DataTypes'
 import { Schema as Schema3 } from './v3/Schema'
 import {
   Parameter2 as Definition2,
@@ -22,8 +21,6 @@ interface ComponentMap {
   Parameter: ExtendedComponent
   Schema: ExtendedComponent
 }
-
-export const parameterDataType = new DataTypeStore(rootDataTypeStore)
 
 export function schemaGenerator (components: ComponentMap, data: Data): ComponentSchema<Definition> {
   const schema: ComponentSchema<Definition> = data.root.major === 2

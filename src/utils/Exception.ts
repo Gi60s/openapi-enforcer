@@ -1,5 +1,5 @@
 import { adapter } from './adapter'
-const { inspect, eol } = adapter()
+const { inspect, eol } = adapter
 
 interface ExceptionData {
   at: Record<string, Exception>

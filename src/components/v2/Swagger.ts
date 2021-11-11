@@ -4,7 +4,7 @@ import {
   LoaderOptions,
   loadRoot, Dereferenced, ComponentSchema
 } from '../index'
-import { Result } from '../../utils/Result'
+import { DefinitionResult } from '../../DefinitionException/DefinitionResult'
 import * as E from '../../DefinitionException/methods'
 import rx from '../../utils/rx'
 import { Definitions } from './Definitions'
@@ -276,7 +276,7 @@ export class Swagger<HasReference=Dereferenced> extends OASComponent {
     '2.0': 'https://spec.openapis.org/oas/v2.0#swagger-object'
   }
 
-  static async load (path: string, options?: LoaderOptions): Promise<Result<Swagger>> {
+  static async load (path: string, options?: LoaderOptions): Promise<DefinitionResult<Swagger>> {
     return await loadRoot<Swagger>(Swagger, path, options)
   }
 

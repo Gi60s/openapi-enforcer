@@ -1,11 +1,63 @@
 import { Exception } from '../../utils/Exception'
 import { ValidateOptions } from '../Schema'
+import { Schema2 as Definition2, Schema3 as Definition3 } from './DefinitionTypes'
 import { Schema as Schema2 } from '../v2/Schema'
 import { Schema as Schema3 } from '../v3/Schema'
 import { isObject, same, smart } from '../../utils/util'
 import { getDataTypeDefinition } from './DataTypes'
+import { Enforcer } from '../index'
 
+type Definition = Definition2 | Definition3
 type Schema = Schema2 | Schema3
+
+export interface TypeFormat {
+  type: string
+  format: string
+}
+
+interface DeterminedTypes {
+  known: DeterminedTypesItems
+  possible: DeterminedTypesItems
+  get: (includePossible: boolean) => TypeFormat
+}
+
+type DeterminedTypesItems = Array<{ type: string, formats: string[] }>
+
+// a map for determining type based on property and properties based on type
+const schemaPropertyMap = {
+  types: {
+    array: ['items', 'maxItems', 'minItems', 'uniqueItems'],
+    boolean: [],
+    integer: ['maximum', 'minimum', 'exclusiveMaximum', 'exclusiveMinimum', 'multipleOf'],
+    number: ['maximum', 'minimum', 'exclusiveMaximum', 'exclusiveMinimum', 'multipleOf'],
+    object: ['additionalProperties', 'discriminator', 'maxProperties', 'minProperties', 'properties'],
+    string: ['maxLength', 'minLength', 'pattern']
+  },
+  properties: {
+    additionalProperties: 'object',
+    discriminator: 'object',
+    exclusiveMaximum: 'number',
+    exclusiveMinimum: 'number',
+    items: 'array',
+    maximum: 'number',
+    maxItems: 'array',
+    maxLength: 'string',
+    maxProperties: 'object',
+    minimum: 'number',
+    minItems: 'array',
+    minLength: 'string',
+    minProperties: 'object',
+    multipleOf: 'number',
+    pattern: 'string',
+    properties: 'object',
+    uniqueItems: 'array'
+  },
+  keys: ['additionalProperties', 'discriminator', 'exclusiveMaximum', 'exclusiveMinimum', 'items',
+    'maximum', 'maxItems', 'maxLength', 'maxProperties',
+    'minimum', 'minItems', 'minLength', 'minProperties', 'multipleOf',
+    'pattern', 'properties', 'uniqueItems'
+  ]
+}
 
 class MapItem<R> {
   private readonly data: { key: any, result?: R }
@@ -60,25 +112,160 @@ export function deserialize (schema: Schema, value: any, map: MapStore<any>, exc
 
   // handle nullable
   if (value === null && (schema['x-nullable'] === true || ('nullable' in schema && schema.nullable === true))) {
-    return mapped.setResult(true)
+    return mapped.setResult(null)
   }
 
-  if (schema.allOf !== undefined) {
-    const { type, format } = schema.enforcer.allOf ?? { type: '', format: '' }
-    working here
+  const types = determineTypes(schema, new Map())
+  const { type, format } = types.get(true)
 
-    const exception2 = exception.at('allOf')
-    if (schema.allOf[0].type === 'object') {
-      const result = {}
-      schema.allOf.forEach((schema, index) => {
-        const v = runDeserialize(exception2.at(index), map, schema, originalValue, options)
-        Object.assign(result, v)
+  if (('anyOf' in schema || 'oneOf' in schema) && types.known.length === 0 && types.possible.length > 0) {
+    sortDeterminedTypes(types)
+    const length = types.possible.length
+    for (let i = 0; i < length; i++) {
+      const { type, formats } = types.possible[i]
+      const format = formats[0] ?? ''
+      const childException = new Exception()
+      const { result } = deserialize({ type, format } as Schema, value, new MapStore(), childException)
+      if (!childException.hasException) {
+        const resultType = typeof result
+        if (type === 'boolean' && resultType === 'boolean') return mapped.setResult(result)
+        if ((type === 'number' || type === 'integer') && resultType === 'number' && !isNaN(result)) return mapped.setResult(result)
+        if (type === 'string' && resultType === 'string') return mapped.setResult(result)
+        if (type === 'array' && Array.isArray(result)) return mapped.setResult(result)
+        if (type === 'object' && resultType === 'object') return mapped.setResult(result)
+
+        const dataType = getDataTypeDefinition(type, format)
+        if (dataType !== undefined) {
+          const length = dataType.constructors.length
+          for (let j = 0; j < length; j++) {
+            if (result instanceof dataType.constructors[j]) return mapped.setResult(result)
+          }
+        }
+      }
+    }
+
+    // unable to deserialize
+    const schemaKey = 'anyOf' in schema ? 'anyOf' : 'oneOf'
+    exception.at(schemaKey).message('Unable to determine deserialization method for value: ' + smart(value))
+  } else if (type === '') {
+    return mapped.setResult(value)
+  } else if (type === 'array') {
+    if (Array.isArray(value)) {
+      const result: any[] = []
+      const item = mapped.setResult(result)
+      value.forEach((v: any, i: number) => {
+        result.push(deserialize(schema.items as Schema, v, map, exception.at(i)).result)
       })
-      return hooks.after(schema, 'afterDeserialize', Object.assign(value, result), exception)
+      return item
     } else {
-      return runDeserialize(exception2.at('0'), map, schema.allOf[0], originalValue, options)
+      exception.message('Expected an array. Received: ' + smart(value))
+    }
+  } else if (type === 'object') {
+    if (isObject(value)) {
+      const result: any = {}
+      const item = mapped.setResult(result)
+      const additionalProperties = schema.additionalProperties ?? true
+      const properties = schema.properties ?? {}
+      Object.keys(value).forEach(key => {
+        if (key in properties) {
+          result[key] = deserialize(properties[key], value[key], map, exception.at(key)).result
+        } else if (additionalProperties === true) {
+          result[key] = value[key]
+        } else if (additionalProperties !== false) {
+          result[key] = deserialize(additionalProperties, value[key], map, exception.at(key)).result
+        }
+      })
+      if ('discriminator' in schema) {
+        const d = schema.discriminate(value)
+        if (d.schema !== null) {
+          Object.assign(result, deserialize(d.schema, value, map, exception).result)
+        } else {
+          exception.message('Discriminator property "' + d.key + '" as "' + d.name + '" did not map to a schema.')
+        }
+      }
+      return item
+    }
+  } else {
+    const dataType = getDataTypeDefinition(type, format)
+    if (dataType !== undefined) {
+      return mapped.setResult(dataType.deserialize(value, schema))
+    } else {
+      mapped.setResult(value)
     }
   }
+
+  return mapped
+}
+
+export function determineTypes (def: Definition | Schema, map: Map<Definition | Schema, DeterminedTypes>): DeterminedTypes {
+  const existing = map.get(def)
+  if (existing !== undefined) return existing
+
+  const result: DeterminedTypes = {
+    known: [],
+    possible: [],
+    get (includePossible) {
+      if (this.known.length > 0) {
+        const { type, formats } = this.known[0]
+        const format = formats.filter(f => f.length > 0)[0] ?? ''
+        return { type, format: format }
+      } else if (includePossible && this.possible.length > 0) {
+        const { type, formats } = this.possible[0]
+        const format = formats.filter(f => f.length > 0)[0] ?? ''
+        return { type, format: format }
+      } else {
+        return { type: '', format: '' }
+      }
+    }
+  }
+  map.set(def, result)
+
+  if ('$ref' in def) return result
+
+  if ('type' in def && def.type !== undefined) {
+    addUniqueDeterminedType(result.known, def.type, def.format)
+    return result
+  }
+
+  const keys = schemaPropertyMap.keys
+  const length = keys.length
+  for (let i = 0; i < length; i++) {
+    const key = keys[i]
+    if (key in def) {
+      // @ts-expect-error
+      const type = schemaPropertyMap.properties[keys[i]]
+      if (type !== undefined) {
+        addUniqueDeterminedType(result.known, type, def.format)
+        break
+      }
+    }
+  }
+  if (result.known.length > 0) return result
+
+  if ('allOf' in def && def.allOf !== undefined) {
+    const length = def.allOf.length
+    for (let i = 0; i < length; i++) {
+      const types = determineTypes(def.allOf[i] as Schema, map)
+      mergeUniqueDeterminedType(types.known, result.known)
+      mergeUniqueDeterminedType(types.possible, result.possible)
+    }
+  } else if ('anyOf' in def && def.anyOf !== undefined) {
+    const length = def.anyOf.length
+    for (let i = 0; i < length; i++) {
+      const types = determineTypes(def.anyOf[i] as Schema, map)
+      mergeUniqueDeterminedType(types.known, result.possible)
+      mergeUniqueDeterminedType(types.possible, result.possible)
+    }
+  } else if ('oneOf' in def && def.oneOf !== undefined) {
+    const length = def.oneOf.length
+    for (let i = 0; i < length; i++) {
+      const types = determineTypes(def.oneOf[i] as Schema, map)
+      mergeUniqueDeterminedType(types.known, result.possible)
+      mergeUniqueDeterminedType(types.possible, result.possible)
+    }
+  }
+
+  return result
 }
 
 // validate a deserialized value
@@ -285,3 +472,145 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
 
   return mapped.setResult(valid)
 }
+
+function addUniqueDeterminedType (to: DeterminedTypesItems, type: string, format: string = ''): void {
+  const index = to.findIndex(v => v.type === type)
+  if (index === -1) {
+    to.push({
+      type,
+      formats: [format]
+    })
+  } else {
+    const item = to[index]
+    if (!item.formats.includes(format)) item.formats.push(format)
+  }
+}
+
+function mergeUniqueDeterminedType (from: DeterminedTypesItems, to: DeterminedTypesItems): void {
+  from.forEach(v => {
+    const type = v.type
+    v.formats.forEach(format => {
+      addUniqueDeterminedType(to, type, format)
+    })
+  })
+}
+
+function sortDeterminedTypes (store: DeterminedTypes): void {
+  ;['known', 'possible'].forEach(key => {
+    // @ts-expect-error
+    store[key].sort((a, b) => {
+      if (a === 'number') return -1
+      if (b === 'number') return 1
+      if (a === 'boolean') return -1
+      if (b === 'boolean') return 1
+      if (a === 'string') return -1
+      if (b === 'string') return 1
+      if (a === 'array') return -1
+      if (b === 'array') return 1
+      if (a === 'object') return -1
+      if (b === 'object') return 1
+      return -1
+    })
+    // @ts-expect-error
+    store[key].forEach(item => {
+      item.formats.sort((a, b) => {
+        if (a === '') return 1
+        if (b === '') return -1
+        return -1
+      })
+    })
+  })
+}
+
+/*
+function determineTypeRecursive (def: Definition | Schema, map: Map<Definition | Schema, string>, context: TypeFormat): TypeFormat {
+  const existing = map.get(def)
+  if (existing !== undefined) return { type: '', format: '' }
+  map.set(def, '')
+
+  if ('$ref' in def) {
+    return { type: '', format: '' }
+  } else if (def.type !== undefined) {
+    return {
+      type: def.type,
+      format: def.format ?? ''
+    }
+  } else if ('discriminator' in def) {
+    // only objects can use the discriminator, so if that property exists then it must be an object
+    return { type: 'object', format: '' }
+  } else if ('items' in def || 'maxItems' in def || 'minItems' in def || 'uniqueItems' in def) {
+    return { type: 'array', format: '' }
+  } else if ('additionalProperties' in def || 'properties' in def || 'maxProperties' in def || 'minProperties' in def) {
+    return { type: 'object', format: '' }
+  } else if ('maxLength' in def || 'minLength' in def || 'pattern' in def) {
+    return {
+      type: 'string',
+      format: def.format ?? ''
+    }
+  } else if ('maximum' in def || 'minimum' in def || 'exclusiveMaximum' in def || 'exclusiveMinimum' in def || 'multipleOf' in def) {
+    return {
+      type: 'number',
+      format: def.format ?? ''
+    }
+  } else if ('default' in def) {
+    const value = def.default
+    if (Array.isArray(value)) {
+      return { type: 'array', format: '' }
+    } else {
+      return { type: typeof value, format: '' }
+    }
+  } else if ('example' in def) {
+    const value = def.example
+    if (Array.isArray(value)) {
+      return 'array'
+    } else {
+      return typeof value
+    }
+  } else if (def.enum !== undefined && def.enum.length > 0) {
+    const value = def.enum[0]
+    if (Array.isArray(value)) {
+      return 'array'
+    } else {
+      return typeof value
+    }
+  } else if ('allOf' in def) {
+    const copy = def.allOf.slice(0)
+    const length = copy.length
+    const typeSet: Set<string> = new Set()
+    copy.sort(determineTypeSort)
+    for (let i = 0; i < length; i++) {
+      const type = determineTypeRecursive(copy[i], map, contextType)
+      if (contextType === '' && type !== '') contextType = type
+      typeSet.add(type)
+    }
+    const types = Array.from(typeSet)
+    if (types.length > 1) throw Error('Type conflict between allOf schemas. Determined types: ' + types.join(', '))
+    return types.length === 1 ? types[0] : ''
+  } else if ('anyOf' in def || 'oneOf' in def) {
+    const copy = def['anyOf' in def ? 'anyOf' : 'oneOf'].slice(0)
+    const length = copy.length
+    const typeSet: Set<string> = new Set()
+    copy.sort(determineTypeSort)
+    for (let i = 0; i < length; i++) {
+      typeSet.add(determineTypeRecursive(copy[i], map, contextType))
+    }
+    const types = Array.from(typeSet)
+    if (contextType !== '' && !types.includes(contextType) && !types.includes('')) throw Error('Type conflict within oneOf schemas. Expected at least one to match type: ' + contextType)
+    return contextType === '' ? types[0] : contextType
+  } else {
+    return ''
+  }
+}
+*/
+
+/* function determineTypeSort (a: Definition | Schema, b: Definition | Schema): number {
+  if (a.type !== undefined && b.type === undefined) return -1 // if a type is defined then it has highest priority
+  if (a.type === undefined && b.type !== undefined) return 1
+  if (a.allOf !== undefined && b.allOf === undefined) return -1
+  if (a.allOf === undefined && b.allOf !== undefined) return 1
+  if (a.anyOf === undefined && b.anyOf !== undefined) return -1
+  if (a.oneOf === undefined && b.oneOf !== undefined) return -1
+  if (a.anyOf !== undefined && b.anyOf === undefined) return 1
+  if (a.oneOf !== undefined && b.oneOf === undefined) return 1
+  return -1
+} */

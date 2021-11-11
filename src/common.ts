@@ -20,7 +20,7 @@ export {
 export { Level as ExceptionLevel, ExceptionMessageData } from './DefinitionException/types'
 
 // export result interface
-export { Result } from './utils/Result'
+export { DefinitionResult } from './DefinitionException/DefinitionResult'
 
 // export dataTypes
 export {

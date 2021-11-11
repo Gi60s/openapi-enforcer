@@ -1,4 +1,4 @@
-import { ComponentSchema, Data, Dereferenced, Referencable, Version } from '../index'
+import { ComponentSchema, Data, Dereferenced, Enforcer, Referencable, Version } from '../index'
 import * as Core from '../Schema'
 import * as Discriminator from '../v3/Discriminator'
 import { Schema3 as Definition } from '../helpers/DefinitionTypes'
@@ -27,7 +27,7 @@ export class Schema<HasReference=Dereferenced> extends Core.Schema<HasReference>
 
       let schema = this.discriminator?.mapping?.[name]
       if (schema === undefined) {
-        const openapi = this.enforcer.findAncestor<OpenAPI>(OpenAPI)
+        const openapi = this[Enforcer].findAncestor<OpenAPI>(OpenAPI)
         schema = openapi?.components?.schemas?.[name]
       }
       return { key, name, schema: schema ?? null }
