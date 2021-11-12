@@ -30,7 +30,7 @@ export interface ComponentSchema<Definition=any> {
   properties?: SchemaProperty[]
   builder?: {
     // Run post-build code. Errors can be produced here, but should generally not be as that is the job of the validator.
-    after?: (data: Data<Definition>, enforcer: EnforcerController<Definition>) => void
+    after?: (data: Data<Definition>, enforcer: EnforcerData<Definition>) => void
 
     // Run pre-build code. Returning false will stop follow up building. Errors can be produced here, but should generally not be as that is the job of the validator.
     before?: (data: Data<Definition>) => boolean
@@ -93,7 +93,7 @@ export interface Data<Definition=any> {
   }
 }
 
-export interface EnforcerController<Definition> {
+export interface EnforcerData<Definition> {
   [key: string]: any
   data: Data<Definition>
   metadata: DataMetadata
@@ -243,7 +243,7 @@ export const Enforcer = Symbol('Enforcer')
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export abstract class OASComponent<Definition=any> {
-  readonly [Enforcer]: EnforcerController<Definition>
+  readonly [Enforcer]: EnforcerData<Definition>
 
   protected constructor (Component: ExtendedComponent, definition: Definition, version?: Version, incomingData?: Data<Definition>) {
     const data: Data<Definition> = createComponentData('constructing', Component, definition, version, incomingData)
