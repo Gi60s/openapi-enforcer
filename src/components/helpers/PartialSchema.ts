@@ -6,7 +6,7 @@ import { determineTypes } from './schema-functions'
 /**
  * This file is for code reuse between the following OpenAPI specification objects:
  * - Parameter (v2)
- * - Item (v2)
+ * - Items (v2)
  * - Header (v2)
  * - Schema (v2 and v3)
  */
@@ -49,10 +49,9 @@ export abstract class PartialSchema<Items> extends OASComponent {
   readonly uniqueItems?: boolean
 }
 
-export function schemaGenerator<Definition> (referenceComponentClass: any, data: Data): ComponentSchema<Definition> {
+export function schemaGenerator<Definition> (ReferenceComponentClass: any, data: Data): ComponentSchema<Definition> {
   const { context, root } = data
-  const { reference } = data.component
-  const { definition, exception } = context
+  const { definition } = context
   const type: string = definition.type
   const format: string | undefined = definition.format
   const def = definition
@@ -120,7 +119,7 @@ export function schemaGenerator<Definition> (referenceComponentClass: any, data:
         schema: {
           type: 'component',
           allowsRef: true,
-          component: referenceComponentClass
+          component: ReferenceComponentClass
         }
       },
       {
@@ -188,7 +187,7 @@ export function schemaGenerator<Definition> (referenceComponentClass: any, data:
     ],
     validator: {
       after () {
-        const { built } = context
+        const { built, exception } = context
         if (built.type === 'array') {
           validateMaxMin(data, 'minItems', 'maxItems')
         } else if (isNumeric) {
@@ -197,37 +196,46 @@ export function schemaGenerator<Definition> (referenceComponentClass: any, data:
           validateMaxMin(data, 'minLength', 'maxLength')
         }
 
-        // validate default value against the schema
-        if ('default' in built) {
+        if ('default' in built || 'enum' in built) {
           root.lastly.push(() => {
-            // TODO: validate default
-            const defaultValueDoesNotMatchSchema = E.defaultValueDoesNotMatchSchema(reference, built.default)
-          })
-        }
+            const schema = new ReferenceComponentClass(built, root.version)
 
-        if ('enum' in built) {
-          // TODO: validate enum
+            if ('default' in built) {
+              const error = schema.validate(built.default)
+              if (error !== undefined) {
+                const defaultValueDoesNotMatchSchema = E.defaultValueDoesNotMatchSchema(built.default, {
+                  definition,
+                  locations: [{ node: definition, key: 'default', type: 'value' }]
+                })
+                exception.at('default').message(defaultValueDoesNotMatchSchema)
+              }
+            }
+
+            if ('enum' in built) {
+              built.enum.forEach((item: any, i: number) => {
+                const error = schema.validate(item)
+                if (error !== undefined) {
+                  const enumNotMet = E.enumNotMet(built.enum, item, {
+                    definition,
+                    locations: [{ node: definition, key: 'default', type: 'value' }]
+                  })
+                  exception.at('enum').at(i).message(enumNotMet)
+                }
+              })
+            }
+          })
         }
 
         if (built.format !== undefined) {
           const format = built.format
           const dataType = getDataTypeDefinition(type, format)
-          if (dataType === undefined) {
+          if (dataType === undefined || dataType.format !== format) {
             const unknownTypeFormat = E.unknownTypeFormat(type, format, {
               definition: format,
               locations: [{ node: definition, key: 'format', type: 'value' }]
             })
             exception.at('format').message(unknownTypeFormat)
           }
-        }
-
-        if (isNumeric) {
-          // TODO: make sure max >= min and that max is integer if type is integer
-          // TODO: make multipleOf is valid
-        } else if (isArray) {
-          // TODO: make sure maxItems >= minItems
-        } else if (type === 'string') {
-          // TODO: make sure maxLength >= minLength
         }
       }
     }
