@@ -1,7 +1,5 @@
 import {
   Version,
-  Enforcer,
-  EnforcerController,
   Dereferenced,
   Referencable,
   Data,
@@ -12,23 +10,19 @@ import {
 } from './'
 import { Exception } from '../utils/Exception'
 import { noop } from '../utils/util'
-import { DefinitionResult } from '../DefinitionException/DefinitionResult'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import * as Xml from './Xml'
 import * as E from '../DefinitionException/methods'
 import { Schema2 as Definition2, Schema3 as Definition3 } from './helpers/DefinitionTypes'
 import * as SchemaHelper from './helpers/schema-functions'
+import { Result } from '../utils/Result'
 
 type Definition = Definition2 | Definition3
 
 interface ComponentsMap {
   Discriminator: ExtendedComponent | unknown
   Schema: ExtendedComponent | unknown
-}
-
-export interface ValidateOptions {
-  readWriteMode?: 'read' | 'write'
 }
 
 export function schemaGenerator (components: ComponentsMap, data: Data): ComponentSchema<Definition> {
@@ -87,38 +81,15 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
   }
 
   if (schema.builder === undefined) schema.builder = {}
+  /*
   schema.builder.after = (data: Data, enforcer) => {
     data.root.lastly.push(() => {
       const { built } = data.context
-
-      if (built.allOf !== undefined) {
-        // determine the type and format
-        let type = ''
-        let format = ''
-        built.allOf.forEach((schema: any) => {
-          if ('type' in schema) type = schema.type
-          if ('format' in schema) format = schema.format
-        })
-
-        const Schema = data.component.constructor
-        const def: Definition = {}
-
-        if (type === 'array') {
-
-        } else if (type === 'boolean') {
-
-        } else if (type === 'integer' || type === 'number') {
-
-        } else if (type === 'object') {
-
-        } else if (type === 'string') {
-
-        }
-
-        enforcer.allOf = { type, format }
-      }
+      const { type, format } = determineTypes(built, new Map()).get(true)
+      enforcer.schema = { type, format }
     })
   }
+  */
 
   schema.validator.after = (data: Data) => {
     const { built } = data.context
@@ -300,12 +271,14 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
 }
 
 export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSchema<Schema> {
-  readonly [Enforcer]!: EnforcerController<Definition> & {
-    allOf?: {
+  /*
+  readonly [Enforcer]!: EnforcerData<Definition> & {
+    schema: {
       type: string
       format: string
     }
   }
+  */
 
   readonly [key: `x-${string}`]: any
   readonly additionalProperties?: Referencable<HasReference, Schema<HasReference>> | boolean
@@ -322,106 +295,31 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
   readonly type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
   readonly xml?: Xml.Xml
 
-  deserialize (value: any): DefinitionResult {
-    // TODO: this function
-    return new DefinitionResult<any>(null)
+  deserialize<T> (value: any): Result<T> {
+    return SchemaHelper.deserialize(this, value)
   }
 
-  discriminate (value: any): { key: string, name: string, schema: Schema | null } {
+  discriminate<T> (value: any): SchemaHelper.DiscriminateResult<T> {
     return { key: '', name: '', schema: null }
   }
 
-  populate (value: any): DefinitionResult {
-    // TODO: this function
-    return new DefinitionResult<any>(null)
+  populate<T> (value: any): Result<T> {
+    return SchemaHelper.populate(this, value)
   }
 
-  random (value: any, options: { decimalPlaces: number, variation: number }): DefinitionResult {
-    // const exception = new Exception('Unable to generate random value:')
-    // TODO: this function
-    return new DefinitionResult<any>(null)
+  random<T> (value: any, options: SchemaHelper.RandomOptions): Result<T> {
+    return SchemaHelper.random(this, options)
   }
 
-  serialize (value: any): DefinitionResult<string> {
-    // TODO: this function
-    return new DefinitionResult<string>('')
+  serialize<T> (value: any): Result<T> {
+    return SchemaHelper.serialize(this, value)
   }
 
-  validate (value: any, options?: ValidateOptions): Exception | undefined {
-    const exception = new Exception('One or more exceptions occurred while validating object against schema:')
-    if (options === undefined) options = {}
-    // @ts-expect-error
-    const { result } = SchemaHelper.validate(this, value, new Map(), exception, options)
-    return result === true ? undefined : exception
-  }
-
-  static mergeAllOf (schemas: Schema[]): Schema {
-    const target: Definition = {}
-    const exception = new Exception('Unable to merge schemas:')
-    const definition = mergeSchemas(target, schemas as unknown as Definition[], new Map(), exception)
-    if (schemas[0] instanceof Schema) {
-      // @ts-expect-error
-      const value = new this(definition, schemas[0].enforcer.data.root.version)
-      // @ts-expect-error
-      return new DefinitionResult(value, exception)
-    } else {
-      // @ts-expect-error
-      return new DefinitionResult(definition, exception)
-    }
+  validate (value: any, options?: SchemaHelper.ValidateOptions): Exception | undefined {
+    return SchemaHelper.validate(this, value, options)
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])
   }
-}
-
-function mergeSchemas (target: Definition, schemas: Definition[], map: Map<Definition[], Definition>, exception: Exception): Definition {
-  return target
-
-  // determine the type and format
-  // const types = new Set<string>()
-  // const formats = new Set<string>()
-  // schemas.forEach((schema: any) => {
-  //   if ('type' in schema) {
-  //     types.add(schema.type)
-  //   } else if ()
-  //   if ('format' in schema) formats.add(schema.format)
-  // })
-  //
-  // // check for type or format conflicts
-  // const typesArray = Array.from(types)
-  // const formatsArray = Array.from(formats)
-  // if (typesArray.length > 1) {
-  //   exception.message('Schemas have conflicting types: ' + typesArray.join(', '))
-  //   return target
-  // }
-  // if (typesArray.length > 1) {
-  //   exception.message('Schemas have conflicting formats: ' + formatsArray.join(', '))
-  //   return target
-  // }
-  //
-  // const type = typesArray[0]
-  // if (type === 'array') {
-  //
-  // } else if (type === 'boolean') {
-  //
-  // } else if (type === 'integer' || type === 'number') {
-  //
-  // } else if (type === 'object') {
-  //
-  // } else if (type === 'string') {
-  //
-  // }
-  //
-  // if (type === 'array') {
-  //
-  // } else if (type === 'boolean') {
-  //
-  // } else if (type === 'integer' || type === 'number') {
-  //
-  // } else if (type === 'object') {
-  //
-  // } else if (type === 'string') {
-  //
-  // }
 }
