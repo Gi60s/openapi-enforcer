@@ -1,7 +1,7 @@
 import { expect } from 'chai'
-import { Exception } from '../../../src'
 import { Schema } from '../../../src/components/v3/Schema'
-import { deserialize, MapStore } from '../../../src/components/helpers/schema-functions'
+import { Schema3 as Definition } from '../../../src/components/helpers/DefinitionTypes'
+import { deserialize, serialize } from '../../../src/components/helpers/schema-functions'
 
 describe('schema-functions', () => {
   // describe('combinations', () => {
@@ -56,39 +56,34 @@ describe('schema-functions', () => {
   //   })
   // })
 
-  describe.only('deserialize', () => {
+  describe('deserialize', () => {
     it('can deserialize a boolean', () => {
       const schema = new Schema({ type: 'boolean' })
-      const exception = new Exception('Unable to deserialize')
-      const { result } = deserialize(schema, true, new MapStore<any>(), exception)
+      const [result] = deserialize(schema, true)
       expect(result).to.equal(true)
     })
 
     it('can deserialize a number', () => {
       const schema = new Schema({ type: 'number' })
-      const exception = new Exception('Unable to deserialize')
-      const { result } = deserialize(schema, '1', new MapStore<any>(), exception)
+      const [result] = deserialize(schema, '1')
       expect(result).to.equal(1)
     })
 
     it('can deserialize a string', () => {
       const schema = new Schema({ type: 'string' })
-      const exception = new Exception('Unable to deserialize')
-      const { result } = deserialize(schema, '1', new MapStore<any>(), exception)
+      const [result] = deserialize(schema, '1')
       expect(result).to.equal('1')
     })
 
     it('can deserialize a date', () => {
       const schema = new Schema({ type: 'string', format: 'date' })
-      const exception = new Exception('Unable to deserialize')
-      const { result } = deserialize(schema, '2000-01-01', new MapStore<any>(), exception)
+      const [result] = deserialize(schema, '2000-01-01')
       expect(result).to.be.an.instanceof(Date)
     })
 
     it('can deserialize a simple array', () => {
       const schema = new Schema({ type: 'array', items: { type: 'number' } })
-      const exception = new Exception('Unable to deserialize')
-      const { result } = deserialize(schema, ['1', '2'], new MapStore<any>(), exception)
+      const [result] = deserialize(schema, ['1', '2'])
       expect(result).to.deep.equal([1, 2])
     })
 
@@ -100,15 +95,13 @@ describe('schema-functions', () => {
           items: { type: 'number' }
         }
       })
-      const exception = new Exception('Unable to deserialize')
-      const { result } = deserialize(schema, [['1', '2'], [3], [4, '5']], new MapStore<any>(), exception)
+      const [result] = deserialize(schema, [['1', '2'], [3], [4, '5']])
       expect(result).to.deep.equal([[1, 2], [3], [4, 5]])
     })
 
     it('can deserialize a simple object with additionalProperties: true', () => {
       const schema = new Schema({ type: 'object', additionalProperties: true })
-      const exception = new Exception('Unable to deserialize')
-      const { result } = deserialize(schema, { a: 1, b: '2' }, new MapStore<any>(), exception)
+      const [result] = deserialize(schema, { a: 1, b: '2' })
       expect(result).to.deep.equal({ a: 1, b: '2' })
     })
 
@@ -120,8 +113,7 @@ describe('schema-functions', () => {
           b: { type: 'string' }
         }
       })
-      const exception = new Exception('Unable to deserialize')
-      const { result } = deserialize(schema, { a: '1', b: '2' }, new MapStore<any>(), exception)
+      const [result] = deserialize(schema, { a: '1', b: '2' })
       expect(result).to.deep.equal({ a: 1, b: '2' })
     })
 
@@ -142,16 +134,32 @@ describe('schema-functions', () => {
           }
         }
       })
-      const exception = new Exception('Unable to deserialize')
       const value = {
         n: '1',
         a: ['1', 2, 3.5],
         o: { d: '2000-01-01' }
       }
-      const { result } = deserialize(schema, value, new MapStore<any>(), exception)
+      const [result] = deserialize(schema, value)
       expect(result.n).to.equal(1)
       expect(result.a).to.deep.equal([1, 2, 3.5])
       expect(result.o.d).to.be.an.instanceof(Date)
+    })
+
+    it('can deserialize a recursive value', () => {
+      const def: Definition = {
+        type: 'object',
+        properties: {
+          b: { type: 'number' }
+        }
+      }
+      if (def.properties !== undefined) def.properties.a = def
+      const value: any = { b: '1' }
+      value.a = value
+
+      const schema = new Schema(def)
+      const [result] = deserialize(schema, value)
+      expect(result.a).to.equal(result)
+      expect(result.b).to.equal(1)
     })
 
     describe('allOf', () => {
@@ -159,8 +167,7 @@ describe('schema-functions', () => {
         const schema = new Schema({
           allOf: [{ type: 'number' }]
         })
-        const exception = new Exception('Unable to deserialize')
-        const { result } = deserialize(schema, '1', new MapStore<any>(), exception)
+        const [result] = deserialize(schema, '1')
         expect(result).to.equal(1)
       })
 
@@ -171,8 +178,7 @@ describe('schema-functions', () => {
             { minimum: 5 }
           ]
         })
-        const exception = new Exception('Unable to deserialize')
-        const { result } = deserialize(schema, '10', new MapStore<any>(), exception)
+        const [result] = deserialize(schema, '10')
         expect(result).to.equal(10)
       })
 
@@ -184,23 +190,157 @@ describe('schema-functions', () => {
             }
           ]
         })
-        const exception = new Exception('Unable to deserialize')
-        const { result } = deserialize(schema, '10', new MapStore<any>(), exception)
+        const [result] = deserialize(schema, '10')
         expect(result).to.equal(10)
       })
     })
 
     describe('oneOf', () => {
-      it('can select correct type based on value', () => {
+      it('will prefer number over string based on value type', () => {
         const schema = new Schema({
           oneOf: [
             { type: 'string' },
             { type: 'number' }
           ]
         })
-        const exception = new Exception('Unable to deserialize')
-        const { result } = deserialize(schema, '10', new MapStore<any>(), exception)
+        const [result] = deserialize(schema, '10')
         expect(result).to.equal(10)
+      })
+
+      it('will prefer Date over string based on value type', () => {
+        const schema = new Schema({
+          oneOf: [
+            { type: 'string' },
+            { type: 'string', format: 'date' }
+          ]
+        })
+        const [result] = deserialize(schema, '2000-01-01')
+        expect(result).to.be.an.instanceof(Date)
+      })
+    })
+  })
+
+  describe('serialize', () => {
+    it('can serialize a boolean', () => {
+      const schema = new Schema({ type: 'boolean' })
+      const [result] = serialize(schema, true)
+      expect(result).to.equal(true)
+    })
+
+    it('can serialize a number', () => {
+      const schema = new Schema({ type: 'number' })
+      const [result] = serialize(schema, 1)
+      expect(result).to.equal(1)
+    })
+
+    it('can serialize a string', () => {
+      const schema = new Schema({ type: 'string' })
+      const [result] = serialize(schema, '1')
+      expect(result).to.equal('1')
+    })
+
+    it('can serialize a date', () => {
+      const schema = new Schema({ type: 'string', format: 'date' })
+      const [result] = serialize(schema, new Date())
+      expect(result).to.match(/^\d{4}-\d{2}-\d{2}$/)
+    })
+
+    it('can serialize a simple array', () => {
+      const schema = new Schema({ type: 'array', items: { type: 'number' } })
+      const [result] = serialize(schema, [1, 2])
+      expect(result).to.deep.equal([1, 2])
+    })
+
+    it('can serialize a simple object with additionalProperties: true', () => {
+      const schema = new Schema({ type: 'object', additionalProperties: true })
+      const [result] = serialize(schema, { a: 1, b: '2' })
+      expect(result).to.deep.equal({ a: 1, b: '2' })
+    })
+
+    it('can serialize a simple object with specific properties', () => {
+      const schema = new Schema({
+        type: 'object',
+        properties: {
+          a: { type: 'number' },
+          b: { type: 'string' }
+        }
+      })
+      const [result] = deserialize(schema, { a: 1, b: '2' })
+      expect(result).to.deep.equal({ a: 1, b: '2' })
+    })
+
+    it('can serialize a recursive value', () => {
+      const def: Definition = {
+        type: 'object',
+        properties: {
+          b: { type: 'number' }
+        }
+      }
+      if (def.properties !== undefined) def.properties.a = def
+      const value: any = { b: 1 }
+      value.a = value
+
+      const schema = new Schema(def)
+      const [result] = serialize(schema, value)
+      expect(result.a).to.equal(result)
+      expect(result.b).to.equal(1)
+    })
+
+    describe('allOf', () => {
+      it('can serialize allOf with single item', () => {
+        const schema = new Schema({
+          allOf: [{ type: 'number' }]
+        })
+        const [result] = deserialize(schema, 1)
+        expect(result).to.equal(1)
+      })
+
+      it('can serialize allOf with multiple items of same type', () => {
+        const schema = new Schema({
+          allOf: [
+            { maximum: 15 },
+            { minimum: 5 }
+          ]
+        })
+        const [result] = deserialize(schema, 10)
+        expect(result).to.equal(10)
+      })
+
+      it('can serialize allOf with nested oneOf', () => {
+        const schema = new Schema({
+          allOf: [
+            {
+              oneOf: [{ type: 'number' }]
+            }
+          ]
+        })
+        const [result] = deserialize(schema, 10)
+        expect(result).to.equal(10)
+      })
+    })
+
+    describe('oneOf', () => {
+      it('will prefer number over string based on value type', () => {
+        const schema = new Schema({
+          oneOf: [
+            { type: 'string' },
+            { type: 'number' }
+          ]
+        })
+        const [result] = serialize(schema, 10)
+        expect(result).to.equal(10)
+      })
+
+      it('will prefer Date over string based on value type', () => {
+        const schema = new Schema({
+          oneOf: [
+            { type: 'string' },
+            { type: 'string', format: 'date' }
+          ]
+        })
+        const [result] = serialize(schema, new Date())
+        expect(result).to.match(/^\d{4}-\d{2}-\d{2}$/)
+        expect(typeof result).to.equal('string')
       })
     })
   })

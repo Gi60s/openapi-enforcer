@@ -1,11 +1,11 @@
 import { Exception } from '../../utils/Exception'
-import { ValidateOptions } from '../Schema'
 import { Schema2 as Definition2, Schema3 as Definition3 } from './DefinitionTypes'
 import { Schema as Schema2 } from '../v2/Schema'
 import { Schema as Schema3 } from '../v3/Schema'
 import { isObject, same, smart } from '../../utils/util'
 import { getDataTypeDefinition } from './DataTypes'
-import { Enforcer } from '../index'
+import { Result } from '../../utils/Result'
+import { OASComponent } from '../index'
 
 type Definition = Definition2 | Definition3
 type Schema = Schema2 | Schema3
@@ -22,6 +22,32 @@ interface DeterminedTypes {
 }
 
 type DeterminedTypesItems = Array<{ type: string, formats: string[] }>
+
+export interface DiscriminateResult<T> {
+  key: string
+  name: string
+  schema: T | null
+}
+
+export interface PopulateOptions {
+  defaults?: boolean
+  depth?: number
+  templates?: boolean
+  variables?: boolean
+  // templateDefaults?
+  // injector?
+}
+
+export interface RandomOptions {
+  decimalPlaces?: number
+  maxDepth?: number
+  minDepth?: number
+  variation?: number
+}
+
+export interface ValidateOptions {
+  readWriteMode?: 'read' | 'write'
+}
 
 // a map for determining type based on property and properties based on type
 const schemaPropertyMap = {
@@ -105,96 +131,10 @@ export class MapStore<R> {
   }
 }
 
-export function deserialize (schema: Schema, value: any, map: MapStore<any>, exception: Exception): MapItem<any> {
-  // watch for values that have already been deserialized against this value
-  const mapped = map.get(schema, value)
-  if (mapped.result !== undefined) return mapped
-
-  // handle nullable
-  if (value === null && (schema['x-nullable'] === true || ('nullable' in schema && schema.nullable === true))) {
-    return mapped.setResult(null)
-  }
-
-  const types = determineTypes(schema, new Map())
-  const { type, format } = types.get(true)
-
-  if (('anyOf' in schema || 'oneOf' in schema) && types.known.length === 0 && types.possible.length > 0) {
-    sortDeterminedTypes(types)
-    const length = types.possible.length
-    for (let i = 0; i < length; i++) {
-      const { type, formats } = types.possible[i]
-      const format = formats[0] ?? ''
-      const childException = new Exception()
-      const { result } = deserialize({ type, format } as Schema, value, new MapStore(), childException)
-      if (!childException.hasException) {
-        const resultType = typeof result
-        if (type === 'boolean' && resultType === 'boolean') return mapped.setResult(result)
-        if ((type === 'number' || type === 'integer') && resultType === 'number' && !isNaN(result)) return mapped.setResult(result)
-        if (type === 'string' && resultType === 'string') return mapped.setResult(result)
-        if (type === 'array' && Array.isArray(result)) return mapped.setResult(result)
-        if (type === 'object' && resultType === 'object') return mapped.setResult(result)
-
-        const dataType = getDataTypeDefinition(type, format)
-        if (dataType !== undefined) {
-          const length = dataType.constructors.length
-          for (let j = 0; j < length; j++) {
-            if (result instanceof dataType.constructors[j]) return mapped.setResult(result)
-          }
-        }
-      }
-    }
-
-    // unable to deserialize
-    const schemaKey = 'anyOf' in schema ? 'anyOf' : 'oneOf'
-    exception.at(schemaKey).message('Unable to determine deserialization method for value: ' + smart(value))
-  } else if (type === '') {
-    return mapped.setResult(value)
-  } else if (type === 'array') {
-    if (Array.isArray(value)) {
-      const result: any[] = []
-      const item = mapped.setResult(result)
-      value.forEach((v: any, i: number) => {
-        result.push(deserialize(schema.items as Schema, v, map, exception.at(i)).result)
-      })
-      return item
-    } else {
-      exception.message('Expected an array. Received: ' + smart(value))
-    }
-  } else if (type === 'object') {
-    if (isObject(value)) {
-      const result: any = {}
-      const item = mapped.setResult(result)
-      const additionalProperties = schema.additionalProperties ?? true
-      const properties = schema.properties ?? {}
-      Object.keys(value).forEach(key => {
-        if (key in properties) {
-          result[key] = deserialize(properties[key], value[key], map, exception.at(key)).result
-        } else if (additionalProperties === true) {
-          result[key] = value[key]
-        } else if (additionalProperties !== false) {
-          result[key] = deserialize(additionalProperties, value[key], map, exception.at(key)).result
-        }
-      })
-      if ('discriminator' in schema) {
-        const d = schema.discriminate(value)
-        if (d.schema !== null) {
-          Object.assign(result, deserialize(d.schema, value, map, exception).result)
-        } else {
-          exception.message('Discriminator property "' + d.key + '" as "' + d.name + '" did not map to a schema.')
-        }
-      }
-      return item
-    }
-  } else {
-    const dataType = getDataTypeDefinition(type, format)
-    if (dataType !== undefined) {
-      return mapped.setResult(dataType.deserialize(value, schema))
-    } else {
-      mapped.setResult(value)
-    }
-  }
-
-  return mapped
+export function deserialize<T = any> (schema: OASComponent, value: any): Result<T> {
+  const exception = new Exception('Unable to deserialize')
+  const { result } = serializer('deserialize', schema as unknown as Schema, value, new MapStore<any>(), exception)
+  return new Result<T>(result, exception)
 }
 
 export function determineTypes (def: Definition | Schema, map: Map<Definition | Schema, DeterminedTypes>): DeterminedTypes {
@@ -268,9 +208,123 @@ export function determineTypes (def: Definition | Schema, map: Map<Definition | 
   return result
 }
 
+export function populate<T> (schema: OASComponent, options?: PopulateOptions): Result<T> {
+
+}
+
+export function random<T> (schema: OASComponent, options?: RandomOptions): Result<T> {
+
+}
+
+export function serialize<T> (schema: OASComponent, value: any): Result<T> {
+  const exception = new Exception('Unable to serialize')
+  const { result } = serializer('serialize', schema as unknown as Schema, value, new MapStore<any>(), exception)
+  return new Result<T>(result, exception)
+}
+
+export function validate (schema: OASComponent, value: any, options?: ValidateOptions): Exception | undefined {
+  const exception = new Exception('One or more exceptions occurred while validating value:')
+  if (options === undefined) options = {}
+  const { result } = validater(schema as unknown as Schema, value, new MapStore(), exception, options)
+  return result === true ? undefined : exception
+}
+
+function serializer (mode: 'deserialize' | 'serialize', schema: Schema, value: any, map: MapStore<any>, exception: Exception): MapItem<any> {
+  // watch for values that have already been deserialized against this value
+  const mapped = map.get(schema, value)
+  if (mapped.result !== undefined) return mapped
+
+  // handle nullable
+  if (value === null && (schema['x-nullable'] === true || ('nullable' in schema && schema.nullable === true))) {
+    return mapped.setResult(null)
+  }
+
+  const types = determineTypes(schema, new Map())
+  const { type, format } = types.get(true)
+
+  if (('anyOf' in schema || 'oneOf' in schema) && types.known.length === 0 && types.possible.length > 0) {
+    sortDeterminedTypes(types)
+    const length = types.possible.length
+    for (let i = 0; i < length; i++) {
+      const { type, formats } = types.possible[i]
+      const format = formats[0] ?? ''
+      const childException = new Exception()
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      const { result } = serializer(mode, { type, format } as Schema, value, new MapStore(), childException)
+      if (!childException.hasException) {
+        const resultType = typeof result
+        if (type === 'boolean' && resultType === 'boolean') return mapped.setResult(result)
+        if ((type === 'number' || type === 'integer') && resultType === 'number' && !isNaN(result)) return mapped.setResult(result)
+        if (type === 'string' && resultType === 'string') return mapped.setResult(result)
+        if (type === 'array' && Array.isArray(result)) return mapped.setResult(result)
+        if (type === 'object' && resultType === 'object') return mapped.setResult(result)
+
+        const dataType = getDataTypeDefinition(type, format)
+        if (dataType !== undefined) {
+          const length = dataType.constructors.length
+          for (let j = 0; j < length; j++) {
+            if (result instanceof dataType.constructors[j]) return mapped.setResult(result)
+          }
+        }
+      }
+    }
+
+    // unable to deserialize or serialize
+    const schemaKey = 'anyOf' in schema ? 'anyOf' : 'oneOf'
+    exception.at(schemaKey).message('Unable to determine ' + (mode === 'serialize' ? 'serialization' : 'deserialization') + ' method for value: ' + smart(value))
+  } else if (type === '' || 'not' in schema) {
+    return mapped.setResult(value)
+  } else if (type === 'array') {
+    if (Array.isArray(value)) {
+      const result: any[] = []
+      const item = mapped.setResult(result)
+      value.forEach((v: any, i: number) => {
+        result.push(serializer(mode, schema.items as Schema, v, map, exception.at(i)).result)
+      })
+      return item
+    } else {
+      exception.message('Expected an array. Received: ' + smart(value))
+    }
+  } else if (type === 'object') {
+    if (isObject(value)) {
+      const result: any = {}
+      const item = mapped.setResult(result)
+      const additionalProperties = schema.additionalProperties ?? true
+      const properties = schema.properties ?? {}
+      Object.keys(value).forEach(key => {
+        if (key in properties) {
+          result[key] = serializer(mode, properties[key], value[key], map, exception.at(key)).result
+        } else if (additionalProperties === true) {
+          result[key] = value[key]
+        } else if (additionalProperties !== false) {
+          result[key] = serializer(mode, additionalProperties, value[key], map, exception.at(key)).result
+        }
+      })
+      if ('discriminator' in schema) {
+        const d = schema.discriminate(value)
+        if (d.schema !== null) {
+          Object.assign(result, serializer(mode, d.schema, value, map, exception).result)
+        } else {
+          exception.message('Discriminator property "' + d.key + '" as "' + d.name + '" did not map to a schema.')
+        }
+      }
+      return item
+    }
+  } else {
+    const dataType = getDataTypeDefinition(type, format)
+    if (dataType !== undefined) {
+      return mapped.setResult(dataType[mode](value, schema))
+    } else {
+      mapped.setResult(value)
+    }
+  }
+
+  return mapped
+}
+
 // validate a deserialized value
-// TODO: how to handle validation if the schema is a dereferenced object?
-export function validate (schema: Schema, value: any, map: MapStore<boolean>, exception: Exception, options: ValidateOptions): MapItem<boolean> {
+// TODO: how to handle validation if the schema is not a dereferenced object?
+function validater (schema: Schema, value: any, map: MapStore<boolean>, exception: Exception, options: ValidateOptions): MapItem<boolean> {
   // watch for values that have already been validated against this value
   const mapped = map.get(schema, value)
   if (mapped.result !== undefined) return mapped
@@ -284,7 +338,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
   if ('allOf' in schema) {
     const child = exception.nest('Did not validate against all schemas')
     schema.allOf?.forEach((schema, index) => {
-      const { result } = validate(schema, value, map, child, options)
+      const { result } = validater(schema, value, map, child.at(index), options)
       if (result === false) valid = false
     })
   } else if ('anyOf' in schema && schema.anyOf !== undefined) {
@@ -294,7 +348,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
         exception.message(`Discriminator property "${key}" as "${String(value[key])}" did not map to a schema.`)
         valid = false
       } else {
-        const { result } = validate(childSchema, value, map, exception.at(value[key]), options)
+        const { result } = validater(childSchema, value, map, exception.at(value[key]), options)
         if (result === false) valid = false
       }
     } else {
@@ -303,7 +357,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
       let foundValidAnyOf = false
       for (let i = 0; i < length; i++) {
         const child = anyOfException.at(i)
-        const { result } = validate(schema.anyOf[i], value, map, child, options)
+        const { result } = validater(schema.anyOf[i], value, map, child, options)
         if (result === true) {
           foundValidAnyOf = true
           break
@@ -315,7 +369,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
       }
     }
   } else if ('not' in schema) {
-    const { result } = validate(schema, value, map, new Exception(), options)
+    const { result } = validater(schema, value, map, new Exception(), options)
     if (result === true) {
       exception.message('Value should not validate against schema')
       valid = false
@@ -352,7 +406,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
       }
       if (schema.items !== undefined) {
         value.forEach((val, index) => {
-          const { result } = validate(schema.items as Schema, val, map, exception.at(index), options)
+          const { result } = validater(schema.items as Schema, val, map, exception.at(index), options)
           if (result === false) valid = false
         })
       }
@@ -387,7 +441,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
         if (key in properties) {
           const prop = properties[key]
           if ((readWriteMode === 'write' && prop.readOnly === true) || (readWriteMode === 'read' && (prop as Schema3).writeOnly === true)) readWriteOnly.push(key)
-          const { result } = validate(prop, value[key], map, exception.at(key), options)
+          const { result } = validater(prop, value[key], map, exception.at(key), options)
           if (result === false) valid = false
         } else {
           if (schema.additionalProperties === false) {
@@ -396,7 +450,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
           } else if (typeof schema.additionalProperties === 'object') {
             const prop = schema.additionalProperties
             if ((readWriteMode === 'write' && prop.readOnly === true) || (readWriteMode === 'read' && (prop as Schema3).writeOnly === true)) readWriteOnly.push(key)
-            const { result } = validate(prop, value[key], map, exception.at(key), options)
+            const { result } = validater(prop, value[key], map, exception.at(key), options)
             if (result === false) valid = false
           }
         }
@@ -434,7 +488,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
       if (schema.discriminator !== undefined) {
         const details = schema.discriminate(value)
         if (details.schema != null) {
-          const { result } = validate(details.schema, value, map, exception, options)
+          const { result } = validater(details.schema, value, map, exception, options)
           if (result === false) valid = false
         } else if (details.name !== undefined) {
           exception.message('Discriminator property "' + details.key + '" as "' + details.name + '" did not map to a schema')
@@ -513,7 +567,7 @@ function sortDeterminedTypes (store: DeterminedTypes): void {
     })
     // @ts-expect-error
     store[key].forEach(item => {
-      item.formats.sort((a, b) => {
+      item.formats.sort((a: string, b: string) => {
         if (a === '') return 1
         if (b === '') return -1
         return -1
