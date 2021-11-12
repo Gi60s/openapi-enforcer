@@ -34,7 +34,7 @@ export function defaultRequiredConflict (data: Data): ExceptionMessageDataInput 
   return getExceptionMessageData('DEFAULT_REQUIRED_CONFLICT', {}, data)
 }
 
-export function defaultValueDoesNotMatchSchema (defaultValue: any, data: DataR): ExceptionMessageDataInput {
+export function defaultValueDoesNotMatchSchema (defaultValue: any, data: Data): ExceptionMessageDataInput {
   return getExceptionMessageData('DEFAULT_VALUE_DOES_NOT_MATCH_SCHEMA', { defaultValue }, data)
 }
 
@@ -54,7 +54,7 @@ export function enumMissingValues (data: Data): ExceptionMessageDataInput {
   return getExceptionMessageData('ENUM_MISSING_VALUES', {}, data)
 }
 
-export function enumNotMet (acceptableValues: any[], invalidValue: any, data: DataR): ExceptionMessageDataInput {
+export function enumNotMet (acceptableValues: any[], invalidValue: any, data: Data): ExceptionMessageDataInput {
   const result = getExceptionMessageData('ENUM_NOT_MET', { acceptableValues, invalidValue }, data)
   result.message = acceptableValues.length > 1
     ? 'Value must be one of: ' + smart(acceptableValues, true) + '. Received: ' + smart(invalidValue, true)
