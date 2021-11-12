@@ -3,10 +3,9 @@ import { Exception } from './Exception'
 export class Result<T=any> {
   readonly '0'?: T
   readonly '1'?: Exception
-  readonly exception?: Exception
 
   constructor (value: T | undefined, exception?: Exception) {
-    if (exception?.hasException) {
+    if (exception?.hasException === true) {
       this[0] = undefined
       this[1] = exception
     } else {
@@ -21,6 +20,10 @@ export class Result<T=any> {
 
   get hasError (): boolean {
     return this[1] !== undefined
+  }
+
+  get length (): 2 {
+    return 2
   }
 
   get value (): T | undefined {
