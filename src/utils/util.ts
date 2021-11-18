@@ -1,11 +1,7 @@
 import rx from './rx'
-import { ExceptionMessageData, Level } from '../DefinitionException/types'
+import { ExceptionMessageData } from '../DefinitionException/types'
 import { Location } from 'json-to-ast'
 import { SpecMap, Version } from '../components'
-
-export interface EnforcerDirective {
-  exceptionCodeLevels: Record<string, Level>
-}
 
 interface BooleanMap {
   [key: string]: boolean
@@ -31,14 +27,6 @@ interface ToPlainObjectOptions {
 interface ToPlainObjectResult {
   set: boolean
   value?: any
-}
-
-export function addExceptionLocation (message: ExceptionMessageData, ...locations: Array<Location|undefined>): void {
-  const filtered: Location[] = locations.filter(l => l !== undefined) as Location[]
-  if (filtered.length > 0) {
-    if (!Array.isArray(message.locations)) message.locations = []
-    message.locations.push(...filtered)
-  }
 }
 
 export function booleanMapToStringArray (map: BooleanMap): string[] {
@@ -203,27 +191,6 @@ export function no (): false {
 }
 
 export function noop (): void {}
-
-export function parseEnforcerExtensionDirective (directive: string): EnforcerDirective {
-  const result: EnforcerDirective = {
-    exceptionCodeLevels: {} // Example: "exception: ERCODE=warn CODEN2=ignore"
-  }
-  directive
-    .split(';')
-    .forEach(v => {
-      const [directive, data] = v.split(':').map(v => v.trim())
-      if (directive === 'exception') {
-        data.split(/ +/)
-          .forEach(set => {
-            const [code, value] = set.split(/ *= */).map(v => v.trim())
-            if (value === 'ignore' || value === 'opinion' || value === 'warn' || value === 'error') {
-              result.exceptionCodeLevels[code] = value
-            }
-          })
-      }
-    })
-  return result
-}
 
 export function required (isRequired?: any): boolean {
   if (isRequired === undefined) isRequired = true

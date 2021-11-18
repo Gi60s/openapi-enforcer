@@ -1,4 +1,5 @@
 import {
+  Enforcer,
   Version,
   Dereferenced,
   Referencable,
@@ -6,9 +7,8 @@ import {
   SchemaArray,
   SchemaComponent,
   DefinitionException,
-  ComponentSchema, ExtendedComponent
+  ComponentSchema, ExtendedComponent, EnforcerData, EnforcerExtensionSchema
 } from './'
-import { Exception } from '../utils/Exception'
 import { noop } from '../utils/util'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as ExternalDocumentation from './ExternalDocumentation'
@@ -16,7 +16,6 @@ import * as Xml from './Xml'
 import * as E from '../DefinitionException/methods'
 import { Schema2 as Definition2, Schema3 as Definition3 } from './helpers/DefinitionTypes'
 import * as SchemaHelper from './helpers/schema-functions'
-import { Result } from '../utils/Result'
 
 type Definition = Definition2 | Definition3
 
@@ -81,15 +80,27 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
   }
 
   if (schema.builder === undefined) schema.builder = {}
-  /*
   schema.builder.after = (data: Data, enforcer) => {
     data.root.lastly.push(() => {
       const { built } = data.context
-      const { type, format } = determineTypes(built, new Map()).get(true)
-      enforcer.schema = { type, format }
+
+      // create a merged schema (if possible) of this schema
+      if ('allOf' in built || 'anyOf' in built || 'oneOf' in built) {
+        const { type, format } = SchemaHelper.determineTypes(built, new Map()).get(true)
+
+        const target: Definition = {}
+        if (type !== undefined) target.type = type
+        if (format !== '') target.format = format
+
+        const map: Map<Schema, Definition> = new Map()
+        enforcer.schema = SchemaHelper.merge(built, target, map)
+      } else if ('not' in built) {
+        enforcer.schema = null
+      } else {
+        enforcer.schema = built
+      }
     })
   }
-  */
 
   schema.validator.after = (data: Data) => {
     const { built } = data.context
@@ -271,14 +282,9 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
 }
 
 export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSchema<Schema> {
-  /*
-  readonly [Enforcer]!: EnforcerData<Definition> & {
-    schema: {
-      type: string
-      format: string
-    }
+  readonly [Enforcer]!: EnforcerData<Schema, EnforcerExtensionSchema> & {
+    schema: Schema
   }
-  */
 
   readonly [key: `x-${string}`]: any
   readonly additionalProperties?: Referencable<HasReference, Schema<HasReference>> | boolean
@@ -294,30 +300,6 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
   readonly title?: string
   readonly type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
   readonly xml?: Xml.Xml
-
-  deserialize<T> (value: any): Result<T> {
-    return SchemaHelper.deserialize(this, value)
-  }
-
-  discriminate<T> (value: any): SchemaHelper.DiscriminateResult<T> {
-    return { key: '', name: '', schema: null }
-  }
-
-  populate<T> (value: any): Result<T> {
-    return SchemaHelper.populate(this, value)
-  }
-
-  random<T> (value: any, options: SchemaHelper.RandomOptions): Result<T> {
-    return SchemaHelper.random(this, options)
-  }
-
-  serialize<T> (value: any): Result<T> {
-    return SchemaHelper.serialize(this, value)
-  }
-
-  validate (value: any, options?: SchemaHelper.ValidateOptions): Exception | undefined {
-    return SchemaHelper.validate(this, value, options)
-  }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])

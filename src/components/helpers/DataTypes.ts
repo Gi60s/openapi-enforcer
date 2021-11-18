@@ -213,6 +213,17 @@ extendDataTypeDefinition<number, number>('number', '', { format: 'double' })
 extendDataTypeDefinition<number, number>('number', '', {
   type: 'integer',
   format: 'default',
+  random: function (this: DataType<number, number>, schema: Schema): number {
+    const { max, min } = determineMaxMin(this, schema, 'maximum', 'minimum', 1000)
+    return random.number({
+      decimalPlaces: 4,
+      exclusiveMax: schema.exclusiveMaximum ?? false,
+      exclusiveMin: schema.exclusiveMinimum ?? false,
+      min,
+      max,
+      multipleOf: schema.multipleOf === undefined ? 1 : this.deserialize(schema.multipleOf, schema)
+    })
+  },
   validate: function (value: number, exception: Exception, schema: Schema): boolean {
     if (typeof value !== 'number' || Math.round(value) !== value) {
       exception.message('Expected an integer. Received: ' + smart(value))
@@ -432,7 +443,7 @@ setDataTypeDefinition<Date, string>({
 extendDataTypeDefinition<Date, string>('string', 'date', {
   format: 'date-time',
   deserialize: function (value: string): Date {
-    if (typeof value !== 'string' || !rx.date.test(value)) {
+    if (typeof value !== 'string' || !rx.dateTime.test(value)) {
       throw Error('Expected a date string of the format YYYY-MM-DDThh:mm:ss.sssZ')
     } else {
       const d = new Date(value)

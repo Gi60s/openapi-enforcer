@@ -181,7 +181,7 @@ describe('Header component', () => {
         expect(error).to.equal(undefined)
       })
 
-      it.only('value must match the schema', () => {
+      it('value must match the schema', () => {
         const [error] = Header2.validate({ type: 'string', default: 1 })
         expect(error).to.match(/Value does not match schema/)
       })

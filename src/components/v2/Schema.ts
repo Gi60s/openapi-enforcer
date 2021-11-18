@@ -3,6 +3,7 @@ import * as Core from '../Schema'
 import * as Discriminator from '../v3/Discriminator'
 import { Schema2 as Definition } from '../helpers/DefinitionTypes'
 import { Swagger } from './Swagger'
+import * as SchemaHelper from '../helpers/schema-functions'
 
 export class Schema<HasReference=Dereferenced> extends Core.Schema<HasReference> {
   readonly discriminator?: string
@@ -11,7 +12,7 @@ export class Schema<HasReference=Dereferenced> extends Core.Schema<HasReference>
     super(Schema, definition, version, arguments[2])
   }
 
-  discriminate (value: any): { key: string, name: string, schema: Schema | null } {
+  discriminate<Schema> (value: any): SchemaHelper.DiscriminateResult<Schema> {
     if (this.discriminator === undefined) {
       throw Error('Unable to discriminate on an object with no discriminator.')
     } else {
@@ -21,7 +22,7 @@ export class Schema<HasReference=Dereferenced> extends Core.Schema<HasReference>
 
       const swagger = this[Enforcer].findAncestor<Swagger>(Swagger)
       const schema = swagger?.definitions?.[name] ?? null
-      return { key, name, schema }
+      return { key, name, schema: schema as unknown as Schema }
     }
   }
 

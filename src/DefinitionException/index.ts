@@ -3,7 +3,6 @@ import { ExceptionMessageData, ExceptionMessageDataInput, Level } from './types'
 import * as Config from '../utils/config'
 import { lookupLocation } from '../utils/loader'
 import { Location } from 'json-to-ast'
-import { parseEnforcerExtensionDirective } from '../utils/util'
 import { getExceptionMessageData } from './error-codes'
 
 const { inspect, eol } = adapter
@@ -83,10 +82,8 @@ export class DefinitionException {
     // 2. by global configuration
     const configLevels = Config.get().exceptions?.levels
     let invalidLevelChange: { level: Level, newLevel: Level, id: string, code: string, allowedLevels: string, alternateLevels: Level[] } | null = null
-    const directive: string | undefined = messageData.definition?.['x-enforcer']
-    const newLevel: Level | undefined = directive !== undefined
-      ? parseEnforcerExtensionDirective(directive)?.exceptionCodeLevels?.[messageData.code]
-      : configLevels?.[messageData.code]
+    const directive = messageData.definition?.['x-enforcer']?.exceptions
+    const newLevel: Level | undefined = directive?.[messageData.code] ?? configLevels?.[messageData.code]
     if (newLevel !== undefined && newLevel !== data.level) {
       if (messageData.alternateLevels.includes(newLevel)) {
         messageData.level = newLevel
@@ -109,7 +106,7 @@ export class DefinitionException {
     if (invalidLevelChange !== null && data.id !== 'EXCEPTION_LEVEL_CHANGE_INVALID') {
       this.message(getExceptionMessageData('EXCEPTION_LEVEL_CHANGE_INVALID', invalidLevelChange, {
         definition: messageData.definition,
-        locations: directive === 'string' ? [{ node: messageData.definition, key: 'x-enforcer', type: 'value' }] : []
+        locations: directive !== undefined ? [{ node: directive, key: messageData.code, type: 'value' }] : []
       }))
     }
 

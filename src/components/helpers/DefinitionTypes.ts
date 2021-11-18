@@ -1,6 +1,8 @@
+import { EnforcerExtension, EnforcerExtensionSchema } from '../'
 
 export interface Contact {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   name?: string
   url?: string
   email?: string
@@ -13,6 +15,7 @@ export interface Callback3 {
 
 export interface Components3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   callbacks?: Record<string, Callback3 | Reference>
   examples?: Record<string, Example3 | Reference>
   headers?: Record<string, Header3 | Reference>
@@ -29,12 +32,14 @@ export interface Definitions2 {
 }
 
 export interface Discriminator3 {
+  'x-enforcer'?: EnforcerExtension
   propertyName: string
   mapping?: Record<string, string>
 }
 
 export interface Encoding3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   allowReserved?: boolean
   contentType?: string
   explode?: boolean
@@ -44,6 +49,7 @@ export interface Encoding3 {
 
 export interface Example3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   description?: string
   externalValue?: string
   summary?: string
@@ -52,12 +58,12 @@ export interface Example3 {
 
 export interface ExternalDocumentation {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   description?: string
   url: string
 }
 
 export interface Header2 extends PartialSchema<Header2>{
-  [key: `x-${string}`]: any
   collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   description?: string
   type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
@@ -65,6 +71,7 @@ export interface Header2 extends PartialSchema<Header2>{
 
 export interface Header3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   deprecated?: boolean // defaults to false
   description?: string
   example?: any
@@ -77,6 +84,7 @@ export interface Header3 {
 
 export interface Info {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   title: string
   description?: string
   termsOfService?: string
@@ -86,19 +94,20 @@ export interface Info {
 }
 
 export interface Items2 extends PartialSchema<Items2>{
-  [key: `x-${string}`]: any
   collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
 }
 
 export interface License {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   name: string
   url?: string
 }
 
 export interface Link3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   description?: string
   operationId?: string
   operationRef?: string
@@ -109,6 +118,7 @@ export interface Link3 {
 
 export interface OpenAPI3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   components?: Components3
   externalDocs?: ExternalDocumentation
   info: Info
@@ -121,6 +131,7 @@ export interface OpenAPI3 {
 
 interface OperationBase {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   deprecated?: boolean
   description?: string
   externalDocs?: ExternalDocumentation
@@ -133,6 +144,7 @@ interface OperationBase {
 }
 
 export interface Operation2 extends OperationBase {
+  'x-enforcer'?: EnforcerExtension
   consumes?: string[]
   parameters?: Parameter2
   produces?: string[]
@@ -141,6 +153,7 @@ export interface Operation2 extends OperationBase {
 }
 
 export interface Operation3 extends OperationBase {
+  'x-enforcer'?: EnforcerExtension
   callbacks?: Record<string, Callback3 | Reference>
   parameters?: Parameter3
   requestBody?: RequestBody3 | Reference
@@ -150,6 +163,7 @@ export interface Operation3 extends OperationBase {
 
 export interface MediaType3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   encoding?: Record<string, Encoding3 | Reference>
   example?: any
   examples?: Record<string, Example3 | Reference>
@@ -158,6 +172,7 @@ export interface MediaType3 {
 
 export interface OAuthFlow3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   authorizationUrl?: string
   refreshUrl?: string
   scopes: string[]
@@ -166,6 +181,7 @@ export interface OAuthFlow3 {
 
 export interface OAuthFlows3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   authorizationCode?: OAuthFlows3
   clientCredentials?: OAuthFlows3
   implicit?: OAuthFlows3
@@ -173,7 +189,6 @@ export interface OAuthFlows3 {
 }
 
 export interface Parameter2 extends PartialSchema<Items2> {
-  [key: `x-${string}`]: any
   name: string
   in: 'body' | 'formData' | 'header' | 'path' | 'query'
   allowEmptyValue?: boolean
@@ -186,6 +201,7 @@ export interface Parameter2 extends PartialSchema<Items2> {
 
 export interface Parameter3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   name: string
   in: 'cookie' | 'header' | 'path' | 'query'
   allowEmptyValue?: boolean
@@ -201,6 +217,8 @@ export interface Parameter3 {
 }
 
 interface PartialSchema<Items> {
+  [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtensionSchema
   default?: any
   enum?: any[]
   exclusiveMaximum?: boolean
@@ -221,6 +239,7 @@ interface PartialSchema<Items> {
 
 interface PathItemBase<OperationDefinition, ParameterDefinition> {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   delete?: OperationDefinition
   description?: string
   get?: OperationDefinition
@@ -242,7 +261,8 @@ export interface PathItem3 extends PathItemBase<Operation3, Parameter3> {
 
 interface PathsBase<PathItemDefinition> {
   [key: `x-${string}`]: any
-  [path: string]: PathItemDefinition
+  'x-enforcer'?: EnforcerExtension
+  [path: `/${string}`]: PathItemDefinition
 }
 
 export interface Paths2 extends PathsBase<PathItem2> {}
@@ -250,11 +270,13 @@ export interface Paths2 extends PathsBase<PathItem2> {}
 export interface Paths3 extends PathsBase<PathItem3> {}
 
 export interface Reference {
+  'x-enforcer'?: EnforcerExtension
   $ref: string
 }
 
 export interface RequestBody3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   description?: string
   content: Record<string, MediaType3>
   required?: boolean
@@ -262,6 +284,7 @@ export interface RequestBody3 {
 
 interface ResponseBase {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   description: string
 }
 
@@ -279,16 +302,19 @@ export interface Response3 extends ResponseBase {
 
 export interface Responses2 {
   [key: `x-${string}`]: any
-  [code: string | number]: Response2
+  'x-enforcer'?: EnforcerExtension
+  default?: Response2
+  [code: number]: Response2
 }
 
 export interface Responses3 {
   [key: `x-${string}`]: any
-  [code: string | number]: Response3
+  'x-enforcer'?: EnforcerExtension
+  default?: Response3
+  [code: number]: Response3
 }
 
 interface SchemaBase<SchemaDefinition> extends PartialSchema<SchemaDefinition> {
-  [key: `x-${string}`]: any
   additionalProperties?: SchemaDefinition | boolean
   allOf?: Array<SchemaDefinition | Reference>
   description?: string
@@ -325,6 +351,7 @@ export interface SecurityRequirement {
 
 interface SecuritySchemeBase {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   description?: string
   in: string
   name: string
@@ -347,6 +374,7 @@ export interface SecurityScheme3 extends SecuritySchemeBase {
 
 export interface Server3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   description?: string
   url: string
   variables?: Record<string, ServerVariable3>
@@ -354,6 +382,7 @@ export interface Server3 {
 
 export interface ServerVariable3 {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   enum?: string[]
   default: string
   description?: string
@@ -361,6 +390,7 @@ export interface ServerVariable3 {
 
 export interface Swagger {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   basePath?: string
   consumes?: string[]
   definitions?: Definitions2
@@ -380,6 +410,7 @@ export interface Swagger {
 
 export interface Tag {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   name: string
   description?: string
   externalDocs?: ExternalDocumentation
@@ -387,6 +418,7 @@ export interface Tag {
 
 export interface Xml {
   [key: `x-${string}`]: any
+  'x-enforcer'?: EnforcerExtension
   name?: string
   namespace?: string
   prefix?: string

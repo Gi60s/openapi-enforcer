@@ -6,7 +6,7 @@ import { copy, getLatestSpecVersion, isObject, same, smart } from '../utils/util
 import { LoaderMetadata } from '../utils/loader'
 import { DefinitionResult } from '../DefinitionException/DefinitionResult'
 import * as Loader from '../utils/loader'
-import { ExceptionMessageDataInput } from '../DefinitionException/types'
+import { ExceptionMessageDataInput, Level } from '../DefinitionException/types'
 import {
   Operation2 as OperationDefinition2,
   Operation3 as OperationDefinition3,
@@ -93,12 +93,27 @@ export interface Data<Definition=any> {
   }
 }
 
-export interface EnforcerData<Definition> {
+export interface EnforcerData<Definition, Extension=EnforcerExtension> {
   [key: string]: any
   data: Data<Definition>
+  extension: Extension
   metadata: DataMetadata
   findAncestor: <T>(component: ExtendedComponent) => T | undefined
   findAncestorData: (component: ExtendedComponent) => Data<Definition> | undefined
+}
+
+export interface EnforcerExtension {
+  exceptions?: Record<string, Level> // the key is the code to modify the level on and the value is the new level
+}
+
+export interface EnforcerExtensionSchema extends EnforcerExtension {
+  populate?: {
+    condition?: string // The name of the parameter to check for truthy value before populating the value
+    default?: any // When populating, overwrite the schema default with this value. If the type is a string then replacement may occur.
+    id?: string // The parameter name to use to find the replacement value. String replacement will not occur.
+    replacement?: 'colon' | 'doubleHandlebar' | 'handlebar' | 'none' // Set to none to skip parameter replacement.
+    useDefault?: boolean // Set to false to prevent the default value from being used during populate.
+  }
 }
 
 export interface LoaderOptions {
@@ -253,6 +268,7 @@ export abstract class OASComponent<Definition=any> {
     this[Enforcer] = {
       data,
       metadata: data.root.metadata,
+      extension: (data.context.definition as any)['x-enforcer'] ?? {},
       findAncestor<T> (component: ExtendedComponent): T | undefined {
         const ancestorData = findAncestor(data, component as unknown as ExtendedComponent)
         if (ancestorData === undefined) return
@@ -943,122 +959,6 @@ export function validate (data: Data): boolean {
       const success = validateObjectProperties(built, data)
       if (success) context.built = built
       return success
-      // const schema = data.context.schema as SchemaObject
-      //
-      // const schemaProperties = schema.properties !== undefined ? schema.properties : []
-      // const missingRequiredProperties: string[] = []
-      // const validatedProperties: string[] = []
-      // const childrenData: { [key: string]: Data } = {}
-      // const notAllowed: NotAllowed[] = []
-      //
-      // // identify which properties are compatible with this version
-      // const versionProperties = schemaProperties
-      //   .filter(prop => prop.versions === undefined || versionMatch(version, prop.versions))
-      //   .map(prop => prop.name)
-      //
-      // // validate named properties and set defaults
-      // let success = true
-      // schemaProperties.forEach(prop => {
-      //   const name = prop.name
-      //   const child = childrenData[name] = createChildData(data, definition[name], name, prop.schema)
-      //   const allowed = prop.notAllowed === undefined
-      //   const versionMismatch = prop.versions !== undefined ? !versionMatch(version, prop.versions) : false
-      //   if (name in definition) {
-      //     validatedProperties.push(name)
-      //     if (versionMismatch) {
-      //       if (!versionProperties.includes(name)) {
-      //         notAllowed.push({
-      //           name,
-      //           reason: 'Not part of OpenAPI specification version ' + version
-      //         })
-      //       }
-      //     } else if (!allowed) {
-      //       notAllowed.push({
-      //         name,
-      //         reason: prop.notAllowed as string
-      //       })
-      //     } else {
-      //       const childSuccess = validate(child)
-      //       if (childSuccess) built[name] = child.context.built
-      //       success = success && childSuccess
-      //     }
-      //   } else if (prop.required === true && allowed) {
-      //     missingRequiredProperties.push(name)
-      //   } else if ('default' in prop.schema && allowed) {
-      //     built[name] = child.context.built = prop.schema.default
-      //   }
-      // })
-      //
-      // // validate other definition properties
-      // const additionalProperties: Schema | boolean = (() => {
-      //   if (schema.additionalProperties === undefined) return false
-      //   if (typeof schema.additionalProperties === 'boolean') return schema.additionalProperties
-      //   return schema.additionalProperties
-      // })()
-      // Object.keys(definition).forEach(key => {
-      //   // if property already validated then don't validate against additionalProperties
-      //   if (validatedProperties.includes(key)) return
-      //
-      //   // if a schema extension
-      //   if (rx.extension.test(key)) {
-      //     if (!schema.allowsSchemaExtensions && key !== 'x-enforcer') {
-      //       const extensionNotAllowed = E.extensionNotAllowed({
-      //         definition: definition[key],
-      //         locations: [{ node: definition, key, type: 'key' }],
-      //         reference
-      //       })
-      //       exception.message(extensionNotAllowed)
-      //       if (extensionNotAllowed.level === 'error') success = false
-      //     }
-      //     return
-      //   }
-      //
-      //   // validate property
-      //   const def = definition[key]
-      //   if (additionalProperties === false) {
-      //     notAllowed.push({
-      //       name: key,
-      //       reason: 'Property not part of the specification.'
-      //     })
-      //   } else if (additionalProperties !== true) {
-      //     const child = createChildData(data, def, key, additionalProperties)
-      //     const childSuccess = validate(child)
-      //     if (childSuccess) built[key] = child.context.built
-      //     success = success && childSuccess
-      //   } else {
-      //     built[key] = def
-      //   }
-      // })
-      //
-      // // report any properties that are not allowed
-      // if (notAllowed.length > 0) {
-      //   let notAllowedErrorCount = 0
-      //   notAllowed.sort((a: NotAllowed, b: NotAllowed) => a.name < b.name ? -1 : 1)
-      //   notAllowed.forEach(reason => {
-      //     const propertyNotAllowed = E.propertyNotAllowed(reason.name, reason.reason, {
-      //       definition,
-      //       locations: [{ node: definition, key: reason.name, type: 'key' }],
-      //       reference
-      //     })
-      //     const { level } = exception.message(propertyNotAllowed)
-      //     if (level === 'error') notAllowedErrorCount++
-      //   })
-      //   if (notAllowedErrorCount > 0) success = false
-      // }
-      //
-      // // report on missing required properties
-      // if (missingRequiredProperties.length > 0) {
-      //   const eMissingRequiredProperties = E.missingRequiredProperties(missingRequiredProperties, {
-      //     definition,
-      //     locations: [{ node: definition }],
-      //     reference
-      //   })
-      //   const { level } = exception.message(eMissingRequiredProperties)
-      //   if (level === 'error') success = false
-      // }
-      //
-      // if (success) context.built = built
-      // return success
     })
   } else if (schema.type === 'oneOf') {
     const s = schema as unknown as SchemaOneOf
