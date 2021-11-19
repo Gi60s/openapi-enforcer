@@ -10,7 +10,7 @@ export interface Contact {
 
 export interface Callback3 {
   [key: `x-${string}`]: any
-  [pathItem: string]: PathItem3
+  [expression: string]: PathItem3
 }
 
 export interface Components3 {

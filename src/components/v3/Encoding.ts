@@ -16,12 +16,12 @@ import { Encoding3 as Definition, MediaType3 as MediaTypeDefinition, Schema3 as 
 import * as Serilizer from '../helpers/serializer'
 
 export class Encoding<HasReference=Dereferenced> extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly allowReserved?: boolean
-  readonly contentType?: string
-  readonly explode?: boolean
-  readonly headers?: Record<string, Referencable<HasReference, Header<HasReference>>>
-  readonly style!: 'form' | 'spaceDelimited' | 'pipeDelimited' | 'deepObject'
+  extensions!: Record<string, any>
+  allowReserved?: boolean
+  contentType?: string
+  explode?: boolean
+  headers?: Record<string, Referencable<HasReference, Header<HasReference>>>
+  style!: 'form' | 'spaceDelimited' | 'pipeDelimited' | 'deepObject'
 
   constructor (definition: Definition, version?: Version) {
     super(Encoding, definition, version, arguments[2])
@@ -90,9 +90,11 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
             type: 'object',
             allowsSchemaExtensions: false,
             additionalProperties: {
-              type: 'component',
-              allowsRef: true,
-              component: Header
+              schema: {
+                type: 'component',
+                allowsRef: true,
+                component: Header
+              }
             }
           }
         },
@@ -112,7 +114,7 @@ export class Encoding<HasReference=Dereferenced> extends OASComponent {
           // additional "style" property validation
           // The Encoding Object may only exist for requestBodies where the
           // media type is multipart or application/x-www-form-urlencoded
-          if (!ignoreStyle) {
+          if (ignoreStyle === false) {
             const style = built.style
             const validStyle = Serilizer.styleMatchesType('query', style, type, built.explode)
             if (!validStyle) {

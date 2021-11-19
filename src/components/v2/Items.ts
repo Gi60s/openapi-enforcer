@@ -3,9 +3,9 @@ import * as PartialSchema from '../helpers/PartialSchema'
 import { Items2 as Definition } from '../helpers/DefinitionTypes'
 
 export class Items extends PartialSchema.PartialSchema<Items> {
-  readonly [key: `x-${string}`]: any
-  readonly collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
-  readonly type!: 'array' | 'boolean' | 'integer' | 'number' | 'string'
+  extensions!: Record<string, any>
+  collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
+  type!: 'array' | 'boolean' | 'integer' | 'number' | 'string'
 
   constructor (definition: Definition, version?: Version) {
     super(Items, definition, version, arguments[2])

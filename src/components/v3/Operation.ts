@@ -13,10 +13,10 @@ import { Responses } from './Responses'
 import { Operation3 as Definition } from '../helpers/DefinitionTypes'
 
 export class Operation<HasReference=Dereferenced> extends Core.Operation<HasReference> {
-  readonly callbacks?: Record<string, Referencable<HasReference, Callback>>
-  readonly parameters?: Array<Parameter<HasReference>>
-  readonly requestBody?: Referencable<HasReference, RequestBody>
-  readonly servers?: Server[]
+  callbacks?: Record<string, Referencable<HasReference, Callback>>
+  parameters?: Array<Parameter<HasReference>>
+  requestBody?: Referencable<HasReference, RequestBody>
+  servers?: Server[]
 
   constructor (definition: Definition, version?: Version) {
     super(Operation, definition, version, arguments[2])

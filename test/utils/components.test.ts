@@ -81,19 +81,19 @@ interface BasicDefinition {
 }
 
 class Basic extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly any?: any
-  readonly array?: Array<{ x?: number, y?: number }>
-  readonly boolean!: boolean
-  readonly number?: number
-  readonly object?: { x?: number, y?: number }
-  readonly string?: string
+  extensions!: Record<string, any>
+  any?: any
+  array?: Array<{ x?: number, y?: number }>
+  boolean!: boolean
+  number?: number
+  object?: { x?: number, y?: number }
+  string?: string
 
   constructor (definition: BasicDefinition, version?: Version) {
     super(Basic, definition, version, arguments[2])
   }
 
-  static schemaGenerator (): ComponentSchema {
+  static schemaGenerator (): ComponentSchema<BasicDefinition> {
     return copy(basicSchemaObject)
   }
 
@@ -111,13 +111,13 @@ interface HasChildComponentDefinition extends BasicDefinition {
 }
 
 class HasChildComponent extends OASComponent {
-  readonly any?: any
-  readonly array?: Array<{ x?: number, y?: number }>
-  readonly boolean!: boolean
-  readonly component?: Basic
-  readonly number?: number
-  readonly object?: { x?: number, y?: number }
-  readonly string?: string
+  any?: any
+  array?: Array<{ x?: number, y?: number }>
+  boolean!: boolean
+  component?: Basic
+  number?: number
+  object?: { x?: number, y?: number }
+  string?: string
 
   constructor (definition: HasChildComponentDefinition, version?: Version) {
     super(HasChildComponent, definition, version, arguments[2])
@@ -151,13 +151,13 @@ interface LoopComponentDefinition extends BasicDefinition {
 }
 
 class LoopComponent extends OASComponent {
-  readonly any?: any
-  readonly array?: Array<{ x?: number, y?: number }>
-  readonly boolean!: boolean
-  readonly component?: LoopComponent
-  readonly number?: number
-  readonly object?: { x?: number, y?: number, z?: object }
-  readonly string?: string
+  any?: any
+  array?: Array<{ x?: number, y?: number }>
+  boolean!: boolean
+  component?: LoopComponent
+  number?: number
+  object?: { x?: number, y?: number, z?: object }
+  string?: string
 
   constructor (definition: LoopComponentDefinition, version?: Version) {
     super(LoopComponent, definition, version, arguments[2])
@@ -242,7 +242,7 @@ describe('Generic component tests', () => {
     it('will add extension properties if extensions allowed', function () {
       const component = new Basic({ 'x-foo': 'string' })
       expect(component).to.be.instanceOf(Basic)
-      expect(component['x-foo']).to.equal('string')
+      expect(component.extensions.foo).to.equal('string')
     })
 
     it('will not add extension properties if extensions not allowed', function () {
@@ -431,7 +431,7 @@ describe('Generic component tests', () => {
   describe('type: object', () => {
     describe('required properties', () => {
       class Test extends OASComponent {
-        readonly required!: boolean
+        required!: boolean
 
         constructor (definition: any, version?: Version) {
           super(Test, definition, version, arguments[2])
@@ -441,9 +441,8 @@ describe('Generic component tests', () => {
           '3.0.0': ''
         }
 
-        static schemaGenerator (): SchemaObject {
+        static schemaGenerator (): ComponentSchema<any> {
           return {
-            type: 'object',
             allowsSchemaExtensions: false,
             properties: [
               {

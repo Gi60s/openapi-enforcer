@@ -2,61 +2,8 @@ import { expect } from 'chai'
 import { Schema } from '../../../src/components/v3/Schema'
 import { Schema3 as Definition } from '../../../src/components/helpers/DefinitionTypes'
 import { deserialize, serialize } from '../../../src/components/helpers/schema-functions'
-import { Enforcer } from '../../../src/components'
 
-describe.only('schema-functions', () => {
-  // describe('combinations', () => {
-  //   it('will return a single schema if there are no additional combinations', () => {
-  //     const results = combinations({ type: 'string' })
-  //     expect(results.length).to.equal(1)
-  //     expect(results[0]).to.deep.equal({ type: 'string' })
-  //   })
-  //
-  //   describe('allOf', () => {
-  //     it('will merge single layer allOf items into one', () => {
-  //       const results = combinations({
-  //         allOf: [
-  //           { type: 'string' },
-  //           { minLength: 10 }
-  //         ]
-  //       })
-  //       expect(results.length).to.equal(1)
-  //       expect(results[0]).to.deep.equal({ type: 'string', minLength: 10 })
-  //     })
-  //   })
-  //
-  //   describe('oneOf', () => {
-  //     it('will find all combos in a single layer oneOf', () => {
-  //       const results = combinations({
-  //         oneOf: [
-  //           { type: 'string' },
-  //           { type: 'number' }
-  //         ]
-  //       })
-  //       expect(results.length).to.equal(2)
-  //       expect(results[0]).to.deep.equal({ type: 'string' })
-  //       expect(results[1]).to.deep.equal({ type: 'number' })
-  //     })
-  //
-  //     it('oneOf with nested allOf', () => {
-  //       const results = combinations({
-  //         oneOf: [
-  //           {
-  //             allOf: [
-  //               { type: 'string' },
-  //               { minLength: 10 }
-  //             ]
-  //           },
-  //           { type: 'number' }
-  //         ]
-  //       })
-  //       expect(results.length).to.equal(2)
-  //       expect(results[0]).to.deep.equal({ type: 'number' })
-  //       expect(results[1]).to.deep.equal({ type: 'string', minLength: 10 })
-  //     })
-  //   })
-  // })
-
+describe('schema-functions', () => {
   describe('deserialize', () => {
     it('can deserialize a boolean', () => {
       const schema = new Schema({ type: 'boolean' })
@@ -231,7 +178,7 @@ describe.only('schema-functions', () => {
             { minItems: 5 }
           ]
         })
-        const schema2 = schema[Enforcer].schema
+        const schema2 = schema.enforcer.schema
         expect(schema2.type).to.equal('number')
         expect(schema2.minimum).to.equal(5)
         expect(schema2.maximum).to.equal(5)
@@ -248,7 +195,7 @@ describe.only('schema-functions', () => {
             { minItems: 5 }
           ]
         })
-        const schema2 = schema[Enforcer].schema
+        const schema2 = schema.enforcer.schema
         expect(schema2.type).to.equal('number')
         expect(schema2.minimum).to.equal(5)
         expect(schema2.minItems).to.equal(undefined)
@@ -264,7 +211,7 @@ describe.only('schema-functions', () => {
             { minItems: 5 }
           ]
         })
-        const schema2 = schema[Enforcer].schema
+        const schema2 = schema.enforcer.schema
         expect(schema2.type).to.equal('number')
         expect(schema2.minimum).to.equal(5)
         expect(schema2.maximum).to.equal(undefined)

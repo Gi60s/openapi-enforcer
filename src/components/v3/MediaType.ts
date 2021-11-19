@@ -17,7 +17,7 @@ import { Schema } from './Schema'
 import { MediaType3 as Definition } from '../helpers/DefinitionTypes'
 
 export class MediaType<HasReference=Dereferenced> extends OASComponent {
-  readonly [key: `x-${string}`]: any
+  extensions!: Record<string, any>
   encoding?: Record<string, Referencable<HasReference, Encoding<HasReference>>>
   example?: any
   examples?: Record<string, Referencable<HasReference, Example>>
@@ -36,7 +36,7 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
 
   static schemaGenerator (data: Data): ComponentSchema<Definition> {
     const { chain } = data.context
-    const encodingIgnored = chain[1]?.component.constructor !== RequestBody
+    const encodingIgnored = chain[1]?.component.constructor !== RequestBody ? 'The encoding is ignored without media type context.' : false
 
     return {
       allowsSchemaExtensions: true,
@@ -109,9 +109,11 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
             type: 'object',
             allowsSchemaExtensions: false,
             additionalProperties: {
-              type: 'component',
-              allowsRef: true,
-              component: Example
+              schema: {
+                type: 'component',
+                allowsRef: true,
+                component: Example
+              }
             }
           }
         },
@@ -122,9 +124,11 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
             allowsSchemaExtensions: false,
             ignored: encodingIgnored,
             additionalProperties: {
-              type: 'component',
-              allowsRef: true,
-              component: Encoding
+              schema: {
+                type: 'component',
+                allowsRef: true,
+                component: Encoding
+              }
             }
           }
         }

@@ -39,9 +39,9 @@ const externalDocumentationSchema: ComponentSchema<Definition> = {
 }
 
 export class ExternalDocumentation extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly description?: string
-  readonly url!: string
+  extensions!: Record<string, any>
+  description?: string
+  url!: string
 
   constructor (definition: Definition, version?: Version) {
     super(ExternalDocumentation, definition, version, arguments[2])

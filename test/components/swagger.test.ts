@@ -44,8 +44,7 @@ describe('Swagger component', () => {
     it('allows extensions', () => {
       const exception = Swagger.validate({ swagger, info, paths, 'x-foo': 'foo' })
       const { warning } = exception
-      expect(warning?.count).to.equal(1)
-      expect(warning?.exceptions[0].code).not.to.equal('EXNOAL')
+      expect(warning?.hasCode('EXNOAL')).to.equal(false)
     })
 
     it('cannot have invalid properties', function () {
@@ -93,8 +92,7 @@ describe('Swagger component', () => {
         // @ts-expect-error
         const exception = Swagger.validate({ swagger, info: { $ref: '' }, paths })
         const { warning } = exception
-        expect(warning?.count).to.equal(2)
-        expect(warning?.exceptions[0].code).to.equal('RENOAL')
+        expect(warning?.hasCode('RENOAL')).to.equal(true)
       })
     })
 
@@ -228,8 +226,7 @@ describe('Swagger component', () => {
       it('will warn for potentially invalid mime types', () => {
         // two valid, two invalid
         const { warning } = Swagger.validate({ swagger, info, paths, consumes: ['application/json', 'foo/bar', 'text/plain', 'cow/bell'] })
-        expect(warning?.count).to.equal(3)
-        expect(warning?.exceptions.filter(item => item.code === 'INMETY').length).to.equal(2)
+        expect(warning?.getCodeCount().INMETY).to.equal(2)
       })
     })
 
@@ -254,8 +251,7 @@ describe('Swagger component', () => {
       it('will warn for potentially invalid mime types', () => {
         // two valid, two invalid
         const { warning } = Swagger.validate({ swagger, info, paths, produces: ['application/json', 'foo/bar', 'text/plain', 'cow/bell'] })
-        expect(warning?.count).to.equal(3)
-        expect(warning?.exceptions.filter(item => item.code === 'INMETY').length).to.equal(2)
+        expect(warning?.getCodeCount().INMETY).to.equal(2)
       })
     })
 

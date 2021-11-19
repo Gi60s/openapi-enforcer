@@ -36,9 +36,11 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
           type: 'object',
           allowsSchemaExtensions: false,
           additionalProperties: {
-            type: 'component',
-            allowsRef: false,
-            component: components.MediaType as ExtendedComponent
+            schema: {
+              type: 'component',
+              allowsRef: false,
+              component: components.MediaType as ExtendedComponent
+            }
           }
         }
       },
@@ -58,7 +60,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
           type: 'object',
           allowsSchemaExtensions: false,
           additionalProperties: {
-            type: 'any'
+            schema: { type: 'any' }
           }
         }
       },
@@ -68,9 +70,11 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
           type: 'object',
           allowsSchemaExtensions: false,
           additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: components.Header as ExtendedComponent
+            schema: {
+              type: 'component',
+              allowsRef: true,
+              component: components.Header as ExtendedComponent
+            }
           }
         }
       },
@@ -81,9 +85,11 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
           type: 'object',
           allowsSchemaExtensions: false,
           additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: components.Link as ExtendedComponent
+            schema: {
+              type: 'component',
+              allowsRef: true,
+              component: components.Link as ExtendedComponent
+            }
           }
         }
       }
@@ -155,6 +161,6 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
 }
 
 export class Response extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly description!: string
+  extensions!: Record<string, any>
+  description!: string
 }

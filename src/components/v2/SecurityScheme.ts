@@ -3,10 +3,10 @@ import * as Core from '../SecurityScheme'
 import { SecurityScheme2 as Definition } from '../helpers/DefinitionTypes'
 
 export class SecurityScheme extends Core.SecurityScheme {
-  readonly authorizationUrl?: string
-  readonly flow?: string
-  readonly scopes?: Record<string, string>
-  readonly tokenUrl?: string
+  authorizationUrl?: string
+  flow?: string
+  scopes?: Record<string, string>
+  tokenUrl?: string
 
   constructor (definition: Definition, version?: Version) {
     super(SecurityScheme, definition, version, arguments[2])

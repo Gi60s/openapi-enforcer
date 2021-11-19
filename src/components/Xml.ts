@@ -28,12 +28,12 @@ const schemaXml: ComponentSchema<Definition> = {
 }
 
 export class Xml extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly name?: string
-  readonly namespace?: string
-  readonly prefix?: string
-  readonly attribute?: boolean
-  readonly wrapped?: boolean
+  extensions!: Record<string, any>
+  name?: string
+  namespace?: string
+  prefix?: string
+  attribute?: boolean
+  wrapped?: boolean
 
   constructor (definition: Definition, version?: Version) {
     super(Xml, definition, version, arguments[2])

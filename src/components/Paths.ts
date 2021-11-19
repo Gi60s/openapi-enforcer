@@ -4,7 +4,7 @@ import {
   Version,
   DefinitionException,
   Dereferenced,
-  ComponentSchema, ExtendedComponent, EnforcerController
+  ComponentSchema, ExtendedComponent
 } from './'
 import * as E from '../DefinitionException/methods'
 import { PathItem } from './PathItem'
@@ -89,17 +89,22 @@ export function schemaGenerator<Definition> (PathItemComponent: ExtendedComponen
       }
     },
     additionalProperties: {
-      type: 'component',
-      allowsRef: false,
-      component: PathItemComponent
+      namespace: 'path',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: PathItemComponent
+      }
     }
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Paths<HasReference=Dereferenced> extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly [path: string]: PathItem<HasReference>
+  extensions!: Record<string, any>
+  path!: {
+    [path: string]: PathItem<HasReference>
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
   constructor (Component: ExtendedComponent, definition: Definition, version?: Version, data?: Data) {

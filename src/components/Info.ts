@@ -3,54 +3,16 @@ import { Contact } from './Contact'
 import { License } from './License'
 import { Info as Definition } from './helpers/DefinitionTypes'
 
-const infoSchema: ComponentSchema<Definition> = {
-  allowsSchemaExtensions: true,
-  properties: [
-    {
-      name: 'title',
-      required: true,
-      schema: { type: 'string' }
-    },
-    {
-      name: 'description',
-      schema: { type: 'string' }
-    },
-    {
-      name: 'termsOfService',
-      schema: { type: 'string' }
-    },
-    {
-      name: 'contact',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Contact
-      }
-    },
-    {
-      name: 'license',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: License
-      }
-    },
-    {
-      name: 'version',
-      required: true,
-      schema: { type: 'string' }
-    }
-  ]
-}
+let infoSchema: ComponentSchema<Definition>
 
 export class Info extends OASComponent<Definition> {
-  readonly [key: `x-${string}`]: any
-  readonly title!: string
-  readonly description?: string
-  readonly termsOfService?: string
-  readonly contact?: Contact
-  readonly license?: License
-  readonly version!: string
+  extensions!: Record<string, any>
+  title!: string
+  description?: string
+  termsOfService?: string
+  contact?: Contact
+  license?: License
+  version!: string
 
   constructor (definition: Definition, version?: Version) {
     super(Info, definition, version, arguments[2])
@@ -65,6 +27,47 @@ export class Info extends OASComponent<Definition> {
   }
 
   static schemaGenerator (): ComponentSchema<Definition> {
+    if (infoSchema === undefined) {
+      infoSchema = {
+        allowsSchemaExtensions: true,
+        properties: [
+          {
+            name: 'title',
+            required: true,
+            schema: { type: 'string' }
+          },
+          {
+            name: 'description',
+            schema: { type: 'string' }
+          },
+          {
+            name: 'termsOfService',
+            schema: { type: 'string' }
+          },
+          {
+            name: 'contact',
+            schema: {
+              type: 'component',
+              allowsRef: false,
+              component: Contact
+            }
+          },
+          {
+            name: 'license',
+            schema: {
+              type: 'component',
+              allowsRef: false,
+              component: License
+            }
+          },
+          {
+            name: 'version',
+            required: true,
+            schema: { type: 'string' }
+          }
+        ]
+      }
+    }
     return infoSchema
   }
 

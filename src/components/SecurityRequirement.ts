@@ -5,9 +5,12 @@ import { SecurityRequirement as Definition } from './helpers/DefinitionTypes'
 const securityRequirementSchema: ComponentSchema<Definition> = {
   allowsSchemaExtensions: false,
   additionalProperties: {
-    type: 'array',
-    items: {
-      type: 'string'
+    namespace: 'name',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
     }
   },
   validator: {
@@ -44,8 +47,10 @@ const securityRequirementSchema: ComponentSchema<Definition> = {
 }
 
 export class SecurityRequirement extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly [name: string]: string[]
+  extensions!: Record<string, any>
+  name!: {
+    [name: string]: string[]
+  }
 
   constructor (definition: Definition, version?: Version) {
     super(SecurityRequirement, definition, version, arguments[2])

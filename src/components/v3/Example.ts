@@ -59,11 +59,11 @@ const exampleSchema: ComponentSchema<Definition> = {
 }
 
 export class Example extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly description?: string
-  readonly externalValue?: string
-  readonly summary?: string
-  readonly value?: any
+  extensions!: Record<string, any>
+  description?: string
+  externalValue?: string
+  summary?: string
+  value?: any
 
   constructor (definition: Definition, version?: Version) {
     super(Example, definition, version, arguments[2])

@@ -8,11 +8,11 @@ const rxUrl = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\
 type Definition = Definition2 | Definition3
 
 export class SecurityScheme extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly description?: string
-  readonly in!: string
-  readonly name!: string
-  readonly type!: string
+  extensions!: Record<string, any>
+  description?: string
+  in!: string
+  name!: string
+  type!: string
 
   static schemaGenerator (data: Data): ComponentSchema<Definition> {
     const { definition, exception } = data.context
@@ -108,7 +108,9 @@ export class SecurityScheme extends OASComponent {
           schema: {
             type: 'object',
             allowsSchemaExtensions: false,
-            additionalProperties: { type: 'string' }
+            additionalProperties: {
+              schema: { type: 'string' }
+            }
           }
         },
         {

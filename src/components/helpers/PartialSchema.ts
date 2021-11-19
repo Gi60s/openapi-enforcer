@@ -5,11 +5,10 @@ import {
   ComponentSchema,
   SchemaProperty,
   EnforcerExtensionSchema,
-  Enforcer,
   EnforcerData
 } from '../index'
 import * as E from '../../DefinitionException/methods'
-import { determineTypes, PopulateOptions, Schema } from './schema-functions'
+import { determineTypes, MapStore, PopulateOptions, Schema } from './schema-functions'
 import { Result } from '../../utils/Result'
 import * as SchemaHelper from './schema-functions'
 import { Exception } from '../../utils/Exception'
@@ -43,23 +42,23 @@ export interface Definition<Items> {
 }
 
 export abstract class PartialSchema<Items> extends OASComponent {
-  readonly [Enforcer]: EnforcerData<Items, EnforcerExtensionSchema>
-  readonly default?: any
-  readonly enum?: any[]
-  readonly exclusiveMaximum?: boolean
-  readonly exclusiveMinimum?: boolean
-  readonly format?: string
-  readonly items?: Items
-  readonly maxItems?: number
-  readonly minItems?: number
-  readonly maxLength?: number
-  readonly minLength?: number
-  readonly maximum?: number
-  readonly minimum?: number
-  readonly multipleOf?: number
-  readonly pattern?: RegExp
-  readonly type?: string
-  readonly uniqueItems?: boolean
+  enforcer!: EnforcerData<Items, EnforcerExtensionSchema>
+  default?: any
+  enum?: any[]
+  exclusiveMaximum?: boolean
+  exclusiveMinimum?: boolean
+  format?: string
+  items?: Items
+  maxItems?: number
+  minItems?: number
+  maxLength?: number
+  minLength?: number
+  maximum?: number
+  minimum?: number
+  multipleOf?: number
+  pattern?: RegExp
+  type?: string
+  uniqueItems?: boolean
 
   deserialize<T> (value: any): Result<T> {
     return SchemaHelper.deserialize(this, value)
@@ -125,7 +124,10 @@ export abstract class PartialSchema<Items> extends OASComponent {
   }
 
   validate (value: any, options?: SchemaHelper.ValidateOptions): Exception | undefined {
-    return SchemaHelper.validate(this, value, options)
+    const exception = new Exception('One or more exceptions occurred while validating value:')
+    if (options === undefined) options = {}
+    const { result } = SchemaHelper.validate(this as unknown as Schema, value, new MapStore(), exception, options)
+    return result === true ? undefined : exception
   }
 }
 
@@ -266,20 +268,18 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
       }
     ],
     builder: {
-      after (data: Data<PartialSchema<any>>) {
+      after (data: Data) {
         root.lastly.push(() => {
           const { built } = data.context
 
           if (built.default !== undefined) {
             const [value, error] = built.deserialize(built.default)
             if (error !== undefined) throw Error(error.toString())
-            // we're still in the constructor at this point so we're fine to modify the value
             built.default = value
           }
 
           if (built.enum !== undefined) {
-            // we're still in the constructor at this point so we're fine to modify the value
-            built.enum = built.enum.map(item => {
+            built.enum = built.enum.map((item: any) => {
               const [value, error] = built.deserialize(item)
               if (error !== undefined) throw Error(error.toString())
               return value
@@ -300,7 +300,7 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
         }
 
         if ('default' in built || 'enum' in built) {
-          root.lastly.push(() => {
+          root.lastly.push(data => {
             const schema = new ReferenceComponentClass(built, root.version)
 
             if ('default' in built) {

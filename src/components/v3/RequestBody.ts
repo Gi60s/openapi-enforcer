@@ -2,35 +2,10 @@ import { OASComponent, Version, DefinitionException, ComponentSchema } from '../
 import { MediaType } from './MediaType'
 import { RequestBody3 as Definition } from '../helpers/DefinitionTypes'
 
-const requestBodySchema: ComponentSchema<Definition> = {
-  allowsSchemaExtensions: true,
-  properties: [
-    {
-      name: 'description',
-      schema: { type: 'string' }
-    },
-    {
-      name: 'content',
-      required: true,
-      schema: {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: MediaType
-        }
-      }
-    },
-    {
-      name: 'required',
-      schema: { type: 'boolean' }
-    }
-  ]
-}
+let requestBodySchema: ComponentSchema<Definition>
 
 export class RequestBody extends OASComponent {
-  readonly [key: `x-${string}`]: any
+  extensions!: Record<string, any>
   description?: string
   content!: Record<string, MediaType>
   required?: boolean
@@ -47,6 +22,36 @@ export class RequestBody extends OASComponent {
   }
 
   static schemaGenerator (): ComponentSchema<Definition> {
+    if (requestBodySchema === undefined) {
+      requestBodySchema = {
+        allowsSchemaExtensions: true,
+        properties: [
+          {
+            name: 'description',
+            schema: { type: 'string' }
+          },
+          {
+            name: 'content',
+            required: true,
+            schema: {
+              type: 'object',
+              allowsSchemaExtensions: true,
+              additionalProperties: {
+                schema: {
+                  type: 'component',
+                  allowsRef: false,
+                  component: MediaType
+                }
+              }
+            }
+          },
+          {
+            name: 'required',
+            schema: { type: 'boolean' }
+          }
+        ]
+      }
+    }
     return requestBodySchema
   }
 

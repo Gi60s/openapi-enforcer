@@ -2,42 +2,13 @@ import { OASComponent, Version, DefinitionException, ComponentSchema } from '../
 import { ServerVariable } from './ServerVariable'
 import { Server3 as Definition } from '../helpers/DefinitionTypes'
 
-const schemaServer: ComponentSchema<Definition> = {
-  allowsSchemaExtensions: true,
-  properties: [
-    {
-      name: 'url',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    },
-    {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    },
-    {
-      name: 'variables',
-      schema: {
-        type: 'object',
-        allowsSchemaExtensions: false,
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: ServerVariable
-        }
-      }
-    }
-  ]
-}
+let schemaServer: ComponentSchema<Definition>
 
 export class Server extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly description?: string
-  readonly url!: string
-  readonly variables?: Record<string, ServerVariable>
+  extensions!: Record<string, any>
+  description?: string
+  url!: string
+  variables?: Record<string, ServerVariable>
 
   constructor (definition: Definition, version?: Version) {
     super(Server, definition, version, arguments[2])
@@ -51,6 +22,40 @@ export class Server extends OASComponent {
   }
 
   static schemaGenerator (): ComponentSchema<Definition> {
+    if (schemaServer === undefined) {
+      schemaServer = {
+        allowsSchemaExtensions: true,
+        properties: [
+          {
+            name: 'url',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          },
+          {
+            name: 'description',
+            schema: {
+              type: 'string'
+            }
+          },
+          {
+            name: 'variables',
+            schema: {
+              type: 'object',
+              allowsSchemaExtensions: false,
+              additionalProperties: {
+                schema: {
+                  type: 'component',
+                  allowsRef: false,
+                  component: ServerVariable
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
     return schemaServer
   }
 

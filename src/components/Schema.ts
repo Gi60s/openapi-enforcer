@@ -53,6 +53,35 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
     typePropertyDefinition.schema.enum = ['array', 'boolean', 'integer', 'number', 'object', 'string']
   }
 
+  const partialBuilder = {
+    before: schema.builder?.before ?? (() => true),
+    after: schema.builder?.after ?? noop
+  }
+
+  if (schema.builder === undefined) schema.builder = {}
+  schema.builder.after = (data: Data, enforcer) => {
+    data.root.lastly.push(() => {
+      const { built } = data.context
+
+      // create a merged schema (if possible) of this schema
+      if ('allOf' in built || 'anyOf' in built || 'oneOf' in built) {
+        const { type, format } = SchemaHelper.determineTypes(built, new Map()).get(true)
+
+        const target: Definition = {}
+        if (type !== '') target.type = type
+        if (format !== '') target.format = format
+
+        const map: Map<Schema, Definition> = new Map()
+        enforcer.schema = SchemaHelper.merge(built, target, map)
+      } else if ('not' in built) {
+        enforcer.schema = null
+      } else {
+        enforcer.schema = built
+      }
+    })
+    partialBuilder.after(data, enforcer)
+  }
+
   const partialValidator = {
     before: schema.validator?.before ?? (() => true),
     after: schema.validator?.after ?? noop
@@ -77,29 +106,6 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
     success = success && partialValidator.before(data)
 
     return success
-  }
-
-  if (schema.builder === undefined) schema.builder = {}
-  schema.builder.after = (data: Data, enforcer) => {
-    data.root.lastly.push(() => {
-      const { built } = data.context
-
-      // create a merged schema (if possible) of this schema
-      if ('allOf' in built || 'anyOf' in built || 'oneOf' in built) {
-        const { type, format } = SchemaHelper.determineTypes(built, new Map()).get(true)
-
-        const target: Definition = {}
-        if (type !== undefined) target.type = type
-        if (format !== '') target.format = format
-
-        const map: Map<Schema, Definition> = new Map()
-        enforcer.schema = SchemaHelper.merge(built, target, map)
-      } else if ('not' in built) {
-        enforcer.schema = null
-      } else {
-        enforcer.schema = built
-      }
-    })
   }
 
   schema.validator.after = (data: Data) => {
@@ -235,7 +241,9 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
       schema: {
         type: 'object',
         allowsSchemaExtensions: true,
-        additionalProperties: schemaChild
+        additionalProperties: {
+          schema: schemaChild
+        }
       }
     },
     {
@@ -282,24 +290,24 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
 }
 
 export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSchema<Schema> {
-  readonly [Enforcer]!: EnforcerData<Schema, EnforcerExtensionSchema> & {
+  enforcer!: EnforcerData<Schema, EnforcerExtensionSchema> & {
     schema: Schema
   }
 
-  readonly [key: `x-${string}`]: any
-  readonly additionalProperties?: Referencable<HasReference, Schema<HasReference>> | boolean
-  readonly allOf?: Array<Referencable<HasReference, Schema<HasReference>>>
-  readonly description?: string
-  readonly example?: any
-  readonly externalDocs?: ExternalDocumentation.ExternalDocumentation
-  readonly maxProperties?: number
-  readonly minProperties?: number
-  readonly properties?: Record<string, Referencable<HasReference, Schema<HasReference>>>
-  readonly readOnly?: boolean
-  readonly required?: string[]
-  readonly title?: string
-  readonly type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
-  readonly xml?: Xml.Xml
+  extensions!: Record<string, any>
+  additionalProperties?: Referencable<HasReference, Schema<HasReference>> | boolean
+  allOf?: Array<Referencable<HasReference, Schema<HasReference>>>
+  description?: string
+  example?: any
+  externalDocs?: ExternalDocumentation.ExternalDocumentation
+  maxProperties?: number
+  minProperties?: number
+  properties?: Record<string, Referencable<HasReference, Schema<HasReference>>>
+  readOnly?: boolean
+  required?: string[]
+  title?: string
+  type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
+  xml?: Xml.Xml
 
   static validate (definition: Definition, version?: Version): DefinitionException {
     return super.validate(definition, version, arguments[2])

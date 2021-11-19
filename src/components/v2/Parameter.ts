@@ -6,15 +6,15 @@ import * as Core from '../Parameter'
 import { Parameter2 as Definition } from '../helpers/DefinitionTypes'
 
 export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialSchema<Items> {
-  readonly [key: `x-${string}`]: any
-  readonly name!: string
-  readonly in!: 'body' | 'cookie' | 'formData' | 'header' | 'path' | 'query'
-  readonly allowEmptyValue?: boolean
-  readonly description?: string
-  readonly required?: boolean
-  readonly schema?: Referencable<HasReference, Schema>
-  readonly collectionFormat?: 'csv' | 'multi' | 'pipes' | 'ssv' | 'tsv'
-  readonly type?: 'array' | 'boolean' | 'file' | 'integer' | 'number' | 'string'
+  extensions!: Record<string, any>
+  name!: string
+  in!: 'body' | 'cookie' | 'formData' | 'header' | 'path' | 'query'
+  allowEmptyValue?: boolean
+  description?: string
+  required?: boolean
+  schema?: Referencable<HasReference, Schema>
+  collectionFormat?: 'csv' | 'multi' | 'pipes' | 'ssv' | 'tsv'
+  type?: 'array' | 'boolean' | 'file' | 'integer' | 'number' | 'string'
 
   constructor (definition: Definition, version?: Version) {
     super(Parameter, definition, version, arguments[2])

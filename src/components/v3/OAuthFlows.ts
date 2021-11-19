@@ -2,50 +2,14 @@ import { OASComponent, Version, DefinitionException, ComponentSchema } from '../
 import { OAuthFlow } from './OAuthFlow'
 import { OAuthFlows3 as Definition } from '../helpers/DefinitionTypes'
 
-const oauthFlowsSchema: ComponentSchema<Definition> = {
-  allowsSchemaExtensions: false,
-  properties: [
-    {
-      name: 'authorizationCode',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: OAuthFlow
-      }
-    },
-    {
-      name: 'clientCredentials',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: OAuthFlow
-      }
-    },
-    {
-      name: 'implicit',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: OAuthFlow
-      }
-    },
-    {
-      name: 'password',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: OAuthFlow
-      }
-    }
-  ]
-}
+let oauthFlowsSchema: ComponentSchema<Definition>
 
 export class OAuthFlows extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly authorizationCode?: OAuthFlow
-  readonly clientCredentials?: OAuthFlow
-  readonly implicit?: OAuthFlow
-  readonly password?: OAuthFlow
+  extensions!: Record<string, any>
+  authorizationCode?: OAuthFlow
+  clientCredentials?: OAuthFlow
+  implicit?: OAuthFlow
+  password?: OAuthFlow
 
   constructor (definition: Definition, version?: Version) {
     super(OAuthFlows, definition, version, arguments[2])
@@ -59,6 +23,45 @@ export class OAuthFlows extends OASComponent {
   }
 
   static schemaGenerator (): ComponentSchema<Definition> {
+    if (oauthFlowsSchema === undefined) {
+      oauthFlowsSchema = {
+        allowsSchemaExtensions: false,
+        properties: [
+          {
+            name: 'authorizationCode',
+            schema: {
+              type: 'component',
+              allowsRef: false,
+              component: OAuthFlow
+            }
+          },
+          {
+            name: 'clientCredentials',
+            schema: {
+              type: 'component',
+              allowsRef: false,
+              component: OAuthFlow
+            }
+          },
+          {
+            name: 'implicit',
+            schema: {
+              type: 'component',
+              allowsRef: false,
+              component: OAuthFlow
+            }
+          },
+          {
+            name: 'password',
+            schema: {
+              type: 'component',
+              allowsRef: false,
+              component: OAuthFlow
+            }
+          }
+        ]
+      }
+    }
     return oauthFlowsSchema
   }
 

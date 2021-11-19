@@ -160,7 +160,7 @@ export function schemaGenerator (components: ComponentsMap, methods: string[], d
 }
 
 export class PathItem<HasReference=Dereferenced> extends OASComponent {
-  readonly [key: `x-${string}`]: any
+  extensions!: Record<string, any>
   delete?: Operation<HasReference>
   get?: Operation<HasReference>
   head?: Operation<HasReference>

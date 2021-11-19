@@ -32,9 +32,11 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
           type: 'object',
           allowsSchemaExtensions: false,
           additionalProperties: {
-            type: 'component',
-            allowsRef: true,
-            component: Callback
+            schema: {
+              type: 'component',
+              allowsRef: true,
+              component: Callback
+            }
           }
         }
       },
@@ -208,16 +210,16 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Operation<HasReference=Dereferenced> extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly deprecated?: boolean
-  readonly description?: string
-  readonly externalDocs?: ExternalDocumentation
-  readonly operationId?: string
-  readonly parameters?: any[] // overwritten by inheriting classes: Parameter.Parameter<HasReference>
-  readonly responses!: Responses
-  readonly security?: SecurityRequirement[]
-  readonly summary?: string
-  readonly tags?: string[]
+  extensions!: Record<string, any>
+  deprecated?: boolean
+  description?: string
+  externalDocs?: ExternalDocumentation
+  operationId?: string
+  parameters?: any[] // overwritten by inheriting classes: Parameter.Parameter<HasReference>
+  responses!: Responses
+  security?: SecurityRequirement[]
+  summary?: string
+  tags?: string[]
 
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
   constructor (Component: ExtendedComponent, definition: Definition2 | Definition3, version?: Version, data?: Data) {

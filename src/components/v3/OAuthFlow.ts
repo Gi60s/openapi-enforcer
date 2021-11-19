@@ -2,11 +2,11 @@ import { OASComponent, Data, Version, DefinitionException, ComponentSchema } fro
 import { OAuthFlow3 as Definition } from '../helpers/DefinitionTypes'
 
 export class OAuthFlow extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly authorizationUrl?: string
-  readonly refreshUrl?: string
-  readonly scopes!: string[]
-  readonly tokenUrl?: string
+  extensions!: Record<string, any>
+  authorizationUrl?: string
+  refreshUrl?: string
+  scopes!: string[]
+  tokenUrl?: string
 
   constructor (definition: Definition, version?: Version) {
     super(OAuthFlow, definition, version, arguments[2])
@@ -44,7 +44,9 @@ export class OAuthFlow extends OASComponent {
             type: 'object',
             allowsSchemaExtensions: false,
             additionalProperties: {
-              type: 'string'
+              schema: {
+                type: 'string'
+              }
             }
           }
         },

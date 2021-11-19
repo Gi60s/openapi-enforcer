@@ -56,10 +56,10 @@ const contactSchema: ComponentSchema<Definition> = {
 }
 
 export class Contact extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly email?: string
-  readonly name?: string
-  readonly url?: string
+  extensions!: Record<string, any>
+  email?: string
+  name?: string
+  url?: string
 
   constructor (definition: Definition, version?: Version) {
     super(Contact, definition, version, arguments[2])

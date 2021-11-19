@@ -2,18 +2,13 @@ import { OASComponent, ComponentSchema, Version, DefinitionException } from '../
 import { PathItem } from './PathItem'
 import { Callback3 as Definition } from '../helpers/DefinitionTypes'
 
-const callbackSchema: ComponentSchema<Definition> = {
-  allowsSchemaExtensions: true,
-  additionalProperties: {
-    type: 'component',
-    allowsRef: false,
-    component: PathItem
-  }
-}
+let callbackSchema: ComponentSchema<Definition>
 
 export class Callback extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly [pathItem: string]: PathItem
+  extensions!: Record<string, any>
+  expression!: {
+    [expression: string]: PathItem
+  }
 
   constructor (definition: Definition, version?: Version) {
     super(Callback, definition, version, arguments[2])
@@ -27,6 +22,19 @@ export class Callback extends OASComponent {
   }
 
   static schemaGenerator (): ComponentSchema<Definition> {
+    if (callbackSchema === undefined) {
+      callbackSchema = {
+        allowsSchemaExtensions: true,
+        additionalProperties: {
+          namespace: 'expression',
+          schema: {
+            type: 'component',
+            allowsRef: false,
+            component: PathItem
+          }
+        }
+      }
+    }
     return callbackSchema
   }
 

@@ -19,17 +19,21 @@ export function schemaGenerator (components: { Response: ExtendedComponent }): C
   return {
     allowsSchemaExtensions: false,
     additionalProperties: {
-      type: 'component',
-      allowsRef: false,
-      component: components.Response
+      namespace: 'response',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: components.Response
+      }
     },
     validator: {
-      after (data) { // } ({ built, exception, major, reference }, def) {
+      after (data) {
         const { built, definition, exception, key: method } = data.context
         const { reference } = data.component
         const { major } = data.root
+        const responses = built
 
-        const codes = Object.keys(built)
+        const codes = Object.keys(responses)
         let has2xxResponseCode: boolean = false
 
         codes.forEach(code => {
@@ -41,7 +45,7 @@ export function schemaGenerator (components: { Response: ExtendedComponent }): C
             })
             exception.message(invalidResponseCode)
           } else {
-            const response: ResponseDefinition = built[code]
+            const response: ResponseDefinition = responses[code]
             if (code.startsWith('2')) has2xxResponseCode = true
 
             // if a POST 201 response then warn if missing location header
@@ -84,7 +88,7 @@ export function schemaGenerator (components: { Response: ExtendedComponent }): C
           exception.message(responseRequired)
 
           // if no success codes then it's a warning
-        } else if (!has2xxResponseCode && !('default' in built)) {
+        } else if (!has2xxResponseCode && !('default' in responses)) {
           const responsesShouldIncludeSuccess = E.responsesShouldIncludeSuccess({
             definition,
             locations: [{ node: definition }],
@@ -99,5 +103,5 @@ export function schemaGenerator (components: { Response: ExtendedComponent }): C
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Responses<HasReference=Dereferenced> extends OASComponent {
-  readonly [key: `x-${string}`]: any
+  extensions!: Record<string, any>
 }

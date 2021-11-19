@@ -12,21 +12,21 @@ import * as Core from '../Parameter'
 import { Parameter3 as Definition } from '../helpers/DefinitionTypes'
 
 export class Parameter<HasReference=Dereferenced> extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly name!: string
-  readonly in!: 'body' | 'cookie' | 'formData' | 'header' | 'path' | 'query'
-  readonly allowEmptyValue?: boolean
-  readonly description?: string
-  readonly required?: boolean
-  readonly schema?: Referencable<HasReference, Schema>
+  extensions!: Record<string, any>
+  name!: string
+  in!: 'body' | 'cookie' | 'formData' | 'header' | 'path' | 'query'
+  allowEmptyValue?: boolean
+  description?: string
+  required?: boolean
+  schema?: Referencable<HasReference, Schema>
 
   // v3 properties
-  readonly allowReserved?: boolean
-  readonly deprecated?: boolean
-  readonly example?: any
-  readonly examples?: Record<string, Referencable<HasReference, Example>>
-  readonly explode?: boolean
-  readonly style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'simple' | 'spaceDelimited' | 'pipeDelimited'
+  allowReserved?: boolean
+  deprecated?: boolean
+  example?: any
+  examples?: Record<string, Referencable<HasReference, Example>>
+  explode?: boolean
+  style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'simple' | 'spaceDelimited' | 'pipeDelimited'
 
   constructor (definition: Definition, version?: Version) {
     super(Parameter, definition, version, arguments[2])

@@ -17,9 +17,9 @@ const licenseSchema: ComponentSchema<Definition> = {
 }
 
 export class License extends OASComponent {
-  readonly [key: `x-${string}`]: any
-  readonly name!: string
-  readonly url?: string
+  extensions!: Record<string, any>
+  name!: string
+  url?: string
 
   constructor (definition: Definition, version?: Version) {
     super(License, definition, version, arguments[2])

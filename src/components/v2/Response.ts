@@ -13,9 +13,9 @@ import * as Core from '../Response'
 import { Response2 as Definition } from '../helpers/DefinitionTypes'
 
 export class Response<HasReference=Dereferenced> extends Core.Response {
-  readonly examples?: Record<string, any>
-  readonly headers?: Record<string, Referencable<HasReference, Header>>
-  readonly schema?: Schema
+  examples?: Record<string, any>
+  headers?: Record<string, Referencable<HasReference, Header>>
+  schema?: Schema
 
   constructor (definition: Definition, version?: Version) {
     super(Response, definition, version, arguments[2])

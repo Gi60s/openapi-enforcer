@@ -5,7 +5,9 @@ import { Responses3 as Definition } from '../helpers/DefinitionTypes'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Responses<HasReference=Dereferenced> extends Core.Responses {
-  readonly [code: string]: Response.Response<HasReference>
+  response!: {
+    [code: string]: Response.Response<HasReference>
+  }
 
   constructor (definition: Definition, version?: Version) {
     super(Responses, definition, version, arguments[2])

@@ -209,6 +209,26 @@ export class ExceptionReport {
     }
   }
 
+  getCodeCount (): Record<string, number> {
+    const result: Record<string, number> = {}
+    this.exceptions.forEach(exception => {
+      const { code } = exception
+      if (!(code in result)) result[code] = 0
+      result[code]++
+    })
+    return result
+  }
+
+  hasCode (...codes: string[]): boolean {
+    const length = codes.length
+    for (let i = 0; i < length; i++) {
+      const code = codes[i]
+      const index = this.exceptions.findIndex(v => v.code === code)
+      if (index === -1) return false
+    }
+    return true
+  }
+
   get count (): number {
     return this.exceptions.length
   }

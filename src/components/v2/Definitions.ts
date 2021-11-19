@@ -8,18 +8,13 @@ import {
 import { Schema2 as Definition } from '../helpers/DefinitionTypes'
 import { Schema } from './Schema'
 
-const schemaDefinition: ComponentSchema<Definition> = {
-  allowsSchemaExtensions: false,
-  additionalProperties: {
-    type: 'component',
-    allowsRef: false,
-    component: Schema
-  }
-}
+let schemaDefinition: ComponentSchema<Definition>
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Definitions<HasReference=Dereferenced> extends OASComponent {
-  readonly [name: string]: Schema<HasReference>
+  definition!: {
+    [name: string]: Schema<HasReference>
+  }
 
   constructor (definition: Definition, version?: Version) {
     super(Definitions, definition, version, arguments[2])
@@ -30,6 +25,19 @@ export class Definitions<HasReference=Dereferenced> extends OASComponent {
   }
 
   static schemaGenerator (): ComponentSchema<Definition> {
+    if (schemaDefinition === undefined) {
+      schemaDefinition = {
+        allowsSchemaExtensions: false,
+        additionalProperties: {
+          namespace: 'definition',
+          schema: {
+            type: 'component',
+            allowsRef: false,
+            component: Schema
+          }
+        }
+      }
+    }
     return schemaDefinition
   }
 

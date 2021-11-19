@@ -5,9 +5,9 @@ import { PartialSchema } from '../helpers/PartialSchema'
 import { Header2 as Definition } from '../helpers/DefinitionTypes'
 
 export class Header extends PartialSchema<Header> {
-  readonly [key: `x-${string}`]: any
-  readonly collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
-  readonly type!: 'array' | 'boolean' | 'integer' | 'number' | 'string'
+  extensions!: Record<string, any>
+  collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
+  type!: 'array' | 'boolean' | 'integer' | 'number' | 'string'
 
   constructor (definition: Definition, version?: Version) {
     super(Header, definition, version, arguments[2])

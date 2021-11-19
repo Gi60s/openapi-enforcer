@@ -3,10 +3,10 @@ import * as Core from '../SecurityScheme'
 import { SecurityScheme3 as Definition } from '../helpers/DefinitionTypes'
 
 export class SecurityScheme extends Core.SecurityScheme {
-  readonly bearerFormat?: string
-  readonly flows?: string
-  readonly openIdConnectUrl?: string
-  readonly scheme?: string
+  bearerFormat?: string
+  flows?: string
+  openIdConnectUrl?: string
+  scheme?: string
 
   constructor (definition: Definition, version?: Version) {
     super(SecurityScheme, definition, version, arguments[2])

@@ -8,10 +8,10 @@ import { Parameter } from './Parameter'
 import { Operation2 as Definition } from '../helpers/DefinitionTypes'
 
 export class Operation<HasReference=Dereferenced> extends Core.Operation<HasReference> {
-  readonly consumes?: string[]
-  readonly parameters?: Array<Parameter<HasReference>>
-  readonly produces?: string[]
-  readonly schemes?: string[]
+  consumes?: string[]
+  parameters?: Array<Parameter<HasReference>>
+  produces?: string[]
+  schemes?: string[]
 
   constructor (definition: Definition, version?: Version) {
     super(Operation, definition, version, arguments[2])

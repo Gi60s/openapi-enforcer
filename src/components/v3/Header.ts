@@ -12,7 +12,7 @@ import { Schema } from './Schema'
 import { Header3 as Definition } from '../helpers/DefinitionTypes'
 
 export class Header<HasReference=Dereferenced> extends OASComponent {
-  readonly [key: `x-${string}`]: any
+  extensions!: Record<string, any>
   deprecated?: boolean // defaults to false
   description?: string
   example?: any

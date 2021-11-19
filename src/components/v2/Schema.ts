@@ -1,4 +1,4 @@
-import { ComponentSchema, Data, Dereferenced, Enforcer, Version } from '../index'
+import { ComponentSchema, Data, Dereferenced, Version } from '../index'
 import * as Core from '../Schema'
 import * as Discriminator from '../v3/Discriminator'
 import { Schema2 as Definition } from '../helpers/DefinitionTypes'
@@ -6,7 +6,7 @@ import { Swagger } from './Swagger'
 import * as SchemaHelper from '../helpers/schema-functions'
 
 export class Schema<HasReference=Dereferenced> extends Core.Schema<HasReference> {
-  readonly discriminator?: string
+  discriminator?: string
 
   constructor (definition: Definition, version?: Version) {
     super(Schema, definition, version, arguments[2])
@@ -20,8 +20,8 @@ export class Schema<HasReference=Dereferenced> extends Core.Schema<HasReference>
       const name = value?.[key] ?? ''
       if (name === '') return { key, name, schema: null }
 
-      const swagger = this[Enforcer].findAncestor<Swagger>(Swagger)
-      const schema = swagger?.definitions?.[name] ?? null
+      const swagger = this.enforcer.findAncestor<Swagger>(Swagger)
+      const schema = swagger?.definitions?.definition[name] ?? null
       return { key, name, schema: schema as unknown as Schema }
     }
   }

@@ -6,13 +6,13 @@ import { OpenAPI } from '../../v3'
 import * as SchemaHelper from '../helpers/schema-functions'
 
 export class Schema<HasReference=Dereferenced> extends Core.Schema<HasReference> {
-  readonly discriminator?: Discriminator.Discriminator
-  readonly anyOf?: Array<Referencable<HasReference, Schema<HasReference>>>
-  readonly deprecated?: boolean
-  readonly not?: Referencable<HasReference, Schema<HasReference>>
-  readonly nullable?: boolean
-  readonly oneOf?: Array<Referencable<HasReference, Schema<HasReference>>>
-  readonly writeOnly?: boolean
+  discriminator?: Discriminator.Discriminator
+  anyOf?: Array<Referencable<HasReference, Schema<HasReference>>>
+  deprecated?: boolean
+  not?: Referencable<HasReference, Schema<HasReference>>
+  nullable?: boolean
+  oneOf?: Array<Referencable<HasReference, Schema<HasReference>>>
+  writeOnly?: boolean
 
   constructor (definition: Definition, version?: Version) {
     super(Schema, definition, version, arguments[2])
@@ -28,7 +28,7 @@ export class Schema<HasReference=Dereferenced> extends Core.Schema<HasReference>
 
       let schema = this.discriminator?.mapping?.[name]
       if (schema === undefined) {
-        const openapi = this[Enforcer].findAncestor<OpenAPI>(OpenAPI)
+        const openapi = this.enforcer.findAncestor<OpenAPI>(OpenAPI)
         schema = openapi?.components?.schemas?.[name]
       }
       return {

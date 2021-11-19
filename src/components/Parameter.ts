@@ -98,7 +98,9 @@ export function schemaGenerator (components: ComponentMap, data: Data): Componen
         type: 'object',
         allowsSchemaExtensions: false,
         additionalProperties: {
-          type: 'any'
+          schema: {
+            type: 'any'
+          }
         }
       }
     },

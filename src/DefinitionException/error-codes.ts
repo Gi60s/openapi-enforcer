@@ -48,8 +48,8 @@ export const list: MessageTemplate[] = [
   {
     id: 'DEFAULT_VALUE_DOES_NOT_MATCH_SCHEMA',
     code: 'DVDNMS',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
-    level: 'warn',
+    alternateLevels: [], // ['ignore', 'opinion', 'warn', 'error'],
+    level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
     message: 'Default value $${defaultValue} does not match its associated schema.'
   },

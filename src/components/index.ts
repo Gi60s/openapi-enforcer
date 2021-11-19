@@ -26,7 +26,10 @@ type SecuritySchemeDefinition = SecuritySchemeDefinition2 | SecuritySchemeDefini
 export interface ComponentSchema<Definition=any> {
   // define whether the component allows "x-"" extensions
   allowsSchemaExtensions: boolean
-  additionalProperties?: boolean | Schema
+  additionalProperties?: {
+    namespace: string
+    schema: Schema
+  }
   properties?: SchemaProperty[]
   builder?: {
     // Run post-build code. Errors can be produced here, but should generally not be as that is the job of the validator.
@@ -96,7 +99,7 @@ export interface Data<Definition=any> {
 export interface EnforcerData<Definition, Extension=EnforcerExtension> {
   [key: string]: any
   data: Data<Definition>
-  extension: Extension
+  extensions: Extension
   metadata: DataMetadata
   findAncestor: <T>(component: ExtendedComponent) => T | undefined
   findAncestorData: (component: ExtendedComponent) => Data<Definition> | undefined
@@ -104,6 +107,7 @@ export interface EnforcerData<Definition, Extension=EnforcerExtension> {
 
 export interface EnforcerExtension {
   exceptions?: Record<string, Level> // the key is the code to modify the level on and the value is the new level
+  nullable?: boolean
 }
 
 export interface EnforcerExtensionSchema extends EnforcerExtension {
@@ -225,7 +229,10 @@ export interface SchemaString extends SchemaBase {
 export interface SchemaObject extends SchemaBase {
   type: 'object'
   allowsSchemaExtensions: boolean
-  additionalProperties?: boolean | Schema
+  additionalProperties?: {
+    namespace?: string
+    schema: Schema
+  }
   properties?: SchemaProperty[]
 }
 
@@ -258,17 +265,17 @@ export const Enforcer = Symbol('Enforcer')
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export abstract class OASComponent<Definition=any> {
-  readonly [Enforcer]: EnforcerData<Definition>
+  readonly enforcer: EnforcerData<Definition>
 
   protected constructor (Component: ExtendedComponent, definition: Definition, version?: Version, incomingData?: Data<Definition>) {
     const data: Data<Definition> = createComponentData('constructing', Component, definition, version, incomingData)
     const { builder } = data.component.schema
     const { map } = data.root
     data.context.built = this as unknown as Definition
-    this[Enforcer] = {
+    this.enforcer = {
       data,
       metadata: data.root.metadata,
-      extension: (data.context.definition as any)['x-enforcer'] ?? {},
+      extensions: (data.context.definition as any)['x-enforcer'] ?? {},
       findAncestor<T> (component: ExtendedComponent): T | undefined {
         const ancestorData = findAncestor(data, component as unknown as ExtendedComponent)
         if (ancestorData === undefined) return
@@ -277,6 +284,12 @@ export abstract class OASComponent<Definition=any> {
       findAncestorData (component: ExtendedComponent): Data<Definition> | undefined {
         return findAncestor(data, component)
       }
+    }
+
+    // maybe add the extension object
+    if ('allowsSchemaExtensions' in data.context.schema && data.context.schema.allowsSchemaExtensions) {
+      // @ts-expect-error
+      this.extensions = {}
     }
 
     // register the use of this component with this definition
@@ -292,7 +305,7 @@ export abstract class OASComponent<Definition=any> {
     buildObjectProperties(this, data)
 
     // run after function if set
-    if (typeof builder?.after === 'function') builder.after(data, this[Enforcer])
+    if (typeof builder?.after === 'function') builder.after(data, this.enforcer)
 
     // trigger lastly hooks if this is root
     if (incomingData === undefined) data.root.lastly.run(data)
@@ -534,16 +547,26 @@ function buildObjectProperties (context: any, data: Data): void {
   })
 
   // default to excluding additional properties from build
-  const additionalProperties: boolean | Schema = schema.additionalProperties !== undefined ? schema.additionalProperties : false
+  const additionalProperties = schema.additionalProperties !== undefined ? schema.additionalProperties : false
   const allowsSchemaExtensions = schema.allowsSchemaExtensions
+  const hasNamespaceForAdditionalProperties = additionalProperties !== false && additionalProperties.namespace !== undefined
+  const additionalPropertiesContext = hasNamespaceForAdditionalProperties ? {} : context
+  const isComponent = context instanceof OASComponent
+  if (hasNamespaceForAdditionalProperties) context[additionalProperties.namespace as string] = additionalPropertiesContext
+
   remainingProperties.forEach((key: string) => {
     const def = definition[key]
-    if ((allowsSchemaExtensions && rx.extension.test(key)) || additionalProperties === true) {
-      context[key] = def
+    if ((allowsSchemaExtensions && rx.extension.test(key))) {
+      if (isComponent) {
+        // @ts-expect-error
+        context.extensions[renameExtension(key)] = def
+      } else {
+        context[key] = def
+      }
     } else if (additionalProperties !== false) {
-      const child = createChildData(data, definition[key], key, additionalProperties)
+      const child = createChildData(data, definition[key], key, additionalProperties.schema)
       const value: any = build(child)
-      if (value !== undefined) context[key] = value
+      if (value !== undefined) additionalPropertiesContext[key] = value
     }
   })
 }
@@ -772,8 +795,7 @@ export function validate (data: Data): boolean {
     if (found === undefined) {
       const enumNotMet = E.enumNotMet(schema.enum, definition, {
         definition,
-        locations: [{ node: parent?.context.definition, key: parent?.context.key, type: 'value' }],
-        reference
+        locations: [{ node: parent?.context.definition, key: parent?.context.key, type: 'value' }]
       })
       const { level } = exception.message(enumNotMet)
       if (level === 'error') return false
@@ -1062,11 +1084,7 @@ function validateObjectProperties (context: any, data: Data): boolean {
   })
 
   // validate other definition properties
-  const additionalProperties: Schema | boolean = (() => {
-    if (schema.additionalProperties === undefined) return false
-    if (typeof schema.additionalProperties === 'boolean') return schema.additionalProperties
-    return schema.additionalProperties
-  })()
+  const additionalProperties = schema.additionalProperties !== undefined ? schema.additionalProperties : false
   Object.keys(definition).forEach(key => {
     // if property already validated then don't validate against additionalProperties
     if (validatedProperties.includes(key)) return
@@ -1092,13 +1110,11 @@ function validateObjectProperties (context: any, data: Data): boolean {
         name: key,
         reason: 'Property not part of the specification.'
       })
-    } else if (additionalProperties !== true) {
-      const child = createChildData(data, def, key, additionalProperties)
+    } else {
+      const child = createChildData(data, def, key, additionalProperties.schema)
       const childSuccess = validate(child)
       if (childSuccess) context[key] = child.context.built
       success = success && childSuccess
-    } else {
-      context[key] = def
     }
   })
 
@@ -1131,6 +1147,12 @@ function validateObjectProperties (context: any, data: Data): boolean {
 
   // if (success) context.built = built
   return success
+}
+
+function renameExtension (key: string): string {
+  return key
+    .replace(/^x-/, '')
+    .replace(/(-\w)/g, k => k[1].toUpperCase())
 }
 
 function mappable (key: any, data: Data, value: any, handler: (value: any) => any): any {

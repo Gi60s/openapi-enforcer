@@ -13,9 +13,9 @@ import { Link } from './Link'
 import { Response3 as Definition } from '../helpers/DefinitionTypes'
 
 export class Response<HasReference=Dereferenced> extends Core.Response {
-  readonly content?: Record<string, MediaType<HasReference>>
-  readonly headers?: Record<string, Referencable<HasReference, Header<HasReference>>>
-  readonly links?: Record<string, Referencable<HasReference, Link>>
+  content?: Record<string, MediaType<HasReference>>
+  headers?: Record<string, Referencable<HasReference, Header<HasReference>>>
+  links?: Record<string, Referencable<HasReference, Link>>
 
   constructor (definition: Definition, version?: Version) {
     super(Response, definition, version, arguments[2])
