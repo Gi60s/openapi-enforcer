@@ -201,7 +201,7 @@ describe('definition/schema', () => {
         describe('type', () => {
 
             it('will warn of the missing "type" property', () => {
-                const [ err, warn ] = Enforcer.v2_0.Schema({});
+                const [ , err, warn ] = Enforcer.v2_0.Schema({});
                 expect(err).to.be.undefined;
                 expect(warn).to.match(/Schemas with an indeterminable type/);
             });
@@ -227,7 +227,7 @@ describe('definition/schema', () => {
                         }
                     }
                 }
-                const [ err, warn ] = await Enforcer(def, { fullResult: true, componentOptions: { exceptionEscalateCodes: ['WSCH005'] }})
+                const [ , err, warn ] = await Enforcer(def, { fullResult: true, componentOptions: { exceptionEscalateCodes: ['WSCH005'] }})
                 expect(err).to.match(/Schemas with an indeterminable type/);
                 expect(warn).to.be.undefined;
             });
@@ -1203,12 +1203,6 @@ describe('definition/schema', () => {
                     await assert.willReject(() => Enforcer(def, options), /Reference cannot be resolved: #\/components\/schemas\/Cow/)
                 });
 
-                // it('fails to map external references using the old ref parser', async () => {
-                //     const docPath = path.resolve(__dirname, '..', 'test-resources', 'discriminator-mapping', 'openapi.yml');
-                //     const [ , err ] = await Enforcer(docPath, { fullResult: true });
-                //     expect(err).to.match(/try the custom reference parser/);
-                // });
-
                 it('properly maps external references using the new ref parser', async () => {
                     Enforcer.config.useNewRefParser = true;
                     try {
@@ -1657,7 +1651,7 @@ describe('definition/schema', () => {
         describe('oneOf', () => {
 
             it('it does not screw up value when deserialize example', () => {
-                const [ err, warn ] = Enforcer.v3_0.Schema({
+                const [ , err, warn ] = Enforcer.v3_0.Schema({
                     type: 'object',
                     required: ['f'],
                     properties: {
