@@ -46,16 +46,13 @@
   },
   "homepage": "https://byu-oit.github.io/openapi-enforcer/",
   "devDependencies": {
-    "@gi60s/markdown-docs": "^0.1.2",
-    "chai": "^4.2.0",
-    "chokidar-cli": "^1.2.3",
-    "coveralls": "^3.1.0",
-    "mocha": "^8.3.0",
-    "nyc": "^14.1.1"
+    "chai": "^4.3.4",
+    "coveralls": "^3.1.1",
+    "mocha": "^9.1.3",
+    "nyc": "^15.1.0"
   },
   "dependencies": {
-    "axios": "^0.21.1",
-    "json-schema-ref-parser": "^6.1.0",
+    "js-yaml": "^4.1.0",
     "randexp": "^0.5.3"
   }
 }

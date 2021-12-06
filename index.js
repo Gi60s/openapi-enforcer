@@ -21,7 +21,6 @@ module.exports = Enforcer;
 const dataTypeFormats       = require('./src/data-type-formats');
 const Exception             = require('./src/exception');
 const NewRefParser          = require('./src/ref-parser');
-const OldRefParser          = require('json-schema-ref-parser');
 const Result                = require('./src/result');
 const Super                 = require('./src/super');
 const util                  = require('./src/util');
@@ -48,15 +47,10 @@ async function Enforcer(definition, options) {
 
     let exception;
     definition = util.copy(definition);
-    const useNewRefParser = Enforcer.config.useNewRefParser;
-    const refParser = useNewRefParser ? new NewRefParser(definition) : new OldRefParser();
-    if (useNewRefParser) {
-        const [ dereferenceValue, dereferenceErr ] = await refParser.dereference();
-        definition = dereferenceValue;
-        exception = dereferenceErr;
-    } else {
-        definition = await refParser.dereference(definition);
-    }
+    const refParser = new NewRefParser(definition);
+    const [ dereferenceValue, dereferenceErr ] = await refParser.dereference();
+    definition = dereferenceValue;
+    exception = dereferenceErr;
 
     if (!exception) {
         exception = Exception('One or more errors exist in the OpenAPI definition');
@@ -84,13 +78,9 @@ async function Enforcer(definition, options) {
     if (exception && exception.hasException) throw Error(exception.toString());
 
     openapi.getBundledDefinition = async function () {
-        if (useNewRefParser) {
-            const result = await refParser.bundle()
-            if (result.error) throw Error(result.error)
-            return result.value
-        } else {
-            return await refParser.bundle(definition)
-        }
+        const result = await refParser.bundle()
+        if (result.error) throw Error(result.error)
+        return result.value
     }
 
     return openapi;
@@ -100,23 +90,33 @@ Enforcer.config = {
     useNewRefParser: false
 };
 
-Enforcer.bundle = function (definition) {
+Enforcer.bundle = async function (definition) {
+    // We have gotten rid of the old ref parser, but realized that the return signature for the old ref parser
+    // did not match that of the new ref parser, so we have to keep the (if useNewRefParser) statement to
+    // continue to return the expected signatures.
+    const refParser = new NewRefParser(definition);
+    const data = await refParser.bundle();
     if (Enforcer.config.useNewRefParser) {
-        const refParser = new NewRefParser(definition);
-        return refParser.bundle();
+        return data
     } else {
-        const refParser = new OldRefParser();
-        return refParser.bundle(definition);
+        const [bundle, error] = data
+        if (error) throw error
+        return bundle
     }
 };
 
-Enforcer.dereference = function (definition) {
+Enforcer.dereference = async function (definition) {
+    // We have gotten rid of the old ref parser, but realized that the return signature for the old ref parser
+    // did not match that of the new ref parser, so we have to keep the (if useNewRefParser) statement to
+    // continue to return the expected signatures.
+    const refParser = new NewRefParser(definition);
+    const data = await refParser.dereference();
     if (Enforcer.config.useNewRefParser) {
-        const refParser = new NewRefParser(definition);
-        return refParser.dereference();
+        return data
     } else {
-        const refParser = new OldRefParser();
-        return refParser.dereference(definition);
+        const [ deref, error ] = data
+        if (error) throw error
+        return deref
     }
 };
 

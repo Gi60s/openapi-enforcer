@@ -16,7 +16,6 @@
  **/
 'use strict';
 
-const axios     = require('axios').default;
 const Exception = require('./exception');
 const fs        = require('fs');
 const path      = require('path');
@@ -24,6 +23,8 @@ const Result    = require('./result');
 const url       = require('url');
 const util      = require('./util');
 const yaml      = require('js-yaml');
+const Https     = require("https");
+const Http      = require("http");
 
 const rxHttp = /^https?:\/\//i;
 const rxYaml = /\.ya?ml$/i;
@@ -367,25 +368,36 @@ async function load (basePath, ref, exception, that) {
  * @returns {Promise<*|undefined>}
  */
 function httpLoad (url, exception) {
-    const transformResponse = [res => res]; // stop response body from being parsed
-    return axios.get(url, { transformResponse })
-        .then(res => {
-            const contentType = res.headers['content-type'];
-            if (res.status < 200 || res.status >= 300) {
-                exception.message('Unable to load resource due to unexpected response status code ' + res.status + ' for URL: ' + url );
+    return new Promise((resolve, reject) => {
+        const mode = url.startsWith('https') ? Https : Http
+        const req = mode.request(url, {}, (res) => {
+            if (res.statusCode < 200 || res.statusCode >= 300) {
+                exception.message('Request failed with status code ' + res.statusCode);
+                resolve()
             } else {
+                const contentType = res.headers['content-type'];
                 let type;
                 if (/^application\/json/.test(contentType)) type = 'json';
                 if (/^(?:text|application)\/(?:x-)?yaml/.test(contentType)) type = 'yaml';
 
-                const result = parseString(res.data, type, exception.nest('Unable to parse resource: ' + url));
-                res.data = result.value;
+                let data = ''
+                res.setEncoding('utf8')
+                res.on('data', (chunk) => {
+                    data += chunk
+                })
+                res.on('end', () => {
+                    const result = parseString(data, type, exception.nest('Unable to parse resource: ' + url));
+                    resolve(result.value);
+                })
+                res.on('error', (err) => {
+                    exception.message('Unexpected error: ' + err.message);
+                    resolve()
+                })
             }
-            return res.data
         })
-        .catch(err => {
-            exception.message('Unexpected error: ' + err.message);
-        });
+        req.on('error', reject)
+        req.end()
+    })
 }
 
 /**
@@ -425,7 +437,7 @@ function parseString (content, type, exception) {
         }
     } else if (type === 'yaml') {
         try {
-            value = yaml.safeLoad(content);
+            value = yaml.load(content);
         } catch (err) {
             exception.message(err.toString());
         }
@@ -435,7 +447,7 @@ function parseString (content, type, exception) {
             type = 'json';
         } catch (err) {
             try {
-                value = yaml.safeLoad(content);
+                value = yaml.load(content);
                 type = 'yaml';
             } catch (err) {
                 exception.message('Not valid JSON or YAML');

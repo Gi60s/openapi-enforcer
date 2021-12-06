@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.16.0
+
+All functionality should be the same as before, but due to the types of changes we're making this a minor release instead of a patch.
+
+### Changed
+
+- **Improved JSON Ref Resolution**
+
+  There has been a built-in JSON schema ref resolver for some time now, but it has not been the default. This has now been made both the default and the only option for ref resolution allowing the `json-schema-ref-parser` dependency to be removed.
+
+  This ref resolver is slightly better than the generic `json-schema-ref-parser` because it recognizes references in OpenAPI (and Swagger) documents that are not identified by the `$ref` property. As an example, discriminators have non `$ref` references.
+
+- **Removed axios Dependency**
+
+  This dependency was only used for HTTP/S GET requests. Now the core NodeJS `http` or `https` library is being used instead.
+
+- **Remove json-schema-ref-parser Dependency**
+
+  See the first bullet point of this change entry.
+
+- **Added js-yaml Dependency**
+
+  The built-in json schema reference parser uses js-yaml. Previously it was using the js-yaml dependency that was included by the json-schema-ref-parse, but with that gone we had to add it in as a dependency.
+
 ## 1.15.5
 
 ### Fixed
