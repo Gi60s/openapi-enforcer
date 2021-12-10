@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.16.1
+
+### Changed
+
+- **Improved README**
+
+  The README now includes a few common usage examples and has the website link more prominent.
+
 ## 1.16.0
 
 All functionality should be the same as before, but due to the types of changes we're making this a minor release instead of a patch.
