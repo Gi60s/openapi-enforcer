@@ -44,7 +44,7 @@
   "bugs": {
     "url": "https://github.com/byu-oit/openapi-enforcer/issues"
   },
-  "homepage": "https://byu-oit.github.io/openapi-enforcer/",
+  "homepage": "https://openapi-enforcer.com",
   "devDependencies": {
     "chai": "^4.3.4",
     "coveralls": "^3.1.1",
