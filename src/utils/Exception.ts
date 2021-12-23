@@ -1,17 +1,31 @@
 import { adapter } from './adapter'
 const { inspect, eol } = adapter
 
+interface Message {
+  code: string
+  message: string
+  metadata: Record<string, any>
+}
+
+interface MessageCrumbs extends Message {
+  breadcrumbs: string[]
+}
+
 interface ExceptionData {
   at: Record<string, Exception>
-  messages: string[]
+  messages: Message[]
   nests: Exception[]
 }
 
 interface Report {
   at: Record<string, Report>
+  codes: Record<string, MessageCrumbs[]>
   exception: Exception
-  messages: string[]
+  hasException: boolean
+  hasCode: (code: string) => boolean
+  messages: MessageCrumbs[]
   nests: Report[]
+  ownCodes: Record<string, MessageCrumbs[]>
   ownCount: number
   totalCount: number
 }
@@ -30,8 +44,8 @@ export class Exception {
     return at[key]
   }
 
-  public message (message: string): Exception {
-    this.data.messages.push(message)
+  public message (code: string, message: string, metadata?: Record<string, any>): Exception {
+    this.data.messages.push({ code, message, metadata: metadata ?? {} })
     return this
   }
 
@@ -80,6 +94,10 @@ export class Exception {
     return false
   }
 
+  get report (): Report {
+    return getReport(this)
+  }
+
   toString (): string {
     const report = getReport(this)
     return toString(report, '', true)
@@ -95,35 +113,66 @@ export class Exception {
   }
 }
 
-function getReport (exception: Exception): Report {
+function getReport (exception: Exception, breadcrumbs: string[] = []): Report {
   const { at, messages, nests } = exception.data
   const messagesLength = messages.length
+  const messageCrumbs = messages.map(m => Object.assign({ breadcrumbs }, m))
   const result: Report = {
     at: {},
+    codes: {},
     exception,
-    messages,
+    hasException: false,
+    hasCode,
+    messages: messageCrumbs,
     nests: [],
+    ownCodes: {},
     ownCount: messagesLength,
     totalCount: messagesLength
   }
 
+  for (let i = 0; i < messagesLength; i++) {
+    const message = messageCrumbs[i]
+    const code = message.code
+    if (code !== '') {
+      if (result.ownCodes[code] === undefined) result.ownCodes[code] = []
+      result.ownCodes[code].push(message)
+    }
+  }
+  Object.assign(result.codes, result.ownCodes)
+
   nests.forEach(nest => {
-    const r = getReport(nest)
+    const r = getReport(nest, breadcrumbs)
     if (r.totalCount > 0) {
-      result.totalCount += r.totalCount
       result.nests.push(r)
+      applyChildReport(result, r)
     }
   })
 
   Object.keys(at).forEach(key => {
-    const r = getReport(at[key])
+    const r = getReport(at[key], breadcrumbs.concat([key]))
     if (r.totalCount > 0) {
-      result.totalCount += r.totalCount
       result.at[key] = r
+      applyChildReport(result, r)
     }
   })
 
+  result.hasException = result.totalCount > 0
+
   return result
+}
+
+function applyChildReport (parent: Report, child: Report): void {
+  parent.totalCount += child.totalCount
+  Object.keys(child.codes).forEach(code => {
+    if (code !== '') {
+      if (parent.codes[code] === undefined) parent.codes[code] = []
+      parent.codes[code] = parent.codes[code].concat(child.codes[code])
+    }
+  })
+}
+
+function hasCode (this: Report, code: string): boolean {
+  return this.codes[code] !== undefined && this.codes[code].length > 0
 }
 
 function toString (report: Report, prefix: string, top: boolean): string {
@@ -152,8 +201,9 @@ function toString (report: Report, prefix: string, top: boolean): string {
     result += eol + toString(nest, prefixPlus, false)
   })
 
-  messages.forEach(message => {
+  messages.forEach(({ code, message }) => {
     result += eol + prefixPlus + message
+    if (code !== '') result += ' [' + code + ']'
   })
 
   return result

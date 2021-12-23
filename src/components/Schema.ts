@@ -1,33 +1,31 @@
+import { SchemaArray, SchemaComponent, EnforcerData, componentValidate } from './'
 import {
-  Enforcer,
-  Version,
-  Dereferenced,
-  Referencable,
+  BuilderData,
+  Component,
+  ComponentSchema,
   Data,
-  SchemaArray,
-  SchemaComponent,
-  DefinitionException,
-  ComponentSchema, ExtendedComponent, EnforcerData, EnforcerExtensionSchema
-} from './'
+  Version
+} from './helpers/builder-validator-types'
+import { DefinitionException } from '../DefinitionException'
 import { noop } from '../utils/util'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import * as Xml from './Xml'
 import * as E from '../DefinitionException/methods'
-import { Schema2 as Definition2, Schema3 as Definition3 } from './helpers/DefinitionTypes'
+import { Schema2 as Definition2, Schema3 as Definition3 } from './helpers/definition-types'
 import * as SchemaHelper from './helpers/schema-functions'
 
 type Definition = Definition2 | Definition3
 
 interface ComponentsMap {
-  Discriminator: ExtendedComponent | unknown
-  Schema: ExtendedComponent | unknown
+  Discriminator: Component | unknown
+  Schema: Component | unknown
 }
 
-export function schemaGenerator (components: ComponentsMap, data: Data): ComponentSchema<Definition> {
+export function schemaGenerator (components: ComponentsMap, data: Data<Definition>): ComponentSchema<Definition> {
   const { major } = data.root
   const { reference } = data.component
-  const { definition, exception } = data.context
+  const { definition } = data.context
 
   const schemaArray: SchemaArray = {
     type: 'array',
@@ -35,13 +33,13 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
     items: {
       type: 'component',
       allowsRef: true,
-      component: components.Schema as ExtendedComponent
+      component: components.Schema as Component
     }
   }
   const schemaChild: SchemaComponent = {
     type: 'component',
     allowsRef: true,
-    component: components.Schema as ExtendedComponent
+    component: components.Schema as Component
   }
 
   // get some of the schema from the partial schema generator
@@ -59,7 +57,7 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
   }
 
   if (schema.builder === undefined) schema.builder = {}
-  schema.builder.after = (data: Data, enforcer) => {
+  schema.builder.after = (data: BuilderData, enforcer) => {
     data.root.lastly.push(() => {
       const { built } = data.context
 
@@ -87,7 +85,8 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
     after: schema.validator?.after ?? noop
   }
   if (schema.validator === undefined) schema.validator = {}
-  schema.validator.before = () => {
+  schema.validator.before = (data) => {
+    const { exception } = data.context
     let success = true
 
     if ('additionalProperties' in definition) {
@@ -108,8 +107,9 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
     return success
   }
 
-  schema.validator.after = (data: Data) => {
-    const { built } = data.context
+  schema.validator.after = (data) => {
+    const { exception } = data.context
+    const built = data.context.built as Definition
 
     // look in "allOf" for conflicting types or formats
     if (built.allOf !== undefined) {
@@ -191,7 +191,7 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
         : {
             type: 'component',
             allowsRef: false,
-            component: components.Discriminator as ExtendedComponent
+            component: components.Discriminator as Component
           }
     },
     {
@@ -289,20 +289,20 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
   return schema
 }
 
-export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSchema<Schema> {
-  enforcer!: EnforcerData<Schema, EnforcerExtensionSchema> & {
-    schema: Schema
+export class Schema extends PartialSchema.PartialSchema<Schema> {
+  enforcer!: EnforcerData<Schema, PartialSchema.EnforcerExtensionSchema> & {
+    schema: Schema | null // null if "not" property in use at top level
   }
 
   extensions!: Record<string, any>
-  additionalProperties?: Referencable<HasReference, Schema<HasReference>> | boolean
-  allOf?: Array<Referencable<HasReference, Schema<HasReference>>>
+  additionalProperties?: Schema | boolean
+  allOf?: Schema[]
   description?: string
   example?: any
   externalDocs?: ExternalDocumentation.ExternalDocumentation
   maxProperties?: number
   minProperties?: number
-  properties?: Record<string, Referencable<HasReference, Schema<HasReference>>>
+  properties?: Record<string, Schema>
   readOnly?: boolean
   required?: string[]
   title?: string
@@ -310,6 +310,6 @@ export class Schema<HasReference=Dereferenced> extends PartialSchema.PartialSche
   xml?: Xml.Xml
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

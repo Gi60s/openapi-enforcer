@@ -1,6 +1,8 @@
-import { OASComponent, Version, DefinitionException, ComponentSchema } from '../index'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
+import { OASComponent, componentValidate } from '../index'
 import { ServerVariable } from './ServerVariable'
-import { Server3 as Definition } from '../helpers/DefinitionTypes'
+import { Server3 as Definition } from '../helpers/definition-types'
 
 let schemaServer: ComponentSchema<Definition>
 
@@ -60,6 +62,6 @@ export class Server extends OASComponent {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

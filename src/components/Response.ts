@@ -1,21 +1,19 @@
-import {
-  OASComponent,
-  ComponentSchema, ExtendedComponent
-} from './'
+import { OASComponent } from './index'
+import { Component, ComponentSchema } from './helpers/builder-validator-types'
 import { getAncestorComponent } from './helpers/traversal'
 import * as E from '../DefinitionException/methods'
 import * as V from './helpers/common-validators'
-import { Response2 as Definition2, Response3 as Definition3 } from './helpers/DefinitionTypes'
+import { Response2 as Definition2, Response3 as Definition3 } from './helpers/definition-types'
 
 const rxLinkName = /^[a-zA-Z0-9.\-_]+$/
 
 interface ComponentsMap {
-  Link: ExtendedComponent | undefined
-  Header: ExtendedComponent | undefined
-  MediaType: ExtendedComponent | undefined
-  Operation: ExtendedComponent | undefined
-  Schema: ExtendedComponent | undefined
-  Swagger: ExtendedComponent | undefined
+  Link: Component | undefined
+  Header: Component | undefined
+  MediaType: Component | undefined
+  Operation: Component | undefined
+  Schema: Component | undefined
+  Swagger: Component | undefined
 }
 
 export function schemaGenerator (components: ComponentsMap): ComponentSchema {
@@ -39,7 +37,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
             schema: {
               type: 'component',
               allowsRef: false,
-              component: components.MediaType as ExtendedComponent
+              component: components.MediaType as Component
             }
           }
         }
@@ -50,7 +48,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
         schema: {
           type: 'component',
           allowsRef: true,
-          component: components.Schema as ExtendedComponent
+          component: components.Schema as Component
         }
       },
       {
@@ -73,7 +71,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
             schema: {
               type: 'component',
               allowsRef: true,
-              component: components.Header as ExtendedComponent
+              component: components.Header as Component
             }
           }
         }
@@ -88,7 +86,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
             schema: {
               type: 'component',
               allowsRef: true,
-              component: components.Link as ExtendedComponent
+              component: components.Link as Component
             }
           }
         }
@@ -105,8 +103,8 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
             const exampleMediaTypes = Object.keys(built.examples ?? {})
 
             // Validate that the key matches the Operation produces value, whether inherited or explicit.
-            const operation = getAncestorComponent(data, components.Operation as ExtendedComponent)
-            const swagger = getAncestorComponent(data, components.Swagger as ExtendedComponent)
+            const operation = getAncestorComponent(data, components.Operation as Component)
+            const swagger = getAncestorComponent(data, components.Swagger as Component)
             const produces: string[] = [].concat(operation?.context.built.produces ?? [], swagger?.context.built.produces ?? [])
             exampleMediaTypes.forEach(type => {
               if (!produces.includes(type)) {
@@ -121,7 +119,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
 
             if (built.schema !== undefined) {
               if (!('$ref' in built.schema)) {
-                const schema = new (components.Schema as ExtendedComponent)(built.schema, '2.0')
+                const schema = new (components.Schema as Component)(built.schema, '2.0')
                 V.examplesMatchSchema(data, schema)
               }
             } else {

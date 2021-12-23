@@ -1,12 +1,14 @@
-import { ComponentSchema, Dereferenced, DefinitionException, Version } from '../index'
+import { componentValidate } from '../index'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
 import * as Core from '../Responses'
 import { Response } from './Response'
-import { Responses2 as Definition } from '../helpers/DefinitionTypes'
+import { Responses2 as Definition } from '../helpers/definition-types'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class Responses<HasReference=Dereferenced> extends Core.Responses {
+export class Responses extends Core.Responses {
   response!: {
-    [code: string]: Response<HasReference>
+    [code: string]: Response
   }
 
   constructor (definition: Definition, version?: Version) {
@@ -24,6 +26,6 @@ export class Responses<HasReference=Dereferenced> extends Core.Responses {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

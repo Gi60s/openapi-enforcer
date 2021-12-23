@@ -1,15 +1,12 @@
-import {
-  Data,
-  ComponentSchema, ExtendedComponent
-} from './'
+import { Component, ComponentSchema, Data, ValidatorData } from './helpers/builder-validator-types'
 import { noop } from '../utils/util'
 import * as V from './helpers/common-validators'
 import * as PartialSchema from './helpers/PartialSchema'
-import { Header2 as Definition2, Header3 as Definition3 } from './helpers/DefinitionTypes'
+import { Header2 as Definition2, Header3 as Definition3 } from './helpers/definition-types'
 
 interface ComponentsMap {
-  Header: ExtendedComponent
-  Schema: ExtendedComponent
+  Header: Component
+  Schema: Component
 }
 
 export function schemaGenerator (components: ComponentsMap, data: Data): ComponentSchema<Definition2 | Definition3> {
@@ -28,7 +25,7 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
   schema.validator.after = () => {
     V.defaultRequiredConflict(data)
     V.exampleExamplesConflict(data)
-    partialValidator.after(data)
+    partialValidator.after(data as ValidatorData)
   }
 
   // the "type" is required for headers v2
@@ -40,7 +37,7 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
     {
       name: 'collectionFormat',
       versions: ['2.x'],
-      notAllowed: definition.type === 'array' ? undefined : 'Data type must be an array.',
+      notAllowed: definition.type === 'array' ? undefined : 'ValidatorData type must be an array.',
       schema: {
         type: 'string',
         enum: ['csv', 'ssv', 'tsv', 'pipes'],

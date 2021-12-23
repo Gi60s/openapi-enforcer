@@ -1,6 +1,8 @@
-import { OASComponent, ComponentSchema, Version, DefinitionException } from '../index'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
+import { OASComponent, componentValidate } from '../index'
 import { PathItem } from './PathItem'
-import { Callback3 as Definition } from '../helpers/DefinitionTypes'
+import { Callback3 as Definition } from '../helpers/definition-types'
 
 let callbackSchema: ComponentSchema<Definition>
 
@@ -39,6 +41,6 @@ export class Callback extends OASComponent {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

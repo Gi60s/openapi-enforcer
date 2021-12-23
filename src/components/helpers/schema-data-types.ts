@@ -10,9 +10,11 @@
 import { Schema as Schema2 } from '../v2/Schema'
 import { Schema as Schema3 } from '../v3/Schema'
 import { Exception } from '../../utils/Exception'
+import * as EC from '../../utils/error-codes'
 import rx from '../../utils/rx'
-import * as random from './Randomizer'
+import * as random from './randomizer'
 import { noop, smart } from '../../utils/util'
+import { dataTypeMinimum } from '../../utils/error-codes'
 
 export interface DataType<DeserializedType, SerializedType> {
   type: string
@@ -126,7 +128,7 @@ setDataTypeDefinition<boolean, boolean>({
   toNumber: null,
   validate (value: boolean, exception: Exception): boolean {
     if (typeof value !== 'boolean') {
-      exception.message('Expected a boolean. Received: ' + smart(value))
+      exception.message(...EC.dataTypeInvalid('a boolean', value))
       return false
     } else {
       return true
@@ -162,31 +164,24 @@ setDataTypeDefinition<number, number>({
     let valid = true
     try {
       if (typeof value !== 'number') {
-        exception.message('Expected a number. Received: ' + smart(value))
+        exception.message(...EC.dataTypeInvalid('a number', value))
         valid = false
       } else {
         if (schema.maximum !== undefined) {
           const maximum = this.deserialize(schema.maximum, schema)
-          if (schema.exclusiveMaximum === true && value >= maximum) {
+          if (value > maximum || (schema.exclusiveMaximum === true && value >= maximum)) {
             const serializedValue = this.serialize(value, schema)
-            exception.message(`Value must be less than ${String(schema.maximum)}. Received: ${String(serializedValue)}`)
-            valid = false
-          } else if (value > maximum) {
-            const serializedValue = this.serialize(value, schema)
-            exception.message(`Value must be less than or equal to ${String(schema.maximum)}. Received: ${String(serializedValue)}`)
+            exception.message(...EC.dataTypeMaximum(schema.maximum, schema.exclusiveMaximum === true, String(serializedValue), value))
             valid = false
           }
         }
 
         if (schema.minimum !== undefined) {
           const minimum = this.deserialize(schema.minimum, schema)
-          if (schema.exclusiveMinimum === true && value >= minimum) {
+
+          if (value < minimum || (schema.exclusiveMinimum === true && value <= minimum)) {
             const serializedValue = this.serialize(value, schema)
-            exception.message(`Value must be greater than ${String(schema.minimum)}. Received: ${String(serializedValue)}`)
-            valid = false
-          } else if (value > minimum) {
-            const serializedValue = this.serialize(value, schema)
-            exception.message(`Value must be greater than or equal to ${String(schema.minimum)}. Received: ${String(serializedValue)}`)
+            exception.message(...EC.dataTypeMinimum(schema.minimum, schema.exclusiveMinimum === true, String(serializedValue), value))
             valid = false
           }
         }
@@ -195,13 +190,13 @@ setDataTypeDefinition<number, number>({
           const multipleOf = this.deserialize(schema.multipleOf, schema)
           if (value % multipleOf !== 0) {
             const serializedValue = this.serialize(value, schema)
-            exception.message(`Expected a multiple of ${String(schema.multipleOf)}. Received: ${String(serializedValue)}`)
+            exception.message(...EC.dataTypeMultipleOf(schema.multipleOf, String(serializedValue), value))
             valid = false
           }
         }
       }
     } catch (e: any) {
-      exception.message('Unexpected error: ' + String(e.message))
+      exception.message(...EC.unexpected(e))
       valid = false
     }
     return valid
@@ -226,7 +221,7 @@ extendDataTypeDefinition<number, number>('number', '', {
   },
   validate: function (value: number, exception: Exception, schema: Schema): boolean {
     if (typeof value !== 'number' || Math.round(value) !== value) {
-      exception.message('Expected an integer. Received: ' + smart(value))
+      exception.message(...EC.dataTypeInvalid('an integer', value))
       return false
     } else {
       const numberType = getDataTypeDefinition('number')
@@ -258,7 +253,7 @@ setDataTypeDefinition<string, string>({
   toNumber: null,
   validate: function (value: string, exception: Exception): boolean {
     if (typeof value !== 'string') {
-      exception.message('Expected an integer. Received: ' + smart(value))
+      exception.message(...EC.dataTypeInvalid('a string', value))
       return false
     }
     return true
@@ -307,16 +302,16 @@ setDataTypeDefinition<Uint8Array, string>({
       const valueLength = value.length * 8
       let valid = true
       if (schema.maxLength !== undefined && valueLength >= schema.maxLength) {
-        exception.message(`Uint8Array must be less than or equal to ${String(schema.maxLength)}. Actual length: ${value.length}`)
+        exception.message(...EC.dataTypeMaxLength(schema.maxLength, value.length))
         valid = false
       }
       if (schema.minLength !== undefined && valueLength <= schema.minLength) {
-        exception.message(`Uint8Array must be greater than or equal to ${String(schema.minLength)}. Actual length: ${value.length}`)
+        exception.message(...EC.dataTypeMinLength(schema.minLength, value.length))
         valid = false
       }
       return valid
     } else {
-      exception.message('Expected value to be a Uint8Array. Received: ' + smart(value))
+      exception.message(...EC.dataTypeInvalid('a Uint8Array', value))
       return false
     }
   }
@@ -374,16 +369,16 @@ setDataTypeDefinition<Uint8Array, string>({
       const valueLength = value.length * 4
       let valid = true
       if (schema.maxLength !== undefined && valueLength >= schema.maxLength) {
-        exception.message(`Uint8Array must be less than or equal to ${String(schema.maxLength)}. Actual length: ${value.length}`)
+        exception.message(...EC.dataTypeMaxLength(schema.maxLength, value.length))
         valid = false
       }
       if (schema.minLength !== undefined && valueLength <= schema.minLength) {
-        exception.message(`Uint8Array must be greater than or equal to ${String(schema.minLength)}. Actual length: ${value.length}`)
+        exception.message(...EC.dataTypeMinLength(schema.minLength, value.length))
         valid = false
       }
       return valid
     } else {
-      exception.message('Expected value to be a Uint8Array. Received: ' + smart(value))
+      exception.message(...EC.dataTypeInvalid('a Uint8Array', value))
       return false
     }
   }
@@ -434,7 +429,7 @@ setDataTypeDefinition<Date, string>({
       }
       return true
     } else {
-      exception.message('Expected a valid date object. Received: ' + smart(value))
+      exception.message(...EC.dataTypeInvalid('a valid date object', value))
       return false
     }
   }

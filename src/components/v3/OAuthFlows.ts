@@ -1,6 +1,8 @@
-import { OASComponent, Version, DefinitionException, ComponentSchema } from '../index'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
+import { OASComponent, componentValidate } from '../index'
 import { OAuthFlow } from './OAuthFlow'
-import { OAuthFlows3 as Definition } from '../helpers/DefinitionTypes'
+import { OAuthFlows3 as Definition } from '../helpers/definition-types'
 
 let oauthFlowsSchema: ComponentSchema<Definition>
 
@@ -66,6 +68,6 @@ export class OAuthFlows extends OASComponent {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

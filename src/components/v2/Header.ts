@@ -1,8 +1,10 @@
-import { Version, DefinitionException, Data, ComponentSchema } from '../'
+import { DefinitionException } from '../../DefinitionException'
+import { componentValidate } from '../'
+import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
 import { Schema } from './Schema'
 import { schemaGenerator } from '../Header'
 import { PartialSchema } from '../helpers/PartialSchema'
-import { Header2 as Definition } from '../helpers/DefinitionTypes'
+import { Header2 as Definition } from '../helpers/definition-types'
 
 export class Header extends PartialSchema<Header> {
   extensions!: Record<string, any>
@@ -25,6 +27,6 @@ export class Header extends PartialSchema<Header> {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

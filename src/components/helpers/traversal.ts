@@ -1,6 +1,6 @@
-import { Data, ExtendedComponent } from '../index'
+import { ValidatorData, ExtendedComponent } from '../index'
 
-export function getAncestorComponent (data: Data, component: ExtendedComponent): Data | undefined {
+export function getAncestorComponent (data: ValidatorData, component: ExtendedComponent): ValidatorData | undefined {
   let { chain } = data.component.data.context
   while (true) {
     const parent = chain[0]

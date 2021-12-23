@@ -1,7 +1,7 @@
-import { OASComponent, Data, ComponentSchema } from './'
+import { OASComponent, ValidatorData, ComponentSchema } from './'
 import * as E from '../DefinitionException/methods'
 import * as OAuthFlows from './v3/OAuthFlows'
-import { SecurityScheme2 as Definition2, SecurityScheme3 as Definition3 } from './helpers/DefinitionTypes'
+import { SecurityScheme2 as Definition2, SecurityScheme3 as Definition3 } from './helpers/definition-types'
 
 const rxUrl = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/
 
@@ -14,7 +14,7 @@ export class SecurityScheme extends OASComponent {
   name!: string
   type!: string
 
-  static schemaGenerator (data: Data): ComponentSchema<Definition> {
+  static schemaGenerator (data: ValidatorData): ComponentSchema<Definition> {
     const { definition, exception } = data.context
     const { major } = data.root
     const type = definition.type ?? ''

@@ -1,12 +1,6 @@
-import {
-  OASComponent,
-  Referencable,
-  Dereferenced,
-  Data,
-  Version,
-  DefinitionException,
-  ComponentSchema
-} from '../index'
+import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
+import { OASComponent, componentValidate } from '../index'
 import rx from '../../utils/rx'
 import * as E from '../../DefinitionException/methods'
 import * as V from '../helpers/common-validators'
@@ -14,14 +8,14 @@ import { Encoding } from './Encoding'
 import { Example } from './Example'
 import { RequestBody } from './RequestBody'
 import { Schema } from './Schema'
-import { MediaType3 as Definition } from '../helpers/DefinitionTypes'
+import { MediaType3 as Definition } from '../helpers/definition-types'
 
-export class MediaType<HasReference=Dereferenced> extends OASComponent {
+export class MediaType extends OASComponent {
   extensions!: Record<string, any>
-  encoding?: Record<string, Referencable<HasReference, Encoding<HasReference>>>
+  encoding?: Record<string, Encoding>
   example?: any
-  examples?: Record<string, Referencable<HasReference, Example>>
-  schema?: Referencable<HasReference, Schema>
+  examples?: Record<string, Example>
+  schema?: Schema
 
   constructor (definition: Definition, version?: Version) {
     super(MediaType, definition, version, arguments[2])
@@ -137,6 +131,6 @@ export class MediaType<HasReference=Dereferenced> extends OASComponent {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

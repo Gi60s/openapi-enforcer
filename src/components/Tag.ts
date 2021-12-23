@@ -1,6 +1,6 @@
 import { OASComponent, Version, DefinitionException, ComponentSchema } from './'
 import { ExternalDocumentation } from './ExternalDocumentation'
-import { Tag as Definition } from './helpers/DefinitionTypes'
+import { Tag as Definition } from './helpers/definition-types'
 
 let schemaTag: ComponentSchema<Definition>
 

@@ -1,12 +1,13 @@
 import { Exception } from '../../utils/Exception'
-import { Schema2 as Definition2, Schema3 as Definition3 } from './DefinitionTypes'
+import { Schema2 as Definition2, Schema3 as Definition3 } from './definition-types'
 import { Schema as Schema2 } from '../v2/Schema'
 import { Schema as Schema3 } from '../v3/Schema'
-import { copy, isObject, same, smart } from '../../utils/util'
-import { getDataTypeDefinition } from './DataTypes'
+import { copy, isObject, same } from '../../utils/util'
+import { getDataTypeDefinition } from './schema-data-types'
 import { Result } from '../../utils/Result'
 import { OASComponent } from '../index'
-import * as Randomizer from './Randomizer'
+import * as Randomizer from './randomizer'
+import * as EC from '../../utils/error-codes'
 
 type Definition = Definition2 | Definition3
 export type Schema = Schema2 | Schema3
@@ -269,22 +270,22 @@ export function populate (schema: Schema, parameters: Record<string, any>, targe
   } else if ('anyOf' in schema || 'oneOf' in schema) {
     const mode = 'anyOf' in schema ? 'anyOf' : 'oneOf'
     if (schema.discriminator === undefined) {
-      exception.message('Unable to populate ' + mode + ' without a discriminator')
+      exception.message(...EC.schemaPopulateNoDiscriminator(mode))
     } else {
       const { name, key: discriminatorKey, schema: subSchema } = schema.discriminate(value)
       if (subSchema !== null) {
         populate(subSchema as Schema, parameters, target, key, injector, exception.at(mode), depth, options)
       } else {
-        exception.message('Discriminator property "' + discriminatorKey + '" as "' + name + '" did not map to a schema.')
+        exception.message(...EC.schemaDiscriminatorUnmapped(discriminatorKey, name))
       }
     }
   } else if ('not' in schema) {
-    exception.message('Cannot populate "not" schemas.')
+    exception.message(...EC.schemaPopulateNotSchema())
   } else {
     const { type } = determineTypes(schema, new Map()).get(true)
     if (type === 'array') {
       if (value !== undefined && !Array.isArray(value)) {
-        exception.message('Provided value must be an array. Received: ' + smart(value))
+        exception.message(...EC.dataTypeInvalid('an array', value))
       } else {
         const applied = populateApply(schema, type, parameters, target, key, injector, options)
         if (schema.items !== undefined && Array.isArray(applied)) {
@@ -296,7 +297,7 @@ export function populate (schema: Schema, parameters: Record<string, any>, targe
       }
     } else if (type === 'object') {
       if (value !== undefined && !isObject(value)) {
-        exception.message('Provided value must be an object. Received: ' + smart(value))
+        exception.message(...EC.dataTypeInvalid('an object', value))
       } else {
         const appliedValue = populateApply(schema, type, parameters, target, key, injector, options)
         const applied = appliedValue ?? {}
@@ -338,7 +339,7 @@ export function random (schema: Schema, target: Record<string, any>, key: string
 
   if (depth > options.maxDepth) return
 
-  if (schema.enforcer.schema !== undefined) {
+  if (schema.enforcer.schema !== undefined && schema.enforcer.schema !== null) {
     schema = schema.enforcer.schema
   }
 
@@ -348,7 +349,7 @@ export function random (schema: Schema, target: Record<string, any>, key: string
     target[key] = copy(Randomizer.oneOf(schema.enum))
   } else if (schema.type === 'array') {
     if (value !== undefined && !Array.isArray(value)) {
-      exception.message('Provided value is not an array.')
+      exception.message(...EC.dataTypeInvalid('an array', value))
     } else if (schema.items !== undefined) {
       const result = value ?? []
       const min: number = schema.minItems ?? result.length
@@ -398,7 +399,7 @@ export function random (schema: Schema, target: Record<string, any>, key: string
     if (value === null) {
       target[key] = null
     } else if (value !== undefined && typeof value !== 'object') {
-      exception.message('Provided value is not an object.')
+      exception.message(...EC.dataTypeInvalid('an object', value))
     } else {
       const result = value ?? {}
       const definedProperties = schema.properties !== undefined ? Object.keys(schema.properties) : []
@@ -487,7 +488,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
     if ('discriminator' in schema) {
       const { key, schema: childSchema } = schema.discriminate(value)
       if (childSchema === null) {
-        exception.message(`Discriminator property "${key}" as "${String(value[key])}" did not map to a schema.`)
+        exception.message(...EC.schemaDiscriminatorUnmapped(key, value[key]))
         valid = false
       } else {
         const { result } = validate(childSchema as Schema, value, map, exception.at(value[key]), options)
@@ -513,21 +514,21 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
   } else if ('not' in schema) {
     const { result } = validate(schema, value, map, new Exception(), options)
     if (result === true) {
-      exception.message('Value should not validate against schema')
+      exception.message(...EC.schemaShouldNotValidate())
       valid = false
     }
   } else if (schema.type === 'array') {
     if (!Array.isArray(value)) {
-      exception.message('Expected an array. Received: ' + smart(value))
+      exception.message(...EC.dataTypeInvalid('an array', value))
       valid = false
     } else {
       const length = value.length
       if (schema.maxItems !== undefined && schema.maxItems < length) {
-        exception.message('Too many items in the array. Maximum of ' + String(schema.maxItems) + '. Found ' + String(length) + ' items')
+        exception.message(...EC.dataTypeMaxItems(schema.maxItems, length))
         valid = false
       }
       if (schema.minItems !== undefined && schema.minItems > length) {
-        exception.message('Too few items in the array. Minimum of ' + String(schema.minItems) + '. Found ' + String(length) + ' items')
+        exception.message(...EC.dataTypeMinItems(schema.minItems, length))
         valid = false
       }
       if (schema.uniqueItems === true) {
@@ -537,7 +538,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
           let found = false
           for (let i = 0; i < length; i++) {
             if (same(item, singles[i])) {
-              exception.message('Array items must be unique. Value is not unique at index: ' + String(index))
+              exception.message(...EC.dataTypeUnique(index))
               found = true
               valid = false
               break
@@ -555,7 +556,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
     }
   } else if (schema.type === 'object') {
     if (!isObject(value)) {
-      exception.message('Expected a non-null object. Received: ' + smart(value))
+      exception.message(...EC.dataTypeInvalid('a non-null object', value))
       valid = false
     } else {
       const properties = schema.properties ?? {}
@@ -587,7 +588,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
           if (result === false) valid = false
         } else {
           if (schema.additionalProperties === false) {
-            exception.at(key).message('Property not allowed')
+            exception.at(key).message(...EC.dataTypePropertyNotAllowed())
             valid = false
           } else if (typeof schema.additionalProperties === 'object') {
             const prop = schema.additionalProperties
@@ -600,17 +601,17 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
 
       // validate that all required are present
       if (required.length > 0) {
-        exception.message('One or more required properties missing: ' + required.join(', '))
+        exception.message(...EC.dataTypePropertyMissing(required))
         valid = false
       }
 
       // validate that we only have readable or writable properties
       if (readWriteOnly.length > 0) {
         if (readWriteMode === 'write') {
-          exception.message('Cannot write to read only properties: ' + readWriteOnly.join(', '))
+          exception.message(...EC.dataTypeReadOnly(readWriteOnly))
           valid = false
         } else if (readWriteMode === 'read') {
-          exception.message('Cannot read from write only properties: ' + readWriteOnly.join(', '))
+          exception.message(...EC.dataTypeWriteOnly(readWriteOnly))
           valid = false
         }
       }
@@ -618,11 +619,11 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
       // validate number of properties
       const propertyCount = Object.keys(properties).length
       if (schema.maxProperties !== undefined && propertyCount > schema.maxProperties) {
-        exception.message('Object with ' + String(propertyCount) + ' properties has more than the maximum number of allowed properties: ' + String(schema.maxProperties))
+        exception.message(...EC.dataTypeMaxProperties(schema.maxProperties, propertyCount))
         valid = false
       }
       if (schema.minProperties !== undefined && propertyCount < schema.minProperties) {
-        exception.message('Object with ' + String(propertyCount) + ' properties has less than the minimum number of allowed properties: ' + String(schema.maxProperties))
+        exception.message(...EC.dataTypeMinProperties(schema.minProperties, propertyCount))
         valid = false
       }
 
@@ -633,7 +634,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
           const { result } = validate(details.schema as Schema, value, map, exception, options)
           if (result === false) valid = false
         } else if (details.name !== undefined) {
-          exception.message('Discriminator property "' + details.key + '" as "' + details.name + '" did not map to a schema')
+          exception.message(...EC.schemaDiscriminatorUnmapped(details.key, details.name))
           valid = false
         } // else - already taken care of because it's a missing required error
       }
@@ -661,7 +662,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
       }
     }
     if (!found) {
-      exception.message('Value ' + smart(value) + ' did not meet enum requirements')
+      exception.message(...EC.dataTypeEnum(schema.enum, value))
       valid = false
     }
   }
@@ -784,7 +785,7 @@ function serializer (mode: 'deserialize' | 'serialize', schema: Schema, value: a
 
     // unable to deserialize or serialize
     const schemaKey = 'anyOf' in schema ? 'anyOf' : 'oneOf'
-    exception.at(schemaKey).message('Unable to determine ' + (mode === 'serialize' ? 'serialization' : 'deserialization') + ' method for value: ' + smart(value))
+    exception.at(schemaKey).message(...EC.schemaIndeterminate(mode))
   } else if (type === '' || 'not' in schema) {
     return mapped.setResult(value)
   } else if (type === 'array') {
@@ -796,7 +797,7 @@ function serializer (mode: 'deserialize' | 'serialize', schema: Schema, value: a
       })
       return item
     } else {
-      exception.message('Expected an array. Received: ' + smart(value))
+      exception.message(...EC.dataTypeInvalid('an array', value))
     }
   } else if (type === 'object') {
     if (isObject(value)) {
@@ -818,7 +819,7 @@ function serializer (mode: 'deserialize' | 'serialize', schema: Schema, value: a
         if (d.schema !== null) {
           Object.assign(result, serializer(mode, d.schema as Schema, value, map, exception).result)
         } else {
-          exception.message('Discriminator property "' + d.key + '" as "' + d.name + '" did not map to a schema.')
+          exception.message(...EC.schemaDiscriminatorUnmapped(d.key, d.name))
         }
       }
       return item

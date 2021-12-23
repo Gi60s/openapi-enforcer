@@ -1,18 +1,25 @@
+import { componentValidate } from '../index'
+import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
 import * as PartialSchema from '../helpers/PartialSchema'
 import { Items } from './Items'
 import { Schema } from './Schema'
-import { ComponentSchema, Data, Dereferenced, DefinitionException, Referencable, Version } from '../index'
 import * as Core from '../Parameter'
-import { Parameter2 as Definition } from '../helpers/DefinitionTypes'
+import { Parameter2 as Definition } from '../helpers/definition-types'
+import { Exception } from '../../utils/Exception'
+import { Result } from '../../utils/Result'
+import { parsePrimitive } from '../helpers/Parameter'
+import * as EC from '../../utils/error-codes'
+import { definitionInvalid } from '../../utils/error-codes'
 
-export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialSchema<Items> {
+export class Parameter extends PartialSchema.PartialSchema<Items> {
   extensions!: Record<string, any>
   name!: string
-  in!: 'body' | 'cookie' | 'formData' | 'header' | 'path' | 'query'
+  in!: 'body' | 'formData' | 'header' | 'path' | 'query'
   allowEmptyValue?: boolean
   description?: string
   required?: boolean
-  schema?: Referencable<HasReference, Schema>
+  schema?: Schema
   collectionFormat?: 'csv' | 'multi' | 'pipes' | 'ssv' | 'tsv'
   type?: 'array' | 'boolean' | 'file' | 'integer' | 'number' | 'string'
 
@@ -20,18 +27,94 @@ export class Parameter<HasReference=Dereferenced> extends PartialSchema.PartialS
     super(Parameter, definition, version, arguments[2])
   }
 
+  parse (multiValue: string[]): Result<any> {
+    const exception = new Exception('Unable to parse value')
+
+    if (this.in === 'body') {
+      if (this.schema !== undefined) {
+        return this.schema.deserialize(multiValue[multiValue.length - 1])
+      } else {
+        exception.message(...EC.definitionInvalid(false))
+        return new Result(null, exception)
+      }
+    } else if (this.collectionFormat === 'multi') {
+      // only query and formData support multi
+      const result: any[] = []
+      multiValue.forEach((value, index) => {
+        if ((value === '' ?? value === undefined) && this.allowEmptyValue !== true) {
+          exception.at(index).message(...EC.parameterParseEmptyValue())
+        } else if (this.items !== undefined) {
+          result.push(parse(this.items as unknown as Parameter, exception.at(index), value))
+        }
+      })
+      return new Result(result, exception)
+    } else {
+      const value = multiValue[multiValue.length - 1]
+      if ((value === '' ?? value === undefined) && this.allowEmptyValue !== true) {
+        exception.message(...EC.parameterParseEmptyValue())
+        return new Result(null, exception)
+      } else {
+        const result = parse(this, exception, value)
+        return new Result(result, exception)
+      }
+    }
+  }
+
   static spec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#parameter-object'
   }
 
   static schemaGenerator (data: Data<Definition>): ComponentSchema<Definition> {
-    return Core.schemaGenerator({
+    const schema = Core.schemaGenerator({
       Parameter,
-      Schema: Schema
+      Schema
     }, data)
+
+    const type = data.context.definition.type
+    schema.properties?.push({
+      name: 'collectionFormat',
+      notAllowed: type !== 'array' ? 'The "collectionFormat" can only be applied with the type is "array"' : undefined,
+      schema: {
+        type: 'string',
+        enum: ['csv', 'ssv', 'tsv', 'pipes'],
+        default: 'csv',
+        ignored: type === 'array' ? false : 'The "collectionFormat" property can only be used if the type is "array".'
+      }
+    })
+
+    return schema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
+  }
+}
+
+function parse (parameter: Parameter | Items, exception: Exception, value: string): any {
+  if (typeof value !== 'string') {
+    exception.message(...EC.parameterParseInvalidInput(value, 'string'))
+    return
+  }
+
+  if (parameter.type === 'array') {
+    let values: string[]
+    if (parameter.collectionFormat === 'csv') {
+      values = value.split(',')
+    } else if (parameter.collectionFormat === 'pipes') {
+      values = value.split('|')
+    } else if (parameter.collectionFormat === 'ssv') {
+      values = value.split(' ')
+    } else if (parameter.collectionFormat === 'tsv') {
+      values = value.split('\t')
+    } else {
+      throw Error('Collection format "multi" cannot be handled by the parse function because it is not part of the items object: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#itemsObject')
+    }
+    return values.map((value, index) => {
+      return parameter.items !== undefined
+        ? parse(parameter.items, exception.at(index), value)
+        : value
+    })
+  } else {
+    return parsePrimitive(parameter, exception, value)
   }
 }

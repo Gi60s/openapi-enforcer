@@ -1,20 +1,16 @@
-import {
-  Dereferenced,
-  Version,
-  DefinitionException,
-  Referencable,
-  ComponentSchema
-} from '../'
+import { componentValidate } from '../'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
 import { Operation } from './Operation'
 import { Header } from './Header'
 import { Schema } from './Schema'
 import { Swagger } from './Swagger'
 import * as Core from '../Response'
-import { Response2 as Definition } from '../helpers/DefinitionTypes'
+import { Response2 as Definition } from '../helpers/definition-types'
 
-export class Response<HasReference=Dereferenced> extends Core.Response {
+export class Response extends Core.Response {
   examples?: Record<string, any>
-  headers?: Record<string, Referencable<HasReference, Header>>
+  headers?: Record<string, Header>
   schema?: Schema
 
   constructor (definition: Definition, version?: Version) {
@@ -37,6 +33,6 @@ export class Response<HasReference=Dereferenced> extends Core.Response {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

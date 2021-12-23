@@ -1,9 +1,9 @@
 import {
   OASComponent,
-  DefinitionException,
   LoaderOptions,
-  loadRoot, Dereferenced, ComponentSchema
+  loadRoot, componentValidate
 } from '../index'
+import { DefinitionException } from '../../DefinitionException'
 import { DefinitionResult } from '../../DefinitionException/DefinitionResult'
 import * as E from '../../DefinitionException/methods'
 import rx from '../../utils/rx'
@@ -16,24 +16,25 @@ import { Response } from './Response'
 import { SecurityScheme } from './SecurityScheme'
 import { SecurityRequirement } from '../SecurityRequirement'
 import { Tag } from '../Tag'
-import { Swagger as Definition } from '../helpers/DefinitionTypes'
+import { Swagger as Definition } from '../helpers/definition-types'
+import { ComponentSchema, ValidatorData } from '../helpers/builder-validator-types'
 
 const rxHostParts = /^(?:(https?|wss?):\/\/)?(.+?)(\/.+)?$/
 const rxPathTemplating = /[{}]/
 let schemaSwagger: ComponentSchema<Definition>
 
-export class Swagger<HasReference=Dereferenced> extends OASComponent {
+export class Swagger extends OASComponent<Definition, typeof Swagger> {
   extensions!: Record<string, any>
   basePath?: string
   consumes?: string[]
-  definitions?: Definitions<HasReference>
+  definitions?: Definitions
   externalDocs?: ExternalDocumentation
   host?: string
   info!: Info
-  parameters?: Record<string, Parameter<HasReference>>
-  paths!: Paths<HasReference>
+  parameters?: Record<string, Parameter>
+  paths!: Paths
   produces?: string[]
-  responses?: Record<string, Response<HasReference>>
+  responses?: Record<string, Response>
   security?: SecurityRequirement[]
   securityDefinitions?: Record<string, SecurityScheme>
   schemes?: string[]
@@ -205,7 +206,7 @@ export class Swagger<HasReference=Dereferenced> extends OASComponent {
           }
         ],
         validator: {
-          after (data) {
+          after (data: ValidatorData) {
             const { built, definition, exception } = data.context
             const { reference } = data.component
 
@@ -230,7 +231,7 @@ export class Swagger<HasReference=Dereferenced> extends OASComponent {
             }
 
             if (built.consumes !== undefined) {
-              built.consumes.forEach(consumes => {
+              built.consumes.forEach((consumes: string) => {
                 if (!rx.mediaType.test(consumes)) {
                   const invalidMediaType = E.invalidMediaType(consumes, {
                     definition,
@@ -274,7 +275,7 @@ export class Swagger<HasReference=Dereferenced> extends OASComponent {
             }
 
             if (built.produces !== undefined) {
-              built.produces.forEach(produces => {
+              built.produces.forEach((produces: string) => {
                 if (!rx.mediaType.test(produces)) {
                   const invalidMediaType = E.invalidMediaType(produces, {
                     definition,
@@ -293,6 +294,6 @@ export class Swagger<HasReference=Dereferenced> extends OASComponent {
   }
 
   static validate (definition: Definition): DefinitionException {
-    return super.validate(definition, '2.0', arguments[2])
+    return componentValidate(this, definition, '2.0', arguments[2])
   }
 }

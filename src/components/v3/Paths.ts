@@ -1,16 +1,11 @@
-import {
-  Data,
-  Version,
-  DefinitionException,
-  Dereferenced,
-  ComponentSchema
-} from '../'
+import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
+import { componentValidate } from '../index'
 import { PathItem } from './PathItem'
 import * as Core from '../Paths'
-import { Paths3 as Definition } from '../helpers/DefinitionTypes'
+import { Paths3 as Definition } from '../helpers/definition-types'
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class Paths<HasReference=Dereferenced> extends Core.Paths<HasReference> {
+export class Paths extends Core.Paths {
   constructor (definition: Definition, version?: Version) {
     super(Paths, definition, version, arguments[2])
   }
@@ -27,6 +22,6 @@ export class Paths<HasReference=Dereferenced> extends Core.Paths<HasReference> {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

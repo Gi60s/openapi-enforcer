@@ -1,12 +1,6 @@
-import { getDataTypeDefinition, getNoopTypeDefinition } from './DataTypes'
-import {
-  Data,
-  OASComponent,
-  ComponentSchema,
-  SchemaProperty,
-  EnforcerExtensionSchema,
-  EnforcerData
-} from '../index'
+import { getDataTypeDefinition, getNoopTypeDefinition } from './schema-data-types'
+import { OASComponent, SchemaProperty, EnforcerData } from '../index'
+import { BuilderData, ComponentSchema, Data, ValidatorData } from './builder-validator-types'
 import * as E from '../../DefinitionException/methods'
 import { determineTypes, MapStore, PopulateOptions, Schema } from './schema-functions'
 import { Result } from '../../utils/Result'
@@ -39,6 +33,16 @@ export interface Definition<Items> {
   pattern?: string
   type?: string
   uniqueItems?: boolean
+}
+
+export interface EnforcerExtensionSchema {
+  populate?: {
+    condition?: string // The name of the parameter to check for truthy value before populating the value
+    default?: any // When populating, overwrite the schema default with this value. If the type is a string then replacement may occur.
+    id?: string // The parameter name to use to find the replacement value. String replacement will not occur.
+    replacement?: 'colon' | 'doubleHandlebar' | 'handlebar' | 'none' // Set to none to skip parameter replacement.
+    useDefault?: boolean // Set to false to prevent the default value from being used during populate.
+  }
 }
 
 export abstract class PartialSchema<Items> extends OASComponent {
@@ -180,7 +184,7 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
       },
       {
         name: 'exclusiveMaximum',
-        notAllowed: isNumeric ? undefined : 'Data type must be numeric.',
+        notAllowed: isNumeric ? undefined : 'ValidatorData type must be numeric.',
         schema: {
           type: 'boolean',
           default: false
@@ -188,7 +192,7 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
       },
       {
         name: 'exclusiveMinimum',
-        notAllowed: isNumeric ? undefined : 'Data type must be numeric.',
+        notAllowed: isNumeric ? undefined : 'ValidatorData type must be numeric.',
         schema: {
           type: 'boolean',
           default: false
@@ -196,7 +200,7 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
       },
       {
         name: 'items',
-        notAllowed: isArray ? undefined : 'Data type must be an array.',
+        notAllowed: isArray ? undefined : 'ValidatorData type must be an array.',
         required: isArray,
         schema: {
           type: 'component',
@@ -206,56 +210,56 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
       },
       {
         name: 'maximum',
-        notAllowed: isNumeric ? undefined : 'Data type must be numeric.',
+        notAllowed: isNumeric ? undefined : 'ValidatorData type must be numeric.',
         schema: {
           type: 'any' // The type is "any" because a string can be numeric given the proper format (ex: date, date-time)
         }
       },
       {
         name: 'maxItems',
-        notAllowed: isArray ? undefined : 'Data type must be an array.',
+        notAllowed: isArray ? undefined : 'ValidatorData type must be an array.',
         schema: {
           type: 'number'
         }
       },
       {
         name: 'maxLength',
-        notAllowed: isString ? undefined : 'Data type must be a string.',
+        notAllowed: isString ? undefined : 'ValidatorData type must be a string.',
         schema: {
           type: 'number'
         }
       },
       {
         name: 'minimum',
-        notAllowed: isNumeric ? undefined : 'Data type must be numeric.',
+        notAllowed: isNumeric ? undefined : 'ValidatorData type must be numeric.',
         schema: {
           type: 'any' // The type is "any" because a string can be numeric given the proper format (ex: date, date-time)
         }
       },
       {
         name: 'minItems',
-        notAllowed: isArray ? undefined : 'Data type must be an array.',
+        notAllowed: isArray ? undefined : 'ValidatorData type must be an array.',
         schema: {
           type: 'number'
         }
       },
       {
         name: 'minLength',
-        notAllowed: isString ? undefined : 'Data type must be a string.',
+        notAllowed: isString ? undefined : 'ValidatorData type must be a string.',
         schema: {
           type: 'number'
         }
       },
       {
         name: 'multipleOf',
-        notAllowed: isNumeric ? undefined : 'Data type must be numeric.',
+        notAllowed: isNumeric ? undefined : 'ValidatorData type must be numeric.',
         schema: {
           type: 'any' // The type is "any" because a string can be numeric for specific type format combinations
         }
       },
       {
         name: 'uniqueItems',
-        notAllowed: isArray ? undefined : 'Data type must be an array.',
+        notAllowed: isArray ? undefined : 'ValidatorData type must be an array.',
         schema: {
           type: 'boolean'
         }
@@ -268,7 +272,7 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
       }
     ],
     builder: {
-      after (data: Data) {
+      after (data: BuilderData) {
         root.lastly.push(() => {
           const { built } = data.context
 
@@ -289,7 +293,8 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
       }
     },
     validator: {
-      after () {
+      after (data: ValidatorData) {
+        const { root, context } = data
         const { built, exception } = context
         if (built.type === 'array') {
           validateMaxMin(data, 'minItems', 'maxItems')
@@ -300,7 +305,7 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
         }
 
         if ('default' in built || 'enum' in built) {
-          root.lastly.push(data => {
+          root.lastly.push((data: ValidatorData) => {
             const schema = new ReferenceComponentClass(built, root.version)
 
             if ('default' in built) {
@@ -345,7 +350,7 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
   }
 }
 
-export function validateMaxMin (data: Data, minKey: string, maxKey: string): void {
+export function validateMaxMin (data: ValidatorData, minKey: string, maxKey: string): void {
   const { built, definition, exception } = data.context
   if (minKey in built && maxKey in built && built[minKey] > built[maxKey]) {
     const invalidMaxMin = E.invalidMaxMin(built[minKey], built[maxKey], minKey, maxKey, {

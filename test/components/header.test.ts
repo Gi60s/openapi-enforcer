@@ -126,7 +126,7 @@ describe('Header component', () => {
 
       it('is not allowed if type is not array', function () {
         const [error] = Header2.validate({ type: 'string', items: { type: 'string' } })
-        expect(error).to.match(/Property "items" not allowed. Data type must be an array./)
+        expect(error).to.match(/Property "items" not allowed. ValidatorData type must be an array./)
       })
     })
 
@@ -141,7 +141,7 @@ describe('Header component', () => {
 
       it('is not allowed if type is not array', function () {
         const [error] = Header2.validate({ type: 'string', collectionFormat: 'csv' })
-        expect(error).to.match(/Property "collectionFormat" not allowed. Data type must be an array./)
+        expect(error).to.match(/Property "collectionFormat" not allowed. ValidatorData type must be an array./)
       })
 
       it('can equal "csv"', function () {

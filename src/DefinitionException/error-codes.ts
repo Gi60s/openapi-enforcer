@@ -371,6 +371,21 @@ export const list: MessageTemplate[] = [
     message: 'The operationId $${operationId} must be unique for each operation.'
   },
   {
+    id: 'PARAMETER_BODY_FORM_DATA_CONFLICT',
+    code: 'PABFDC',
+    alternateLevels: [],
+    level: 'error',
+    message: 'You cannot specify both body and formData parameters together. They are mutually exclusive.'
+  },
+  {
+    id: 'PARAMETER_NAME_CONFLICT',
+    code: 'PANACO',
+    alternateLevels: [],
+    level: 'error',
+    // eslint-disable-next-line no-template-curly-in-string
+    message: 'Two parameters are defined with the name $${name}} and space $${at}}.'
+  },
+  {
     id: 'PATH_ENDINGS_INCONSISTENT',
     code: 'PAENIN',
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
@@ -437,6 +452,13 @@ export const list: MessageTemplate[] = [
     level: 'error',
     // eslint-disable-next-line no-template-curly-in-string
     message: 'Cannot resolve reference $${ref} from $${from}.'
+  },
+  {
+    id: 'REQUEST_BODY_CONTENT_EMPTY',
+    code: 'REBOCE',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'error',
+    message: 'The request body content map must contain one or more media type definition.'
   },
   {
     id: 'RESPONSE_BODY_NOT_ALLOWED',

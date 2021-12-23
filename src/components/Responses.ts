@@ -1,13 +1,11 @@
-import {
-  OASComponent,
-  Dereferenced,
-  ComponentSchema, ExtendedComponent
-} from './'
+import { componentValidate, OASComponent } from './index'
+import { Component, ComponentSchema } from './helpers/builder-validator-types'
 import * as E from '../DefinitionException/methods'
 import {
   Response2 as ResponseDefinition2,
   Response3 as ResponseDefinition3
-} from './helpers/DefinitionTypes'
+} from './helpers/definition-types'
+import { Response } from './v2/Response'
 
 const rxCode = /^[1-5]\d{2}$/
 const rxLocation = /^location$/i
@@ -15,7 +13,7 @@ const rxRange = /^[1-5]X{2}$/
 
 type ResponseDefinition = ResponseDefinition2 | ResponseDefinition3
 
-export function schemaGenerator (components: { Response: ExtendedComponent }): ComponentSchema {
+export function schemaGenerator (components: { Response: Component }): ComponentSchema {
   return {
     allowsSchemaExtensions: false,
     additionalProperties: {
@@ -102,6 +100,9 @@ export function schemaGenerator (components: { Response: ExtendedComponent }): C
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class Responses<HasReference=Dereferenced> extends OASComponent {
+export class Responses extends OASComponent {
   extensions!: Record<string, any>
+  response!: {
+    [code: string]: any
+  }
 }

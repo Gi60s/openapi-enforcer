@@ -1,25 +1,20 @@
-import {
-  Data,
-  OASComponent,
-  Dereferenced,
-  Version,
-  DefinitionException,
-  Referencable, ComponentSchema
-} from '../'
+import { OASComponent, componentValidate } from '../'
+import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
 import { schemaGenerator } from '../Header'
 import { Example } from './Example'
 import { Schema } from './Schema'
-import { Header3 as Definition } from '../helpers/DefinitionTypes'
+import { Header3 as Definition } from '../helpers/definition-types'
 
-export class Header<HasReference=Dereferenced> extends OASComponent {
+export class Header extends OASComponent<Definition, typeof Header> {
   extensions!: Record<string, any>
   deprecated?: boolean // defaults to false
   description?: string
   example?: any
-  examples?: Record<string, Referencable<HasReference, Example>>
+  examples?: Record<string, Example>
   explode?: boolean
   required?: boolean
-  schema?: Referencable<HasReference, Schema>
+  schema?: Schema
   style?: 'simple'
 
   constructor (definition: Definition, version?: Version) {
@@ -41,6 +36,6 @@ export class Header<HasReference=Dereferenced> extends OASComponent {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

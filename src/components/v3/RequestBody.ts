@@ -1,6 +1,9 @@
-import { OASComponent, Version, DefinitionException, ComponentSchema } from '../index'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
+import { OASComponent, componentValidate } from '../index'
 import { MediaType } from './MediaType'
-import { RequestBody3 as Definition } from '../helpers/DefinitionTypes'
+import { RequestBody3 as Definition } from '../helpers/definition-types'
+import * as E from '../../DefinitionException/methods'
 
 let requestBodySchema: ComponentSchema<Definition>
 
@@ -49,13 +52,31 @@ export class RequestBody extends OASComponent {
             name: 'required',
             schema: { type: 'boolean' }
           }
-        ]
+        ],
+        validator: {
+          after (data) {
+            const definition = data.component.definition
+            const built = data.context.built
+            const reference = data.component.reference
+            const exception = data.context.exception
+
+            const keys = Object.keys(built.content)
+            if (keys.length === 0) {
+              const requestBodyContentEmpty = E.requestBodyContentEmpty({
+                definition,
+                locations: [{ node: definition, key: 'content', type: 'value' }],
+                reference
+              })
+              exception.message(requestBodyContentEmpty)
+            }
+          }
+        }
       }
     }
     return requestBodySchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

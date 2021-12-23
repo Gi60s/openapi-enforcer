@@ -1,6 +1,8 @@
-import { DefinitionException, Version } from '../index'
+import { Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
+import { componentValidate } from '../index'
 import * as Core from '../SecurityScheme'
-import { SecurityScheme3 as Definition } from '../helpers/DefinitionTypes'
+import { SecurityScheme3 as Definition } from '../helpers/definition-types'
 
 export class SecurityScheme extends Core.SecurityScheme {
   bearerFormat?: string
@@ -20,6 +22,6 @@ export class SecurityScheme extends Core.SecurityScheme {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

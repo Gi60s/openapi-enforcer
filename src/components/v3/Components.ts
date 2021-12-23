@@ -1,11 +1,6 @@
-import {
-  OASComponent,
-  Dereferenced,
-  Referencable,
-  Version,
-  DefinitionException,
-  ComponentSchema
-} from '../index'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
+import { OASComponent, componentValidate } from '../index'
 import { Callback } from './Callback'
 import { Example } from './Example'
 import { Header } from './Header'
@@ -15,21 +10,21 @@ import { RequestBody } from './RequestBody'
 import { Response } from './Response'
 import { Schema } from './Schema'
 import { SecurityScheme } from './SecurityScheme'
-import { Components3 as Definition } from '../helpers/DefinitionTypes'
+import { Components3 as Definition } from '../helpers/definition-types'
 
 let schemaComponent: ComponentSchema<Definition>
 
-export class Components<HasReference=Dereferenced> extends OASComponent {
+export class Components extends OASComponent {
   extensions!: Record<string, any>
-  callbacks?: Record<string, Referencable<HasReference, Callback>>
-  examples?: Record<string, Referencable<HasReference, Example>>
-  headers?: Record<string, Referencable<HasReference, Header<HasReference>>>
-  links?: Record<string, Referencable<HasReference, Link>>
-  parameters?: Record<string, Referencable<HasReference, Parameter<HasReference>>>
-  requestBodies?: Record<string, Referencable<HasReference, RequestBody>>
-  responses?: Record<string, Referencable<HasReference, Response<HasReference>>>
-  schemas?: Record<string, Referencable<HasReference, Schema>>
-  securitySchemes?: Record<string, Referencable<HasReference, SecurityScheme>>
+  callbacks?: Record<string, Callback>
+  examples?: Record<string, Example>
+  headers?: Record<string, Header>
+  links?: Record<string, Link>
+  parameters?: Record<string, Parameter>
+  requestBodies?: Record<string, RequestBody>
+  responses?: Record<string, Response>
+  schemas?: Record<string, Schema>
+  securitySchemes?: Record<string, SecurityScheme>
 
   constructor (definition: Definition, version?: Version) {
     super(Components, definition, version, arguments[2])
@@ -188,6 +183,6 @@ export class Components<HasReference=Dereferenced> extends OASComponent {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

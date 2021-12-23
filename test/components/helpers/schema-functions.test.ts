@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { Schema } from '../../../src/components/v3/Schema'
-import { Schema3 as Definition } from '../../../src/components/helpers/DefinitionTypes'
+import { Schema3 as Definition } from '../../../src/components/helpers/definition-types'
 import { deserialize, serialize } from '../../../src/components/helpers/schema-functions'
 
 describe('schema-functions', () => {

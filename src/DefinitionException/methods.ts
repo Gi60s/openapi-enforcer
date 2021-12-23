@@ -1,8 +1,8 @@
 import { DefinitionException } from './'
 import { Exception } from '../utils/Exception'
 import { ExceptionMessageDataInput, LocationInput } from './types'
-import { Data as ValidatorData } from '../components'
-import { Operation2 as OperationDefinition2, Operation3 as OperationDefinition3 } from '../components/helpers/DefinitionTypes'
+import { ValidatorData } from '../components/helpers/builder-validator-types'
+import { Operation2 as OperationDefinition2, Operation3 as OperationDefinition3 } from '../components/helpers/definition-types'
 import { getExceptionMessageData, smart } from './error-codes'
 
 type OperationDefinition = OperationDefinition2 | OperationDefinition3
@@ -225,9 +225,17 @@ export function operationIdMustBeUnique (operationId: string, conflictsData: Arr
   const conflicts = conflictsData.map(conflict => {
     const { key: method, chain } = conflict.context
     const { key: path } = chain[0]?.context ?? { path: '' }
-    return method.toUpperCase() + ' ' + path // operation method and path
+    return (method).toUpperCase() + ' ' + (path) // operation method and path
   })
   return getExceptionMessageData('OPERATION_ID_MUST_BE_UNIQUE', { operationId, conflicts, operations: conflictsData }, data)
+}
+
+export function parameterBodyFormDataConflict (data: Data): ExceptionMessageDataInput {
+  return getExceptionMessageData('PARAMETER_BODY_FORM_DATA_CONFLICT', {}, data)
+}
+
+export function parameterNamespaceConflict (name: string, at: string, data: Data): ExceptionMessageDataInput {
+  return getExceptionMessageData('PARAMETER_NAME_CONFLICT', { name, at }, data)
 }
 
 export function pathEndingsInconsistent (pathsWithTrailingSlash: string[], pathsWithoutTrailingSlash: string[], data: Data): ExceptionMessageDataInput {
@@ -260,6 +268,10 @@ export function refInvalidStart (data: Data): ExceptionMessageDataInput {
 
 export function refNotResolved (ref: string, from: string, data: Data): ExceptionMessageDataInput {
   return getExceptionMessageData('REF_NOT_RESOLVED', { ref, from }, data)
+}
+
+export function requestBodyContentEmpty (data: DataR): ExceptionMessageDataInput {
+  return getExceptionMessageData('REQUEST_BODY_CONTENT_EMPTY', {}, data)
 }
 
 export function responseBodyNotAllowed (type: 'schema' | 'content', data: Data): ExceptionMessageDataInput {

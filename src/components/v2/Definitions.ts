@@ -1,19 +1,15 @@
-import {
-  OASComponent,
-  Version,
-  DefinitionException,
-  Dereferenced,
-  ComponentSchema
-} from '../index'
-import { Schema2 as Definition } from '../helpers/DefinitionTypes'
+import { DefinitionException } from '../../DefinitionException'
+import { OASComponent, componentValidate } from '../index'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
+import { Schema2 as Definition } from '../helpers/definition-types'
 import { Schema } from './Schema'
 
 let schemaDefinition: ComponentSchema<Definition>
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class Definitions<HasReference=Dereferenced> extends OASComponent {
+export class Definitions extends OASComponent<Definition, typeof Definitions> {
   definition!: {
-    [name: string]: Schema<HasReference>
+    [name: string]: Schema
   }
 
   constructor (definition: Definition, version?: Version) {
@@ -42,6 +38,6 @@ export class Definitions<HasReference=Dereferenced> extends OASComponent {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

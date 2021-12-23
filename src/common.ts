@@ -1,6 +1,6 @@
 import * as loader from './utils/loader'
 import * as config from './utils/config'
-import * as random from './components/helpers/Randomizer'
+import * as random from './components/helpers/randomizer'
 
 export {
   config,
@@ -29,7 +29,7 @@ export {
   setDataTypeDefinition,
   DataType,
   DataTypeRegistry // useful for expanding typings
-} from './components/helpers/DataTypes'
+} from './components/helpers/schema-data-types'
 
 // take an object and bundle it so that it can be converted to a JSON string
 export function bundle (object: any): any {

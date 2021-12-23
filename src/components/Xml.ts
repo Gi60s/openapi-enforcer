@@ -1,5 +1,5 @@
 import { OASComponent, Version, DefinitionException, ComponentSchema } from './'
-import { Xml as Definition } from './helpers/DefinitionTypes'
+import { Xml as Definition } from './helpers/definition-types'
 
 const schemaXml: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,

@@ -1,8 +1,8 @@
-import { Data } from '../'
+import { ValidatorData } from '../'
 import { Schema } from '../Schema'
 import * as E from '../../DefinitionException/methods'
 
-export function defaultRequiredConflict (data: Data): boolean {
+export function defaultRequiredConflict (data: ValidatorData): boolean {
   const { built, exception, definition } = data.context
   let success = true
 
@@ -21,7 +21,7 @@ export function defaultRequiredConflict (data: Data): boolean {
   return success
 }
 
-export function exampleExamplesConflict (data: Data): boolean {
+export function exampleExamplesConflict (data: ValidatorData): boolean {
   const { built, exception, definition } = data.context
   let success = true
 
@@ -41,7 +41,7 @@ export function exampleExamplesConflict (data: Data): boolean {
   return success
 }
 
-export function examplesMatchSchema (data: Data, schema: Schema | null): boolean {
+export function examplesMatchSchema (data: ValidatorData, schema: Schema | null): boolean {
   const { built } = data.context
   const { lastly } = data.root
   let success = true
@@ -66,7 +66,7 @@ export function examplesMatchSchema (data: Data, schema: Schema | null): boolean
   return success
 }
 
-function exampleMatchesSchema (data: Data, keys: string[], example: any, schema: Schema | null): boolean {
+function exampleMatchesSchema (data: ValidatorData, keys: string[], example: any, schema: Schema | null): boolean {
   const { chain, definition, exception } = data.context
   let success = true
 

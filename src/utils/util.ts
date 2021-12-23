@@ -29,6 +29,11 @@ interface ToPlainObjectResult {
   value?: any
 }
 
+export function arrayRemoveItem (array: any[], item: any, find?: (v: any, index: number, obj: any[]) => number): void {
+  const index = find !== undefined ? array.findIndex(find) : array.indexOf(item)
+  if (index !== -1) array.splice(index, 1)
+}
+
 export function booleanMapToStringArray (map: BooleanMap): string[] {
   const array: string[] = []
   Object.keys(map).forEach(key => {
@@ -149,6 +154,14 @@ export function isValidDateString (format: 'date' | 'date-time', value: string):
     date.getUTCMilliseconds() === millisecond)
 }
 
+export function lowerCaseObjectProperties<T extends Record<string, any>> (obj: T): T {
+  const result: any = {}
+  Object.keys(obj).forEach(key => {
+    result[key.toLowerCase()] = obj[key]
+  })
+  return result
+}
+
 export function merge (input: any, source: any): any {
   if (Array.isArray(input)) {
     if (source === undefined) return input
@@ -191,6 +204,29 @@ export function no (): false {
 }
 
 export function noop (): void {}
+
+export function parseQueryString (querystring: string, options?: { decodeUriComponents?: boolean, sep?: string, eq?: string }): Record<string, string[]> {
+  const result: Record<string, string[]> = {}
+  const decode = options?.decodeUriComponents ?? false
+  const sep = options?.sep ?? '&'
+  const eq = options?.eq ?? '='
+
+  querystring = querystring.replace(/^[?#&]/, '')
+
+  querystring
+    .split(sep)
+    .forEach(set => {
+      const [param, value] = set
+        .split(eq)
+        .map(v => decode ? decodeURIComponent(v.trim()) : v.trim())
+      if (param.length > 0) {
+        if (!(param in result)) result[param] = []
+        result[param].push(value)
+      }
+    })
+
+  return result
+}
 
 export function required (isRequired?: any): boolean {
   if (isRequired === undefined) isRequired = true
@@ -328,6 +364,10 @@ function toPlainObjectRecursive (value: any, options: ToPlainObjectOptions, map:
   } else {
     return { set: true, value }
   }
+}
+
+export function ucFirst (value: string): string {
+  return value[0].toUpperCase() + value.substr(1)
 }
 
 export function yes (): true {

@@ -1,6 +1,6 @@
 import { OASComponent, Version, DefinitionException, ComponentSchema } from './'
 import * as E from '../DefinitionException/methods'
-import { SecurityRequirement as Definition } from './helpers/DefinitionTypes'
+import { SecurityRequirement as Definition } from './helpers/definition-types'
 
 const securityRequirementSchema: ComponentSchema<Definition> = {
   allowsSchemaExtensions: false,

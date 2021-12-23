@@ -1,22 +1,17 @@
-import {
-  Data,
-  Dereferenced,
-  Version,
-  DefinitionException,
-  ComponentSchema, Referencable
-} from '../'
+import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
 import { Operation } from './Operation'
 import { Server } from './Server'
 import { Parameter } from './Parameter'
 import * as Core from '../PathItem'
-import { PathItem3 as Definition } from '../helpers/DefinitionTypes'
+import { PathItem3 as Definition } from '../helpers/definition-types'
 
 const methods = Core.methods.concat(['trace'])
 
-export class PathItem<HasReference=Dereferenced> extends Core.PathItem<HasReference> {
+export class PathItem extends Core.PathItem<Operation> {
   description?: string
-  parameters?: Array<Referencable<HasReference, Parameter<HasReference>>>
-  trace?: Operation<HasReference>
+  parameters?: Parameter[]
+  trace?: Operation
   servers?: Server[]
   summary?: string
 

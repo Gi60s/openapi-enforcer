@@ -1,7 +1,9 @@
-import { OASComponent, Version, DefinitionException, ComponentSchema } from './index'
+import { componentValidate, OASComponent } from './index'
+import { ComponentSchema, Version } from './helpers/builder-validator-types'
+import { DefinitionException } from '../DefinitionException'
 import rx from '../utils/rx'
 import * as E from '../DefinitionException/methods'
-import { ExternalDocumentation as Definition } from './helpers/DefinitionTypes'
+import { ExternalDocumentation as Definition } from './helpers/definition-types'
 
 const externalDocumentationSchema: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,
@@ -60,6 +62,6 @@ export class ExternalDocumentation extends OASComponent {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

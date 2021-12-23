@@ -21,7 +21,7 @@ export {
   Swagger as SwaggerDefinition,
   Tag as TagDefinition,
   Xml as XmlDefinition
-} from './components/helpers/DefinitionTypes'
+} from './components/helpers/definition-types'
 
 export { Contact } from './components/Contact'
 export { Definitions } from './components/v2/Definitions'
@@ -34,7 +34,6 @@ export { Operation } from './components/v2/Operation'
 export { Parameter } from './components/v2/Parameter'
 export { PathItem } from './components/v2/PathItem'
 export { Paths } from './components/v2/Paths'
-export { Reference, Dereferenced, Referenced, ReferencedUnknown } from './components/Reference'
 export { Response } from './components/v2/Response'
 export { Responses } from './components/v2/Responses'
 export { Schema } from './components/v2/Schema'

@@ -31,7 +31,7 @@ export {
   ServerVariable3 as ServerVariableDefinition,
   Tag as TagDefinition,
   Xml as XmlDefinition
-} from './components/helpers/DefinitionTypes'
+} from './components/helpers/definition-types'
 
 export { Callback } from './components/v3/Callback'
 export { Components } from './components/v3/Components'
@@ -52,7 +52,6 @@ export { Operation } from './components/v3/Operation'
 export { Parameter } from './components/v3/Parameter'
 export { PathItem } from './components/v3/PathItem'
 export { Paths } from './components/v3/Paths'
-export { Reference, Dereferenced, Referenced, ReferencedUnknown } from './components/Reference'
 export { RequestBody } from './components/v3/RequestBody'
 export { Response } from './components/v3/Response'
 export { Responses } from './components/v3/Responses'

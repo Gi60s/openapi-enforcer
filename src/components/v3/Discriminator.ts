@@ -1,8 +1,10 @@
-import { OASComponent, Version, DefinitionException, ComponentSchema, Reference } from '../index'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
+import { OASComponent, componentValidate } from '../index'
 import { Schema } from './Schema'
 import { lookupLocation, getReferenceNode, traverse } from '../../utils/loader'
 import * as E from '../../DefinitionException/methods'
-import { Discriminator3 as Definition } from '../helpers/DefinitionTypes'
+import { Discriminator3 as Definition } from '../helpers/definition-types'
 
 let schemaDiscriminator: ComponentSchema<Definition>
 
@@ -112,7 +114,7 @@ export class Discriminator extends OASComponent {
 
                     if (node !== undefined) {
                       data.context.built[key] = node
-                    } else if (loadOptions.dereference === true) {
+                    } else if (loadOptions.dereference) {
                       const refNotResolved = E.refNotResolved(ref, rootNodePath, {
                         definition,
                         locations: [{ node: definition, key, type: 'value' }]
@@ -130,6 +132,6 @@ export class Discriminator extends OASComponent {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

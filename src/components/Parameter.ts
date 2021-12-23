@@ -1,8 +1,5 @@
-import {
-  Data,
-  SchemaProperty,
-  ComponentSchema, ExtendedComponent
-} from './'
+import { SchemaProperty } from './'
+import { Component, ComponentSchema, Data } from './helpers/builder-validator-types'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as Serilizer from './helpers/serializer'
 import { noop } from '../utils/util'
@@ -13,13 +10,13 @@ import {
   Parameter2 as Definition2,
   Parameter3 as Definition3,
   Schema3 as SchemaDefinition3
-} from './helpers/DefinitionTypes'
+} from './helpers/definition-types'
 
 type Definition = Definition2 | Definition3
 
 interface ComponentMap {
-  Parameter: ExtendedComponent
-  Schema: ExtendedComponent
+  Parameter: Component
+  Schema: Component
 }
 
 export function schemaGenerator (components: ComponentMap, data: Data): ComponentSchema<Definition> {
@@ -115,6 +112,7 @@ export function schemaGenerator (components: ComponentMap, data: Data): Componen
       name: 'schema',
       versions: ['2.x'],
       notAllowed: at === 'body' ? undefined : 'Property only allowed if "in" is set to "body".',
+      required: true,
       schema: {
         type: 'component',
         allowsRef: false,

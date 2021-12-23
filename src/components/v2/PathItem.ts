@@ -1,19 +1,15 @@
-import {
-  Data,
-  Dereferenced,
-  Version,
-  DefinitionException,
-  ComponentSchema, Referencable
-} from '../'
+import { componentValidate } from '../'
+import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
 import { Operation } from './Operation'
 import * as Core from '../PathItem'
 import { Parameter } from './Parameter'
-import { PathItem2 as Definition } from '../helpers/DefinitionTypes'
+import { PathItem2 as Definition } from '../helpers/definition-types'
 
 const methods = Core.methods.concat(['trace'])
 
-export class PathItem<HasReference=Dereferenced> extends Core.PathItem<HasReference> {
-  parameters?: Array<Referencable<HasReference, Parameter<HasReference>>>
+export class PathItem extends Core.PathItem<Operation> {
+  parameters?: Parameter[]
 
   constructor (definition: Definition, version?: Version) {
     super(PathItem, definition, version, arguments[2])
@@ -31,6 +27,6 @@ export class PathItem<HasReference=Dereferenced> extends Core.PathItem<HasRefere
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

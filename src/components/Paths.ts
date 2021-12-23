@@ -1,18 +1,9 @@
-import {
-  Data,
-  OASComponent,
-  Version,
-  DefinitionException,
-  Dereferenced,
-  ComponentSchema, ExtendedComponent
-} from './'
+import { OASComponent } from './'
+import { Component, ComponentSchema } from './helpers/builder-validator-types'
 import * as E from '../DefinitionException/methods'
 import { PathItem } from './PathItem'
-import { Paths2 as Definition2, Paths3 as Definition3 } from './helpers/DefinitionTypes'
 
-type Definition = Definition2 | Definition3
-
-export function schemaGenerator<Definition> (PathItemComponent: ExtendedComponent): ComponentSchema<Definition> {
+export function schemaGenerator<Definition> (PathItemComponent: Component): ComponentSchema<Definition> {
   return {
     allowsSchemaExtensions: true,
     validator: {
@@ -100,18 +91,9 @@ export function schemaGenerator<Definition> (PathItemComponent: ExtendedComponen
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class Paths<HasReference=Dereferenced> extends OASComponent {
+export abstract class Paths extends OASComponent {
   extensions!: Record<string, any>
   path!: {
-    [path: string]: PathItem<HasReference>
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor (Component: ExtendedComponent, definition: Definition, version?: Version, data?: Data) {
-    super(Component, definition, version, data)
-  }
-
-  static validate (definition: Definition, version?: Version, data?: Data): DefinitionException {
-    return super.validate(definition, version, data)
+    [path: string]: PathItem
   }
 }

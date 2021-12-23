@@ -1,11 +1,6 @@
-import {
-  OASComponent,
-  LoaderOptions,
-  normalizeLoaderOptions,
-  Version,
-  DefinitionException,
-  loadRoot, Dereferenced, ComponentSchema
-} from '../index'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
+import { DefinitionException } from '../../DefinitionException'
+import { OASComponent, componentValidate, LoaderOptions, loadRoot, normalizeLoaderOptions } from '../index'
 import * as E from '../../DefinitionException/methods'
 import { Components } from './Components'
 import { ExternalDocumentation } from '../ExternalDocumentation'
@@ -15,19 +10,19 @@ import { SecurityRequirement } from '../SecurityRequirement'
 import { Server } from './Server'
 import { Tag } from '../Tag'
 import { DefinitionResult } from '../../DefinitionException/DefinitionResult'
-import { OpenAPI3 as Definition } from '../helpers/DefinitionTypes'
+import { OpenAPI3 as Definition } from '../helpers/definition-types'
 
 const rxVersion = /^\d+\.\d+\.\d+$/
 
 let openapiSchema: ComponentSchema<Definition>
 
-export class OpenAPI<HasReference=Dereferenced> extends OASComponent {
+export class OpenAPI extends OASComponent {
   extensions!: Record<string, any>
-  components?: Components<HasReference>
+  components?: Components
   externalDocs?: ExternalDocumentation
   info!: Info
   openapi!: string
-  paths!: Paths<HasReference>
+  paths!: Paths
   security?: SecurityRequirement[]
   servers?: Server[]
   tags?: Tag[]
@@ -45,9 +40,6 @@ export class OpenAPI<HasReference=Dereferenced> extends OASComponent {
 
   static async load (path: string, options?: LoaderOptions): Promise<DefinitionResult<OpenAPI>> {
     options = normalizeLoaderOptions(options)
-    if (options.dereference === true) {
-      return await loadRoot<OpenAPI<Dereferenced>>(OpenAPI, path, options)
-    }
     return await loadRoot<OpenAPI>(OpenAPI, path, options)
   }
 
@@ -167,6 +159,6 @@ export class OpenAPI<HasReference=Dereferenced> extends OASComponent {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

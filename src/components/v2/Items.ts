@@ -1,6 +1,8 @@
-import { Data, SpecMap, DefinitionException, Version, ComponentSchema } from '../index'
+import { DefinitionException } from '../../DefinitionException'
+import { componentValidate } from '../index'
+import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
 import * as PartialSchema from '../helpers/PartialSchema'
-import { Items2 as Definition } from '../helpers/DefinitionTypes'
+import { Items2 as Definition } from '../helpers/definition-types'
 
 export class Items extends PartialSchema.PartialSchema<Items> {
   extensions!: Record<string, any>
@@ -11,10 +13,8 @@ export class Items extends PartialSchema.PartialSchema<Items> {
     super(Items, definition, version, arguments[2])
   }
 
-  static get spec (): SpecMap {
-    return {
-      '2.0': 'https://spec.openapis.org/oas/v2.0#items-object'
-    }
+  static spec = {
+    '2.0': 'https://spec.openapis.org/oas/v2.0#items-object'
   }
 
   static schemaGenerator (data: Data): ComponentSchema<Definition> {
@@ -22,11 +22,14 @@ export class Items extends PartialSchema.PartialSchema<Items> {
     const schema = PartialSchema.schemaGenerator(Items, data)
 
     // add collectionFormat property
+    const type = data.context.definition.type
     schema.properties?.push({
       name: 'collectionFormat',
+      notAllowed: type !== 'array' ? 'The "collectionFormat" can only be applied with the type is "array"' : undefined,
       schema: {
         type: 'string',
-        enum: ['csv', 'ssv', 'tsv', 'pipes']
+        enum: ['csv', 'ssv', 'tsv', 'pipes'],
+        default: 'csv'
       }
     })
 
@@ -34,6 +37,6 @@ export class Items extends PartialSchema.PartialSchema<Items> {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

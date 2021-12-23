@@ -1,11 +1,11 @@
-import { ComponentSchema, Data, Dereferenced, Version } from '../index'
+import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
 import * as Core from '../Schema'
 import * as Discriminator from '../v3/Discriminator'
-import { Schema2 as Definition } from '../helpers/DefinitionTypes'
+import { Schema2 as Definition } from '../helpers/definition-types'
 import { Swagger } from './Swagger'
 import * as SchemaHelper from '../helpers/schema-functions'
 
-export class Schema<HasReference=Dereferenced> extends Core.Schema<HasReference> {
+export class Schema extends Core.Schema {
   discriminator?: string
 
   constructor (definition: Definition, version?: Version) {

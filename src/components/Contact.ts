@@ -1,7 +1,9 @@
-import { OASComponent, ComponentSchema, DefinitionException, Version } from './index'
+import { componentValidate, OASComponent } from './index'
+import { ComponentSchema, Version } from './helpers/builder-validator-types'
+import { DefinitionException } from '../DefinitionException'
 import * as E from '../DefinitionException/methods'
 import rx from '../utils/rx'
-import { Contact as Definition } from './helpers/DefinitionTypes'
+import { Contact as Definition } from './helpers/definition-types'
 
 const contactSchema: ComponentSchema<Definition> = {
   allowsSchemaExtensions: true,
@@ -42,7 +44,6 @@ const contactSchema: ComponentSchema<Definition> = {
 
       if (typeof email === 'string') {
         if (!rx.email.test(email)) {
-          // TODO: working here - how does exception level adjustment work now?
           const invalidEmail = E.invalidEmail(email, {
             definition,
             locations: [{ node: definition, key: 'email', type: 'value' }],
@@ -78,6 +79,6 @@ export class Contact extends OASComponent {
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }
