@@ -1,4 +1,5 @@
-import { EnforcerExtension, EnforcerExtensionSchema } from '../'
+import { EnforcerExtension } from '../'
+import { EnforcerExtensionSchema } from './PartialSchema'
 
 export interface Contact {
   [key: `x-${string}`]: any
@@ -136,7 +137,7 @@ interface OperationBase {
   description?: string
   externalDocs?: ExternalDocumentation
   operationId?: string
-  parameters?: Parameter2 | Parameter3
+  parameters?: Array<Parameter2 | Parameter3>
   responses: Responses2 | Responses3
   security?: SecurityRequirement[]
   summary?: string
@@ -146,7 +147,7 @@ interface OperationBase {
 export interface Operation2 extends OperationBase {
   'x-enforcer'?: EnforcerExtension
   consumes?: string[]
-  parameters?: Parameter2
+  parameters?: Parameter2[]
   produces?: string[]
   responses: Responses2
   schemes?: string[]
@@ -155,7 +156,7 @@ export interface Operation2 extends OperationBase {
 export interface Operation3 extends OperationBase {
   'x-enforcer'?: EnforcerExtension
   callbacks?: Record<string, Callback3 | Reference>
-  parameters?: Parameter3
+  parameters?: Parameter3[]
   requestBody?: RequestBody3 | Reference
   responses: Responses3
   servers?: Server3[]
