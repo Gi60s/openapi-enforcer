@@ -17,7 +17,7 @@ interface ComponentsMap {
 }
 
 export function schemaGenerator (components: ComponentsMap): ComponentSchema {
-  return {
+  return new ComponentSchema<any, any>({
     allowsSchemaExtensions: true,
     properties: [
       {
@@ -108,11 +108,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
             const produces: string[] = [].concat(operation?.context.built.produces ?? [], swagger?.context.built.produces ?? [])
             exampleMediaTypes.forEach(type => {
               if (!produces.includes(type)) {
-                const exampleMediaTypeNotProduced = E.exampleMediaTypeNotProduced(type, produces, {
-                  definition,
-                  locations: [{ node: (definition as Definition2).examples, key: type, type: 'key' }],
-                  reference
-                })
+                const exampleMediaTypeNotProduced = E.exampleMediaTypeNotProduced(data, { node: (definition as Definition2).examples, key: type, type: 'key' }, type, produces)
                 exception.at('examples').at(type).message(exampleMediaTypeNotProduced)
               }
             })
@@ -131,11 +127,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
             const keys = Object.keys(built.links ?? {})
             keys.forEach(key => {
               if (!rxLinkName.test(key)) {
-                const invalidResponseLinkKey = E.invalidResponseLinkKey(key, {
-                  definition,
-                  locations: [{ node: (definition as Definition3).links, key, type: 'key' }],
-                  reference
-                })
+                const invalidResponseLinkKey = E.invalidResponseLinkKey(data, { node: (definition as Definition3).links, key, type: 'key' }, key)
                 exception.at('links').at(key).message(invalidResponseLinkKey)
               }
             })
@@ -144,18 +136,14 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
           if ('headers' in built) {
             const contentTypeKey = Object.keys(built.headers ?? {}).find(key => key.toLowerCase() === 'content-type')
             if (contentTypeKey !== undefined) {
-              const valueIgnored = E.valueIgnored(contentTypeKey, 'Response headers should not include Content-Type. The content type is already part of the Response definition.', {
-                definition: definition,
-                locations: [{ node: definition.headers, key: contentTypeKey, type: 'key' }],
-                reference
-              })
+              const valueIgnored = E.valueIgnored(data, { node: definition.headers, key: contentTypeKey, type: 'key' }, contentTypeKey, 'Response headers should not include Content-Type. The content type is already part of the Response definition.')
               exception.at('headers').message(valueIgnored)
             }
           }
         }
       }
     }
-  }
+  })
 }
 
 export class Response extends OASComponent {

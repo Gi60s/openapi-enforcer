@@ -1,10 +1,12 @@
 import { OASComponent, componentValidate } from '../'
-import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { DefinitionException } from '../../DefinitionException'
 import { schemaGenerator } from '../Header'
 import { Example } from './Example'
 import { Schema } from './Schema'
 import { Header3 as Definition } from '../helpers/definition-types'
+
+let schemaHeaders: ComponentSchema<Definition>
 
 export class Header extends OASComponent<Definition, typeof Header> {
   extensions!: Record<string, any>
@@ -28,11 +30,14 @@ export class Header extends OASComponent<Definition, typeof Header> {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#header-object'
   }
 
-  static schemaGenerator (data: Data): ComponentSchema<Definition> {
-    return schemaGenerator({
-      Header,
-      Schema: Schema
-    }, data)
+  static get schema (): ComponentSchema<Definition> {
+    if (schemaHeaders === undefined) {
+      schemaHeaders = schemaGenerator(3, {
+        Header,
+        Schema: Schema
+      }) as ComponentSchema<Definition>
+    }
+    return schemaHeaders
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

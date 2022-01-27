@@ -4,9 +4,8 @@ import { expect } from 'chai'
 import path from 'path'
 import { resourcesDirectory, staticFileServer, StaticFileServer } from '../helper'
 import { load } from '../../src/utils/loader'
-import { Reference } from '../../src/v3'
 
-describe('Discriminator component', () => {
+describe('Component: Discriminator', () => {
   let server: StaticFileServer
 
   before(async () => {
@@ -83,15 +82,6 @@ describe('Discriminator component', () => {
         expect(oneOf.includes(mapping.dog)).to.equal(true)
         expect(oneOf.includes(mapping.lizard)).to.equal(true)
         expect(oneOf.includes(mapping.cow)).to.equal(true)
-      })
-
-      it('can load without dereference', async () => {
-        const filePath = path.resolve(resourcesDirectory, 'discriminator', 'one-of.yml')
-        const [openapi] = await OpenAPI.load(filePath, { dereference: false })
-        expect(openapi?.components?.schemas?.Pet.oneOf[0]).to.be.instanceof(Reference)
-        expect(openapi?.components?.schemas?.Pet.oneOf[1]).to.be.instanceof(Reference)
-        expect(openapi?.components?.schemas?.Pet.oneOf[2]).to.be.instanceof(Reference)
-        expect(openapi?.components?.schemas?.Pet.oneOf[3]).to.be.instanceof(Reference)
       })
 
       it('will error on unresolvable mappings when loading a file', async function () {

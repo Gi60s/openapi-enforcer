@@ -1,5 +1,5 @@
 import { componentValidate } from '../index'
-import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { DefinitionException } from '../../DefinitionException'
 import * as PartialSchema from '../helpers/PartialSchema'
 import { Items } from './Items'
@@ -10,7 +10,8 @@ import { Exception } from '../../utils/Exception'
 import { Result } from '../../utils/Result'
 import { parsePrimitive } from '../helpers/Parameter'
 import * as EC from '../../utils/error-codes'
-import { definitionInvalid } from '../../utils/error-codes'
+
+let parameterSchema: ComponentSchema<Definition>
 
 export class Parameter extends PartialSchema.PartialSchema<Items> {
   extensions!: Record<string, any>
@@ -64,25 +65,30 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
     '2.0': 'https://spec.openapis.org/oas/v2.0#parameter-object'
   }
 
-  static schemaGenerator (data: Data<Definition>): ComponentSchema<Definition> {
-    const schema = Core.schemaGenerator({
-      Parameter,
-      Schema
-    }, data)
+  static get schema (): ComponentSchema<Definition> {
+    if (parameterSchema === undefined) {
+      parameterSchema = Core.schemaGenerator(2, {
+        Parameter,
+        Schema
+      }) as ComponentSchema<Definition>
 
-    const type = data.context.definition.type
-    schema.properties?.push({
-      name: 'collectionFormat',
-      notAllowed: type !== 'array' ? 'The "collectionFormat" can only be applied with the type is "array"' : undefined,
-      schema: {
-        type: 'string',
-        enum: ['csv', 'ssv', 'tsv', 'pipes'],
-        default: 'csv',
-        ignored: type === 'array' ? false : 'The "collectionFormat" property can only be used if the type is "array".'
-      }
-    })
+      parameterSchema.properties?.push({
+        name: 'collectionFormat',
+        notAllowed ({ built }) {
+          return built.type !== 'array' ? 'The "collectionFormat" can only be applied with the type is "array"' : undefined
+        },
+        schema: {
+          type: 'string',
+          enum: ['csv', 'ssv', 'tsv', 'pipes'],
+          default: 'csv',
+          ignored ({ built }) {
+            return built.type === 'array' ? false : 'The "collectionFormat" property can only be used if the type is "array".'
+          }
+        }
+      })
+    }
 
-    return schema
+    return parameterSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
@@ -107,7 +113,7 @@ function parse (parameter: Parameter | Items, exception: Exception, value: strin
     } else if (parameter.collectionFormat === 'tsv') {
       values = value.split('\t')
     } else {
-      throw Error('Collection format "multi" cannot be handled by the parse function because it is not part of the items object: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#itemsObject')
+      throw Error('Collection format "' + String(parameter.collectionFormat) + '" cannot be handled by the parse function because it is not part of the items object: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#itemsObject')
     }
     return values.map((value, index) => {
       return parameter.items !== undefined

@@ -1,7 +1,7 @@
 import { Contact } from '../../src/v3'
 import { expect } from 'chai'
 
-describe('Contact component', () => {
+describe('Component: Contact', () => {
   describe('build', () => {
     it('can build', function () {
       const contact = new Contact({})

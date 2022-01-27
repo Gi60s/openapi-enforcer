@@ -23,9 +23,9 @@ export class Callback extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#callback-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
+  static get schema (): ComponentSchema<Definition> {
     if (callbackSchema === undefined) {
-      callbackSchema = {
+      callbackSchema = new ComponentSchema<Definition>({
         allowsSchemaExtensions: true,
         additionalProperties: {
           namespace: 'expression',
@@ -35,7 +35,7 @@ export class Callback extends OASComponent {
             component: PathItem
           }
         }
-      }
+      })
     }
     return callbackSchema
   }

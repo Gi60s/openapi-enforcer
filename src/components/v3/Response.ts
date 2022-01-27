@@ -8,6 +8,8 @@ import { MediaType } from './MediaType'
 import { Link } from './Link'
 import { Response3 as Definition } from '../helpers/definition-types'
 
+let responseSchema: ComponentSchema<Definition>
+
 export class Response extends Core.Response {
   content?: Record<string, MediaType>
   headers?: Record<string, Header>
@@ -24,15 +26,18 @@ export class Response extends Core.Response {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#response-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
-    return Core.schemaGenerator({
-      Link,
-      Header,
-      MediaType,
-      Operation,
-      Schema: undefined,
-      Swagger: undefined
-    })
+  static get schema (): ComponentSchema<Definition> {
+    if (responseSchema === undefined) {
+      responseSchema = Core.schemaGenerator({
+        Link,
+        Header,
+        MediaType,
+        Operation,
+        Schema: undefined,
+        Swagger: undefined
+      })
+    }
+    return responseSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

@@ -1,7 +1,6 @@
 import { EnforcerData, componentValidate } from '../'
 import { ComponentSchema, ValidatorData, Version } from '../helpers/builder-validator-types'
 import { DefinitionException } from '../../DefinitionException'
-import { Exception } from '../../utils/Exception'
 import * as EC from '../../utils/error-codes'
 import * as Core from '../Operation'
 import { Callback } from './Callback'
@@ -10,9 +9,10 @@ import { Server } from './Server'
 import { Parameter } from './Parameter'
 import { Responses } from './Responses'
 import { Operation3 as Definition } from '../helpers/definition-types'
-import { noop } from '../../utils/util'
 import { Result } from '../../utils/Result'
 import { MediaTypeParser } from '../../utils/MediaTypeParser'
+
+let operationSchema: ComponentSchema<Definition>
 
 export class Operation extends Core.Operation {
   enforcer!: EnforcerData<Operation> & Core.EnforcerOperationData3
@@ -38,7 +38,12 @@ export class Operation extends Core.Operation {
         const mediaType = this.requestBody?.content[contentType]
         const schema = mediaType?.schema
         if (schema !== undefined) {
-          result.body = schema.deserialize(result.body)
+          const [data, error] = schema.deserialize(result.body)
+          if (error !== undefined) {
+            exception.at('body').push(error)
+          } else {
+            result.body = data
+          }
         }
       }
     }
@@ -53,25 +58,23 @@ export class Operation extends Core.Operation {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#operation-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
-    const schema = Core.schemaGenerator({
-      Parameter: Parameter,
-      Responses: Responses
-    })
-    if (schema.builder !== undefined) {
-      const afterBuilt = schema.builder.after ?? noop
-      schema.builder.after = (data, enforcer) => {
-        afterBuilt(data, enforcer)
+  static get schema (): ComponentSchema<Definition> {
+    if (operationSchema === undefined) {
+      operationSchema = Core.schemaGenerator({
+        Parameter: Parameter,
+        Responses: Responses
+      }) as ComponentSchema<Definition>
 
+      operationSchema.hook('after-build', data => {
         const built = data.context.built as Operation
         built.requestContentTypes = Object.keys(built.requestBody?.content ?? {}).map(mediaType => new MediaTypeParser(mediaType))
         built.responseContentTypes = {}
         Object.keys(built.responses.response).forEach(code => {
           built.responseContentTypes[code] = Object.keys(built.responses.response[code].content ?? {}).map(mediaType => new MediaTypeParser(mediaType))
         })
-      }
+      })
     }
-    return schema
+    return operationSchema
   }
 
   static validate (definition: Definition, version?: Version, data?: ValidatorData): DefinitionException {

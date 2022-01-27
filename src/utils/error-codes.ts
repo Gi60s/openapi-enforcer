@@ -241,7 +241,7 @@ export function operationResponseCodeInvalid (code: string, allowedCodes: string
   ]
 }
 
-export function operationResponseContentTypeInvalid (code: string, contentType: string, allowedTypes: string): Message {
+export function operationResponseContentTypeInvalid (code: string, contentType: string, allowedTypes: string[]): Message {
   return [
     'OPERATION_RESPONSE_CONTENT_TYPE_INVALID',
     'The response content-type is not valid for this operation\'s ' + code + ' response code: ' + contentType + (allowedTypes.length > 0 ? '. Use one of: ' + allowedTypes.join(', ') : '. No content types are allowed.'),

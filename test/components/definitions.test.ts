@@ -1,8 +1,8 @@
 import { Definitions } from '../../src/v2'
 import { expect } from 'chai'
-import { minimal } from '../../test-copy/helpers'
+import { minimal } from '../helpers'
 
-describe('Definitions component', () => {
+describe('Component: Definitions', () => {
   describe('build', () => {
     it('can build', function () {
       const definitions = new Definitions({})
@@ -32,7 +32,7 @@ describe('Definitions component', () => {
 
     it('can define schemas as properties', () => {
       const [error] = Definitions.validate({
-        foo: minimal('Schema')
+        foo: minimal('Schema', '2.x')
       })
       expect(error).to.equal(undefined)
     })

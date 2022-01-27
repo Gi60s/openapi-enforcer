@@ -1,5 +1,5 @@
 import { Swagger } from '../../src/components/v2/Swagger'
-import { initTestLoader, registerContent } from '../../test-copy/helpers'
+import { initTestLoader, registerContent } from '../helpers'
 import { expect } from 'chai'
 import * as Helper from '../helper'
 
@@ -7,7 +7,7 @@ const swagger = '2.0'
 const info = { title: '', version: '' }
 const paths = {}
 
-describe('Swagger component', () => {
+describe('Component: Swagger', () => {
   describe('build', () => {
     it('can build', function () {
       // @ts-expect-error
@@ -38,7 +38,7 @@ describe('Swagger component', () => {
     it('requires properties: swagger, info, and paths', function () {
       // @ts-expect-error
       const [error] = Swagger.validate({})
-      expect(error).to.match(/Missing required properties: info, paths, swagger/)
+      expect(error).to.match(/Missing required properties: "info", "paths", "swagger"/)
     })
 
     it('allows extensions', () => {
@@ -91,8 +91,9 @@ describe('Swagger component', () => {
       it('will warn if $ref is used', () => {
         // @ts-expect-error
         const exception = Swagger.validate({ swagger, info: { $ref: '' }, paths })
-        const { warning } = exception
-        expect(warning?.hasCode('RENOAL')).to.equal(true)
+        const { error, warning } = exception
+        expect(error?.hasCode(('OAE-DPRNOAL'))).to.equal(false)
+        expect(warning?.hasCode('OAE-DRENOAL')).to.equal(true)
       })
     })
 
@@ -115,27 +116,27 @@ describe('Swagger component', () => {
 
       it('it must not include http', function () {
         const [error] = Swagger.validate({ swagger, info, paths, host: 'http://foo.com' })
-        expect(error).to.match(/The host must not include the scheme: http/)
+        expect(error).to.match(/The host must not include the scheme: "http"/)
       })
 
       it('it must not include https', function () {
         const [error] = Swagger.validate({ swagger, info, paths, host: 'https://foo.com' })
-        expect(error).to.match(/The host must not include the scheme: https/)
+        expect(error).to.match(/The host must not include the scheme: "https"/)
       })
 
       it('it must not include ws', function () {
         const [error] = Swagger.validate({ swagger, info, paths, host: 'ws://foo.com' })
-        expect(error).to.match(/The host must not include the scheme: ws/)
+        expect(error).to.match(/The host must not include the scheme: "ws"/)
       })
 
       it('it must not include wss', function () {
         const [error] = Swagger.validate({ swagger, info, paths, host: 'wss://foo.com' })
-        expect(error).to.match(/The host must not include the scheme: wss/)
+        expect(error).to.match(/The host must not include the scheme: "wss"/)
       })
 
       it('it must not include a subpath', function () {
         const [error] = Swagger.validate({ swagger, info, paths, host: 'foo.com/bar' })
-        expect(error).to.match(/The host must not include sub path: \/bar/)
+        expect(error).to.match(/The host must not include sub path: "\/bar"/)
       })
 
       it('it must not include path templating', function () {
@@ -226,7 +227,7 @@ describe('Swagger component', () => {
       it('will warn for potentially invalid mime types', () => {
         // two valid, two invalid
         const { warning } = Swagger.validate({ swagger, info, paths, consumes: ['application/json', 'foo/bar', 'text/plain', 'cow/bell'] })
-        expect(warning?.getCodeCount().INMETY).to.equal(2)
+        expect(warning?.getCodeCount()['OAE-DINMETY']).to.equal(2)
       })
     })
 
@@ -251,7 +252,7 @@ describe('Swagger component', () => {
       it('will warn for potentially invalid mime types', () => {
         // two valid, two invalid
         const { warning } = Swagger.validate({ swagger, info, paths, produces: ['application/json', 'foo/bar', 'text/plain', 'cow/bell'] })
-        expect(warning?.getCodeCount().INMETY).to.equal(2)
+        expect(warning?.getCodeCount()['OAE-DINMETY']).to.equal(2)
       })
     })
 
@@ -275,15 +276,13 @@ describe('Swagger component', () => {
 
       it('will warn if no paths are defined', () => {
         const { warning } = Swagger.validate({ swagger, info, paths })
-        expect(warning?.count).to.equal(1)
-        expect(warning?.exceptions[0].code).to.equal('NOPADE')
+        expect(warning?.hasCode('OAE-DNOPADE')).to.equal(true)
       })
 
       it('will warn if $ref is used', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths: { $ref: '' } })
-        expect(warning?.count).to.equal(1)
-        expect(warning?.exceptions[0].code).to.equal('RENOAL')
+        expect(warning?.hasCode('OAE-DRENOAL')).to.equal(true)
       })
     })
 
@@ -302,8 +301,7 @@ describe('Swagger component', () => {
       it('will warn if $ref is used', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, definitions: { $ref: '' } })
-        expect(warning?.count).to.equal(2)
-        expect(warning?.exceptions[0].code).to.equal('RENOAL')
+        expect(warning?.hasCode('OAE-DRENOAL')).to.equal(true)
       })
     })
 
@@ -322,8 +320,7 @@ describe('Swagger component', () => {
       it('will warn if $ref is used', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, parameters: { $ref: '' } })
-        expect(warning?.count).to.equal(2)
-        Helper.exceptionHasCode(warning, 'RENOAL', true)
+        expect(warning?.hasCode('OAE-DRENOAL')).to.equal(true)
       })
     })
 
@@ -342,8 +339,7 @@ describe('Swagger component', () => {
       it('will warn if $ref is used', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, responses: { $ref: '' } })
-        expect(warning?.count).to.equal(2)
-        Helper.exceptionHasCode(warning, 'RENOAL', true)
+        expect(warning?.hasCode('OAE-DRENOAL')).to.equal(true)
       })
     })
 
@@ -362,8 +358,7 @@ describe('Swagger component', () => {
       it('will warn if $ref is used', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, securityDefinitions: { $ref: '' } })
-        expect(warning?.count).to.equal(2)
-        Helper.exceptionHasCode(warning, 'RENOAL', true)
+        expect(warning?.hasCode('OAE-DRENOAL')).to.equal(true)
       })
     })
 
@@ -382,8 +377,7 @@ describe('Swagger component', () => {
       it('will warn if $ref is used', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, security: { $ref: '' } })
-        expect(warning?.count).to.equal(2)
-        Helper.exceptionHasCode(warning, 'RENOAL', true)
+        expect(warning?.hasCode('OAE-DRENOAL')).to.equal(true)
       })
     })
 
@@ -402,8 +396,7 @@ describe('Swagger component', () => {
       it('will warn if $ref is used', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, tags: { $ref: '' } })
-        expect(warning?.count).to.equal(2)
-        Helper.exceptionHasCode(warning, 'RENOAL', true)
+        expect(warning?.hasCode('OAE-DRENOAL')).to.equal(true)
       })
     })
 
@@ -422,8 +415,7 @@ describe('Swagger component', () => {
       it('will warn if $ref is used', () => {
         // @ts-expect-error
         const { warning } = Swagger.validate({ swagger, info, paths, externalDocs: { $ref: '' } })
-        expect(warning?.count).to.equal(2)
-        expect(warning?.exceptions[0].code).to.equal('RENOAL')
+        expect(warning?.hasCode('OAE-DRENOAL')).to.equal(true)
       })
     })
   })

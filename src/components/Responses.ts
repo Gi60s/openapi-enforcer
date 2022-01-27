@@ -1,11 +1,10 @@
-import { componentValidate, OASComponent } from './index'
+import { OASComponent } from './index'
 import { Component, ComponentSchema } from './helpers/builder-validator-types'
 import * as E from '../DefinitionException/methods'
 import {
   Response2 as ResponseDefinition2,
   Response3 as ResponseDefinition3
 } from './helpers/definition-types'
-import { Response } from './v2/Response'
 
 const rxCode = /^[1-5]\d{2}$/
 const rxLocation = /^location$/i
@@ -14,7 +13,7 @@ const rxRange = /^[1-5]X{2}$/
 type ResponseDefinition = ResponseDefinition2 | ResponseDefinition3
 
 export function schemaGenerator (components: { Response: Component }): ComponentSchema {
-  return {
+  return new ComponentSchema<any, any>({
     allowsSchemaExtensions: false,
     additionalProperties: {
       namespace: 'response',
@@ -27,7 +26,6 @@ export function schemaGenerator (components: { Response: Component }): Component
     validator: {
       after (data) {
         const { built, definition, exception, key: method } = data.context
-        const { reference } = data.component
         const { major } = data.root
         const responses = built
 
@@ -37,10 +35,7 @@ export function schemaGenerator (components: { Response: Component }): Component
         codes.forEach(code => {
           // if the code is not within the valid range then produce an error
           if (!rxCode.test(code) && !rxRange.test(code) && code !== 'default') {
-            const invalidResponseCode = E.invalidResponseCode(code, {
-              definition,
-              locations: [{ node: definition, key: code, type: 'key' }]
-            })
+            const invalidResponseCode = E.invalidResponseCode(data, { key: code, type: 'key' }, code)
             exception.message(invalidResponseCode)
           } else {
             const response: ResponseDefinition = responses[code]
@@ -50,26 +45,17 @@ export function schemaGenerator (components: { Response: Component }): Component
             if (method === 'post' && code === '201') {
               const locationHeaderKey = response.headers !== undefined && Object.keys(response.headers).filter(v => rxLocation.test(v))[0]
               if (locationHeaderKey === undefined) {
-                const responseShouldIncludeLocationHeader = E.responseShouldIncludeLocationHeader({
-                  definition,
-                  locations: [{ node: definition, key: code, type: 'value' }]
-                })
+                const responseShouldIncludeLocationHeader = E.responseShouldIncludeLocationHeader(data, { key: code, type: 'value' })
                 exception.message(responseShouldIncludeLocationHeader)
               }
 
               // if a 204 then there should be no response body (or schema)
             } else if (code === '204') {
               if (major === 2 && 'schema' in response) {
-                const responseBodyNotAllowed = E.responseBodyNotAllowed('schema', {
-                  definition,
-                  locations: [{ node: definition[code], key: 'responseBody', type: 'value' }]
-                })
+                const responseBodyNotAllowed = E.responseBodyNotAllowed(data, { node: definition[code], key: 'responseBody', type: 'value' }, 'schema')
                 exception.message(responseBodyNotAllowed)
               } else if (major === 3 && 'content' in response) {
-                const responseBodyNotAllowed = E.responseBodyNotAllowed('content', {
-                  definition,
-                  locations: [{ node: definition[code], key: 'responseBody', type: 'value' }]
-                })
+                const responseBodyNotAllowed = E.responseBodyNotAllowed(data, { node: definition[code], key: 'responseBody', type: 'value' }, 'content')
                 exception.message(responseBodyNotAllowed)
               }
             }
@@ -78,25 +64,17 @@ export function schemaGenerator (components: { Response: Component }): Component
 
         // if no response codes then it's an error
         if (codes.length === 0) {
-          const responseRequired = E.responseRequired({
-            definition,
-            locations: [{ node: definition }],
-            reference
-          })
+          const responseRequired = E.responseRequired(data, { node: definition })
           exception.message(responseRequired)
 
           // if no success codes then it's a warning
         } else if (!has2xxResponseCode && !('default' in responses)) {
-          const responsesShouldIncludeSuccess = E.responsesShouldIncludeSuccess({
-            definition,
-            locations: [{ node: definition }],
-            reference
-          })
+          const responsesShouldIncludeSuccess = E.responsesShouldIncludeSuccess(data, { node: definition })
           exception.message(responsesShouldIncludeSuccess)
         }
       }
     }
-  }
+  })
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

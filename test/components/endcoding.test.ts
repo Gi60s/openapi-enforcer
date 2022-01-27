@@ -7,7 +7,7 @@ import {
 } from '../../src/v3'
 import { expect } from 'chai'
 
-describe('Encoding component', () => {
+describe('Component: Encoding', () => {
   describe('build', () => {
     it('can build', () => {
       const encoding = new Encoding({})
@@ -222,7 +222,7 @@ describe('Encoding component', () => {
         const { warning } = Encoding.validate({
           contentType: 'foo'
         })
-        expect(warning).to.match(/Media type appears invalid: foo/)
+        expect(warning).to.match(/Media type appears invalid: "foo"/)
       })
     })
 
@@ -331,7 +331,7 @@ describe('Encoding component', () => {
         delete def.content['application/x-www-form-urlencoded']
         encoding.x = { style: 'form' }
         const { warning } = RequestBody.validate(def)
-        expect(warning).to.match(/Property ignored: style/)
+        expect(warning).to.match(/Property ignored: "style"/)
         expect(warning?.count).to.equal(1)
       })
     })

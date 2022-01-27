@@ -1,4 +1,4 @@
-import { SchemaArray, SchemaComponent, EnforcerData, componentValidate } from './'
+import { SchemaArray, SchemaComponent, SchemaString, EnforcerData, componentValidate } from './'
 import {
   BuilderData,
   Component,
@@ -7,7 +7,6 @@ import {
   Version
 } from './helpers/builder-validator-types'
 import { DefinitionException } from '../DefinitionException'
-import { noop } from '../utils/util'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import * as Xml from './Xml'
@@ -22,11 +21,7 @@ interface ComponentsMap {
   Schema: Component | unknown
 }
 
-export function schemaGenerator (components: ComponentsMap, data: Data<Definition>): ComponentSchema<Definition> {
-  const { major } = data.root
-  const { reference } = data.component
-  const { definition } = data.context
-
+export function schemaGenerator (components: ComponentsMap): ComponentSchema<Definition> {
   const schemaArray: SchemaArray = {
     type: 'array',
     minItems: 1,
@@ -43,23 +38,18 @@ export function schemaGenerator (components: ComponentsMap, data: Data<Definitio
   }
 
   // get some of the schema from the partial schema generator
-  const schema = PartialSchema.schemaGenerator(components.Schema, data)
+  const schema = PartialSchema.schemaGenerator<Definition, Component>(components.Schema)
 
   // add 'object' as possible type
-  const typePropertyDefinition = schema.properties?.find(s => s.name === 'type')
-  if (typePropertyDefinition !== undefined) {
-    typePropertyDefinition.schema.enum = ['array', 'boolean', 'integer', 'number', 'object', 'string']
-  }
+  schema.adjustProperty('type', propertySchema => {
+    const schema = propertySchema.schema as SchemaString
+    (schema.enum as string[]).push('object')
+  })
 
-  const partialBuilder = {
-    before: schema.builder?.before ?? (() => true),
-    after: schema.builder?.after ?? noop
-  }
-
-  if (schema.builder === undefined) schema.builder = {}
-  schema.builder.after = (data: BuilderData, enforcer) => {
+  schema.hook('after-build', (data: BuilderData) => {
     data.root.lastly.push(() => {
       const { built } = data.context
+      const enforcer = built.enforcer
 
       // create a merged schema (if possible) of this schema
       if ('allOf' in built || 'anyOf' in built || 'oneOf' in built) {
@@ -77,58 +67,40 @@ export function schemaGenerator (components: ComponentsMap, data: Data<Definitio
         enforcer.schema = built
       }
     })
-    partialBuilder.after(data, enforcer)
-  }
+  })
 
-  const partialValidator = {
-    before: schema.validator?.before ?? (() => true),
-    after: schema.validator?.after ?? noop
-  }
-  if (schema.validator === undefined) schema.validator = {}
-  schema.validator.before = (data) => {
+  schema.hook('before-validate', (data) => {
     const { exception } = data.context
-    let success = true
+    const definition = data.component.definition
 
     if ('additionalProperties' in definition) {
       // let this continue even if it fails here
       const value = definition.additionalProperties
       if (typeof value !== 'boolean' && typeof value !== 'object') {
-        const invalidAdditionalPropertiesSchema = E.invalidAdditionalPropertiesSchema(value, {
-          definition,
-          locations: [{ node: definition, key: 'additionalProperties', type: 'value' }],
-          reference
-        })
+        const invalidAdditionalPropertiesSchema = E.invalidAdditionalPropertiesSchema(data, { node: definition, key: 'additionalProperties', type: 'value' }, value)
         exception.at('additionalProperties').message(invalidAdditionalPropertiesSchema)
       }
     }
 
-    success = success && partialValidator.before(data)
+    return true
+  })
 
-    return success
-  }
-
-  schema.validator.after = (data) => {
+  schema.hook('after-validate', (data) => {
     const { exception } = data.context
-    const built = data.context.built as Definition
+    const built = data.context.built
 
     // look in "allOf" for conflicting types or formats
     if (built.allOf !== undefined) {
       const types = SchemaHelper.determineTypes(built, new Map())
 
       if (types.known.length > 1) {
-        const allOfConflictingSchemaTypes = E.allOfConflictingSchemaTypes(types.known.map(v => v.type), {
-          definition,
-          locations: [{ node: definition, key: 'allOf', type: 'value' }]
-        })
+        const allOfConflictingSchemaTypes = E.allOfConflictingSchemaTypes(data, { key: 'allOf', type: 'value' }, types.known.map(v => v.type))
         exception.at('allOf').message(allOfConflictingSchemaTypes)
       }
 
       const formatsArray = (types.known[0]?.formats ?? []).filter(v => v.length > 0)
       if (formatsArray.length > 1) {
-        const allOfConflictingSchemaFormats = E.allOfConflictingSchemaFormats(formatsArray, {
-          definition,
-          locations: [{ node: definition, key: 'allOf', type: 'value' }]
-        })
+        const allOfConflictingSchemaFormats = E.allOfConflictingSchemaFormats(data, { key: 'allOf', type: 'value' }, formatsArray)
         exception.at('allOf').message(allOfConflictingSchemaFormats)
       }
     }
@@ -136,8 +108,7 @@ export function schemaGenerator (components: ComponentsMap, data: Data<Definitio
     if (built.type === 'object') {
       PartialSchema.validateMaxMin(data, 'minProperties', 'maxProperties')
     }
-    partialValidator.after(data)
-  }
+  })
 
   // add additional properties
   schema.properties?.push(
@@ -159,11 +130,8 @@ export function schemaGenerator (components: ComponentsMap, data: Data<Definitio
           }
         ],
         error (data) {
-          return E.invalidAdditionalPropertiesSchema(definition, {
-            definition,
-            locations: [{ node: definition, key: 'additionalProperties', type: 'value' }],
-            reference
-          })
+          const definition = data.component.definition
+          return E.invalidAdditionalPropertiesSchema(data, { node: definition, key: 'additionalProperties', type: 'value' }, definition)
         }
       }
     },
@@ -186,13 +154,15 @@ export function schemaGenerator (components: ComponentsMap, data: Data<Definitio
     },
     {
       name: 'discriminator',
-      schema: major === 2
-        ? { type: 'string' }
-        : {
-            type: 'component',
-            allowsRef: false,
-            component: components.Discriminator as Component
-          }
+      schema (data) {
+        return data.data.root.major === 2
+          ? { type: 'string' }
+          : {
+              type: 'component',
+              allowsRef: false,
+              component: components.Discriminator as Component
+            }
+      }
     },
     {
       name: 'description',

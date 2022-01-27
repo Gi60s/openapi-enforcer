@@ -14,7 +14,6 @@ import * as EC from '../../utils/error-codes'
 import rx from '../../utils/rx'
 import * as random from './randomizer'
 import { noop, smart } from '../../utils/util'
-import { dataTypeMinimum } from '../../utils/error-codes'
 
 export interface DataType<DeserializedType, SerializedType> {
   type: string

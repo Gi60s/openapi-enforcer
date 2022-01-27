@@ -3,20 +3,7 @@ import { ComponentSchema, Version } from './helpers/builder-validator-types'
 import { DefinitionException } from '../DefinitionException'
 import { License as Definition } from './helpers/definition-types'
 
-const licenseSchema: ComponentSchema<Definition> = {
-  allowsSchemaExtensions: true,
-  properties: [
-    {
-      name: 'name',
-      required: true,
-      schema: { type: 'string' }
-    },
-    {
-      name: 'url',
-      schema: { type: 'string' }
-    }
-  ]
-}
+let licenseSchema: ComponentSchema<Definition>
 
 export class License extends OASComponent {
   extensions!: Record<string, any>
@@ -35,7 +22,23 @@ export class License extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#license-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
+  static get schema (): ComponentSchema<Definition, typeof License> {
+    if (licenseSchema === undefined) {
+      licenseSchema = new ComponentSchema({
+        allowsSchemaExtensions: true,
+        properties: [
+          {
+            name: 'name',
+            required: true,
+            schema: { type: 'string' }
+          },
+          {
+            name: 'url',
+            schema: { type: 'string' }
+          }
+        ]
+      })
+    }
     return licenseSchema
   }
 

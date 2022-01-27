@@ -23,9 +23,9 @@ export class Discriminator extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#discriminator-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
+  static get schema (): ComponentSchema<Definition> {
     if (schemaDiscriminator === undefined) {
-      schemaDiscriminator = {
+      schemaDiscriminator = new ComponentSchema<Definition>({
         allowsSchemaExtensions: false,
         properties: [
           {
@@ -52,7 +52,7 @@ export class Discriminator extends OASComponent {
             if (mapping !== undefined) {
               componentData.root.lastly.push((rootData) => {
                 const data = componentData.context.children.mapping
-                const { loadCache, map, version } = data.root
+                const { loadCache, map } = data.root
                 const { definition } = data.context
 
                 const loc = lookupLocation(definition)
@@ -70,18 +70,15 @@ export class Discriminator extends OASComponent {
                       ? getReferenceNode(loadCache, rootNodePath, ref) // passing in new exception because we're ignoring an errors here
                       : traverse(rootData.context.built, ref)
 
-                    if (node === undefined) {
-                      // @ts-expect-error
-                      mapping[key] = new Reference({ $ref: ref }, version, data)
+                    const store = map.get(Schema)
+                    const found = node !== undefined
+                      ? store?.find(item => item.definition === node)
+                      : undefined
+                    if (found !== undefined) {
+                      mapping[key] = found.instance
                     } else {
-                      const store = map.get(Schema)
-                      const found = store?.find(item => item.definition === node)
-                      if (found === undefined) {
-                        // @ts-expect-error
-                        mapping[key] = new Reference({ $ref: ref }, version, data)
-                      } else {
-                        mapping[key] = found.instance
-                      }
+                      throw Error('To build components all references must be resolved. Could not find reference "' + String(ref) + '"' +
+                        (hasRootNodePath ? 'from "' + rootNodePath + '"' : '') + '.')
                     }
                   })
               })
@@ -115,10 +112,7 @@ export class Discriminator extends OASComponent {
                     if (node !== undefined) {
                       data.context.built[key] = node
                     } else if (loadOptions.dereference) {
-                      const refNotResolved = E.refNotResolved(ref, rootNodePath, {
-                        definition,
-                        locations: [{ node: definition, key, type: 'value' }]
-                      })
+                      const refNotResolved = E.refNotResolved(data, { key, type: 'value' }, ref, rootNodePath)
                       exception.message(refNotResolved)
                     }
                   })
@@ -126,7 +120,7 @@ export class Discriminator extends OASComponent {
             }
           }
         }
-      }
+      })
     }
     return schemaDiscriminator
   }

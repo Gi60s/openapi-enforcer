@@ -5,6 +5,8 @@ import * as Core from '../Responses'
 import * as Response from './Response'
 import { Responses3 as Definition } from '../helpers/definition-types'
 
+let responsesSchema: ComponentSchema<Definition>
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Responses extends Core.Responses {
   response!: {
@@ -22,10 +24,13 @@ export class Responses extends Core.Responses {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#responses-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
-    return Core.schemaGenerator({
-      Response: Response.Response
-    })
+  static get schema (): ComponentSchema<Definition> {
+    if (responsesSchema === undefined) {
+      responsesSchema = Core.schemaGenerator({
+        Response: Response.Response
+      })
+    }
+    return responsesSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

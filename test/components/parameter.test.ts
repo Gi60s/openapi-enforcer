@@ -3,7 +3,7 @@ import { Parameter2 as Parameter2Definition, Parameter3 as Parameter3Definition 
 import { Parameter as Parameter2 } from '../../src/components/v2/Parameter'
 import { Parameter as Parameter3 } from '../../src/components/v3/Parameter'
 
-describe('Parameter component', () => {
+describe('Component: Parameter', () => {
   describe('build', () => {
 
   })

@@ -1,10 +1,10 @@
 import { DefinitionException } from '../../DefinitionException'
 import { OASComponent, componentValidate } from '../index'
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { Schema2 as Definition } from '../helpers/definition-types'
+import { Definitions2 as Definition } from '../helpers/definition-types'
 import { Schema } from './Schema'
 
-let schemaDefinition: ComponentSchema<Definition>
+let definitionsSchema: ComponentSchema<Definition>
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Definitions extends OASComponent<Definition, typeof Definitions> {
@@ -20,9 +20,9 @@ export class Definitions extends OASComponent<Definition, typeof Definitions> {
     '2.0': 'https://spec.openapis.org/oas/v2.0#definitions-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
-    if (schemaDefinition === undefined) {
-      schemaDefinition = {
+  static get schema (): ComponentSchema<Definition> {
+    if (definitionsSchema === undefined) {
+      definitionsSchema = new ComponentSchema({
         allowsSchemaExtensions: false,
         additionalProperties: {
           namespace: 'definition',
@@ -32,9 +32,9 @@ export class Definitions extends OASComponent<Definition, typeof Definitions> {
             component: Schema
           }
         }
-      }
+      })
     }
-    return schemaDefinition
+    return definitionsSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

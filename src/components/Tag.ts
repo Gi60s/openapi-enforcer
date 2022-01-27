@@ -1,8 +1,10 @@
-import { OASComponent, Version, DefinitionException, ComponentSchema } from './'
+import { OASComponent, componentValidate } from './'
+import { ComponentSchema, Version } from './helpers/builder-validator-types'
+import { DefinitionException } from '../DefinitionException'
 import { ExternalDocumentation } from './ExternalDocumentation'
 import { Tag as Definition } from './helpers/definition-types'
 
-let schemaTag: ComponentSchema<Definition>
+let tagSchema: ComponentSchema<Definition>
 
 export class Tag extends OASComponent {
   extensions!: Record<string, any>
@@ -22,9 +24,9 @@ export class Tag extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#tag-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
-    if (schemaTag === undefined) {
-      schemaTag = {
+  static get schema (): ComponentSchema<Definition, typeof Tag> {
+    if (tagSchema === undefined) {
+      tagSchema = new ComponentSchema({
         allowsSchemaExtensions: true,
         properties: [
           {
@@ -45,12 +47,12 @@ export class Tag extends OASComponent {
             }
           }
         ]
-      }
+      })
     }
-    return schemaTag
+    return tagSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {
-    return super.validate(definition, version, arguments[2])
+    return componentValidate(this, definition, version, arguments[2])
   }
 }

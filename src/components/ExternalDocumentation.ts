@@ -5,40 +5,7 @@ import rx from '../utils/rx'
 import * as E from '../DefinitionException/methods'
 import { ExternalDocumentation as Definition } from './helpers/definition-types'
 
-const externalDocumentationSchema: ComponentSchema<Definition> = {
-  allowsSchemaExtensions: true,
-  properties: [
-    {
-      name: 'description',
-      schema: { type: 'string' }
-    },
-    {
-      name: 'url',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-  ],
-  validator: {
-    after (data) {
-      const { built, definition, exception } = data.context
-      const { reference } = data.component
-
-      const url = built.url
-      if (url !== undefined) {
-        if (!rx.url.test(url)) {
-          const invalidUrl = E.invalidUrl(url, {
-            definition: url,
-            locations: [{ node: definition, key: 'url', type: 'value' }],
-            reference
-          })
-          exception.message(invalidUrl)
-        }
-      }
-    }
-  }
-}
+let externalDocumentationSchema: ComponentSchema<Definition>
 
 export class ExternalDocumentation extends OASComponent {
   extensions!: Record<string, any>
@@ -57,7 +24,38 @@ export class ExternalDocumentation extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#external-documentation-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
+  static get schema (): ComponentSchema<Definition, typeof ExternalDocumentation> {
+    if (externalDocumentationSchema === undefined) {
+      externalDocumentationSchema = new ComponentSchema({
+        allowsSchemaExtensions: true,
+        properties: [
+          {
+            name: 'description',
+            schema: { type: 'string' }
+          },
+          {
+            name: 'url',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        validator: {
+          after (data) {
+            const { built, exception } = data.context
+
+            const url = built.url
+            if (url !== undefined) {
+              if (!rx.url.test(url)) {
+                const invalidUrl = E.invalidUrl(data, { key: 'url', type: 'value' }, url)
+                exception.message(invalidUrl)
+              }
+            }
+          }
+        }
+      })
+    }
     return externalDocumentationSchema
   }
 

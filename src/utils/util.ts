@@ -1,7 +1,5 @@
 import rx from './rx'
-import { ExceptionMessageData } from '../DefinitionException/types'
-import { Location } from 'json-to-ast'
-import { SpecMap, Version } from '../components'
+import { SpecMap, Version } from '../components/helpers/builder-validator-types'
 
 interface BooleanMap {
   [key: string]: boolean

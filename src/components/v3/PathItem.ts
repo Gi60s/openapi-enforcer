@@ -1,4 +1,4 @@
-import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { DefinitionException } from '../../DefinitionException'
 import { Operation } from './Operation'
 import { Server } from './Server'
@@ -7,6 +7,7 @@ import * as Core from '../PathItem'
 import { PathItem3 as Definition } from '../helpers/definition-types'
 
 const methods = Core.methods.concat(['trace'])
+let pathItemSchema: ComponentSchema<Definition>
 
 export class PathItem extends Core.PathItem<Operation> {
   description?: string
@@ -26,11 +27,14 @@ export class PathItem extends Core.PathItem<Operation> {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#path-item-object'
   }
 
-  static schemaGenerator (data: Data): ComponentSchema<Definition> {
-    return Core.schemaGenerator({
-      Operation: Operation,
-      Parameter: Parameter
-    }, methods, data)
+  static get schema (): ComponentSchema<Definition> {
+    if (pathItemSchema === undefined) {
+      pathItemSchema = Core.schemaGenerator({
+        Operation: Operation,
+        Parameter: Parameter
+      }, methods)
+    }
+    return pathItemSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

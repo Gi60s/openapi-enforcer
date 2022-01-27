@@ -195,7 +195,6 @@ describe('Exception', () => {
             '  First message',
             '    breadcrumbs: /',
             '    code: CODE',
-            '    id: ID',
             '    locations:',
             '      my-file.txt:20:6',
             '    reference: REF'
@@ -210,14 +209,12 @@ describe('Exception', () => {
             '  First message',
             '    breadcrumbs: /',
             '    code: CODE',
-            '    id: ID',
             '    locations:',
             '      my-file.txt:20:6',
             '    reference: REF',
             '  Second message',
             '    breadcrumbs: /',
             '    code: CODE',
-            '    id: ID',
             '    locations:',
             '      my-file.txt:20:6',
             '    reference: REF'
@@ -233,7 +230,6 @@ describe('Exception', () => {
             '    First message',
             '      breadcrumbs: / > a',
             '      code: CODE',
-            '      id: ID',
             '      locations:',
             '        my-file.txt:20:6',
             '      reference: REF'
@@ -258,7 +254,6 @@ describe('Exception', () => {
             '      First message d',
             '        breadcrumbs: / > a > b > c > d',
             '        code: CODE',
-            '        id: ID',
             '        locations:',
             '          my-file.txt:20:6',
             '        reference: REF',
@@ -266,21 +261,18 @@ describe('Exception', () => {
             '      First message e',
             '        breadcrumbs: / > a > b > e',
             '        code: CODE',
-            '        id: ID',
             '        locations:',
             '          my-file.txt:20:6',
             '        reference: REF',
             '    First message b',
             '      breadcrumbs: / > a > b',
             '      code: CODE',
-            '      id: ID',
             '      locations:',
             '        my-file.txt:20:6',
             '      reference: REF',
             '    Second message b',
             '      breadcrumbs: / > a > b',
             '      code: CODE',
-            '      id: ID',
             '      locations:',
             '        my-file.txt:20:6',
             '      reference: REF'
@@ -395,43 +387,6 @@ describe('Exception', () => {
       })
     })
 
-    describe('details: id', () => {
-      before(() => {
-        Config.set({
-          exceptions: {
-            details: 'id',
-            message: 'text'
-          }
-        })
-      })
-
-      it('only one child message', function () {
-        new X()
-          .add('First message')
-          .test(['  First message [ID]'])
-      })
-
-      it('only two child messages', function () {
-        new X()
-          .add('First message')
-          .add('Second message')
-          .test([
-            '  First message [ID]',
-            '  Second message [ID]'
-          ])
-      })
-
-      it('single at with one message', function () {
-        new X()
-          .at('a')
-          .add('First message')
-          .test([
-            '  at: a',
-            '    First message [ID]'
-          ])
-      })
-    })
-
     describe('details: locations', () => {
       before(() => {
         Config.set({
@@ -489,7 +444,6 @@ class X {
       alternateLevels: [],
       code: 'CODE',
       definition: null,
-      id: 'ID',
       level,
       locations: [],
       message,

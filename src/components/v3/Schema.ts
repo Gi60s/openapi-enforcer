@@ -5,6 +5,8 @@ import { Schema3 as Definition } from '../helpers/definition-types'
 import { OpenAPI } from '../../v3'
 import * as SchemaHelper from '../helpers/schema-functions'
 
+let schemaSchema: ComponentSchema<Definition>
+
 export class Schema extends Core.Schema {
   discriminator?: Discriminator.Discriminator
   anyOf?: Schema[]
@@ -41,11 +43,14 @@ export class Schema extends Core.Schema {
     }
   }
 
-  static schemaGenerator (data: Data): ComponentSchema<Definition> {
-    return Core.schemaGenerator({
-      Discriminator: Discriminator.Discriminator,
-      Schema
-    }, data)
+  static get schema (): ComponentSchema<Definition> {
+    if (schemaSchema === undefined) {
+      schemaSchema = Core.schemaGenerator({
+        Discriminator: Discriminator.Discriminator,
+        Schema
+      }) as ComponentSchema<Definition>
+    }
+    return schemaSchema
   }
 
   static spec = {

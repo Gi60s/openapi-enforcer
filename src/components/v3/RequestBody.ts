@@ -24,9 +24,9 @@ export class RequestBody extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#request-body-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
+  static get schema (): ComponentSchema<Definition> {
     if (requestBodySchema === undefined) {
-      requestBodySchema = {
+      requestBodySchema = new ComponentSchema<Definition>({
         allowsSchemaExtensions: true,
         properties: [
           {
@@ -55,23 +55,17 @@ export class RequestBody extends OASComponent {
         ],
         validator: {
           after (data) {
-            const definition = data.component.definition
             const built = data.context.built
-            const reference = data.component.reference
             const exception = data.context.exception
 
             const keys = Object.keys(built.content)
             if (keys.length === 0) {
-              const requestBodyContentEmpty = E.requestBodyContentEmpty({
-                definition,
-                locations: [{ node: definition, key: 'content', type: 'value' }],
-                reference
-              })
+              const requestBodyContentEmpty = E.requestBodyContentEmpty(data, { key: 'content', type: 'value' })
               exception.message(requestBodyContentEmpty)
             }
           }
         }
-      }
+      })
     }
     return requestBodySchema
   }

@@ -1,5 +1,5 @@
 import { componentValidate, OASComponent } from './index'
-import { BuilderData, Component, ComponentSchema, Data, ValidatorData, Version } from './helpers/builder-validator-types'
+import { BuilderData, Component, ComponentSchema, ValidatorData, Version } from './helpers/builder-validator-types'
 import { DefinitionException } from '../DefinitionException'
 import * as E from '../DefinitionException/methods'
 import { addParameterToOperation, Operation } from './Operation'
@@ -10,7 +10,7 @@ import {
   Parameter2, Parameter3,
   Operation2, Operation3
 } from './helpers/definition-types'
-import { parameterNamespaceConflict } from '../DefinitionException/methods'
+import { LocationInput } from '../DefinitionException/types'
 
 export const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch']
 
@@ -23,8 +23,8 @@ interface ComponentsMap {
   Parameter: Component
 }
 
-export function schemaGenerator (components: ComponentsMap, methods: string[], data: Data): ComponentSchema {
-  return {
+export function schemaGenerator (components: ComponentsMap, methods: string[]): ComponentSchema {
+  return new ComponentSchema<any, any>({
     allowsSchemaExtensions: true,
     builder: {
       after (data) {
@@ -47,13 +47,7 @@ export function schemaGenerator (components: ComponentsMap, methods: string[], d
     },
     validator: {
       after (data) {
-        const {
-          built,
-          definition,
-          exception,
-          key
-        } = data.context
-        const { reference } = data.component
+        const { built, definition, exception, key } = data.context
 
         const length = methods.length
         let hasMethod = false
@@ -64,11 +58,7 @@ export function schemaGenerator (components: ComponentsMap, methods: string[], d
           }
         }
         if (!hasMethod) {
-          const pathMissingMethods = E.pathMissingMethods(key, {
-            definition,
-            locations: [{ node: definition }],
-            reference
-          })
+          const pathMissingMethods = E.pathMissingMethods(data, { node: definition }, key)
           exception.message(pathMissingMethods)
         }
 
@@ -87,10 +77,7 @@ export function schemaGenerator (components: ComponentsMap, methods: string[], d
 
               const index = parametersMap.findIndex(p => p.in === parameter.in && p.name === parameter.name)
               if (index !== -1) {
-                const parameterNamespaceConflict = E.parameterNamespaceConflict(parameter.name, parameter.in, {
-                  definition,
-                  locations: [{ node: parameter }, { node: parametersMap[index] }]
-                })
+                const parameterNamespaceConflict = E.parameterNamespaceConflict(data, [{ node: parameter }, { node: parametersMap[index] }], parameter.name, parameter.in)
                 exception.message(parameterNamespaceConflict)
               } else {
                 parametersMap.push({ name: parameter.name, in: parameter.in })
@@ -98,10 +85,8 @@ export function schemaGenerator (components: ComponentsMap, methods: string[], d
             })
 
             if (bodyParameter !== undefined && formDataParameter.length > 0) {
-              const parameterBodyFormDataConflict = E.parameterBodyFormDataConflict({
-                definition,
-                locations: [{ node: bodyParameter }, ...formDataParameter.map(p => { return { node: p } })]
-              })
+              const locations: LocationInput[] = [{ node: bodyParameter }, ...formDataParameter.map(p => { return { node: p } })]
+              const parameterBodyFormDataConflict = E.parameterBodyFormDataConflict(data, locations)
               exception.message(parameterBodyFormDataConflict)
             }
           }
@@ -227,7 +212,7 @@ export function schemaGenerator (components: ComponentsMap, methods: string[], d
         }
       }
     ]
-  }
+  })
 }
 
 export class PathItem<Operation> extends OASComponent {

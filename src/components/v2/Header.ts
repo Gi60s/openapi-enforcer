@@ -1,10 +1,12 @@
 import { DefinitionException } from '../../DefinitionException'
 import { componentValidate } from '../'
-import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { Schema } from './Schema'
 import { schemaGenerator } from '../Header'
 import { PartialSchema } from '../helpers/PartialSchema'
 import { Header2 as Definition } from '../helpers/definition-types'
+
+let headerSchema: ComponentSchema<Definition>
 
 export class Header extends PartialSchema<Header> {
   extensions!: Record<string, any>
@@ -19,11 +21,14 @@ export class Header extends PartialSchema<Header> {
     '2.0': 'https://spec.openapis.org/oas/v2.0#header-object'
   }
 
-  static schemaGenerator (data: Data): ComponentSchema<Definition> {
-    return schemaGenerator({
-      Header,
-      Schema
-    }, data)
+  static get schema (): ComponentSchema<Definition> {
+    if (headerSchema === undefined) {
+      headerSchema = schemaGenerator(2, {
+        Header,
+        Schema
+      }) as ComponentSchema<Definition>
+    }
+    return headerSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

@@ -1,4 +1,4 @@
-import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { DefinitionException } from '../../DefinitionException'
 import { OASComponent, componentValidate } from '../index'
 import rx from '../../utils/rx'
@@ -9,6 +9,8 @@ import { Example } from './Example'
 import { RequestBody } from './RequestBody'
 import { Schema } from './Schema'
 import { MediaType3 as Definition } from '../helpers/definition-types'
+
+let mediaTypeSchema: ComponentSchema<Definition>
 
 export class MediaType extends OASComponent {
   extensions!: Record<string, any>
@@ -28,106 +30,96 @@ export class MediaType extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#media-type-object'
   }
 
-  static schemaGenerator (data: Data): ComponentSchema<Definition> {
-    const { chain } = data.context
-    const encodingIgnored = chain[1]?.component.constructor !== RequestBody ? 'The encoding is ignored without media type context.' : false
+  static get schema (): ComponentSchema<Definition> {
+    if (mediaTypeSchema === undefined) {
+      mediaTypeSchema = new ComponentSchema<Definition>({
+        allowsSchemaExtensions: true,
+        validator: {
+          after (data) {
+            const { built, chain, definition, exception, key: mediaType } = data.context
+            const { reference } = data.component
+            const parent = chain[0]
 
-    return {
-      allowsSchemaExtensions: true,
-      validator: {
-        after (data) {
-          const { built, chain, definition, exception, key: mediaType } = data.context
-          const { reference } = data.component
-          const parent = chain[0]
+            // check that the media type appears valid
+            if (parent?.context.key === 'content' && !rx.mediaType.test(mediaType)) {
+              const invalidMediaType = E.invalidMediaType(data, { node: parent.context.definition, key: mediaType, type: 'key' }, mediaType)
+              exception.message(invalidMediaType)
+            }
 
-          // check that the media type appears valid
-          if (parent?.context.key === 'content' && !rx.mediaType.test(mediaType)) {
-            const invalidMediaType = E.invalidMediaType(mediaType, {
-              definition,
-              locations: [{ node: parent.context.definition, key: mediaType, type: 'key' }],
-              reference
-            })
-            exception.message(invalidMediaType)
-          }
+            // check for example vs examples conflict
+            V.exampleExamplesConflict(data)
 
-          // check for example vs examples conflict
-          V.exampleExamplesConflict(data)
+            // check that the schema type is object
+            if (built.schema !== undefined) {
+              const schema = built.schema
+              if (!('$ref' in schema) && schema.type !== 'object') {
+                const mediaTypeSchemaMustBeObject = E.mediaTypeSchemaMustBeObject(data, { key: 'type', type: 'value' }, schema.type ?? '')
+                exception.message(mediaTypeSchemaMustBeObject)
+              }
+            }
 
-          // check that the schema type is object
-          if (built.schema !== undefined) {
-            const schema = built.schema
-            if (!('$ref' in schema) && schema.type !== 'object') {
-              const mediaTypeSchemaMustBeObject = E.mediaTypeSchemaMustBeObject(schema.type ?? '', {
-                definition,
-                locations: [{ node: definition, key: 'type', type: 'value' }],
-                reference
+            // ensure that any properties in the encoding have a matching property in the schema properties
+            const schema = built.schema ?? {}
+            if (!('$ref' in schema)) {
+              Object.keys(built.encoding ?? {}).forEach(key => {
+                if (schema.properties?.[key] === undefined) {
+                  const encodingNameNotMatched = E.encodingNameNotMatched(data, { node: definition.encoding, key, type: 'key' }, key)
+                  exception.at('encoding').at(key).message(encodingNameNotMatched)
+                }
               })
-              exception.message(mediaTypeSchemaMustBeObject)
-            }
-          }
-
-          // ensure that any properties in the encoding have a matching property in the schema properties
-          const schema = built.schema ?? {}
-          if (!('$ref' in schema)) {
-            Object.keys(built.encoding ?? {}).forEach(key => {
-              if (schema.properties?.[key] === undefined) {
-                const encodingNameNotMatched = E.encodingNameNotMatched(key, {
-                  definition,
-                  locations: [{ node: definition.encoding, key, type: 'key' }],
-                  reference
-                })
-                exception.at('encoding').at(key).message(encodingNameNotMatched)
-              }
-            })
-          }
-        }
-      },
-      properties: [
-        {
-          name: 'schema',
-          schema: {
-            type: 'component',
-            allowsRef: true,
-            component: Schema
-          }
-        },
-        {
-          name: 'example',
-          schema: {
-            type: 'any'
-          }
-        },
-        {
-          name: 'examples',
-          schema: {
-            type: 'object',
-            allowsSchemaExtensions: false,
-            additionalProperties: {
-              schema: {
-                type: 'component',
-                allowsRef: true,
-                component: Example
-              }
             }
           }
         },
-        {
-          name: 'encoding',
-          schema: {
-            type: 'object',
-            allowsSchemaExtensions: false,
-            ignored: encodingIgnored,
-            additionalProperties: {
-              schema: {
-                type: 'component',
-                allowsRef: true,
-                component: Encoding
+        properties: [
+          {
+            name: 'schema',
+            schema: {
+              type: 'component',
+              allowsRef: true,
+              component: Schema
+            }
+          },
+          {
+            name: 'example',
+            schema: {
+              type: 'any'
+            }
+          },
+          {
+            name: 'examples',
+            schema: {
+              type: 'object',
+              allowsSchemaExtensions: false,
+              additionalProperties: {
+                schema: {
+                  type: 'component',
+                  allowsRef: true,
+                  component: Example
+                }
+              }
+            }
+          },
+          {
+            name: 'encoding',
+            schema: {
+              type: 'object',
+              allowsSchemaExtensions: false,
+              ignored (data) {
+                return data.data.context.chain[1]?.component.constructor !== RequestBody ? 'The encoding is ignored without media type context.' : false
+              },
+              additionalProperties: {
+                schema: {
+                  type: 'component',
+                  allowsRef: true,
+                  component: Encoding
+                }
               }
             }
           }
-        }
-      ]
+        ]
+      })
     }
+    return mediaTypeSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

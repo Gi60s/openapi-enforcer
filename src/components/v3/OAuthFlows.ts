@@ -24,9 +24,9 @@ export class OAuthFlows extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#oauth-flows-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
+  static get schema (): ComponentSchema<Definition> {
     if (oauthFlowsSchema === undefined) {
-      oauthFlowsSchema = {
+      oauthFlowsSchema = new ComponentSchema<Definition>({
         allowsSchemaExtensions: false,
         properties: [
           {
@@ -62,7 +62,7 @@ export class OAuthFlows extends OASComponent {
             }
           }
         ]
-      }
+      })
     }
     return oauthFlowsSchema
   }

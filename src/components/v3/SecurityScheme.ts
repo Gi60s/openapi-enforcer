@@ -1,8 +1,8 @@
 import { Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
-import { componentValidate } from '../index'
 import * as Core from '../SecurityScheme'
 import { SecurityScheme3 as Definition } from '../helpers/definition-types'
+import { DefinitionException } from '../../DefinitionException'
+import { componentValidate } from '../index'
 
 export class SecurityScheme extends Core.SecurityScheme {
   bearerFormat?: string

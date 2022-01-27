@@ -3,7 +3,7 @@ import { Schema } from '../../../src/components/v3/Schema'
 import { Schema3 as Definition } from '../../../src/components/helpers/definition-types'
 import { deserialize, serialize } from '../../../src/components/helpers/schema-functions'
 
-describe('schema-functions', () => {
+describe('Component schema-functions', () => {
   describe('deserialize', () => {
     it('can deserialize a boolean', () => {
       const schema = new Schema({ type: 'boolean' })
@@ -178,7 +178,7 @@ describe('schema-functions', () => {
             { minItems: 5 }
           ]
         })
-        const schema2 = schema.enforcer.schema
+        const schema2 = schema.enforcer.schema as Schema
         expect(schema2.type).to.equal('number')
         expect(schema2.minimum).to.equal(5)
         expect(schema2.maximum).to.equal(5)
@@ -195,7 +195,7 @@ describe('schema-functions', () => {
             { minItems: 5 }
           ]
         })
-        const schema2 = schema.enforcer.schema
+        const schema2 = schema.enforcer.schema as Schema
         expect(schema2.type).to.equal('number')
         expect(schema2.minimum).to.equal(5)
         expect(schema2.minItems).to.equal(undefined)
@@ -211,7 +211,7 @@ describe('schema-functions', () => {
             { minItems: 5 }
           ]
         })
-        const schema2 = schema.enforcer.schema
+        const schema2 = schema.enforcer.schema as Schema
         expect(schema2.type).to.equal('number')
         expect(schema2.minimum).to.equal(5)
         expect(schema2.maximum).to.equal(undefined)

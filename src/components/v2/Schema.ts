@@ -1,9 +1,11 @@
-import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import * as Core from '../Schema'
 import * as Discriminator from '../v3/Discriminator'
 import { Schema2 as Definition } from '../helpers/definition-types'
 import { Swagger } from './Swagger'
 import * as SchemaHelper from '../helpers/schema-functions'
+
+let schemaSchema: ComponentSchema<Definition>
 
 export class Schema extends Core.Schema {
   discriminator?: string
@@ -26,11 +28,14 @@ export class Schema extends Core.Schema {
     }
   }
 
-  static schemaGenerator (data: Data): ComponentSchema<Definition> {
-    return Core.schemaGenerator({
-      Discriminator: Discriminator.Discriminator,
-      Schema
-    }, data)
+  static get schema (): ComponentSchema<Definition> {
+    if (schemaSchema === undefined) {
+      schemaSchema = Core.schemaGenerator({
+        Discriminator: Discriminator.Discriminator,
+        Schema
+      }) as ComponentSchema<Definition>
+    }
+    return schemaSchema
   }
 
   static spec = {

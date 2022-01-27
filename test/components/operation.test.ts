@@ -1,9 +1,8 @@
 import { expect } from 'chai'
 import { Operation as Operation2, Parameter as Parameter2, PathItem as PathItem2 } from '../../src/v2'
 import { Operation as Operation3, Parameter as Parameter3, PathItem as PathItem3 } from '../../src/v3'
-import exp from 'constants'
 
-describe.only('Operation component', () => {
+describe('Component: Operation', () => {
   describe('build', () => {
     it('can build', () => {
       const op2 = new Operation2({ responses: { 200: { description: '' } } })
@@ -482,7 +481,7 @@ describe.only('Operation component', () => {
                 200: { description: 'ok' }
               }
             })
-            const [req] = op.request({ body: [1, 2, 3] })
+            const [req] = op.request({ body: [1, 2, 3], header: { 'content-type': 'application/json' } })
             expect(req.body).to.deep.equal([1, 2, 3])
           })
         })

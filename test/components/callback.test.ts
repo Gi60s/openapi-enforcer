@@ -1,8 +1,8 @@
 import { Callback } from '../../src/v3'
 import { expect } from 'chai'
-import { minimal } from '../../test-copy/helpers'
+import { minimal } from '../helpers'
 
-describe('Callback component', () => {
+describe('Component: Callback', () => {
   describe('build', () => {
     it('can build', () => {
       const callback = new Callback({})

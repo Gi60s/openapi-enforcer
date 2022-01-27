@@ -1,5 +1,5 @@
 import { OASComponent, EnforcerData } from './'
-import { BuilderData, Component, ComponentSchema, ValidatorData, Version } from './helpers/builder-validator-types'
+import { BuilderData, Component, ComponentSchema, Version } from './helpers/builder-validator-types'
 import * as E from '../DefinitionException/methods'
 import * as EC from '../utils/error-codes'
 import { MediaTypeParser } from '../utils/MediaTypeParser'
@@ -16,9 +16,6 @@ import { arrayRemoveItem, parseQueryString } from '../utils/util'
 import { Parameter as Parameter2 } from './v2/Parameter'
 import { Parameter as Parameter3 } from './v3/Parameter'
 import { normalizer, N } from '../utils/input-normalizer'
-
-const rxMediaType = /^([\s\S]+?)\/(?:([\s\S]+?)\+)?([\s\S]+?)$/
-const rxMediaTypeQuality = /q=(\d(?:\.\d)?)/
 
 type Definition = Definition2 | Definition3
 
@@ -112,7 +109,7 @@ export interface RequestOutput {
 }
 
 export function schemaGenerator (components: ComponentsMap): ComponentSchema<Definition> {
-  return {
+  return new ComponentSchema<Definition>({
     allowsSchemaExtensions: true,
     properties: [
       {
@@ -276,14 +273,8 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
       }
     },
     validator: {
-      before (data) {
-        const success = true
-
-        return success
-      },
       after (data) {
         const { definition, exception, key } = data.context
-        const { reference } = data.component
 
         // store operation metadata
         const { metadata } = data.root
@@ -295,18 +286,10 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
         if ('requestBody' in definition) {
           const method = key.toLowerCase()
           if (method === 'get' || method === 'trace') {
-            const operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody(method, {
-              definition,
-              locations: [{ node: definition, key: 'requestBody', type: 'key' }],
-              reference: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/' + method.toUpperCase()
-            })
+            const operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody(data, { key: 'requestBody', type: 'key' }, method)
             exception.at('requestBody').message(operationMethodShouldNotHaveBody)
           } else if (method === 'delete') {
-            const operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody(method, {
-              definition,
-              locations: [{ node: definition, key: 'requestBody', type: 'key' }],
-              reference: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE'
-            })
+            const operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody(data, { key: 'requestBody', type: 'key' }, method)
             exception.at('requestBody').message(operationMethodShouldNotHaveBody)
           }
         }
@@ -314,17 +297,13 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
         // check that the summary length is valid
         if (definition.summary !== undefined) {
           if (definition.summary.length >= 120) {
-            const exceedsSummaryLength = E.exceedsSummaryLength(definition.summary, {
-              definition,
-              locations: [{ node: definition, key: 'summary', type: 'value' }],
-              reference
-            })
+            const exceedsSummaryLength = E.exceedsSummaryLength(data, { key: 'summary', type: 'value' }, definition.summary)
             exception.message(exceedsSummaryLength)
           }
         }
       }
     }
-  }
+  })
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -491,16 +470,20 @@ export function preRequest (request: RequestInput, operation: Operation, options
 
   if ('body' in request && request.body !== '' && request.body !== undefined) {
     missingRequired.body = false
-    const contentType = result.header['content-type']
-    if (contentType === undefined) {
-      exception.at('header').message(...EC.operationRequestContentTypeNotProvided())
-    } else {
-      const best = operation.getRequestContentTypeMatch(contentType)
-      if (best === undefined) {
-        exception.at('header').message(...EC.operationRequestContentTypeNotValid(contentType, operation.requestContentTypes.map(m => m.definition)))
+    result.body = request.body
+
+    // if the operation has specified accepted content types then determine which content type to use
+    if (operation.requestContentTypes.length > 0) {
+      const contentType = result.header['content-type']?.[0]
+      if (contentType === undefined) {
+        exception.at('header').message(...EC.operationRequestContentTypeNotProvided())
       } else {
-        selectedContentType = best
-        result.body = request.body
+        const best = operation.getRequestContentTypeMatch(contentType)
+        if (best === undefined) {
+          exception.at('header').message(...EC.operationRequestContentTypeNotValid(contentType, operation.requestContentTypes.map(m => m.definition)))
+        } else {
+          selectedContentType = best
+        }
       }
     }
   }
@@ -538,69 +521,69 @@ export function preRequest (request: RequestInput, operation: Operation, options
 }
 
 // the "store" parameter is a list of possible media type matches and must not include the quality number
-function findMediaMatch (input: string, store: string[]): string[] {
-  // TODO: use MediaTypeParser
-
-  // @ts-expect-error
-  const accepts: Array<{ extension: string, index: number, quality: number, subType: string, type: string }> = input
-    .split(/, */)
-    .map((value, index) => {
-      const set = value.split(';')
-      const match = rxMediaType.exec(set[0])
-      const q = rxMediaTypeQuality.exec(set[1])
-      if (match === null) return null
-      return {
-        extension: match[2] ?? '*',
-        index: index,
-        quality: q === null ? 1 : +q[1],
-        subType: match[3],
-        type: match[1]
-      }
-    })
-    .filter(v => v !== null)
-
-  // populate matches
-  const matches: Array<{ index: number, order: number, quality: number, score: number, value: string }> = []
-  accepts.forEach(accept => {
-    store.forEach((value, order) => {
-      const match = rxMediaType.exec(value)
-      if (match !== null) {
-        const type = match[1]
-        const subType = match[3]
-        const extension = match[2] ?? '*'
-        const typeMatch = ((accept.type === type || accept.type === '*' || type === '*') &&
-          (accept.subType === subType || accept.subType === '*' || subType === '*') &&
-          (accept.extension === extension || accept.extension === '*' || extension === '*'))
-        if (typeMatch) {
-          matches.push({
-            index: accept.index,
-            order,
-            quality: accept.quality,
-            score: (accept.type === type ? 1 : 0) + (accept.subType === subType ? 1 : 0) + (accept.extension === extension ? 1 : 0),
-            value
-          })
-        }
-      }
-    })
-  })
-
-  // sort matches
-  matches.sort((a, b) => {
-    if (a.quality < b.quality) return 1
-    if (a.quality > b.quality) return -1
-    if (a.score < b.score) return 1
-    if (a.score > b.score) return -1
-    if (a.index < b.index) return 1
-    if (a.index > b.index) return -1
-    return a.order < b.order ? -1 : 1
-  })
-
-  // make results unique
-  const unique: string[] = []
-  matches.forEach(item => {
-    const value = item.value
-    if (!unique.includes(value)) unique.push(value)
-  })
-
-  return unique
-}
+// function findMediaMatch (input: string, store: string[]): string[] {
+//   // TODO: use MediaTypeParser
+//
+//   // @ts-expect-error
+//   const accepts: Array<{ extension: string, index: number, quality: number, subType: string, type: string }> = input
+//     .split(/, */)
+//     .map((value, index) => {
+//       const set = value.split(';')
+//       const match = rxMediaType.exec(set[0])
+//       const q = rxMediaTypeQuality.exec(set[1])
+//       if (match === null) return null
+//       return {
+//         extension: match[2] ?? '*',
+//         index: index,
+//         quality: q === null ? 1 : +q[1],
+//         subType: match[3],
+//         type: match[1]
+//       }
+//     })
+//     .filter(v => v !== null)
+//
+//   // populate matches
+//   const matches: Array<{ index: number, order: number, quality: number, score: number, value: string }> = []
+//   accepts.forEach(accept => {
+//     store.forEach((value, order) => {
+//       const match = rxMediaType.exec(value)
+//       if (match !== null) {
+//         const type = match[1]
+//         const subType = match[3]
+//         const extension = match[2] ?? '*'
+//         const typeMatch = ((accept.type === type || accept.type === '*' || type === '*') &&
+//           (accept.subType === subType || accept.subType === '*' || subType === '*') &&
+//           (accept.extension === extension || accept.extension === '*' || extension === '*'))
+//         if (typeMatch) {
+//           matches.push({
+//             index: accept.index,
+//             order,
+//             quality: accept.quality,
+//             score: (accept.type === type ? 1 : 0) + (accept.subType === subType ? 1 : 0) + (accept.extension === extension ? 1 : 0),
+//             value
+//           })
+//         }
+//       }
+//     })
+//   })
+//
+//   // sort matches
+//   matches.sort((a, b) => {
+//     if (a.quality < b.quality) return 1
+//     if (a.quality > b.quality) return -1
+//     if (a.score < b.score) return 1
+//     if (a.score > b.score) return -1
+//     if (a.index < b.index) return 1
+//     if (a.index > b.index) return -1
+//     return a.order < b.order ? -1 : 1
+//   })
+//
+//   // make results unique
+//   const unique: string[] = []
+//   matches.forEach(item => {
+//     const value = item.value
+//     if (!unique.includes(value)) unique.push(value)
+//   })
+//
+//   return unique
+// }

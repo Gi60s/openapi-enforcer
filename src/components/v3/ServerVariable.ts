@@ -4,48 +4,7 @@ import { OASComponent, componentValidate } from '../index'
 import * as E from '../../DefinitionException/methods'
 import { ServerVariable3 as Definition } from '../helpers/definition-types'
 
-const schemaServerVariable: ComponentSchema<Definition> = {
-  allowsSchemaExtensions: true,
-  properties: [
-    {
-      name: 'enum',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'string'
-        }
-      }
-    },
-    {
-      name: 'default',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    },
-    {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-  ],
-  validator: {
-    after (data) {
-      const { built, definition, exception } = data.context
-
-      if (built.enum !== undefined) {
-        if (built.enum.length === 0) {
-          const enumMissingValues = E.enumMissingValues({
-            definition,
-            locations: [{ node: definition, key: 'enum', type: 'value' }]
-          })
-          exception.message(enumMissingValues)
-        }
-      }
-    }
-  }
-}
+let serverVariableSchema: ComponentSchema<Definition>
 
 export class ServerVariable extends OASComponent {
   extensions!: Record<string, any>
@@ -64,8 +23,49 @@ export class ServerVariable extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-variable-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
-    return schemaServerVariable
+  static get schema (): ComponentSchema<Definition> {
+    if (serverVariableSchema === undefined) {
+      serverVariableSchema = new ComponentSchema<Definition>({
+        allowsSchemaExtensions: true,
+        properties: [
+          {
+            name: 'enum',
+            schema: {
+              type: 'array',
+              items: {
+                type: 'string'
+              }
+            }
+          },
+          {
+            name: 'default',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          },
+          {
+            name: 'description',
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        validator: {
+          after (data) {
+            const { built, exception } = data.context
+
+            if (built.enum !== undefined) {
+              if (built.enum.length === 0) {
+                const enumMissingValues = E.enumMissingValues(data, { key: 'enum', type: 'value' })
+                exception.message(enumMissingValues)
+              }
+            }
+          }
+        }
+      })
+    }
+    return serverVariableSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

@@ -5,56 +5,7 @@ import * as E from '../DefinitionException/methods'
 import rx from '../utils/rx'
 import { Contact as Definition } from './helpers/definition-types'
 
-const contactSchema: ComponentSchema<Definition> = {
-  allowsSchemaExtensions: true,
-  properties: [
-    {
-      name: 'name',
-      schema: { type: 'string' }
-    },
-    {
-      name: 'url',
-      schema: {
-        type: 'string'
-      }
-    },
-    {
-      name: 'email',
-      schema: {
-        type: 'string'
-      }
-    }
-  ],
-  validator: {
-    after (data): void {
-      const { exception, definition } = data.context
-      const { reference } = data.component
-      const { email, url } = definition
-
-      if (typeof url === 'string') {
-        if (!rx.url.test(url)) {
-          const invalidUrl = E.invalidUrl(url, {
-            definition,
-            locations: [{ node: definition, key: 'url', type: 'value' }],
-            reference
-          })
-          exception.at('url').message(invalidUrl)
-        }
-      }
-
-      if (typeof email === 'string') {
-        if (!rx.email.test(email)) {
-          const invalidEmail = E.invalidEmail(email, {
-            definition,
-            locations: [{ node: definition, key: 'email', type: 'value' }],
-            reference
-          })
-          exception.message(invalidEmail)
-        }
-      }
-    }
-  }
-}
+let contactSchema: ComponentSchema<Definition>
 
 export class Contact extends OASComponent {
   extensions!: Record<string, any>
@@ -74,7 +25,50 @@ export class Contact extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#contact-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
+  static get schema (): ComponentSchema<Definition, typeof Contact> {
+    if (contactSchema === undefined) {
+      contactSchema = new ComponentSchema({
+        allowsSchemaExtensions: true,
+        properties: [
+          {
+            name: 'name',
+            schema: { type: 'string' }
+          },
+          {
+            name: 'url',
+            schema: {
+              type: 'string'
+            }
+          },
+          {
+            name: 'email',
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        validator: {
+          after (data): void {
+            const { exception, definition } = data.context
+            const { email, url } = definition
+
+            if (typeof url === 'string') {
+              if (!rx.url.test(url)) {
+                const invalidUrl = E.invalidUrl(data, { key: 'url', type: 'value' }, url)
+                exception.at('url').message(invalidUrl)
+              }
+            }
+
+            if (typeof email === 'string') {
+              if (!rx.email.test(email)) {
+                const invalidEmail = E.invalidEmail(data, { key: 'email', type: 'value' }, email)
+                exception.message(invalidEmail)
+              }
+            }
+          }
+        }
+      })
+    }
     return contactSchema
   }
 

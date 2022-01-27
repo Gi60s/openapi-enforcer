@@ -1,7 +1,7 @@
 import { ExternalDocumentation } from '../../src/v2'
 import { expect } from 'chai'
 
-describe('ExternalDocumentation component', () => {
+describe('Component: ExternalDocumentation', () => {
   describe('build', () => {
     it('can build', () => {
       const component = new ExternalDocumentation({ url: '' })

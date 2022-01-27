@@ -3,7 +3,6 @@ import { ExceptionMessageData, ExceptionMessageDataInput, Level } from './types'
 import * as Config from '../utils/config'
 import { lookupLocation } from '../utils/loader'
 import { Location } from 'json-to-ast'
-import { getExceptionMessageData } from './error-codes'
 
 const { inspect, eol } = adapter
 const exceptionMap = new WeakMap<DefinitionException, ExceptionPreReport>()
@@ -66,7 +65,6 @@ export class DefinitionException {
       alternateLevels: data.alternateLevels ?? [],
       code: data.code,
       definition: typeof data.definition === 'object' && data.definition !== null ? data.definition : undefined,
-      id: data.id,
       level: data.level,
       locations: (data.locations ?? []).map(v => lookupLocation(v.node, v.key, v.type)).filter(v => v !== undefined) as Location[],
       message: data.message,
@@ -81,7 +79,7 @@ export class DefinitionException {
     // 1. the definition x-enforcer directive or
     // 2. by global configuration
     const configLevels = Config.get().exceptions?.levels
-    let invalidLevelChange: { level: Level, newLevel: Level, id: string, code: string, allowedLevels: string, alternateLevels: Level[] } | null = null
+    let invalidLevelChange: { level: Level, newLevel: Level, code: string, allowedLevels: string, alternateLevels: Level[] } | null = null
     const directive = messageData.definition?.['x-enforcer']?.exceptions
     const newLevel: Level | undefined = directive?.[messageData.code] ?? configLevels?.[messageData.code]
     if (newLevel !== undefined && newLevel !== data.level) {
@@ -89,10 +87,9 @@ export class DefinitionException {
         messageData.level = newLevel
       } else {
         invalidLevelChange = {
-          allowedLevels: messageData.alternateLevels.join(', '),
+          allowedLevels: '"' + messageData.alternateLevels.join('", "') + '"',
           alternateLevels: messageData.alternateLevels.slice(0),
           code: data.code,
-          id: data.id,
           level: data.level,
           newLevel
         }
@@ -102,12 +99,23 @@ export class DefinitionException {
     // store the exception data (with possibly modified level)
     this.data.messages.push(messageData)
 
-    // if there was an attempt to modify the level and it failed then add another exception message about the failure
-    if (invalidLevelChange !== null && data.id !== 'EXCEPTION_LEVEL_CHANGE_INVALID') {
-      this.message(getExceptionMessageData('EXCEPTION_LEVEL_CHANGE_INVALID', invalidLevelChange, {
+    // if there was an attempt to modify the level, and it failed, then add another exception message about the failure
+    if (invalidLevelChange !== null && data.code !== 'EXLECI') {
+      this.message({
+        alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+        code: 'EXLECI',
         definition: messageData.definition,
-        locations: directive !== undefined ? [{ node: directive, key: messageData.code, type: 'value' }] : []
-      }))
+        level: 'warn',
+        locations: [{ }],
+        message: 'Unable to change exception level for "' + data.code + '" to "' + (newLevel as string) + '". Accepted levels include: ' + invalidLevelChange.allowedLevels,
+        metadata: {
+          alternateLevels: invalidLevelChange.alternateLevels,
+          code: invalidLevelChange.code,
+          defaultLevel: invalidLevelChange.level,
+          newLevel
+        },
+        reference: ''
+      })
     }
 
     return messageData
@@ -360,8 +368,6 @@ function getReport (report: ExceptionReport, level: Level, data: ExceptionPreRep
         const footnoteIndent = ' '.repeat(sIndex.length)
         result += ' ' + sIndex
         extra.footnotes += sIndex + getExceptionDetailsReport(footnoteIndent, path, message)
-      } else if (config.details === 'id') {
-        result += ' [' + message.id + ']'
       } else if (config.details === 'locations') {
         if (message.locations.length > 0) {
           result += ' (' + message.locations.map(l => {
@@ -387,8 +393,7 @@ function getExceptionDetailsReport (indent: string, path: string[], message: Exc
 
   // indent not added to first line only
   result += 'breadcrumbs: /' + (path.length > 0 ? ' > ' : '') + path.join(' > ') + eol +
-    indent + 'code: ' + message.code + eol +
-    indent + 'id: ' + message.id
+    indent + 'code: ' + message.code
   if (message.locations !== undefined && message.locations.length > 0) {
     const indentPlus = indent + '  '
     result += eol + indent + 'locations:'

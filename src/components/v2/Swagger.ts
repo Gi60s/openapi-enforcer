@@ -21,7 +21,8 @@ import { ComponentSchema, ValidatorData } from '../helpers/builder-validator-typ
 
 const rxHostParts = /^(?:(https?|wss?):\/\/)?(.+?)(\/.+)?$/
 const rxPathTemplating = /[{}]/
-let schemaSwagger: ComponentSchema<Definition>
+
+let swaggerSchema: ComponentSchema<Definition>
 
 export class Swagger extends OASComponent<Definition, typeof Swagger> {
   extensions!: Record<string, any>
@@ -53,9 +54,9 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
     return await loadRoot<Swagger>(Swagger, path, options)
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
-    if (schemaSwagger === undefined) {
-      schemaSwagger = {
+  static get schema (): ComponentSchema<Definition> {
+    if (swaggerSchema === undefined) {
+      swaggerSchema = new ComponentSchema<Definition>({
         allowsSchemaExtensions: true,
         properties: [
           {
@@ -208,24 +209,15 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
         validator: {
           after (data: ValidatorData) {
             const { built, definition, exception } = data.context
-            const { reference } = data.component
 
             if (built.basePath !== undefined) {
               const basePath = built.basePath
               if (basePath[0] !== '/') {
-                const swaggerBasePathInvalid = E.swaggerBasePathInvalid(basePath, {
-                  definition,
-                  locations: [{ node: definition, key: 'basePath', type: 'value' }],
-                  reference
-                })
+                const swaggerBasePathInvalid = E.swaggerBasePathInvalid(data, { key: 'basePath', type: 'value' }, basePath)
                 exception.message(swaggerBasePathInvalid)
               }
               if (rxPathTemplating.test(basePath)) {
-                const swaggerBasePathTemplating = E.swaggerBasePathTemplating(basePath, {
-                  definition,
-                  locations: [{ node: definition, key: 'basePath', type: 'value' }],
-                  reference
-                })
+                const swaggerBasePathTemplating = E.swaggerBasePathTemplating(data, { key: 'basePath', type: 'value' }, basePath)
                 exception.message(swaggerBasePathTemplating)
               }
             }
@@ -233,11 +225,7 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
             if (built.consumes !== undefined) {
               built.consumes.forEach((consumes: string) => {
                 if (!rx.mediaType.test(consumes)) {
-                  const invalidMediaType = E.invalidMediaType(consumes, {
-                    definition,
-                    locations: [{ node: definition.consumes, key: consumes, type: 'value' }],
-                    reference
-                  })
+                  const invalidMediaType = E.invalidMediaType(data, { node: definition.consumes, key: consumes, type: 'value' }, consumes)
                   exception.message(invalidMediaType)
                 }
               })
@@ -248,28 +236,16 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
               const match = rxHostParts.exec(host)
               if (match !== undefined && match !== null) {
                 if (match[1] !== undefined) {
-                  const swaggerHostHasScheme = E.swaggerHostHasScheme(host, match[1], {
-                    definition,
-                    locations: [{ node: definition, key: 'host', type: 'value' }],
-                    reference
-                  })
+                  const swaggerHostHasScheme = E.swaggerHostHasScheme(data, { key: 'host', type: 'value' }, host, match[1])
                   exception.message(swaggerHostHasScheme)
                 }
                 if (match[3] !== undefined) {
-                  const swaggerHostHasSubPath = E.swaggerHostHasSubPath(host, match[3], {
-                    definition,
-                    locations: [{ node: definition, key: 'host', type: 'value' }],
-                    reference
-                  })
+                  const swaggerHostHasSubPath = E.swaggerHostHasSubPath(data, { key: 'host', type: 'value' }, host, match[3])
                   exception.message(swaggerHostHasSubPath)
                 }
               }
               if (rxPathTemplating.test(host)) {
-                const swaggerHostDoesNotSupportPathTemplating = E.swaggerHostDoesNotSupportPathTemplating(host, {
-                  definition,
-                  locations: [{ node: definition, key: 'host', type: 'value' }],
-                  reference
-                })
+                const swaggerHostDoesNotSupportPathTemplating = E.swaggerHostDoesNotSupportPathTemplating(data, { key: 'host', type: 'value' }, host)
                 exception.message(swaggerHostDoesNotSupportPathTemplating)
               }
             }
@@ -277,20 +253,16 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
             if (built.produces !== undefined) {
               built.produces.forEach((produces: string) => {
                 if (!rx.mediaType.test(produces)) {
-                  const invalidMediaType = E.invalidMediaType(produces, {
-                    definition,
-                    locations: [{ node: definition.consumes, key: produces, type: 'value' }],
-                    reference
-                  })
+                  const invalidMediaType = E.invalidMediaType(data, { node: definition.produces, key: produces, type: 'value' }, produces)
                   exception.message(invalidMediaType)
                 }
               })
             }
           }
         }
-      }
+      })
     }
-    return schemaSwagger
+    return swaggerSchema
   }
 
   static validate (definition: Definition): DefinitionException {

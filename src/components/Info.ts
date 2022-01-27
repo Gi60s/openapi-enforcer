@@ -28,9 +28,9 @@ export class Info extends OASComponent<Definition> {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#info-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
+  static get schema (): ComponentSchema<Definition, typeof Info> {
     if (infoSchema === undefined) {
-      infoSchema = {
+      infoSchema = new ComponentSchema({
         allowsSchemaExtensions: true,
         properties: [
           {
@@ -68,7 +68,7 @@ export class Info extends OASComponent<Definition> {
             schema: { type: 'string' }
           }
         ]
-      }
+      })
     }
     return infoSchema
   }

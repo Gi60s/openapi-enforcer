@@ -1,7 +1,7 @@
 import { Example } from '../../src/v3'
 import { expect } from 'chai'
 
-describe('Example component', () => {
+describe('Component: Example', () => {
   describe('build', () => {
     it('can build', () => {
       const component = new Example({})

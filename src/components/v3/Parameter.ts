@@ -1,4 +1,4 @@
-import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { DefinitionException } from '../../DefinitionException'
 import { OASComponent, componentValidate } from '../index'
 import { Example } from './Example'
@@ -11,6 +11,7 @@ import { parsePrimitive } from '../helpers/Parameter'
 import * as EC from '../../utils/error-codes'
 
 const rxLabel = /^\./
+let parameterSchema: ComponentSchema<Definition>
 
 export class Parameter extends OASComponent {
   extensions!: Record<string, any>
@@ -191,11 +192,14 @@ export class Parameter extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#parameter-object'
   }
 
-  static schemaGenerator (data: Data<Definition>): ComponentSchema<Definition> {
-    return Core.schemaGenerator({
-      Parameter,
-      Schema: Schema
-    }, data)
+  static get schema (): ComponentSchema<Definition> {
+    if (parameterSchema === undefined) {
+      parameterSchema = Core.schemaGenerator(3, {
+        Parameter,
+        Schema: Schema
+      }) as ComponentSchema<Definition>
+    }
+    return parameterSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

@@ -1,11 +1,13 @@
 import { componentValidate } from '../'
-import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { DefinitionException } from '../../DefinitionException'
 import { PathItem } from './PathItem'
 import * as Core from '../Paths'
 import { Paths2 as Definition } from '../helpers/definition-types'
 
-export class Paths extends Core.Paths {
+let pathsSchema: ComponentSchema<Definition>
+
+export class Paths extends Core.Paths<PathItem> {
   constructor (definition: Definition, version?: Version) {
     super(Paths, definition, version, arguments[2])
   }
@@ -14,8 +16,11 @@ export class Paths extends Core.Paths {
     '2.0': 'https://spec.openapis.org/oas/v2.0#paths-object'
   }
 
-  static schemaGenerator (data: Data): ComponentSchema<Definition> {
-    return Core.schemaGenerator(PathItem)
+  static get schema (): ComponentSchema<Definition> {
+    if (pathsSchema === undefined) {
+      pathsSchema = Core.schemaGenerator(PathItem)
+    }
+    return pathsSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

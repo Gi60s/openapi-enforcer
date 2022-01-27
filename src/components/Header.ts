@@ -1,5 +1,4 @@
-import { Component, ComponentSchema, Data, ValidatorData } from './helpers/builder-validator-types'
-import { noop } from '../utils/util'
+import { Component, ComponentSchema } from './helpers/builder-validator-types'
 import * as V from './helpers/common-validators'
 import * as PartialSchema from './helpers/PartialSchema'
 import { Header2 as Definition2, Header3 as Definition3 } from './helpers/definition-types'
@@ -9,24 +8,16 @@ interface ComponentsMap {
   Schema: Component
 }
 
-export function schemaGenerator (components: ComponentsMap, data: Data): ComponentSchema<Definition2 | Definition3> {
-  const { major } = data.root
-  const { definition } = data.context
-
+export function schemaGenerator (major: number, components: ComponentsMap): ComponentSchema<Definition2 | Definition3> {
   // copy schema from partial schema generator
   const schema: ComponentSchema = major === 2
-    ? PartialSchema.schemaGenerator(components.Header, data)
-    : { allowsSchemaExtensions: true, properties: [] }
+    ? PartialSchema.schemaGenerator(components.Header)
+    : new ComponentSchema({ allowsSchemaExtensions: true, properties: [] })
 
-  const partialValidator = {
-    after: schema.validator?.after ?? noop
-  }
-  if (schema.validator === undefined) schema.validator = {}
-  schema.validator.after = () => {
+  schema.hook('after-validate', (data) => {
     V.defaultRequiredConflict(data)
     V.exampleExamplesConflict(data)
-    partialValidator.after(data as ValidatorData)
-  }
+  })
 
   // the "type" is required for headers v2
   const typePropertyDefinition = schema.properties?.find(v => v.name === 'type')
@@ -37,7 +28,9 @@ export function schemaGenerator (components: ComponentsMap, data: Data): Compone
     {
       name: 'collectionFormat',
       versions: ['2.x'],
-      notAllowed: definition.type === 'array' ? undefined : 'ValidatorData type must be an array.',
+      notAllowed ({ cache }) {
+        return cache.isArray === true ? undefined : 'Property "type" must equal "array" to use "collectionFormat".'
+      },
       schema: {
         type: 'string',
         enum: ['csv', 'ssv', 'tsv', 'pipes'],

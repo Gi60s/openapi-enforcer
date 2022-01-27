@@ -4,8 +4,9 @@ import { OASComponent, componentValidate } from '../index'
 import * as E from '../../DefinitionException/methods'
 import { Server } from './Server'
 import { Link3 as Definition } from '../helpers/definition-types'
+import { LocationInput } from '../../DefinitionException/types'
 
-let linkSchema: ComponentSchema<Definition>
+let schemaLink: ComponentSchema<Definition>
 
 export class Link extends OASComponent {
   extensions!: Record<string, any>
@@ -27,24 +28,20 @@ export class Link extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#link-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
-    if (linkSchema === undefined) {
-      linkSchema = {
+  static get schema (): ComponentSchema<Definition> {
+    if (schemaLink === undefined) {
+      schemaLink = new ComponentSchema<Definition>({
         allowsSchemaExtensions: true,
         validator: {
           after (data) {
             const { built, definition, exception } = data.context
-            const { reference } = data.component
 
             if (built.operationRef !== undefined && built.operationId !== undefined) {
-              const linkOperationConflict = E.linkOperationConflict({
-                definition,
-                locations: [
-                  { node: definition, key: 'operationRef', type: 'key' },
-                  { node: definition, key: 'operationId', type: 'key' }
-                ],
-                reference
-              })
+              const locations: LocationInput[] = [
+                { node: definition, key: 'operationRef', type: 'key' },
+                { node: definition, key: 'operationId', type: 'key' }
+              ]
+              const linkOperationConflict = E.linkOperationConflict(data, locations)
               exception.message(linkOperationConflict)
             }
           }
@@ -97,9 +94,9 @@ export class Link extends OASComponent {
             }
           }
         ]
-      }
+      })
     }
-    return linkSchema
+    return schemaLink
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

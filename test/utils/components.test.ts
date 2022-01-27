@@ -1,69 +1,104 @@
-import { ComponentSchema, OASComponent, SchemaObject, Version, ExtendedComponent } from '../../src/components'
+import { Schema, OASComponent, componentValidate } from '../../src/components'
+import {
+  Component,
+  ComponentSchema,
+  ComponentSchemaConfig,
+  Version
+} from '../../src/components/helpers/builder-validator-types'
 import { expect } from 'chai'
-import { copy } from '../../src/utils/util'
+import { DefinitionException } from '../../src'
 
-const basicSchemaObject: ComponentSchema = {
-  allowsSchemaExtensions: true,
-  properties: [
-    { name: 'any', schema: { type: 'any' } },
-    {
-      name: 'array',
-      schema: {
-        type: 'array',
-        items: {
+function getBasicSchemaConfig (): ComponentSchemaConfig {
+  return {
+    allowsSchemaExtensions: true,
+    properties: [
+      {
+        name: 'any',
+        schema: { type: 'any' }
+      },
+      {
+        name: 'array',
+        schema: {
+          type: 'array',
+          items: {
+            type: 'object',
+            allowsSchemaExtensions: false,
+            properties: [
+              {
+                name: 'x',
+                schema: { type: 'number' }
+              },
+              {
+                name: 'y',
+                schema: { type: 'number' }
+              }
+            ]
+          }
+        }
+      },
+      {
+        name: 'boolean',
+        schema: {
+          type: 'boolean',
+          default: true
+        }
+      },
+      {
+        name: 'number',
+        schema: { type: 'number' }
+      },
+      {
+        name: 'object',
+        schema: {
           type: 'object',
           allowsSchemaExtensions: false,
           properties: [
-            { name: 'x', schema: { type: 'number' } },
-            { name: 'y', schema: { type: 'number' } }
+            {
+              name: 'x',
+              schema: { type: 'number' }
+            },
+            {
+              name: 'y',
+              schema: { type: 'number' }
+            }
           ]
         }
-      }
-    },
-    { name: 'boolean', schema: { type: 'boolean', default: true } },
-    { name: 'number', schema: { type: 'number' } },
-    {
-      name: 'object',
-      schema: {
-        type: 'object',
-        allowsSchemaExtensions: false,
-        properties: [
-          { name: 'x', schema: { type: 'number' } },
-          { name: 'y', schema: { type: 'number' } }
-        ]
-      }
-    },
-    {
-      name: 'oneOf',
-      schema: {
-        type: 'oneOf',
-        oneOf: [
-          {
-            condition: (data) => typeof data.context.definition === 'boolean',
-            schema: { type: 'boolean' }
-          },
-          {
-            condition: (data) => typeof data.context.definition === 'string',
-            schema: { type: 'string' }
-          }
-        ],
-        error: () => {
-          return {
-            alternateLevels: [],
-            code: '',
-            definition: '',
-            id: '',
-            level: 'error',
-            locations: [],
-            message: 'No conditions met',
-            metadata: {},
-            reference: ''
+      },
+      {
+        name: 'oneOf',
+        schema: {
+          type: 'oneOf',
+          oneOf: [
+            {
+              condition: (data) => typeof data.context.definition === 'boolean',
+              schema: { type: 'boolean' }
+            },
+            {
+              condition: (data) => typeof data.context.definition === 'string',
+              schema: { type: 'string' }
+            }
+          ],
+          error: () => {
+            return {
+              alternateLevels: [],
+              code: '',
+              definition: '',
+              id: '',
+              level: 'error',
+              locations: [],
+              message: 'No conditions met',
+              metadata: {},
+              reference: ''
+            }
           }
         }
+      },
+      {
+        name: 'string',
+        schema: { type: 'string' }
       }
-    },
-    { name: 'string', schema: { type: 'string' } }
-  ]
+    ]
+  }
 }
 
 interface BasicDefinition {
@@ -80,6 +115,7 @@ interface BasicDefinition {
   string?: string
 }
 
+let basicSchema: ComponentSchema
 class Basic extends OASComponent {
   extensions!: Record<string, any>
   any?: any
@@ -93,8 +129,11 @@ class Basic extends OASComponent {
     super(Basic, definition, version, arguments[2])
   }
 
-  static schemaGenerator (): ComponentSchema<BasicDefinition> {
-    return copy(basicSchemaObject)
+  static get schema (): ComponentSchema {
+    if (basicSchema === undefined) {
+      basicSchema = new ComponentSchema(getBasicSchemaConfig())
+    }
+    return basicSchema
   }
 
   static spec = {
@@ -104,12 +143,17 @@ class Basic extends OASComponent {
     '3.0.2': 'Spec URL 3.0.2',
     '3.0.3': 'Spec URL 3.0.3'
   }
+
+  static validate (definition: any, version?: Version): DefinitionException {
+    return componentValidate(this, definition, version, arguments[2])
+  }
 }
 
 interface HasChildComponentDefinition extends BasicDefinition {
   component?: BasicDefinition
 }
 
+let hasChildSchema: ComponentSchema
 class HasChildComponent extends OASComponent {
   any?: any
   array?: Array<{ x?: number, y?: number }>
@@ -119,21 +163,24 @@ class HasChildComponent extends OASComponent {
   object?: { x?: number, y?: number }
   string?: string
 
-  constructor (definition: HasChildComponentDefinition, version?: Version) {
+  constructor (definition: HasChildComponentDefinition, version: Version = '2.0') {
     super(HasChildComponent, definition, version, arguments[2])
   }
 
-  static schemaGenerator (): ComponentSchema {
-    const schema = copy<ComponentSchema>(basicSchemaObject)
-    schema.properties?.push({
-      name: 'component',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Basic
-      }
-    })
-    return schema
+  static get schema (): ComponentSchema {
+    if (hasChildSchema === undefined) {
+      const config = getBasicSchemaConfig()
+      config.properties?.push({
+        name: 'component',
+        schema: {
+          type: 'component',
+          allowsRef: false,
+          component: Basic
+        }
+      })
+      hasChildSchema = new ComponentSchema(config)
+    }
+    return hasChildSchema
   }
 
   static spec = {
@@ -143,6 +190,10 @@ class HasChildComponent extends OASComponent {
     '3.0.2': 'Spec URL...',
     '3.0.3': 'Spec URL...'
   }
+
+  static validate (definition: any, version?: Version): DefinitionException {
+    return componentValidate(this, definition, version, arguments[2])
+  }
 }
 
 interface LoopComponentDefinition extends BasicDefinition {
@@ -150,6 +201,7 @@ interface LoopComponentDefinition extends BasicDefinition {
   object?: { x?: number, y?: number, z?: object }
 }
 
+let loopSchema: ComponentSchema
 class LoopComponent extends OASComponent {
   any?: any
   array?: Array<{ x?: number, y?: number }>
@@ -159,26 +211,34 @@ class LoopComponent extends OASComponent {
   object?: { x?: number, y?: number, z?: object }
   string?: string
 
-  constructor (definition: LoopComponentDefinition, version?: Version) {
+  constructor (definition: LoopComponentDefinition, version: Version = '2.0') {
     super(LoopComponent, definition, version, arguments[2])
   }
 
-  static schemaGenerator (): ComponentSchema {
-    const schema = copy<ComponentSchema>(basicSchemaObject)
-    const objectProperty = typeof schema === 'object' && schema !== null ? schema.properties?.find(p => p.name === 'object') : undefined
-    if (objectProperty !== undefined) {
-      // @ts-expect-error
-      objectProperty.schema.properties.push({ name: 'z', schema: objectProperty.schema })
-    }
-    schema.properties?.push({
-      name: 'component',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: LoopComponent
+  static get schema (): ComponentSchema {
+    if (loopSchema === undefined) {
+      const config = getBasicSchemaConfig()
+
+      const objectProperty = config.properties?.find(p => p.name === 'object')
+      if (objectProperty !== undefined) {
+        // @ts-expect-error
+        objectProperty.schema.properties.push({
+          name: 'z',
+          schema: objectProperty.schema
+        })
       }
-    })
-    return schema
+
+      config.properties?.push({
+        name: 'component',
+        schema: {
+          type: 'component',
+          allowsRef: false,
+          component: LoopComponent
+        }
+      })
+      loopSchema = new ComponentSchema(config)
+    }
+    return loopSchema
   }
 
   static spec = {
@@ -187,6 +247,10 @@ class LoopComponent extends OASComponent {
     '3.0.1': 'Spec URL...',
     '3.0.2': 'Spec URL...',
     '3.0.3': 'Spec URL...'
+  }
+
+  static validate (definition: any, version?: Version): DefinitionException {
+    return componentValidate(this, definition, version, arguments[2])
   }
 }
 
@@ -441,8 +505,8 @@ describe('Generic component tests', () => {
           '3.0.0': ''
         }
 
-        static schemaGenerator (): ComponentSchema<any> {
-          return {
+        static get schema (): ComponentSchema {
+          return new ComponentSchema({
             allowsSchemaExtensions: false,
             properties: [
               {
@@ -453,7 +517,11 @@ describe('Generic component tests', () => {
                 }
               }
             ]
-          }
+          })
+        }
+
+        static validate (definition: any, version?: Version): DefinitionException {
+          return componentValidate(this, definition, version, arguments[2])
         }
       }
 
@@ -470,18 +538,23 @@ describe('Generic component tests', () => {
   })
 })
 
-function TestComponent (schema: ComponentSchema): ExtendedComponent {
+function TestComponent (config: ComponentSchemaConfig): Component {
+  const schema: ComponentSchema = new ComponentSchema(config)
   return class Test extends OASComponent {
     constructor (definition: any, version?: Version) {
       super(Test, definition, version, arguments[2])
     }
 
-    static schemaGenerator (): ComponentSchema {
+    static get schema (): ComponentSchema {
       return schema
     }
 
     static spec = {
       '3.0.0': ''
+    }
+
+    static validate (definition: any, version?: Version): DefinitionException {
+      return componentValidate(this, definition, version, arguments[2])
     }
   }
 }

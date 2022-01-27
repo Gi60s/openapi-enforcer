@@ -8,6 +8,8 @@ import { Swagger } from './Swagger'
 import * as Core from '../Response'
 import { Response2 as Definition } from '../helpers/definition-types'
 
+let responseSchema: ComponentSchema<Definition>
+
 export class Response extends Core.Response {
   examples?: Record<string, any>
   headers?: Record<string, Header>
@@ -21,15 +23,18 @@ export class Response extends Core.Response {
     '2.0': 'https://spec.openapis.org/oas/v2.0#response-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
-    return Core.schemaGenerator({
-      Link: undefined,
-      Header,
-      MediaType: undefined,
-      Operation,
-      Schema: Schema,
-      Swagger: Swagger
-    })
+  static get schema (): ComponentSchema<Definition> {
+    if (responseSchema === undefined) {
+      responseSchema = Core.schemaGenerator({
+        Link: undefined,
+        Header,
+        MediaType: undefined,
+        Operation,
+        Schema: Schema,
+        Swagger: Swagger
+      })
+    }
+    return responseSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

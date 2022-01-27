@@ -5,11 +5,12 @@ import * as Core from '../Operation'
 import { Parameter } from './Parameter'
 import { Operation2 as Definition } from '../helpers/definition-types'
 import { Responses } from '../v3/Responses'
-import { noop } from '../../utils/util'
 import { Swagger } from './Swagger'
 import { Result } from '../../utils/Result'
 import * as EC from '../../utils/error-codes'
 import { MediaTypeParser } from '../../utils/MediaTypeParser'
+
+let operationSchema: ComponentSchema<Definition>
 
 export class Operation extends Core.Operation {
   enforcer!: EnforcerData<Operation> & Core.EnforcerOperationData2
@@ -71,31 +72,28 @@ export class Operation extends Core.Operation {
     '2.0': 'https://spec.openapis.org/oas/v2.0#operation-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
-    const schema = Core.schemaGenerator({
-      Parameter: Parameter,
-      Responses: Responses
-    })
+  static get schema (): ComponentSchema<Definition> {
+    if (operationSchema === undefined) {
+      operationSchema = Core.schemaGenerator({
+        Parameter: Parameter,
+        Responses: Responses
+      }) as ComponentSchema<Definition>
 
-    if (schema.builder === undefined) schema.builder = {}
-    const afterBuilt = schema.builder.after ?? noop
-    schema.builder.after = (data: BuilderData, enforcer) => {
-      afterBuilt(data, enforcer)
+      operationSchema.hook('after-build', (data: BuilderData) => {
+        const built = data.context.built as unknown as Operation
+        data.root.lastly.push(() => {
+          const swagger: any = built.enforcer.findAncestor(Swagger) ?? {}
+          built.requestContentTypes = (swagger?.consumes ?? []).concat(built.consumes ?? []).map((mediaType: string) => new MediaTypeParser(mediaType))
 
-      const built = data.context.built as unknown as Operation
-      data.root.lastly.push(() => {
-        const swagger: any = built.enforcer.findAncestor(Swagger) ?? {}
-        built.requestContentTypes = (swagger?.consumes ?? []).concat(built.consumes ?? []).map((mediaType: string) => new MediaTypeParser(mediaType))
-
-        built.responseContentTypes = {}
-        const produces: string[] = (swagger?.produces ?? []).concat(built.produces ?? [])
-        Object.keys(built.responses).forEach(code => {
-          built.responseContentTypes[code] = produces.map(mediaType => new MediaTypeParser(mediaType))
+          built.responseContentTypes = {}
+          const produces: string[] = (swagger?.produces ?? []).concat(built.produces ?? [])
+          Object.keys(built.responses).forEach(code => {
+            built.responseContentTypes[code] = produces.map(mediaType => new MediaTypeParser(mediaType))
+          })
         })
       })
     }
-
-    return schema
+    return operationSchema
   }
 
   static validate (definition: Definition, version?: Version, data?: ValidatorData): DefinitionException {

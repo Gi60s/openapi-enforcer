@@ -1,6 +1,6 @@
-import { ValidatorData, ExtendedComponent } from '../index'
+import { ValidatorData, Component } from './builder-validator-types'
 
-export function getAncestorComponent (data: ValidatorData, component: ExtendedComponent): ValidatorData | undefined {
+export function getAncestorComponent (data: ValidatorData, component: Component): ValidatorData | undefined {
   let { chain } = data.component.data.context
   while (true) {
     const parent = chain[0]

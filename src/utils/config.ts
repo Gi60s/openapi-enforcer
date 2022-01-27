@@ -1,4 +1,4 @@
-import { Version } from '../components'
+import { Version } from '../components/helpers/builder-validator-types'
 import { Level } from '../DefinitionException/types'
 
 export type CodeLevels = Record<string, Level>
@@ -11,11 +11,10 @@ export interface Configuration {
 export interface ExceptionConfiguration {
   // none - show only message
   // code - ex: Field is required. [codeX]
-  // id - ex: Field is required. [FIELD_REQUIRED]
   // footnote - ex: Field is required [2]
   // locations - ex: Field is required \n my-file.js:20:7 (locations on following lines)
   // detailed - shows code, id, locations, breadcrumbs
-  details: 'none' | 'all' | 'breadcrumbs' | 'code' | 'footnote' | 'id' | 'locations'
+  details: 'none' | 'all' | 'breadcrumbs' | 'code' | 'footnote' | 'locations'
   levels?: CodeLevels
   message: 'text' | 'data' | 'json' // if "json" then details and locations settings are ignored
 }

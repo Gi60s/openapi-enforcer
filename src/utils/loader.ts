@@ -135,14 +135,8 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
       }
 
       if (n === undefined) {
-        const message = E.refNotResolved(ref, path, {
-          definition: parent[key],
-          locations: [{
-            node: parent,
-            key,
-            type: 'value'
-          }]
-        })
+        // @ts-expect-error - we send in a partial data object
+        const message = E.refNotResolved({ component: { definition: node } }, { node: parent, key, type: 'value' }, ref, path)
         data.exception.message(message)
       } else if (parent === null) {
         // no parent means that the root node had the $ref
@@ -309,10 +303,7 @@ async function runLoaders (path: string, data: LoaderMetadata): Promise<any> {
     }
   }
 
-  data.exception?.message(E.loaderNotAvailable(path, {
-    definition: undefined,
-    locations: []
-  }))
+  data.exception?.message(E.loaderNotAvailable(path))
 }
 
 function processJsonAst (data: ValueNode): any {
@@ -448,7 +439,7 @@ define(async function (path, data) {
     const res = await adapter.request(path)
     const contentType = res.headers['content-type']
     if (res.status < 200 || res.status >= 300) {
-      data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected response code: ' + String(res.status), { definition: undefined, locations: [] }))
+      data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected response code: ' + String(res.status)))
       return { loaded: false }
     } else {
       const result: LoaderMatch = {
@@ -463,7 +454,7 @@ define(async function (path, data) {
       return result
     }
   } catch (err: any) {
-    data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected error: ' + (err.toString() as string), { definition: undefined, locations: [] }))
+    data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected error: ' + (err.toString() as string)))
     return { loaded: false }
   }
 })
@@ -492,7 +483,7 @@ define(async function (path, data) {
         if (err.code === 'ENOENT') {
           resolve({ loaded: false })
         } else {
-          data?.exception?.message(E.loaderFailedToLoadResource(path, 'File could not load' + (err.code !== undefined ? ': ' + String(err.code) : ''), { definition: undefined, locations: [] }))
+          data?.exception?.message(E.loaderFailedToLoadResource(path, 'File could not load' + (err.code !== undefined ? ': ' + String(err.code) : '')))
           resolve({ loaded: false })
         }
       }

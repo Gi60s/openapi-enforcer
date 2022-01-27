@@ -2,9 +2,10 @@ import { OASComponent } from './'
 import { Component, ComponentSchema } from './helpers/builder-validator-types'
 import * as E from '../DefinitionException/methods'
 import { PathItem } from './PathItem'
+import { LocationInput } from '../DefinitionException/types'
 
 export function schemaGenerator<Definition> (PathItemComponent: Component): ComponentSchema<Definition> {
-  return {
+  return new ComponentSchema<Definition>({
     allowsSchemaExtensions: true,
     validator: {
       after (data) {
@@ -20,10 +21,7 @@ export function schemaGenerator<Definition> (PathItemComponent: Component): Comp
 
         // no paths defined
         if (paths.length === 0) {
-          const noPathsDefined = E.noPathsDefined({
-            definition,
-            locations: [{ node: definition }]
-          })
+          const noPathsDefined = E.noPathsDefined(data, { node: definition })
           exception.message(noPathsDefined)
         }
 
@@ -40,16 +38,14 @@ export function schemaGenerator<Definition> (PathItemComponent: Component): Comp
 
         // inconsistent path endings
         if (includesTrailingSlashes.length > 0 && omitsTrainingSlashes.length > 0) {
-          const pathEndingsInconsistent = E.pathEndingsInconsistent(includesTrailingSlashes, omitsTrainingSlashes, {
-            definition,
-            locations: paths.map(key => {
-              return {
-                node: definition,
-                key,
-                type: 'key'
-              }
-            })
+          const locations: LocationInput[] = paths.map(key => {
+            return {
+              node: definition,
+              key,
+              type: 'key'
+            }
           })
+          const pathEndingsInconsistent = E.pathEndingsInconsistent(data, locations, includesTrailingSlashes, omitsTrainingSlashes)
           exception.message(pathEndingsInconsistent)
         }
 
@@ -61,19 +57,15 @@ export function schemaGenerator<Definition> (PathItemComponent: Component): Comp
 
             // if there is an operationId that belongs to more than one operation then we have a problem
             if (operationDataArray.length > 1) {
-              const { reference } = operationDataArray[0].component
-              E.operationIdMustBeUnique(operationId, operationDataArray, {
-                definition, // paths object definition
-                locations: operationDataArray.map(operationData => {
-                  const { definition: node } = operationData.context
-                  return {
-                    node,
-                    key: 'operationId',
-                    type: 'value'
-                  }
-                }),
-                reference
+              const locations: LocationInput[] = operationDataArray.map(operationData => {
+                const { definition: node } = operationData.context
+                return {
+                  node,
+                  key: 'operationId',
+                  type: 'value'
+                }
               })
+              E.operationIdMustBeUnique(data, locations, operationId, operationDataArray)
             }
           })
         })
@@ -87,13 +79,13 @@ export function schemaGenerator<Definition> (PathItemComponent: Component): Comp
         component: PathItemComponent
       }
     }
-  }
+  })
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export abstract class Paths extends OASComponent {
+export abstract class Paths<Operation> extends OASComponent {
   extensions!: Record<string, any>
   path!: {
-    [path: string]: PathItem
+    [path: string]: PathItem<Operation>
   }
 }

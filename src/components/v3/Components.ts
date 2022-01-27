@@ -37,9 +37,9 @@ export class Components extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#components-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
+  static get schema (): ComponentSchema<Definition> {
     if (schemaComponent === undefined) {
-      schemaComponent = {
+      schemaComponent = new ComponentSchema<Definition>({
         allowsSchemaExtensions: true,
         properties: [
           {
@@ -177,7 +177,7 @@ export class Components extends OASComponent {
             }
           }
         }
-      }
+      })
     }
     return schemaComponent
   }

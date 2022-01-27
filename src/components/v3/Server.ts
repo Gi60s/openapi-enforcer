@@ -4,7 +4,7 @@ import { OASComponent, componentValidate } from '../index'
 import { ServerVariable } from './ServerVariable'
 import { Server3 as Definition } from '../helpers/definition-types'
 
-let schemaServer: ComponentSchema<Definition>
+let serverSchema: ComponentSchema<Definition>
 
 export class Server extends OASComponent {
   extensions!: Record<string, any>
@@ -23,9 +23,9 @@ export class Server extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-object'
   }
 
-  static schemaGenerator (): ComponentSchema<Definition> {
-    if (schemaServer === undefined) {
-      schemaServer = {
+  static get schema (): ComponentSchema<Definition> {
+    if (serverSchema === undefined) {
+      serverSchema = new ComponentSchema<Definition>({
         allowsSchemaExtensions: true,
         properties: [
           {
@@ -56,9 +56,9 @@ export class Server extends OASComponent {
             }
           }
         ]
-      }
+      })
     }
-    return schemaServer
+    return serverSchema
   }
 
   static validate (definition: Definition, version?: Version): DefinitionException {

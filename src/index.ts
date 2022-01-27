@@ -39,10 +39,6 @@ export namespace v2 {
   export const Paths = _2.Paths
 
   export type ReferenceDefinition = _2.ReferenceDefinition
-  export type Dereferenced = _2.Dereferenced
-  export type Referenced = _2.Referenced
-  export type ReferencedUnknown = _2.ReferencedUnknown
-  export const Reference = _2.Reference
 
   export type ResponseDefinition = _2.ResponseDefinition
   export const Response = _2.Response
@@ -130,10 +126,6 @@ export namespace v3 {
   export const Paths = _3.Paths
 
   export type ReferenceDefinition = _3.ReferenceDefinition
-  export type Dereferenced = _3.Dereferenced
-  export type Referenced = _3.Referenced
-  export type ReferencedUnknown = _3.ReferencedUnknown
-  export const Reference = _3.Reference
 
   export type RequestBodyDefinition = _3.RequestBodyDefinition
   export const RequestBody = _3.RequestBody

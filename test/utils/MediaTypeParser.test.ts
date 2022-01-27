@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { MediaTypeParser } from '../../src/utils/MediaTypeParser'
 
-describe.only('MediaTypeParser', () => {
+describe('MediaTypeParser', () => {
   describe('parse', () => {
     it('can parse application/javascript', () => {
       const m = new MediaTypeParser('application/javascript')

@@ -1,6 +1,6 @@
 import { getDataTypeDefinition, getNoopTypeDefinition } from './schema-data-types'
-import { OASComponent, SchemaProperty, EnforcerData } from '../index'
-import { BuilderData, ComponentSchema, Data, ValidatorData } from './builder-validator-types'
+import { OASComponent, ComputeFunction, EnforcerData } from '../index'
+import { BuilderData, ComponentSchema, Component, ValidatorData } from './builder-validator-types'
 import * as E from '../../DefinitionException/methods'
 import { determineTypes, MapStore, PopulateOptions, Schema } from './schema-functions'
 import { Result } from '../../utils/Result'
@@ -135,44 +135,62 @@ export abstract class PartialSchema<Items> extends OASComponent {
   }
 }
 
-export function schemaGenerator<Definition> (ReferenceComponentClass: any, data: Data): ComponentSchema<Definition> {
-  const { context, root } = data
-  const { definition } = context
-  const type: string = definition.type
-  const format: string | undefined = definition.format
-  const def = definition
-  const dataType = getDataTypeDefinition(type, format) ?? getNoopTypeDefinition()
-
-  const isArray = type === 'array'
-  const isNumeric = dataType.toNumber !== null
-  const isString = type === 'string'
-
-  const typeProperty: SchemaProperty = {
-    name: 'type',
-    schema: {
-      type: 'string',
-      enum: ['array', 'boolean', 'integer', 'number', 'string']
-    }
+export function schemaGenerator<Definition, Built extends Component> (ReferenceComponentClass: any): ComponentSchema<Definition, Built> {
+  const notAllowedUnlessArray: ComputeFunction<string | undefined> = function (this: { name: string }, { cache }): string | undefined {
+    return cache.isArray === true ? undefined : 'Property "type" must equal "array" to use property "' + this.name + '".'
   }
 
-  // attempt to determine default type based on other properties in the definition
-  // if schema has allOf, anyOf, not, or oneOf then there is no default type
-  if (!('allOf' in def || 'anyOf' in def || 'not' in def || 'oneOf' in def)) {
-    const { type: defaultType } = determineTypes(def, new Map()).get(false)
-    if (defaultType !== '') typeProperty.schema.default = defaultType
+  const notAllowedUnlessNumeric: ComputeFunction<string | undefined> = function (this: { name: string }, { cache }): string | undefined {
+    return cache.isNumeric === true ? undefined : 'Property "type" must be numeric to use property "' + this.name + '".'
   }
 
-  return {
+  const notAllowedUnlessString: ComputeFunction<string | undefined> = function (this: { name: string }, { cache }): string | undefined {
+    return cache.isString === true ? undefined : 'Property "type" must equal "string" to use property "' + this.name + '".'
+  }
+
+  return new ComponentSchema<Definition, Built>({
     allowsSchemaExtensions: true,
     properties: [
-      typeProperty,
       {
-        name: 'format',
-        notAllowed: type === 'array' || type === 'object' ? 'Format cannot be specified for type ' + type + '.' : undefined,
+        name: 'type',
         schema: {
-          type: 'string'
+          // @ts-expect-error - not sure why this is producing an error
+          type: 'string',
+          // @ts-expect-error - not sure why this is producing an error
+          enum: ['array', 'boolean', 'integer', 'number', 'string'],
+          default ({ definition }) {
+            if (!('allOf' in definition || 'anyOf' in definition || 'not' in definition || 'oneOf' in definition)) {
+              const { type: defaultType } = determineTypes(definition, new Map()).get(false)
+              return defaultType !== '' ? defaultType : undefined
+            }
+          }
+        },
+        after (cache, type) {
+          cache.type = type
+          cache.isArray = type === 'array'
+          cache.isString = type === 'string'
         }
       },
+      {
+        name: 'format',
+        notAllowed ({ cache }) {
+          const type = cache.type
+          if (type === undefined) return 'Format cannot be specified unless a type is specified.'
+          return type === 'array' || type === 'object' ? 'Format cannot be specified for type ' + (type as string) + '.' : undefined
+        },
+        schema: {
+          type: 'string'
+        },
+        after (cache, format) {
+          const type = cache.type
+          const dataType = type !== undefined
+            ? getDataTypeDefinition(type, format) ?? getNoopTypeDefinition()
+            : { toNumber: null }
+          cache.format = format
+          cache.isNumeric = dataType.toNumber !== null
+        }
+      },
+
       {
         name: 'enum',
         schema: {
@@ -184,7 +202,7 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
       },
       {
         name: 'exclusiveMaximum',
-        notAllowed: isNumeric ? undefined : 'ValidatorData type must be numeric.',
+        notAllowed: notAllowedUnlessNumeric,
         schema: {
           type: 'boolean',
           default: false
@@ -192,7 +210,7 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
       },
       {
         name: 'exclusiveMinimum',
-        notAllowed: isNumeric ? undefined : 'ValidatorData type must be numeric.',
+        notAllowed: notAllowedUnlessNumeric,
         schema: {
           type: 'boolean',
           default: false
@@ -200,8 +218,10 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
       },
       {
         name: 'items',
-        notAllowed: isArray ? undefined : 'ValidatorData type must be an array.',
-        required: isArray,
+        notAllowed: notAllowedUnlessArray,
+        required ({ cache }) {
+          return cache.isArray as boolean
+        },
         schema: {
           type: 'component',
           allowsRef: true,
@@ -210,56 +230,56 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
       },
       {
         name: 'maximum',
-        notAllowed: isNumeric ? undefined : 'ValidatorData type must be numeric.',
+        notAllowed: notAllowedUnlessNumeric,
         schema: {
           type: 'any' // The type is "any" because a string can be numeric given the proper format (ex: date, date-time)
         }
       },
       {
         name: 'maxItems',
-        notAllowed: isArray ? undefined : 'ValidatorData type must be an array.',
+        notAllowed: notAllowedUnlessArray,
         schema: {
           type: 'number'
         }
       },
       {
         name: 'maxLength',
-        notAllowed: isString ? undefined : 'ValidatorData type must be a string.',
+        notAllowed: notAllowedUnlessString,
         schema: {
           type: 'number'
         }
       },
       {
         name: 'minimum',
-        notAllowed: isNumeric ? undefined : 'ValidatorData type must be numeric.',
+        notAllowed: notAllowedUnlessNumeric,
         schema: {
           type: 'any' // The type is "any" because a string can be numeric given the proper format (ex: date, date-time)
         }
       },
       {
         name: 'minItems',
-        notAllowed: isArray ? undefined : 'ValidatorData type must be an array.',
+        notAllowed: notAllowedUnlessArray,
         schema: {
           type: 'number'
         }
       },
       {
         name: 'minLength',
-        notAllowed: isString ? undefined : 'ValidatorData type must be a string.',
+        notAllowed: notAllowedUnlessString,
         schema: {
           type: 'number'
         }
       },
       {
         name: 'multipleOf',
-        notAllowed: isNumeric ? undefined : 'ValidatorData type must be numeric.',
+        notAllowed: notAllowedUnlessNumeric,
         schema: {
           type: 'any' // The type is "any" because a string can be numeric for specific type format combinations
         }
       },
       {
         name: 'uniqueItems',
-        notAllowed: isArray ? undefined : 'ValidatorData type must be an array.',
+        notAllowed: notAllowedUnlessArray,
         schema: {
           type: 'boolean'
         }
@@ -273,7 +293,7 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
     ],
     builder: {
       after (data: BuilderData) {
-        root.lastly.push(() => {
+        data.root.lastly.push(() => {
           const { built } = data.context
 
           if (built.default !== undefined) {
@@ -296,9 +316,11 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
       after (data: ValidatorData) {
         const { root, context } = data
         const { built, exception } = context
+        const { cache, definition } = data.component
+
         if (built.type === 'array') {
           validateMaxMin(data, 'minItems', 'maxItems')
-        } else if (isNumeric) {
+        } else if (cache.isNumeric as boolean) {
           validateMaxMin(data, 'minimum', 'maximum')
         } else if (built.type === 'string') {
           validateMaxMin(data, 'minLength', 'maxLength')
@@ -311,10 +333,7 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
             if ('default' in built) {
               const error = schema.validate(built.default)
               if (error !== undefined) {
-                const defaultValueDoesNotMatchSchema = E.defaultValueDoesNotMatchSchema(built.default, {
-                  definition,
-                  locations: [{ node: definition, key: 'default', type: 'value' }]
-                })
+                const defaultValueDoesNotMatchSchema = E.defaultValueDoesNotMatchSchema(data, { node: definition, key: 'default', type: 'value' }, built.default)
                 exception.at('default').message(defaultValueDoesNotMatchSchema)
               }
             }
@@ -323,10 +342,7 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
               built.enum.forEach((item: any, i: number) => {
                 const error = schema.validate(item)
                 if (error !== undefined) {
-                  const enumNotMet = E.enumNotMet(built.enum, item, {
-                    definition,
-                    locations: [{ node: definition, key: 'default', type: 'value' }]
-                  })
+                  const enumNotMet = E.enumNotMet(data, { node: definition, key: 'default', type: 'value' }, built.enum, item)
                   exception.at('enum').at(i).message(enumNotMet)
                 }
               })
@@ -335,31 +351,28 @@ export function schemaGenerator<Definition> (ReferenceComponentClass: any, data:
         }
 
         if (built.format !== undefined) {
+          const type = built.type
           const format = built.format
           const dataType = getDataTypeDefinition(type, format)
           if (dataType === undefined || dataType.format !== format) {
-            const unknownTypeFormat = E.unknownTypeFormat(type, format, {
-              definition: format,
-              locations: [{ node: definition, key: 'format', type: 'value' }]
-            })
+            const unknownTypeFormat = E.unknownTypeFormat(data, { node: definition, key: 'format', type: 'value' }, type, format)
             exception.at('format').message(unknownTypeFormat)
           }
         }
       }
     }
-  }
+  })
 }
 
 export function validateMaxMin (data: ValidatorData, minKey: string, maxKey: string): void {
   const { built, definition, exception } = data.context
   if (minKey in built && maxKey in built && built[minKey] > built[maxKey]) {
-    const invalidMaxMin = E.invalidMaxMin(built[minKey], built[maxKey], minKey, maxKey, {
-      definition,
-      locations: [
+    const invalidMaxMin = E.invalidMaxMin(data,
+      [
         { node: definition, key: minKey, type: 'value' },
         { node: definition, key: maxKey, type: 'value' }
-      ]
-    })
+      ],
+      built[minKey], built[maxKey], minKey, maxKey)
     exception.message(invalidMaxMin)
   }
 }

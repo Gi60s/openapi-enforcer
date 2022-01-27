@@ -11,9 +11,9 @@ import {
   SecurityScheme
 } from '../../src/v3'
 import { expect } from 'chai'
-import { minimal } from '../../test-copy/helpers'
+import { minimal } from '../helpers'
 
-describe('Components component', () => {
+describe('Component: Components', () => {
   describe('build', () => {
     it('can build', function () {
       const components = new Components({})
@@ -145,7 +145,7 @@ describe('Components component', () => {
             Name: { type: 'foo' }
           }
         })
-        expect(error).to.match(/Value must be one of: "array", "boolean", "integer", "number", "object", "string"/)
+        expect(error).to.match(/Value must be one of: "array", "boolean", "integer", "number", "string", "object"/)
       })
 
       it('can accept a reference', function () {
@@ -220,7 +220,7 @@ describe('Components component', () => {
             MyParam: {}
           }
         })
-        expect(error).to.match(/Missing required properties: name, in/)
+        expect(error).to.match(/Missing required properties: "name", "in"/)
       })
 
       it('can accept a reference', function () {
@@ -244,7 +244,7 @@ describe('Components component', () => {
       it('can define valid examples', function () {
         const [error] = Components.validate({
           examples: {
-            Example1: minimal(Example)
+            Example1: minimal(Example, '3.x')
           }
         })
         expect(error).to.equal(undefined)
@@ -281,7 +281,7 @@ describe('Components component', () => {
       it('can define valid requestBodies', function () {
         const [error] = Components.validate({
           requestBodies: {
-            Body1: minimal(RequestBody)
+            Body1: minimal(RequestBody, '3.x')
           }
         })
         expect(error).to.equal(undefined)
@@ -318,7 +318,7 @@ describe('Components component', () => {
       it('can define valid headers', function () {
         const [error] = Components.validate({
           headers: {
-            Header1: minimal(Header)
+            Header1: minimal(Header, '3.x')
           }
         })
         expect(error).to.equal(undefined)
@@ -353,11 +353,12 @@ describe('Components component', () => {
       })
 
       it('can define valid securitySchemes', function () {
-        const [error] = Components.validate({
+        const definition = {
           securitySchemes: {
-            MyScheme: minimal(SecurityScheme)
+            MyScheme: minimal(SecurityScheme, '3.x')
           }
-        })
+        }
+        const [error] = Components.validate(definition)
         expect(error).to.equal(undefined)
       })
 
@@ -392,7 +393,7 @@ describe('Components component', () => {
       it('can define valid links', function () {
         const [error] = Components.validate({
           links: {
-            MyLink: minimal(Link)
+            MyLink: minimal(Link, '3.x')
           }
         })
         expect(error).to.equal(undefined)
@@ -429,7 +430,7 @@ describe('Components component', () => {
       it('can define valid callbacks', function () {
         const [error] = Components.validate({
           callbacks: {
-            MyCallback: minimal(Link)
+            MyCallback: minimal(Link, '3.x')
           }
         })
         expect(error).to.equal(undefined)
