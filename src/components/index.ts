@@ -696,8 +696,7 @@ function validate (data: ValidatorData): boolean {
 
     return mappable(component, data, {}, built => {
       const exception = component.validate(definition, version, data)
-      const success = !exception.hasError
-      return success
+      return !exception.hasError // success
     })
   } else if (schema.type === 'number') {
     const s = schema as unknown as SchemaNumber
@@ -811,21 +810,22 @@ function validateObjectProperties (context: any, data: ValidatorData): boolean {
     const propertySchema = typeof prop.schema === 'function' ? prop.schema(data.component) : prop.schema
     const child = childrenData[name] = createChildData(data, definition[name], name, propertySchema) as ValidatorData
     const notAllowed = typeof prop.notAllowed === 'function' ? prop.notAllowed(data.component) : prop.notAllowed
-    const allowed = notAllowed === undefined
     const versionMismatch = prop.versions !== undefined ? !versionMatch(version, prop.versions) : false
+    const allowed = notAllowed === undefined && !versionMismatch
     if (name in definition) {
       validatedProperties.push(name)
       if (versionMismatch) {
         if (!versionProperties.includes(name)) {
           notAllowedItems.push({
             name,
-            reason: 'Not part of OpenAPI specification version ' + version
+            reason: 'OpenAPI specification version ' + version + ' does not allow the "' + name + '" property' +
+              (prop.versions !== undefined ? ', but these versions do: ' + prop.versions.join(', ') : '') + '.'
           })
         }
       } else if (!allowed) {
         notAllowedItems.push({
           name,
-          reason: notAllowed
+          reason: notAllowed as string
         })
       } else {
         if (prop.before !== undefined) prop.before(cache, data)
