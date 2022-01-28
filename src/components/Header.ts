@@ -10,9 +10,12 @@ interface ComponentsMap {
 
 export function schemaGenerator (major: number, components: ComponentsMap): ComponentSchema<Definition2 | Definition3> {
   // copy schema from partial schema generator
-  const schema: ComponentSchema = major === 2
-    ? PartialSchema.schemaGenerator(components.Header)
-    : new ComponentSchema({ allowsSchemaExtensions: true, properties: [] })
+  const schema: ComponentSchema = PartialSchema.schemaGenerator(components.Header)
+
+  // all partial schema properties should be marked as version 2.x
+  schema.properties?.forEach(prop => {
+    prop.versions = ['2.x']
+  })
 
   schema.hook('after-validate', (data) => {
     V.defaultRequiredConflict(data)

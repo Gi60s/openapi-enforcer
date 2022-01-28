@@ -20,9 +20,13 @@ interface ComponentMap {
 }
 
 export function schemaGenerator (major: number, components: ComponentMap): ComponentSchema<Definition> {
-  const schema: ComponentSchema<Definition> = major === 2
-    ? PartialSchema.schemaGenerator(components.Parameter)
-    : new ComponentSchema({ allowsSchemaExtensions: false, properties: [] })
+  // copy schema from partial schema generator
+  const schema: ComponentSchema = PartialSchema.schemaGenerator(components.Parameter)
+
+  // all partial schema properties should be marked as version 2.x
+  schema.properties?.forEach(prop => {
+    prop.versions = ['2.x']
+  })
 
   // add additional properties
   schema.properties?.push(
