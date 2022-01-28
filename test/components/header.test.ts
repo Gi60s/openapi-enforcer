@@ -1,5 +1,5 @@
 import { Header as Header2, HeaderDefinition as HeaderDefinition2 } from '../../src/v2'
-// import { Header as Header3, HeaderDefinition as HeaderDefinition3 } from '../../src/v3'
+import { Header as Header3, HeaderDefinition as HeaderDefinition3 } from '../../src/v3'
 import { expect } from 'chai'
 
 describe('Component: Header', () => {
@@ -20,7 +20,7 @@ describe('Component: Header', () => {
       it('has required properties', function () {
         // @ts-expect-error
         const [error] = Header2.validate({})
-        expect(error).to.match(/Missing required property: type/)
+        expect(error).to.match(/Missing required property: "type"/)
       })
 
       it('allows extensions', () => {
@@ -191,6 +191,62 @@ describe('Component: Header', () => {
         it('value must match the schema', () => {
           const [error] = Header2.validate({ type: 'string', default: 1 })
           expect(error).to.match(/Default value .+ does not match its associated schema/)
+        })
+      })
+    })
+  })
+
+  describe.only('v3', () => {
+    describe('build', () => {
+      it('can build', () => {
+        const component = new Header3({ schema: { type: 'string' } })
+        expect(component).to.be.instanceof(Header3)
+      })
+
+      it('will default style to "simple"', () => {
+        const component = new Header3({})
+        expect(component.style).to.equal('simple')
+      })
+    })
+
+    describe('validate', () => {
+      it('has no required properties', function () {
+        const [error] = Header3.validate({})
+        expect(error).to.equal(undefined)
+      })
+
+      it('allows extensions', () => {
+        const [, warn] = Header3.validate({ 'x-foo': 'foo' })
+        expect(warn).to.equal(undefined)
+      })
+
+      it('cannot have invalid properties', function () {
+        const [error] = Header3.validate({
+          // @ts-expect-error
+          type: 'string',
+          foo: 'invalid'
+        })
+        expect(error).to.match(/Property "type" not allowed. OpenAPI specification version 3.0.3 does not allow the "type" property/)
+        expect(error).to.match(/Property "foo" not allowed. Property not part of the specification/)
+      })
+
+      describe('property: required', () => {
+        it('can be true', () => {
+          const [error] = Header3.validate({ required: true })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be false', () => {
+          const [error] = Header3.validate({ required: true })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be a boolean', () => {
+          const [error] = Header3.validate({
+            // @ts-expect-error
+            required: 'yes'
+          })
+          expect(error).to.match(/Expected a boolean/)
         })
       })
     })
