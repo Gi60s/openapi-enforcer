@@ -30,7 +30,7 @@ export function exampleExamplesConflict (data: ValidatorData): boolean {
       { key: 'example', type: 'key' },
       { key: 'examples', type: 'key' }
     ]
-    const exampleExamplesConflict = E.exampleExamplesConflict(data, locations)
+    const exampleExamplesConflict = E.propertiesMutuallyExclusive(data, locations, ['example', 'examples'])
     const { level } = exception.message(exampleExamplesConflict)
     if (level === 'error') success = false
   }
@@ -55,7 +55,7 @@ export function examplesMatchSchema (data: ValidatorData, schema: Schema | null)
     lastly.push(() => {
       const examples = built.examples ?? {}
       Object.keys(examples).forEach(key => {
-        success = success && exampleMatchesSchema(data, ['examples', key], built.example, schema)
+        success = success && exampleMatchesSchema(data, ['examples', key], built.examples[key].value, schema)
       })
     })
   }
@@ -63,14 +63,58 @@ export function examplesMatchSchema (data: ValidatorData, schema: Schema | null)
   return success
 }
 
+export function parameterSchemaContent (data: ValidatorData): boolean {
+  const { built, exception } = data.context
+  let success = true
+
+  // properties "schema" and "content" are mutually exclusive
+  if (built.schema !== undefined && built.content !== undefined) {
+    const locations: LocationInput[] = [
+      { key: 'schema', type: 'key' },
+      { key: 'content', type: 'key' }
+    ]
+    const exampleExamplesConflict = E.propertiesMutuallyExclusive(data, locations, ['content', 'schema'])
+    const { level } = exception.message(exampleExamplesConflict)
+    if (level === 'error') success = false
+  }
+
+  // must have either "schema" or "content" defined
+  if (built.schema === undefined && built.content === undefined) {
+    const schemaOrContentRequired = E.parameterSchemaContentRequired(data, { type: 'both' })
+    const { level } = exception.message(schemaOrContentRequired)
+    if (level === 'error') success = false
+  }
+
+  // check that exactly one media type is specified
+  if (built.content !== undefined) {
+    const types = Object.keys(built.content)
+    if (types.length !== 1) {
+      const locations: LocationInput[] = []
+      if (types.length === 0) {
+        locations.push({ key: 'content', type: 'value' })
+      } else {
+        const node = data.context.definition.content
+        types.forEach(key => {
+          locations.push({ node, key, type: 'key' })
+        })
+      }
+      const mediaTypeCount = E.parameterContentMediaTypeCount(data, locations, types)
+      const { level } = exception.message(mediaTypeCount)
+      if (level === 'error') success = false
+    }
+  }
+
+  return success
+}
+
 function exampleMatchesSchema (data: ValidatorData, keys: string[], example: any, schema: Schema | null): boolean {
-  const { chain, exception } = data.context
+  const { exception } = data.context
   let success = true
 
   // determine the node and key for location lookup
   const length = keys.length
   const key = keys[length - 1]
-  let node = chain[0]?.context.definition
+  let node = data.context.definition
   for (let i = 0; i < length - 1; i++) {
     node = node?.[keys[i]]
   }
