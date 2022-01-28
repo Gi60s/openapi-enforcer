@@ -73,6 +73,7 @@ export interface Header2 extends PartialSchema<Header2>{
 export interface Header3 {
   [key: `x-${string}`]: any
   'x-enforcer'?: EnforcerExtension
+  content?: Record<string, MediaType3>
   deprecated?: boolean // defaults to false
   description?: string
   example?: any
