@@ -17,7 +17,7 @@ and write tests ensuring that the validator does what we expect it to. Below is 
 - [X] Encoding
 - [X] Example
 - [x] ExternalDocumentation
-- [ ] Header
+- [x] Header
 - [ ] Info
 - [ ] Items
 - [ ] License

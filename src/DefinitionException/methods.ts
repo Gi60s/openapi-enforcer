@@ -119,15 +119,6 @@ export function enumNotMet (data: ValidatorData, location: LocationInput, accept
   })
 }
 
-export function exampleExamplesConflict (data: ValidatorData, locations: LocationInput[]): ExceptionMessageDataInput {
-  return getExceptionMessageData(data, locations, true, {
-    code: 'EXEXCO',
-    alternateLevels: [],
-    level: 'error',
-    message: 'Properties "example" and "examples" are mutually exclusive.'
-  })
-}
-
 export function exampleMediaTypeNotProduced (data: ValidatorData, location: LocationInput, mediaType: string, produces: string[]): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'EXMTNP',
@@ -155,15 +146,6 @@ export function exampleNotValid (data: ValidatorData, location: LocationInput, e
     level: 'warn',
     message: 'Example is not valid when compared against the schema.',
     metadata: { example, exception, schema }
-  })
-}
-
-export function exampleValueExternalConflict (data: ValidatorData, locations: LocationInput[]): ExceptionMessageDataInput {
-  return getExceptionMessageData(data, locations, true, {
-    code: 'EXVAEC',
-    alternateLevels: [],
-    level: 'error',
-    message: 'Cannot have both "externalValue" and "value" properties.'
   })
 }
 
@@ -433,6 +415,15 @@ export function noPathsDefined (data: ValidatorData, location: LocationInput): E
   })
 }
 
+export function notRecommended (data: ValidatorData, location: LocationInput, message: string): ExceptionMessageDataInput {
+  return getExceptionMessageData(data, [location], false, {
+    code: 'NOTREC',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'opinion',
+    message
+  })
+}
+
 export function operationMethodShouldNotHaveBody (data: ValidatorData, location: LocationInput, method: string): ExceptionMessageDataInput {
   const upperMethod = smart(method.toUpperCase())
   return getExceptionMessageData(data, [location], 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/' + method.toUpperCase(), {
@@ -468,6 +459,16 @@ export function parameterBodyFormDataConflict (data: ValidatorData, locations: L
   })
 }
 
+export function parameterContentMediaTypeCount (data: ValidatorData, locations: LocationInput[], mediaTypes: string[]): ExceptionMessageDataInput {
+  return getExceptionMessageData(data, locations, true, {
+    code: 'PACOMT',
+    alternateLevels: [],
+    level: 'error',
+    message: 'The "content" property must define exactly one media type. ' +
+      (mediaTypes.length === 0 ? ' No types were defined.' : 'Defined types: ' + smart(mediaTypes))
+  })
+}
+
 export function parameterNamespaceConflict (data: ValidatorData, locations: LocationInput[], name: string, at: string): ExceptionMessageDataInput {
   return getExceptionMessageData(data, locations, true, {
     code: 'PANACO',
@@ -475,6 +476,15 @@ export function parameterNamespaceConflict (data: ValidatorData, locations: Loca
     level: 'error',
     message: 'Parameter names must be unique per space. Conflicts found with the name ' + smart(name) + ' and space ' + smart(at) + '.',
     metadata: { name, at }
+  })
+}
+
+export function parameterSchemaContentRequired (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
+  return getExceptionMessageData(data, [location], true, {
+    code: 'PASCCO',
+    alternateLevels: [],
+    level: 'error',
+    message: 'One of either the "schema" or "content" properties must be included.'
   })
 }
 
@@ -505,6 +515,16 @@ export function pathParameterMustBeRequired (data: ValidatorData, location: Loca
     level: 'error',
     message: 'Path parameters must be marked as required. Parameter: ' + smart(parameterName),
     metadata: { parameterName }
+  })
+}
+
+export function propertiesMutuallyExclusive (data: ValidatorData, locations: LocationInput[], properties: string[]): ExceptionMessageDataInput {
+  return getExceptionMessageData(data, locations, true, {
+    code: 'PRMUEX',
+    alternateLevels: [],
+    level: 'error',
+    message: 'The following properties are mutually exclusive: ' + smart(properties),
+    metadata: { properties }
   })
 }
 

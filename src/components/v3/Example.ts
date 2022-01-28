@@ -63,7 +63,7 @@ export class Example extends OASComponent {
                 { node: definition, key: 'value', type: 'key' },
                 { node: definition, key: 'externalValue', type: 'key' }
               ]
-              const exampleValueExternalConflict = E.exampleValueExternalConflict(data, locations)
+              const exampleValueExternalConflict = E.propertiesMutuallyExclusive(data, locations, ['value', 'externalValue'])
               exception.message(exampleValueExternalConflict)
             }
 

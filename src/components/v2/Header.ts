@@ -24,8 +24,7 @@ export class Header extends PartialSchema<Header> {
   static get schema (): ComponentSchema<Definition> {
     if (headerSchema === undefined) {
       headerSchema = schemaGenerator(2, {
-        Header,
-        Schema
+        Header
       }) as ComponentSchema<Definition>
     }
     return headerSchema

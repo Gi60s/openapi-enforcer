@@ -4,8 +4,10 @@ import * as PartialSchema from './helpers/PartialSchema'
 import { Header2 as Definition2, Header3 as Definition3 } from './helpers/definition-types'
 
 interface ComponentsMap {
+  Example?: Component // v3
   Header: Component
-  Schema: Component
+  MediaType?: Component // v3
+  Schema?: Component // v3
 }
 
 export function schemaGenerator (major: number, components: ComponentsMap): ComponentSchema<Definition2 | Definition3> {
@@ -18,8 +20,21 @@ export function schemaGenerator (major: number, components: ComponentsMap): Comp
   })
 
   schema.hook('after-validate', (data) => {
-    V.defaultRequiredConflict(data)
-    V.exampleExamplesConflict(data)
+    const major = data.root.major
+
+    if (major === 2) {
+      V.defaultRequiredConflict(data)
+    } else {
+      V.exampleExamplesConflict(data)
+      V.parameterSchemaContent(data)
+
+      const schema = data.context.built.schema !== undefined
+        ? new (components.Schema as Component)(data.context.built.schema)
+        : undefined
+      if (schema !== undefined) {
+        V.examplesMatchSchema(data, schema)
+      }
+    }
   })
 
   // the "type" is required for headers v2
@@ -82,7 +97,44 @@ export function schemaGenerator (major: number, components: ComponentsMap): Comp
       schema: {
         type: 'component',
         allowsRef: true,
-        component: components.Schema
+        component: components.Schema as Component
+      }
+    },
+    {
+      name: 'content',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: false,
+        additionalProperties: {
+          schema: {
+            type: 'component',
+            allowsRef: false,
+            component: components.MediaType as Component
+          }
+        }
+      }
+    },
+    {
+      name: 'example',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'any'
+      }
+    },
+    {
+      name: 'examples',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: false,
+        additionalProperties: {
+          schema: {
+            type: 'component',
+            component: components.Example as Component,
+            allowsRef: true
+          }
+        }
       }
     }
   )

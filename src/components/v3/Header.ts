@@ -4,6 +4,7 @@ import { DefinitionException } from '../../DefinitionException'
 import { schemaGenerator } from '../Header'
 import { Example } from './Example'
 import { Schema } from './Schema'
+import { MediaType } from './MediaType'
 import { Header3 as Definition } from '../helpers/definition-types'
 
 let schemaHeaders: ComponentSchema<Definition>
@@ -33,8 +34,10 @@ export class Header extends OASComponent<Definition, typeof Header> {
   static get schema (): ComponentSchema<Definition> {
     if (schemaHeaders === undefined) {
       schemaHeaders = schemaGenerator(3, {
+        Example,
         Header,
-        Schema: Schema
+        MediaType,
+        Schema
       }) as ComponentSchema<Definition>
     }
     return schemaHeaders

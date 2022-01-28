@@ -113,7 +113,7 @@ export interface SchemaObject extends SchemaBase<Record<string, any>> {
   type: 'object'
   allowsSchemaExtensions: Computed<boolean>
   additionalProperties?: Computed<{
-    namespace?: string
+    namespace?: string // for building only, put additional properties within a parent property with this namespace as a value
     schema: Schema
   }>
   properties?: SchemaProperty[]

@@ -51,8 +51,11 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
     },
     {
       name: 'allowEmptyValue',
-      notAllowed ({ cache }) {
-        return cache.isQueryOrFormData as boolean ? undefined : 'Only allowed if "in" is "query" or "formData".'
+      notAllowed ({ cache, data }) {
+        const major = data.root.major
+        return cache.isQueryOrFormData as boolean
+          ? undefined
+          : 'Only allowed if "in" is "query"' + (major === 2 ? ' or "formData"' : '') + '.'
       },
       schema: {
         type: 'boolean',
@@ -183,6 +186,11 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
     const at = built.in
 
     V.defaultRequiredConflict(data)
+
+    if ('allowEmptyValue' in built && major !== 2) {
+      const notRecommended = E.notRecommended(data, { key: 'allowEmptyValue', type: 'key' }, 'Use of the property "allowEmptyValue" is not recommended because it is likely to be removed in the future.')
+      exception.message(notRecommended)
+    }
 
     // if parameter in path then validate that required is true
     if (at === 'path' && definition.required !== true) {

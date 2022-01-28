@@ -207,16 +207,26 @@ describe('Component: Header', () => {
         const component = new Header3({})
         expect(component.style).to.equal('simple')
       })
+
+      it('will default deprecated to false', () => {
+        const component = new Header3({})
+        expect(component.deprecated).to.equal(false)
+      })
     })
 
     describe('validate', () => {
+      let schema: any
+      beforeEach(() => {
+        schema = { type: 'string' }
+      })
+
       it('has no required properties', function () {
-        const [error] = Header3.validate({})
+        const [error] = Header3.validate({ schema })
         expect(error).to.equal(undefined)
       })
 
       it('allows extensions', () => {
-        const [, warn] = Header3.validate({ 'x-foo': 'foo' })
+        const [, warn] = Header3.validate({ 'x-foo': 'foo', schema })
         expect(warn).to.equal(undefined)
       })
 
@@ -230,23 +240,171 @@ describe('Component: Header', () => {
         expect(error).to.match(/Property "foo" not allowed. Property not part of the specification/)
       })
 
+      describe('property: description', () => {
+        it('can be a string', () => {
+          const [error] = Header3.validate({ description: '', schema })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be a string', () => {
+          // @ts-expect-error
+          const [error] = Header3.validate({ description: true, schema })
+          expect(error).to.match(/Expected a string/)
+        })
+      })
+
       describe('property: required', () => {
         it('can be true', () => {
-          const [error] = Header3.validate({ required: true })
+          const [error] = Header3.validate({ required: true, schema })
           expect(error).to.equal(undefined)
         })
 
         it('can be false', () => {
-          const [error] = Header3.validate({ required: true })
+          const [error] = Header3.validate({ required: true, schema })
           expect(error).to.equal(undefined)
         })
 
         it('must be a boolean', () => {
           const [error] = Header3.validate({
+            schema,
             // @ts-expect-error
             required: 'yes'
           })
           expect(error).to.match(/Expected a boolean/)
+        })
+      })
+
+      describe('property: deprecated', () => {
+        it('can be a boolean', () => {
+          const [error] = Header3.validate({ deprecated: true, schema })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be a boolean', () => {
+          // @ts-expect-error
+          const [error] = Header3.validate({ deprecated: '', schema })
+          expect(error).to.match(/Expected a boolean/)
+        })
+      })
+
+      describe('property: allowEmptyValue', () => {
+        it('is not allowed', () => {
+          // @ts-expect-error
+          const [error] = Header3.validate({ allowEmptyValue: true, schema })
+          expect(error).to.match(/Property "allowEmptyValue" not allowed/)
+        })
+      })
+
+      describe('property: style', () => {
+        it('can equal "simple"', () => {
+          const [error] = Header3.validate({ style: 'simple', schema })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must equal "simple"', () => {
+          // @ts-expect-error
+          const [error] = Header3.validate({ style: '', schema })
+          expect(error).to.match(/Value must equal: "simple"/)
+        })
+      })
+
+      describe('property: explode', () => {
+        it('can be a boolean', () => {
+          const [error] = Header3.validate({ explode: true, schema })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be a boolean"', () => {
+          // @ts-expect-error
+          const [error] = Header3.validate({ explode: '', schema })
+          expect(error).to.match(/Expected a boolean/)
+        })
+      })
+
+      describe('property: allowReserved', () => {
+        it('is not allowed', () => {
+          // @ts-expect-error
+          const [error] = Header3.validate({ allowReserved: true, schema })
+          expect(error).to.match(/Property "allowReserved" not allowed/)
+        })
+      })
+
+      describe('property: schema', () => {
+        it('can be a schema definition', () => {
+          const [error] = Header3.validate({ schema: { type: 'string' } })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be a schema definition"', () => {
+          // @ts-expect-error
+          const [error] = Header3.validate({ schema: false })
+          expect(error).to.match(/Expected a non-null object/)
+        })
+
+        it('is mutually exclusive of the "content" property', () => {
+          const [error] = Header3.validate({
+            schema: { type: 'string' },
+            content: { 'text/plain': {} }
+          })
+          expect(error).to.match(/The following properties are mutually exclusive: "content", "schema"/)
+        })
+      })
+
+      describe('property: example', () => {
+        it('can exist with a matching schema', () => {
+          const [error, warning] = Header3.validate({ example: true, schema: { type: 'boolean' } })
+          expect(error).to.equal(undefined)
+          expect(warning).to.equal(undefined)
+        })
+
+        it('will warn if not matching the schema', () => {
+          const [error, warning] = Header3.validate({ example: true, schema: { type: 'string' } })
+          expect(error).to.equal(undefined)
+          expect(warning).to.match(/Example is not valid when compared against the schema/)
+        })
+
+        it('is mutually exclusive of "examples" property', () => {
+          const [error] = Header3.validate({ example: '', examples: { a: { value: true } } })
+          expect(error).to.match(/The following properties are mutually exclusive: "example", "examples"/)
+        })
+      })
+
+      describe('property: examples', () => {
+        let examples: any
+        beforeEach(() => {
+          examples = { a: { value: true } }
+        })
+
+        it('can exist with a matching schema', () => {
+          const [error, warning] = Header3.validate({ examples, schema: { type: 'boolean' } })
+          expect(error).to.equal(undefined)
+          expect(warning).to.equal(undefined)
+        })
+
+        it('will warn if not matching the schema', () => {
+          const [error, warning] = Header3.validate({ examples, schema: { type: 'string' } })
+          expect(error).to.equal(undefined)
+          expect(warning).to.match(/Example is not valid when compared against the schema/)
+        })
+      })
+
+      describe('property: content', () => {
+        it('can contain a media type definition', () => {
+          const [error, warning] = Header3.validate({ content: { 'text/plain': {} } })
+          expect(error).to.equal(undefined)
+          expect(warning).to.equal(undefined)
+        })
+
+        it('must contain one media type definition', () => {
+          const [error, warning] = Header3.validate({ content: {} })
+          expect(error).to.match(/The "content" property must define exactly one media type./)
+          expect(warning).to.equal(undefined)
+        })
+
+        it('cannot contain two media type definitions', () => {
+          const [error, warning] = Header3.validate({ content: { 'text/plain': {}, 'application/json': {} } })
+          expect(error).to.match(/The "content" property must define exactly one media type./)
+          expect(warning).to.equal(undefined)
         })
       })
     })
