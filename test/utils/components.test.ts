@@ -532,7 +532,7 @@ describe('Generic component tests', () => {
 
       it('validate does check for required properties', function () {
         const [error] = Test.validate({})
-        expect(error).to.match(/Missing required property: required/)
+        expect(error).to.match(/Missing required property: "required"/)
       })
     })
   })

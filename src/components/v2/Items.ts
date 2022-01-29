@@ -23,6 +23,11 @@ export class Items extends PartialSchema.PartialSchema<Items> {
     if (itemsSchema === undefined) {
       itemsSchema = PartialSchema.schemaGenerator(Items)
 
+      // type property is required
+      itemsSchema.adjustProperty('type', schema => {
+        schema.required = true
+      })
+
       // add collectionFormat property
       itemsSchema.properties?.push({
         name: 'collectionFormat',

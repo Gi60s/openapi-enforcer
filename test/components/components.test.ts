@@ -182,7 +182,7 @@ describe('Component: Components', () => {
             Success: {}
           }
         })
-        expect(error).to.match(/Missing required property: description/)
+        expect(error).to.match(/Missing required property: "description"/)
       })
 
       it('can accept a reference', function () {
@@ -294,7 +294,7 @@ describe('Component: Components', () => {
             Body1: {}
           }
         })
-        expect(error).to.match(/Missing required property: content/)
+        expect(error).to.match(/Missing required property: "content"/)
       })
 
       it('can accept a reference', function () {
@@ -369,7 +369,7 @@ describe('Component: Components', () => {
             MyScheme: {}
           }
         })
-        expect(error).to.match(/Missing required property: type/)
+        expect(error).to.match(/Missing required property: "type"/)
       })
 
       it('can accept a reference', function () {

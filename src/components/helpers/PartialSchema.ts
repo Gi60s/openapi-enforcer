@@ -7,6 +7,7 @@ import { Result } from '../../utils/Result'
 import * as SchemaHelper from './schema-functions'
 import { Exception } from '../../utils/Exception'
 import { copy, isObject, smart } from '../../utils/util'
+import { exceedsNumberBounds } from '../../DefinitionException/methods'
 
 /**
  * This file is for code reuse between the following OpenAPI specification objects:
@@ -169,6 +170,7 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
           cache.type = type
           cache.isArray = type === 'array'
           cache.isString = type === 'string'
+          cache.isNumeric = type === 'number' || type === 'integer'
         }
       },
       {
@@ -239,14 +241,18 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
         name: 'maxItems',
         notAllowed: notAllowedUnlessArray,
         schema: {
-          type: 'number'
+          type: 'number',
+          integer: true,
+          minimum: 0
         }
       },
       {
         name: 'maxLength',
         notAllowed: notAllowedUnlessString,
         schema: {
-          type: 'number'
+          type: 'number',
+          integer: true,
+          minimum: 0
         }
       },
       {
@@ -260,14 +266,18 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
         name: 'minItems',
         notAllowed: notAllowedUnlessArray,
         schema: {
-          type: 'number'
+          type: 'number',
+          integer: true,
+          minimum: 0
         }
       },
       {
         name: 'minLength',
         notAllowed: notAllowedUnlessString,
         schema: {
-          type: 'number'
+          type: 'number',
+          integer: true,
+          minimum: 0
         }
       },
       {
@@ -275,6 +285,13 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
         notAllowed: notAllowedUnlessNumeric,
         schema: {
           type: 'any' // The type is "any" because a string can be numeric for specific type format combinations
+        }
+      },
+      {
+        name: 'pattern',
+        notAllowed: notAllowedUnlessString,
+        schema: {
+          type: 'string'
         }
       },
       {
@@ -296,19 +313,17 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
         data.root.lastly.push(() => {
           const { built } = data.context
 
-          if (built.default !== undefined) {
-            const [value, error] = built.deserialize(built.default)
-            if (error !== undefined) throw Error(error.toString())
-            built.default = value
-          }
+          if (built.default !== undefined) built.default = deserialize(built, built.default)
 
           if (built.enum !== undefined) {
-            built.enum = built.enum.map((item: any) => {
-              const [value, error] = built.deserialize(item)
-              if (error !== undefined) throw Error(error.toString())
-              return value
-            })
+            built.enum = built.enum.map((item: any) => deserialize(built, item))
           }
+
+          if (built.maximum !== undefined) built.maximum = deserialize(built, built.maximum)
+          if (built.minimum !== undefined) built.minimum = deserialize(built, built.minimum)
+          if (built.multipleOf !== undefined) built.multipleOf = deserialize(built, built.multipleOf)
+
+          if (built.pattern !== undefined) built.pattern = new RegExp(built.pattern)
         })
       }
     },
@@ -321,7 +336,29 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
         if (built.type === 'array') {
           validateMaxMin(data, 'minItems', 'maxItems')
         } else if (cache.isNumeric as boolean) {
-          validateMaxMin(data, 'minimum', 'maximum')
+          root.lastly.push(() => {
+            const schema = new ReferenceComponentClass(definition)
+
+            // validate that maximum and minimum don't conflict
+            if (schema.minimum !== undefined && schema.maximum !== undefined) {
+              const exclusive = schema.exclusiveMinimum === true || schema.exclusiveMaximum === true
+              if (schema.minimum > schema.maximum || (exclusive && schema.minimum === schema.maximum)) {
+                const invalidMaxMin = E.invalidMaxMin(data,
+                  [
+                    { node: definition, key: 'minimum', type: 'value' },
+                    { node: definition, key: 'maximum', type: 'value' }
+                  ],
+                  definition.minimum, definition.maximum, 'minimum', 'maximum', exclusive)
+                exception.message(invalidMaxMin)
+              }
+            }
+
+            // validate multiple of is greater than zero
+            if (schema.multipleOf === 0) {
+              const invalidMultipleOf = E.exceedsNumberBounds(data, { key: 'multipleOf', type: 'value' }, 'minimum', false, 0, definition.multipleOf)
+              exception.at('multipleOf').message(invalidMultipleOf)
+            }
+          })
         } else if (built.type === 'string') {
           validateMaxMin(data, 'minLength', 'maxLength')
         }
@@ -364,15 +401,25 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
   })
 }
 
-export function validateMaxMin (data: ValidatorData, minKey: string, maxKey: string): void {
-  const { built, definition, exception } = data.context
-  if (minKey in built && maxKey in built && built[minKey] > built[maxKey]) {
-    const invalidMaxMin = E.invalidMaxMin(data,
-      [
-        { node: definition, key: minKey, type: 'value' },
-        { node: definition, key: maxKey, type: 'value' }
-      ],
-      built[minKey], built[maxKey], minKey, maxKey)
-    exception.message(invalidMaxMin)
+export function validateMaxMin (data: ValidatorData, minKey: string, maxKey: string, exclusive = false): void {
+  const { definition, exception } = data.context
+  if (minKey in definition && maxKey in definition) {
+    const min = definition[minKey]
+    const max = definition[maxKey]
+    if (min > max || (exclusive && min === max)) {
+      const invalidMaxMin = E.invalidMaxMin(data,
+        [
+          { node: definition, key: minKey, type: 'value' },
+          { node: definition, key: maxKey, type: 'value' }
+        ],
+        definition[minKey], definition[maxKey], minKey, maxKey, exclusive)
+      exception.message(invalidMaxMin)
+    }
   }
+}
+
+function deserialize (built: PartialSchema<any>, input: any): any {
+  const [value, error] = built.deserialize(input)
+  if (error !== undefined) throw Error(error.toString())
+  return value
 }

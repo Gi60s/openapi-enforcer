@@ -4,6 +4,8 @@ import { DefinitionException } from '../DefinitionException'
 import { Contact } from './Contact'
 import { License } from './License'
 import { Info as Definition } from './helpers/definition-types'
+import rx from '../utils/rx'
+import * as E from '../DefinitionException/methods'
 
 let infoSchema: ComponentSchema<Definition>
 
@@ -67,7 +69,19 @@ export class Info extends OASComponent<Definition> {
             required: true,
             schema: { type: 'string' }
           }
-        ]
+        ],
+        validator: {
+          after (data) {
+            const { built, exception } = data.context
+
+            if (built.termsOfService !== undefined) {
+              if (!rx.url.test(built.termsOfService)) {
+                const notUrl = E.invalidUrl(data, { key: 'termsOfService', type: 'value' }, built.termsOfService)
+                exception.at('termsOfService').message(notUrl)
+              }
+            }
+          }
+        }
       })
     }
     return infoSchema

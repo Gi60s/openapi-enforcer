@@ -49,9 +49,9 @@ describe('Component: Contact', () => {
         expect(error).to.equal(undefined)
       })
 
-      it('will warn if an invalid url', function () {
-        const [, warn] = Contact.validate({ url: 'not-url' })
-        expect(warn).to.match(/Value does not appear to be a valid URL/)
+      it('must be a valid url', function () {
+        const [error] = Contact.validate({ url: 'not-url' })
+        expect(error).to.match(/Value does not appear to be a valid URL/)
       })
 
       it('must be a string', function () {

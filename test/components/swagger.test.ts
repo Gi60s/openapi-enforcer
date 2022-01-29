@@ -57,7 +57,7 @@ describe('Component: Swagger', () => {
       it('is required', function () {
         // @ts-expect-error
         const [error] = Swagger.validate({ info, paths })
-        expect(error).to.match(/Missing required property: swagger/)
+        expect(error).to.match(/Missing required property: "swagger"/)
       })
 
       it('swagger can equal "2.0"', function () {
@@ -80,7 +80,7 @@ describe('Component: Swagger', () => {
       it('is required', function () {
         // @ts-expect-error
         const [error] = Swagger.validate({ swagger, paths })
-        expect(error).to.match(/Missing required property: info/)
+        expect(error).to.match(/Missing required property: "info"/)
       })
 
       it('can be a valid info object', function () {
@@ -260,7 +260,7 @@ describe('Component: Swagger', () => {
       it('is required', function () {
         // @ts-expect-error
         const [error] = Swagger.validate({ swagger, info })
-        expect(error).to.match(/Missing required property: paths/)
+        expect(error).to.match(/Missing required property: "paths"/)
       })
 
       it('can be an object', function () {
@@ -402,7 +402,7 @@ describe('Component: Swagger', () => {
 
     describe('property: externalDocs', () => {
       it('can be an object', function () {
-        const [error] = Swagger.validate({ swagger, info, paths, externalDocs: { url: '' } })
+        const [error] = Swagger.validate({ swagger, info, paths, externalDocs: { url: 'https://fake.com' } })
         expect(error).to.equal(undefined)
       })
 

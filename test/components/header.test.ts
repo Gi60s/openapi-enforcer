@@ -111,12 +111,12 @@ describe('Component: Header', () => {
           expect(error).to.match(/Expected a string/)
         })
 
-        it('will warn if format is non-standard and not defined', function () {
+        it('will warn if format is not registered', function () {
           const { warning } = Header2.validate({
             type: 'string',
             format: 'foo'
           })
-          expect(warning).to.match(/Non-standard format "foo" used for type "string"/)
+          expect(warning).to.match(/Unregistered format "foo" used for type "string"/)
         })
       })
 
@@ -128,7 +128,7 @@ describe('Component: Header', () => {
 
         it('is required if type is array', function () {
           const [error] = Header2.validate({ type: 'array' })
-          expect(error).to.match(/Missing required property: items/)
+          expect(error).to.match(/Missing required property: "items"/)
         })
 
         it('is not allowed if type is not array', function () {
@@ -196,7 +196,7 @@ describe('Component: Header', () => {
     })
   })
 
-  describe.only('v3', () => {
+  describe('v3', () => {
     describe('build', () => {
       it('can build', () => {
         const component = new Header3({ schema: { type: 'string' } })

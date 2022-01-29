@@ -13,7 +13,7 @@ describe('Component: ExternalDocumentation', () => {
     it('has required properties', function () {
       // @ts-expect-error
       const [error] = ExternalDocumentation.validate({})
-      expect(error).to.match(/Missing required property: url/)
+      expect(error).to.match(/Missing required property: "url"/)
     })
 
     it('allows extensions', () => {
@@ -32,13 +32,13 @@ describe('Component: ExternalDocumentation', () => {
 
     describe('property: description', function () {
       it('can be a string', function () {
-        const [error] = ExternalDocumentation.validate({ url: '', description: 'Bob' })
+        const [error] = ExternalDocumentation.validate({ url: 'https://fake.com', description: 'Bob' })
         expect(error).to.equal(undefined)
       })
 
       it('must be a string', function () {
         const [error] = ExternalDocumentation.validate({
-          url: '',
+          url: 'https://fake.com',
           // @ts-expect-error
           description: 12
         })
@@ -61,8 +61,8 @@ describe('Component: ExternalDocumentation', () => {
       })
 
       it('will warn if not a url', function () {
-        const { warning } = ExternalDocumentation.validate({ url: 'not a url' })
-        expect(warning).to.match(/Value does not appear to be a valid URL/)
+        const [error] = ExternalDocumentation.validate({ url: 'not a url' })
+        expect(error).to.match(/Value does not appear to be a valid URL/)
       })
     })
   })

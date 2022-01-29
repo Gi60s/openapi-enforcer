@@ -33,7 +33,7 @@ describe('Component: Example', () => {
         externalValue: '',
         value: ''
       })
-      expect(error).to.match(/Cannot have both "externalValue" and "value" properties/)
+      expect(error).to.match(/The following properties are mutually exclusive: "value", "externalValue"/)
     })
 
     describe('property: summary', function () {
@@ -108,9 +108,9 @@ describe('Component: Example', () => {
         expect(error).to.match(/Expected a string/)
       })
 
-      it('will warn if not a url', function () {
-        const { warning } = Example.validate({ externalValue: 'not a url' })
-        expect(warning).to.match(/Value does not appear to be a valid URL/)
+      it('must be a url', function () {
+        const [error] = Example.validate({ externalValue: 'not a url' })
+        expect(error).to.match(/Value does not appear to be a valid URL/)
       })
     })
   })

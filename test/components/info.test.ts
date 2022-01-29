@@ -4,8 +4,8 @@ import { expect } from 'chai'
 describe('Component: Info', () => {
   describe('build', () => {
     it('can build', function () {
-      const contact = new Info({ title: '', version: '' })
-      expect(contact).to.be.instanceOf(Info)
+      const info = new Info({ title: '', version: '' })
+      expect(info).to.be.instanceOf(Info)
     })
   })
 
@@ -47,44 +47,93 @@ describe('Component: Info', () => {
       })
     })
 
-    // describe('property: url', function () {
-    //   it('can be a valid url', function () {
-    //     const [error] = Contact.validate({ url: 'http://foo.com' })
-    //     expect(error).to.equal(undefined)
-    //   })
+    describe('property: description', function () {
+      it('can be a string', function () {
+        const [error] = Info.validate({ title: '', version: '', description: '' })
+        expect(error).to.equal(undefined)
+      })
 
-    //   it('will warn if an invalid url', function () {
-    //     const [, warn] = Contact.validate({ url: 'not-url' })
-    //     expect(warn).to.match(/Value does not appear to be a valid URL/)
-    //   })
+      it('must be a string', function () {
+        const [error] = Info.validate({
+          title: '',
+          version: '',
+          // @ts-expect-error
+          description: true
+        })
+        expect(error).to.match(/Expected a string/)
+      })
+    })
 
-    //   it('must be a string', function () {
-    //     const [error] = Contact.validate({
-    //       // @ts-expect-error
-    //       url: 12
-    //     })
-    //     expect(error).to.match(/Expected a string/)
-    //   })
-    // })
+    describe('property: termsOfService', function () {
+      it('can be a url', function () {
+        const [error] = Info.validate({ title: '', version: '', termsOfService: 'https://terms.foo.com' })
+        expect(error).to.equal(undefined)
+      })
 
-    // describe('property: email', function () {
-    //   it('can be a valid email', function () {
-    //     const [error] = Contact.validate({ email: 'email@fake.com' })
-    //     expect(error).to.equal(undefined)
-    //   })
+      it('will warn if it does not look like a URL', function () {
+        const [error] = Info.validate({ title: '', version: '', termsOfService: 'terms.foo.com' })
+        expect(error).to.match(/Value does not appear to be a valid URL/)
+      })
 
-    //   it('will warn if an invalid url', function () {
-    //     const [, warn] = Contact.validate({ email: 'not-email' })
-    //     expect(warn).to.match(/Value does not appear to be a valid email address/)
-    //   })
+      it('must be a string', function () {
+        const [error] = Info.validate({
+          title: '',
+          version: '',
+          // @ts-expect-error
+          description: true
+        })
+        expect(error).to.match(/Expected a string/)
+      })
+    })
 
-    //   it('must be a string', function () {
-    //     const [error] = Contact.validate({
-    //       // @ts-expect-error
-    //       email: 12
-    //     })
-    //     expect(error).to.match(/Expected a string/)
-    //   })
-    // })
+    describe('property: contact', function () {
+      it('can be a contact object', function () {
+        const [error] = Info.validate({ title: '', version: '', contact: { email: '' } })
+        expect(error).to.equal(undefined)
+      })
+
+      it('must be a contact object', function () {
+        const [error] = Info.validate({
+          title: '',
+          version: '',
+          // @ts-expect-error
+          contact: true
+        })
+        expect(error).to.match(/Expected a non-null object/)
+      })
+    })
+
+    describe('property: license', function () {
+      it('can be a license object', function () {
+        const [error] = Info.validate({ title: '', version: '', license: { name: '' } })
+        expect(error).to.equal(undefined)
+      })
+
+      it('must be a license object', function () {
+        const [error] = Info.validate({
+          title: '',
+          version: '',
+          // @ts-expect-error
+          license: true
+        })
+        expect(error).to.match(/Expected a non-null object/)
+      })
+    })
+
+    describe('property: version', function () {
+      it('can be a string', function () {
+        const [error] = Info.validate({ title: '', version: '' })
+        expect(error).to.equal(undefined)
+      })
+
+      it('must be a string', function () {
+        const [error] = Info.validate({
+          title: '',
+          // @ts-expect-error
+          version: true
+        })
+        expect(error).to.match(/Expected a string/)
+      })
+    })
   })
 })

@@ -176,8 +176,8 @@ export function exceedsNumberBounds (data: ValidatorData, location: LocationInpu
     alternateLevels: [],
     level: 'error',
     message: 'Value must be ' +
-      (boundBy === 'maximum' ? 'less than' : 'greater than') +
-      (allowEqual ? ' or equal to' : '') +
+      (boundBy === 'maximum' ? 'less than ' : 'greater than ') +
+      (allowEqual ? 'or equal to ' : '') +
       smart(boundValue, false) + '. Received: ' + smart(invalidValue, false),
     metadata: { allowEqual, boundBy, boundValue, invalidValue }
   })
@@ -245,12 +245,14 @@ export function invalidEmail (data: ValidatorData, location: LocationInput, inva
   })
 }
 
-export function invalidMaxMin (data: ValidatorData, locations: LocationInput[], minimum: any, maximum: any, minProperty: string, maxProperty: string): ExceptionMessageDataInput {
+export function invalidMaxMin (data: ValidatorData, locations: LocationInput[], minimum: any, maximum: any, minProperty: string, maxProperty: string, exclusive = false): ExceptionMessageDataInput {
   return getExceptionMessageData(data, locations, false, {
     code: 'INMAMI',
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
-    level: 'warn',
-    message: 'Property ' + smart(minProperty) + ' (' + smart(minimum, false) + ') must be less than ' + smart(maxProperty) + ' (' + smart(maximum, false) + ').',
+    level: 'error',
+    message: 'Property ' + smart(minProperty) + ' (' + smart(minimum, false) + ') must be less than ' +
+      (exclusive ? 'or equal to ' : '') +
+      smart(maxProperty) + ' (' + smart(maximum, false) + ').',
     metadata: { minimum, maximum, minProperty, maxProperty }
   })
 }
@@ -262,6 +264,16 @@ export function invalidMediaType (data: ValidatorData, location: LocationInput, 
     level: 'warn',
     message: 'Media type appears invalid: ' + smart(mediaType),
     metadata: { mediaType }
+  })
+}
+
+export function invalidMultipleOf (data: ValidatorData, location: LocationInput, value: any): ExceptionMessageDataInput {
+  return getExceptionMessageData(data, [location], true, {
+    code: 'INMETY',
+    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    level: 'warn',
+    message: 'Multiple of value must be greater than zero. Received: ' + smart(value),
+    metadata: { value }
   })
 }
 
@@ -329,8 +341,8 @@ export function invalidUrl (data: ValidatorData, location: LocationInput, invali
   return getExceptionMessageData(data, [location], true, {
     code: 'INVURL',
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
-    level: 'warn',
-    message: 'Value does not appear to be a valid URL: ' + smart(invalidUrl),
+    level: 'error',
+    message: 'Value does not appear to be a valid URL: ' + smart(invalidValue),
     metadata: { invalidValue }
   })
 }
@@ -390,10 +402,11 @@ export function missingRequiredProperties (data: ValidatorData, location: Locati
     code: 'MIREPR',
     alternateLevels: [],
     level: 'error',
-    message: 'Missing required properties: ' + smart(properties),
+    message: properties.length === 1
+      ? 'Missing required property: ' + smart(properties[0])
+      : 'Missing required properties: ' + smart(properties),
     metadata: { properties }
   })
-  if (properties.length === 1) result.message = 'Missing required property: ' + properties.join(', ')
   return result
 }
 
@@ -624,15 +637,6 @@ export function securitySchemeMissingReference (data: ValidatorData, location: L
   })
 }
 
-export function securitySchemeNotUrl (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
-  return getExceptionMessageData(data, [location], true, {
-    code: 'SESCNU',
-    alternateLevels: [],
-    level: 'error',
-    message: 'Value must be a URL.'
-  })
-}
-
 export function swaggerBasePathInvalid (data: ValidatorData, location: LocationInput, basePath: string): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'SWBAPI',
@@ -688,7 +692,7 @@ export function unknownTypeFormat (data: ValidatorData, location: LocationInput,
     code: 'UNTYFO',
     alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
     level: 'warn',
-    message: 'Non-standard format ' + smart(format) + ' used for type ' + smart(type) + '.',
+    message: 'Unregistered format ' + smart(format) + ' used for type ' + smart(type) + '.',
     metadata: { type, format }
   })
 }

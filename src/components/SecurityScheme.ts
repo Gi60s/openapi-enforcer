@@ -3,8 +3,8 @@ import { ComponentSchema } from './helpers/builder-validator-types'
 import * as E from '../DefinitionException/methods'
 import * as OAuthFlows from './v3/OAuthFlows'
 import { SecurityScheme2 as Definition2, SecurityScheme3 as Definition3 } from './helpers/definition-types'
+import rx from '../utils/rx'
 
-const rxUrl = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/
 const isOauth2: ComputeFunction<string | undefined> = ({ built }) => built.type === 'oauth2' ? undefined : 'Only allowed if type is "oauth2".'
 const isHttp: ComputeFunction<string | undefined> = ({ built }) => built.type === 'http' ? undefined : 'Only allowed if type is "http".'
 const isApiKey: ComputeFunction<string | undefined> = (data) => {
@@ -138,9 +138,9 @@ export class SecurityScheme extends OASComponent {
             const { built, exception } = data.context
 
             if ('openIdConnectUrl' in built) {
-              if (!rxUrl.test(built.openIdConnectUrl)) {
-                const securitySchemeNotUrl = E.securitySchemeNotUrl(data, { key: 'openIdConnectUrl', type: 'value' })
-                exception.at('openIdConnectUrl').message(securitySchemeNotUrl)
+              if (!rx.url.test(built.openIdConnectUrl)) {
+                const notUrl = E.invalidUrl(data, { key: 'openIdConnectUrl', type: 'value' }, built.openIdConnectUrl)
+                exception.at('openIdConnectUrl').message(notUrl)
               }
             }
           }

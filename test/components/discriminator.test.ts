@@ -28,7 +28,7 @@ describe('Component: Discriminator', () => {
     it('has required property: propertyName', function () {
       // @ts-expect-error
       const [error] = Discriminator.validate({})
-      expect(error).to.match(/Missing required property: propertyName/)
+      expect(error).to.match(/Missing required property: "propertyName"/)
     })
 
     it('does not allow extensions', () => {
