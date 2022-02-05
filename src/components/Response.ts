@@ -3,7 +3,12 @@ import { Component, ComponentSchema } from './helpers/builder-validator-types'
 import { getAncestorComponent } from './helpers/traversal'
 import * as E from '../DefinitionException/methods'
 import * as V from './helpers/common-validators'
-import { Response2 as Definition2, Response3 as Definition3 } from './helpers/definition-types'
+import {
+  Response2 as Definition2,
+  Response3 as Definition3,
+  Schema3 as SchemaDefinition3
+} from './helpers/definition-types'
+import { Schema as Schema3 } from './v3/Schema'
 
 const rxLinkName = /^[a-zA-Z0-9.\-_]+$/
 
@@ -95,7 +100,6 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
     validator: {
       after (data) {
         const { built, definition, exception } = data.context
-        const { reference } = data.component
         const { major } = data.root
 
         if (major === 2) {
@@ -113,14 +117,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema {
               }
             })
 
-            if (built.schema !== undefined) {
-              if (!('$ref' in built.schema)) {
-                const schema = new (components.Schema as Component)(built.schema, '2.0')
-                V.examplesMatchSchema(data, schema)
-              }
-            } else {
-              V.examplesMatchSchema(data, null)
-            }
+            V.examplesMatchSchema(data, components.Schema)
           }
         } else if (major === 3) {
           if ('links' in built) {

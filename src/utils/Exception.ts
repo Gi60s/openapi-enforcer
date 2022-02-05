@@ -100,13 +100,14 @@ export class Exception {
 
   toString (): string {
     const report = getReport(this)
-    return toString(report, '', true)
+    const config: { prefix: string, skipTop: boolean, top: boolean } = arguments[0] ?? { prefix: '', skipTop: false, top: true }
+    return toString(report, config.prefix, config.top, config.skipTop)
   }
 
   [inspect] (): string {
     if (this.hasException) {
       const report = getReport(this)
-      return '[ EnforcerException: ' + toString(report, '  ', true) + ' ]'
+      return '[ EnforcerException: ' + toString(report, '  ', true, false) + ' ]'
     } else {
       return '[ EnforcerException ]'
     }
@@ -175,14 +176,18 @@ function hasCode (this: Report, code: string): boolean {
   return this.codes[code] !== undefined && this.codes[code].length > 0
 }
 
-function toString (report: Report, prefix: string, top: boolean): string {
+function toString (report: Report, prefix: string, top: boolean, skipTopHeader = false): string {
   const { at, exception, nests } = report
   const { messages } = exception.data
   const prefixPlus = prefix + '  '
   let result = ''
 
   if (exception.header !== undefined) {
-    result += (top ? '' : prefix) + exception.header
+    if (top) {
+      if (!skipTopHeader) result += exception.header
+    } else {
+      result += prefix + exception.header
+    }
   }
 
   const atKeys = Object.keys(at)

@@ -1,5 +1,4 @@
 import { Version } from '../components/helpers/builder-validator-types'
-import { Level } from '../DefinitionException/types'
 
 export type CodeLevels = Record<string, Level>
 
@@ -24,6 +23,8 @@ export interface FullConfiguration {
   version: Version
 }
 
+export type Level = 'ignore' | 'info' | 'warn' | 'error'
+
 let current: FullConfiguration = {
   exceptions: {
     details: 'code',
@@ -47,7 +48,7 @@ const schema = {
           type: 'object',
           additionalProperties: {
             type: 'string',
-            enum: ['ignore', 'opinion', 'warn', 'error']
+            enum: ['ignore', 'info', 'warn', 'error']
           }
         }
       }

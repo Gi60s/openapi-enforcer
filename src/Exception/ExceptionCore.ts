@@ -1,19 +1,32 @@
 import { adapter } from '../utils/adapter'
-import { ExceptionMessageData, ExceptionMessageDataInput, Level } from './types'
 import * as Config from '../utils/config'
 import { lookupLocation } from '../utils/loader'
 import { Location } from 'json-to-ast'
 
 const { inspect, eol } = adapter
-const exceptionMap = new WeakMap<DefinitionException, ExceptionPreReport>()
+const exceptionMap = new WeakMap<ExceptionCore, PreReport>()
 const levels: Level[] = ['error', 'warn', 'info', 'ignore']
 
 interface ExceptionData<T> {
   at: Record<string, T>
-  messages: ExceptionMessageData[]
+  messages: Message[]
 }
 
-interface ExceptionPreReport {
+export type Level = Config.Level
+
+export interface Message {
+  alternateLevels: Level[]
+  code: string
+  definition?: any // component definition if available
+  exception?: ExceptionCore
+  level: Level
+  locations?: Location[]
+  message: string
+  metadata: Record<string, any>
+  reference: string
+}
+
+interface PreReport {
   activeChildrenCount: {
     error: number
     warn: number
@@ -22,9 +35,9 @@ interface ExceptionPreReport {
   }
   children: Array<{
     at: string
-    data: ExceptionPreReport
+    data: PreReport
   }>
-  exception: DefinitionException
+  exception: ExceptionCore
   hasException: {
     error: boolean
     warn: boolean
@@ -32,99 +45,65 @@ interface ExceptionPreReport {
     ignore: boolean
   }
   messages: {
-    error: ExceptionMessageData[]
-    warn: ExceptionMessageData[]
-    info: ExceptionMessageData[]
-    ignore: ExceptionMessageData[]
+    error: Message[]
+    warn: Message[]
+    info: Message[]
+    ignore: Message[]
   }
 }
 
-type ExceptionReportDetailsItem = ExceptionMessageData & {
+type ExceptionReportDetailsItem = Message & {
   breadcrumbs: string[]
 }
 
-export class DefinitionException {
+export class ExceptionCore {
   public header: string | undefined
-  public data: ExceptionData<DefinitionException> = { at: {}, messages: [] }
+  public data: ExceptionData<ExceptionCore> = { at: {}, messages: [] }
 
   constructor (header?: string) {
     this.header = header
   }
 
-  public at (key: string | number): DefinitionException {
+  public at (key: string | number): ExceptionCore {
     const at = this.data.at
     if (!(key in at)) {
-      at[key] = new DefinitionException()
+      at[key] = new ExceptionCore()
     }
     return at[key]
   }
 
-  public message (data: ExceptionMessageDataInput): ExceptionMessageData {
-    // create initial message object
-    const messageData: ExceptionMessageData = {
-      alternateLevels: data.alternateLevels ?? [],
-      code: data.code,
-      definition: typeof data.definition === 'object' && data.definition !== null ? data.definition : undefined,
-      exception: data.exception,
-      level: data.level,
-      locations: (data.locations ?? []).map(v => lookupLocation(v.node, v.key, v.type)).filter(v => v !== undefined) as Location[],
-      message: data.message,
-      metadata: data.metadata ?? {},
-      reference: data.reference ?? ''
-    }
+  public message (message: Message): Message {
+    // store the exception data
+    this.data.messages.push(message)
 
-    // make sure that the current level is included in the alternate levels
-    if (!messageData.alternateLevels.includes(data.level)) messageData.alternateLevels.push(data.level)
-
-    // check to see if the exception level should be changed based on either
-    // 1. the definition x-enforcer directive or
-    // 2. by global configuration
-    const configLevels = Config.get().exceptions?.levels
-    let invalidLevelChange: { level: Level, newLevel: Level, code: string, allowedLevels: string, alternateLevels: Level[] } | null = null
-    const directive = messageData.definition?.['x-enforcer']?.exceptions
-    const newLevel: Level | undefined = directive?.[messageData.code] ?? configLevels?.[messageData.code]
-    if (newLevel !== undefined && newLevel !== data.level) {
-      if (messageData.alternateLevels.includes(newLevel)) {
-        messageData.level = newLevel
+    // adjust level as necessary
+    const newLevel: Level | undefined = Config.get().exceptions?.levels?.[message.code] ?? message.definition?.['x-enforcer']?.exceptions?.[message.code]
+    if (newLevel !== undefined && newLevel !== message.level) {
+      if (message.alternateLevels.includes(newLevel)) {
+        message.level = newLevel
       } else {
-        invalidLevelChange = {
-          allowedLevels: '"' + messageData.alternateLevels.join('", "') + '"',
-          alternateLevels: messageData.alternateLevels.slice(0),
-          code: data.code,
-          level: data.level,
-          newLevel
-        }
+        this.message({
+          alternateLevels: ['ignore', 'info', 'warn', 'error'],
+          code: 'EXLECI',
+          level: 'warn',
+          message: 'Unable to change exception level for "' + message.code + '" to "' + (newLevel as string) + '". Accepted levels include: ' + message.alternateLevels.join(', '),
+          metadata: {
+            alternateLevels: message.alternateLevels,
+            code: message.code,
+            invalidLevel: newLevel,
+            level: message.level
+          },
+          reference: ''
+        })
       }
     }
 
-    // store the exception data (with possibly modified level)
-    this.data.messages.push(messageData)
-
-    // if there was an attempt to modify the level, and it failed, then add another exception message about the failure
-    if (invalidLevelChange !== null && data.code !== 'EXLECI') {
-      this.message({
-        alternateLevels: ['ignore', 'info', 'warn', 'error'],
-        code: 'EXLECI',
-        definition: messageData.definition,
-        level: 'warn',
-        locations: [{ }],
-        message: 'Unable to change exception level for "' + data.code + '" to "' + (newLevel as string) + '". Accepted levels include: ' + invalidLevelChange.allowedLevels,
-        metadata: {
-          alternateLevels: invalidLevelChange.alternateLevels,
-          code: invalidLevelChange.code,
-          defaultLevel: invalidLevelChange.level,
-          newLevel
-        },
-        reference: ''
-      })
-    }
-
-    return messageData
+    return message
   }
 
   get '0' (): ErrorReport | undefined {
     const config = Config.get().exceptions
-    const data = runPreReport(config, this)
+    const data = runPreReport(config, this) // update the cache
     exceptionMap.set(this, data)
     if (!data.hasException.error) return
 
@@ -186,13 +165,13 @@ export class DefinitionException {
 }
 
 // overwrite exception iterator, use array iterator
-DefinitionException.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
+ExceptionCore.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
 
 export class ExceptionReport {
   public readonly message: string
   public readonly exceptions: ExceptionReportDetailsItem[]
 
-  constructor (level: Level, data: ExceptionPreReport, header: string) {
+  constructor (level: Level, data: PreReport, header: string) {
     const { exceptions: config } = Config.get()
     this.message = 'Nothing to report'
     this.exceptions = []
@@ -262,7 +241,21 @@ export class WarningReport extends ExceptionReport {}
 export class InfoReport extends ExceptionReport {}
 export class IgnoredReport extends ExceptionReport {}
 
-function getCachedPreReport (exception: DefinitionException): ExceptionPreReport {
+export function smart (value: any, addQuotationMarksToStrings = true): string {
+  if (typeof value === 'string') {
+    return addQuotationMarksToStrings
+      ? '"' + value.replace(/"/g, '\\"') + '"'
+      : value
+  } else if (value instanceof Date) {
+    return isNaN(+value) ? 'invalid date object' : value.toISOString()
+  } else if (Array.isArray(value)) {
+    return value.map(v => smart(v, addQuotationMarksToStrings)).join(', ')
+  } else {
+    return String(value)
+  }
+}
+
+function getCachedPreReport (exception: ExceptionCore): PreReport {
   const config = Config.get().exceptions
   const existing = exceptionMap.get(exception)
   const data = existing ?? runPreReport(config, exception)
@@ -270,7 +263,7 @@ function getCachedPreReport (exception: DefinitionException): ExceptionPreReport
   return data
 }
 
-function getReportByType (level: Level, exception: DefinitionException): ExceptionReport | undefined {
+function getReportByType (level: Level, exception: ExceptionCore): ExceptionReport | undefined {
   const config = Config.get().exceptions
   const data = runPreReport(config, exception)
   if (!data.hasException[level]) return
@@ -279,9 +272,9 @@ function getReportByType (level: Level, exception: DefinitionException): Excepti
   return new ErrorReport(level, data, header)
 }
 
-function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, context: DefinitionException): ExceptionPreReport {
+function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, context: ExceptionCore): PreReport {
   const data = context.data
-  const result: ExceptionPreReport = {
+  const result: PreReport = {
     activeChildrenCount: {
       error: 0,
       warn: 0,
@@ -328,7 +321,7 @@ function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, cont
   return result
 }
 
-function getReport (report: ExceptionReport, level: Level, data: ExceptionPreReport, indent: string, isContinue: boolean, path: string[], extra: { footnotes: string }): string {
+function getReport (report: ExceptionReport, level: Level, data: PreReport, indent: string, isContinue: boolean, path: string[], extra: { footnotes: string }): string {
   const indentPlus = indent + '  '
   const { exceptions: config } = Config.get()
   let result: string = ''
@@ -369,7 +362,7 @@ function getReport (report: ExceptionReport, level: Level, data: ExceptionPreRep
         const footnoteIndent = ' '.repeat(sIndex.length)
         result += ' ' + sIndex
         extra.footnotes += sIndex + getExceptionDetailsReport(footnoteIndent, path, message)
-      } else if (config.details === 'locations') {
+      } else if (config.details === 'locations' && message.locations !== undefined) {
         if (message.locations.length > 0) {
           result += ' (' + message.locations.map(l => {
             let s = ''
@@ -381,8 +374,10 @@ function getReport (report: ExceptionReport, level: Level, data: ExceptionPreRep
       }
 
       if (message.exception !== undefined) {
-        // @ts-expect-error
-        result += message.exception.toString({ prefix: indent, skipTop: true, top: true })
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        result += message.exception
+          // @ts-expect-error
+          .toString({ prefix: indent, skipTop: true, top: true })
       }
 
       // TODO: add for details equals 'locations', 'detailed', 'breadcrumbs', 'all', 'index'
@@ -394,7 +389,7 @@ function getReport (report: ExceptionReport, level: Level, data: ExceptionPreRep
   return result
 }
 
-function getExceptionDetailsReport (indent: string, path: string[], message: ExceptionMessageData): string {
+function getExceptionDetailsReport (indent: string, path: string[], message: Message): string {
   let result = ''
 
   // indent not added to first line only

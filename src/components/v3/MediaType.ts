@@ -37,7 +37,6 @@ export class MediaType extends OASComponent {
         validator: {
           after (data) {
             const { built, chain, definition, exception, key: mediaType } = data.context
-            const { reference } = data.component
             const parent = chain[0]
 
             // check that the media type appears valid
@@ -49,24 +48,28 @@ export class MediaType extends OASComponent {
             // check for example vs examples conflict
             V.exampleExamplesConflict(data)
 
-            // check that the schema type is object
-            if (built.schema !== undefined) {
-              const schema = built.schema
-              if (!('$ref' in schema) && schema.type !== 'object') {
+            // validate the example or examples
+            V.examplesMatchSchema(data, Schema)
+
+            const schema = built.schema
+            const schemaHasRef = schema?.$ref !== undefined
+            if (schema !== undefined && !schemaHasRef && built.encoding !== undefined) {
+              // check that the schema type is object if encoding is being used
+              if (schema.type !== 'object') {
                 const mediaTypeSchemaMustBeObject = E.mediaTypeSchemaMustBeObject(data, { key: 'type', type: 'value' }, schema.type ?? '')
                 exception.message(mediaTypeSchemaMustBeObject)
               }
-            }
 
-            // ensure that any properties in the encoding have a matching property in the schema properties
-            const schema = built.schema ?? {}
-            if (!('$ref' in schema)) {
-              Object.keys(built.encoding ?? {}).forEach(key => {
+              // check that each encoding property matches a property in the schema
+              Object.keys(built.encoding).forEach(key => {
                 if (schema.properties?.[key] === undefined) {
                   const encodingNameNotMatched = E.encodingNameNotMatched(data, { node: definition.encoding, key, type: 'key' }, key)
                   exception.at('encoding').at(key).message(encodingNameNotMatched)
                 }
               })
+            } else if (schema === undefined && built.encoding !== undefined) {
+              const missingSchema = E.encodingMissingAssociatedSchema(data, { key: 'type', type: 'value' })
+              exception.message(missingSchema)
             }
           }
         },
@@ -105,7 +108,13 @@ export class MediaType extends OASComponent {
               type: 'object',
               allowsSchemaExtensions: false,
               ignored (data) {
-                return data.data.context.chain[1]?.component.constructor !== RequestBody ? 'The encoding is ignored without media type context.' : false
+                const chain = data.data.context.chain
+                const hasContext = chain[1]?.component.constructor === RequestBody
+                if (!hasContext) return 'The encoding is ignored without media type context.'
+
+                const mediaType = (data.data.context.key ?? '').toLowerCase()
+                if (mediaType === 'application/x-www-form-urlencoded' || mediaType.startsWith('multipart/')) return false
+                return 'The encoding is ignored unless the media type is application/x-www-form-urlencoded or multipart.'
               },
               additionalProperties: {
                 schema: {

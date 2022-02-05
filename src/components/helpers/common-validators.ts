@@ -38,29 +38,38 @@ export function exampleExamplesConflict (data: ValidatorData): boolean {
   return success
 }
 
-export function examplesMatchSchema (data: ValidatorData, schema: Schema | null): boolean {
-  const { built } = data.context
-  const { lastly } = data.root
-  let success = true
+export function examplesMatchSchema (data: ValidatorData, SchemaClass: any): true {
+  const { built, definition } = data.context
+  const { lastly, version } = data.root
 
-  // validate that example matches schema
-  if ('example' in built) {
+  // if the schema still has a $ref then there is nothing we can validate
+  const schemaHasRef = definition.schema?.$ref !== undefined
+  if (schemaHasRef) return true
+
+  if (built.example !== undefined || built.examples !== undefined) {
     lastly.push(() => {
-      success = success && exampleMatchesSchema(data, ['example'], built.example, schema)
+      const schema = definition.schema !== undefined
+        ? new SchemaClass(definition.schema, version)
+        : null
+
+      // validate that example matches schema
+      if ('example' in built) {
+        exampleMatchesSchema(data, ['example'], built.example, schema)
+      }
+
+      // validate that example matches schema
+      if ('examples' in built) {
+        lastly.push(() => {
+          const examples = built.examples ?? {}
+          Object.keys(examples).forEach(key => {
+            exampleMatchesSchema(data, ['examples', key], built.examples[key].value, schema)
+          })
+        })
+      }
     })
   }
 
-  // validate that example matches schema
-  if ('examples' in built) {
-    lastly.push(() => {
-      const examples = built.examples ?? {}
-      Object.keys(examples).forEach(key => {
-        success = success && exampleMatchesSchema(data, ['examples', key], built.examples[key].value, schema)
-      })
-    })
-  }
-
-  return success
+  return true
 }
 
 export function parameterSchemaContent (data: ValidatorData): boolean {
@@ -132,6 +141,7 @@ function exampleMatchesSchema (data: ValidatorData, keys: string[], example: any
     } else {
       const error = schema.validate(serialized.value)
       if (error != null) {
+        console.log(error.report)
         const exampleNotSerializable = E.exampleNotValid(data, { node, key, type: 'value' }, example, schema, error)
         const { level } = exception.at(key).message(exampleNotSerializable)
         if (level === 'error') success = false

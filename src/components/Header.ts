@@ -27,13 +27,7 @@ export function schemaGenerator (major: number, components: ComponentsMap): Comp
     } else {
       V.exampleExamplesConflict(data)
       V.parameterSchemaContent(data)
-
-      const schema = data.context.built.schema !== undefined
-        ? new (components.Schema as Component)(data.context.built.schema)
-        : undefined
-      if (schema !== undefined) {
-        V.examplesMatchSchema(data, schema)
-      }
+      V.examplesMatchSchema(data, components.Schema)
     }
   })
 

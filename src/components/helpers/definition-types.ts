@@ -113,7 +113,7 @@ export interface Link3 {
   description?: string
   operationId?: string
   operationRef?: string
-  parameters?: Record<string, Parameter3>
+  parameters?: Record<string, any>
   requestBody?: any
   server?: Server3
 }
@@ -233,7 +233,7 @@ interface PartialSchema<Items> {
   minLength?: number
   maximum?: number | string
   minimum?: number | string
-  multipleOf?: number
+  multipleOf?: number | string
   pattern?: string
   type?: string
   uniqueItems?: boolean

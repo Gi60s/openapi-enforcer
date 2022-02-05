@@ -19,10 +19,10 @@ and write tests ensuring that the validator does what we expect it to. Below is 
 - [X] ExternalDocumentation
 - [X] Header
 - [X] Info
-- [ ] Items
-- [ ] License
-- [ ] Link
-- [ ] MediaType
+- [X] Items
+- [X] License
+- [X] Link
+- [X] MediaType
 - [ ] OAuthFlow
 - [ ] OAuthFlows
 - [ ] OpenAPI

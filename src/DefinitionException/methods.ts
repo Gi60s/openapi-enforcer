@@ -8,6 +8,7 @@ type OperationDefinition = OperationDefinition2 | OperationDefinition3
 interface MessageData {
   code: string
   alternateLevels: Level[]
+  exception?: Exception
   level: Level
   message: string
   metadata?: Record<string, any>
@@ -16,7 +17,7 @@ interface MessageData {
 export function $refIgnoresSiblings (data: ValidatorData, location: LocationInput, siblingProperties: string[]): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'REIGSI',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Objects with a $ref property will cause all other sibling properties to be ignored. Ignored properties: ' + smart(siblingProperties)
   })
@@ -25,9 +26,21 @@ export function $refIgnoresSiblings (data: ValidatorData, location: LocationInpu
 export function $refNotAllowed (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'RENOAL',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Reference not allowed here.'
+  })
+}
+
+export function additionalPropertiesInValue (data: ValidatorData, locations: LocationInput[], additionalProperties: string[]): ExceptionMessageDataInput {
+  return getExceptionMessageData(data, locations, false, {
+    code: 'ADPRIV',
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
+    level: 'ignore',
+    message: additionalProperties.length === 1
+      ? 'Additional property found in value: ' + smart(additionalProperties)
+      : 'Additional properties found in value: ' + smart(additionalProperties),
+    metadata: { additionalProperties }
   })
 }
 
@@ -51,22 +64,41 @@ export function allOfConflictingSchemaFormats (data: ValidatorData, location: Lo
   })
 }
 
+export function constraintIsNotAMultiple (data: ValidatorData, location: LocationInput, constraint: 'minimum' | 'maximum', value: string | number, multipleOf: string | number): ExceptionMessageDataInput {
+  return getExceptionMessageData(data, [location], false, {
+    code: 'COINMU',
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
+    level: 'warn',
+    message: constraint[0].toUpperCase() + constraint.substring(1) + ' value ' + smart(value) + ' is not a multiple of ' + smart(multipleOf)
+  })
+}
+
 export function defaultRequiredConflict (data: ValidatorData, locations: LocationInput[]): ExceptionMessageDataInput {
   return getExceptionMessageData(data, locations, false, {
     code: 'DERECO',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Setting a "default" value and setting "required" to true means the "default" value will never be used.'
   })
 }
 
-export function defaultValueDoesNotMatchSchema (data: ValidatorData, location: LocationInput, defaultValue: any): ExceptionMessageDataInput {
+export function defaultValueDoesNotMatchSchema (data: ValidatorData, location: LocationInput, defaultValue: any, exception: Exception): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], false, {
     code: 'DVDNMS',
-    alternateLevels: [], // ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: [], // ['ignore', 'info', 'warn', 'error'],
     level: 'error',
     message: 'Default value ' + smart(defaultValue) + ' does not match its associated schema.',
-    metadata: { defaultValue }
+    metadata: { exception, defaultValue },
+    exception
+  })
+}
+
+export function encodingMissingAssociatedSchema (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
+  return getExceptionMessageData(data, [location], true, {
+    code: 'ENMIAS',
+    alternateLevels: [],
+    level: 'error',
+    message: 'Encoding can only be used when the Media Type definition also contains a schema.'
   })
 }
 
@@ -83,7 +115,7 @@ export function encodingNameNotMatched (data: ValidatorData, location: LocationI
 export function encodingHeaderContentType (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'ENHECT',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Encoding headers should not include Content-Type. That is already part of the Encoding definition under the "contentType" property.'
   })
@@ -92,7 +124,7 @@ export function encodingHeaderContentType (data: ValidatorData, location: Locati
 export function encodingHeadersIgnored (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'ENHEIG',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Encoding headers ignored unless part of a request body with content multipart/*.'
   })
@@ -119,10 +151,21 @@ export function enumNotMet (data: ValidatorData, location: LocationInput, accept
   })
 }
 
+export function enumValueDoesNotMatchSchema (data: ValidatorData, location: LocationInput, value: any, exception: Exception): ExceptionMessageDataInput {
+  return getExceptionMessageData(data, [location], false, {
+    code: 'ENVDMS',
+    alternateLevels: [], // ['ignore', 'info', 'warn', 'error'],
+    level: 'error',
+    message: 'Enum value ' + smart(value) + ' does not match its associated schema.',
+    metadata: { exception, value },
+    exception
+  })
+}
+
 export function exampleMediaTypeNotProduced (data: ValidatorData, location: LocationInput, mediaType: string, produces: string[]): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'EXMTNP',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Example uses media type ' + smart(mediaType) + ' that is not listed in the possible list of produces: ' + smart(produces),
     metadata: { mediaType, produces }
@@ -132,40 +175,45 @@ export function exampleMediaTypeNotProduced (data: ValidatorData, location: Loca
 export function exampleNotSerializable (data: ValidatorData, location: LocationInput, example: any, schema: any, exception: Exception): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], false, {
     code: 'EXNOSE',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
-    level: 'warn',
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
+    level: 'error',
     message: 'Example could not be serialized and therefore cannot be validated against the schema.',
-    metadata: { example, exception, schema }
+    metadata: { example, exception, schema },
+    exception
   })
 }
 
 export function exampleNotValid (data: ValidatorData, location: LocationInput, example: any, schema: any, exception: Exception): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], false, {
     code: 'EXNOVA',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
-    level: 'warn',
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
+    level: 'error',
     message: 'Example is not valid when compared against the schema.',
-    metadata: { example, exception, schema }
+    metadata: { example, exception, schema },
+    exception
   })
 }
 
 export function exampleWithoutSchema (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], false, {
     code: 'EXWISC',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
-    level: 'opinion',
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
+    level: 'info',
     message: 'An example is great, but you should add a schema. A schema can provide more detailed information than an example.'
   })
 }
 
-export function exceedsArrayLengthBounds (data: ValidatorData, location: LocationInput, boundBy: 'maxItems' | 'minItems', boundValue: number, actualCount: string): ExceptionMessageDataInput {
+export function exceedsArrayLengthBounds (data: ValidatorData, location: LocationInput, boundBy: 'maxItems' | 'minItems', boundValue: number, actualCount: number): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], false, {
     code: 'EXARLB',
     alternateLevels: [],
     level: 'error',
     message: 'Array must have ' +
-      (boundBy === 'maxItems' ? 'at most ' : 'at least ') + String(boundValue) +
-      ' items. Array contains ' + String(actualCount) + ' items.',
+      (boundBy === 'maxItems' ? 'at most ' : 'at least ') +
+      String(boundValue) +
+      (boundValue === 1 ? ' item' : ' items') +
+      '. Array contains ' + String(actualCount) +
+      (actualCount === 1 ? ' item.' : ' items.'),
     metadata: { boundBy, boundValue, actualCount }
   })
 }
@@ -199,7 +247,7 @@ export function exceedsStringLengthBounds (data: ValidatorData, location: Locati
 export function exceedsSummaryLength (data: ValidatorData, location: LocationInput, summary: string): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'EXSULE',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Summary should be less than 120 characters in length. Current length: ' + smart(length),
     metadata: { length: summary.length, summary }
@@ -209,7 +257,7 @@ export function exceedsSummaryLength (data: ValidatorData, location: LocationInp
 export function extensionNotAllowed (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'EXNOAL',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Schema extensions not allowed here.'
   })
@@ -238,7 +286,7 @@ export function invalidCookieExplode (data: ValidatorData, location: LocationInp
 export function invalidEmail (data: ValidatorData, location: LocationInput, invalidValue: any): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'INVEMA',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Value does not appear to be a valid email address: ' + smart(invalidValue),
     metadata: { invalidValue }
@@ -248,7 +296,7 @@ export function invalidEmail (data: ValidatorData, location: LocationInput, inva
 export function invalidMaxMin (data: ValidatorData, locations: LocationInput[], minimum: any, maximum: any, minProperty: string, maxProperty: string, exclusive = false): ExceptionMessageDataInput {
   return getExceptionMessageData(data, locations, false, {
     code: 'INMAMI',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'error',
     message: 'Property ' + smart(minProperty) + ' (' + smart(minimum, false) + ') must be less than ' +
       (exclusive ? 'or equal to ' : '') +
@@ -260,20 +308,10 @@ export function invalidMaxMin (data: ValidatorData, locations: LocationInput[], 
 export function invalidMediaType (data: ValidatorData, location: LocationInput, mediaType: string): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'INMETY',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Media type appears invalid: ' + smart(mediaType),
     metadata: { mediaType }
-  })
-}
-
-export function invalidMultipleOf (data: ValidatorData, location: LocationInput, value: any): ExceptionMessageDataInput {
-  return getExceptionMessageData(data, [location], true, {
-    code: 'INMETY',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
-    level: 'warn',
-    message: 'Multiple of value must be greater than zero. Received: ' + smart(value),
-    metadata: { value }
   })
 }
 
@@ -340,7 +378,7 @@ export function invalidType (data: ValidatorData, location: LocationInput, expec
 export function invalidUrl (data: ValidatorData, location: LocationInput, invalidValue: any): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'INVURL',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'error',
     message: 'Value does not appear to be a valid URL: ' + smart(invalidValue),
     metadata: { invalidValue }
@@ -363,6 +401,25 @@ export function linkOperationConflict (data: ValidatorData, locations: LocationI
     alternateLevels: [],
     level: 'error',
     message: 'The operationId and operationRef are mutually exclusive.'
+  })
+}
+
+export function linkOperationMissing (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
+  return getExceptionMessageData(data, [location], true, {
+    code: 'LIOPMI',
+    alternateLevels: [],
+    level: 'error',
+    message: 'A link object must include either the "operationId" or the "operationRef" property.'
+  })
+}
+
+export function linkedOperationNotFound (data: ValidatorData, location: LocationInput, key: 'operationId' | 'operationRef', value: string): ExceptionMessageDataInput {
+  return getExceptionMessageData(data, [location], true, {
+    code: 'LIOINF',
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
+    level: 'error',
+    message: 'The operation object associated with the ' + key + ' ' + smart(value) + ' could not be found.',
+    metadata: { key, value }
   })
 }
 
@@ -392,7 +449,7 @@ export function mediaTypeSchemaMustBeObject (data: ValidatorData, location: Loca
     code: 'MTSMBO',
     alternateLevels: [],
     level: 'error',
-    message: 'MediaType schema must be of type "object". Received type: ' + smart(type),
+    message: 'MediaType schema must be of type "object" when using the "encoding" property. Received type: ' + smart(type),
     metadata: { type }
   })
 }
@@ -422,7 +479,7 @@ export function mustNotBeNull (data: ValidatorData, location: LocationInput): Ex
 export function noPathsDefined (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], false, {
     code: 'NOPADE',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'No paths defined.'
   })
@@ -431,8 +488,8 @@ export function noPathsDefined (data: ValidatorData, location: LocationInput): E
 export function notRecommended (data: ValidatorData, location: LocationInput, message: string): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], false, {
     code: 'NOTREC',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
-    level: 'opinion',
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
+    level: 'info',
     message
   })
 }
@@ -441,7 +498,7 @@ export function operationMethodShouldNotHaveBody (data: ValidatorData, location:
   const upperMethod = smart(method.toUpperCase())
   return getExceptionMessageData(data, [location], 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/' + method.toUpperCase(), {
     code: 'OMRBNA',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Including a request body with a ' + upperMethod + ' request is not advised. Some implementations may reject ' + upperMethod + ' requests that contain a request body.',
     metadata: { method }
@@ -504,7 +561,7 @@ export function parameterSchemaContentRequired (data: ValidatorData, location: L
 export function pathEndingsInconsistent (data: ValidatorData, locations: LocationInput[], pathsWithTrailingSlash: string[], pathsWithoutTrailingSlash: string[]): ExceptionMessageDataInput {
   return getExceptionMessageData(data, locations, false, {
     code: 'PAENIN',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Path endings are inconsistent. Some paths end with a slash and some do not. This may cause confusion for users of your API.',
     metadata: { pathsWithTrailingSlash, pathsWithoutTrailingSlash }
@@ -514,7 +571,7 @@ export function pathEndingsInconsistent (data: ValidatorData, locations: Locatio
 export function pathMissingMethods (data: ValidatorData, location: LocationInput, path: string): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'PAMIME',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'No methods defined for path: ' + smart(path),
     metadata: { path }
@@ -544,7 +601,7 @@ export function propertiesMutuallyExclusive (data: ValidatorData, locations: Loc
 export function propertyIgnored (data: ValidatorData, location: LocationInput, value: string, reason: string): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'PROIGN',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Property ignored: ' + smart(value) + '. ' + reason,
     metadata: { value, reason }
@@ -554,7 +611,7 @@ export function propertyIgnored (data: ValidatorData, location: LocationInput, v
 export function propertyNotAllowed (data: ValidatorData, location: LocationInput, propertyName: string, reason: string): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'PRNOAL',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'error',
     message: 'Property ' + smart(propertyName) + ' not allowed. ' + reason,
     metadata: { propertyName, reason }
@@ -574,7 +631,7 @@ export function refNotResolved (data: ValidatorData, location: LocationInput, re
 export function requestBodyContentEmpty (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'REBOCE',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'error',
     message: 'The request body content map must contain one or more media type definitions.'
   })
@@ -583,7 +640,7 @@ export function requestBodyContentEmpty (data: ValidatorData, location: Location
 export function responseBodyNotAllowed (data: ValidatorData, location: LocationInput, type: 'schema' | 'content'): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], false, {
     code: 'REBONA',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'A 204 response must not contain a body but this response has a defined ' + type + '.',
     metadata: { type }
@@ -602,7 +659,7 @@ export function responseRequired (data: ValidatorData, location: LocationInput):
 export function responseShouldIncludeLocationHeader (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], 'https://tools.ietf.org/html/rfc7231#section-4.3.3', {
     code: 'RESILC',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'A 201 response for a POST request should return a location header and this is not documented in your OpenAPI document.'
   })
@@ -611,7 +668,7 @@ export function responseShouldIncludeLocationHeader (data: ValidatorData, locati
 export function responsesShouldIncludeSuccess (data: ValidatorData, location: LocationInput): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'RESHIS',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Responses object should define at least one success (200 level) response or a default response.'
   })
@@ -690,7 +747,7 @@ export function swaggerHostHasSubPath (data: ValidatorData, location: LocationIn
 export function unknownTypeFormat (data: ValidatorData, location: LocationInput, type: string, format: string): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], false, {
     code: 'UNTYFO',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'Unregistered format ' + smart(format) + ' used for type ' + smart(type) + '.',
     metadata: { type, format }
@@ -700,7 +757,7 @@ export function unknownTypeFormat (data: ValidatorData, location: LocationInput,
 export function valueIgnored (data: ValidatorData, location: LocationInput, value: string, reason: string): ExceptionMessageDataInput {
   return getExceptionMessageData(data, [location], true, {
     code: 'VALIGN',
-    alternateLevels: ['ignore', 'opinion', 'warn', 'error'],
+    alternateLevels: ['ignore', 'info', 'warn', 'error'],
     level: 'warn',
     message: 'The following value will be ignored: ' + smart(value) + '. ' + reason,
     metadata: { value, reason }

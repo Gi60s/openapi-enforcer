@@ -1,7 +1,7 @@
 import { Items } from '../../src/v2'
 import { expect } from 'chai'
 
-describe.only('Component: Items', () => {
+describe('Component: Items', () => {
   describe('build', () => {
     it('can build', function () {
       const item = new Items({ type: 'string' })
@@ -163,6 +163,7 @@ describe.only('Component: Items', () => {
       it('value must match the schema', () => {
         const [error] = Items.validate({ type: 'string', default: 1 })
         expect(error).to.match(/Default value .+ does not match its associated schema/)
+        expect(error).to.match(/Expected a string/)
       })
     })
 
@@ -346,23 +347,166 @@ describe.only('Component: Items', () => {
     })
 
     describe('property: maxItems', () => {
+      it('is allowed if type is array', () => {
+        const [error] = Items.validate({ type: 'array', maxItems: 5, items: { type: 'string' } })
+        expect(error).to.equal(undefined)
+      })
 
+      it('is not allowed if type is not array', () => {
+        const [error] = Items.validate({ type: 'number', maxItems: 5 })
+        expect(error).to.match(/Property "type" must equal "array" to use property "maxItems"/)
+      })
+
+      it('must be a number', () => {
+        const [error] = Items.validate({
+          type: 'array',
+          // @ts-expect-error
+          maxItems: 'five',
+          items: { type: 'string' }
+        })
+        expect(error).to.match(/Expected a number/)
+      })
+
+      it('must be greater than or equal to zero', () => {
+        const [error] = Items.validate({ type: 'array', maxItems: -1, items: { type: 'string' } })
+        expect(error).to.match(/Value must be greater than or equal to 0/)
+      })
+
+      it('can be greater than to "minItems"', () => {
+        const [error] = Items.validate({ type: 'array', maxItems: 5, minItems: 3, items: { type: 'string' } })
+        expect(error).to.equal(undefined)
+      })
+
+      it('can be equal to "minItems"', () => {
+        const [error] = Items.validate({ type: 'array', maxItems: 5, minItems: 5, items: { type: 'string' } })
+        expect(error).to.equal(undefined)
+      })
+
+      it('must be greater than or equal to "minItems"', () => {
+        const [error] = Items.validate({ type: 'array', maxItems: 5, minItems: 6, items: { type: 'string' } })
+        expect(error).to.match(/Property "minItems" .+ must be less than "maxItems"/)
+      })
     })
 
     describe('property: minItems', () => {
+      it('is allowed if type is array', () => {
+        const [error] = Items.validate({ type: 'array', minItems: 5, items: { type: 'string' } })
+        expect(error).to.equal(undefined)
+      })
 
+      it('is not allowed if type is not array', () => {
+        const [error] = Items.validate({ type: 'number', minItems: 5 })
+        expect(error).to.match(/Property "type" must equal "array" to use property "minItems"/)
+      })
+
+      it('must be a number', () => {
+        const [error] = Items.validate({
+          type: 'array',
+          // @ts-expect-error
+          minItems: 'five',
+          items: { type: 'string' }
+        })
+        expect(error).to.match(/Expected a number/)
+      })
+
+      it('must be greater than or equal to zero', () => {
+        const [error] = Items.validate({ type: 'array', minItems: -1, items: { type: 'string' } })
+        expect(error).to.match(/Value must be greater than or equal to 0/)
+      })
     })
 
     describe('property: uniqueItems', () => {
+      it('is allowed if type is array', () => {
+        const [error] = Items.validate({ type: 'array', uniqueItems: true, items: { type: 'string' } })
+        expect(error).to.equal(undefined)
+      })
 
+      it('is not allowed if type is not array', () => {
+        const [error] = Items.validate({ type: 'number', uniqueItems: true })
+        expect(error).to.match(/Property "type" must equal "array" to use property "uniqueItems"/)
+      })
+
+      it('must be a boolean', () => {
+        const [error] = Items.validate({
+          type: 'array',
+          // @ts-expect-error
+          uniqueItems: 'yes',
+          items: { type: 'string' }
+        })
+        expect(error).to.match(/Expected a boolean/)
+      })
     })
 
     describe('property: enum', () => {
+      it('can be an array of values', () => {
+        const [error] = Items.validate({ type: 'string', enum: [''] })
+        expect(error).to.equal(undefined)
+      })
 
+      it('must be an array of values', () => {
+        const [error] = Items.validate({
+          type: 'string',
+          // @ts-expect-error
+          enum: 5
+        })
+        expect(error).to.match(/Expected an array/)
+      })
+
+      it('must have at least one element', () => {
+        const [error] = Items.validate({ type: 'string', enum: [] })
+        expect(error).to.match(/Array must have at least 1 item./)
+      })
+
+      it('requires values to match schema', () => {
+        const [error] = Items.validate(({ type: 'string', enum: [5] }))
+        expect(error).to.match(/Enum value .+ does not match its associated schema/)
+        expect(error).to.match(/Expected a string/)
+      })
+
+      it('requires values to match schema attributes', () => {
+        const [error] = Items.validate(({ type: 'number', minimum: 5, enum: [3, 4, 5] }))
+        expect(error).to.match(/Enum value 3 does not match its associated schema/)
+        expect(error).to.match(/Enum value 4 does not match its associated schema/)
+      })
     })
 
     describe('property: multipleOf', () => {
+      it('is allowed if type is "integer"', () => {
+        const [error] = Items.validate({ type: 'integer', multipleOf: 10 })
+        expect(error).to.equal(undefined)
+      })
 
+      it('is allowed if type is "number"', () => {
+        const [error] = Items.validate({ type: 'number', multipleOf: 0.1 })
+        expect(error).to.equal(undefined)
+      })
+
+      it('is allowed if type is "string" and format is "date"', () => {
+        const [error] = Items.validate({ type: 'string', format: 'date', multipleOf: '2000-01-01' })
+        expect(error).to.equal(undefined)
+      })
+
+      it('must be greater than zero', () => {
+        const [error] = Items.validate({ type: 'number', multipleOf: 0 })
+        expect(error).to.match(/Value must be greater than 0/)
+      })
+
+      it('is not allowed if type is "string"', () => {
+        const [error] = Items.validate({ type: 'string', multipleOf: 10 })
+        expect(error).to.match(/Property "type" must be numeric to use property "multipleOf"/)
+      })
+
+      it('will warn if the minimum is not a multiple', () => {
+        const [error, warning] = Items.validate({ type: 'number', minimum: 1, multipleOf: 2 })
+        expect(error).to.equal(undefined)
+        expect(warning).to.match(/Minimum value 1 is not a multiple of 2/)
+      })
+
+      it('will warn if the maximum is not a multiple', () => {
+        const [error, warning] = Items.validate({ type: 'number', maximum: 11, multipleOf: 2 })
+        expect(error).to.equal(undefined)
+        expect(warning).to.match(/Maximum value 11 is not a multiple of 2/)
+      })
     })
   })
 })

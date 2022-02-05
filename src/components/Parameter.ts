@@ -201,9 +201,7 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
 
     if (major === 3) {
       V.exampleExamplesConflict(data)
-      if (definition.schema !== undefined && !('$ref' in definition.schema)) {
-        V.examplesMatchSchema(data, new Schema3(definition.schema as SchemaDefinition3))
-      }
+      V.examplesMatchSchema(data, Schema3)
 
       // if style is specified then check that it aligns with the schema type
       const built = data.context.built as Definition3

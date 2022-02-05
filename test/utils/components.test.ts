@@ -399,10 +399,10 @@ describe('Generic component tests', () => {
         const Test = TestComponent({
           allowsSchemaExtensions: false
         })
-        const [error, warn, opinion] = Test.validate({ 'x-enforcer': {} })
+        const [error, warn, info] = Test.validate({ 'x-enforcer': {} })
         expect(error).to.equal(undefined)
         expect(warn).to.equal(undefined)
-        expect(opinion).to.equal(undefined)
+        expect(info).to.equal(undefined)
       })
     })
 

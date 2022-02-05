@@ -146,6 +146,21 @@ export class MapStore<R> {
   }
 }
 
+export function analyze (schema: Schema, value: any, map: MapStore<boolean>): MapItem<boolean> {
+  // watch for values that have already been validated against this value
+  const mapped = map.get(schema, value)
+  if (mapped.result !== undefined) return mapped
+
+  // check for nullable
+  if (value === null && (schema.enforcer.nullable === true || ('nullable' in schema && schema.nullable === true))) {
+    return mapped.setResult(true)
+  }
+
+  if (schema.type === 'object') {
+
+  }
+}
+
 export function deserialize<T = any> (schema: OASComponent, value: any): Result<T> {
   const exception = new Exception('Unable to deserialize')
   const { result } = serializer('deserialize', schema as unknown as Schema, value, new MapStore<any>(), exception)

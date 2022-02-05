@@ -684,15 +684,28 @@ function validate (data: ValidatorData): boolean {
     }
     return true
   } else if (schema.type === 'component') {
-    if (!isObject(definition)) {
-      const invalidType = E.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'a non-null object', definition)
-      const { level } = exception.message(invalidType)
-      if (level === 'error') return false
-    }
-
     // determine correct component
     const s = schema as unknown as SchemaComponent
     const component = s.component
+
+    if (!isObject(definition)) {
+      let prefix: 'a ' | 'an ' = 'a '
+      switch (component.name) {
+        case 'Encoding':
+        case 'Example':
+        case 'ExternalDocumentation':
+        case 'Info':
+        case 'Items':
+        case 'OAuthFlow':
+        case 'OAuthFlows':
+        case 'OpenAPI':
+        case 'Operation':
+          prefix = 'an '
+      }
+      const invalidType = E.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, prefix + component.name + ' object definition', definition)
+      const { level } = exception.message(invalidType)
+      if (level === 'error') return false
+    }
 
     return mappable(component, data, {}, built => {
       const exception = component.validate(definition, version, data)
@@ -739,7 +752,7 @@ function validate (data: ValidatorData): boolean {
 
     return mappable(schema, data, {}, (built) => {
       const success = validateObjectProperties(built, data)
-      if (success) context.built = built
+      context.built = built
       return success
     })
   } else if (schema.type === 'oneOf') {

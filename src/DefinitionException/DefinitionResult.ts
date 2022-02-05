@@ -1,19 +1,19 @@
-import { DefinitionException, ErrorReport, WarningReport, OpinionReport, IgnoredReport } from './index'
+import { DefinitionException, ErrorReport, WarningReport, InfoReport, IgnoredReport } from './index'
 
 export class DefinitionResult<T=any> {
   readonly '0'?: T
   readonly '1'?: ErrorReport
   readonly '2'?: WarningReport
-  readonly '3'?: OpinionReport
+  readonly '3'?: InfoReport
   readonly '4'?: IgnoredReport
   readonly exception?: DefinitionException
 
   constructor (value: T | undefined, exception?: DefinitionException) {
-    const [error, warn, opinion, ignore] = exception ?? []
+    const [error, warn, info, ignore] = exception ?? []
     if (error === undefined) this[0] = value
     if (error !== undefined) this[1] = error
     if (warn !== undefined) this[2] = warn
-    if (opinion !== undefined) this[3] = opinion
+    if (info !== undefined) this[3] = info
     if (ignore !== undefined) this[4] = ignore
     if (exception !== undefined) this.exception = exception
   }
@@ -34,7 +34,7 @@ export class DefinitionResult<T=any> {
     return 5
   }
 
-  get opinion (): OpinionReport | undefined {
+  get info (): InfoReport | undefined {
     return this[3]
   }
 

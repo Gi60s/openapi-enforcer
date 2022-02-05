@@ -197,6 +197,7 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
         name: 'enum',
         schema: {
           type: 'array',
+          minItems: 1,
           items: {
             type: 'any'
           }
@@ -358,6 +359,18 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
               const invalidMultipleOf = E.exceedsNumberBounds(data, { key: 'multipleOf', type: 'value' }, 'minimum', false, 0, definition.multipleOf)
               exception.at('multipleOf').message(invalidMultipleOf)
             }
+
+            // warn if minimum or maximum are not multiples of multipleOf
+            if (schema.multipleOf !== undefined) {
+              if (schema.minimum !== undefined && schema.minimum % schema.multipleOf !== 0) {
+                const notAMultiple = E.constraintIsNotAMultiple(data, { key: 'minimum', type: 'value' }, 'minimum', definition.minimum, definition.multipleOf)
+                exception.at('minimum').message(notAMultiple)
+              }
+              if (schema.maximum !== undefined && schema.maximum % schema.multipleOf !== 0) {
+                const notAMultiple = E.constraintIsNotAMultiple(data, { key: 'maximum', type: 'value' }, 'maximum', definition.maximum, definition.multipleOf)
+                exception.at('maximum').message(notAMultiple)
+              }
+            }
           })
         } else if (built.type === 'string') {
           validateMaxMin(data, 'minLength', 'maxLength')
@@ -370,7 +383,7 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
             if ('default' in built) {
               const error = schema.validate(built.default)
               if (error !== undefined) {
-                const defaultValueDoesNotMatchSchema = E.defaultValueDoesNotMatchSchema(data, { node: definition, key: 'default', type: 'value' }, built.default)
+                const defaultValueDoesNotMatchSchema = E.defaultValueDoesNotMatchSchema(data, { node: definition, key: 'default', type: 'value' }, built.default, error)
                 exception.at('default').message(defaultValueDoesNotMatchSchema)
               }
             }
@@ -379,8 +392,8 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
               built.enum.forEach((item: any, i: number) => {
                 const error = schema.validate(item)
                 if (error !== undefined) {
-                  const enumNotMet = E.enumNotMet(data, { node: definition, key: 'default', type: 'value' }, built.enum, item)
-                  exception.at('enum').at(i).message(enumNotMet)
+                  const enumValueInvalid = E.enumValueDoesNotMatchSchema(data, { node: definition.enum, key: i, type: 'value' }, item, error)
+                  exception.at('enum').at(i).message(enumValueInvalid)
                 }
               })
             }

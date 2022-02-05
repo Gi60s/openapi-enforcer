@@ -14,7 +14,7 @@ export {
   DefinitionException,
   ErrorReport as ExceptionErrorReport,
   WarningReport as ExceptionWarningReport,
-  OpinionReport as ExceptionOpinionReport,
+  InfoReport as ExceptionInfoReport,
   IgnoredReport as ExceptionIgnoredReport
 } from './DefinitionException'
 export { Level as ExceptionLevel, ExceptionMessageData } from './DefinitionException/types'

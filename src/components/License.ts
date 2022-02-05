@@ -2,6 +2,8 @@ import { componentValidate, OASComponent } from './index'
 import { ComponentSchema, Version } from './helpers/builder-validator-types'
 import { DefinitionException } from '../DefinitionException'
 import { License as Definition } from './helpers/definition-types'
+import * as E from '../DefinitionException/methods'
+import rx from '../utils/rx'
 
 let licenseSchema: ComponentSchema<Definition>
 
@@ -36,7 +38,17 @@ export class License extends OASComponent {
             name: 'url',
             schema: { type: 'string' }
           }
-        ]
+        ],
+        validator: {
+          after (data) {
+            const { exception, definition } = data.context
+
+            if (typeof definition.url === 'string' && !rx.url.test(definition.url)) {
+              const notUrl = E.invalidUrl(data, { key: 'url', type: 'value' }, definition.url)
+              exception.message(notUrl)
+            }
+          }
+        }
       })
     }
     return licenseSchema
