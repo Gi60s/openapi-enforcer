@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.17.0
+
+### Added
+
+- **Examples Warn of Additional Properties**
+
+  For a schema, the default behavior of an object is to allow additional properties. This can be problematic when examples have additional properties that the schema does not define. Now there is a global config option `Enforcer.config.examplesWarnAdditionalProperty` that defaults to `true` and will warn of examples with additional properties. To disable this behavior set the global config property to `false`.
+
 ## 1.16.1
 
 ### Changed

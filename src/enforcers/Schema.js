@@ -288,7 +288,11 @@ module.exports = {
             if (this.hasOwnProperty('enum')) {
                 const child = exception.at('enum');
                 const value = this.enum.map((value, index) => {
-                    return deserializeAndValidate(this, child.at(index), value, { enum: false });
+                    return deserializeAndValidate(this, child.at(index), value, {
+                        enum: false,
+                        escalateCodes,
+                        skipCodes
+                    });
                 });
                 Object.freeze(value);
                 setProperty(this, 'enum', value);
@@ -299,7 +303,9 @@ module.exports = {
             }
             if (this.hasOwnProperty('example')) {
                 // TODO: should this produce an error or a warning? It's currently set to warn.
-                const value = deserializeAndValidate(this, warn.at('example'), this.example, {});
+                const value = deserializeAndValidate(this, warn.at('example'), this.example, {
+                    isExample: true
+                });
                 setProperty(this, 'example', freeze(value));
             }
         });
@@ -859,6 +865,18 @@ function buildInjector(rxGenerator) {
     };
 }
 
+/**
+ *
+ * @param schema
+ * @param exception
+ * @param value
+ * @param {object} options
+ * @param {boolean} [options.enum] Set to false to skip enum validation.
+ * @param {boolean} [options.isExample] If the passed in value is an example then set this to true.
+ * @param {boolean} [options.maxMin] Set to false to skip max min validation.
+ * @param {'read', 'write} [options.readWriteMode] Set to 'read' if in read only mode or to 'write' if write only mode.
+ * @returns {*}
+ */
 function deserializeAndValidate(schema, exception, value, options) {
     let error;
     [ value, error ] = schema.deserialize(value);

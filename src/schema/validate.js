@@ -22,6 +22,20 @@ const Value             = require('./value');
 
 module.exports = runValidate;
 
+/**
+ *
+ * @param exception
+ * @param map
+ * @param schema
+ * @param originalValue
+ * @param options
+ * @param {object} options
+ * @param {boolean} [options.enum] Set to false to skip enum validation.
+ * @param {boolean} [options.isExample] If the passed in value is an example then set this to true.
+ * @param {boolean} [options.maxMin] Set to false to skip max min validation.
+ * @param {'read', 'write} [options.readWriteMode] Set to 'read' if in read only mode or to 'write' if write only mode.
+ * @returns {*}
+ */
 function runValidate(exception, map, schema, originalValue, options) {
     let { validate, value } = Value.getAttributes(originalValue);
     if (!validate) return originalValue;
@@ -184,6 +198,11 @@ function runValidate(exception, map, schema, originalValue, options) {
                         const prop = schema.additionalProperties
                         if ((readWriteMode === 'write' && prop.readOnly) || (readWriteMode === 'read' && prop.writeOnly)) readWriteOnly.push(key)
                         runValidate(exception.at(key), map, schema.additionalProperties, value[key], options);
+                    } else if (options.isExample) {
+                        const enforcerConfig = require('../../').config
+                        if (enforcerConfig.examplesWarnAdditionalProperty === true) {
+                            exception.at(key).message('Property is an additional property');
+                        }
                     }
                 }
             });

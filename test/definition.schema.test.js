@@ -1142,6 +1142,7 @@ describe('definition/schema', () => {
                 describe('discriminator examples', function () {
 
                     it('will deserialize a valid discriminator example', async () => {
+                        Enforcer.config.examplesWarnAdditionalProperty = false
                         const options = {
                             fullResult: true,
                             componentOptions: {
@@ -1390,6 +1391,20 @@ describe('definition/schema', () => {
                     }
                 });
                 expect(warning).to.match(/Expected a number/);
+            });
+
+            it('warns of additional properties value', () => {
+                Enforcer.config.examplesWarnAdditionalProperty = true
+                const [ , , warning ] = Enforcer.v2_0.Schema({
+                    type: 'object',
+                    properties: {
+                        a: { type: 'number' }
+                    },
+                    example: {
+                        b: 5
+                    }
+                });
+                expect(warning).to.match(/Property is an additional property/);
             });
 
         });

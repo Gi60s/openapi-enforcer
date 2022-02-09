@@ -87,6 +87,7 @@ async function Enforcer(definition, options) {
 }
 
 Enforcer.config = {
+    examplesWarnAdditionalProperty: true,
     useNewRefParser: false
 };
 
