@@ -1,4 +1,4 @@
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { Definitions2 as Definition } from '../helpers/definition-types'

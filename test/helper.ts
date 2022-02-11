@@ -1,14 +1,14 @@
 import http from 'http'
 import path from 'path'
 import fs from 'fs'
-import { ExceptionReport } from '../src/DefinitionException'
+import { ExceptionReport } from '../src/Exception'
 
 export interface StaticFileServer {
   port: string
   stop: () => void
 }
 
-export function exceptionHasCode (exceptionReport: ExceptionReport | undefined, code: string, throwError: boolean): boolean {
+export function exceptionHasCode (exceptionReport: ExceptionReport<any> | undefined, code: string, throwError: boolean): boolean {
   if (exceptionReport === undefined) {
     if (throwError) throw new Error('DefinitionException report is empty. Expected to find code: ' + code)
     return false

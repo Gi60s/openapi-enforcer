@@ -1,9 +1,8 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
 import { MediaType } from './MediaType'
 import { RequestBody3 as Definition } from '../helpers/definition-types'
-import * as E from '../../DefinitionException/methods'
 
 let requestBodySchema: ComponentSchema<Definition>
 
@@ -60,8 +59,7 @@ export class RequestBody extends OASComponent {
 
             const keys = Object.keys(built.content)
             if (keys.length === 0) {
-              const requestBodyContentEmpty = E.requestBodyContentEmpty(data, { key: 'content', type: 'value' })
-              exception.message(requestBodyContentEmpty)
+              exception.add.requestBodyContentEmpty(data, { key: 'content', type: 'value' })
             }
           }
         }

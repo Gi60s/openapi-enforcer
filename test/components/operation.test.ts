@@ -217,7 +217,7 @@ describe('Component: Operation', () => {
             expect(req.path.p).to.deep.equal([1, 2, 3])
           })
 
-          it('will not accept an array of values as input', () => {
+          it.only('will not accept an array of values as input', () => {
             const op = new Operation2({
               parameters: [
                 { name: 'p', in: 'path', required: true, type: 'array', items: { type: 'number' } }
@@ -226,13 +226,13 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [, err] = op.request({
+            const [, error] = op.request({
               path: {
                 // @ts-expect-error
                 p: ['1', '2', '3']
               }
             })
-            expect(err?.report.hasCode('PARAMETER_PARSE_INVALID_INPUT')).to.equal(true)
+            expect(error?.hasCode('PARAMETER_PARSE_INVALID_INPUT')).to.equal(true)
           })
 
           it('will produce an error is missing a required path variable', () => {
@@ -244,9 +244,9 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [, err] = op.request({})
-            expect(err).to.match(/required path parameters are missing/)
-            expect(err?.report.hasCode('OPERATION_REQUEST_MISSING_REQUIRED_PARAMETERS')).to.equal(true)
+            const [, error] = op.request({})
+            expect(error).to.match(/Missing required path parameter: "p"/)
+            expect(error?.hasCode('OAE-EOPRMRP')).to.equal(true)
           })
         })
 

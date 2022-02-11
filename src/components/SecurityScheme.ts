@@ -1,6 +1,5 @@
 import { ComputeFunction, OASComponent } from './'
 import { ComponentSchema } from './helpers/builder-validator-types'
-import * as E from '../DefinitionException/methods'
 import * as OAuthFlows from './v3/OAuthFlows'
 import { SecurityScheme2 as Definition2, SecurityScheme3 as Definition3 } from './helpers/definition-types'
 import rx from '../utils/rx'
@@ -139,8 +138,7 @@ export class SecurityScheme extends OASComponent {
 
             if ('openIdConnectUrl' in built) {
               if (!rx.url.test(built.openIdConnectUrl)) {
-                const notUrl = E.invalidUrl(data, { key: 'openIdConnectUrl', type: 'value' }, built.openIdConnectUrl)
-                exception.at('openIdConnectUrl').message(notUrl)
+                exception.at('openIdConnectUrl').add.invalidUrl(data, { key: 'openIdConnectUrl', type: 'value' }, built.openIdConnectUrl)
               }
             }
           }

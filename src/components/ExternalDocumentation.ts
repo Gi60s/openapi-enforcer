@@ -1,8 +1,7 @@
 import { componentValidate, OASComponent } from './index'
 import { ComponentSchema, Version } from './helpers/builder-validator-types'
-import { DefinitionException } from '../DefinitionException'
+import { DefinitionException } from '../Exception'
 import rx from '../utils/rx'
-import * as E from '../DefinitionException/methods'
 import { ExternalDocumentation as Definition } from './helpers/definition-types'
 
 let externalDocumentationSchema: ComponentSchema<Definition>
@@ -48,8 +47,7 @@ export class ExternalDocumentation extends OASComponent {
             const url = built.url
             if (url !== undefined) {
               if (!rx.url.test(url)) {
-                const invalidUrl = E.invalidUrl(data, { key: 'url', type: 'value' }, url)
-                exception.message(invalidUrl)
+                exception.add.invalidUrl(data, { key: 'url', type: 'value' }, url)
               }
             }
           }

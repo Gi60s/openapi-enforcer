@@ -59,7 +59,9 @@ export function minimal (component: any, version: '2.x' | '3.x', overwrite?: any
         : { schema: minimal('Schema', version) }
       break
     case 'Link':
-      result = {}
+      result = {
+        operationId: 'my-op'
+      }
       break
     case 'Operation':
       result = {

@@ -1,13 +1,9 @@
-// import * as Config from '../utils/config'
-import { DefinitionException } from '../DefinitionException'
-import { Exception } from '../utils/Exception'
-import * as E from '../DefinitionException/methods'
+import { Exception, DefinitionException, Level, Message } from '../Exception'
 import rx from '../utils/rx'
 import { copy, getLatestSpecVersion, isObject, same, smart } from '../utils/util'
 import { LoaderMetadata } from '../utils/loader'
-import { DefinitionResult } from '../DefinitionException/DefinitionResult'
+import { Result } from '../utils/Result'
 import * as Loader from '../utils/loader'
-import { ExceptionMessageDataInput, Level } from '../DefinitionException/types'
 import { Lastly } from './helpers/Lastly'
 import { Chain } from './helpers/Chain'
 import {
@@ -100,7 +96,7 @@ export interface SchemaNumber extends SchemaBase<number> {
 export interface SchemaOneOf extends SchemaBase {
   type: 'oneOf'
   oneOf: SchemaConditional[]
-  error: (data: ValidatorData) => ExceptionMessageDataInput // only called by validator, not builder
+  error: (data: ValidatorData) => Message // only called by validator, not builder
 }
 
 export interface SchemaString extends SchemaBase<string> {
@@ -214,11 +210,10 @@ export function componentValidate<Definition=any> (component: EnforcerComponent,
 
   // check that this component is allowed for the active version
   if (component.spec[v] === undefined) {
-    const invalidVersionForComponent = E.invalidVersionForComponent(data,
+    exception.add.invalidVersionForComponent(data,
       { node: parent?.context.definition, key: parent?.context.key, type: 'both' },
       component.name,
       v)
-    exception.message(invalidVersionForComponent)
     return exception
   }
 
@@ -251,7 +246,7 @@ export function build (data: BuilderData): any {
   const { definition: componentDef } = data.component
   const { map, version } = root
   const { schema } = context
-  const { definition, exception } = context
+  const { definition } = context
 
   if (definition === undefined && 'default' in schema) {
     return typeof schema.default === 'function' ? schema.default(data.component) : schema.default
@@ -259,7 +254,7 @@ export function build (data: BuilderData): any {
     // if there is a $ref then throw an error - we need dereferenced objects for component object's functions to work.
     const hasRef = typeof definition === 'object' && definition !== null && '$ref' in definition
     if (hasRef) {
-      exception.message('COMP_BUIL_NO_REFS', 'All references must be resolved before building.')
+      throw Error('Invalid definition. All $ref must be resolved prior to calling the constructor.')
     } else if (schema.type === 'any') {
       return definition
     } else if (schema.type === 'array') {
@@ -502,7 +497,7 @@ export function normalizeLoaderOptions (options?: LoaderOptions): Required<Loade
 }
 
 // this is the code for loading either the OpenAPI or Swagger document
-export async function loadRoot<T> (RootComponent: EnforcerComponent, path: string, options?: LoaderOptions): Promise<DefinitionResult<T>> {
+export async function loadRoot<T> (RootComponent: EnforcerComponent, path: string, options?: LoaderOptions): Promise<Result<T>> {
   options = normalizeLoaderOptions(options)
 
   // load file with dereference
@@ -516,7 +511,7 @@ export async function loadRoot<T> (RootComponent: EnforcerComponent, path: strin
   // if there is an error then return now
   const [definition] = loaded
   const exception = loaded.exception as DefinitionException
-  if (loaded.hasError) return new DefinitionResult(definition, exception) // first param will be undefined because of error
+  if (loaded.hasError) return new Result(definition, exception) // first param will be undefined because of error
 
   // initialize data object
   const version: string = definition.openapi ?? definition.swagger
@@ -535,17 +530,17 @@ export async function loadRoot<T> (RootComponent: EnforcerComponent, path: strin
   }
 
   // build the component if there are no errors
-  if (exception.hasError) return new DefinitionResult(definition, exception) // first param will be undefined because of error
+  if (exception.hasError) return new Result(definition, exception) // first param will be undefined because of error
   const data: BuilderData = createComponentData('loading', RootComponent, Exception, definition, version as Version)
   data.root.loadCache = config.cache as Record<string, any>
   // @ts-expect-error
   const component = new RootComponent(definition, version, data)
   data.root.lastly.run(data) // we have to run lastly here because we passed the "data" into the constructor function
-  return new DefinitionResult(component, exception)
+  return new Result(component, exception)
 }
 
 // return true if additional validation can occur, false if it should not
-function validate (data: ValidatorData): boolean {
+function validate (data: ValidatorData): void {
   const { context } = data
   const { chain, exception, key } = context
   const { definition: componentDef } = data.component
@@ -558,22 +553,21 @@ function validate (data: ValidatorData): boolean {
   const ignored = typeof schema.ignored === 'function' ? schema.ignored(data.component) : schema.ignored
   if (typeof ignored === 'string') {
     if (definition !== undefined && key !== '') {
-      const propertyIgnored = E.propertyIgnored(data, { node: chain[0].context.definition, key: key }, key, ignored)
-      exception.message(propertyIgnored)
+      const { exception, definition } = chain[0].context
+      exception.add.propertyIgnored(data, { node: definition, key: key }, key, ignored)
     }
-    return false
+    return
   }
 
   // if null then validate nullable
   if (definition === null) {
     const nullable = typeof schema.nullable === 'function' ? schema.nullable(data.component) : schema.nullable
     if (nullable !== true) {
-      const mustNotBeNull = E.mustNotBeNull(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' })
-      exception.message(mustNotBeNull)
+      exception.add.mustNotBeNull(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' })
     } else {
       context.built = null
     }
-    return false
+    return
   }
 
   // if default is used then set it
@@ -586,9 +580,7 @@ function validate (data: ValidatorData): boolean {
     const enumValues = typeof schema.enum === 'function' ? schema.enum(data.component) : schema.enum
     const found = enumValues.find((v: any) => same(v, definition))
     if (found === undefined) {
-      const enumNotMet = E.enumNotMet(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, enumValues, definition)
-      const { level } = exception.message(enumNotMet)
-      if (level === 'error') return false
+      exception.add.enumNotMet(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, enumValues, definition)
     }
   }
 
@@ -602,9 +594,7 @@ function validate (data: ValidatorData): boolean {
   let hasAccountedForRefError = false
   if (typeof definition === 'object' && '$ref' in definition && !canBeRefDefinition) {
     hasAccountedForRefError = true
-    const $refNotAllowed = E.$refNotAllowed(data, { node: parent?.context.definition, key: parent?.context.key, type: 'key' })
-    const { level } = exception.message($refNotAllowed)
-    if (level === 'error') return false
+    exception.add.$refNotAllowed(data, { node: parent?.context.definition, key: parent?.context.key, type: 'key' })
   }
 
   // check if refs allowed and ref is set
@@ -612,27 +602,21 @@ function validate (data: ValidatorData): boolean {
   if (hasRef && canBeRefDefinition) {
     const siblingProperties = Object.keys(definition).filter(k => k !== '$ref')
     if (siblingProperties.length > 0) {
-      const $refIgnoresSiblings = E.$refIgnoresSiblings(data, { node: parent?.context.definition }, siblingProperties)
-      const { level } = exception.message($refIgnoresSiblings)
-      return level === 'error'
-    } else {
-      return true
+      exception.add.$refIgnoresSiblings(data, { node: parent?.context.definition }, siblingProperties)
     }
+    return
   } else if (hasRef && !canBeRefDefinition && !hasAccountedForRefError) {
-    const $refNotAllowed = E.$refNotAllowed(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' })
-    const { level } = exception.message($refNotAllowed)
-    if (level === 'error') return false
+    exception.add.$refNotAllowed(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' })
   }
 
   if (schema.type === 'any') {
     context.built = copy(definition)
-    return true
+    // return true
   } else if (schema.type === 'array') {
     const s = schema as unknown as SchemaArray
     if (!Array.isArray(definition)) {
-      const invalidType = E.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'an array', definition)
-      const { level } = exception.message(invalidType)
-      if (level === 'error') return false
+      exception.add.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'an array', definition)
+      return
     }
 
     // if instance already exists then return instance
@@ -640,7 +624,6 @@ function validate (data: ValidatorData): boolean {
     const found = store?.find(item => item.definition === definition)
     if (found !== undefined) {
       context.built = found.instance
-      return true
     } else {
       // create reference for instance being created
       const storeItem: { definition: any, instance: any } = { definition, instance: [] }
@@ -653,36 +636,27 @@ function validate (data: ValidatorData): boolean {
       const maxItems: number | undefined = typeof s.maxItems === 'function' ? s.maxItems(data.component) : s.maxItems
       const minItems: number | undefined = typeof s.minItems === 'function' ? s.minItems(data.component) : s.minItems
       if (minItems !== undefined && itemCount < minItems) {
-        const exceedsArrayLengthBounds = E.exceedsArrayLengthBounds(data, { node: parent?.context.definition, key: parent?.context.key, type: 'both' }, 'minItems', minItems, itemCount)
-        const { level } = exception.message(exceedsArrayLengthBounds)
-        if (level === 'error') return false
+        exception.add.exceedsArrayLengthBounds(data, { node: parent?.context.definition, key: parent?.context.key, type: 'both' }, 'minItems', minItems, itemCount)
       }
       if (maxItems !== undefined && itemCount > maxItems) {
-        const exceedsArrayLengthBounds = E.exceedsArrayLengthBounds(data, { node: parent?.context.definition, key: parent?.context.key, type: 'both' }, 'maxItems', maxItems, itemCount)
-        const { level } = exception.message(exceedsArrayLengthBounds)
-        if (level === 'error') return false
+        exception.add.exceedsArrayLengthBounds(data, { node: parent?.context.definition, key: parent?.context.key, type: 'both' }, 'maxItems', maxItems, itemCount)
       }
 
       // process each item in the array
-      let success = true
       const itemsSchema = typeof s.items === 'function' ? s.items(data.component) : s.items
       definition.forEach((def: any, i: number) => {
         const key = String(i)
         const child = createChildData(data, def, key, itemsSchema) as ValidatorData
-        success = success && validate(child)
+        validate(child)
         context.built[i] = child.context.built
       })
-      return success
     }
   } else if (schema.type === 'boolean') {
     if (typeof definition !== 'boolean') {
-      const invalidType = E.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'a boolean', definition)
-      const { level } = exception.message(invalidType)
-      if (level === 'error') return false
+      exception.add.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'a boolean', definition)
     } else {
       context.built = definition
     }
-    return true
   } else if (schema.type === 'component') {
     // determine correct component
     const s = schema as unknown as SchemaComponent
@@ -702,9 +676,8 @@ function validate (data: ValidatorData): boolean {
         case 'Operation':
           prefix = 'an '
       }
-      const invalidType = E.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, prefix + component.name + ' object definition', definition)
-      const { level } = exception.message(invalidType)
-      if (level === 'error') return false
+      exception.add.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, prefix + component.name + ' object definition', definition)
+      return
     }
 
     return mappable(component, data, {}, built => {
@@ -713,41 +686,31 @@ function validate (data: ValidatorData): boolean {
     })
   } else if (schema.type === 'number') {
     const s = schema as unknown as SchemaNumber
-    let success = true
     if (typeof definition !== 'number') {
-      const invalidType = E.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'a number', definition)
-      const { level } = exception.message(invalidType)
-      if (level === 'error') return false
+      exception.add.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'a number', definition)
+      return
     }
 
     const isInteger = typeof s.integer === 'function' ? s.integer(data.component) : s.integer
     if (isInteger === true && definition % 1 !== 0) {
-      const invalidType = E.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'an integer', definition)
-      const { level } = exception.message(invalidType)
-      if (level === 'error') success = false
+      exception.add.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'an integer', definition)
     }
 
     const maximum = typeof s.maximum === 'function' ? s.maximum(data.component) : s.maximum
     if (maximum !== undefined && definition > maximum) {
-      const exceedsNumberBounds = E.exceedsNumberBounds(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'maximum', true, maximum, definition)
-      const { level } = exception.message(exceedsNumberBounds)
-      if (level === 'error') success = false
+      exception.add.exceedsNumberBounds(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'maximum', true, maximum, definition)
     }
 
     const minimum = typeof s.minimum === 'function' ? s.minimum(data.component) : s.minimum
     if (minimum !== undefined && definition < minimum) {
-      const exceedsNumberBounds = E.exceedsNumberBounds(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'minimum', true, minimum, definition)
-      const { level } = exception.message(exceedsNumberBounds)
-      if (level === 'error') success = false
+      exception.add.exceedsNumberBounds(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'minimum', true, minimum, definition)
     }
-    if (success) context.built = true
-    return success
+    context.built = definition
   } else if (schema.type === 'object') {
     // validate definition type
     if (!isObject(definition)) {
-      const invalidType = E.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'a non-null object', definition)
-      const { level } = exception.message(invalidType)
-      if (level === 'error') return false
+      exception.add.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'a non-null object', definition)
+      return
     }
 
     return mappable(schema, data, {}, (built) => {
@@ -759,8 +722,7 @@ function validate (data: ValidatorData): boolean {
     const s = schema as unknown as SchemaOneOf
     const match = s.oneOf.find(item => item.condition(data, componentDef))
     if (match === undefined) {
-      const { level } = exception.message(s.error(data))
-      return level === 'error'
+      exception.message(s.error(data))
     } else {
       const matchedSchema = typeof match.schema === 'function' ? match.schema(data.component) : match.schema
       return validate({
@@ -771,31 +733,23 @@ function validate (data: ValidatorData): boolean {
     }
   } else if (schema.type === 'string') {
     const s = schema as unknown as SchemaString
-    let success = true
+    const success = true
     if (typeof definition !== 'string') {
-      const invalidType = E.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'a string', definition)
-      const { level } = exception.message(invalidType)
-      if (level === 'error') return false
+      exception.add.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'a string', definition)
+      return
     }
 
     const maxLength = typeof s.maxLength === 'function' ? s.maxLength(data.component) : s.maxLength
     if (maxLength !== undefined && definition.length > maxLength) {
-      const exceedsStringLengthBounds = E.exceedsStringLengthBounds(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'maxLength', maxLength, definition)
-      const { level } = exception.message(exceedsStringLengthBounds)
-      if (level === 'error') success = false
+      exception.add.exceedsStringLengthBounds(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'maxLength', maxLength, definition)
     }
 
     const minLength = typeof s.minLength === 'function' ? s.minLength(data.component) : s.minLength
     if (minLength !== undefined && definition.length < minLength) {
-      const exceedsStringLengthBounds = E.exceedsStringLengthBounds(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'minLength', minLength, definition)
-      const { level } = exception.message(exceedsStringLengthBounds)
-      if (level === 'error') success = false
+      exception.add.exceedsStringLengthBounds(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'minLength', minLength, definition)
     }
 
-    if (success) context.built = definition
-    return success
-  } else {
-    return false
+    context.built = definition
   }
 }
 
@@ -843,11 +797,11 @@ function validateObjectProperties (context: any, data: ValidatorData): boolean {
       } else {
         if (prop.before !== undefined) prop.before(cache, data)
         const childSuccess = validate(child)
-        if (childSuccess) {
-          context[name] = child.context.built
-          if (prop.after !== undefined) prop.after(cache, context[name], context, data)
-        }
-        success = success && childSuccess
+        // if (childSuccess) {
+        context[name] = child.context.built
+        if (prop.after !== undefined) prop.after(cache, context[name], context, data)
+        // }
+        // success = success && childSuccess
       }
     } else if ((typeof prop.required === 'function' ? prop.required(data.component) : prop.required) === true && allowed) {
       missingRequiredProperties.push(name)
@@ -870,9 +824,8 @@ function validateObjectProperties (context: any, data: ValidatorData): boolean {
     // if a schema extension
     if (rx.extension.test(key)) {
       if (!allowsSchemaExtensions && key !== 'x-enforcer') {
-        const extensionNotAllowed = E.extensionNotAllowed(data, { node: definition, key, type: 'key' })
-        exception.message(extensionNotAllowed)
-        if (extensionNotAllowed.level === 'error') success = false
+        const { level } = exception.add.extensionNotAllowed(data, { node: definition, key, type: 'key' })
+        if (level === 'error') success = false
       }
       return
     }
@@ -890,8 +843,9 @@ function validateObjectProperties (context: any, data: ValidatorData): boolean {
     } else {
       const child = createChildData(data, def, key, additionalProperties.schema) as ValidatorData
       const childSuccess = validate(child)
-      if (childSuccess) context[key] = child.context.built
-      success = success && childSuccess
+      // if (childSuccess) context[key] = child.context.built
+      // success = success && childSuccess
+      context[key] = child.context.built
     }
   })
 
@@ -900,8 +854,7 @@ function validateObjectProperties (context: any, data: ValidatorData): boolean {
     let notAllowedErrorCount = 0
     notAllowedItems.sort((a: NotAllowed, b: NotAllowed) => a.name < b.name ? -1 : 1)
     notAllowedItems.forEach(reason => {
-      const propertyNotAllowed = E.propertyNotAllowed(data, { node: definition, key: reason.name, type: 'key' }, reason.name, reason.reason)
-      const { level } = exception.message(propertyNotAllowed)
+      const { level } = exception.add.propertyNotAllowed(data, { node: definition, key: reason.name, type: 'key' }, reason.name, reason.reason)
       if (level === 'error') notAllowedErrorCount++
     })
     if (notAllowedErrorCount > 0) success = false
@@ -909,8 +862,7 @@ function validateObjectProperties (context: any, data: ValidatorData): boolean {
 
   // report on missing required properties
   if (missingRequiredProperties.length > 0) {
-    const eMissingRequiredProperties = E.missingRequiredProperties(data, { node: definition }, missingRequiredProperties)
-    const { level } = exception.message(eMissingRequiredProperties)
+    const { level } = exception.add.missingRequiredProperties(data, { node: definition }, missingRequiredProperties)
     if (level === 'error') success = false
   }
 

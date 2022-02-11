@@ -1,8 +1,7 @@
-import { DefinitionException } from '../DefinitionException'
-import * as E from '../DefinitionException/methods'
+import { DefinitionException } from '../Exception'
 import jsonParser, { ArrayNode, LiteralNode, Location, ObjectNode, ValueNode } from 'json-to-ast'
 import * as yamlParser from 'yaml-ast-parser'
-import { DefinitionResult as ResultObject } from '../DefinitionException/DefinitionResult'
+import { Result } from './Result'
 import { adapter } from './adapter'
 
 const loaders: Loader[] = []
@@ -18,9 +17,9 @@ interface LineEnding {
   lineLength: number
 }
 
-export type Loader = (path: string, data?: LoaderMetadata) => Promise<Result>
+export type Loader = (path: string, data?: LoaderMetadata) => Promise<LoaderResult>
 
-export type Result = LoaderMismatch | LoaderMatch
+export type LoaderResult = LoaderMismatch | LoaderMatch
 
 interface LoaderMatch {
   loaded: true
@@ -94,7 +93,7 @@ export function getReferenceNode (loadMap: Record<string, any>, rootNodePath: st
   }
 }
 
-export async function load (path: string, options?: Options, data?: LoaderMetadata): Promise<ResultObject> {
+export async function load (path: string, options?: Options, data?: LoaderMetadata): Promise<Result> {
   if (options === undefined || options === null) options = {}
   if (typeof options !== 'object') throw Error('Invalid load options specified.')
   if (options.dereference === undefined) options.dereference = true
@@ -136,8 +135,7 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
 
       if (n === undefined) {
         // @ts-expect-error - we send in a partial data object
-        const message = E.refNotResolved({ component: { definition: node } }, { node: parent, key, type: 'value' }, ref, path)
-        data.exception.message(message)
+        data.exception.add.refNotResolved({ component: { definition: node } }, { node: parent, key, type: 'value' }, ref, path)
       } else if (parent === null) {
         // no parent means that the root node had the $ref
         return n
@@ -147,7 +145,7 @@ export async function load (path: string, options?: Options, data?: LoaderMetada
     }
   }
 
-  return new ResultObject(node, data.exception)
+  return new Result(node, data.exception)
 }
 
 // look up location information for a specific node

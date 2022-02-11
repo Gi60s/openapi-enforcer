@@ -1,8 +1,7 @@
 import { OASComponent } from './'
 import { Component, ComponentSchema } from './helpers/builder-validator-types'
-import * as E from '../DefinitionException/methods'
 import { PathItem } from './PathItem'
-import { LocationInput } from '../DefinitionException/types'
+import { LocationInput } from '../Exception'
 
 export function schemaGenerator<Definition> (PathItemComponent: Component): ComponentSchema<Definition> {
   return new ComponentSchema<Definition>({
@@ -21,8 +20,7 @@ export function schemaGenerator<Definition> (PathItemComponent: Component): Comp
 
         // no paths defined
         if (paths.length === 0) {
-          const noPathsDefined = E.noPathsDefined(data, { node: definition })
-          exception.message(noPathsDefined)
+          exception.add.noPathsDefined(data, { node: definition })
         }
 
         // determine which paths include a trailing slash and which dont
@@ -45,12 +43,12 @@ export function schemaGenerator<Definition> (PathItemComponent: Component): Comp
               type: 'key'
             }
           })
-          const pathEndingsInconsistent = E.pathEndingsInconsistent(data, locations, includesTrailingSlashes, omitsTrainingSlashes)
-          exception.message(pathEndingsInconsistent)
+          exception.add.pathEndingsInconsistent(data, locations, includesTrailingSlashes, omitsTrainingSlashes)
         }
 
         // check for duplicate operation ids
         data.root.lastly.push(() => {
+          const exception = data.context.exception
           const map = data.root.metadata.operationIdMap
           Object.keys(map).forEach(operationId => {
             const operationDataArray = map[operationId]
@@ -65,7 +63,7 @@ export function schemaGenerator<Definition> (PathItemComponent: Component): Comp
                   type: 'value'
                 }
               })
-              E.operationIdMustBeUnique(data, locations, operationId, operationDataArray)
+              exception.add.operationIdMustBeUnique(data, locations, operationId, operationDataArray)
             }
           })
         })

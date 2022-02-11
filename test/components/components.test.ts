@@ -5,6 +5,7 @@ import {
   Header,
   Link,
   Parameter,
+  PathItem,
   RequestBody,
   Response,
   Schema,
@@ -428,11 +429,14 @@ describe('Component: Components', () => {
       })
 
       it('can define valid callbacks', function () {
-        const [error] = Components.validate({
+        const def = {
           callbacks: {
-            MyCallback: minimal(Link, '3.x')
+            MyCallback: {
+              '{$request.query.queryUrl}': minimal(PathItem, '3.x')
+            }
           }
-        })
+        }
+        const [error] = Components.validate(def)
         expect(error).to.equal(undefined)
       })
 
@@ -443,7 +447,7 @@ describe('Component: Components', () => {
             MyCallback: { foo: 'bar' }
           }
         })
-        expect(error).to.match(/Expected a non-null object. Received: "bar"/)
+        expect(error).to.match(/Expected a PathItem object definition. Received: "bar"/)
       })
 
       it('can accept a reference', function () {

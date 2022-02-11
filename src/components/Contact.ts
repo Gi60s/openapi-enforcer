@@ -1,7 +1,6 @@
 import { componentValidate, OASComponent } from './index'
 import { ComponentSchema, Version } from './helpers/builder-validator-types'
-import { DefinitionException } from '../DefinitionException'
-import * as E from '../DefinitionException/methods'
+import { DefinitionException } from '../Exception'
 import rx from '../utils/rx'
 import { Contact as Definition } from './helpers/definition-types'
 
@@ -54,15 +53,13 @@ export class Contact extends OASComponent {
 
             if (typeof url === 'string') {
               if (!rx.url.test(url)) {
-                const invalidUrl = E.invalidUrl(data, { key: 'url', type: 'value' }, url)
-                exception.at('url').message(invalidUrl)
+                exception.at('url').add.invalidUrl(data, { key: 'url', type: 'value' }, url)
               }
             }
 
             if (typeof email === 'string') {
               if (!rx.email.test(email)) {
-                const invalidEmail = E.invalidEmail(data, { key: 'email', type: 'value' }, email)
-                exception.message(invalidEmail)
+                exception.add.invalidEmail(data, { key: 'email', type: 'value' }, email)
               }
             }
           }

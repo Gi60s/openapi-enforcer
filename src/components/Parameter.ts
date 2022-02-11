@@ -3,14 +3,13 @@ import { Component, ComponentSchema } from './helpers/builder-validator-types'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as Serilizer from './helpers/serializer'
 import * as V from './helpers/common-validators'
-import * as E from '../DefinitionException/methods'
 import { Schema as Schema3 } from './v3/Schema'
 import {
   Parameter2 as Definition2,
   Parameter3 as Definition3,
   Schema3 as SchemaDefinition3
 } from './helpers/definition-types'
-import { LocationInput } from '../DefinitionException/types'
+import { LocationInput } from '../Exception'
 
 type Definition = Definition2 | Definition3
 
@@ -188,15 +187,13 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
     V.defaultRequiredConflict(data)
 
     if ('allowEmptyValue' in built && major !== 2) {
-      const notRecommended = E.notRecommended(data, { key: 'allowEmptyValue', type: 'key' }, 'Use of the property "allowEmptyValue" is not recommended because it is likely to be removed in the future.')
-      exception.message(notRecommended)
+      exception.add.notRecommended(data, { key: 'allowEmptyValue', type: 'key' }, 'Use of the property "allowEmptyValue" is not recommended because it is likely to be removed in the future.')
     }
 
     // if parameter in path then validate that required is true
     if (at === 'path' && definition.required !== true) {
       const location: LocationInput = 'required' in definition ? { node: definition, key: 'required', type: 'value' } : { node: definition }
-      const pathParameterMustBeRequired = E.pathParameterMustBeRequired(data, location, definition.name)
-      exception.message(pathParameterMustBeRequired)
+      exception.add.pathParameterMustBeRequired(data, location, definition.name)
     }
 
     if (major === 3) {
@@ -210,8 +207,7 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
       if (type !== '') {
         const validStyle = Serilizer.styleMatchesType(built.in, style, type, built.explode as boolean)
         if (!validStyle) {
-          const invalidStyle = E.invalidStyle(data, { node: definition, key: 'style', type: 'value' }, style, type)
-          exception.at('style').message(invalidStyle)
+          exception.at('style').add.invalidStyle(data, { node: definition, key: 'style', type: 'value' }, style, type)
         }
       }
 
@@ -219,8 +215,7 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
       if ('explode' in built) {
         const validExplode = Serilizer.styleMatchesExplode(built.in, style, built.explode as boolean)
         if (!validExplode) {
-          const invalidCookieExplode = E.invalidCookieExplode(data, { node: definition, key: 'explode', type: 'value' }, definition.name)
-          exception.at('explode').message(invalidCookieExplode)
+          exception.at('explode').add.invalidCookieExplode(data, { node: definition, key: 'explode', type: 'value' }, definition.name)
         }
       }
 

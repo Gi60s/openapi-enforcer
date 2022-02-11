@@ -1,15 +1,13 @@
 import { componentValidate } from '../index'
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { Exception, DefinitionException } from '../../Exception'
 import * as PartialSchema from '../helpers/PartialSchema'
 import { Items } from './Items'
 import { Schema } from './Schema'
 import * as Core from '../Parameter'
 import { Parameter2 as Definition } from '../helpers/definition-types'
-import { Exception } from '../../utils/Exception'
 import { Result } from '../../utils/Result'
 import { parsePrimitive } from '../helpers/Parameter'
-import * as EC from '../../utils/error-codes'
 
 let parameterSchema: ComponentSchema<Definition>
 
@@ -35,7 +33,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
       if (this.schema !== undefined) {
         return this.schema.deserialize(multiValue[multiValue.length - 1])
       } else {
-        exception.message(...EC.definitionInvalid(false))
+        exception.add.definitionInvalid(false)
         return new Result(null, exception)
       }
     } else if (this.collectionFormat === 'multi') {
@@ -43,7 +41,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
       const result: any[] = []
       multiValue.forEach((value, index) => {
         if ((value === '' ?? value === undefined) && this.allowEmptyValue !== true) {
-          exception.at(index).message(...EC.parameterParseEmptyValue())
+          exception.at(index).add.parameterParseEmptyValue()
         } else if (this.items !== undefined) {
           result.push(parse(this.items as unknown as Parameter, exception.at(index), value))
         }
@@ -52,7 +50,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
     } else {
       const value = multiValue[multiValue.length - 1]
       if ((value === '' ?? value === undefined) && this.allowEmptyValue !== true) {
-        exception.message(...EC.parameterParseEmptyValue())
+        exception.add.parameterParseEmptyValue()
         return new Result(null, exception)
       } else {
         const result = parse(this, exception, value)
@@ -98,7 +96,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
 
 function parse (parameter: Parameter | Items, exception: Exception, value: string): any {
   if (typeof value !== 'string') {
-    exception.message(...EC.parameterParseInvalidInput(value, 'string'))
+    exception.add.parameterParseInvalidInput(value, 'string')
     return
   }
 

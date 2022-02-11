@@ -1,56 +1,64 @@
-import { ExceptionCore, Message, smart } from './ExceptionCore'
+import { ExceptionBase, Message, smart } from './ExceptionBase'
+import { ucFirst } from '../utils/util'
 
 const codePrefix = 'OAE-E'
 
 interface Adders {
-  dataTypeEnum: (_enum: any[], value: any) => void
-  dataTypeInvalid: (expectedType: string, actualValue: any) => void
-  dataTypeMaximum: (maximum: number, exclusive: boolean, sValue: string, value: number) => void
-  dataTypeMaxItems: (maximum: number, length: number) => void
-  dataTypeMaxLength: (maximum: number, length: number) => void
-  dataTypeMaxProperties: (maximum: number, length: number) => void
-  dataTypeMinimum: (minimum: number, exclusive: boolean, sValue: string, value: number) => void
-  dataTypeMinItems: (minimum: number, length: number) => void
-  dataTypeMinLength: (maximum: number, length: number) => void
-  dataTypeMinProperties: (minimum: number, length: number) => void
-  dataTypeMultipleOf: (multipleOf: number, sValue: string, value: number) => void
-  dataTypeMissingProperties: (properties: string[]) => void
-  dataTypePropertiesNotAllowed: (properties: string[]) => void
-  dataTypeReadOnly: (readOnlyProperties: string[]) => void
-  dataTypeUnique: (indexes: number[], values: any[]) => void
-  dataTypeWriteOnly: (writeOnlyProperties: string[]) => void
 
-  definitionInvalid: (isOpenAPI: boolean) => void
-  invalidInput: (explanation: string) => void
+  dataTypeEnum: (_enum: any[], value: any) => Message
+  dataTypeInvalid: (expectedType: string, actualValue: any) => Message
+  dataTypeMaximum: (maximum: number, exclusive: boolean, sValue: string, value: number) => Message
+  dataTypeMaxItems: (maximum: number, length: number) => Message
+  dataTypeMaxLength: (maximum: number, length: number) => Message
+  dataTypeMaxProperties: (maximum: number, length: number) => Message
+  dataTypeMinimum: (minimum: number, exclusive: boolean, sValue: string, value: number) => Message
+  dataTypeMinItems: (minimum: number, length: number) => Message
+  dataTypeMinLength: (maximum: number, length: number) => Message
+  dataTypeMinProperties: (minimum: number, length: number) => Message
+  dataTypeMultipleOf: (multipleOf: number, sValue: string, value: number) => Message
+  dataTypeMissingProperties: (properties: string[]) => Message
+  dataTypePropertiesNotAllowed: (properties: string[]) => Message
+  dataTypeReadOnly: (readOnlyProperties: string[]) => Message
+  dataTypeUnique: (indexes: number[], values: any[]) => Message
+  dataTypeWriteOnly: (writeOnlyProperties: string[]) => Message
 
-  operationMissingRequiredParameters: (at: string, names: string[]) => void
-  operationRequestBodyNotAllowed: (method: string, path: string) => void
-  operationRequestContentTypeNotProvided: () => void
-  operationRequestContentTypeNotValid: (contentType: string, allowedTypes: string[]) => void
-  operationResponseCodeInvalid: (code: string, allowedCodes: string[]) => void
-  operationResponseContentTypeInvalid: (code: string, contentType: string, allowedTypes: string[]) => void
+  definitionInvalid: (isOpenAPI: boolean) => Message
+  invalidInput: (explanation: string) => Message
+
+  operationMissingRequiredParameters: (at: string, names: string[]) => Message
+  operationRequestBodyNotAllowed: (method: string, path: string) => Message
+  operationRequestContentTypeNotProvided: () => Message
+  operationRequestContentTypeNotValid: (contentType: string, allowedTypes: string[]) => Message
+  operationResponseCodeInvalid: (code: string, allowedCodes: string[]) => Message
+  operationResponseContentTypeInvalid: (code: string, contentType: string, allowedTypes: string[]) => Message
 
   // TODO: how is parameterParseEmptyValue being used vs parameterParseNoValue? Do I need both?
-  parameterParseEmptyValue: () => void
-  parameterParseNoSchema: () => void
-  parameterParseNoValue: () => void
-  parameterParseStyle: (style: string, type: string, explode: boolean) => void
-  parameterParseInvalidInput: (value: any, expectedType: string) => void
+  parameterParseEmptyValue: () => Message
+  parameterParseNoSchema: () => Message
+  parameterParseNoValue: () => Message
+  parameterParseStyle: (style: string, type: string, explode: boolean) => Message
+  parameterParseInvalidInput: (value: any, expectedType: string) => Message
 
-  schemaDiscriminatorUnmapped: (key: string, name: string) => void
-  schemaIndeterminate: (operation: string) => void
-  schemaIndeterminateType: (operation: string) => void
-  schemaPopulateNotSchema: () => void
-  schemaPopulateNoDiscriminator: (mode: 'anyOf' | 'oneOf') => void
-  schemaShouldNotValidate: () => void
+  schemaAdditionalProperties: (properties: string[]) => Message
+  schemaDiscriminatorUnmapped: (key: string, name: string) => Message
+  schemaIndeterminate: (operation: string) => Message
+  schemaIndeterminateType: (operation: string) => Message
+  schemaPopulateNotSchema: () => Message
+  schemaPopulateNoDiscriminator: (mode: 'anyOf' | 'oneOf') => Message
+  schemaShouldNotValidate: () => Message
 
-  unexpected: (error: Error | any) => void
+  unexpected: (error: Error | any) => Message
 }
 
-export class Exception extends ExceptionCore {
+export class Exception extends ExceptionBase<Exception> {
+  at (key: string | number): Exception {
+    return super.at(key) as Exception
+  }
+
   add: Adders = {
+
     dataTypeEnum: (_enum: any[], value: any) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTENNM',
         level: 'error',
@@ -64,11 +72,11 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeInvalid: (expectedType: string, actualValue: any) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTINVD',
         level: 'error',
-        message: 'Expected ' + smart(expectedType) + '. Received: ' + smart(actualValue),
+        message: 'Expected ' + expectedType + '. Received: ' + smart(actualValue),
         metadata: {
           actualValue,
           expectedType
@@ -78,7 +86,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeMaxItems: (maxItems: number, itemCount: number) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTARLN',
         level: 'error',
@@ -93,7 +101,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeMinItems: (minItems: number, itemCount: number) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTARLN',
         level: 'error',
@@ -108,7 +116,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeMaxLength: (maximum: number, length: number) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTVALE',
         level: 'error',
@@ -123,7 +131,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeMinLength: (maximum: number, length: number) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTVALE',
         level: 'error',
@@ -138,7 +146,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeMaxProperties: (maxProperties: number, length: number) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTPRCO',
         level: 'error',
@@ -153,7 +161,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeMinProperties: (minProperties: number, length: number) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTPRCO',
         level: 'error',
@@ -168,7 +176,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeMaximum: (maximum: number, exclusive: boolean, sValue: string, value: number) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTNURA',
         level: 'error',
@@ -184,7 +192,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeMinimum: (minimum: number, exclusive: boolean, sValue: string, value: number) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTNURA',
         level: 'error',
@@ -200,7 +208,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeMultipleOf: (multipleOf: number, sValue: string, value: number) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTMUOF',
         level: 'error',
@@ -215,7 +223,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeMissingProperties: (requiredProperties: string[]) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTMIPR',
         level: 'error',
@@ -230,7 +238,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypePropertiesNotAllowed: (propertiesNotAllowed: string[]) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTPRNA',
         level: 'error',
@@ -245,7 +253,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeReadOnly: (readOnlyProperties: string[]) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTPRRO',
         level: 'error',
@@ -260,7 +268,7 @@ export class Exception extends ExceptionCore {
     },
 
     dataTypeWriteOnly: (writeOnlyProperties: string[]) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTPRWO',
         level: 'error',
@@ -274,24 +282,23 @@ export class Exception extends ExceptionCore {
       })
     },
 
-    dataTypeUnique: (indexes: number[], notUniqueValues: any[]) => {
-      this.message({
+    dataTypeUnique: (indexes: number[], value: any) => {
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DTARUN',
         level: 'error',
-        message: 'Array values must be unique, but ' +
-          (notUniqueValues.length === 1 ? 'value at index ' : 'values at indexes ') +
-          smart(indexes) + ' are not unique.',
+        message: 'Array values must be unique, but values at indexes ' +
+          smart(indexes) + ' are the same value.',
         metadata: {
           indexes,
-          notUniqueValues
+          value
         },
         reference: ''
       })
     },
 
     definitionInvalid: (isOpenAPI: boolean) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'DENOVA',
         level: 'error',
@@ -304,7 +311,7 @@ export class Exception extends ExceptionCore {
     },
 
     invalidInput: (explanation: string) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'INVINP',
         level: 'error',
@@ -315,11 +322,13 @@ export class Exception extends ExceptionCore {
     },
 
     operationMissingRequiredParameters: (at: string, names: string[]) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'OPRMRP',
         level: 'error',
-        message: at === 'body' ? 'Missing required body' : 'One or more required ' + at + ' parameters are missing: ' + smart(names),
+        message: at === 'body'
+          ? 'Missing required body'
+          : 'Missing required ' + at + ' parameter' + (names.length > 1 ? 's ' : ' ') + ': ' + smart(names),
         metadata: {
           at,
           parameterNames: names
@@ -329,7 +338,7 @@ export class Exception extends ExceptionCore {
     },
 
     operationRequestBodyNotAllowed: (method: string, path: string) => {
-      this.message({
+      return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'OPRBNA',
         level: 'error',
@@ -343,39 +352,220 @@ export class Exception extends ExceptionCore {
     },
 
     operationRequestContentTypeNotProvided: () => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'OPRCNP',
+        level: 'warn',
+        message: 'The "content-type" header was not specified so the first defined content-type was used.',
+        metadata: {},
+        reference: ''
+      })
     },
+
     operationRequestContentTypeNotValid: (contentType: string, allowedTypes: string[]) => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'OPRCNV',
+        level: 'error',
+        message: 'The specified content type cannot be produced by this operation: ' + smart(contentType) + '. Try one of: ' + smart(allowedTypes),
+        metadata: {
+          allowedTypes,
+          contentType
+        },
+        reference: ''
+      })
     },
+
     operationResponseCodeInvalid: (code: string, allowedCodes: string[]) => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'OPRCNV',
+        level: 'error',
+        message: 'The response code for this operation is not provided in the OpenAPI document: ' + smart(code) + (allowedCodes.length > 0 ? '. Use one of: ' + smart(allowedCodes) : ''),
+        metadata: {
+          allowedCodes,
+          code
+        },
+        reference: ''
+      })
     },
+
     operationResponseContentTypeInvalid: (code: string, contentType: string, allowedTypes: string[]) => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'OPRTNV',
+        level: 'error',
+        message: 'The response content-type for this operation is not provided in the OpenAPI document for response code ' + smart(code) + ': ' + smart(contentType) + (allowedTypes.length > 0 ? '. Use one of: ' + smart(allowedTypes) : '. No content types are specified.'),
+        metadata: {
+          allowedTypes,
+          code,
+          contentType
+        },
+        reference: ''
+      })
     },
+
     parameterParseEmptyValue: () => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'PAPAEV',
+        level: 'error',
+        message: 'Empty values not allowed for this parameter.',
+        metadata: {},
+        reference: ''
+      })
     },
+
     parameterParseInvalidInput: (value: any, expectedType: string) => {
+      const actualType = typeof value
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'PAPAIV',
+        level: 'error',
+        message: 'Input is not of the expected type ' + smart(expectedType) + '. Actual type: ' + smart(actualType) + '". Actual value ' + smart(value),
+        metadata: {},
+        reference: ''
+      })
     },
+
     parameterParseNoSchema: () => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'PAPANS',
+        level: 'error',
+        message: 'Unable to parse value without a schema.',
+        metadata: {},
+        reference: ''
+      })
     },
+
     parameterParseNoValue: () => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'PAPANV',
+        level: 'error',
+        message: 'Unable to parse because there is no value to parse.',
+        metadata: {},
+        reference: ''
+      })
     },
+
     parameterParseStyle: (style: string, type: string, explode: boolean) => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'PAPAST',
+        level: 'error',
+        message: ucFirst(type) + ' value is incomplete or improperly formatted for ' + (explode ? 'exploded ' : '') + style + ' style.',
+        metadata: {
+          explode,
+          style,
+          type
+        },
+        reference: ''
+      })
     },
+
+    schemaAdditionalProperties: (properties: string[]) => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'SCIGPR',
+        level: 'ignore',
+        message: properties.length === 1
+          ? 'Value contains an additional property that is not defined in the schema: ' + smart(properties[0])
+          : 'Value contains additional properties that are not defined in the schema: ' + smart(properties),
+        metadata: {
+          properties
+        },
+        reference: ''
+      })
+    },
+
     schemaDiscriminatorUnmapped: (key: string, name: string) => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'SCDIUM',
+        level: 'error',
+        message: 'Discriminator property ' + smart(key) + ' as ' + smart(name) + ' did not map to a schema.',
+        metadata: {
+          key,
+          name
+        },
+        reference: ''
+      })
     },
+
     schemaIndeterminate: (operation: string) => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'SCINDE',
+        level: 'error',
+        message: 'Unable to determine schema for operation: ' + operation,
+        metadata: {
+          operation
+        },
+        reference: ''
+      })
     },
+
     schemaIndeterminateType: (operation: string) => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'SCINDT',
+        level: 'error',
+        message: 'Unable to perform operation (' + operation + ') because the schema has no type.',
+        metadata: {
+          operation
+        },
+        reference: ''
+      })
     },
+
     schemaPopulateNoDiscriminator: (mode: 'anyOf' | 'oneOf') => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'SCPPND',
+        level: 'error',
+        message: 'Unable to populate ' + mode + ' without a discriminator',
+        metadata: {
+          mode
+        },
+        reference: ''
+      })
     },
+
     schemaPopulateNotSchema: () => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'SCPPNT',
+        level: 'error',
+        message: 'Cannot populate "not" schemas.',
+        metadata: {},
+        reference: ''
+      })
     },
+
     schemaShouldNotValidate: () => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'SCVLNO',
+        level: 'error',
+        message: 'Value should not validate against the schema',
+        metadata: {},
+        reference: ''
+      })
     },
+
     unexpected: (error: any) => {
+      return this.message({
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        code: codePrefix + 'UNEXPT',
+        level: 'error',
+        message: 'Unexpected error: ' + String(error !== null && typeof error === 'object' ? error.message ?? error : error),
+        metadata: {
+          error
+        },
+        reference: ''
+      })
     }
   }
 }
-
-const e = new Exception()
-e.add.dataTypeEnum()

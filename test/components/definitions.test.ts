@@ -27,7 +27,7 @@ describe('Component: Definitions', () => {
         // @ts-expect-error
         foo: 'invalid'
       })
-      expect(error).to.match(/Expected a non-null object/)
+      expect(error).to.match(/Expected a Schema object definition/)
     })
 
     it('can define schemas as properties', () => {

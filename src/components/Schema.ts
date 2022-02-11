@@ -6,11 +6,10 @@ import {
   Data,
   Version
 } from './helpers/builder-validator-types'
-import { DefinitionException } from '../DefinitionException'
+import { DefinitionException } from '../Exception'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as ExternalDocumentation from './ExternalDocumentation'
 import * as Xml from './Xml'
-import * as E from '../DefinitionException/methods'
 import { Schema2 as Definition2, Schema3 as Definition3 } from './helpers/definition-types'
 import * as SchemaHelper from './helpers/schema-functions'
 
@@ -77,8 +76,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
       // let this continue even if it fails here
       const value = definition.additionalProperties
       if (typeof value !== 'boolean' && typeof value !== 'object') {
-        const invalidAdditionalPropertiesSchema = E.invalidAdditionalPropertiesSchema(data, { node: definition, key: 'additionalProperties', type: 'value' }, value)
-        exception.at('additionalProperties').message(invalidAdditionalPropertiesSchema)
+        exception.at('additionalProperties').add.invalidAdditionalPropertiesSchema(data, { node: definition, key: 'additionalProperties', type: 'value' }, value)
       }
     }
 
@@ -94,14 +92,12 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
       const types = SchemaHelper.determineTypes(built, new Map())
 
       if (types.known.length > 1) {
-        const allOfConflictingSchemaTypes = E.allOfConflictingSchemaTypes(data, { key: 'allOf', type: 'value' }, types.known.map(v => v.type))
-        exception.at('allOf').message(allOfConflictingSchemaTypes)
+        exception.at('allOf').add.allOfConflictingSchemaTypes(data, { key: 'allOf', type: 'value' }, types.known.map(v => v.type))
       }
 
       const formatsArray = (types.known[0]?.formats ?? []).filter(v => v.length > 0)
       if (formatsArray.length > 1) {
-        const allOfConflictingSchemaFormats = E.allOfConflictingSchemaFormats(data, { key: 'allOf', type: 'value' }, formatsArray)
-        exception.at('allOf').message(allOfConflictingSchemaFormats)
+        exception.at('allOf').add.allOfConflictingSchemaFormats(data, { key: 'allOf', type: 'value' }, formatsArray)
       }
     }
 
@@ -131,7 +127,8 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
         ],
         error (data) {
           const definition = data.component.definition
-          return E.invalidAdditionalPropertiesSchema(data, { node: definition, key: 'additionalProperties', type: 'value' }, definition)
+          const exception = data.context.exception
+          return exception.add.invalidAdditionalPropertiesSchema(data, { node: definition, key: 'additionalProperties', type: 'value' }, definition)
         }
       }
     },

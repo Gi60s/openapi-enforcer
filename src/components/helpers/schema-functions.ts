@@ -1,4 +1,4 @@
-import { Exception } from '../../utils/Exception'
+import { ExceptionLevelConfig, Exception } from '../../Exception'
 import { Schema2 as Definition2, Schema3 as Definition3 } from './definition-types'
 import { Schema as Schema2 } from '../v2/Schema'
 import { Schema as Schema3 } from '../v3/Schema'
@@ -7,7 +7,6 @@ import { getDataTypeDefinition } from './schema-data-types'
 import { Result } from '../../utils/Result'
 import { OASComponent } from '../index'
 import * as Randomizer from './randomizer'
-import * as EC from '../../utils/error-codes'
 
 type Definition = Definition2 | Definition3
 export type Schema = Schema2 | Schema3
@@ -55,6 +54,7 @@ export interface RandomOptions {
 type Type = 'string' | 'number' | 'boolean' | 'object' | 'array' | 'integer'
 
 export interface ValidateOptions {
+  exceptionLevels?: ExceptionLevelConfig
   readWriteMode?: 'read' | 'write'
 }
 
@@ -143,21 +143,6 @@ export class MapStore<R> {
     } else {
       return items[index]
     }
-  }
-}
-
-export function analyze (schema: Schema, value: any, map: MapStore<boolean>): MapItem<boolean> {
-  // watch for values that have already been validated against this value
-  const mapped = map.get(schema, value)
-  if (mapped.result !== undefined) return mapped
-
-  // check for nullable
-  if (value === null && (schema.enforcer.nullable === true || ('nullable' in schema && schema.nullable === true))) {
-    return mapped.setResult(true)
-  }
-
-  if (schema.type === 'object') {
-
   }
 }
 
@@ -285,22 +270,22 @@ export function populate (schema: Schema, parameters: Record<string, any>, targe
   } else if ('anyOf' in schema || 'oneOf' in schema) {
     const mode = 'anyOf' in schema ? 'anyOf' : 'oneOf'
     if (schema.discriminator === undefined) {
-      exception.message(...EC.schemaPopulateNoDiscriminator(mode))
+      exception.add.schemaPopulateNoDiscriminator(mode)
     } else {
       const { name, key: discriminatorKey, schema: subSchema } = schema.discriminate(value)
       if (subSchema !== null) {
         populate(subSchema as Schema, parameters, target, key, injector, exception.at(mode), depth, options)
       } else {
-        exception.message(...EC.schemaDiscriminatorUnmapped(discriminatorKey, name))
+        exception.add.schemaDiscriminatorUnmapped(discriminatorKey, name)
       }
     }
   } else if ('not' in schema) {
-    exception.message(...EC.schemaPopulateNotSchema())
+    exception.add.schemaPopulateNotSchema()
   } else {
     const { type } = determineTypes(schema, new Map()).get(true)
     if (type === 'array') {
       if (value !== undefined && !Array.isArray(value)) {
-        exception.message(...EC.dataTypeInvalid('an array', value))
+        exception.add.dataTypeInvalid('an array', value)
       } else {
         const applied = populateApply(schema, type, parameters, target, key, injector, options)
         if (schema.items !== undefined && Array.isArray(applied)) {
@@ -312,7 +297,7 @@ export function populate (schema: Schema, parameters: Record<string, any>, targe
       }
     } else if (type === 'object') {
       if (value !== undefined && !isObject(value)) {
-        exception.message(...EC.dataTypeInvalid('an object', value))
+        exception.add.dataTypeInvalid('an object', value)
       } else {
         const appliedValue = populateApply(schema, type, parameters, target, key, injector, options)
         const applied = appliedValue ?? {}
@@ -364,7 +349,7 @@ export function random (schema: Schema, target: Record<string, any>, key: string
     target[key] = copy(Randomizer.oneOf(schema.enum))
   } else if (schema.type === 'array') {
     if (value !== undefined && !Array.isArray(value)) {
-      exception.message(...EC.dataTypeInvalid('an array', value))
+      exception.add.dataTypeInvalid('an array', value)
     } else if (schema.items !== undefined) {
       const result = value ?? []
       const min: number = schema.minItems ?? result.length
@@ -414,7 +399,7 @@ export function random (schema: Schema, target: Record<string, any>, key: string
     if (value === null) {
       target[key] = null
     } else if (value !== undefined && typeof value !== 'object') {
-      exception.message(...EC.dataTypeInvalid('an object', value))
+      exception.add.dataTypeInvalid('an object', value)
     } else {
       const result = value ?? {}
       const definedProperties = schema.properties !== undefined ? Object.keys(schema.properties) : []
@@ -503,7 +488,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
     if ('discriminator' in schema) {
       const { key, schema: childSchema } = schema.discriminate(value)
       if (childSchema === null) {
-        exception.message(...EC.schemaDiscriminatorUnmapped(key, value[key]))
+        exception.add.schemaDiscriminatorUnmapped(key, value[key])
         valid = false
       } else {
         const { result } = validate(childSchema as Schema, value, map, exception.at(value[key]), options)
@@ -529,37 +514,48 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
   } else if ('not' in schema) {
     const { result } = validate(schema, value, map, new Exception(), options)
     if (result === true) {
-      exception.message(...EC.schemaShouldNotValidate())
+      exception.add.schemaShouldNotValidate()
       valid = false
     }
   } else if (schema.type === 'array') {
     if (!Array.isArray(value)) {
-      exception.message(...EC.dataTypeInvalid('an array', value))
+      exception.add.dataTypeInvalid('an array', value)
       valid = false
     } else {
       const length = value.length
       if (schema.maxItems !== undefined && schema.maxItems < length) {
-        exception.message(...EC.dataTypeMaxItems(schema.maxItems, length))
+        exception.add.dataTypeMaxItems(schema.maxItems, length)
         valid = false
       }
       if (schema.minItems !== undefined && schema.minItems > length) {
-        exception.message(...EC.dataTypeMinItems(schema.minItems, length))
+        exception.add.dataTypeMinItems(schema.minItems, length)
         valid = false
       }
       if (schema.uniqueItems === true) {
         const singles: any[] = []
+        const duplicates: Map<any, number[]> = new Map()
         value.forEach((item, index) => {
           const length = singles.length
           let found = false
           for (let i = 0; i < length; i++) {
             if (same(item, singles[i])) {
-              exception.message(...EC.dataTypeUnique(index))
+              const dup = duplicates.get(item)
+              if (dup === undefined) {
+                duplicates.set(item, [i, index])
+              } else {
+                dup.push(index)
+              }
               found = true
               valid = false
               break
             }
           }
           if (!found) singles.push(item)
+        })
+
+        // report duplicates
+        duplicates.forEach((indexes, value) => {
+          exception.add.dataTypeUnique(indexes, value)
         })
       }
       if (schema.items !== undefined) {
@@ -571,7 +567,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
     }
   } else if (schema.type === 'object') {
     if (!isObject(value)) {
-      exception.message(...EC.dataTypeInvalid('a non-null object', value))
+      exception.add.dataTypeInvalid('a non-null object', value)
       valid = false
     } else {
       const properties = schema.properties ?? {}
@@ -591,6 +587,8 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
         : []
 
       // validate each property in the value
+      const propertiesNotAllowed: string[] = []
+      const additionalProperties: string[] = []
       keys.forEach(key => {
         // remove item for required remaining array
         const index = required.indexOf(key)
@@ -603,30 +601,40 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
           if (result === false) valid = false
         } else {
           if (schema.additionalProperties === false) {
-            exception.at(key).message(...EC.dataTypePropertyNotAllowed())
-            valid = false
+            propertiesNotAllowed.push(key)
           } else if (typeof schema.additionalProperties === 'object') {
             const prop = schema.additionalProperties
             if ((readWriteMode === 'write' && prop.readOnly === true) || (readWriteMode === 'read' && (prop as Schema3).writeOnly === true)) readWriteOnly.push(key)
             const { result } = validate(prop, value[key], map, exception.at(key), options)
             if (result === false) valid = false
+          } else {
+            additionalProperties.push(key)
           }
         }
       })
 
+      if (additionalProperties.length > 0) {
+        exception.add.schemaAdditionalProperties(additionalProperties)
+      }
+
+      if (propertiesNotAllowed.length > 0) {
+        exception.add.dataTypePropertiesNotAllowed(propertiesNotAllowed)
+        valid = false
+      }
+
       // validate that all required are present
       if (required.length > 0) {
-        exception.message(...EC.dataTypePropertyMissing(required))
+        exception.add.dataTypeMissingProperties(required)
         valid = false
       }
 
       // validate that we only have readable or writable properties
       if (readWriteOnly.length > 0) {
         if (readWriteMode === 'write') {
-          exception.message(...EC.dataTypeReadOnly(readWriteOnly))
+          exception.add.dataTypeReadOnly(readWriteOnly)
           valid = false
         } else if (readWriteMode === 'read') {
-          exception.message(...EC.dataTypeWriteOnly(readWriteOnly))
+          exception.add.dataTypeWriteOnly(readWriteOnly)
           valid = false
         }
       }
@@ -634,11 +642,11 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
       // validate number of properties
       const propertyCount = Object.keys(properties).length
       if (schema.maxProperties !== undefined && propertyCount > schema.maxProperties) {
-        exception.message(...EC.dataTypeMaxProperties(schema.maxProperties, propertyCount))
+        exception.add.dataTypeMaxProperties(schema.maxProperties, propertyCount)
         valid = false
       }
       if (schema.minProperties !== undefined && propertyCount < schema.minProperties) {
-        exception.message(...EC.dataTypeMinProperties(schema.minProperties, propertyCount))
+        exception.add.dataTypeMinProperties(schema.minProperties, propertyCount)
         valid = false
       }
 
@@ -649,7 +657,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
           const { result } = validate(details.schema as Schema, value, map, exception, options)
           if (result === false) valid = false
         } else if (details.name !== undefined) {
-          exception.message(...EC.schemaDiscriminatorUnmapped(details.key, details.name))
+          exception.add.schemaDiscriminatorUnmapped(details.key, details.name)
           valid = false
         } // else - already taken care of because it's a missing required error
       }
@@ -677,7 +685,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
       }
     }
     if (!found) {
-      exception.message(...EC.dataTypeEnum(schema.enum, value))
+      exception.add.dataTypeEnum(schema.enum, value)
       valid = false
     }
   }
@@ -780,7 +788,7 @@ function serializer (mode: 'deserialize' | 'serialize', schema: Schema, value: a
       const childException = new Exception()
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const { result } = serializer(mode, { type, format } as Schema, value, new MapStore(), childException)
-      if (!childException.hasException) {
+      if (!childException.hasError) {
         const resultType = typeof result
         if (type === 'boolean' && resultType === 'boolean') return mapped.setResult(result)
         if ((type === 'number' || type === 'integer') && resultType === 'number' && !isNaN(result)) return mapped.setResult(result)

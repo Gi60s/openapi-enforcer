@@ -327,11 +327,11 @@ describe('Component: Encoding', () => {
       })
 
       it('will warn about the value being ignored if not within application/x-www-form-urlencoded', () => {
-        def.content['text/plain'] = def.content['application/x-www-form-urlencoded']
+        def.content['multipart/form-data'] = def.content['application/x-www-form-urlencoded']
         delete def.content['application/x-www-form-urlencoded']
         encoding.x = { style: 'form' }
         const { warning } = RequestBody.validate(def)
-        expect(warning).to.match(/Property ignored: "style"/)
+        expect(warning).to.match(/Property "style" ignored./)
         expect(warning?.count).to.equal(1)
       })
     })

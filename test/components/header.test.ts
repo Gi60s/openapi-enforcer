@@ -338,7 +338,7 @@ describe('Component: Header', () => {
         it('must be a schema definition"', () => {
           // @ts-expect-error
           const [error] = Header3.validate({ schema: false })
-          expect(error).to.match(/Expected a non-null object/)
+          expect(error).to.match(/Expected a Schema object definition/)
         })
 
         it('is mutually exclusive of the "content" property', () => {
@@ -357,13 +357,14 @@ describe('Component: Header', () => {
           expect(warning).to.equal(undefined)
         })
 
-        it.only('will warn if not matching the schema', () => {
+        it('will warn if not matching the schema', () => {
           const [error, warning] = Header3.validate({ example: true, schema: { type: 'string' } })
           expect(error).to.equal(undefined)
           expect(warning).to.match(/Example is not valid when compared against the schema/)
+          expect(warning).to.match(/Expected a string. Received: true/)
         })
 
-        it.only('will warn if it contains additional properties', () => {
+        it('will warn if it contains additional properties', () => {
           const [error, warning] = Header3.validate({
             example: { a: 'a', b: 'b' },
             schema: {
@@ -374,7 +375,7 @@ describe('Component: Header', () => {
             }
           })
           expect(error).to.equal(undefined)
-          expect(warning).to.match(/Additional property found in value: "b"/)
+          expect(warning).to.match(/Value contains an additional property that is not defined in the schema: "b"/)
         })
 
         it('is mutually exclusive of "examples" property', () => {

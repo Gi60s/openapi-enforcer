@@ -1,5 +1,4 @@
-import { DefinitionException } from '../../DefinitionException'
-import { Exception } from '../../utils/Exception'
+import { Exception, DefinitionException } from '../../Exception'
 import {
   Operation2 as OperationDefinition2,
   Operation3 as OperationDefinition3,

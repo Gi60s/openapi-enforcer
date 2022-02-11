@@ -3,9 +3,8 @@ import {
   LoaderOptions,
   loadRoot, componentValidate
 } from '../index'
-import { DefinitionException } from '../../DefinitionException'
-import { DefinitionResult } from '../../DefinitionException/DefinitionResult'
-import * as E from '../../DefinitionException/methods'
+import { DefinitionException } from '../../Exception'
+import { Result } from '../../utils/Result'
 import rx from '../../utils/rx'
 import { Definitions } from './Definitions'
 import { ExternalDocumentation } from '../ExternalDocumentation'
@@ -50,7 +49,7 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
     '2.0': 'https://spec.openapis.org/oas/v2.0#swagger-object'
   }
 
-  static async load (path: string, options?: LoaderOptions): Promise<DefinitionResult<Swagger>> {
+  static async load (path: string, options?: LoaderOptions): Promise<Result<Swagger>> {
     return await loadRoot<Swagger>(Swagger, path, options)
   }
 
@@ -213,20 +212,17 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
             if (built.basePath !== undefined) {
               const basePath = built.basePath
               if (basePath[0] !== '/') {
-                const swaggerBasePathInvalid = E.swaggerBasePathInvalid(data, { key: 'basePath', type: 'value' }, basePath)
-                exception.message(swaggerBasePathInvalid)
+                exception.add.swaggerBasePathInvalid(data, { key: 'basePath', type: 'value' }, basePath)
               }
               if (rxPathTemplating.test(basePath)) {
-                const swaggerBasePathTemplating = E.swaggerBasePathTemplating(data, { key: 'basePath', type: 'value' }, basePath)
-                exception.message(swaggerBasePathTemplating)
+                exception.add.swaggerBasePathTemplating(data, { key: 'basePath', type: 'value' }, basePath)
               }
             }
 
             if (built.consumes !== undefined) {
               built.consumes.forEach((consumes: string) => {
                 if (!rx.mediaType.test(consumes)) {
-                  const invalidMediaType = E.invalidMediaType(data, { node: definition.consumes, key: consumes, type: 'value' }, consumes)
-                  exception.message(invalidMediaType)
+                  exception.add.invalidMediaType(data, { node: definition.consumes, key: consumes, type: 'value' }, consumes)
                 }
               })
             }
@@ -236,25 +232,21 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
               const match = rxHostParts.exec(host)
               if (match !== undefined && match !== null) {
                 if (match[1] !== undefined) {
-                  const swaggerHostHasScheme = E.swaggerHostHasScheme(data, { key: 'host', type: 'value' }, host, match[1])
-                  exception.message(swaggerHostHasScheme)
+                  exception.add.swaggerHostHasScheme(data, { key: 'host', type: 'value' }, host, match[1])
                 }
                 if (match[3] !== undefined) {
-                  const swaggerHostHasSubPath = E.swaggerHostHasSubPath(data, { key: 'host', type: 'value' }, host, match[3])
-                  exception.message(swaggerHostHasSubPath)
+                  exception.add.swaggerHostHasSubPath(data, { key: 'host', type: 'value' }, host, match[3])
                 }
               }
               if (rxPathTemplating.test(host)) {
-                const swaggerHostDoesNotSupportPathTemplating = E.swaggerHostDoesNotSupportPathTemplating(data, { key: 'host', type: 'value' }, host)
-                exception.message(swaggerHostDoesNotSupportPathTemplating)
+                exception.add.swaggerHostDoesNotSupportPathTemplating(data, { key: 'host', type: 'value' }, host)
               }
             }
 
             if (built.produces !== undefined) {
               built.produces.forEach((produces: string) => {
                 if (!rx.mediaType.test(produces)) {
-                  const invalidMediaType = E.invalidMediaType(data, { node: definition.produces, key: produces, type: 'value' }, produces)
-                  exception.message(invalidMediaType)
+                  exception.add.invalidMediaType(data, { node: definition.produces, key: produces, type: 'value' }, produces)
                 }
               })
             }

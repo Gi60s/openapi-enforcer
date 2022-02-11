@@ -1,7 +1,6 @@
 import { EnforcerData, componentValidate } from '../'
 import { ComponentSchema, ValidatorData, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
-import * as EC from '../../utils/error-codes'
+import { DefinitionException } from '../../Exception'
 import * as Core from '../Operation'
 import { Callback } from './Callback'
 import { RequestBody } from './RequestBody'
@@ -31,7 +30,7 @@ export class Operation extends Core.Operation {
 
     if (result.body !== undefined) {
       if (this.requestBody === undefined) {
-        exception.message(...EC.operationRequestBodyNotAllowed())
+        exception.add.operationRequestBodyNotAllowed()
       } else {
         // the Core.preRequest will have already determined if this content type is acceptable
         const contentType = result.header['content-type'] as string

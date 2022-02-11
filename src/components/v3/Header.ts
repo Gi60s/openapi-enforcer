@@ -1,6 +1,6 @@
 import { OASComponent, componentValidate } from '../'
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { schemaGenerator } from '../Header'
 import { Example } from './Example'
 import { Schema } from './Schema'

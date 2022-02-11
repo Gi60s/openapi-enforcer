@@ -1,7 +1,6 @@
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { componentValidate } from '../'
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { Schema } from './Schema'
 import { schemaGenerator } from '../Header'
 import { PartialSchema } from '../helpers/PartialSchema'
 import { Header2 as Definition } from '../helpers/definition-types'

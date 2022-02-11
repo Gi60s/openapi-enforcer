@@ -1,4 +1,4 @@
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { componentValidate } from '../index'
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import * as PartialSchema from '../helpers/PartialSchema'

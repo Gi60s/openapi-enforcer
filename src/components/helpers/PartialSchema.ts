@@ -1,13 +1,11 @@
 import { getDataTypeDefinition, getNoopTypeDefinition } from './schema-data-types'
 import { OASComponent, ComputeFunction, EnforcerData } from '../index'
 import { BuilderData, ComponentSchema, Component, ValidatorData } from './builder-validator-types'
-import * as E from '../../DefinitionException/methods'
 import { determineTypes, MapStore, PopulateOptions, Schema } from './schema-functions'
 import { Result } from '../../utils/Result'
 import * as SchemaHelper from './schema-functions'
-import { Exception } from '../../utils/Exception'
+import { Exception } from '../../Exception'
 import { copy, isObject, smart } from '../../utils/util'
-import { exceedsNumberBounds } from '../../DefinitionException/methods'
 
 /**
  * This file is for code reuse between the following OpenAPI specification objects:
@@ -128,11 +126,11 @@ export abstract class PartialSchema<Items> extends OASComponent {
     return SchemaHelper.serialize(this, value)
   }
 
-  validate (value: any, options?: SchemaHelper.ValidateOptions): Exception | undefined {
-    const exception = new Exception('One or more exceptions occurred while validating value:')
+  validate (value: any, options?: SchemaHelper.ValidateOptions): Exception {
+    const exception = new Exception('One or more exceptions occurred while validating value:', options?.exceptionLevels ?? {})
     if (options === undefined) options = {}
-    const { result } = SchemaHelper.validate(this as unknown as Schema, value, new MapStore(), exception, options)
-    return result === true ? undefined : exception
+    SchemaHelper.validate(this as unknown as Schema, value, new MapStore(), exception, options)
+    return exception
   }
 }
 
@@ -338,37 +336,35 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
           validateMaxMin(data, 'minItems', 'maxItems')
         } else if (cache.isNumeric as boolean) {
           root.lastly.push(() => {
-            const schema = new ReferenceComponentClass(definition)
+            if (!exception.hasError) {
+              const schema = new ReferenceComponentClass(definition)
 
-            // validate that maximum and minimum don't conflict
-            if (schema.minimum !== undefined && schema.maximum !== undefined) {
-              const exclusive = schema.exclusiveMinimum === true || schema.exclusiveMaximum === true
-              if (schema.minimum > schema.maximum || (exclusive && schema.minimum === schema.maximum)) {
-                const invalidMaxMin = E.invalidMaxMin(data,
-                  [
-                    { node: definition, key: 'minimum', type: 'value' },
-                    { node: definition, key: 'maximum', type: 'value' }
-                  ],
-                  definition.minimum, definition.maximum, 'minimum', 'maximum', exclusive)
-                exception.message(invalidMaxMin)
+              // validate that maximum and minimum don't conflict
+              if (schema.minimum !== undefined && schema.maximum !== undefined) {
+                const exclusive = schema.exclusiveMinimum === true || schema.exclusiveMaximum === true
+                if (schema.minimum > schema.maximum || (exclusive && schema.minimum === schema.maximum)) {
+                  exception.add.invalidMaxMin(data,
+                    [
+                      { node: definition, key: 'minimum', type: 'value' },
+                      { node: definition, key: 'maximum', type: 'value' }
+                    ],
+                    definition.minimum, definition.maximum, 'minimum', 'maximum', exclusive)
+                }
               }
-            }
 
-            // validate multiple of is greater than zero
-            if (schema.multipleOf === 0) {
-              const invalidMultipleOf = E.exceedsNumberBounds(data, { key: 'multipleOf', type: 'value' }, 'minimum', false, 0, definition.multipleOf)
-              exception.at('multipleOf').message(invalidMultipleOf)
-            }
-
-            // warn if minimum or maximum are not multiples of multipleOf
-            if (schema.multipleOf !== undefined) {
-              if (schema.minimum !== undefined && schema.minimum % schema.multipleOf !== 0) {
-                const notAMultiple = E.constraintIsNotAMultiple(data, { key: 'minimum', type: 'value' }, 'minimum', definition.minimum, definition.multipleOf)
-                exception.at('minimum').message(notAMultiple)
+              // validate multiple of is greater than zero
+              if (schema.multipleOf === 0) {
+                exception.at('multipleOf').add.exceedsNumberBounds(data, { key: 'multipleOf', type: 'value' }, 'minimum', false, 0, definition.multipleOf)
               }
-              if (schema.maximum !== undefined && schema.maximum % schema.multipleOf !== 0) {
-                const notAMultiple = E.constraintIsNotAMultiple(data, { key: 'maximum', type: 'value' }, 'maximum', definition.maximum, definition.multipleOf)
-                exception.at('maximum').message(notAMultiple)
+
+              // warn if minimum or maximum are not multiples of multipleOf
+              if (schema.multipleOf !== undefined) {
+                if (schema.minimum !== undefined && schema.minimum % schema.multipleOf !== 0) {
+                  exception.at('minimum').add.constraintIsNotAMultiple(data, { key: 'minimum', type: 'value' }, 'minimum', definition.minimum, definition.multipleOf)
+                }
+                if (schema.maximum !== undefined && schema.maximum % schema.multipleOf !== 0) {
+                  exception.at('maximum').add.constraintIsNotAMultiple(data, { key: 'maximum', type: 'value' }, 'maximum', definition.maximum, definition.multipleOf)
+                }
               }
             }
           })
@@ -378,24 +374,24 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
 
         if ('default' in built || 'enum' in built) {
           root.lastly.push((data: ValidatorData) => {
-            const schema = new ReferenceComponentClass(built, root.version)
+            if (!exception.hasError) {
+              const schema = new ReferenceComponentClass(built, root.version) as Schema
 
-            if ('default' in built) {
-              const error = schema.validate(built.default)
-              if (error !== undefined) {
-                const defaultValueDoesNotMatchSchema = E.defaultValueDoesNotMatchSchema(data, { node: definition, key: 'default', type: 'value' }, built.default, error)
-                exception.at('default').message(defaultValueDoesNotMatchSchema)
-              }
-            }
-
-            if ('enum' in built) {
-              built.enum.forEach((item: any, i: number) => {
-                const error = schema.validate(item)
-                if (error !== undefined) {
-                  const enumValueInvalid = E.enumValueDoesNotMatchSchema(data, { node: definition.enum, key: i, type: 'value' }, item, error)
-                  exception.at('enum').at(i).message(enumValueInvalid)
+              if ('default' in built) {
+                const subException = schema.validate(built.default)
+                if (subException.hasError) {
+                  exception.at('default').add.defaultValueDoesNotMatchSchema(data, { node: definition, key: 'default', type: 'value' }, built.default, subException)
                 }
-              })
+              }
+
+              if ('enum' in built) {
+                built.enum.forEach((item: any, i: number) => {
+                  const subException = schema.validate(item)
+                  if (subException.hasError) {
+                    exception.at('enum').at(i).add.enumValueDoesNotMatchSchema(data, { node: definition.enum, key: i, type: 'value' }, item, subException)
+                  }
+                })
+              }
             }
           })
         }
@@ -405,8 +401,7 @@ export function schemaGenerator<Definition, Built extends Component> (ReferenceC
           const format = built.format
           const dataType = getDataTypeDefinition(type, format)
           if (dataType === undefined || dataType.format !== format) {
-            const unknownTypeFormat = E.unknownTypeFormat(data, { node: definition, key: 'format', type: 'value' }, type, format)
-            exception.at('format').message(unknownTypeFormat)
+            exception.at('format').add.unknownTypeFormat(data, { node: definition, key: 'format', type: 'value' }, type, format)
           }
         }
       }
@@ -420,13 +415,12 @@ export function validateMaxMin (data: ValidatorData, minKey: string, maxKey: str
     const min = definition[minKey]
     const max = definition[maxKey]
     if (min > max || (exclusive && min === max)) {
-      const invalidMaxMin = E.invalidMaxMin(data,
+      exception.add.invalidMaxMin(data,
         [
           { node: definition, key: minKey, type: 'value' },
           { node: definition, key: maxKey, type: 'value' }
         ],
         definition[minKey], definition[maxKey], minKey, maxKey, exclusive)
-      exception.message(invalidMaxMin)
     }
   }
 }

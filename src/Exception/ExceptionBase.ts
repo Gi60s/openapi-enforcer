@@ -1,15 +1,23 @@
 import { adapter } from '../utils/adapter'
 import * as Config from '../utils/config'
-import { lookupLocation } from '../utils/loader'
 import { Location } from 'json-to-ast'
 
 const { inspect, eol } = adapter
-const exceptionMap = new WeakMap<ExceptionCore, PreReport>()
+const exceptionMap = new WeakMap<ExceptionBase<any>, PreReport<any>>()
 const levels: Level[] = ['error', 'warn', 'info', 'ignore']
 
-interface ExceptionData<T> {
+export type ExceptionLevelConfig = Config.CodeLevels
+
+interface ExceptionData<T extends ExceptionBase<T>> {
   at: Record<string, T>
   messages: Message[]
+  nest: Array<ExceptionBase<T>>
+}
+
+export interface LocationInput {
+  node?: any // if node is not provided then the component definition is used for the node
+  key?: string | number
+  type?: 'value' | 'key' | 'both'
 }
 
 export type Level = Config.Level
@@ -18,7 +26,7 @@ export interface Message {
   alternateLevels: Level[]
   code: string
   definition?: any // component definition if available
-  exception?: ExceptionCore
+  exception?: ExceptionBase<any>
   level: Level
   locations?: Location[]
   message: string
@@ -26,7 +34,7 @@ export interface Message {
   reference: string
 }
 
-interface PreReport {
+interface PreReport<T extends ExceptionBase<T>> {
   activeChildrenCount: {
     error: number
     warn: number
@@ -35,9 +43,9 @@ interface PreReport {
   }
   children: Array<{
     at: string
-    data: PreReport
+    data: PreReport<T>
   }>
-  exception: ExceptionCore
+  exception: ExceptionBase<T>
   hasException: {
     error: boolean
     warn: boolean
@@ -56,20 +64,55 @@ type ExceptionReportDetailsItem = Message & {
   breadcrumbs: string[]
 }
 
-export class ExceptionCore {
+// TODO: report does not manage nested yet
+export class ExceptionBase<T extends ExceptionBase<T>> {
   public header: string | undefined
-  public data: ExceptionData<ExceptionCore> = { at: {}, messages: [] }
+  public data: ExceptionData<ExceptionBase<T>> = { at: {}, nest: [], messages: [] }
+  public exceptionLevels: ExceptionLevelConfig
 
-  constructor (header?: string) {
+  constructor (header?: string, exceptionLevels?: ExceptionLevelConfig) {
     this.header = header
+    this.exceptionLevels = exceptionLevels ?? Config.get().exceptions?.levels ?? {}
   }
 
-  public at (key: string | number): ExceptionCore {
+  public at (key: string | number): ExceptionBase<T> {
     const at = this.data.at
     if (!(key in at)) {
-      at[key] = new ExceptionCore()
+      const Exception = this.constructor as typeof ExceptionBase
+      at[key] = new Exception('', this.exceptionLevels)
     }
     return at[key]
+  }
+
+  public hasCode (code: string, levels?: Level | Level[]): boolean {
+    const { at, nest, messages } = this.data
+    const lvl: Level[] | undefined = levels === undefined
+      ? undefined
+      : Array.isArray(levels) ? levels : [levels]
+
+    let length = messages.length
+    for (let i = 0; i < length; i++) {
+      if (messages[i].code === code && (lvl === undefined || lvl.includes(messages[i].level))) return true
+    }
+
+    const keys = Object.keys(at)
+    length = keys.length
+    for (let i = 0; i < length; i++) {
+      if (at[keys[i]].hasCode(code, lvl)) return true
+    }
+
+    length = nest.length
+    for (let i = 0; i < length; i++) {
+      if (nest[i].hasCode(code, lvl)) return true
+    }
+
+    return false
+  }
+
+  public nest (header: string, config?: ExceptionLevelConfig): ExceptionBase<T> {
+    const Exception = this.constructor as typeof ExceptionBase
+    const exception = new Exception(header, config)
+    return this.push(exception)
   }
 
   public message (message: Message): Message {
@@ -77,7 +120,7 @@ export class ExceptionCore {
     this.data.messages.push(message)
 
     // adjust level as necessary
-    const newLevel: Level | undefined = Config.get().exceptions?.levels?.[message.code] ?? message.definition?.['x-enforcer']?.exceptions?.[message.code]
+    const newLevel: Level | undefined = this.exceptionLevels?.[message.code] ?? message.definition?.['x-enforcer']?.exceptions?.[message.code]
     if (newLevel !== undefined && newLevel !== message.level) {
       if (message.alternateLevels.includes(newLevel)) {
         message.level = newLevel
@@ -101,7 +144,22 @@ export class ExceptionCore {
     return message
   }
 
-  get '0' (): ErrorReport | undefined {
+  public push (exception: ExceptionBase<T>): ExceptionBase<T> {
+    this.data.nest.push(exception)
+    return exception
+  }
+
+  public report (level: Level, options?: { indent: string, includeHeader: boolean }): ExceptionReport<T> | undefined {
+    const config = Config.get().exceptions
+    const data = runPreReport(config, this) // update the cache
+    if (!data.hasException[level]) return
+
+    const header = options?.includeHeader === false ? '' : this.header ?? ''
+    const indent = options?.indent ?? ''
+    return new ErrorReport(level, data, header, indent)
+  }
+
+  get '0' (): ErrorReport<T> | undefined {
     const config = Config.get().exceptions
     const data = runPreReport(config, this) // update the cache
     exceptionMap.set(this, data)
@@ -111,7 +169,7 @@ export class ExceptionCore {
     return new ErrorReport('error', data, header)
   }
 
-  get '1' (): WarningReport | undefined {
+  get '1' (): WarningReport<T> | undefined {
     const data = getCachedPreReport(this)
     if (!data.hasException.warn) return
 
@@ -119,7 +177,7 @@ export class ExceptionCore {
     return new WarningReport('warn', data, header)
   }
 
-  get '2' (): InfoReport | undefined {
+  get '2' (): InfoReport<T> | undefined {
     const data = getCachedPreReport(this)
     if (!data.hasException.info) return
 
@@ -127,7 +185,7 @@ export class ExceptionCore {
     return new InfoReport('info', data, header)
   }
 
-  get '3' (): IgnoredReport | undefined {
+  get '3' (): IgnoredReport<T> | undefined {
     const data = getCachedPreReport(this)
     if (!data.hasException.ignore) return
 
@@ -135,7 +193,7 @@ export class ExceptionCore {
     return new IgnoredReport('ignore', data, header)
   }
 
-  get error (): ErrorReport | undefined {
+  get error (): ErrorReport<T> | undefined {
     return getReportByType('error', this)
   }
 
@@ -143,7 +201,7 @@ export class ExceptionCore {
     return this.error !== undefined
   }
 
-  get ignored (): IgnoredReport | undefined {
+  get ignored (): IgnoredReport<T> | undefined {
     return getReportByType('ignore', this)
   }
 
@@ -151,11 +209,11 @@ export class ExceptionCore {
     return 4
   }
 
-  get info (): InfoReport | undefined {
+  get info (): InfoReport<T> | undefined {
     return getReportByType('info', this)
   }
 
-  get warning (): WarningReport | undefined {
+  get warning (): WarningReport<T> | undefined {
     return getReportByType('warn', this)
   }
 
@@ -165,18 +223,18 @@ export class ExceptionCore {
 }
 
 // overwrite exception iterator, use array iterator
-ExceptionCore.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
+ExceptionBase.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
 
-export class ExceptionReport {
+export class ExceptionReport<T extends ExceptionBase<T>> {
   public readonly message: string
   public readonly exceptions: ExceptionReportDetailsItem[]
 
-  constructor (level: Level, data: PreReport, header: string) {
+  constructor (level: Level, data: PreReport<T>, header: string, indent = '') {
     const { exceptions: config } = Config.get()
     this.message = 'Nothing to report'
     this.exceptions = []
     const extra = { footnotes: '' }
-    const reportMessage = getReport(this, level, data, '  ', false, [], extra)
+    const reportMessage = getReport(this, level, data, indent + '  ', false, [], extra)
     if (this.exceptions.length > 0) {
       switch (level) {
         case 'error':
@@ -192,7 +250,7 @@ export class ExceptionReport {
           header = header.replace('[TYPE]', 'ignored items')
           break
       }
-      this.message = header + reportMessage
+      this.message = indent + header + reportMessage
       if (config.details === 'footnote' && extra.footnotes.length > 0) this.message += eol + eol + extra.footnotes
     }
   }
@@ -236,10 +294,10 @@ export class ExceptionReport {
   }
 }
 
-export class ErrorReport extends ExceptionReport {}
-export class WarningReport extends ExceptionReport {}
-export class InfoReport extends ExceptionReport {}
-export class IgnoredReport extends ExceptionReport {}
+export class ErrorReport<T extends ExceptionBase<T>> extends ExceptionReport<T> {}
+export class WarningReport<T extends ExceptionBase<T>> extends ExceptionReport<T> {}
+export class InfoReport<T extends ExceptionBase<T>> extends ExceptionReport<T> {}
+export class IgnoredReport<T extends ExceptionBase<T>> extends ExceptionReport<T> {}
 
 export function smart (value: any, addQuotationMarksToStrings = true): string {
   if (typeof value === 'string') {
@@ -255,7 +313,7 @@ export function smart (value: any, addQuotationMarksToStrings = true): string {
   }
 }
 
-function getCachedPreReport (exception: ExceptionCore): PreReport {
+function getCachedPreReport<T extends ExceptionBase<T>> (exception: ExceptionBase<T>): PreReport<T> {
   const config = Config.get().exceptions
   const existing = exceptionMap.get(exception)
   const data = existing ?? runPreReport(config, exception)
@@ -263,7 +321,7 @@ function getCachedPreReport (exception: ExceptionCore): PreReport {
   return data
 }
 
-function getReportByType (level: Level, exception: ExceptionCore): ExceptionReport | undefined {
+function getReportByType<T extends ExceptionBase<T>> (level: Level, exception: ExceptionBase<T>): ExceptionReport<T> | undefined {
   const config = Config.get().exceptions
   const data = runPreReport(config, exception)
   if (!data.hasException[level]) return
@@ -272,9 +330,9 @@ function getReportByType (level: Level, exception: ExceptionCore): ExceptionRepo
   return new ErrorReport(level, data, header)
 }
 
-function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, context: ExceptionCore): PreReport {
+function runPreReport<T extends ExceptionBase<T>> (fullConfig: Required<Config.ExceptionConfiguration>, context: ExceptionBase<T>): PreReport<T> {
   const data = context.data
-  const result: PreReport = {
+  const result: PreReport<T> = {
     activeChildrenCount: {
       error: 0,
       warn: 0,
@@ -321,7 +379,7 @@ function runPreReport (fullConfig: Required<Config.ExceptionConfiguration>, cont
   return result
 }
 
-function getReport (report: ExceptionReport, level: Level, data: PreReport, indent: string, isContinue: boolean, path: string[], extra: { footnotes: string }): string {
+function getReport<T extends ExceptionBase<T>> (report: ExceptionReport<T>, level: Level, data: PreReport<T>, indent: string, isContinue: boolean, path: string[], extra: { footnotes: string }): string {
   const indentPlus = indent + '  '
   const { exceptions: config } = Config.get()
   let result: string = ''
@@ -374,10 +432,8 @@ function getReport (report: ExceptionReport, level: Level, data: PreReport, inde
       }
 
       if (message.exception !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string
-        result += message.exception
-          // @ts-expect-error
-          .toString({ prefix: indent, skipTop: true, top: true })
+        const details = message.exception.report('error', { indent, includeHeader: false })?.toString()
+        if (details !== undefined) result += details
       }
 
       // TODO: add for details equals 'locations', 'detailed', 'breadcrumbs', 'all', 'index'

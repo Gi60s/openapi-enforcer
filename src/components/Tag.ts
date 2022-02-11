@@ -1,6 +1,6 @@
 import { OASComponent, componentValidate } from './'
 import { ComponentSchema, Version } from './helpers/builder-validator-types'
-import { DefinitionException } from '../DefinitionException'
+import { DefinitionException } from '../Exception'
 import { ExternalDocumentation } from './ExternalDocumentation'
 import { Tag as Definition } from './helpers/definition-types'
 

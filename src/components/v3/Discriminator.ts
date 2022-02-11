@@ -1,9 +1,8 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
 import { Schema } from './Schema'
 import { lookupLocation, getReferenceNode, traverse } from '../../utils/loader'
-import * as E from '../../DefinitionException/methods'
 import { Discriminator3 as Definition } from '../helpers/definition-types'
 
 let schemaDiscriminator: ComponentSchema<Definition>
@@ -112,8 +111,7 @@ export class Discriminator extends OASComponent {
                     if (node !== undefined) {
                       data.context.built[key] = node
                     } else if (loadOptions.dereference) {
-                      const refNotResolved = E.refNotResolved(data, { key, type: 'value' }, ref, rootNodePath)
-                      exception.message(refNotResolved)
+                      exception.add.refNotResolved(data, { key, type: 'value' }, ref, rootNodePath)
                     }
                   })
               })

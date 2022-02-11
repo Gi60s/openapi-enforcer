@@ -1,13 +1,12 @@
 import { componentValidate, EnforcerData } from '../'
 import { BuilderData, ComponentSchema, ValidatorData, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import * as Core from '../Operation'
 import { Parameter } from './Parameter'
 import { Operation2 as Definition } from '../helpers/definition-types'
 import { Responses } from '../v3/Responses'
 import { Swagger } from './Swagger'
 import { Result } from '../../utils/Result'
-import * as EC from '../../utils/error-codes'
 import { MediaTypeParser } from '../../utils/MediaTypeParser'
 
 let operationSchema: ComponentSchema<Definition>
@@ -41,7 +40,7 @@ export class Operation extends Core.Operation {
           result.body = value
         }
       } else if (requiredParametersMap.body) {
-        exception.message(...EC.operationMissingRequiredParameters('body', []))
+        exception.add.operationMissingRequiredParameters('body', [])
       }
     // process form-data
     } else if (parameters.formData !== undefined) {
@@ -59,9 +58,9 @@ export class Operation extends Core.Operation {
           }
         })
       } else if (requiredParametersMap.body) {
-        exception.message(...EC.operationMissingRequiredParameters('body', []))
+        exception.add.operationMissingRequiredParameters('body', [])
       } else if (missingRequired.length > 0) {
-        exception.message(...EC.operationMissingRequiredParameters('formData', missingRequired))
+        exception.add.operationMissingRequiredParameters('formData', missingRequired)
       }
     }
 

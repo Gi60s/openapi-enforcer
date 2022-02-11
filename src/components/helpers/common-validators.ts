@@ -1,8 +1,6 @@
 import { ValidatorData } from './builder-validator-types'
 import { Schema } from '../Schema'
-import * as E from '../../DefinitionException/methods'
-import { Exception } from '../../utils/Exception'
-import { LocationInput } from '../../DefinitionException/types'
+import { Exception, LocationInput } from '../../Exception'
 
 export function defaultRequiredConflict (data: ValidatorData): boolean {
   const { built, exception } = data.context
@@ -13,8 +11,7 @@ export function defaultRequiredConflict (data: ValidatorData): boolean {
       { key: 'default', type: 'key' },
       { key: 'required', type: 'key' }
     ]
-    const defaultRequiredConflict = E.defaultRequiredConflict(data, locations)
-    const { level } = exception.message(defaultRequiredConflict)
+    const { level } = exception.add.defaultRequiredConflict(data, locations)
     if (level === 'error') success = false
   }
 
@@ -30,8 +27,7 @@ export function exampleExamplesConflict (data: ValidatorData): boolean {
       { key: 'example', type: 'key' },
       { key: 'examples', type: 'key' }
     ]
-    const exampleExamplesConflict = E.propertiesMutuallyExclusive(data, locations, ['example', 'examples'])
-    const { level } = exception.message(exampleExamplesConflict)
+    const { level } = exception.add.propertiesMutuallyExclusive(data, locations, ['example', 'examples'])
     if (level === 'error') success = false
   }
 
@@ -39,7 +35,7 @@ export function exampleExamplesConflict (data: ValidatorData): boolean {
 }
 
 export function examplesMatchSchema (data: ValidatorData, SchemaClass: any): true {
-  const { built, definition } = data.context
+  const { built, definition, exception } = data.context
   const { lastly, version } = data.root
 
   // if the schema still has a $ref then there is nothing we can validate
@@ -48,23 +44,25 @@ export function examplesMatchSchema (data: ValidatorData, SchemaClass: any): tru
 
   if (built.example !== undefined || built.examples !== undefined) {
     lastly.push(() => {
-      const schema = definition.schema !== undefined
-        ? new SchemaClass(definition.schema, version)
-        : null
+      if (!exception.hasError) {
+        const schema = definition.schema !== undefined
+          ? new SchemaClass(definition.schema, version)
+          : null
 
-      // validate that example matches schema
-      if ('example' in built) {
-        exampleMatchesSchema(data, ['example'], built.example, schema)
-      }
+        // validate that example matches schema
+        if ('example' in built) {
+          exampleMatchesSchema(data, ['example'], built.example, schema)
+        }
 
-      // validate that example matches schema
-      if ('examples' in built) {
-        lastly.push(() => {
-          const examples = built.examples ?? {}
-          Object.keys(examples).forEach(key => {
-            exampleMatchesSchema(data, ['examples', key], built.examples[key].value, schema)
+        // validate that example matches schema
+        if ('examples' in built) {
+          lastly.push(() => {
+            const examples = built.examples ?? {}
+            Object.keys(examples).forEach(key => {
+              exampleMatchesSchema(data, ['examples', key], built.examples[key].value, schema)
+            })
           })
-        })
+        }
       }
     })
   }
@@ -82,15 +80,13 @@ export function parameterSchemaContent (data: ValidatorData): boolean {
       { key: 'schema', type: 'key' },
       { key: 'content', type: 'key' }
     ]
-    const exampleExamplesConflict = E.propertiesMutuallyExclusive(data, locations, ['content', 'schema'])
-    const { level } = exception.message(exampleExamplesConflict)
+    const { level } = exception.add.propertiesMutuallyExclusive(data, locations, ['content', 'schema'])
     if (level === 'error') success = false
   }
 
   // must have either "schema" or "content" defined
   if (built.schema === undefined && built.content === undefined) {
-    const schemaOrContentRequired = E.parameterSchemaContentRequired(data, { type: 'both' })
-    const { level } = exception.message(schemaOrContentRequired)
+    const { level } = exception.add.parameterSchemaContentRequired(data, { type: 'both' })
     if (level === 'error') success = false
   }
 
@@ -107,8 +103,7 @@ export function parameterSchemaContent (data: ValidatorData): boolean {
           locations.push({ node, key, type: 'key' })
         })
       }
-      const mediaTypeCount = E.parameterContentMediaTypeCount(data, locations, types)
-      const { level } = exception.message(mediaTypeCount)
+      const { level } = exception.add.parameterContentMediaTypeCount(data, locations, types)
       if (level === 'error') success = false
     }
   }
@@ -129,21 +124,21 @@ function exampleMatchesSchema (data: ValidatorData, keys: string[], example: any
   }
 
   if (schema === null) {
-    const exampleWithoutSchema = E.exampleWithoutSchema(data, { node, key, type: 'value' })
-    const { level } = exception.message(exampleWithoutSchema)
+    const { level } = exception.add.exampleWithoutSchema(data, { node, key, type: 'value' })
     if (level === 'error') success = false
   } else {
     const serialized = schema.serialize(example)
     if (serialized?.hasError) {
-      const exampleNotSerializable = E.exampleNotSerializable(data, { node, key, type: 'value' }, example, schema, serialized.error as Exception)
-      const { level } = exception.at(key).message(exampleNotSerializable)
+      const { level } = exception.at(key).add.exampleNotSerializable(data, { node, key, type: 'value' }, example, schema, serialized.exception as Exception)
       if (level === 'error') success = false
     } else {
-      const error = schema.validate(serialized.value)
-      if (error != null) {
-        console.log(error.report)
-        const exampleNotSerializable = E.exampleNotValid(data, { node, key, type: 'value' }, example, schema, error)
-        const { level } = exception.at(key).message(exampleNotSerializable)
+      const subException = schema.validate(serialized.value, {
+        exceptionLevels: {
+          'OAE-ESCIGPR': 'error' // error for additional properties so we can add it as a warning to the "exampleNotValid" message.
+        }
+      })
+      if (subException.hasError) {
+        const { level } = exception.at(key).add.exampleNotValid(data, { node, key, type: 'value' }, example, schema, subException)
         if (level === 'error') success = false
       }
     }

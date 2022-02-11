@@ -1,5 +1,5 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { Operation } from './Operation'
 import { Server } from './Server'
 import { Parameter } from './Parameter'

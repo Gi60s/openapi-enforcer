@@ -1,6 +1,6 @@
-import { Link } from '../../src/v3'
+import { Link, OpenAPI } from '../../src/v3'
 import { expect } from 'chai'
-import { Level } from '../../src/DefinitionException/types'
+import { ExceptionLevel as Level } from '../../src'
 
 const xEnforcer: { exceptions: Record<string, Level>} = {
   exceptions: {
@@ -67,7 +67,24 @@ describe('Component: Link', () => {
       })
 
       it('must have an associated operation with the same operationId', () => {
-        const [error] = Link.validate({ operationId: 'missing' })
+        const [error] = OpenAPI.validate({
+          openapi: '3.0.3',
+          info: { title: '', version: '' },
+          paths: {
+            '/': {
+              get: {
+                responses: {
+                  200: { description: 'ok' }
+                }
+              }
+            }
+          },
+          components: {
+            links: {
+              LinkA: { operationId: 'missing' }
+            }
+          }
+        })
         expect(error).to.match(/The operation object associated with the operationId .+ could not be found/)
       })
     })

@@ -1,7 +1,6 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
-import * as E from '../../DefinitionException/methods'
 import { ServerVariable3 as Definition } from '../helpers/definition-types'
 
 let serverVariableSchema: ComponentSchema<Definition>
@@ -57,8 +56,7 @@ export class ServerVariable extends OASComponent {
 
             if (built.enum !== undefined) {
               if (built.enum.length === 0) {
-                const enumMissingValues = E.enumMissingValues(data, { key: 'enum', type: 'value' })
-                exception.message(enumMissingValues)
+                exception.add.enumMissingValues(data, { key: 'enum', type: 'value' })
               }
             }
           }

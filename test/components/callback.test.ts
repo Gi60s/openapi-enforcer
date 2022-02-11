@@ -26,7 +26,7 @@ describe('Component: Callback', () => {
         // @ts-expect-error
         foo: 'invalid'
       })
-      expect(error).to.match(/Expected a non-null object/)
+      expect(error).to.match(/Expected a PathItem object definition/)
     })
 
     it('can have a valid path item definition', function () {

@@ -99,7 +99,7 @@ describe('Component: Info', () => {
           // @ts-expect-error
           contact: true
         })
-        expect(error).to.match(/Expected a non-null object/)
+        expect(error).to.match(/Expected a Contact object definition/)
       })
     })
 
@@ -116,7 +116,7 @@ describe('Component: Info', () => {
           // @ts-expect-error
           license: true
         })
-        expect(error).to.match(/Expected a non-null object/)
+        expect(error).to.match(/Expected a License object definition/)
       })
     })
 

@@ -1,6 +1,6 @@
 import { componentValidate } from '../index'
 import { Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import * as Core from '../SecurityScheme'
 import { SecurityScheme2 as Definition } from '../helpers/definition-types'
 

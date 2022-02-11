@@ -1,8 +1,7 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
 import rx from '../../utils/rx'
-import * as E from '../../DefinitionException/methods'
 import * as V from '../helpers/common-validators'
 import { Encoding } from './Encoding'
 import { Example } from './Example'
@@ -41,8 +40,7 @@ export class MediaType extends OASComponent {
 
             // check that the media type appears valid
             if (parent?.context.key === 'content' && !rx.mediaType.test(mediaType)) {
-              const invalidMediaType = E.invalidMediaType(data, { node: parent.context.definition, key: mediaType, type: 'key' }, mediaType)
-              exception.message(invalidMediaType)
+              exception.add.invalidMediaType(data, { node: parent.context.definition, key: mediaType, type: 'key' }, mediaType)
             }
 
             // check for example vs examples conflict
@@ -56,20 +54,17 @@ export class MediaType extends OASComponent {
             if (schema !== undefined && !schemaHasRef && built.encoding !== undefined) {
               // check that the schema type is object if encoding is being used
               if (schema.type !== 'object') {
-                const mediaTypeSchemaMustBeObject = E.mediaTypeSchemaMustBeObject(data, { key: 'type', type: 'value' }, schema.type ?? '')
-                exception.message(mediaTypeSchemaMustBeObject)
+                exception.add.mediaTypeSchemaMustBeObject(data, { key: 'type', type: 'value' }, schema.type ?? '')
               }
 
               // check that each encoding property matches a property in the schema
               Object.keys(built.encoding).forEach(key => {
                 if (schema.properties?.[key] === undefined) {
-                  const encodingNameNotMatched = E.encodingNameNotMatched(data, { node: definition.encoding, key, type: 'key' }, key)
-                  exception.at('encoding').at(key).message(encodingNameNotMatched)
+                  exception.at('encoding').at(key).add.encodingNameNotMatched(data, { node: definition.encoding, key, type: 'key' }, key)
                 }
               })
             } else if (schema === undefined && built.encoding !== undefined) {
-              const missingSchema = E.encodingMissingAssociatedSchema(data, { key: 'type', type: 'value' })
-              exception.message(missingSchema)
+              exception.add.encodingMissingAssociatedSchema(data, { key: 'type', type: 'value' })
             }
           }
         },

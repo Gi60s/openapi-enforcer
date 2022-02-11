@@ -1,7 +1,6 @@
 import { componentValidate, OASComponent } from './index'
 import { BuilderData, Component, ComponentSchema, ValidatorData, Version } from './helpers/builder-validator-types'
-import { DefinitionException } from '../DefinitionException'
-import * as E from '../DefinitionException/methods'
+import { DefinitionException, LocationInput } from '../Exception'
 import { addParameterToOperation, Operation } from './Operation'
 import { Server } from './v3/Server'
 import {
@@ -10,7 +9,6 @@ import {
   Parameter2, Parameter3,
   Operation2, Operation3
 } from './helpers/definition-types'
-import { LocationInput } from '../DefinitionException/types'
 
 export const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch']
 
@@ -58,8 +56,7 @@ export function schemaGenerator (components: ComponentsMap, methods: string[]): 
           }
         }
         if (!hasMethod) {
-          const pathMissingMethods = E.pathMissingMethods(data, { node: definition }, key)
-          exception.message(pathMissingMethods)
+          exception.add.pathMissingMethods(data, { node: definition }, key)
         }
 
         // check for unique parameter names per location, also check for formData/body conflict for v2
@@ -77,8 +74,7 @@ export function schemaGenerator (components: ComponentsMap, methods: string[]): 
 
               const index = parametersMap.findIndex(p => p.in === parameter.in && p.name === parameter.name)
               if (index !== -1) {
-                const parameterNamespaceConflict = E.parameterNamespaceConflict(data, [{ node: parameter }, { node: parametersMap[index] }], parameter.name, parameter.in)
-                exception.message(parameterNamespaceConflict)
+                exception.add.parameterNamespaceConflict(data, [{ node: parameter }, { node: parametersMap[index] }], parameter.name, parameter.in)
               } else {
                 parametersMap.push({ name: parameter.name, in: parameter.in })
               }
@@ -86,13 +82,13 @@ export function schemaGenerator (components: ComponentsMap, methods: string[]): 
 
             if (bodyParameter !== undefined && formDataParameter.length > 0) {
               const locations: LocationInput[] = [{ node: bodyParameter }, ...formDataParameter.map(p => { return { node: p } })]
-              const parameterBodyFormDataConflict = E.parameterBodyFormDataConflict(data, locations)
-              exception.message(parameterBodyFormDataConflict)
+              exception.add.parameterBodyFormDataConflict(data, locations)
             }
           }
         })
 
         // create the shared parameters map
+        // TODO: create the shared parameters map
         const sharedParameters: ParameterDefinition[] = built.parameters ?? []
         methods.forEach(method => {
           if (method in built) {

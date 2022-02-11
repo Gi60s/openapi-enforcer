@@ -1,14 +1,12 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { Exception, DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
 import { Example } from './Example'
 import { Schema } from './Schema'
 import * as Core from '../Parameter'
 import { Parameter3 as Definition } from '../helpers/definition-types'
 import { Result } from '../../utils/Result'
-import { Exception } from '../../utils/Exception'
 import { parsePrimitive } from '../helpers/Parameter'
-import * as EC from '../../utils/error-codes'
 
 const rxLabel = /^\./
 let parameterSchema: ComponentSchema<Definition>
@@ -41,13 +39,13 @@ export class Parameter extends OASComponent {
 
     // make sure that the schema is specified, otherwise we can't parse
     if (this.schema === undefined) {
-      exception.message(...EC.parameterParseNoSchema())
+      exception.add.parameterParseNoSchema()
       return new Result(null, exception)
     }
 
     // make sure there is a value to parse
     if (value === undefined) {
-      exception.message(...EC.parameterParseNoValue())
+      exception.add.parameterParseNoValue()
       return new Result(null, exception)
     }
 
@@ -58,13 +56,13 @@ export class Parameter extends OASComponent {
 
     // if type is unknown then we can't continue
     if (schema === null) {
-      exception.message(...EC.schemaIndeterminate('parse'))
+      exception.add.schemaIndeterminate('parse')
       return new Result(null, exception)
     }
 
     // if type is unknown then we can't continue
     if (type === '' || type === undefined) {
-      exception.message(...EC.schemaIndeterminateType('parse'))
+      exception.add.schemaIndeterminateType('parse')
       return new Result(null, exception)
     }
 
@@ -165,7 +163,7 @@ export class Parameter extends OASComponent {
     }
 
     if (parsed === undefined) {
-      exception.message(...EC.parameterParseStyle(style, type as string, explode))
+      exception.add.parameterParseStyle(style, type as string, explode)
     } else if (type === 'array' && schema.items !== undefined) {
       parsed = parsed.map((v: string, i: number) => {
         return parsePrimitive(schema.items as Schema, exception.at(i), v)

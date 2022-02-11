@@ -9,18 +9,19 @@ export {
 }
 
 // export exception class and interfaces
-export { Exception } from './utils/Exception'
 export {
+  Exception,
   DefinitionException,
-  ErrorReport as ExceptionErrorReport,
-  WarningReport as ExceptionWarningReport,
-  InfoReport as ExceptionInfoReport,
-  IgnoredReport as ExceptionIgnoredReport
-} from './DefinitionException'
-export { Level as ExceptionLevel, ExceptionMessageData } from './DefinitionException/types'
+  Level as ExceptionLevel,
+  Message as ExceptionMessage,
+  ErrorReport,
+  WarningReport,
+  InfoReport,
+  IgnoredReport
+} from './Exception'
 
 // export result interface
-export { DefinitionResult } from './DefinitionException/DefinitionResult'
+export { Result } from './utils/Result'
 
 // export dataTypes
 export {

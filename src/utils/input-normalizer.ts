@@ -1,5 +1,4 @@
-import { Exception } from './Exception'
-import { invalidInput } from './error-codes'
+import { Exception } from '../Exception'
 import { smart } from './util'
 import { Result } from './Result'
 
@@ -108,14 +107,14 @@ function normalize (value: any, schema: Schema, exception: Exception): Result<an
 
   if (schema.type === 'array') {
     if (!Array.isArray(value)) {
-      exception.message(...invalidInput('Expected an array. Received: ' + smart(value)))
+      exception.add.invalidInput('Expected an array. Received: ' + smart(value))
     } else {
       const length = value.length
       if (schema.maxItems !== undefined && schema.maxItems < length) {
-        exception.message(...invalidInput('Expected an array with ' + String(schema.maxItems) + ' or less items.'))
+        exception.add.invalidInput('Expected an array with ' + String(schema.maxItems) + ' or less items.')
       }
       if (schema.minItems !== undefined && schema.minItems > length) {
-        exception.message(...invalidInput('Expected an array with ' + String(schema.maxItems) + ' or more items.'))
+        exception.add.invalidInput('Expected an array with ' + String(schema.maxItems) + ' or more items.')
       }
       if (schema.items !== undefined) {
         value = value.map((v: any, index: number) => {
@@ -126,33 +125,33 @@ function normalize (value: any, schema: Schema, exception: Exception): Result<an
     }
   } else if (schema.type === 'boolean') {
     if (typeof value !== 'boolean') {
-      exception.message(...invalidInput('Expected a boolean. Received: ' + smart(value)))
+      exception.add.invalidInput('Expected a boolean. Received: ' + smart(value))
     }
   } else if (schema.type === 'number') {
     if (typeof value !== 'number') {
-      exception.message(...invalidInput('Expected a number. Received: ' + smart(value)))
+      exception.add.invalidInput('Expected a number. Received: ' + smart(value))
     } else {
       if (schema.maximum !== undefined) {
         if (schema.exclusiveMaximum === true && value >= schema.maximum) {
-          exception.message(...invalidInput('Expected the value to be less than ' + String(schema.maximum)))
+          exception.add.invalidInput('Expected the value to be less than ' + String(schema.maximum))
         } else if (value > schema.maximum) {
-          exception.message(...invalidInput('Expected the value to be less than or equal to ' + String(schema.maximum)))
+          exception.add.invalidInput('Expected the value to be less than or equal to ' + String(schema.maximum))
         }
       }
       if (schema.minimum !== undefined) {
         if (schema.exclusiveMinimum === true && value <= schema.minimum) {
-          exception.message(...invalidInput('Expected the value to be greater than ' + String(schema.minimum)))
+          exception.add.invalidInput('Expected the value to be greater than ' + String(schema.minimum))
         } else if (value > schema.minimum) {
-          exception.message(...invalidInput('Expected the value to be greater than or equal to ' + String(schema.minimum)))
+          exception.add.invalidInput('Expected the value to be greater than or equal to ' + String(schema.minimum))
         }
       }
       if (schema.multipleOf !== undefined && value % schema.multipleOf !== 0) {
-        exception.message(...invalidInput('Expected the value to be a multiple of ' + String(schema.multipleOf)))
+        exception.add.invalidInput('Expected the value to be a multiple of ' + String(schema.multipleOf))
       }
     }
   } else if (schema.type === 'object') {
     if (typeof value !== 'object' || (value === null && schema.nullable !== true)) {
-      exception.message(...invalidInput('Expected a ' + (schema.nullable !== true ? 'non-null ' : '') + 'object. Received: ' + smart(value)))
+      exception.add.invalidInput('Expected a ' + (schema.nullable !== true ? 'non-null ' : '') + 'object. Received: ' + smart(value))
     } else if (value !== null) {
       const missingRequired = schema.required ?? []
       const propertiesNotAllowed: string[] = []
@@ -171,8 +170,17 @@ function normalize (value: any, schema: Schema, exception: Exception): Result<an
         }
       })
 
+      const schemaProperties = schema.properties ?? {}
+      Object.keys(schemaProperties).forEach(key => {
+        const hasDefault = 'default' in schemaProperties[key]
+        if (!(key in value) && hasDefault) {
+          // @ts-expect-error
+          value[key] = schemaProperties[key]?.default
+        }
+      })
+
       if (propertiesNotAllowed.length > 0) {
-        exception.message(...invalidInput('Object has one or more properties that are not allowed: ' + propertiesNotAllowed.join(', ')))
+        exception.add.invalidInput('Object has one or more properties that are not allowed: ' + propertiesNotAllowed.join(', '))
       }
     }
   } else if (schema.type === 'oneOf') {
@@ -195,27 +203,27 @@ function normalize (value: any, schema: Schema, exception: Exception): Result<an
     }
   } else if (schema.type === 'string') {
     if (typeof value !== 'string') {
-      exception.message(...invalidInput('Expected a string. Received: ' + smart(value)))
+      exception.add.invalidInput('Expected a string. Received: ' + smart(value))
     } else {
       const length = value.length
       if (schema.maxLength !== undefined && schema.maxLength < length) {
-        exception.message(...invalidInput('Expected the string length to be less than or equal to ' + String(schema.maxLength)))
+        exception.add.invalidInput('Expected the string length to be less than or equal to ' + String(schema.maxLength))
       }
       if (schema.minLength !== undefined && schema.minLength > length) {
-        exception.message(...invalidInput('Expected the string length to be greater than or equal to ' + String(schema.minLength)))
+        exception.add.invalidInput('Expected the string length to be greater than or equal to ' + String(schema.minLength))
       }
       if (schema.pattern !== undefined && !schema.pattern.test(value)) {
-        exception.message(...invalidInput('The value did not match the required pattern.'))
+        exception.add.invalidInput('The value did not match the required pattern.')
       }
     }
   } else if (schema.type === undefined) {
     if (typeof value !== 'undefined') {
-      exception.message(...invalidInput('Expected undefined. Received: ' + smart(value)))
+      exception.add.invalidInput('Expected undefined. Received: ' + smart(value))
     }
   }
 
   if ('enum' in schema && schema.enum !== undefined && schema.enum.findIndex(value) === -1) {
-    exception.message(...invalidInput('Expected one of: ' + schema.enum.join(', ') + '. Received: ' + smart(value)))
+    exception.add.invalidInput('Expected one of: ' + schema.enum.join(', ') + '. Received: ' + smart(value))
   }
 
   return new Result(value, exception)

@@ -9,8 +9,7 @@
 
 import { Schema as Schema2 } from '../v2/Schema'
 import { Schema as Schema3 } from '../v3/Schema'
-import { Exception } from '../../utils/Exception'
-import * as EC from '../../utils/error-codes'
+import { Exception } from '../../Exception'
 import rx from '../../utils/rx'
 import * as random from './randomizer'
 import { noop, smart } from '../../utils/util'
@@ -127,7 +126,7 @@ setDataTypeDefinition<boolean, boolean>({
   toNumber: null,
   validate (value: boolean, exception: Exception): boolean {
     if (typeof value !== 'boolean') {
-      exception.message(...EC.dataTypeInvalid('a boolean', value))
+      exception.add.dataTypeInvalid('a boolean', value)
       return false
     } else {
       return true
@@ -163,14 +162,14 @@ setDataTypeDefinition<number, number>({
     let valid = true
     try {
       if (typeof value !== 'number') {
-        exception.message(...EC.dataTypeInvalid('a number', value))
+        exception.add.dataTypeInvalid('a number', value)
         valid = false
       } else {
         if (schema.maximum !== undefined) {
           const maximum = this.deserialize(schema.maximum, schema)
           if (value > maximum || (schema.exclusiveMaximum === true && value >= maximum)) {
             const serializedValue = this.serialize(value, schema)
-            exception.message(...EC.dataTypeMaximum(schema.maximum, schema.exclusiveMaximum === true, String(serializedValue), value))
+            exception.add.dataTypeMaximum(schema.maximum, schema.exclusiveMaximum === true, String(serializedValue), value)
             valid = false
           }
         }
@@ -180,7 +179,7 @@ setDataTypeDefinition<number, number>({
 
           if (value < minimum || (schema.exclusiveMinimum === true && value <= minimum)) {
             const serializedValue = this.serialize(value, schema)
-            exception.message(...EC.dataTypeMinimum(schema.minimum, schema.exclusiveMinimum === true, String(serializedValue), value))
+            exception.add.dataTypeMinimum(schema.minimum, schema.exclusiveMinimum === true, String(serializedValue), value)
             valid = false
           }
         }
@@ -189,13 +188,13 @@ setDataTypeDefinition<number, number>({
           const multipleOf = this.deserialize(schema.multipleOf, schema)
           if (value % multipleOf !== 0) {
             const serializedValue = this.serialize(value, schema)
-            exception.message(...EC.dataTypeMultipleOf(schema.multipleOf, String(serializedValue), value))
+            exception.add.dataTypeMultipleOf(schema.multipleOf, String(serializedValue), value)
             valid = false
           }
         }
       }
     } catch (e: any) {
-      exception.message(...EC.unexpected(e))
+      exception.add.unexpected(e)
       valid = false
     }
     return valid
@@ -220,7 +219,7 @@ extendDataTypeDefinition<number, number>('number', '', {
   },
   validate: function (value: number, exception: Exception, schema: Schema): boolean {
     if (typeof value !== 'number' || Math.round(value) !== value) {
-      exception.message(...EC.dataTypeInvalid('an integer', value))
+      exception.add.dataTypeInvalid('an integer', value)
       return false
     } else {
       const numberType = getDataTypeDefinition('number')
@@ -252,7 +251,7 @@ setDataTypeDefinition<string, string>({
   toNumber: null,
   validate: function (value: string, exception: Exception): boolean {
     if (typeof value !== 'string') {
-      exception.message(...EC.dataTypeInvalid('a string', value))
+      exception.add.dataTypeInvalid('a string', value)
       return false
     }
     return true
@@ -301,16 +300,16 @@ setDataTypeDefinition<Uint8Array, string>({
       const valueLength = value.length * 8
       let valid = true
       if (schema.maxLength !== undefined && valueLength >= schema.maxLength) {
-        exception.message(...EC.dataTypeMaxLength(schema.maxLength, value.length))
+        exception.add.dataTypeMaxLength(schema.maxLength, value.length)
         valid = false
       }
       if (schema.minLength !== undefined && valueLength <= schema.minLength) {
-        exception.message(...EC.dataTypeMinLength(schema.minLength, value.length))
+        exception.add.dataTypeMinLength(schema.minLength, value.length)
         valid = false
       }
       return valid
     } else {
-      exception.message(...EC.dataTypeInvalid('a Uint8Array', value))
+      exception.add.dataTypeInvalid('a Uint8Array', value)
       return false
     }
   }
@@ -368,16 +367,16 @@ setDataTypeDefinition<Uint8Array, string>({
       const valueLength = value.length * 4
       let valid = true
       if (schema.maxLength !== undefined && valueLength >= schema.maxLength) {
-        exception.message(...EC.dataTypeMaxLength(schema.maxLength, value.length))
+        exception.add.dataTypeMaxLength(schema.maxLength, value.length)
         valid = false
       }
       if (schema.minLength !== undefined && valueLength <= schema.minLength) {
-        exception.message(...EC.dataTypeMinLength(schema.minLength, value.length))
+        exception.add.dataTypeMinLength(schema.minLength, value.length)
         valid = false
       }
       return valid
     } else {
-      exception.message(...EC.dataTypeInvalid('a Uint8Array', value))
+      exception.add.dataTypeInvalid('a Uint8Array', value)
       return false
     }
   }
@@ -428,7 +427,7 @@ setDataTypeDefinition<Date, string>({
       }
       return true
     } else {
-      exception.message(...EC.dataTypeInvalid('a valid date object', value))
+      exception.add.dataTypeInvalid('a valid date object', value)
       return false
     }
   }

@@ -68,13 +68,14 @@ describe('Component: MediaType', () => {
         expect(error).to.equal(undefined)
       })
 
-      it('must match the schema if provided', () => {
-        const [error] = MediaType.validate({
+      it('will warn if the schema is provided but not met', () => {
+        const [error, warning] = MediaType.validate({
           schema: { type: 'string' },
           example: 5
         })
-        expect(error).to.match(/Example is not valid when compared against the schema/)
-        expect(error).to.match(/Expected a string/)
+        expect(error).to.equal(undefined)
+        expect(warning).to.match(/Example is not valid when compared against the schema/)
+        expect(warning).to.match(/Expected a string/)
       })
 
       it('is mutually exclusive from "examples" property', () => {

@@ -162,7 +162,7 @@ describe('Component: Items', () => {
 
       it('value must match the schema', () => {
         const [error] = Items.validate({ type: 'string', default: 1 })
-        expect(error).to.match(/Default value .+ does not match its associated schema/)
+        expect(error).to.match(/Default value 1 does not match its associated schema/)
         expect(error).to.match(/Expected a string/)
       })
     })

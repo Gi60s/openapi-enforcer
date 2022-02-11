@@ -1,10 +1,8 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException, LocationInput } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
-import * as E from '../../DefinitionException/methods'
 import { Server } from './Server'
 import { Link3 as Definition } from '../helpers/definition-types'
-import { LocationInput } from '../../DefinitionException/types'
 import { traverse } from '../../utils/loader'
 import rx from '../../utils/rx'
 
@@ -45,22 +43,22 @@ export class Link extends OASComponent {
                 { node: definition, key: 'operationRef', type: 'key' },
                 { node: definition, key: 'operationId', type: 'key' }
               ]
-              const linkOperationConflict = E.linkOperationConflict(data, locations)
-              exception.message(linkOperationConflict)
+              exception.add.linkOperationConflict(data, locations)
             }
 
             // validate that operationRef or operationId are set
             if (built.operationRef === undefined && built.operationId === undefined) {
-              const linkOperationMissing = E.linkOperationMissing(data, { type: 'value' })
-              exception.message(linkOperationMissing)
+              exception.add.linkOperationMissing(data, { type: 'value' })
             }
 
             // if operationId is set then validate that it can be found
             if (built.operationId !== undefined) {
               root.lastly.push(() => {
-                if (root.metadata.operationIdMap[built.operationId] === undefined) {
-                  const linkOperationIdNotFound = E.linkedOperationNotFound(data, { key: 'operationId', type: 'value' }, 'operationId', built.operationId)
-                  exception.at('operationId').message(linkOperationIdNotFound)
+                // if an operationId is used and the root is an openapi or swagger definition then make
+                // sure that the operation id is found in the paths
+                const rootDefinition = root.data.context.definition
+                if (root.metadata.operationIdMap[built.operationId] === undefined && (rootDefinition.openapi !== undefined || rootDefinition.swagger !== undefined)) {
+                  exception.at('operationId').add.linkedOperationNotFound(data, { key: 'operationId', type: 'value' }, 'operationId', built.operationId)
                 }
               })
             }
@@ -72,12 +70,10 @@ export class Link extends OASComponent {
                 if ((built.operationRef as string).startsWith('#/')) {
                   const operation = traverse(root.data.context.built, built.operationRef)
                   if (operation === undefined) {
-                    const linkOperationIdNotFound = E.linkedOperationNotFound(data, { key: 'operationRef', type: 'value' }, 'operationRef', built.operationRef)
-                    exception.at('operationRef').message(linkOperationIdNotFound)
+                    exception.at('operationRef').add.linkedOperationNotFound(data, { key: 'operationRef', type: 'value' }, 'operationRef', built.operationRef)
                   }
                 } else if (!rx.url.test(built.operationRef)) {
-                  const invalidUrl = E.invalidUrl(data, { key: 'operationRef', type: 'value' }, built.operationRef)
-                  exception.at('operationRef').message(invalidUrl)
+                  exception.at('operationRef').add.invalidUrl(data, { key: 'operationRef', type: 'value' }, built.operationRef)
                 }
               })
             }

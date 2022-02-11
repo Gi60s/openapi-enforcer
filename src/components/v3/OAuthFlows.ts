@@ -1,5 +1,5 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
 import { OAuthFlow } from './OAuthFlow'
 import { OAuthFlows3 as Definition } from '../helpers/definition-types'

@@ -1,6 +1,6 @@
 import { Version } from '../components/helpers/builder-validator-types'
 
-export type CodeLevels = Record<string, Level>
+export type ExceptionLevelConfig = Record<string, Level>
 
 export interface Configuration {
   exceptions?: ExceptionConfiguration
@@ -14,7 +14,7 @@ export interface ExceptionConfiguration {
   // locations - ex: Field is required \n my-file.js:20:7 (locations on following lines)
   // detailed - shows code, id, locations, breadcrumbs
   details: 'none' | 'all' | 'breadcrumbs' | 'code' | 'footnote' | 'locations'
-  levels?: CodeLevels
+  levels?: ExceptionLevelConfig
   message: 'text' | 'data' | 'json' // if "json" then details and locations settings are ignored
 }
 

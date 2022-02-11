@@ -1,5 +1,5 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { componentValidate } from '../index'
 import { PathItem } from './PathItem'
 import * as Core from '../Paths'

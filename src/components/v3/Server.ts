@@ -1,5 +1,5 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
 import { ServerVariable } from './ServerVariable'
 import { Server3 as Definition } from '../helpers/definition-types'

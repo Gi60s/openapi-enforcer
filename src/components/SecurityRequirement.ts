@@ -1,8 +1,7 @@
 import { OASComponent, componentValidate } from './'
-import * as E from '../DefinitionException/methods'
 import { ComponentSchema, Version } from './helpers/builder-validator-types'
 import { SecurityRequirement as Definition } from './helpers/definition-types'
-import { DefinitionException } from '../DefinitionException'
+import { DefinitionException } from '../Exception'
 
 let securityRequirementSchema: ComponentSchema<Definition>
 
@@ -47,13 +46,11 @@ export class SecurityRequirement extends OASComponent {
                 // if no associated security scheme then produce an error
                 const scheme = metadata.securitySchemes?.[key]?.context.built
                 if (scheme === undefined) {
-                  const securitySchemeMissingReference = E.securitySchemeMissingReference(data, { key: name, type: 'value' }, major)
-                  exception.message(securitySchemeMissingReference)
+                  exception.add.securitySchemeMissingReference(data, { key: name, type: 'value' }, major)
 
                   // if security scheme is not oauth2 or openIdConnect then the value must be an empty array
                 } else if (['oauth2', 'openIdConnect'].includes(scheme.type) && built[name].length > 0) {
-                  const securityRequirementNotEmptyArray = E.securityRequirementNotEmptyArray(data, { key: name, type: 'value' }, major)
-                  exception.message(securityRequirementNotEmptyArray)
+                  exception.add.securityRequirementNotEmptyArray(data, { key: name, type: 'value' }, major)
                 }
               })
             })

@@ -1,5 +1,5 @@
 import { Items } from '../v2/Items'
-import { Exception } from '../../utils/Exception'
+import { Exception } from '../../Exception'
 import { getDataTypeDefinition } from './schema-data-types'
 import { Schema as Schema3 } from '../v3/Schema'
 import { Parameter as Parameter2 } from '../v2/Parameter'

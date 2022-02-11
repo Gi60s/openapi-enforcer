@@ -1,12 +1,18 @@
 import { adapter } from '../../src/utils/adapter'
 import { expect } from 'chai'
 import * as Config from '../../src/utils/config'
-import { DefinitionException } from '../../src/DefinitionException'
-import { Level } from '../../src/DefinitionException/types'
+import { DefinitionException, ExceptionLevel as Level } from '../../src'
 
 const { eol } = adapter
 
 describe('Exception', () => {
+  describe('code level modifiers', () => {
+    // normally and example not matching the schema produces a warning
+    it('can make an example not matching schema produce an error', () => {
+      throw Error('TODO: Test level modify for example matching schema')
+    })
+  })
+
   describe('report formatting', () => {
     describe('details: none', () => {
       before(() => {

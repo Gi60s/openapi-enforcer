@@ -1,7 +1,6 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate, LoaderOptions, loadRoot, normalizeLoaderOptions } from '../index'
-import * as E from '../../DefinitionException/methods'
 import { Components } from './Components'
 import { ExternalDocumentation } from '../ExternalDocumentation'
 import { Info } from '../Info'
@@ -9,7 +8,7 @@ import { Paths } from './Paths'
 import { SecurityRequirement } from '../SecurityRequirement'
 import { Server } from './Server'
 import { Tag } from '../Tag'
-import { DefinitionResult } from '../../DefinitionException/DefinitionResult'
+import { Result } from '../../utils/Result'
 import { OpenAPI3 as Definition } from '../helpers/definition-types'
 
 const rxVersion = /^\d+\.\d+\.\d+$/
@@ -37,7 +36,7 @@ export class OpenAPI extends OASComponent {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#openapi-object'
   }
 
-  static async load (path: string, options?: LoaderOptions): Promise<DefinitionResult<OpenAPI>> {
+  static async load (path: string, options?: LoaderOptions): Promise<Result<OpenAPI>> {
     options = normalizeLoaderOptions(options)
     return await loadRoot<OpenAPI>(OpenAPI, path, options)
   }
@@ -129,13 +128,11 @@ export class OpenAPI extends OASComponent {
             if (definition.openapi !== undefined) {
               const openapiVersion = definition.openapi
               if (!rxVersion.test(openapiVersion)) {
-                const invalidSemanticVersionNumber = E.invalidSemanticVersionNumber(data, { key: 'openapi', type: 'value' }, openapiVersion)
-                exception.at('openapi').message(invalidSemanticVersionNumber)
+                exception.at('openapi').add.invalidSemanticVersionNumber(data, { key: 'openapi', type: 'value' }, openapiVersion)
                 return false
               }
               if (openapiVersion.split('.')[0] !== '3') {
-                const invalidOpenApiVersionNumber = E.invalidOpenApiVersionNumber(data, { key: 'openapi', type: 'value' }, openapiVersion)
-                exception.at('openapi').message(invalidOpenApiVersionNumber)
+                exception.at('openapi').add.invalidOpenApiVersionNumber(data, { key: 'openapi', type: 'value' }, openapiVersion)
                 return false
               }
             }

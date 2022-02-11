@@ -1,7 +1,6 @@
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate, findAncestorData, ComputeFunction } from '../index'
 import { ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
-import * as E from '../../DefinitionException/methods'
 import rx from '../../utils/rx'
 import { Header } from './Header'
 import { MediaType } from './MediaType'
@@ -124,24 +123,21 @@ export class Encoding extends OASComponent {
               const style = built.style ?? ''
               const validStyle = Serializer.styleMatchesType('query', style, cache.type, built.explode as boolean)
               if (!validStyle) {
-                const invalidStyle = E.invalidStyle(data, { key: 'style', type: 'value' }, style, cache.type)
-                exception.at('style').message(invalidStyle)
+                exception.at('style').add.invalidStyle(data, { key: 'style', type: 'value' }, style, cache.type)
               }
             }
 
             if (built.contentType !== undefined) {
               const contentType = built.contentType
               if (!rx.mediaType.test(contentType)) {
-                const invalidMediaType = E.invalidMediaType(data, { key: 'contentType', type: 'value' }, contentType)
-                exception.at('contentType').message(invalidMediaType)
+                exception.at('contentType').add.invalidMediaType(data, { key: 'contentType', type: 'value' }, contentType)
               }
             }
 
             if (built.headers !== undefined) {
               const contentTypeKey = Object.keys(built.headers).find(key => key.toLowerCase() === 'content-type')
               if (contentTypeKey !== undefined) {
-                const valueIgnored = E.valueIgnored(data, { node: definition.headers, key: contentTypeKey, type: 'key' }, contentTypeKey, 'Encoding headers should not include Content-Type. That is already part of the Encoding definition under the "contentType" property.')
-                exception.at('headers').message(valueIgnored)
+                exception.at('headers').add.valueIgnored(data, { node: definition.headers, key: contentTypeKey, type: 'key' }, contentTypeKey, 'Encoding headers should not include Content-Type. That is already part of the Encoding definition under the "contentType" property.')
               }
             }
           }

@@ -1,7 +1,5 @@
 import { OASComponent, EnforcerData } from './'
 import { BuilderData, Component, ComponentSchema, Version } from './helpers/builder-validator-types'
-import * as E from '../DefinitionException/methods'
-import * as EC from '../utils/error-codes'
 import { MediaTypeParser } from '../utils/MediaTypeParser'
 import { Callback } from './v3/Callback'
 import { ExternalDocumentation } from './ExternalDocumentation'
@@ -11,7 +9,7 @@ import { SecurityRequirement } from './SecurityRequirement'
 import { Server } from './v3/Server'
 import { Operation2 as Definition2, Operation3 as Definition3 } from './helpers/definition-types'
 import { Result } from '../utils/Result'
-import { Exception } from '../utils/Exception'
+import { Exception } from '../Exception'
 import { arrayRemoveItem, parseQueryString } from '../utils/util'
 import { Parameter as Parameter2 } from './v2/Parameter'
 import { Parameter as Parameter3 } from './v3/Parameter'
@@ -286,19 +284,16 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
         if ('requestBody' in definition) {
           const method = key.toLowerCase()
           if (method === 'get' || method === 'trace') {
-            const operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody(data, { key: 'requestBody', type: 'key' }, method)
-            exception.at('requestBody').message(operationMethodShouldNotHaveBody)
+            exception.at('requestBody').add.operationMethodShouldNotHaveBody(data, { key: 'requestBody', type: 'key' }, method)
           } else if (method === 'delete') {
-            const operationMethodShouldNotHaveBody = E.operationMethodShouldNotHaveBody(data, { key: 'requestBody', type: 'key' }, method)
-            exception.at('requestBody').message(operationMethodShouldNotHaveBody)
+            exception.at('requestBody').add.operationMethodShouldNotHaveBody(data, { key: 'requestBody', type: 'key' }, method)
           }
         }
 
         // check that the summary length is valid
         if (definition.summary !== undefined) {
           if (definition.summary.length >= 120) {
-            const exceedsSummaryLength = E.exceedsSummaryLength(data, { key: 'summary', type: 'value' }, definition.summary)
-            exception.message(exceedsSummaryLength)
+            exception.add.exceedsSummaryLength(data, { key: 'summary', type: 'value' }, definition.summary)
           }
         }
       }
@@ -476,11 +471,12 @@ export function preRequest (request: RequestInput, operation: Operation, options
     if (operation.requestContentTypes.length > 0) {
       const contentType = result.header['content-type']?.[0]
       if (contentType === undefined) {
-        exception.at('header').message(...EC.operationRequestContentTypeNotProvided())
+        exception.at('header').add.operationRequestContentTypeNotProvided()
+        selectedContentType = operation.requestContentTypes[0].definition
       } else {
         const best = operation.getRequestContentTypeMatch(contentType)
         if (best === undefined) {
-          exception.at('header').message(...EC.operationRequestContentTypeNotValid(contentType, operation.requestContentTypes.map(m => m.definition)))
+          exception.at('header').add.operationRequestContentTypeNotValid(contentType, operation.requestContentTypes.map(m => m.definition))
         } else {
           selectedContentType = best
         }
@@ -491,10 +487,10 @@ export function preRequest (request: RequestInput, operation: Operation, options
   // check on missing required values
   ;(['cookie', 'header', 'path', 'query'] as ['cookie', 'header', 'path', 'query']).forEach(at => {
     const missing = missingRequired[at]
-    if (missing.length > 0) exception.at(at).message(...EC.operationMissingRequiredParameters(at, missing))
+    if (missing.length > 0) exception.at(at).add.operationMissingRequiredParameters(at, missing)
   })
 
-  if (!exception.hasException) {
+  if (!exception.hasError) {
     const parameters = operation.enforcer.parameters
     ;(['header', 'path', 'query'] as ['header', 'path', 'query']).forEach(key => {
       const data = result[key] ?? {}

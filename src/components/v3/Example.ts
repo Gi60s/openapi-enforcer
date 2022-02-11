@@ -1,10 +1,8 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../DefinitionException'
+import { DefinitionException, LocationInput } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
-import * as E from '../../DefinitionException/methods'
 import rx from '../../utils/rx'
 import { Example3 as Definition } from '../helpers/definition-types'
-import { LocationInput } from '../../DefinitionException/types'
 
 let schemaExample: ComponentSchema<Definition>
 
@@ -63,14 +61,12 @@ export class Example extends OASComponent {
                 { node: definition, key: 'value', type: 'key' },
                 { node: definition, key: 'externalValue', type: 'key' }
               ]
-              const exampleValueExternalConflict = E.propertiesMutuallyExclusive(data, locations, ['value', 'externalValue'])
-              exception.message(exampleValueExternalConflict)
+              exception.add.propertiesMutuallyExclusive(data, locations, ['value', 'externalValue'])
             }
 
             if (built.externalValue !== undefined) {
               if (!rx.url.test(built.externalValue)) {
-                const invalidUrl = E.invalidUrl(data, { key: 'externalValue', type: 'value' }, built.externalValue)
-                exception.at('externalValue').message(invalidUrl)
+                exception.at('externalValue').add.invalidUrl(data, { key: 'externalValue', type: 'value' }, built.externalValue)
               }
             }
           }
