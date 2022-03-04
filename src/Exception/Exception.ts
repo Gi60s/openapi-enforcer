@@ -24,6 +24,8 @@ interface Adders {
   dataTypeUnique: (indexes: number[], values: any[]) => Message
   dataTypeWriteOnly: (writeOnlyProperties: string[]) => Message
 
+  detailedError: (exception: Exception) => Message
+
   definitionInvalid: (isOpenAPI: boolean) => Message
   invalidInput: (explanation: string) => Message
 
@@ -345,6 +347,20 @@ export class Exception extends ExceptionBase<Exception> {
           isOpenAPI
         },
         reference: ''
+      })
+    },
+
+    detailedError: (exception: Exception) => {
+      return this.message({
+        alternateLevels: ['error'],
+        code: codePrefix + 'DETERR',
+        level: 'error',
+        message: exception.header ?? 'An error exists',
+        metadata: {
+          exception
+        },
+        reference: '',
+        exception
       })
     },
 
