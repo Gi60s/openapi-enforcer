@@ -9,6 +9,7 @@ import rx from '../../utils/rx'
 import { Definitions } from './Definitions'
 import { ExternalDocumentation } from '../ExternalDocumentation'
 import { Info } from '../Info'
+import { Operation } from './Operation'
 import { Parameter } from './Parameter'
 import { Paths } from './Paths'
 import { Response } from './Response'
@@ -17,6 +18,11 @@ import { SecurityRequirement } from '../SecurityRequirement'
 import { Tag } from '../Tag'
 import { Swagger as Definition } from '../helpers/definition-types'
 import { ComponentSchema, ValidatorData } from '../helpers/builder-validator-types'
+import {
+  SwaggerGetOperationResult,
+  SwaggerMakeRequestInput,
+  SwaggerMakeRequestOptions, SwaggerMakeRequestResult
+} from '../helpers/function-interfaces'
 
 const rxHostParts = /^(?:(https?|wss?):\/\/)?(.+?)(\/.+)?$/
 const rxPathTemplating = /[{}]/
@@ -43,6 +49,18 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
 
   constructor (definition: Definition) {
     super(Swagger, definition, '2.0', arguments[2])
+  }
+
+  getOperation (method: string, path: string): Result<SwaggerGetOperationResult> {
+
+  }
+
+  getOperationById (operationId: string): Operation | undefined {
+
+  }
+
+  makeRequest (req: SwaggerMakeRequestInput, options?: SwaggerMakeRequestOptions): Result<SwaggerMakeRequestResult> {
+
   }
 
   static spec = {

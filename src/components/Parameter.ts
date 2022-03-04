@@ -1,7 +1,7 @@
 import { Schema } from './'
 import { Component, ComponentSchema } from './helpers/builder-validator-types'
 import * as PartialSchema from './helpers/PartialSchema'
-import * as Serilizer from './helpers/serializer'
+import * as Serializer from './helpers/serializer'
 import * as V from './helpers/common-validators'
 import { Schema as Schema3 } from './v3/Schema'
 import {
@@ -42,7 +42,7 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
         cache.isArray = built.type === 'array'
         cache.isQueryOrFormData = value === 'query' || value === 'formData'
 
-        const { allowedStyles, defaultExplode, defaultStyle } = Serilizer.getValidatorSettings(value)
+        const { allowedStyles, defaultExplode, defaultStyle } = Serializer.getValidatorSettings(value)
         cache.allowedStyles = allowedStyles
         cache.defaultExplode = defaultExplode
         cache.defaultStyle = defaultStyle
@@ -205,7 +205,7 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
       const type = (built.schema as SchemaDefinition3)?.type ?? ''
       const style = built.style ?? ''
       if (type !== '') {
-        const validStyle = Serilizer.styleMatchesType(built.in, style, type, built.explode as boolean)
+        const validStyle = Serializer.styleMatchesType(built.in, style, type, built.explode as boolean)
         if (!validStyle) {
           exception.at('style').add.invalidStyle(data, { node: definition, key: 'style', type: 'value' }, style, type)
         }
@@ -213,7 +213,7 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
 
       // ensure that the explode value is valid
       if ('explode' in built) {
-        const validExplode = Serilizer.styleMatchesExplode(built.in, style, built.explode as boolean)
+        const validExplode = Serializer.styleMatchesExplode(built.in, style, built.explode as boolean)
         if (!validExplode) {
           exception.at('explode').add.invalidCookieExplode(data, { node: definition, key: 'explode', type: 'value' }, definition.name)
         }

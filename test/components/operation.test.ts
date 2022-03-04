@@ -217,7 +217,7 @@ describe('Component: Operation', () => {
             expect(req.path.p).to.deep.equal([1, 2, 3])
           })
 
-          it.only('will not accept an array of values as input', () => {
+          it('will not accept an array of values as input', () => {
             const op = new Operation2({
               parameters: [
                 { name: 'p', in: 'path', required: true, type: 'array', items: { type: 'number' } }
@@ -232,7 +232,7 @@ describe('Component: Operation', () => {
                 p: ['1', '2', '3']
               }
             })
-            expect(error?.hasCode('PARAMETER_PARSE_INVALID_INPUT')).to.equal(true)
+            expect(error).to.match(/Expected a string/)
           })
 
           it('will produce an error is missing a required path variable', () => {
@@ -246,7 +246,6 @@ describe('Component: Operation', () => {
             })
             const [, error] = op.request({})
             expect(error).to.match(/Missing required path parameter: "p"/)
-            expect(error?.hasCode('OAE-EOPRMRP')).to.equal(true)
           })
         })
 
@@ -293,13 +292,14 @@ describe('Component: Operation', () => {
                 ],
                 responses: { 200: { description: 'ok' } }
               })
-              const [, err] = op.request({
+              const [, error] = op.request({
                 header: {
                   // @ts-expect-error
                   p: 1
                 }
               })
-              expect(err?.report.hasCode('PARAMETER_PARSE_INVALID_INPUT')).to.equal(true)
+              expect(error).to.match(/Value not valid for any criteria/)
+              expect(error?.hasCode('OAE-EDTNOOO')).to.equal(true)
             })
 
             it('cannot parse an array of numbers', () => {
@@ -309,13 +309,14 @@ describe('Component: Operation', () => {
                 ],
                 responses: { 200: { description: 'ok' } }
               })
-              const [, err] = op.request({
+              const [, error] = op.request({
                 header: {
                   // @ts-expect-error
                   p: [1, 2, 3]
                 }
               })
-              expect(err?.report.hasCode('PARAMETER_PARSE_INVALID_INPUT')).to.equal(true)
+              expect(error).to.match(/Value not valid for any criteria/)
+              expect(error?.hasCode('OAE-EDTNOOO')).to.equal(true)
             })
 
             it('will produce an error is missing a required header', () => {
@@ -327,9 +328,8 @@ describe('Component: Operation', () => {
                   200: { description: 'ok' }
                 }
               })
-              const [, err] = op.request({})
-              expect(err).to.match(/required header parameters are missing/)
-              expect(err?.report.hasCode('OPERATION_REQUEST_MISSING_REQUIRED_PARAMETERS')).to.equal(true)
+              const [, error] = op.request({})
+              expect(error).to.match(/Missing required header parameter: "p"/)
             })
           })
 
@@ -456,9 +456,8 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [, err] = op.request({})
-            expect(err).to.match(/required query parameters are missing/)
-            expect(err?.report.hasCode('OPERATION_REQUEST_MISSING_REQUIRED_PARAMETERS')).to.equal(true)
+            const [, error] = op.request({})
+            expect(error).to.match(/Missing required query parameter: "p"/)
           })
         })
       })

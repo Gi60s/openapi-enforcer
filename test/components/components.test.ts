@@ -447,7 +447,7 @@ describe('Component: Components', () => {
             MyCallback: { foo: 'bar' }
           }
         })
-        expect(error).to.match(/Expected a PathItem object definition. Received: "bar"/)
+        expect(error).to.match(/Expected a PathItem object definition/)
       })
 
       it('can accept a reference', function () {

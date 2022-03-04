@@ -550,7 +550,7 @@ function TestComponent (config: ComponentSchemaConfig): Component {
     }
 
     static spec = {
-      '3.0.0': ''
+      '3.0.0': 'https://spec-ref.fake.com'
     }
 
     static validate (definition: any, version?: Version): DefinitionException {

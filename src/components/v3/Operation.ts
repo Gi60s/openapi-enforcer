@@ -14,7 +14,7 @@ import { MediaTypeParser } from '../../utils/MediaTypeParser'
 let operationSchema: ComponentSchema<Definition>
 
 export class Operation extends Core.Operation {
-  enforcer!: EnforcerData<Operation> & Core.EnforcerOperationData3
+  enforcer!: EnforcerData<Operation> & Core.EnforcerDataOperation3
 
   callbacks?: Record<string, Callback>
   parameters?: Parameter[]

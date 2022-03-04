@@ -44,7 +44,7 @@ export class SecurityRequirement extends OASComponent {
             lastly.push(() => {
               Object.keys(built).forEach(name => {
                 // if no associated security scheme then produce an error
-                const scheme = metadata.securitySchemes?.[key]?.context.built
+                const scheme = metadata.securitySchemes?.[name]?.context.built
                 if (scheme === undefined) {
                   exception.add.securitySchemeMissingReference(data, { key: name, type: 'value' }, major)
 

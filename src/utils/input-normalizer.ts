@@ -54,9 +54,9 @@ export interface SchemaUndefined {
   type: 'undefined'
 }
 
-export function normalizer<T=any> (schema: Schema): (value: T, exception: Exception) => Result<T> {
-  return (value: T): Result<T> => {
-    return normalize(value, schema, new Exception('Input is not valid'))
+export function normalizer<T=any> (schema: Schema): (value: T, exception: Exception) => T {
+  return (value: T, exception: Exception): T => {
+    return normalize(value, schema, exception)
   }
 }
 
@@ -100,9 +100,9 @@ export const N = {
   }
 }
 
-function normalize (value: any, schema: Schema, exception: Exception): Result<any> {
+function normalize (value: any, schema: Schema, exception: Exception): any {
   if (value === undefined && 'default' in schema && schema.default !== undefined) {
-    return new Result(schema.default)
+    return schema.default
   }
 
   if (schema.type === 'array') {
@@ -118,8 +118,7 @@ function normalize (value: any, schema: Schema, exception: Exception): Result<an
       }
       if (schema.items !== undefined) {
         value = value.map((v: any, index: number) => {
-          const r = normalize(v, schema.items as Schema, exception.at(index))
-          return r.value
+          return normalize(v, schema.items as Schema, exception.at(index))
         })
       }
     }
@@ -160,13 +159,11 @@ function normalize (value: any, schema: Schema, exception: Exception): Result<an
         if (index !== -1) missingRequired.splice(index, 1)
 
         if (schema.properties?.[key] !== undefined) {
-          const r = normalize(value[key], schema.properties[key], exception.at(key))
-          value[key] = r.value
+          value[key] = normalize(value[key], schema.properties[key], exception.at(key))
         } else if (schema.additionalProperties === false) {
           propertiesNotAllowed.push(key)
-        } else if (schema.additionalProperties !== true) {
-          const r = normalize(value[key], schema.additionalProperties as Schema, exception.at(key))
-          value[key] = r.value
+        } else if (schema.additionalProperties !== null && typeof schema.additionalProperties === 'object') {
+          value[key] = normalize(value[key], schema.additionalProperties, exception.at(key))
         }
       })
 
@@ -191,16 +188,13 @@ function normalize (value: any, schema: Schema, exception: Exception): Result<an
       const e = new Exception()
       exceptions.push(e)
       const r = normalize(value, schema.oneOf[i], e)
-      if (r.value !== undefined) {
+      if (!e.hasError) {
         success = true
-        value = r.value
+        value = r
         break
       }
     }
-    if (!success) {
-      const e = exception.nest('Value did not match any of the possible values.')
-      exceptions.forEach(ex => e.push(ex))
-    }
+    if (!success) exception.add.dataTypeNotOneOf(exceptions)
   } else if (schema.type === 'string') {
     if (typeof value !== 'string') {
       exception.add.invalidInput('Expected a string. Received: ' + smart(value))
@@ -216,7 +210,7 @@ function normalize (value: any, schema: Schema, exception: Exception): Result<an
         exception.add.invalidInput('The value did not match the required pattern.')
       }
     }
-  } else if (schema.type === undefined) {
+  } else if (schema.type === 'undefined') {
     if (typeof value !== 'undefined') {
       exception.add.invalidInput('Expected undefined. Received: ' + smart(value))
     }
@@ -226,5 +220,5 @@ function normalize (value: any, schema: Schema, exception: Exception): Result<an
     exception.add.invalidInput('Expected one of: ' + schema.enum.join(', ') + '. Received: ' + smart(value))
   }
 
-  return new Result(value, exception)
+  return value
 }

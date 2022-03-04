@@ -58,6 +58,9 @@ export function minimal (component: any, version: '2.x' | '3.x', overwrite?: any
         ? { type: 'string' }
         : { schema: minimal('Schema', version) }
       break
+    case 'Info':
+      result = { title: '', version: '' }
+      break
     case 'Link':
       result = {
         operationId: 'my-op'
@@ -101,12 +104,21 @@ export function minimal (component: any, version: '2.x' | '3.x', overwrite?: any
     case 'Schema':
       result = { type: 'string' }
       break
+    case 'SecurityRequirement':
+      result = { name: [] }
+      break
     case 'SecurityScheme':
       result = {
         type: 'apiKey',
         name: 'apiKey',
         in: 'query'
       }
+      break
+    case 'Server':
+      result = { url: '/' }
+      break
+    case 'Tag':
+      result = { name: 'Tag1' }
       break
   }
 

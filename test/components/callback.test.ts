@@ -21,19 +21,19 @@ describe('Component: Callback', () => {
       expect(warn).to.equal(undefined)
     })
 
-    it('cannot have invalid properties', function () {
-      const [error] = Callback.validate({
-        // @ts-expect-error
-        foo: 'invalid'
-      })
-      expect(error).to.match(/Expected a PathItem object definition/)
-    })
-
     it('can have a valid path item definition', function () {
       const [error] = Callback.validate({
         foo: minimal('PathItem', '3.x')
       })
       expect(error).to.equal(undefined)
+    })
+
+    it('must have a valid path item definition', function () {
+      const res = Callback.validate({
+        // @ts-expect-error
+        foo: 'invalid'
+      })
+      expect(res.error).to.match(/Expected a PathItem object definition/)
     })
 
     it('cannot have a $ref', function () {

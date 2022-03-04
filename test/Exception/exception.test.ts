@@ -2,14 +2,31 @@ import { adapter } from '../../src/utils/adapter'
 import { expect } from 'chai'
 import * as Config from '../../src/utils/config'
 import { DefinitionException, ExceptionLevel as Level } from '../../src'
+import { MediaType } from '../../src/v3'
 
 const { eol } = adapter
 
 describe('Exception', () => {
   describe('code level modifiers', () => {
-    // normally and example not matching the schema produces a warning
-    it('can make an example not matching schema produce an error', () => {
-      throw Error('TODO: Test level modify for example matching schema')
+    it('will normally warn of an example that does not match the schema', () => {
+      const [error, warning] = MediaType.validate({
+        schema: { type: 'string' },
+        example: 1
+      })
+      expect(error).to.equal(undefined)
+      expect(warning).to.match(/Example is not valid when compared against the schema/)
+      expect(warning).to.match(/Expected a string. Received: 1/)
+    })
+
+    // normally an example not matching the schema produces a warning
+    it('can make an example not matching schema produce an error by adjusting levels', () => {
+      const [error, warning] = MediaType.validate({
+        schema: { type: 'string' },
+        example: 1
+      }).adjustLevels({ 'OAE-DEXNOVA': 'error' })
+      expect(error).to.match(/Example is not valid when compared against the schema/)
+      expect(error).to.match(/Expected a string. Received: 1/)
+      expect(warning).to.equal(undefined)
     })
   })
 

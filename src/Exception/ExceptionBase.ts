@@ -1,17 +1,17 @@
 import { adapter } from '../utils/adapter'
 import * as Config from '../utils/config'
 import { Location } from 'json-to-ast'
+import { lookupLocation } from '../utils/loader'
 
 const { inspect, eol } = adapter
 const exceptionMap = new WeakMap<ExceptionBase<any>, PreReport<any>>()
 const levels: Level[] = ['error', 'warn', 'info', 'ignore']
 
-export type ExceptionLevelConfig = Config.CodeLevels
+export type ExceptionLevelConfig = Config.ExceptionLevelConfig
 
 interface ExceptionData<T extends ExceptionBase<T>> {
   at: Record<string, T>
   messages: Message[]
-  nest: Array<ExceptionBase<T>>
 }
 
 export interface LocationInput {
@@ -64,15 +64,32 @@ type ExceptionReportDetailsItem = Message & {
   breadcrumbs: string[]
 }
 
-// TODO: report does not manage nested yet
 export class ExceptionBase<T extends ExceptionBase<T>> {
   public header: string | undefined
-  public data: ExceptionData<ExceptionBase<T>> = { at: {}, nest: [], messages: [] }
+  public data: ExceptionData<ExceptionBase<T>> = { at: {}, messages: [] }
   public exceptionLevels: ExceptionLevelConfig
 
   constructor (header?: string, exceptionLevels?: ExceptionLevelConfig) {
     this.header = header
     this.exceptionLevels = exceptionLevels ?? Config.get().exceptions?.levels ?? {}
+  }
+
+  public adjustLevels (exceptionLevels: ExceptionLevelConfig): ExceptionBase<T> {
+    const store: Record<string, Message[]> = {}
+    getMessagesByCode(this, store)
+
+    Object.keys(exceptionLevels).forEach(code => {
+      if (store[code] !== undefined) {
+        const newLevel = exceptionLevels[code]
+        store[code].forEach(message => {
+          if (message.alternateLevels.includes(newLevel)) {
+            message.level = newLevel
+          }
+        })
+      }
+    })
+
+    return this
   }
 
   public at (key: string | number): ExceptionBase<T> {
@@ -85,7 +102,7 @@ export class ExceptionBase<T extends ExceptionBase<T>> {
   }
 
   public hasCode (code: string, levels?: Level | Level[]): boolean {
-    const { at, nest, messages } = this.data
+    const { at, messages } = this.data
     const lvl: Level[] | undefined = levels === undefined
       ? undefined
       : Array.isArray(levels) ? levels : [levels]
@@ -101,18 +118,7 @@ export class ExceptionBase<T extends ExceptionBase<T>> {
       if (at[keys[i]].hasCode(code, lvl)) return true
     }
 
-    length = nest.length
-    for (let i = 0; i < length; i++) {
-      if (nest[i].hasCode(code, lvl)) return true
-    }
-
     return false
-  }
-
-  public nest (header: string, config?: ExceptionLevelConfig): ExceptionBase<T> {
-    const Exception = this.constructor as typeof ExceptionBase
-    const exception = new Exception(header, config)
-    return this.push(exception)
   }
 
   public message (message: Message): Message {
@@ -125,28 +131,23 @@ export class ExceptionBase<T extends ExceptionBase<T>> {
       if (message.alternateLevels.includes(newLevel)) {
         message.level = newLevel
       } else {
-        this.message({
-          alternateLevels: ['ignore', 'info', 'warn', 'error'],
-          code: 'EXLECI',
-          level: 'warn',
-          message: 'Unable to change exception level for "' + message.code + '" to "' + (newLevel as string) + '". Accepted levels include: ' + message.alternateLevels.join(', '),
-          metadata: {
-            alternateLevels: message.alternateLevels,
-            code: message.code,
-            invalidLevel: newLevel,
-            level: message.level
-          },
-          reference: ''
-        })
+        // this.message({
+        //   alternateLevels: ['ignore', 'info', 'warn', 'error'],
+        //   code: 'EXLECI',
+        //   level: 'warn',
+        //   message: 'Unable to change exception level for "' + message.code + '" to "' + (newLevel as string) + '". Accepted levels include: ' + message.alternateLevels.join(', '),
+        //   metadata: {
+        //     alternateLevels: message.alternateLevels,
+        //     code: message.code,
+        //     invalidLevel: newLevel,
+        //     level: message.level
+        //   },
+        //   reference: ''
+        // })
       }
     }
 
     return message
-  }
-
-  public push (exception: ExceptionBase<T>): ExceptionBase<T> {
-    this.data.nest.push(exception)
-    return exception
   }
 
   public report (level: Level, options?: { indent: string, includeHeader: boolean }): ExceptionReport<T> | undefined {
@@ -462,4 +463,16 @@ function getExceptionDetailsReport (indent: string, path: string[], message: Mes
   }
   if (message.reference.length > 0) result += eol + indent + 'reference: ' + message.reference
   return result
+}
+
+function getMessagesByCode (exception: ExceptionBase<any>, store: Record<string, Message[]>): void {
+  const at = exception.data.at
+  Object.keys(at).forEach(key => {
+    getMessagesByCode(at[key], store)
+  })
+
+  exception.data.messages.forEach(message => {
+    if (store[message.code] === undefined) store[message.code] = []
+    store[message.code].push(message)
+  })
 }

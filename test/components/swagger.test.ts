@@ -271,7 +271,7 @@ describe('Component: Swagger', () => {
       it('must be an object', function () {
         // @ts-expect-error
         const [error] = Swagger.validate({ swagger, info, paths: [] })
-        expect(error).to.match(/Expected a non-null object/)
+        expect(error).to.match(/Expected a Paths object definition/)
       })
 
       it('will warn if no paths are defined', () => {
@@ -295,7 +295,7 @@ describe('Component: Swagger', () => {
       it('must be an object', function () {
         // @ts-expect-error
         const [error] = Swagger.validate({ swagger, info, paths, definitions: [] })
-        expect(error).to.match(/Expected a non-null object/)
+        expect(error).to.match(/Expected a Definitions object definition/)
       })
 
       it('will warn if $ref is used', () => {
@@ -409,7 +409,7 @@ describe('Component: Swagger', () => {
       it('must be an object', function () {
         // @ts-expect-error
         const [error] = Swagger.validate({ swagger, info, paths, externalDocs: [] })
-        expect(error).to.match(/Expected a non-null object/)
+        expect(error).to.match(/Expected an ExternalDocumentation object definition/)
       })
 
       it('will warn if $ref is used', () => {

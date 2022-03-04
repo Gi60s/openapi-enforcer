@@ -12,7 +12,7 @@ import { MediaTypeParser } from '../../utils/MediaTypeParser'
 let operationSchema: ComponentSchema<Definition>
 
 export class Operation extends Core.Operation {
-  enforcer!: EnforcerData<Operation> & Core.EnforcerOperationData2
+  enforcer!: EnforcerData<Operation> & Core.EnforcerDataOperation2
 
   consumes?: string[]
   parameters?: Parameter[]
@@ -23,7 +23,7 @@ export class Operation extends Core.Operation {
     super(Operation, definition, version, arguments[2])
   }
 
-  request (request: Core.RequestInput, options?: Partial<Core.RequestOptions>): Result<Core.RequestOutput> {
+  makeRequest (request: Core.RequestInput, options?: Partial<Core.RequestOptions>): Result<Core.RequestOutput> {
     const { exception, result } = Core.preRequest(request, this, options)
     const parameters = this.enforcer.parameters
     const requiredParametersMap = this.enforcer.requiredParameters

@@ -4,12 +4,19 @@ import { OASComponent, componentValidate, LoaderOptions, loadRoot, normalizeLoad
 import { Components } from './Components'
 import { ExternalDocumentation } from '../ExternalDocumentation'
 import { Info } from '../Info'
+import { Operation } from './Operation'
 import { Paths } from './Paths'
 import { SecurityRequirement } from '../SecurityRequirement'
 import { Server } from './Server'
 import { Tag } from '../Tag'
 import { Result } from '../../utils/Result'
 import { OpenAPI3 as Definition } from '../helpers/definition-types'
+import {
+  OpenAPIGetOperationResult,
+  OpenAPIMakeRequestInput,
+  OpenAPIMakeRequestOptions,
+  OpenAPIMakeRequestResult
+} from '../helpers/function-interfaces'
 
 const rxVersion = /^\d+\.\d+\.\d+$/
 let openapiSchema: ComponentSchema<Definition>
@@ -22,11 +29,23 @@ export class OpenAPI extends OASComponent {
   openapi!: string
   paths!: Paths
   security?: SecurityRequirement[]
-  servers?: Server[]
+  servers!: Server[]
   tags?: Tag[]
 
   constructor (definition: Definition, version?: Version) {
     super(OpenAPI, definition, version, arguments[2])
+  }
+
+  getOperation (method: string, path: string): Result<OpenAPIGetOperationResult> {
+
+  }
+
+  getOperationById (operationId: string): Operation | undefined {
+
+  }
+
+  makeRequest (req: OpenAPIMakeRequestInput, options?: OpenAPIMakeRequestOptions): Result<OpenAPIMakeRequestResult> {
+
   }
 
   static spec = {
@@ -121,6 +140,14 @@ export class OpenAPI extends OASComponent {
             }
           }
         ],
+        builder: {
+          after (data) {
+            const { built } = data.context
+
+            if (built.servers === undefined) built.servers = []
+            if (built.servers.length === 0) built.servers.push({ url: '/' })
+          }
+        },
         validator: {
           before (data) {
             const { definition, exception } = data.context

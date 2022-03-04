@@ -17,6 +17,8 @@ interface Adders {
   dataTypeMinProperties: (minimum: number, length: number) => Message
   dataTypeMultipleOf: (multipleOf: number, sValue: string, value: number) => Message
   dataTypeMissingProperties: (properties: string[]) => Message
+  dataTypeNotAllOf: (exceptions: Exception[]) => Message
+  dataTypeNotOneOf: (exceptions: Exception[]) => Message
   dataTypePropertiesNotAllowed: (properties: string[]) => Message
   dataTypeReadOnly: (readOnlyProperties: string[]) => Message
   dataTypeUnique: (indexes: number[], values: any[]) => Message
@@ -237,6 +239,42 @@ export class Exception extends ExceptionBase<Exception> {
       })
     },
 
+    dataTypeNotAllOf: (exceptions: Exception[]) => {
+      const exception = new Exception('')
+      exceptions.forEach((e, i) => {
+        exception.data.at[i] = e
+      })
+      return this.message({
+        alternateLevels: ['error'],
+        code: codePrefix + 'DTNOAO',
+        level: 'error',
+        message: 'Value not valid for all criteria',
+        metadata: {
+          exceptions
+        },
+        reference: '',
+        exception
+      })
+    },
+
+    dataTypeNotOneOf: (exceptions: Exception[]) => {
+      const exception = new Exception('')
+      exceptions.forEach((e, i) => {
+        exception.data.at[i] = e
+      })
+      return this.message({
+        alternateLevels: ['error'],
+        code: codePrefix + 'DTNOOO',
+        level: 'error',
+        message: 'Value not valid for any criteria',
+        metadata: {
+          exceptions
+        },
+        reference: '',
+        exception
+      })
+    },
+
     dataTypePropertiesNotAllowed: (propertiesNotAllowed: string[]) => {
       return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
@@ -328,7 +366,7 @@ export class Exception extends ExceptionBase<Exception> {
         level: 'error',
         message: at === 'body'
           ? 'Missing required body'
-          : 'Missing required ' + at + ' parameter' + (names.length > 1 ? 's ' : ' ') + ': ' + smart(names),
+          : 'Missing required ' + at + ' parameter' + (names.length > 1 ? 's' : '') + ': ' + smart(names),
         metadata: {
           at,
           parameterNames: names
@@ -512,7 +550,7 @@ export class Exception extends ExceptionBase<Exception> {
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'SCINDT',
         level: 'error',
-        message: 'Unable to perform operation (' + operation + ') because the schema has no type.',
+        message: 'Unable to perform operation ' + smart(operation) + ' because the schema has no type.',
         metadata: {
           operation
         },

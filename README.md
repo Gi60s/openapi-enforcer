@@ -23,9 +23,9 @@ and write tests ensuring that the validator does what we expect it to. Below is 
 - [X] License
 - [X] Link
 - [X] MediaType
-- [ ] OAuthFlow
-- [ ] OAuthFlows
-- [ ] OpenAPI
+- [X] OAuthFlow
+- [X] OAuthFlows
+- [X] OpenAPI
 - [ ] Operation
 - [ ] Parameter
 - [ ] PathItem
@@ -64,8 +64,9 @@ Test the following methods:
 
 Implement the following methods:
 
-- [ ] `path`
-- [ ] `request`
+- [ ] `getOperation` replacing `path`
+- [ ] `getOperationById`
+- [ ] `makeRequest` replacing `request`
 - [X] Static `load`
 
 Test the following methods:

@@ -177,17 +177,17 @@ export interface OAuthFlow3 {
   'x-enforcer'?: EnforcerExtension
   authorizationUrl?: string
   refreshUrl?: string
-  scopes: string[]
+  scopes: Record<string, string>
   tokenUrl?: string
 }
 
 export interface OAuthFlows3 {
   [key: `x-${string}`]: any
   'x-enforcer'?: EnforcerExtension
-  authorizationCode?: OAuthFlows3
-  clientCredentials?: OAuthFlows3
-  implicit?: OAuthFlows3
-  password?: OAuthFlows3
+  authorizationCode?: OAuthFlow3
+  clientCredentials?: OAuthFlow3
+  implicit?: OAuthFlow3
+  password?: OAuthFlow3
 }
 
 export interface Parameter2 extends PartialSchema<Items2> {

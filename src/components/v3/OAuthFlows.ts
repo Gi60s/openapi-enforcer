@@ -27,7 +27,7 @@ export class OAuthFlows extends OASComponent {
   static get schema (): ComponentSchema<Definition> {
     if (oauthFlowsSchema === undefined) {
       oauthFlowsSchema = new ComponentSchema<Definition>({
-        allowsSchemaExtensions: false,
+        allowsSchemaExtensions: true,
         properties: [
           {
             name: 'authorizationCode',

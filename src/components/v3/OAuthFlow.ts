@@ -2,6 +2,7 @@ import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
 import { OAuthFlow3 as Definition } from '../helpers/definition-types'
+import rx from '../../utils/rx'
 
 let oauthFlowSchema: ComponentSchema<Definition>
 
@@ -70,7 +71,23 @@ export class OAuthFlow extends OASComponent {
             },
             schema: { type: 'string' }
           }
-        ]
+        ],
+        validator: {
+          after (data) {
+            const { context } = data
+            const { definition, exception } = context
+
+            if (definition.authorizationUrl !== undefined && !rx.url.test(definition.authorizationUrl)) {
+              exception.add.invalidUrl(data, { key: 'authorizationUrl', type: 'value' }, definition.authorizationUrl)
+            }
+            if (definition.refreshUrl !== undefined && !rx.url.test(definition.refreshUrl)) {
+              exception.add.invalidUrl(data, { key: 'refreshUrl', type: 'value' }, definition.refreshUrl)
+            }
+            if (definition.tokenUrl !== undefined && !rx.url.test(definition.tokenUrl)) {
+              exception.add.invalidUrl(data, { key: 'tokenUrl', type: 'value' }, definition.tokenUrl)
+            }
+          }
+        }
       })
     }
     return oauthFlowSchema

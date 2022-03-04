@@ -5,6 +5,7 @@ import {
   Operation2 as OperationDefinition2,
   Operation3 as OperationDefinition3
 } from '../components/helpers/definition-types'
+import { lookupLocation } from '../utils/loader'
 
 export interface LocationInput {
   node?: any // if node is not provided then the component definition is used for the node
@@ -49,7 +50,7 @@ interface Adders {
   invalidResponseLinkKey: (data: ValidatorData, location: LocationInput, key: string) => Message
   invalidSemanticVersionNumber: (data: ValidatorData, location: LocationInput, version: string) => Message
   invalidStyle: (data: ValidatorData, location: LocationInput, style: string, type: string) => Message
-  invalidType: (data: ValidatorData, location: LocationInput, expectedType: string, invalidValue: any) => Message
+  invalidType: (data: ValidatorData, location: LocationInput, expectedType: string, invalidValue: any, reference?: string) => Message
   invalidUrl: (data: ValidatorData, location: LocationInput, invalidValue: any) => Message
   invalidVersionForComponent: (data: ValidatorData, location: LocationInput, componentName: string, version: string) => Message
   linkOperationConflict: (data: ValidatorData, locations: LocationInput[]) => Message
@@ -448,13 +449,18 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
       }))
     },
 
-    invalidType: (data: ValidatorData, location: LocationInput, expectedType: string, invalidValue: any) => {
+    invalidType: (data: ValidatorData, location: LocationInput, expectedType: string, invalidValue: any, reference?: string) => {
+      const metadata: Record<string, any> = {
+        expectedType,
+        invalidValue
+      }
+      if (typeof reference === 'string' && reference.length > 0) metadata.reference = reference
       return this.message(getExceptionMessageData(data, [location], true, {
         code: 'INVTYP',
         alternateLevels: [],
         level: 'error',
         message: 'Invalid type. Expected ' + smart(expectedType, false) + '. Received: ' + smart(invalidValue),
-        metadata: { expectedType, invalidValue }
+        metadata
       }))
     },
 
@@ -545,7 +551,7 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
         message: properties.length === 1
           ? 'Missing required property: ' + smart(properties[0])
           : 'Missing required properties: ' + smart(properties),
-        metadata: { properties }
+        metadata: { missingProperties: properties }
       }))
     },
 
@@ -850,17 +856,18 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
 }
 
 function getExceptionMessageData (data: ValidatorData | null, locations: LocationInput[], reference: boolean | string, message: Partial<Message>): Message {
-  // for all defined locations, set the node to the component definition if no node is provided
-  if (data !== null) {
-    locations.forEach(l => {
-      if (l.node === undefined) l.node = data.component.definition
+  // convert location lookup data to actual locations
+  const actualLocations = locations
+    .map(location => {
+      const node = location.node ?? data?.component.definition
+      return lookupLocation(node, location.key, location.type)
     })
-  }
+    .filter(location => location !== undefined)
 
   return Object.assign(message, {
     code: 'OAE-D' + (message.code as string),
     definition: data === null ? '' : data.component.definition,
-    locations,
+    locations: actualLocations,
     metadata: message.metadata ?? {},
     reference: reference === true
       ? data === null ? '' : data.component.reference

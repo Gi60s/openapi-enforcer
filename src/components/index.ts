@@ -181,10 +181,6 @@ export abstract class OASComponent<Definition=any, ComponentConstructor extends 
     if (incomingData === undefined) data.root.lastly.run(data)
   }
 
-  static extend (): void {
-
-  }
-
   static spec = {}
 
   // This value will be overwritten by individual components
@@ -539,7 +535,6 @@ export async function loadRoot<T> (RootComponent: EnforcerComponent, path: strin
   return new Result(component, exception)
 }
 
-// return true if additional validation can occur, false if it should not
 function validate (data: ValidatorData): void {
   const { context } = data
   const { chain, exception, key } = context
@@ -586,10 +581,9 @@ function validate (data: ValidatorData): void {
 
   // $ref property is only allowed for components, and only some of those. The exception is the Reference component that does allow it.
   const schemaAsComponent: SchemaComponent = schema as unknown as SchemaComponent
-  const allowsRef: boolean = schemaAsComponent.type === 'component' &&
-    typeof schemaAsComponent.allowsRef === 'function'
-    ? schemaAsComponent.allowsRef(data.component)
-    : schemaAsComponent.allowsRef as boolean
+  const allowsRef: boolean = schemaAsComponent.type === 'component'
+    ? (typeof schemaAsComponent.allowsRef === 'function' ? schemaAsComponent.allowsRef(data.component) : schemaAsComponent.allowsRef)
+    : false
   const canBeRefDefinition: boolean = schema.type === 'any' || allowsRef
   let hasAccountedForRefError = false
   if (typeof definition === 'object' && '$ref' in definition && !canBeRefDefinition) {
@@ -676,7 +670,8 @@ function validate (data: ValidatorData): void {
         case 'Operation':
           prefix = 'an '
       }
-      exception.add.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, prefix + component.name + ' object definition', definition)
+      const reference = component.spec[version]
+      exception.add.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, prefix + component.name + ' object definition' + (reference !== undefined ? ' (' + reference + ')' : ''), definition, reference)
       return
     }
 
@@ -733,7 +728,6 @@ function validate (data: ValidatorData): void {
     }
   } else if (schema.type === 'string') {
     const s = schema as unknown as SchemaString
-    const success = true
     if (typeof definition !== 'string') {
       exception.add.invalidType(data, { node: parent?.context.definition, key: parent?.context.key, type: 'value' }, 'a string', definition)
       return
@@ -754,7 +748,7 @@ function validate (data: ValidatorData): void {
 }
 
 function validateObjectProperties (context: any, data: ValidatorData): boolean {
-  const { definition, exception } = data.context
+  const { definition, chain, exception } = data.context
   const schema = data.context.schema as SchemaObject
   const version = data.root.version
 
@@ -776,6 +770,8 @@ function validateObjectProperties (context: any, data: ValidatorData): boolean {
     const name = prop.name
     const propertySchema = typeof prop.schema === 'function' ? prop.schema(data.component) : prop.schema
     const child = childrenData[name] = createChildData(data, definition[name], name, propertySchema) as ValidatorData
+    if (prop.before !== undefined) prop.before(cache, data)
+
     const notAllowed = typeof prop.notAllowed === 'function' ? prop.notAllowed(data.component) : prop.notAllowed
     const versionMismatch = prop.versions !== undefined ? !versionMatch(version, prop.versions) : false
     const allowed = notAllowed === undefined && !versionMismatch
@@ -795,13 +791,9 @@ function validateObjectProperties (context: any, data: ValidatorData): boolean {
           reason: notAllowed as string
         })
       } else {
-        if (prop.before !== undefined) prop.before(cache, data)
-        const childSuccess = validate(child)
-        // if (childSuccess) {
+        validate(child)
         context[name] = child.context.built
         if (prop.after !== undefined) prop.after(cache, context[name], context, data)
-        // }
-        // success = success && childSuccess
       }
     } else if ((typeof prop.required === 'function' ? prop.required(data.component) : prop.required) === true && allowed) {
       missingRequiredProperties.push(name)
@@ -830,8 +822,13 @@ function validateObjectProperties (context: any, data: ValidatorData): boolean {
       return
     }
 
-    // if a $ref then this has alrady been addressed earlier in the function
-    if (key === '$ref') return
+    // if a $ref then this has already been addressed earlier in the function
+    if (key === '$ref') {
+      if (chain.length === 0) {
+        exception.add.$refNotAllowed(data, { node: definition, key: '$ref', type: 'key' })
+      }
+      return
+    }
 
     // validate property
     const def = definition[key]
@@ -842,9 +839,7 @@ function validateObjectProperties (context: any, data: ValidatorData): boolean {
       })
     } else {
       const child = createChildData(data, def, key, additionalProperties.schema) as ValidatorData
-      const childSuccess = validate(child)
-      // if (childSuccess) context[key] = child.context.built
-      // success = success && childSuccess
+      validate(child)
       context[key] = child.context.built
     }
   })

@@ -22,9 +22,9 @@ interface ComponentsMap {
   Responses: Component
 }
 
-type EnforcerOperationData = EnforcerOperationData2 | EnforcerOperationData3
+type EnforcerOperationData = EnforcerDataOperation2 | EnforcerDataOperation3
 
-export interface EnforcerOperationData2 {
+export interface EnforcerDataOperation2 {
   parameters: {
     body?: Parameter2
     formData?: Record<string, Parameter2>
@@ -41,7 +41,7 @@ export interface EnforcerOperationData2 {
   }
 }
 
-export interface EnforcerOperationData3 {
+export interface EnforcerDataOperation3 {
   parameters: {
     cookie?: Record<string, Parameter3>
     header?: Record<string, Parameter3>
@@ -391,16 +391,16 @@ export function preRequest (request: RequestInput, operation: Operation, options
   let selectedContentType: string = ''
 
   // normalize options
-  const normalizedOptions = RequestOptionsNormalizer(options ?? {}, new Exception('Invalid options specified'))
-  if (normalizedOptions.error !== undefined) throw new Error(normalizedOptions.error.toString())
-  const opts = normalizedOptions.value as Required<RequestOptions>
+  const optionsException = new Exception('Invalid options specified')
+  const opts = RequestOptionsNormalizer(options ?? {}, optionsException) as Required<RequestOptions>
+  if (optionsException.hasError) throw new Error(optionsException.error?.toString())
   if (Array.isArray(opts.allowOtherQueryParameters) && opts.allowOtherQueryParameters.length === 0) opts.allowOtherQueryParameters = false
 
   // normalize request
   const exception = new Exception('Request has one or more errors')
   if (opts.validateInput) {
-    const input = RequestInputNormalizer(request ?? {}, exception)
-    if (input.error === undefined) request = input.value
+    const normalizedRequest = RequestInputNormalizer(request ?? {}, exception)
+    request = normalizedRequest
   }
 
   // create a map of required parameters
