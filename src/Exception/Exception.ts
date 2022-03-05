@@ -476,7 +476,7 @@ export class Exception extends ExceptionBase<Exception> {
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
         code: codePrefix + 'PAPAIV',
         level: 'error',
-        message: 'Input is not of the expected type ' + smart(expectedType) + '. Actual type: ' + smart(actualType) + '". Actual value ' + smart(value),
+        message: 'Input is not of the expected type ' + smart(expectedType) + '. Actual type: ' + smart(actualType),
         metadata: {},
         reference: ''
       })

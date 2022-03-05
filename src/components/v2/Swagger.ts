@@ -21,7 +21,7 @@ import { ComponentSchema, ValidatorData } from '../helpers/builder-validator-typ
 import {
   SwaggerGetOperationResult,
   SwaggerMakeRequestInput,
-  SwaggerMakeRequestOptions, SwaggerMakeRequestResult
+  SwaggerMakeRequestOptions, SwaggerMakeRequestOutput
 } from '../helpers/function-interfaces'
 
 const rxHostParts = /^(?:(https?|wss?):\/\/)?(.+?)(\/.+)?$/
@@ -56,10 +56,10 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
   }
 
   getOperationById (operationId: string): Operation | undefined {
-
+    return this.enforcer.metadata.operationIdMap[operationId] as Operation
   }
 
-  makeRequest (req: SwaggerMakeRequestInput, options?: SwaggerMakeRequestOptions): Result<SwaggerMakeRequestResult> {
+  makeRequest (req: SwaggerMakeRequestInput, options?: SwaggerMakeRequestOptions): Result<SwaggerMakeRequestOutput> {
 
   }
 
@@ -240,7 +240,7 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
             if (built.consumes !== undefined) {
               built.consumes.forEach((consumes: string) => {
                 if (!rx.mediaType.test(consumes)) {
-                  exception.add.invalidMediaType(data, { node: definition.consumes, key: consumes, type: 'value' }, consumes)
+                  exception.add.invalidMediaType(data, { node: definition, key: 'consumes', type: 'value' }, consumes)
                 }
               })
             }
@@ -264,7 +264,7 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
             if (built.produces !== undefined) {
               built.produces.forEach((produces: string) => {
                 if (!rx.mediaType.test(produces)) {
-                  exception.add.invalidMediaType(data, { node: definition.produces, key: produces, type: 'value' }, produces)
+                  exception.add.invalidMediaType(data, { node: definition, key: 'produces', type: 'value' }, produces)
                 }
               })
             }

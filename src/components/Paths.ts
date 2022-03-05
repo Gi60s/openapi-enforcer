@@ -45,28 +45,6 @@ export function schemaGenerator<Definition> (PathItemComponent: Component): Comp
           })
           exception.add.pathEndingsInconsistent(data, locations, includesTrailingSlashes, omitsTrainingSlashes)
         }
-
-        // check for duplicate operation ids
-        data.root.lastly.push(() => {
-          const exception = data.context.exception
-          const map = data.root.metadata.operationIdMap
-          Object.keys(map).forEach(operationId => {
-            const operationDataArray = map[operationId]
-
-            // if there is an operationId that belongs to more than one operation then we have a problem
-            if (operationDataArray.length > 1) {
-              const locations: LocationInput[] = operationDataArray.map(operationData => {
-                const { definition: node } = operationData.context
-                return {
-                  node,
-                  key: 'operationId',
-                  type: 'value'
-                }
-              })
-              exception.add.operationIdMustBeUnique(data, locations, operationId, operationDataArray)
-            }
-          })
-        })
       }
     },
     additionalProperties: {

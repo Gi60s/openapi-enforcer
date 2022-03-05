@@ -1,5 +1,5 @@
 import { OASComponent, EnforcerData } from './'
-import { BuilderData, Component, ComponentSchema, Version } from './helpers/builder-validator-types'
+import { BuilderData, Component, ComponentSchema, ValidatorData, Version } from './helpers/builder-validator-types'
 import { MediaTypeParser } from '../utils/MediaTypeParser'
 import { Callback } from './v3/Callback'
 import { ExternalDocumentation } from './ExternalDocumentation'
@@ -7,13 +7,21 @@ import { RequestBody } from './v3/RequestBody'
 import { Responses } from './Responses'
 import { SecurityRequirement } from './SecurityRequirement'
 import { Server } from './v3/Server'
-import { Operation2 as Definition2, Operation3 as Definition3 } from './helpers/definition-types'
+import {
+  Operation2 as Definition2,
+  Operation3 as Definition3,
+  Parameter2 as ParameterDefinition2,
+  Parameter3 as ParameterDefinition3
+} from './helpers/definition-types'
 import { Result } from '../utils/Result'
 import { Exception } from '../Exception'
 import { arrayRemoveItem, parseQueryString } from '../utils/util'
 import { Parameter as Parameter2 } from './v2/Parameter'
 import { Parameter as Parameter3 } from './v3/Parameter'
 import { normalizer, N } from '../utils/input-normalizer'
+import { Method, OperationMakeRequestInput } from './helpers/function-interfaces'
+import { LocationInput } from '../Exception/DefinitionException'
+import rx from '../utils/rx'
 
 type Definition = Definition2 | Definition3
 
@@ -25,6 +33,8 @@ interface ComponentsMap {
 type EnforcerOperationData = EnforcerDataOperation2 | EnforcerDataOperation3
 
 export interface EnforcerDataOperation2 {
+  method: Method
+  path: string
   parameters: {
     body?: Parameter2
     formData?: Record<string, Parameter2>
@@ -42,6 +52,8 @@ export interface EnforcerDataOperation2 {
 }
 
 export interface EnforcerDataOperation3 {
+  method: Method
+  path: string
   parameters: {
     cookie?: Record<string, Parameter3>
     header?: Record<string, Parameter3>
@@ -58,20 +70,7 @@ export interface EnforcerDataOperation3 {
 
 type RecordArray = Record<string, string[]>
 
-export interface RequestInput {
-  /**
-   * Body format:
-   * - application/json - The body should be a JSON parsed body
-   * - application/x-www-form-urlencoded - Record<string, string | string[]>
-   * - multipart/form-data - Record<string, string | string[]>
-   * - other - string
-   */
-  body?: string | object | undefined
-  cookie?: Record<string, string> // if included then these will be merged with cookies in the headers too
-  header?: Record<string, string | string[] | undefined>
-  path?: Record<string, string> // path parameter names mapped to string values
-  query?: string
-}
+export type RequestInput = OperationMakeRequestInput
 
 export const RequestInputNormalizer = normalizer(N.Object({
   properties: {
@@ -192,6 +191,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
       },
       {
         name: 'responses',
+        required: true,
         schema: {
           type: 'component',
           allowsRef: false,
@@ -243,10 +243,13 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
     builder: {
       after (data) {
         const built = data.context.built as Operation
-        const { key } = data.context
+        const { key, chain } = data.context
         const { metadata } = data.root
         if (metadata.operationIdMap === undefined) metadata.operationIdMap = {}
         metadata.operationIdMap[key] = built
+
+        built.enforcer.method = (key as Method) ?? ''
+        built.enforcer.path = chain[0]?.context.key ?? ''
 
         built.enforcer.parameters = {}
         built.enforcer.requiredParameters = data.root.major === 2
@@ -272,16 +275,23 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
     },
     validator: {
       after (data) {
-        const { definition, exception, key } = data.context
+        const { built, definition, exception, key } = data.context
 
-        // store operation metadata
-        const { metadata } = data.root
+        // operation metadata set up
+        const { metadata, lastly } = data.root
+        const { operationId } = built
         if (metadata.operationIdMap === undefined) metadata.operationIdMap = {}
-        if (metadata.operationIdMap[key] === undefined) metadata.operationIdMap[key] = []
-        metadata.operationIdMap[key].push(data)
+
+        // store metadata about operation id
+        if (operationId !== undefined) {
+          if (metadata.operationIdMap[operationId] === undefined) metadata.operationIdMap[operationId] = []
+          metadata.operationIdMap[operationId].push(data)
+        }
+
+        // store metadata about parameters
 
         // check that if request body is specified that it is valid for the method
-        if ('requestBody' in definition) {
+        if ('requestBody' in built) {
           const method = key.toLowerCase()
           if (method === 'get' || method === 'trace') {
             exception.at('requestBody').add.operationMethodShouldNotHaveBody(data, { key: 'requestBody', type: 'key' }, method)
@@ -291,10 +301,35 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
         }
 
         // check that the summary length is valid
-        if (definition.summary !== undefined) {
-          if (definition.summary.length >= 120) {
-            exception.add.exceedsSummaryLength(data, { key: 'summary', type: 'value' }, definition.summary)
+        if (built.summary !== undefined) {
+          if (built.summary.length >= 120) {
+            exception.add.exceedsSummaryLength(data, { key: 'summary', type: 'value' }, built.summary)
           }
+        }
+
+        if (built.consumes !== undefined) {
+          built.consumes.forEach((consumes: string) => {
+            if (!rx.mediaType.test(consumes)) {
+              exception.add.invalidMediaType(data, { node: definition, key: 'consumes', type: 'value' }, consumes)
+            }
+          })
+        }
+
+        if (built.produces !== undefined) {
+          built.produces.forEach((produces: string) => {
+            if (!rx.mediaType.test(produces)) {
+              exception.add.invalidMediaType(data, { node: definition, key: 'produces', type: 'value' }, produces)
+            }
+          })
+        }
+
+        if (built.parameters !== undefined) {
+          reportParameterNamespaceConflicts(data, built, built.parameters)
+        }
+
+        // only add this check once to the "lastly" array
+        if (!lastly.includes(reportNonUniqueOperationIds)) {
+          lastly.push(reportNonUniqueOperationIds)
         }
       }
     }
@@ -352,7 +387,7 @@ export abstract class Operation extends OASComponent {
   //   }
   // }
 
-  abstract request (request: RequestInput, options?: RequestOptions): Result<RequestOutput>
+  abstract makeRequest (request: RequestInput, options?: RequestOptions): Result<RequestOutput>
 }
 
 export function addParameterToOperation (operation: Operation, parameter: Parameter2 | Parameter3): void {
@@ -449,10 +484,10 @@ export function preRequest (request: RequestInput, operation: Operation, options
       })
   }
 
-  if (request.path !== undefined) {
-    Object.keys(request.path).forEach(key => {
+  if (request.params !== undefined) {
+    Object.keys(request.params).forEach(key => {
       arrayRemoveItem(missingRequired.path, key)
-      result.path[key] = [request.path?.[key] as string]
+      result.path[key] = [request.params?.[key] as string]
     })
   }
 
@@ -497,11 +532,11 @@ export function preRequest (request: RequestInput, operation: Operation, options
       Object.keys(data).forEach(name => {
         const parameter = parameters[key]?.[name]
         if (parameter !== undefined) {
-          const [parsed, error] = parameter.parse(data[name])
-          if (error !== undefined) {
-            exception.at(key).at(name).push(error)
+          const parsed = parameter.parse(data[name])
+          if (parsed.error !== undefined) {
+            exception.at(key).at(name).add.detailedError(parsed.exception as Exception)
           } else {
-            data[name] = parsed
+            data[name] = parsed.value
           }
         }
       })
@@ -514,6 +549,49 @@ export function preRequest (request: RequestInput, operation: Operation, options
     opts,
     result
   }
+}
+
+export function reportParameterNamespaceConflicts (data: ValidatorData, operation: Definition, parameters: Array<ParameterDefinition2 | ParameterDefinition3>): void {
+  const { exception } = data.context
+  const parametersMap: Array<{ name: string, in: string }> = []
+  let bodyParameter: ParameterDefinition2 | undefined
+  const formDataParameter: ParameterDefinition2[] = []
+
+  parameters
+    .filter(parameter => typeof parameter === 'object' && parameter !== null && parameter.in !== undefined)
+    .forEach(parameter => {
+      if (parameter.in === 'body') bodyParameter = parameter
+      if (parameter.in === 'formData') formDataParameter.push(parameter)
+
+      const index = parametersMap.findIndex(p => p.in === parameter.in && p.name === parameter.name)
+      if (index !== -1) {
+        exception.add.parameterNamespaceConflict(data, [{ node: parameter }, { node: parametersMap[index] }], parameter.name, parameter.in)
+      } else {
+        parametersMap.push({ name: parameter.name, in: parameter.in })
+      }
+    })
+
+  if (bodyParameter !== undefined && formDataParameter.length > 0) {
+    const locations: LocationInput[] = [{ node: bodyParameter }, ...formDataParameter.map(p => { return { node: p } })]
+    exception.add.parameterBodyFormDataConflict(data, locations)
+  }
+}
+
+function reportNonUniqueOperationIds (data: ValidatorData): void {
+  const map = data.root.metadata.operationIdMap
+  Object.keys(map)
+    .filter(operationId => map[operationId].length > 1)
+    .forEach(operationId => {
+      const locations: LocationInput[] = map[operationId].map(data => {
+        const { definition } = data.context
+        return {
+          node: definition,
+          key: 'operationId',
+          type: 'value'
+        }
+      })
+      data.context.exception.add.operationIdMustBeUnique(data, locations, operationId, map[operationId])
+    })
 }
 
 // the "store" parameter is a list of possible media type matches and must not include the quality number

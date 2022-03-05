@@ -329,12 +329,13 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
     },
 
     exceedsSummaryLength: (data: ValidatorData, location: LocationInput, summary: string) => {
+      const length = summary.length
       return this.message(getExceptionMessageData(data, [location], true, {
         code: 'EXSULE',
         alternateLevels: ['ignore', 'info', 'warn', 'error'],
         level: 'warn',
         message: 'Summary should be less than 120 characters in length. Current length: ' + smart(length),
-        metadata: { length: summary.length, summary }
+        metadata: { length, summary }
       }))
     },
 
@@ -603,7 +604,7 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
         code: 'OPIMBU',
         alternateLevels: [],
         level: 'error',
-        message: 'The operationId ' + smart(operationId) + ' must be unique for each operation.',
+        message: 'The operationId ' + smart(operationId) + ' is not unique and must be unique.',
         metadata: { operationId, conflicts, operations: conflictsData }
       }))
     },

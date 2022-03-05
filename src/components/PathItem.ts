@@ -1,7 +1,7 @@
 import { componentValidate, OASComponent } from './index'
 import { BuilderData, Component, ComponentSchema, ValidatorData, Version } from './helpers/builder-validator-types'
 import { DefinitionException, LocationInput } from '../Exception'
-import { addParameterToOperation, Operation } from './Operation'
+import { addParameterToOperation, Operation, reportParameterNamespaceConflicts } from './Operation'
 import { Server } from './v3/Server'
 import {
   PathItem2 as Definition2,
@@ -64,26 +64,7 @@ export function schemaGenerator (components: ComponentsMap, methods: string[]): 
           if (method in built) {
             const operation = built[method] as OperationDefinition
             const parameters = (built.parameters ?? []).slice(0).concat(operation.parameters ?? [])
-            const parametersMap: Array<{ name: string, in: string }> = []
-            let bodyParameter: ParameterDefinition | undefined
-            const formDataParameter: ParameterDefinition[] = []
-
-            parameters.forEach((parameter: ParameterDefinition) => {
-              if (parameter.in === 'body') bodyParameter = parameter
-              if (parameter.in === 'formData') formDataParameter.push(parameter)
-
-              const index = parametersMap.findIndex(p => p.in === parameter.in && p.name === parameter.name)
-              if (index !== -1) {
-                exception.add.parameterNamespaceConflict(data, [{ node: parameter }, { node: parametersMap[index] }], parameter.name, parameter.in)
-              } else {
-                parametersMap.push({ name: parameter.name, in: parameter.in })
-              }
-            })
-
-            if (bodyParameter !== undefined && formDataParameter.length > 0) {
-              const locations: LocationInput[] = [{ node: bodyParameter }, ...formDataParameter.map(p => { return { node: p } })]
-              exception.add.parameterBodyFormDataConflict(data, locations)
-            }
+            reportParameterNamespaceConflicts(data, operation, parameters)
           }
         })
 

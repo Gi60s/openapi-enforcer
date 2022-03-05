@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { Operation as Operation2, Parameter as Parameter2, PathItem as PathItem2 } from '../../src/v2'
 import { Operation as Operation3, Parameter as Parameter3, PathItem as PathItem3 } from '../../src/v3'
 
-describe('Component: Operation', () => {
+describe.only('Component: Operation', () => {
   describe('build', () => {
     it('can build', () => {
       const op2 = new Operation2({ responses: { 200: { description: '' } } })
@@ -144,7 +144,7 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [req] = op.request({ body: '1' })
+            const [req] = op.makeRequest({ body: '1' })
             expect(req.body).to.equal(1)
           })
         })
@@ -159,7 +159,7 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [req] = op.request({ body: { p: ['1', '2', '3'] } })
+            const [req] = op.makeRequest({ body: { p: ['1', '2', '3'] } })
             expect(req.body.p).to.equal(3)
           })
 
@@ -172,7 +172,7 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [req] = op.request({ body: { p: ['1,2,3'] } })
+            const [req] = op.makeRequest({ body: { p: ['1,2,3'] } })
             expect(req.body.p).to.deep.equal([1, 2, 3])
           })
 
@@ -185,7 +185,7 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [req] = op.request({ body: { p: ['1', '2', '3'] } })
+            const [req] = op.makeRequest({ body: { p: ['1', '2', '3'] } })
             expect(req.body.p).to.deep.equal([1, 2, 3])
           })
         })
@@ -200,7 +200,7 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [req] = op.request({ path: { p: '2000-01-01' } })
+            const [req] = op.makeRequest({ params: { p: '2000-01-01' } })
             expect(req.path.p).to.be.instanceof(Date)
           })
 
@@ -213,7 +213,7 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [req] = op.request({ path: { p: '1,2,3' } })
+            const [req] = op.makeRequest({ params: { p: '1,2,3' } })
             expect(req.path.p).to.deep.equal([1, 2, 3])
           })
 
@@ -226,13 +226,13 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [, error] = op.request({
-              path: {
+            const [, error] = op.makeRequest({
+              params: {
                 // @ts-expect-error
                 p: ['1', '2', '3']
               }
             })
-            expect(error).to.match(/Expected a string/)
+            expect(error).to.match(/not of the expected type/)
           })
 
           it('will produce an error is missing a required path variable', () => {
@@ -244,7 +244,7 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [, error] = op.request({})
+            const [, error] = op.makeRequest({})
             expect(error).to.match(/Missing required path parameter: "p"/)
           })
         })
@@ -258,7 +258,7 @@ describe('Component: Operation', () => {
                 ],
                 responses: { 200: { description: 'ok' } }
               })
-              const [req] = op.request({ header: { p: '2000-01-01' } })
+              const [req] = op.makeRequest({ header: { p: '2000-01-01' } })
               expect(req.header.p).to.be.instanceof(Date)
             })
 
@@ -269,7 +269,7 @@ describe('Component: Operation', () => {
                 ],
                 responses: { 200: { description: 'ok' } }
               })
-              const [req] = op.request({ header: { p: ['2000-01-01'] } })
+              const [req] = op.makeRequest({ header: { p: ['2000-01-01'] } })
               expect(req.header.p).to.be.instanceof(Date)
             })
 
@@ -280,7 +280,7 @@ describe('Component: Operation', () => {
                 ],
                 responses: { 200: { description: 'ok' } }
               })
-              const [req] = op.request({ header: { p: undefined } })
+              const [req] = op.makeRequest({ header: { p: undefined } })
               expect('p' in req.header).to.equal(true)
               expect(req.header.p).to.be.equal('')
             })
@@ -292,7 +292,7 @@ describe('Component: Operation', () => {
                 ],
                 responses: { 200: { description: 'ok' } }
               })
-              const [, error] = op.request({
+              const [, error] = op.makeRequest({
                 header: {
                   // @ts-expect-error
                   p: 1
@@ -309,7 +309,7 @@ describe('Component: Operation', () => {
                 ],
                 responses: { 200: { description: 'ok' } }
               })
-              const [, error] = op.request({
+              const [, error] = op.makeRequest({
                 header: {
                   // @ts-expect-error
                   p: [1, 2, 3]
@@ -328,7 +328,7 @@ describe('Component: Operation', () => {
                   200: { description: 'ok' }
                 }
               })
-              const [, error] = op.request({})
+              const [, error] = op.makeRequest({})
               expect(error).to.match(/Missing required header parameter: "p"/)
             })
           })
@@ -341,7 +341,7 @@ describe('Component: Operation', () => {
                 ],
                 responses: { 200: { description: 'ok' } }
               })
-              const [req] = op.request({ header: { p: '1' } })
+              const [req] = op.makeRequest({ header: { p: '1' } })
               expect(req.header.p).to.deep.equal([1])
             })
 
@@ -352,7 +352,7 @@ describe('Component: Operation', () => {
                 ],
                 responses: { 200: { description: 'ok' } }
               })
-              const [req] = op.request({ header: { p: ['1,2,3'] } })
+              const [req] = op.makeRequest({ header: { p: ['1,2,3'] } })
               expect(req.header.p).to.deep.equal([1, 2, 3])
             })
 
@@ -363,7 +363,7 @@ describe('Component: Operation', () => {
                 ],
                 responses: { 200: { description: 'ok' } }
               })
-              const [req] = op.request({ header: { p: ['1', '2', '3'] } })
+              const [req] = op.makeRequest({ header: { p: ['1', '2', '3'] } })
               expect(req.header.p).to.deep.equal([1, 2, 3])
             })
           })
@@ -377,7 +377,7 @@ describe('Component: Operation', () => {
               ],
               responses: { 200: { description: 'ok' } }
             })
-            const [req] = op.request({ query: '?p=1' })
+            const [req] = op.makeRequest({ query: '?p=1' })
             expect(req.query.p).to.equal(1)
           })
 
@@ -388,7 +388,7 @@ describe('Component: Operation', () => {
               ],
               responses: { 200: { description: 'ok' } }
             })
-            const [req] = op.request({ query: 'p=1&p=2' })
+            const [req] = op.makeRequest({ query: 'p=1&p=2' })
             expect(req.query.p).to.equal(2)
           })
 
@@ -399,7 +399,7 @@ describe('Component: Operation', () => {
               ],
               responses: { 200: { description: 'ok' } }
             })
-            const [req] = op.request({ query: 'p=1,2' })
+            const [req] = op.makeRequest({ query: 'p=1,2' })
             expect(req.query.p).to.deep.equal([1, 2])
           })
 
@@ -410,7 +410,7 @@ describe('Component: Operation', () => {
               ],
               responses: { 200: { description: 'ok' } }
             })
-            const [req] = op.request({ query: 'p=1|2' })
+            const [req] = op.makeRequest({ query: 'p=1|2' })
             expect(req.query.p).to.deep.equal([1, 2])
           })
 
@@ -421,7 +421,7 @@ describe('Component: Operation', () => {
               ],
               responses: { 200: { description: 'ok' } }
             })
-            const [req] = op.request({ query: 'p=1 2' })
+            const [req] = op.makeRequest({ query: 'p=1 2' })
             expect(req.query.p).to.deep.equal([1, 2])
           })
 
@@ -432,7 +432,7 @@ describe('Component: Operation', () => {
               ],
               responses: { 200: { description: 'ok' } }
             })
-            const [req] = op.request({ query: 'p=1\t2' })
+            const [req] = op.makeRequest({ query: 'p=1\t2' })
             expect(req.query.p).to.deep.equal([1, 2])
           })
 
@@ -443,7 +443,7 @@ describe('Component: Operation', () => {
               ],
               responses: { 200: { description: 'ok' } }
             })
-            const [req] = op.request({ query: 'p=1&p=2' })
+            const [req] = op.makeRequest({ query: 'p=1&p=2' })
             expect(req.query.p).to.deep.equal([1, 2])
           })
 
@@ -456,7 +456,7 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [, error] = op.request({})
+            const [, error] = op.makeRequest({})
             expect(error).to.match(/Missing required query parameter: "p"/)
           })
         })
@@ -480,7 +480,7 @@ describe('Component: Operation', () => {
                 200: { description: 'ok' }
               }
             })
-            const [req] = op.request({ body: [1, 2, 3], header: { 'content-type': 'application/json' } })
+            const [req] = op.makeRequest({ body: [1, 2, 3], header: { 'content-type': 'application/json' } })
             expect(req.body).to.deep.equal([1, 2, 3])
           })
         })
@@ -489,6 +489,393 @@ describe('Component: Operation', () => {
   })
 
   describe('validate', () => {
+    const Operations = [Operation2, Operation3]
 
+    it('has required properties', () => {
+      Operations.forEach(Operation => {
+        // @ts-expect-error
+        const [error] = Operation.validate({})
+        expect(error).to.match(/Missing required property: "responses"/)
+      })
+    })
+
+    it('allows extensions', () => {
+      Operations.forEach(Operation => {
+        const [, warn] = Operation.validate({ responses: { 200: { description: 'ok' } } })
+        expect(warn).to.equal(undefined)
+      })
+    })
+
+    it('cannot have invalid properties', () => {
+      Operations.forEach(Operation => {
+        const [error] = Operation.validate({
+          // @ts-expect-error
+          foo: 'invalid',
+          responses: { 200: { description: 'ok' } }
+        })
+        expect(error).to.match(/Property "foo" not allowed. Property not part of the specification/)
+      })
+    })
+
+    describe('property: tags', () => {
+      it('can be an empty array', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            tags: [],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+      })
+
+      it('can be an array of strings', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            tags: ['tag-1', 'tag-2'],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+      })
+
+      it('must be an array of strings', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            // @ts-expect-error
+            tags: [1],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected a string/)
+        })
+      })
+    })
+
+    describe('property: summary', () => {
+      it('can be a string', () => {
+        Operations.forEach((Operation) => {
+          const [error] = Operation.validate({
+            summary: '',
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+      })
+
+      it('must be a string', () => {
+        Operations.forEach((Operation) => {
+          const [error] = Operation.validate({
+            // @ts-expect-error
+            summary: 5,
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected a string/)
+        })
+      })
+
+      it('will warn if the summary is at least 120 characters', () => {
+        Operations.forEach((Operation) => {
+          const [, warning] = Operation.validate({
+            summary: '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 ',
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(warning).to.match(/Summary should be less than 120 characters in length/)
+        })
+      })
+    })
+
+    describe('property: description', () => {
+      it('can be a string', () => {
+        Operations.forEach((Operation) => {
+          const [error] = Operation.validate({
+            description: 'description',
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+      })
+
+      it('must be a string', () => {
+        Operations.forEach((Operation) => {
+          const [error] = Operation.validate({
+            // @ts-expect-error
+            description: 5,
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected a string/)
+        })
+      })
+    })
+
+    describe('property: externalDocs', () => {
+      it('can be an external document definition', () => {
+        Operations.forEach((Operation) => {
+          const [error] = Operation.validate({
+            externalDocs: { url: 'https://fake.com' },
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+      })
+
+      it('must be an external document definition', () => {
+        Operations.forEach((Operation) => {
+          const [error] = Operation.validate({
+            // @ts-expect-error
+            externalDocs: 5,
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected an ExternalDocumentation object definition/)
+        })
+      })
+    })
+
+    describe('property: operationId', () => {
+      it('can be a string', () => {
+        Operations.forEach((Operation) => {
+          const [error] = Operation.validate({
+            operationId: 'op1',
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+      })
+
+      it('must be a string', () => {
+        Operations.forEach((Operation) => {
+          const [error] = Operation.validate({
+            // @ts-expect-error
+            operationId: 5,
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected a string/)
+        })
+      })
+
+      it('must be unique', () => {
+        [PathItem2, PathItem3].forEach(PathItem => {
+          const [error] = PathItem.validate({
+            get: {
+              operationId: 'not-unique',
+              responses: { 200: { description: 'ok' } }
+            },
+            post: {
+              operationId: 'not-unique',
+              responses: { 200: { description: 'ok' } }
+            }
+          })
+          expect(error).to.match(/The operationId "not-unique" is not unique and must be unique/)
+        })
+      })
+    })
+
+    describe('property: parameters', () => {
+      it('can be an empty array', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            parameters: [],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+      })
+
+      it('can be an array of parameter definitions v2', () => {
+        const [error] = Operation2.validate({
+          parameters: [
+            { name: 'foo', in: 'query', type: 'string' }
+          ],
+          responses: { 200: { description: 'ok' } }
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('can be an array of parameter definitions v3', () => {
+        const [error] = Operation3.validate({
+          parameters: [
+            { name: 'foo', in: 'query', schema: { type: 'string' } }
+          ],
+          responses: { 200: { description: 'ok' } }
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('must be an array of parameter definitions v2', () => {
+        const [error] = Operation2.validate({
+          // @ts-expect-error
+          parameters: [5],
+          responses: { 200: { description: 'ok' } }
+        })
+        expect(error).to.match(/Expected a Parameter object definition/)
+      })
+
+      it('must be an array of parameter definitions v3', () => {
+        const [error] = Operation3.validate({
+          // @ts-expect-error
+          parameters: [5],
+          responses: { 200: { description: 'ok' } }
+        })
+        expect(error).to.match(/Expected a Parameter object definition/)
+      })
+
+      it('allows two parameters with the same name but different positions v2', () => {
+        const [error] = Operation2.validate({
+          parameters: [
+            { name: 'foo', in: 'path', required: true, type: 'string' },
+            { name: 'foo', in: 'query', type: 'string' }
+          ],
+          responses: { 200: { description: 'ok' } }
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('allows two parameters with the same name but different positions v3', () => {
+        const [error] = Operation3.validate({
+          parameters: [
+            { name: 'foo', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'foo', in: 'query', schema: { type: 'string' } }
+          ],
+          responses: { 200: { description: 'ok' } }
+        })
+        expect(error).to.equal(undefined)
+      })
+
+      it('does not allow two parameters with the same name and position v2', () => {
+        const [error] = Operation2.validate({
+          parameters: [
+            { name: 'foo', in: 'query', type: 'string' },
+            { name: 'foo', in: 'query', type: 'string' }
+          ],
+          responses: { 200: { description: 'ok' } }
+        })
+        expect(error).to.match(/Parameter names must be unique per space/)
+      })
+
+      it('does not allow two parameters with the same name and position v3', () => {
+        const [error] = Operation3.validate({
+          parameters: [
+            { name: 'foo', in: 'query', schema: { type: 'string' } },
+            { name: 'foo', in: 'query', schema: { type: 'string' } }
+          ],
+          responses: { 200: { description: 'ok' } }
+        })
+        expect(error).to.match(/Parameter names must be unique per space/)
+      })
+    })
+
+    describe('property: responses', () => {
+      it('todo', () => {
+        throw Error('todo')
+      })
+    })
+
+    describe('property: deprecated', () => {
+      it('todo', () => {
+        throw Error('todo')
+      })
+    })
+
+    describe('property: security', () => {
+      it('todo', () => {
+        throw Error('todo')
+      })
+    })
+
+    describe('v2', () => {
+      describe('property: consumes', () => {
+        it('can be an empty array', () => {
+          const [error] = Operation2.validate({
+            consumes: [],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be an array of strings', () => {
+          const [error] = Operation2.validate({
+            consumes: ['application/json'],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be an array of strings', () => {
+          const [error] = Operation2.validate({
+            // @ts-expect-error
+            consumes: [5],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected a string/)
+        })
+
+        it('will warn if the string does not look like a mime type', () => {
+          const [, warning] = Operation2.validate({
+            consumes: ['foo'],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(warning).to.match(/Media type appears invalid/)
+        })
+      })
+
+      describe('property: produces', () => {
+        it('can be an empty array', () => {
+          const [error] = Operation2.validate({
+            produces: [],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be an array of strings', () => {
+          const [error] = Operation2.validate({
+            produces: ['application/json'],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be an array of strings', () => {
+          const [error] = Operation2.validate({
+            // @ts-expect-error
+            produces: [5],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected a string/)
+        })
+
+        it('will warn if the string does not look like a mime type', () => {
+          const [, warning] = Operation2.validate({
+            produces: ['foo'],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(warning).to.match(/Media type appears invalid/)
+        })
+      })
+
+      describe('property: schemes', () => {
+        it('todo', () => {
+          throw Error('todo')
+        })
+      })
+    })
+
+    describe('v3', () => {
+      describe('property: requestBody', () => {
+        it('todo', () => {
+          throw Error('todo')
+        })
+      })
+
+      describe('property: callbacks', () => {
+        it('todo', () => {
+          throw Error('todo')
+        })
+      })
+
+      describe('property: servers', () => {
+        it('todo', () => {
+          throw Error('todo')
+        })
+      })
+    })
   })
 })

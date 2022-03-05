@@ -2,6 +2,8 @@ import { Exception, DefinitionException } from '../../Exception'
 import {
   Operation2 as OperationDefinition2,
   Operation3 as OperationDefinition3,
+  Parameter2 as ParameterDefinition2,
+  Parameter3 as ParameterDefinition3,
   SecurityScheme2 as SecuritySchemeDefinition2,
   SecurityScheme3 as SecuritySchemeDefinition3
 } from './definition-types'
@@ -11,6 +13,7 @@ import { Schema, SchemaProperty } from '../index'
 import { SecurityScheme } from '../SecurityScheme'
 import { Operation } from '../Operation'
 
+type ParameterDefinition = ParameterDefinition2 | ParameterDefinition3
 type OperationDefinition = OperationDefinition2 | OperationDefinition3
 type SecuritySchemeDefinition = SecuritySchemeDefinition2 | SecuritySchemeDefinition3
 

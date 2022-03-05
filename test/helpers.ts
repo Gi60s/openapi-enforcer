@@ -1,10 +1,13 @@
 import * as Loader from '../src/utils/loader'
 import { merge } from '../src/utils/util'
 import path from 'path'
+import { Version } from '../src/components/helpers/builder-validator-types'
 
 const testLoaderRegistry: Record<string, string> = {}
 const testResourcesDirectory = path.resolve(__dirname, '..', 'resources')
 let testLoaderInitialized = false
+
+type ComponentHandler<T> = (component: T, version: Version) => void
 
 export function registerContent (path: string, data: object): string {
   testLoaderRegistry[path] = JSON.stringify(data, null, 2)
@@ -30,6 +33,16 @@ export function initTestLoader (): void {
       } else {
         return { loaded: false }
       }
+    })
+  }
+}
+
+export function eachComponent<T> (components: T[]): (handler: ComponentHandler<T>) => void {
+  return function (handler: ComponentHandler<T>) {
+    components.forEach(component => {
+      // @ts-expect-error
+      const key = Object.keys(component.spec).pop()
+      handler(component, key as Version)
     })
   }
 }
@@ -100,6 +113,9 @@ export function minimal (component: any, version: '2.x' | '3.x', overwrite?: any
       break
     case 'Response':
       result = { description: '' }
+      break
+    case 'Responses':
+      result = { 200: minimal('Response', version) }
       break
     case 'Schema':
       result = { type: 'string' }

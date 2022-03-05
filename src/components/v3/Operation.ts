@@ -1,6 +1,6 @@
 import { EnforcerData, componentValidate } from '../'
 import { ComponentSchema, ValidatorData, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../Exception'
+import { DefinitionException, Exception } from '../../Exception'
 import * as Core from '../Operation'
 import { Callback } from './Callback'
 import { RequestBody } from './RequestBody'
@@ -25,23 +25,23 @@ export class Operation extends Core.Operation {
     super(Operation, definition, version, arguments[2])
   }
 
-  request (request: Core.RequestInput, options?: Core.RequestOptions): Result<Core.RequestOutput> {
+  makeRequest (request: Core.RequestInput, options?: Core.RequestOptions): Result<Core.RequestOutput> {
     const { exception, result } = Core.preRequest(request, this, options)
 
     if (result.body !== undefined) {
       if (this.requestBody === undefined) {
-        exception.add.operationRequestBodyNotAllowed()
+        exception.add.operationRequestBodyNotAllowed(this.enforcer.method, this.enforcer.path)
       } else {
         // the Core.preRequest will have already determined if this content type is acceptable
         const contentType = result.header['content-type'] as string
         const mediaType = this.requestBody?.content[contentType]
         const schema = mediaType?.schema
         if (schema !== undefined) {
-          const [data, error] = schema.deserialize(result.body)
-          if (error !== undefined) {
-            exception.at('body').push(error)
+          const deserialized = schema.deserialize(result.body)
+          if (deserialized.error !== undefined) {
+            exception.at('body').add.detailedError(deserialized.exception as Exception)
           } else {
-            result.body = data
+            result.body = deserialized.value
           }
         }
       }

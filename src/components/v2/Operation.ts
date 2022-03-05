@@ -1,10 +1,10 @@
 import { componentValidate, EnforcerData } from '../'
 import { BuilderData, ComponentSchema, ValidatorData, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../Exception'
+import { DefinitionException, Exception } from '../../Exception'
 import * as Core from '../Operation'
 import { Parameter } from './Parameter'
 import { Operation2 as Definition } from '../helpers/definition-types'
-import { Responses } from '../v3/Responses'
+import { Responses } from './Responses'
 import { Swagger } from './Swagger'
 import { Result } from '../../utils/Result'
 import { MediaTypeParser } from '../../utils/MediaTypeParser'
@@ -33,11 +33,11 @@ export class Operation extends Core.Operation {
     // process body
     if (parameters.body !== undefined) {
       if (result.body !== undefined) {
-        const [value, error] = parameters.body.parse([result.body as string])
-        if (error !== undefined) {
-          exception.at('body').push(error)
+        const parsed = parameters.body.parse([result.body as string])
+        if (parsed.error !== undefined) {
+          exception.at('body').add.detailedError(parsed.exception as Exception)
         } else {
-          result.body = value
+          result.body = parsed.value
         }
       } else if (requiredParametersMap.body) {
         exception.add.operationMissingRequiredParameters('body', [])
@@ -49,11 +49,11 @@ export class Operation extends Core.Operation {
         Object.keys(result.body).forEach(key => {
           const parameter = parameters.formData?.[key]
           if (parameter !== undefined) {
-            const [value, error] = parameter.parse(result.body[key])
-            if (error !== undefined) {
-              exception.at('body').at(key).push(error)
+            const parsed = parameter.parse(result.body[key])
+            if (parsed.error !== undefined) {
+              exception.at('body').at(key).add.detailedError(parsed.exception as Exception)
             } else {
-              result.body[key] = value
+              result.body[key] = parsed.value
             }
           }
         })

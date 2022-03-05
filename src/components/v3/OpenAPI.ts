@@ -15,7 +15,7 @@ import {
   OpenAPIGetOperationResult,
   OpenAPIMakeRequestInput,
   OpenAPIMakeRequestOptions,
-  OpenAPIMakeRequestResult
+  OpenAPIMakeRequestOutput
 } from '../helpers/function-interfaces'
 
 const rxVersion = /^\d+\.\d+\.\d+$/
@@ -41,10 +41,10 @@ export class OpenAPI extends OASComponent {
   }
 
   getOperationById (operationId: string): Operation | undefined {
-
+    return this.enforcer.metadata.operationIdMap[operationId] as Operation
   }
 
-  makeRequest (req: OpenAPIMakeRequestInput, options?: OpenAPIMakeRequestOptions): Result<OpenAPIMakeRequestResult> {
+  makeRequest (req: OpenAPIMakeRequestInput, options?: OpenAPIMakeRequestOptions): Result<OpenAPIMakeRequestOutput> {
 
   }
 

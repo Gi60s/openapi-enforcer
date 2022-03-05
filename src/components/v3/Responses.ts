@@ -2,7 +2,7 @@ import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { DefinitionException } from '../../Exception'
 import { componentValidate } from '../index'
 import * as Core from '../Responses'
-import * as Response from './Response'
+import { Response } from './Response'
 import { Responses3 as Definition } from '../helpers/definition-types'
 
 let responsesSchema: ComponentSchema<Definition>
@@ -10,7 +10,7 @@ let responsesSchema: ComponentSchema<Definition>
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Responses extends Core.Responses {
   response!: {
-    [code: string]: Response.Response
+    [code: string]: Response
   }
 
   constructor (definition: Definition, version?: Version) {
@@ -27,7 +27,7 @@ export class Responses extends Core.Responses {
   static get schema (): ComponentSchema<Definition> {
     if (responsesSchema === undefined) {
       responsesSchema = Core.schemaGenerator({
-        Response: Response.Response
+        Response: Response
       })
     }
     return responsesSchema
