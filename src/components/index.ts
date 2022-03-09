@@ -26,8 +26,8 @@ export interface EnforcerData<Definition, Extension=Record<string, any>> {
   data: BuilderData<Definition>
   extensions: EnforcerExtension & Extension // specific to x- extensions in the openapi document
   metadata: BuilderMetadata
-  findAncestor: <T>(component: EnforcerComponent) => T | undefined
-  findAncestorData: <Definition=any, Built=any> (component: EnforcerComponent) => BuilderData<Definition, Built> | undefined
+  findAncestor: <T>(component: EnforcerComponent | string) => T | undefined
+  findAncestorData: <Definition=any, Built=any> (component: EnforcerComponent | string) => BuilderData<Definition, Built> | undefined
 }
 
 export interface EnforcerExtension {
@@ -139,12 +139,12 @@ export abstract class OASComponent<Definition=any, ComponentConstructor extends 
       data,
       metadata: data.root.metadata,
       extensions: (data.context.definition as any)['x-enforcer'] ?? {},
-      findAncestor<T> (component: EnforcerComponent): T | undefined {
+      findAncestor<T> (component: EnforcerComponent | string): T | undefined {
         const ancestorData = findAncestorData(data, component)
         if (ancestorData === undefined) return
         return ancestorData.context.built as T
       },
-      findAncestorData<Definition=any, Built=any> (component: EnforcerComponent): BuilderData<Definition, Built> | undefined {
+      findAncestorData<Definition=any, Built=any> (component: EnforcerComponent | string): BuilderData<Definition, Built> | undefined {
         return findAncestorData<Definition, Built>(data, component) as BuilderData
       }
     }
@@ -478,11 +478,14 @@ function createComponentData<D extends Data> (action: 'constructing' | 'loading'
   return componentData as D
 }
 
-export function findAncestorData<Definition=any, Built=any> (data: Data, component: EnforcerComponent): Data<Definition, Built> | undefined {
+export function findAncestorData<Definition=any, Built=any> (data: Data, component: EnforcerComponent | string): Data<Definition, Built> | undefined {
+  const nameCompare = typeof component === 'string'
   let node: Data | undefined = data.component.data
   do {
     node = node.context.chain[0]?.component.data
-    if (node?.component.constructor === component) return node
+    if ((nameCompare && node?.component.constructor.name === component) || (node?.component.constructor === component)) {
+      return node
+    }
   } while (node !== undefined)
 }
 
