@@ -3,6 +3,7 @@ import { Component, ComponentSchema } from './helpers/builder-validator-types'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as Serializer from './helpers/serializer'
 import * as V from './helpers/common-validators'
+import { Items } from './v2/Items'
 import { Schema as Schema3 } from './v3/Schema'
 import {
   Parameter2 as Definition2,
@@ -20,7 +21,7 @@ interface ComponentMap {
 
 export function schemaGenerator (major: number, components: ComponentMap): ComponentSchema<Definition> {
   // copy schema from partial schema generator
-  const schema: ComponentSchema = PartialSchema.schemaGenerator(components.Parameter)
+  const schema: ComponentSchema = PartialSchema.schemaGenerator(Items)
 
   // all partial schema properties should be marked as version 2.x
   schema.properties?.forEach(prop => {
@@ -28,7 +29,7 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
   })
 
   // add additional properties
-  schema.properties?.push(
+  schema.properties?.unshift(
     {
       name: 'name',
       required: true,
@@ -37,7 +38,14 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
     {
       name: 'in',
       required: true,
-      schema: { type: 'string' },
+      schema: {
+        type: 'string',
+        enum (data) {
+          return data.data.root.major === 2
+            ? ['body', 'formData', 'header', 'path', 'query']
+            : ['cookie', 'header', 'path', 'query']
+        }
+      },
       after (cache, value, built) {
         cache.isArray = built.type === 'array'
         cache.isQueryOrFormData = value === 'query' || value === 'formData'
@@ -47,7 +55,10 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
         cache.defaultExplode = defaultExplode
         cache.defaultStyle = defaultStyle
       }
-    },
+    }
+  )
+
+  schema.properties?.push(
     {
       name: 'allowEmptyValue',
       notAllowed ({ cache, data }) {
@@ -170,9 +181,22 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
     }
   )
 
-  // modify the type property to also include "file" if "in" is set to "formData"
+  // modify the type property
   schema.adjustProperty('type', propertySchema => {
-    (propertySchema.schema as Schema).enum = ({ built }) => {
+    const schema = propertySchema.schema as Schema
+
+    // type is not allowed if "in" is body
+    propertySchema.notAllowed = ({ built }) => {
+      return built.in !== 'body' ? undefined : 'The "type" property can only be used when "in" is not set to "body".'
+    }
+
+    // make required if type is not body
+    propertySchema.required = ({ built }) => {
+      return built.in !== 'body'
+    }
+
+    // modify possible values to also include "file" if "in" is set to "formData"
+    schema.enum = ({ built }) => {
       return built.in === 'formData'
         ? ['array', 'boolean', 'file', 'integer', 'number', 'string']
         : ['array', 'boolean', 'integer', 'number', 'string']

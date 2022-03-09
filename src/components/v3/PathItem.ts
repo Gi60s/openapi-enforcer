@@ -5,6 +5,7 @@ import { Server } from './Server'
 import { Parameter } from './Parameter'
 import * as Core from '../PathItem'
 import { PathItem3 as Definition } from '../helpers/definition-types'
+import { OpenAPI } from './OpenAPI'
 
 const methods = Core.methods.concat(['trace'])
 let pathItemSchema: ComponentSchema<Definition>
@@ -33,6 +34,18 @@ export class PathItem extends Core.PathItem<Operation> {
         Operation: Operation,
         Parameter: Parameter
       }, methods)
+
+      pathItemSchema.hook('after-build', data => {
+        const built = data.context.built as PathItem
+
+        // if there is no "servers" property then copy from OpenAPI.servers
+        if (built.servers === undefined) {
+          data.root.lastly.push(() => {
+            const openapi = built.enforcer.findAncestor(OpenAPI) as OpenAPI
+            if (openapi?.servers !== undefined) built.servers = openapi.servers.slice(0)
+          })
+        }
+      })
     }
     return pathItemSchema
   }

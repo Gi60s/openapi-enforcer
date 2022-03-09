@@ -1,5 +1,5 @@
-import { componentValidate } from '../index'
-import { ComponentSchema, Version } from '../helpers/builder-validator-types'
+import { componentValidate, SchemaProperty, SchemaString } from '../index'
+import { ComponentData, ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
 import { Exception, DefinitionException } from '../../Exception'
 import * as PartialSchema from '../helpers/PartialSchema'
 import { Items } from './Items'
@@ -26,12 +26,21 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
     super(Parameter, definition, version, arguments[2])
   }
 
-  parse (multiValue: string[]): Result<any> {
+  /**
+   * Parse and deserialize a value using the parameter's specification.
+   *
+   * Depending on whether a parameter exists in the path, query, cookies, body, headers, etc., some of these types of
+   * parameters offer the ability to pass in multiple values while others do not. To simplify the caller this
+   * function standardizes on always receiving an array of strings as its input.
+   * @param value An array of values to parse.
+   * @returns A {@link Result} object that resolves, depending on the parameter type, to a single value or an array of values. The type of the values is determined by your OpenAPI document.
+   */
+  parse (value: string[]): Result<any> {
     const exception = new Exception('Unable to parse value')
 
     if (this.in === 'body') {
       if (this.schema !== undefined) {
-        return this.schema.deserialize(multiValue[multiValue.length - 1])
+        return this.schema.deserialize(value[value.length - 1])
       } else {
         exception.add.definitionInvalid(false)
         return new Result(null, exception)
@@ -39,21 +48,21 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
     } else if (this.collectionFormat === 'multi') {
       // only query and formData support multi
       const result: any[] = []
-      multiValue.forEach((value, index) => {
-        if ((value === '' ?? value === undefined) && this.allowEmptyValue !== true) {
+      value.forEach((v, index) => {
+        if ((v === '' ?? v === undefined) && this.allowEmptyValue !== true) {
           exception.at(index).add.parameterParseEmptyValue()
         } else if (this.items !== undefined) {
-          result.push(parse(this.items as unknown as Parameter, exception.at(index), value))
+          result.push(parse(this.items as unknown as Parameter, exception.at(index), v))
         }
       })
       return new Result(result, exception)
     } else {
-      const value = multiValue[multiValue.length - 1]
-      if ((value === '' ?? value === undefined) && this.allowEmptyValue !== true) {
+      const v = value[value.length - 1]
+      if ((v === '' ?? v === undefined) && this.allowEmptyValue !== true) {
         exception.add.parameterParseEmptyValue()
         return new Result(null, exception)
       } else {
-        const result = parse(this, exception, value)
+        const result = parse(this, exception, v)
         return new Result(result, exception)
       }
     }
@@ -70,6 +79,19 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
         Schema
       }) as ComponentSchema<Definition>
 
+      // "file" is also allowed for the "type" property
+      parameterSchema.adjustProperty('type', (schemaProperty: SchemaProperty) => {
+        const enumFunction = 'enum' in schemaProperty.schema && typeof schemaProperty.schema.enum === 'function'
+          ? schemaProperty.schema.enum
+          : () => []
+        // @ts-expect-error
+        schemaProperty.schema.enum = (componentData: ComponentData) => {
+          const values: string[] = enumFunction(componentData).slice(0)
+          values.push('file')
+          return values
+        }
+      })
+
       parameterSchema.properties?.push({
         name: 'collectionFormat',
         notAllowed ({ built }) {
@@ -82,6 +104,23 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
           ignored ({ built }) {
             return built.type === 'array' ? false : 'The "collectionFormat" property can only be used if the type is "array".'
           }
+        }
+      })
+
+      parameterSchema.hook('after-validate', (data) => {
+        const { built, chain, exception } = data.context
+        if (built.type === 'file') {
+          data.root.lastly.push(() => {
+            const operationData = chain[1]
+            if (built.in !== 'formData') {
+              exception.at('type').add.parameterFileTypeConstraintsNotMet(data, { key: 'type', type: 'value' })
+            } else if (operationData !== undefined) {
+              const consumes: string[] = operationData.context.built.consumes ?? []
+              if (!consumes.includes('multipart/form-data') && !consumes.includes('application/x-www-form-urlencoded')) {
+                exception.at('type').add.parameterFileTypeConstraintsNotMet(data, { key: 'type', type: 'value' })
+              }
+            }
+          })
         }
       })
     }
