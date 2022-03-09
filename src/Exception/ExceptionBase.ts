@@ -300,7 +300,10 @@ export class WarningReport<T extends ExceptionBase<T>> extends ExceptionReport<T
 export class InfoReport<T extends ExceptionBase<T>> extends ExceptionReport<T> {}
 export class IgnoredReport<T extends ExceptionBase<T>> extends ExceptionReport<T> {}
 
-export function smart (value: any, addQuotationMarksToStrings = true): string {
+export function smart (value: any, options?: { addQuotationMarksToStrings?: boolean, wrapArray?: boolean }): string {
+  const addQuotationMarksToStrings = options?.addQuotationMarksToStrings ?? true
+  const wrapArray = options?.wrapArray ?? false
+
   if (typeof value === 'string') {
     return addQuotationMarksToStrings
       ? '"' + value.replace(/"/g, '\\"') + '"'
@@ -308,7 +311,8 @@ export function smart (value: any, addQuotationMarksToStrings = true): string {
   } else if (value instanceof Date) {
     return isNaN(+value) ? 'invalid date object' : value.toISOString()
   } else if (Array.isArray(value)) {
-    return value.map(v => smart(v, addQuotationMarksToStrings)).join(', ')
+    const result = value.map(v => smart(v, options)).join(', ')
+    return wrapArray ? '[' + result + ']' : result
   } else {
     return String(value)
   }
