@@ -202,16 +202,22 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
         name: 'schemes',
         versions: ['2.x'],
         schema: {
-          type: 'string',
-          enum: ['http', 'https', 'ws', 'wss']
+          type: 'array',
+          items: {
+            type: 'string',
+            enum: ['http', 'https', 'ws', 'wss']
+          }
         }
       },
       {
         name: 'security',
         schema: {
-          type: 'component',
-          allowsRef: false,
-          component: SecurityRequirement
+          type: 'array',
+          items: {
+            type: 'component',
+            allowsRef: false,
+            component: SecurityRequirement
+          }
         }
       },
       {
@@ -244,7 +250,7 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
       after (data) {
         const built = data.context.built as Operation
         const { key, chain } = data.context
-        const { metadata } = data.root
+        const { metadata, lastly } = data.root
         if (metadata.operationIdMap === undefined) metadata.operationIdMap = {}
         metadata.operationIdMap[key] = built
 

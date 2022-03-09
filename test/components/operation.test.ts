@@ -1,15 +1,37 @@
 import { expect } from 'chai'
 import { Operation as Operation2, Parameter as Parameter2, PathItem as PathItem2 } from '../../src/v2'
-import { Operation as Operation3, Parameter as Parameter3, PathItem as PathItem3 } from '../../src/v3'
+import { Operation as Operation3, PathItem as PathItem3 } from '../../src/v3'
+
+const Operations = [Operation2, Operation3]
 
 describe.only('Component: Operation', () => {
   describe('build', () => {
     it('can build', () => {
-      const op2 = new Operation2({ responses: { 200: { description: '' } } })
-      expect(op2).to.be.instanceof(Operation2)
+      Operations.forEach(Operation => {
+        const op = new Operation({ responses: { 200: { description: '' } } })
+        expect(op).to.be.instanceof(Operation)
+      })
+    })
 
-      const op3 = new Operation3({ responses: { 200: { description: '' } } })
-      expect(op3).to.be.instanceof(Operation3)
+    describe('defaults', () => {
+      it('deprecated defaults to false', () => {
+        Operations.forEach(Operation => {
+          const op = new Operation({ responses: { 200: { description: '' } } })
+          expect(op.deprecated).to.equal(false)
+        })
+      })
+    })
+
+    describe('property: servers', () => {
+      it('can inherit from the path item', () => {
+        const pathItem = new PathItem3({
+          servers: [{ url: 'https://fake.com' }],
+          get: {
+            responses: { 200: { description: 'ok' } }
+          }
+        })
+        expect(pathItem.get?.servers?.[0]?.url).to.equal('https://fake.com')
+      })
     })
 
     describe('enforcer data', () => {
@@ -489,8 +511,6 @@ describe.only('Component: Operation', () => {
   })
 
   describe('validate', () => {
-    const Operations = [Operation2, Operation3]
-
     it('has required properties', () => {
       Operations.forEach(Operation => {
         // @ts-expect-error
@@ -763,20 +783,102 @@ describe.only('Component: Operation', () => {
     })
 
     describe('property: responses', () => {
-      it('todo', () => {
-        throw Error('todo')
+      it('can have a responses definition', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+      })
+
+      it('must have a responses definition', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            // @ts-expect-error
+            responses: 5
+          })
+          expect(error).to.match(/Expected a Responses object definition/)
+        })
       })
     })
 
     describe('property: deprecated', () => {
-      it('todo', () => {
-        throw Error('todo')
+      it('can be true', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            deprecated: true,
+            responses: { 200: { description: '' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+      })
+
+      it('can be false', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            deprecated: false,
+            responses: { 200: { description: '' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+      })
+
+      it('must be a boolean', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            // @ts-expect-error
+            deprecated: 5,
+            responses: { 200: { description: '' } }
+          })
+          expect(error).to.match(/Expected a boolean/)
+        })
       })
     })
 
     describe('property: security', () => {
-      it('todo', () => {
-        throw Error('todo')
+      it('can be an empty array', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            security: [],
+            responses: { 200: { description: '' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+      })
+
+      it('can be an array of security requirements', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            security: [{ foo: [] }],
+            responses: { 200: { description: '' } }
+          })
+          // the only error should be that we don't have a defined security definition that matches "foo"
+          expect(error?.count).to.equal(1)
+          expect(error?.hasCode('OAE-DSESCMR'))
+        })
+      })
+
+      it('must be an array', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            // @ts-expect-error
+            security: 5,
+            responses: { 200: { description: '' } }
+          })
+          expect(error).to.match(/Expected an array/)
+        })
+      })
+
+      it('must be an array of strings', () => {
+        Operations.forEach(Operation => {
+          const [error] = Operation.validate({
+            // @ts-expect-error
+            security: [5],
+            responses: { 200: { description: '' } }
+          })
+          expect(error).to.match(/Expected a SecurityRequirement object definition/)
+        })
       })
     })
 
@@ -852,28 +954,145 @@ describe.only('Component: Operation', () => {
       })
 
       describe('property: schemes', () => {
-        it('todo', () => {
-          throw Error('todo')
+        it('can be an array of http, https, ws, wss', () => {
+          const [error] = Operation2.validate({
+            schemes: ['http', 'https', 'ws', 'wss'],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be an array', () => {
+          const [error] = Operation2.validate({
+            // @ts-expect-error
+            schemes: 5,
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected an array/)
+        })
+
+        it('must be an array of http, https, ws, or wss', () => {
+          const [error] = Operation2.validate({
+            schemes: ['foo'],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Value must be one of/)
+        })
+
+        it('must be an array of string', () => {
+          const [error] = Operation2.validate({
+            // @ts-expect-error
+            schemes: [5],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected a string/)
+          expect(error).to.match(/Value must be one of:/)
         })
       })
     })
 
     describe('v3', () => {
       describe('property: requestBody', () => {
-        it('todo', () => {
-          throw Error('todo')
+        it('can be a request body', () => {
+          const [error] = Operation3.validate({
+            requestBody: {
+              content: {
+                'application/json': {}
+              }
+            },
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be a request body', () => {
+          const [error] = Operation3.validate({
+            // @ts-expect-error
+            requestBody: 5,
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected a RequestBody object definition/)
         })
       })
 
       describe('property: callbacks', () => {
-        it('todo', () => {
-          throw Error('todo')
+        it('can be an empty object', () => {
+          const [error] = Operation3.validate({
+            callbacks: {},
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can contain a callback definition', () => {
+          const [error] = Operation3.validate({
+            callbacks: {
+              foo: {
+                // eslint-disable-next-line no-template-curly-in-string
+                '${request.body#/callbackUrl}': {
+                  get: {
+                    responses: { 200: { description: 'ok' } }
+                  }
+                }
+              }
+            },
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be an object', () => {
+          const [error] = Operation3.validate({
+            // @ts-expect-error
+            callbacks: 5,
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected a non-null object/)
+        })
+
+        it('must contain path item definitions', () => {
+          const [error] = Operation3.validate({
+            // @ts-expect-error
+            callbacks: { foo: 5 },
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected a Callback object definition/)
         })
       })
 
       describe('property: servers', () => {
-        it('todo', () => {
-          throw Error('todo')
+        it('can be an empty array', () => {
+          const [error] = Operation3.validate({
+            servers: [],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be an array of server definitions', () => {
+          const [error] = Operation3.validate({
+            servers: [{ url: 'https://fake.com' }],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be an array', () => {
+          const [error] = Operation3.validate({
+            // @ts-expect-error
+            servers: 5,
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected an array/)
+        })
+
+        it('must be an array of server definitions', () => {
+          const [error] = Operation3.validate({
+            // @ts-expect-error
+            servers: [5],
+            responses: { 200: { description: 'ok' } }
+          })
+          expect(error).to.match(/Expected a Server object definition/)
         })
       })
     })

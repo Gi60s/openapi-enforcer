@@ -10,6 +10,8 @@ import { Responses } from './Responses'
 import { Operation3 as Definition } from '../helpers/definition-types'
 import { Result } from '../../utils/Result'
 import { MediaTypeParser } from '../../utils/MediaTypeParser'
+import { PathItem } from './PathItem'
+import { OpenAPI } from './OpenAPI'
 
 let operationSchema: ComponentSchema<Definition>
 
@@ -71,6 +73,19 @@ export class Operation extends Core.Operation {
         Object.keys(built.responses.response).forEach(code => {
           built.responseContentTypes[code] = Object.keys(built.responses.response[code].content ?? {}).map(mediaType => new MediaTypeParser(mediaType))
         })
+
+        // if there is no "servers" property then copy either the PathItem.servers or OpenAPI.servers
+        if (built.servers === undefined) {
+          data.root.lastly.push(() => {
+            const pathItem = built.enforcer.findAncestor(PathItem) as PathItem
+            if (pathItem?.servers !== undefined) {
+              built.servers = pathItem.servers.slice(0)
+            } else {
+              const openapi = built.enforcer.findAncestor(OpenAPI) as OpenAPI
+              if (openapi?.servers !== undefined) built.servers = openapi.servers.slice(0)
+            }
+          })
+        }
       })
     }
     return operationSchema
