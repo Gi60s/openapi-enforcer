@@ -67,6 +67,7 @@ interface Adders {
   operationIdMustBeUnique: (data: ValidatorData, locations: LocationInput[], operationId: string, conflictsData: Array<ValidatorData<OperationDefinition>>) => Message
   parameterBodyFormDataConflict: (data: ValidatorData, locations: LocationInput[]) => Message
   parameterContentMediaTypeCount: (data: ValidatorData, locations: LocationInput[], mediaTypes: string[]) => Message
+  parameterFileTypeConstraintsNotMet: (data: ValidatorData, location: LocationInput) => Message,
   parameterNamespaceConflict: (data: ValidatorData, locations: LocationInput[], name: string, at: string) => Message
   parameterSchemaContentRequired: (data: ValidatorData, location: LocationInput) => Message
   pathEndingsInconsistent: (data: ValidatorData, locations: LocationInput[], pathsWithTrailingSlash: string[], pathsWithoutTrailingSlash: string[]) => Message
@@ -229,8 +230,8 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
         alternateLevels: [],
         level: 'error',
         message: acceptableValues.length > 1
-          ? 'Value must be one of: ' + smart(acceptableValues) + '. Received: ' + smart(invalidValue)
-          : 'Value must equal: ' + smart(acceptableValues[0]) + '. Received: ' + smart(invalidValue),
+          ? 'Value must be one of: ' + smart(acceptableValues) + '. Received: ' + smart(invalidValue, { wrapArray: true })
+          : 'Value must equal: ' + smart(acceptableValues[0]) + '. Received: ' + smart(invalidValue, { wrapArray: true }),
         metadata: { acceptableValues, invalidValue }
       }))
     },
@@ -310,7 +311,7 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
         message: 'Value must be ' +
           (boundBy === 'maximum' ? 'less than ' : 'greater than ') +
           (allowEqual ? 'or equal to ' : '') +
-          smart(boundValue, false) + '. Received: ' + smart(invalidValue, false),
+          smart(boundValue, { addQuotationMarksToStrings: false }) + '. Received: ' + smart(invalidValue, { addQuotationMarksToStrings: false, wrapArray: true }),
         metadata: { allowEqual, boundBy, boundValue, invalidValue }
       }))
     },
@@ -383,9 +384,9 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
         code: 'INMAMI',
         alternateLevels: ['ignore', 'info', 'warn', 'error'],
         level: 'error',
-        message: 'Property ' + smart(minProperty) + ' (' + smart(minimum, false) + ') must be less than ' +
+        message: 'Property ' + smart(minProperty) + ' (' + smart(minimum, { addQuotationMarksToStrings: false }) + ') must be less than ' +
           (exclusive ? 'or equal to ' : '') +
-          smart(maxProperty) + ' (' + smart(maximum, false) + ').',
+          smart(maxProperty) + ' (' + smart(maximum, { addQuotationMarksToStrings: false }) + ').',
         metadata: { minimum, maximum, minProperty, maxProperty }
       }))
     },
@@ -460,7 +461,7 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
         code: 'INVTYP',
         alternateLevels: [],
         level: 'error',
-        message: 'Invalid type. Expected ' + smart(expectedType, false) + '. Received: ' + smart(invalidValue),
+        message: 'Invalid type. Expected ' + smart(expectedType, { addQuotationMarksToStrings: false }) + '. Received: ' + smart(invalidValue, { wrapArray: true }),
         metadata
       }))
     },
@@ -519,7 +520,7 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
         code: 'LOFTLR',
         alternateLevels: [],
         level: 'error',
-        message: 'Unable to load resource: ' + smart(path) + '. Cause: ' + smart(cause, false),
+        message: 'Unable to load resource: ' + smart(path) + '. Cause: ' + smart(cause, { addQuotationMarksToStrings: false }),
         metadata: { path, cause }
       }))
     },
@@ -625,6 +626,15 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
         level: 'error',
         message: 'The "content" property must define exactly one media type. ' +
           (mediaTypes.length === 0 ? ' No types were defined.' : 'Defined types: ' + smart(mediaTypes))
+      }))
+    },
+
+    parameterFileTypeConstraintsNotMet: (data: ValidatorData, location: LocationInput) => {
+      return this.message(getExceptionMessageData(data, [location], true, {
+        code: 'PAFTCN',
+        alternateLevels: [],
+        level: 'error',
+        message: 'Parameter of type "file" can only be used when in "formData" and operation consumes is set to "multipart/form-data" and/or "application/x-www-form-urlencoded".'
       }))
     },
 
