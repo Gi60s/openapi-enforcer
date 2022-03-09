@@ -208,6 +208,7 @@ export interface Parameter3 {
   in: 'cookie' | 'header' | 'path' | 'query'
   allowEmptyValue?: boolean
   allowReserved?: boolean
+  content?: Record<string, MediaType3>
   deprecated?: boolean // defaults to false
   description?: string
   example?: any

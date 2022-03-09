@@ -3,7 +3,9 @@ import { Component, ComponentSchema } from './helpers/builder-validator-types'
 import * as PartialSchema from './helpers/PartialSchema'
 import * as Serializer from './helpers/serializer'
 import * as V from './helpers/common-validators'
+import { Example } from './v3/Example'
 import { Items } from './v2/Items'
+import { MediaType } from './v3/MediaType'
 import { Schema as Schema3 } from './v3/Schema'
 import {
   Parameter2 as Definition2,
@@ -11,6 +13,7 @@ import {
   Schema3 as SchemaDefinition3
 } from './helpers/definition-types'
 import { LocationInput } from '../Exception'
+import { parameterSchemaContent } from './helpers/common-validators'
 
 type Definition = Definition2 | Definition3
 
@@ -76,7 +79,7 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
       name: 'allowReserved',
       versions: ['3.x.x'],
       notAllowed ({ built }) {
-        return built.at === 'query' ? undefined : 'Property only allowed for "query" parameters.'
+        return built.in === 'query' ? undefined : 'Property only allowed for "query" parameters.'
       },
       schema: {
         type: 'boolean',
@@ -87,12 +90,27 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
       name: 'collectionFormat',
       versions: ['2.x'],
       notAllowed ({ cache }) {
-        return cache.isArray as boolean && cache.isQueryOrFormData as boolean ? undefined : 'Property only allowed when "type" is "array" and when "in" is "formData" or "query".'
+        return cache.isArray as boolean ? undefined : 'Property only allowed when "type" is "array".'
       },
       schema: {
         type: 'string',
         default: 'csv',
         enum: ['csv', 'ssv', 'tsv', 'pipes', 'multi']
+      }
+    },
+    {
+      name: 'content',
+      versions: ['3.x.x'],
+      schema: {
+        type: 'object',
+        allowsSchemaExtensions: false,
+        additionalProperties: {
+          schema: {
+            type: 'component',
+            component: MediaType,
+            allowsRef: false
+          }
+        }
       }
     },
     {
@@ -122,7 +140,9 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
         allowsSchemaExtensions: false,
         additionalProperties: {
           schema: {
-            type: 'any'
+            type: 'component',
+            component: Example,
+            allowsRef: true
           }
         }
       }
@@ -220,9 +240,16 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
       exception.add.pathParameterMustBeRequired(data, location, definition.name)
     }
 
+    if (major === 2) {
+      if (built.collectionFormat === 'multi' && built.in !== 'query' && built.in !== 'formData') {
+        exception.at('collectionFormat').add.parameterCollectionMultiFormat(data, { key: 'collectionFormat', type: 'value' })
+      }
+    }
+
     if (major === 3) {
       V.exampleExamplesConflict(data)
       V.examplesMatchSchema(data, Schema3)
+      V.parameterSchemaContent(data)
 
       // if style is specified then check that it aligns with the schema type
       const built = data.context.built as Definition3
@@ -242,8 +269,6 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
           exception.at('explode').add.invalidCookieExplode(data, { node: definition, key: 'explode', type: 'value' }, definition.name)
         }
       }
-
-      // TODO: If type is "file", the consumes MUST be either "multipart/form-data", " application/x-www-form-urlencoded" or both and the parameter MUST be in "formData".
     }
   })
 

@@ -32,8 +32,21 @@ export class Parameter extends OASComponent {
     super(Parameter, definition, version, arguments[2])
   }
 
+  /**
+   * Get an example from the parameter if it exists, otherwise get the example from the schema if it exists,
+   * otherwise get a randomly generated example.
+   * @param [options] Optional, options for specifying how to get the example.
+   * @param [options.allowRandom] Optional, whether to allow generating a random value for the example. This value will follow the {@link schema} if provided. Defaults to true unless the options.name property is specified.
+   * @param [options.name] Optional, the name of the example to get. This is only applicable if the {@link examples} property is used. If the named example cannot be found an error will be thrown unless the option to allowRandom is specifically set to true.
+   * @param [options.source] Optional, the first source to pull the example from. Defaults to the parameter example, then the schema example, then a randomly generated value.
+   * @returns The example matching the type specified by your OpenAPI document.
+   */
+  getExample (options?: { allowRandom?: boolean, name?: string, source?: 'parameter' | 'random' | 'schema' }): any {
+    // TODO: write this function
+  }
+
   // the value is an array of all identified values (in case of query string this would be a `a=1&a=2` situation)
-  parse (multiValue: string[]): Result<any> {
+  parseValue (multiValue: string[]): Result<any> {
     const exception = new Exception('Unable to parse value')
     const value = multiValue[multiValue.length - 1]
 

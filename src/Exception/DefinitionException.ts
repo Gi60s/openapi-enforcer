@@ -66,6 +66,7 @@ interface Adders {
   operationMethodShouldNotHaveBody: (data: ValidatorData, location: LocationInput, method: string) => Message
   operationIdMustBeUnique: (data: ValidatorData, locations: LocationInput[], operationId: string, conflictsData: Array<ValidatorData<OperationDefinition>>) => Message
   parameterBodyFormDataConflict: (data: ValidatorData, locations: LocationInput[]) => Message
+  parameterCollectionMultiFormat: (data: ValidatorData, location: LocationInput) => Message
   parameterContentMediaTypeCount: (data: ValidatorData, locations: LocationInput[], mediaTypes: string[]) => Message
   parameterFileTypeConstraintsNotMet: (data: ValidatorData, location: LocationInput) => Message,
   parameterNamespaceConflict: (data: ValidatorData, locations: LocationInput[], name: string, at: string) => Message
@@ -616,6 +617,15 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
         alternateLevels: [],
         level: 'error',
         message: 'You cannot specify both body and formData parameters together. They are mutually exclusive.'
+      }))
+    },
+
+    parameterCollectionMultiFormat: (data: ValidatorData, location: LocationInput) => {
+      return this.message(getExceptionMessageData(data, [location], true, {
+        code: 'PACOMF',
+        alternateLevels: ['error', 'warn', 'info', 'ignore'],
+        level: 'error',
+        message: 'The collection format property can only be set to "multi" when the parameter is in "query" or "formData"'
       }))
     },
 

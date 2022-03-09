@@ -4,7 +4,7 @@ import { Operation as Operation3, PathItem as PathItem3 } from '../../src/v3'
 
 const Operations = [Operation2, Operation3]
 
-describe.only('Component: Operation', () => {
+describe('Component: Operation', () => {
   describe('build', () => {
     it('can build', () => {
       Operations.forEach(Operation => {

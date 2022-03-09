@@ -27,6 +27,17 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
   }
 
   /**
+   * Get an example from the schema if it exists, otherwise get a randomly generated example.
+   * @param [options] Optional, options for specifying how to get the example.
+   * @param [options.allowRandom] Optional, whether to allow generating a random value for the example. This value will follow the {@link schema} if provided. Defaults to true unless the options.name property is specified.
+   * @param [options.source] Optional, the first source to pull the example from. Defaults to the parameter example, then the schema example, then a randomly generated value.
+   * @returns The example matching the type specified by your OpenAPI document.
+   */
+  getExample (options?: { allowRandom?: boolean, source?: 'random' | 'schema' }): any {
+    // TODO: write this function
+  }
+
+  /**
    * Parse and deserialize a value using the parameter's specification.
    *
    * Depending on whether a parameter exists in the path, query, cookies, body, headers, etc., some of these types of
@@ -35,7 +46,7 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
    * @param value An array of values to parse.
    * @returns A {@link Result} object that resolves, depending on the parameter type, to a single value or an array of values. The type of the values is determined by your OpenAPI document.
    */
-  parse (value: string[]): Result<any> {
+  parseValue (value: string[]): Result<any> {
     const exception = new Exception('Unable to parse value')
 
     if (this.in === 'body') {
@@ -92,20 +103,20 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
         }
       })
 
-      parameterSchema.properties?.push({
-        name: 'collectionFormat',
-        notAllowed ({ built }) {
-          return built.type !== 'array' ? 'The "collectionFormat" can only be applied with the type is "array"' : undefined
-        },
-        schema: {
-          type: 'string',
-          enum: ['csv', 'ssv', 'tsv', 'pipes'],
-          default: 'csv',
-          ignored ({ built }) {
-            return built.type === 'array' ? false : 'The "collectionFormat" property can only be used if the type is "array".'
-          }
-        }
-      })
+      // parameterSchema.properties?.push({
+      //   name: 'collectionFormat',
+      //   notAllowed ({ built }) {
+      //     return built.type !== 'array' ? 'The "collectionFormat" can only be applied with the type is "array"' : undefined
+      //   },
+      //   schema: {
+      //     type: 'string',
+      //     enum: ['csv', 'ssv', 'tsv', 'pipes'],
+      //     default: 'csv',
+      //     ignored ({ built }) {
+      //       return built.type === 'array' ? false : 'The "collectionFormat" property can only be used if the type is "array".'
+      //     }
+      //   }
+      // })
 
       parameterSchema.hook('after-validate', (data) => {
         const { built, chain, exception } = data.context

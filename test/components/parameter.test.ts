@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { Parameter2 as Parameter2Definition, Parameter3 as Parameter3Definition } from '../../src/components/helpers/definition-types'
-import { Operation as Operation2, Parameter as Parameter2 } from '../../src/v2'
+import { DefinitionException, Operation as Operation2, Parameter as Parameter2 } from '../../src/v2'
 import { Parameter as Parameter3 } from '../../src/v3'
 import { minimal } from '../helpers'
 
@@ -49,6 +49,27 @@ describe.only('Component: Parameter', () => {
           expect(parameter2.allowEmptyValue).to.equal(undefined)
         })
       })
+
+      describe('property: collectionFormat', () => {
+        it('will default to "csv" if type is array', () => {
+          const parameter2 = new Parameter2({
+            name: 'foo',
+            in: 'query',
+            type: 'array',
+            items: { type: 'string' }
+          })
+          expect(parameter2.collectionFormat).to.equal('csv')
+        })
+
+        it('will default to undefined if type is not array', () => {
+          const parameter2 = new Parameter2({
+            name: 'foo',
+            in: 'query',
+            type: 'string'
+          })
+          expect(parameter2.collectionFormat).to.equal(undefined)
+        })
+      })
     })
 
     describe('v3', () => {
@@ -59,6 +80,64 @@ describe.only('Component: Parameter', () => {
           schema: { type: 'string' }
         })
         expect(parameter3).to.be.instanceOf(Parameter3)
+      })
+
+      describe('property: allowReserved', () => {
+        it('will default to false if in "query"', () => {
+          const parameter = new Parameter3({
+            name: 'foo',
+            in: 'query'
+          })
+          expect(parameter.allowReserved).to.equal(false)
+        })
+
+        it('will default to undefined if type is not array', () => {
+          const parameter = new Parameter3({
+            name: 'foo',
+            in: 'path',
+            required: true
+          })
+          expect(parameter.allowReserved).to.equal(undefined)
+        })
+      })
+
+      describe('property: style', () => {
+        it('defaults to "form" if in "query"', () => {
+          const parameter = new Parameter3({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'string' }
+          })
+          expect(parameter.style).to.equal('form')
+        })
+
+        it('defaults to "simple" if in "path"', () => {
+          const parameter = new Parameter3({
+            name: 'foo',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' }
+          })
+          expect(parameter.style).to.equal('simple')
+        })
+
+        it('defaults to "simple" if in "header"', () => {
+          const parameter = new Parameter3({
+            name: 'foo',
+            in: 'header',
+            schema: { type: 'string' }
+          })
+          expect(parameter.style).to.equal('simple')
+        })
+
+        it('defaults to "form" if in "cookie"', () => {
+          const parameter = new Parameter3({
+            name: 'foo',
+            in: 'cookie',
+            schema: { type: 'string' }
+          })
+          expect(parameter.style).to.equal('form')
+        })
       })
     })
   })
@@ -121,6 +200,26 @@ describe.only('Component: Parameter', () => {
       })
     })
 
+    describe('property: name', () => {
+      it('can be a string', () => {
+        Parameters.forEach(({ Parameter, version }) => {
+          const config = minimal('Parameter', version)
+          config.name = 'foo'
+          const [error] = Parameter.validate(config)
+          expect(error).to.equal(undefined)
+        })
+      })
+
+      it('must be a string', () => {
+        Parameters.forEach(({ Parameter, version }) => {
+          const config = minimal('Parameter', version)
+          config.name = 5
+          const [error] = Parameter.validate(config)
+          expect(error).to.match(/Expected a string/)
+        })
+      })
+    })
+
     describe('v2', () => {
       it('has required properties', () => {
         // @ts-expect-error
@@ -134,26 +233,6 @@ describe.only('Component: Parameter', () => {
           in: 'body'
         })
         expect(error).to.match(/Missing required property: "schema"/)
-      })
-
-      describe('property: name', () => {
-        it('can be a string', () => {
-          const [error] = Parameter2.validate({
-            name: 'foo',
-            in: 'query',
-            type: 'string'
-          })
-          expect(error).to.equal(undefined)
-        })
-
-        it('must be a string', () => {
-          const [error] = Parameter2.validate({
-            // @ts-expect-error
-            name: 5,
-            in: 'query'
-          })
-          expect(error).to.match(/Expected a string/)
-        })
       })
 
       describe('property: in', () => {
@@ -502,9 +581,663 @@ describe.only('Component: Parameter', () => {
       })
 
       describe('property: collectionFormat', () => {
-        it('todo', () => {
-          throw new Error('todo')
+        it('can be set to "csv"', () => {
+          const [error] = Parameter2.validate({
+            name: 'foo',
+            in: 'query',
+            type: 'array',
+            items: { type: 'string' },
+            collectionFormat: 'csv'
+          })
+          expect(error).to.equal(undefined)
         })
+
+        it('can be set to "ssv"', () => {
+          const [error] = Parameter2.validate({
+            name: 'foo',
+            in: 'query',
+            type: 'array',
+            items: { type: 'string' },
+            collectionFormat: 'ssv'
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be set to "tsv"', () => {
+          const [error] = Parameter2.validate({
+            name: 'foo',
+            in: 'query',
+            type: 'array',
+            items: { type: 'string' },
+            collectionFormat: 'tsv'
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be set to "pipes"', () => {
+          const [error] = Parameter2.validate({
+            name: 'foo',
+            in: 'query',
+            type: 'array',
+            items: { type: 'string' },
+            collectionFormat: 'pipes'
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be set to "multi" if type is "query"', () => {
+          const [error] = Parameter2.validate({
+            name: 'foo',
+            in: 'query',
+            type: 'array',
+            items: { type: 'string' },
+            collectionFormat: 'multi'
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be set to "multi" if type is "formData"', () => {
+          const [error] = Parameter2.validate({
+            name: 'foo',
+            in: 'formData',
+            type: 'array',
+            items: { type: 'string' },
+            collectionFormat: 'multi'
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('cannot be set to "multi" if type is not "query" and not "formData"', () => {
+          const [error] = Parameter2.validate({
+            name: 'foo',
+            in: 'path',
+            required: true,
+            type: 'array',
+            items: { type: 'string' },
+            collectionFormat: 'multi'
+          })
+          expect(error).to.match(/The collection format property can only be set to "multi" when the parameter is in "query" or "formData"/)
+        })
+      })
+    })
+
+    describe('v3', () => {
+      it('has required properties', () => {
+        // @ts-expect-error
+        const [error] = Parameter3.validate({})
+        expect(error).to.match(/Missing required properties: "name", "in"/)
+      })
+
+      describe('property: in', () => {
+        it('cannot be "body"', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            // @ts-expect-error
+            in: 'body',
+            schema: { type: 'string' }
+          })
+          expect(error).to.match(/Value must be one of: "cookie", "header", "path", "query"/)
+        })
+
+        it('can be "cookie"', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'cookie',
+            schema: { type: 'string' }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('cannot be "formData"', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            // @ts-expect-error
+            in: 'formData',
+            schema: { type: 'string' }
+          })
+          expect(error).to.match(/Value must be one of: "cookie", "header", "path", "query"/)
+        })
+
+        it('can be "header"', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'header',
+            schema: { type: 'string' }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be "path"', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be "query"', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'string' }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be a string', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            // @ts-expect-error
+            in: 5,
+            schema: { type: 'string' }
+          })
+          expect(error).to.match(/Expected a string/)
+        })
+      })
+
+      describe('property: allowEmptyValue', () => {
+        it('can be set to true', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'string' },
+            allowEmptyValue: true
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be set to false', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'string' },
+            allowEmptyValue: false
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be a boolean', () => {
+          const [error] = Parameter2.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'string' },
+            // @ts-expect-error
+            allowEmptyValue: 5
+          })
+          expect(error).to.match(/Expected a boolean/)
+        })
+
+        it('cannot be set if in "path"', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'path',
+            schema: { type: 'string' },
+            allowEmptyValue: false
+          })
+          expect(error).to.match(/Only allowed if "in" is "query"/)
+        })
+      })
+
+      describe('property: allowReserved', () => {
+        it('can be true', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            allowReserved: true,
+            schema: { type: 'string' }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be false', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            allowReserved: false,
+            schema: { type: 'string' }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be a boolean', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            // @ts-expect-error
+            allowReserved: 5
+          })
+          expect(error).to.match(/Expected a boolean/)
+        })
+
+        it('can only be specified if in "query"', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'path',
+            required: true,
+            allowReserved: true
+          })
+          expect(error).to.match(/Property only allowed for "query" parameters/)
+        })
+      })
+
+      describe('property: content', () => {
+        it('can be a valid content object', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            content: {
+              'text/plain': {
+                schema: { type: 'string' }
+              }
+            }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('cannot contain zero properties', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            content: {}
+          })
+          expect(error).to.match(/The "content" property must define exactly one media type./)
+        })
+
+        it('cannot contain more than one property', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            content: {
+              'text/plain': {
+                schema: { type: 'string' }
+              },
+              'application/json': {
+                schema: { type: 'string' }
+              }
+            }
+          })
+          expect(error).to.match(/The "content" property must define exactly one media type./)
+        })
+
+        it('must contain a valid media type object', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            content: {
+              // @ts-expect-error
+              'text/plain': 5
+            }
+          })
+          expect(error).to.match(/Expected a MediaType object definition/)
+        })
+      })
+
+      describe('property: deprecated', () => {
+        it('can be true', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            deprecated: true,
+            schema: { type: 'string' }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be false', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            deprecated: false,
+            schema: { type: 'string' }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be a boolean', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'string' },
+            // @ts-expect-error
+            deprecated: 5
+          })
+          expect(error).to.match(/Expected a boolean/)
+        })
+      })
+
+      describe('property: example', () => {
+        it('can match the schema', () => {
+          const [error, warning] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'number' },
+            example: 5
+          })
+          expect(error).to.equal(undefined)
+          expect(warning).to.equal(undefined)
+        })
+
+        it('can match the content media type schema', () => {
+          const [error, warning] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            content: {
+              'text/plain': {
+                schema: { type: 'number' }
+              }
+            },
+            example: 5
+          })
+          expect(error).to.equal(undefined)
+          expect(warning).to.equal(undefined)
+        })
+
+        it('will warn if there is a schema that the example does not match', () => {
+          const [error, warning] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'number' },
+            example: 'hello'
+          })
+          expect(error).to.equal(undefined)
+          expect(warning).to.match(/Example is not valid when compared against the schema/)
+        })
+
+        it('will warn if there is a content media type schema that the example does not match', () => {
+          const [error, warning] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            content: {
+              'text/plain': {
+                schema: { type: 'number' }
+              }
+            },
+            example: 'hello'
+          })
+          expect(error).to.equal(undefined)
+          expect(warning).to.match(/Example is not valid when compared against the schema/)
+        })
+
+        it('is mutually exclusive from "examples" property', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'number' },
+            example: 5,
+            examples: {
+              Example1: { value: 5 }
+            }
+          })
+          expect(error).to.match(/The following properties are mutually exclusive: "example", "examples"/)
+        })
+      })
+
+      describe('property: examples', () => {
+        it('can be an empty object', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'string' },
+            examples: {}
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can use a valid example object', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'string' },
+            examples: {
+              Example1: { value: 5 }
+            }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must use a valid example object', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'number' },
+            examples: {
+              // @ts-expect-error
+              Example1: 5
+            }
+          })
+          expect(error).to.match(/Expected an Example object definition/)
+        })
+
+        it('can match the schema', () => {
+          const [error, warning] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'number' },
+            examples: {
+              Example1: { value: 5 }
+            }
+          })
+          expect(error).to.equal(undefined)
+          expect(warning).to.equal(undefined)
+        })
+
+        it('can match the content media type schema', () => {
+          const [error, warning] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            content: {
+              'text/plain': {
+                schema: { type: 'number' }
+              }
+            },
+            examples: {
+              Example1: { value: 5 }
+            }
+          })
+          expect(error).to.equal(undefined)
+          expect(warning).to.equal(undefined)
+        })
+
+        it('will warn if there is a schema that the example does not match', () => {
+          const [error, warning] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'number' },
+            examples: {
+              Example1: { value: 'hello' }
+            }
+          })
+          expect(error).to.equal(undefined)
+          expect(warning).to.match(/Example is not valid when compared against the schema/)
+        })
+
+        it('will warn if there is a content media type schema that the example does not match', () => {
+          const [error, warning] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            content: {
+              'text/plain': {
+                schema: { type: 'number' }
+              }
+            },
+            examples: {
+              Example1: { value: 'hello' }
+            }
+          })
+          expect(error).to.equal(undefined)
+          expect(warning).to.match(/Example is not valid when compared against the schema/)
+        })
+      })
+
+      describe('property: schema', () => {
+        it('can be a valid schema definition', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'number' }
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be a valid schema definition', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            // @ts-expect-error
+            schema: 5
+          })
+          expect(error).to.match(/Expected a Schema object definition/)
+        })
+      })
+
+      describe('property: style', () => {
+        describe('deepObject', () => {
+          function twoSchemas (definition: any, schema: any, callback: ((e: DefinitionException) => void)): void {
+            callback(Parameter3.validate(Object.assign({}, definition, {
+              schema
+            })))
+
+            callback(Parameter3.validate(Object.assign({}, definition, {
+              content: {
+                'application/json': { schema }
+              }
+            })))
+          }
+
+          it('can be in "query" with type "object"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'query',
+              style: 'deepObject'
+            }
+            twoSchemas(definition, { type: 'object' }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('must be in "query" with type "object"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'cookie',
+              style: 'deepObject'
+            }
+            twoSchemas(definition, { type: 'object' }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+        })
+
+        // const inArray = ['cookie', 'header', 'path', 'query']
+        // const types = ['string', 'number', 'integer', 'array', 'object']
+        // // https://spec.openapis.org/oas/v3.0.3#style-values
+        // // a map of what styles apply, to what types, and where
+        // const styleMap: Record<string, Record<string, string[]>> = {
+        //   deepObject: {
+        //     query: ['object']
+        //   },
+        //   form: {
+        //     cookie: ['string', 'number', 'integer', 'array', 'object'],
+        //     query: ['string', 'number', 'integer', 'array', 'object']
+        //   },
+        //   label: {
+        //     path: ['string', 'number', 'integer', 'array', 'object']
+        //   },
+        //   matrix: {
+        //     path: ['string', 'number', 'integer', 'array', 'object']
+        //   },
+        //   pipeDelimited: {
+        //     query: ['array']
+        //   },
+        //   simple: {
+        //     header: ['array'],
+        //     path: ['array']
+        //   },
+        //   spaceDelimited: {
+        //     query: ['array']
+        //   }
+        // }
+        //
+        // Object.keys(styleMap).forEach(style => {
+        //   describe('style: ' + style, () => {
+        //     inArray.forEach((at: string) => {
+        //       if (styleMap[style]?.[at] === undefined) {
+        //         const atKey = Object.keys(styleMap[style])[0]
+        //         const type = styleMap[style][atKey][0]
+        //
+        //         it('not allowed when in "' + at + '"', () => {
+        //           const [error] = Parameter3.validate({
+        //             name: 'foo',
+        //             // @ts-expect-error
+        //             schema: { type: type },
+        //             // @ts-expect-error
+        //             in: at,
+        //             // @ts-expect-error
+        //             style: style
+        //           })
+        //           expect(error).to.match(/asdf/)
+        //         })
+        //       } else {
+        //         types.forEach((type: string) => {
+        //           const typeIsAllowed: boolean = styleMap[style]?.[at]?.includes(type) ?? false
+        //           if (typeIsAllowed) {
+        //             it('allows type "' + type + '" using schema', () => {
+        //               const [error] = Parameter3.validate({
+        //                 name: 'foo',
+        //                 // @ts-expect-error
+        //                 schema: { type: type },
+        //                 // @ts-expect-error
+        //                 in: at,
+        //                 // @ts-expect-error
+        //                 style: style
+        //               })
+        //               expect(error).to.equal(undefined)
+        //             })
+        //
+        //             it('allows type "' + type + '" using content media type schema', () => {
+        //               const [error] = Parameter3.validate({
+        //                 name: 'foo',
+        //                 // @ts-expect-error
+        //                 content: { 'application/json': { schema: { type: type } } },
+        //                 // @ts-expect-error
+        //                 in: at,
+        //                 // @ts-expect-error
+        //                 style: style
+        //               })
+        //               expect(error).to.equal(undefined)
+        //             })
+        //           } else {
+        //             it('does not allow type "' + type + '"', () => {
+        //               const [error] = Parameter3.validate({
+        //                 name: 'foo',
+        //                 schema: { type: 'string' },
+        //                 // @ts-expect-error
+        //                 in: at,
+        //                 // @ts-expect-error
+        //                 style: style
+        //               })
+        //               expect(error).to.match(/asdf/)
+        //             })
+        //
+        //             it('does not allow type "' + type + '" using content media type schema', () => {
+        //               const [error] = Parameter3.validate({
+        //                 name: 'foo',
+        //                 // @ts-expect-error
+        //                 content: { 'application/json': { schema: { type: type } } },
+        //                 // @ts-expect-error
+        //                 in: at,
+        //                 // @ts-expect-error
+        //                 style: style
+        //               })
+        //               expect(error).to.equal(undefined)
+        //             })
+        //           }
+        //         })
+        //       }
+        //     })
+        //   })
+        // })
       })
     })
   })
@@ -513,28 +1246,28 @@ describe.only('Component: Parameter', () => {
     describe('v3', () => {
       it('must have a schema to be parsed', () => {
         const def: Parameter3Definition = { name: 'user', in: 'cookie' }
-        const [value, error] = new Parameter3(def).parse(['12345'])
+        const [value, error] = new Parameter3(def).parseValue(['12345'])
         expect(value).to.equal(undefined)
         expect(error).to.match(/Unable to parse value without a schema/)
       })
 
       it('must have a value to be parsed', () => {
         const def: Parameter3Definition = { name: 'user', in: 'query', schema: { type: 'string' } }
-        const [value, error] = new Parameter3(def).parse([])
+        const [value, error] = new Parameter3(def).parseValue([])
         expect(value).to.equal(undefined)
         expect(error).to.match(/Unable to parse because there is no value to parse/)
       })
 
       it('must have a determinable schema', () => {
         const def: Parameter3Definition = { name: 'user', in: 'query', schema: { not: { type: 'string' } } }
-        const [value, error] = new Parameter3(def).parse(['foo'])
+        const [value, error] = new Parameter3(def).parseValue(['foo'])
         expect(value).to.equal(undefined)
         expect(error).to.match(/Unable to determine schema for operation: parse/)
       })
 
       it('must have a determined type', () => {
         const def: Parameter3Definition = { name: 'user', in: 'query', schema: {} }
-        const [value, error] = new Parameter3(def).parse(['foo'])
+        const [value, error] = new Parameter3(def).parseValue(['foo'])
         expect(value).to.equal(undefined)
         expect(error).to.match(/Unable to perform operation "parse" because the schema has no type/)
       })

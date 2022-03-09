@@ -45,9 +45,16 @@ export function examplesMatchSchema (data: ValidatorData, SchemaClass: any): tru
   if (built.example !== undefined || built.examples !== undefined) {
     lastly.push(() => {
       if (!exception.hasError) {
-        const schema = definition.schema !== undefined
-          ? new SchemaClass(definition.schema, version)
-          : null
+        let schema: Schema | null = null
+        if (definition.schema !== undefined) {
+          schema = new SchemaClass(definition.schema, version)
+        } else if (definition.content !== undefined) {
+          const key = Object.keys(definition.content)[0]
+          const schemaDefinition = definition.content[key].schema
+          if (schemaDefinition !== undefined) {
+            schema = new SchemaClass(schemaDefinition, version)
+          }
+        }
 
         // validate that example matches schema
         if ('example' in built) {
