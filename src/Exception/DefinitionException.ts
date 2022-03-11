@@ -49,7 +49,7 @@ interface Adders {
   invalidResponseCode: (data: ValidatorData, location: LocationInput, code: string) => Message
   invalidResponseLinkKey: (data: ValidatorData, location: LocationInput, key: string) => Message
   invalidSemanticVersionNumber: (data: ValidatorData, location: LocationInput, version: string) => Message
-  invalidStyle: (data: ValidatorData, location: LocationInput, style: string, type: string) => Message
+  invalidStyle: (data: ValidatorData, location: LocationInput, style: string, type: string, at: string, explode: boolean, mode: 'type' | 'location') => Message
   invalidType: (data: ValidatorData, location: LocationInput, expectedType: string, invalidValue: any, reference?: string) => Message
   invalidUrl: (data: ValidatorData, location: LocationInput, invalidValue: any) => Message
   invalidVersionForComponent: (data: ValidatorData, location: LocationInput, componentName: string, version: string) => Message
@@ -74,6 +74,7 @@ interface Adders {
   pathEndingsInconsistent: (data: ValidatorData, locations: LocationInput[], pathsWithTrailingSlash: string[], pathsWithoutTrailingSlash: string[]) => Message
   pathMissingMethods: (data: ValidatorData, location: LocationInput, path: string) => Message
   pathParameterMustBeRequired: (data: ValidatorData, location: LocationInput, parameterName: string) => Message
+  pathParameterMismatch: (data: ValidatorData, locations: LocationInput[], parameterName: string, path: string, missingIn: 'path' | 'parameters') => Message
   propertiesMutuallyExclusive: (data: ValidatorData, locations: LocationInput[], properties: string[]) => Message
   propertyIgnored: (data: ValidatorData, location: LocationInput, value: string, reason: string) => Message
   propertyNotAllowed: (data: ValidatorData, location: LocationInput, propertyName: string, reason: string) => Message
@@ -442,13 +443,19 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
       }))
     },
 
-    invalidStyle: (data: ValidatorData, location: LocationInput, style: string, type: string) => {
+    invalidStyle: (data: ValidatorData, location: LocationInput, style: string, type: string, at: string, explode: boolean, mode: 'type' | 'location') => {
       return this.message(getExceptionMessageData(data, [location], true, {
         code: 'INPAST',
         alternateLevels: [],
         level: 'error',
-        message: 'Style ' + smart(style) + ' is incompatible with schema type: ' + smart(type),
-        metadata: { style, type }
+        message: 'Style ' + smart(style) + ' is incompatible with ' +
+          (mode === 'type' ? 'schema type ' + smart(type) + ' when explode is set to ' + String(explode) + '.' : smart(at) + ' parameter.'),
+        metadata: {
+          in: at,
+          mode,
+          style,
+          type
+        }
       }))
     },
 
@@ -694,6 +701,18 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
         level: 'error',
         message: 'Path parameters must be marked as required. Parameter: ' + smart(parameterName),
         metadata: { parameterName }
+      }))
+    },
+
+    pathParameterMismatch: (data: ValidatorData, locations: LocationInput[], parameterName: string, path: string, missingIn: 'path' | 'parameters') => {
+      return this.message(getExceptionMessageData(data, locations, true, {
+        code: 'PAPMMM',
+        alternateLevels: [],
+        level: 'error',
+        message: missingIn === 'path'
+          ? 'Path is missing path parameter ' + smart(parameterName) + ' that is defined in the parameters array.'
+          : 'Path contains a parameter ' + smart(parameterName) + ' that is not defined in the parameters array.',
+        metadata: { parameterName, path, missingIn }
       }))
     },
 

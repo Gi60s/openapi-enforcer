@@ -29,12 +29,15 @@ interface Adders {
   definitionInvalid: (isOpenAPI: boolean) => Message
   invalidInput: (explanation: string) => Message
 
+  operationNotFound: (method: string, path: string) => Message
   operationMissingRequiredParameters: (at: string, names: string[]) => Message
   operationRequestBodyNotAllowed: (method: string, path: string) => Message
   operationRequestContentTypeNotProvided: () => Message
   operationRequestContentTypeNotValid: (contentType: string, allowedTypes: string[]) => Message
   operationResponseCodeInvalid: (code: string, allowedCodes: string[]) => Message
   operationResponseContentTypeInvalid: (code: string, contentType: string, allowedTypes: string[]) => Message
+
+  pathNotFound: (path: string) => Message
 
   // TODO: how is parameterParseEmptyValue being used vs parameterParseNoValue? Do I need both?
   parameterParseEmptyValue: () => Message
@@ -375,6 +378,20 @@ export class Exception extends ExceptionBase<Exception> {
       })
     },
 
+    operationNotFound: (method: string, path: string) => {
+      return this.message({
+        alternateLevels: ['error'],
+        code: codePrefix + 'OPNOFO',
+        level: 'error',
+        message: 'Unable to find operation for ' + method.toUpperCase() + ' ' + path,
+        metadata: {
+          method,
+          path
+        },
+        reference: ''
+      })
+    },
+
     operationMissingRequiredParameters: (at: string, names: string[]) => {
       return this.message({
         alternateLevels: ['error', 'warn', 'info', 'ignore'],
@@ -454,6 +471,19 @@ export class Exception extends ExceptionBase<Exception> {
           allowedTypes,
           code,
           contentType
+        },
+        reference: ''
+      })
+    },
+
+    pathNotFound: (path: string) => {
+      return this.message({
+        alternateLevels: ['error'],
+        code: codePrefix + 'PANOFO',
+        level: 'error',
+        message: 'Unable to find path: ' + path,
+        metadata: {
+          path
         },
         reference: ''
       })

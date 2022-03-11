@@ -68,6 +68,8 @@ export function schemaGenerator (components: ComponentsMap, methods: string[]): 
           }
         })
 
+        // TODO: call Exception.add.pathParameterMismatch
+
         // create the shared parameters map
         // TODO: create the shared parameters map
         const sharedParameters: ParameterDefinition[] = built.parameters ?? []

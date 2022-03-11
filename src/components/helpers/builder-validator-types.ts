@@ -19,6 +19,7 @@ type SecuritySchemeDefinition = SecuritySchemeDefinition2 | SecuritySchemeDefini
 
 export interface BuilderMetadata {
   [key: string]: any
+  operations: Operation[]
   operationIdMap: {
     [operationId: string]: Operation // Array<BuilderData<Operation>>
   }

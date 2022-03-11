@@ -28,9 +28,9 @@ export class Result<T=any> {
    * @param value The resolved value. This value will automatically be converted to undefined if the exception has one or more error items.
    * @param exception The {@link Exception} or {@link DefinitionException} attached to this result.
    */
-  constructor (value: T | undefined, exception?: Exception | DefinitionException) {
+  constructor (value: any | null | undefined, exception?: Exception | DefinitionException) {
     const [error, warn, info, ignore] = exception ?? []
-    if (error === undefined) this[0] = value
+    if (error === undefined) this[0] = value as T
     if (error !== undefined) this[1] = error
     if (warn !== undefined) this[2] = warn
     if (info !== undefined) this[3] = info

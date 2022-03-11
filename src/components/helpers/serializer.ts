@@ -23,6 +23,7 @@ interface StyleDetails {
   type: 'all' | 'array' | 'object' | 'primitive'
 }
 
+// https://swagger.io/docs/specification/serialization/
 const matrix: Matrix = {
   cookie: {
     allowedStyles: ['form'],
@@ -122,6 +123,10 @@ export function styleMatchesExplode (at: string, style: string, explode: boolean
   const data: StyleDetails[] | null = matrix[at as At]?.styles[style as Style] ?? null
   if (data === null) return false
   return data.findIndex(v => v.explode === explode) !== -1
+}
+
+export function styleMatchesIn (at: string, style: Style): boolean {
+  return matrix[at as At]?.allowedStyles.includes(style)
 }
 
 export function styleMatchesType (at: string, style: string, type: string, explode: boolean): boolean {

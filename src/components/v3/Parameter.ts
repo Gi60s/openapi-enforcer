@@ -45,6 +45,14 @@ export class Parameter extends OASComponent {
     // TODO: write this function
   }
 
+  /**
+   * Get the parameter's Schema object regardless of whether it is defined in the schema or content properties.
+   * @returns {@link Schema} or undefined.
+   */
+  getSchema (): Schema | undefined {
+    return Core.getSchema<Parameter, Schema>(this) as Schema
+  }
+
   // the value is an array of all identified values (in case of query string this would be a `a=1&a=2` situation)
   parseValue (multiValue: string[]): Result<any> {
     const exception = new Exception('Unable to parse value')
@@ -69,13 +77,13 @@ export class Parameter extends OASComponent {
 
     // if type is unknown then we can't continue
     if (schema === null) {
-      exception.add.schemaIndeterminate('parse')
+      exception.add.schemaIndeterminate('parseValue')
       return new Result(null, exception)
     }
 
     // if type is unknown then we can't continue
     if (type === '' || type === undefined) {
-      exception.add.schemaIndeterminateType('parse')
+      exception.add.schemaIndeterminateType('parseValue')
       return new Result(null, exception)
     }
 

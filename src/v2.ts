@@ -23,6 +23,10 @@ export {
   Xml as XmlDefinition
 } from './components/helpers/definition-types'
 
+export {
+  Method
+} from './components/helpers/function-interfaces'
+
 export { Contact } from './components/Contact'
 export { Definitions } from './components/v2/Definitions'
 export { ExternalDocumentation } from './components/ExternalDocumentation'

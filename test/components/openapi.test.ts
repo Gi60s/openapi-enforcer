@@ -1,4 +1,4 @@
-import { OpenAPI } from '../../src/v3'
+import { Method, OpenAPI, OpenAPIDefinition, OperationDefinition, ParameterDefinition, PathItemDefinition } from '../../src/v3'
 import { minimal } from '../helpers'
 import { expect } from 'chai'
 
@@ -35,7 +35,40 @@ describe('OpenAPI component', function () {
       })
     })
 
-    describe('makeRequest', () => {
+    describe.only('makeRequest', () => {
+      describe('path parameters', () => {
+        it('can parse: simple false primitive', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'simple',
+              explode: false,
+              schema: { type: 'number' }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/5' })
+          expect(value.params.foo).to.equal(5)
+        })
+      })
+
+      describe('query parameters', () => {
+        it('can parse: form false primitive', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/', [
+            {
+              name: 'foo',
+              in: 'query',
+              style: 'form',
+              explode: false,
+              schema: { type: 'number' }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/?foo=5' })
+          expect(value.params.foo).to.equal(5)
+        })
+      })
+
       it.skip('todo', () => {
         throw Error('to do')
       })
@@ -310,3 +343,23 @@ describe('OpenAPI component', function () {
     })
   })
 })
+
+function createOpenAPIForMakeRequest (method: Method, path: `/${string}`, parameters: ParameterDefinition[]): OpenAPI {
+  const openapiDef: OpenAPIDefinition = {
+    openapi: '3.0.3',
+    info: { title: '', version: '' },
+    paths: {}
+  }
+
+  const operationDef: OperationDefinition = {
+    responses: {
+      200: { description: 'ok' }
+    }
+  }
+  if (parameters.length > 0) operationDef.parameters = parameters
+
+  openapiDef.paths[path] = {}
+  openapiDef.paths[path][method] = operationDef
+
+  return new OpenAPI(openapiDef)
+}

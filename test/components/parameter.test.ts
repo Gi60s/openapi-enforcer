@@ -9,7 +9,20 @@ const Parameters: [{ Parameter: typeof Parameter2, version: '2.x' }, { Parameter
   { Parameter: Parameter3, version: '3.x' }
 ]
 
-describe.only('Component: Parameter', () => {
+// this function is for testing that the schema or content media type schema both produce the same results
+function twoSchemas (definition: any, schema: any, callback: ((e: DefinitionException) => void)): void {
+  callback(Parameter3.validate(Object.assign({}, definition, {
+    schema
+  })))
+
+  callback(Parameter3.validate(Object.assign({}, definition, {
+    content: {
+      'application/json': { schema }
+    }
+  })))
+}
+
+describe('Component: Parameter', () => {
   describe('build', () => {
     describe('v2', () => {
       it('can build', () => {
@@ -1094,18 +1107,6 @@ describe.only('Component: Parameter', () => {
 
       describe('property: style', () => {
         describe('deepObject', () => {
-          function twoSchemas (definition: any, schema: any, callback: ((e: DefinitionException) => void)): void {
-            callback(Parameter3.validate(Object.assign({}, definition, {
-              schema
-            })))
-
-            callback(Parameter3.validate(Object.assign({}, definition, {
-              content: {
-                'application/json': { schema }
-              }
-            })))
-          }
-
           it('can be in "query" with type "object"', () => {
             const definition = {
               name: 'foo',
@@ -1117,132 +1118,351 @@ describe.only('Component: Parameter', () => {
             })
           })
 
-          it('must be in "query" with type "object"', () => {
+          it('must be in "query"', () => {
             const definition = {
               name: 'foo',
               in: 'cookie',
               style: 'deepObject'
             }
             twoSchemas(definition, { type: 'object' }, ([error]) => {
-              expect(error).to.equal(undefined)
+              expect(error).to.match(/Style "deepObject" is incompatible with "cookie" parameter/)
+            })
+          })
+
+          it('must have schema type as object', () => {
+            const definition = {
+              name: 'foo',
+              in: 'query',
+              style: 'deepObject'
+            }
+            twoSchemas(definition, { type: 'string' }, ([error]) => {
+              expect(error).to.match(/Style "deepObject" is incompatible with schema type "string"/)
             })
           })
         })
 
-        // const inArray = ['cookie', 'header', 'path', 'query']
-        // const types = ['string', 'number', 'integer', 'array', 'object']
-        // // https://spec.openapis.org/oas/v3.0.3#style-values
-        // // a map of what styles apply, to what types, and where
-        // const styleMap: Record<string, Record<string, string[]>> = {
-        //   deepObject: {
-        //     query: ['object']
-        //   },
-        //   form: {
-        //     cookie: ['string', 'number', 'integer', 'array', 'object'],
-        //     query: ['string', 'number', 'integer', 'array', 'object']
-        //   },
-        //   label: {
-        //     path: ['string', 'number', 'integer', 'array', 'object']
-        //   },
-        //   matrix: {
-        //     path: ['string', 'number', 'integer', 'array', 'object']
-        //   },
-        //   pipeDelimited: {
-        //     query: ['array']
-        //   },
-        //   simple: {
-        //     header: ['array'],
-        //     path: ['array']
-        //   },
-        //   spaceDelimited: {
-        //     query: ['array']
-        //   }
-        // }
-        //
-        // Object.keys(styleMap).forEach(style => {
-        //   describe('style: ' + style, () => {
-        //     inArray.forEach((at: string) => {
-        //       if (styleMap[style]?.[at] === undefined) {
-        //         const atKey = Object.keys(styleMap[style])[0]
-        //         const type = styleMap[style][atKey][0]
-        //
-        //         it('not allowed when in "' + at + '"', () => {
-        //           const [error] = Parameter3.validate({
-        //             name: 'foo',
-        //             // @ts-expect-error
-        //             schema: { type: type },
-        //             // @ts-expect-error
-        //             in: at,
-        //             // @ts-expect-error
-        //             style: style
-        //           })
-        //           expect(error).to.match(/asdf/)
-        //         })
-        //       } else {
-        //         types.forEach((type: string) => {
-        //           const typeIsAllowed: boolean = styleMap[style]?.[at]?.includes(type) ?? false
-        //           if (typeIsAllowed) {
-        //             it('allows type "' + type + '" using schema', () => {
-        //               const [error] = Parameter3.validate({
-        //                 name: 'foo',
-        //                 // @ts-expect-error
-        //                 schema: { type: type },
-        //                 // @ts-expect-error
-        //                 in: at,
-        //                 // @ts-expect-error
-        //                 style: style
-        //               })
-        //               expect(error).to.equal(undefined)
-        //             })
-        //
-        //             it('allows type "' + type + '" using content media type schema', () => {
-        //               const [error] = Parameter3.validate({
-        //                 name: 'foo',
-        //                 // @ts-expect-error
-        //                 content: { 'application/json': { schema: { type: type } } },
-        //                 // @ts-expect-error
-        //                 in: at,
-        //                 // @ts-expect-error
-        //                 style: style
-        //               })
-        //               expect(error).to.equal(undefined)
-        //             })
-        //           } else {
-        //             it('does not allow type "' + type + '"', () => {
-        //               const [error] = Parameter3.validate({
-        //                 name: 'foo',
-        //                 schema: { type: 'string' },
-        //                 // @ts-expect-error
-        //                 in: at,
-        //                 // @ts-expect-error
-        //                 style: style
-        //               })
-        //               expect(error).to.match(/asdf/)
-        //             })
-        //
-        //             it('does not allow type "' + type + '" using content media type schema', () => {
-        //               const [error] = Parameter3.validate({
-        //                 name: 'foo',
-        //                 // @ts-expect-error
-        //                 content: { 'application/json': { schema: { type: type } } },
-        //                 // @ts-expect-error
-        //                 in: at,
-        //                 // @ts-expect-error
-        //                 style: style
-        //               })
-        //               expect(error).to.equal(undefined)
-        //             })
-        //           }
-        //         })
-        //       }
-        //     })
-        //   })
-        // })
+        describe('form', () => {
+          it('can be in "cookie" with type "string"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'cookie',
+              style: 'form'
+            }
+            twoSchemas(definition, { type: 'string' }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('can be in "query" with type "string"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'query',
+              style: 'form'
+            }
+            twoSchemas(definition, { type: 'string' }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('can be an "array"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'query',
+              style: 'form'
+            }
+            twoSchemas(definition, { type: 'object' }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('can be an "object"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'query',
+              style: 'form'
+            }
+            twoSchemas(definition, { type: 'object' }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('must be in "cookie" or "query"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'path',
+              style: 'form'
+            }
+            twoSchemas(definition, { type: 'string' }, ([error]) => {
+              expect(error).to.match(/Style "form" is incompatible with "path" parameter/)
+            })
+          })
+        })
+
+        describe('label', () => {
+          it('can be in "path" with type "string"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'label'
+            }
+            twoSchemas(definition, { type: 'string' }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('can be in "path" with type "array"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'label'
+            }
+            twoSchemas(definition, { type: 'array', items: { type: 'string' } }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('can be in "path" with type "object"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'label'
+            }
+            twoSchemas(definition, { type: 'object' }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('must be in "path"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'query',
+              style: 'label'
+            }
+            twoSchemas(definition, { type: 'string' }, ([error]) => {
+              expect(error).to.match(/Style "label" is incompatible with "query" parameter/)
+            })
+          })
+        })
+
+        describe('matrix', () => {
+          it('can be in "path" with type "string"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'matrix'
+            }
+            twoSchemas(definition, { type: 'string' }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('can be in "path" with type "array"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'matrix'
+            }
+            twoSchemas(definition, { type: 'array', items: { type: 'string' } }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('can be in "path" with type "object"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'matrix'
+            }
+            twoSchemas(definition, { type: 'object' }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('must be in "path"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'query',
+              style: 'matrix'
+            }
+            twoSchemas(definition, { type: 'string' }, ([error]) => {
+              expect(error).to.match(/Style "matrix" is incompatible with "query" parameter/)
+            })
+          })
+        })
+
+        describe('pipeDelimited', () => {
+          it('can be in "query" with type "array"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'query',
+              style: 'pipeDelimited'
+            }
+            twoSchemas(definition, { type: 'array', items: { type: 'string' } }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('must be with type "array"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'query',
+              style: 'pipeDelimited'
+            }
+            twoSchemas(definition, { type: 'string' }, ([error]) => {
+              expect(error).to.match(/Style "pipeDelimited" is incompatible with schema type "string"/)
+            })
+          })
+
+          it('must be in "query"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'header',
+              style: 'pipeDelimited'
+            }
+            twoSchemas(definition, { type: 'array', items: { type: 'string' } }, ([error]) => {
+              expect(error).to.match(/Style "pipeDelimited" is incompatible with "header" parameter/)
+            })
+          })
+        })
+
+        describe('simple', () => {
+          it('can be in "path" with type "string"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'simple'
+            }
+            twoSchemas(definition, { type: 'string' }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('can be in "path" with type "array"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'simple'
+            }
+            twoSchemas(definition, { type: 'array', items: { type: 'string' } }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('can be in "path" with type "object"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'simple'
+            }
+            twoSchemas(definition, { type: 'object' }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('can be in "header" with type "array"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'header',
+              style: 'simple'
+            }
+            twoSchemas(definition, { type: 'array', items: { type: 'string' } }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('must be in "path" or "header"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'query',
+              style: 'simple'
+            }
+            twoSchemas(definition, { type: 'array', items: { type: 'string' } }, ([error]) => {
+              expect(error).to.match(/Style "simple" is incompatible with "query" parameter/)
+            })
+          })
+        })
+
+        describe('spaceDelimited', () => {
+          it('can be in "query" with type "array"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'query',
+              style: 'spaceDelimited'
+            }
+            twoSchemas(definition, { type: 'array', items: { type: 'string' } }, ([error]) => {
+              expect(error).to.equal(undefined)
+            })
+          })
+
+          it('must be in "query"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'header',
+              style: 'spaceDelimited'
+            }
+            twoSchemas(definition, { type: 'array', items: { type: 'string' } }, ([error]) => {
+              expect(error).to.match(/Style "spaceDelimited" is incompatible with "header" parameter/)
+            })
+          })
+
+          it('must be with type "array"', () => {
+            const definition = {
+              name: 'foo',
+              in: 'query',
+              style: 'spaceDelimited'
+            }
+            twoSchemas(definition, { type: 'string' }, ([error]) => {
+              expect(error).to.match(/Style "spaceDelimited" is incompatible with schema type "string"/)
+            })
+          })
+        })
+      })
+
+      describe('property: explode', () => {
+        it('can be set to true', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'string' },
+            explode: true
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('can be set to false', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'string' },
+            explode: false
+          })
+          expect(error).to.equal(undefined)
+        })
+
+        it('must be a boolean', () => {
+          const [error] = Parameter3.validate({
+            name: 'foo',
+            in: 'query',
+            schema: { type: 'string' },
+            // @ts-expect-error
+            explode: 5
+          })
+          expect(error).to.match(/Expected a boolean/)
+        })
       })
     })
   })
 
-  describe('parse', () => {
+  describe('parseValue', () => {
     describe('v3', () => {
       it('must have a schema to be parsed', () => {
         const def: Parameter3Definition = { name: 'user', in: 'cookie' }

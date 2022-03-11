@@ -33,6 +33,10 @@ export {
   Xml as XmlDefinition
 } from './components/helpers/definition-types'
 
+export {
+  Method
+} from './components/helpers/function-interfaces'
+
 export { Callback } from './components/v3/Callback'
 export { Components } from './components/v3/Components'
 export { Contact } from './components/Contact'

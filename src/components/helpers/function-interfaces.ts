@@ -3,6 +3,10 @@
  * components that will be exported with the library so that they can be reused outside the library.
  */
 
+import { PathItem } from '../PathItem'
+import { PathItem as PathItem2 } from '../v2/PathItem'
+import { PathItem as PathItem3 } from '../v3/PathItem'
+import { Operation } from '../Operation'
 import { Operation as Operation2 } from '../v2/Operation'
 import { Operation as Operation3 } from '../v3/Operation'
 
@@ -11,22 +15,30 @@ import { Operation as Operation3 } from '../v3/Operation'
  */
 
 export type Method = 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch' | 'trace'
+export type SerializedParameterMap = Record<string, string | string[] | undefined>
 
 /**
  * OpenAPI
  */
 
-export interface OpenAPIGetOperationResult {
-  operation: Operation2 | Operation3
+export interface GetOperationResult<O extends Operation, P extends PathItem<O>> {
+  operation: O
   params: Record<string, string>
+  path: string
+  pathItem: P
+}
+
+export interface GetOperationOptions {
+  normalizePath?: boolean // default: true
 }
 
 export interface OpenAPIMakeRequestInput {
   body?: string | any[] | Record<string, any>
-  headers?: Record<string, string | string[] | undefined>
+  cookies?: SerializedParameterMap
+  headers?: SerializedParameterMap
   method: Method
   path: string
-  query?: Record<string, string | string[] | undefined>
+  query?: SerializedParameterMap
 }
 
 export type OpenAPIMakeRequestOptions = OperationMakeRequestOptions
@@ -39,7 +51,6 @@ export interface OpenAPIMakeRequestOutput {
   params: Record<string, unknown> // path parameters
   path: string
   query: Record<string, unknown>
-  response: () => void // TODO: update to use operation response signature
 }
 
 /**
@@ -69,10 +80,20 @@ export interface OperationMakeRequestOptions {
 }
 
 /**
+ * Paths
+ */
+
+export interface PathsFindPathResult<O extends Operation, P extends PathItem<O>> {
+  params: Record<string, string>
+  path: string
+  pathItem: P
+}
+
+/**
  * SWAGGER
  */
 
-export type SwaggerGetOperationResult = OpenAPIGetOperationResult
+export type SwaggerGetOperationResult = GetOperationResult
 export type SwaggerMakeRequestInput = OpenAPIMakeRequestInput
 export type SwaggerMakeRequestOptions = OpenAPIMakeRequestOptions
 export type SwaggerMakeRequestOutput = OpenAPIMakeRequestOutput

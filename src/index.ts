@@ -3,6 +3,10 @@ import * as _3 from './v3'
 
 export * from './common'
 
+export {
+  Method
+} from './components/helpers/function-interfaces'
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace v2 {
   export type ContactDefinition = _2.ContactDefinition

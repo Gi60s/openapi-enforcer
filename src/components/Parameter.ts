@@ -8,18 +8,27 @@ import { Items } from './v2/Items'
 import { MediaType } from './v3/MediaType'
 import { Schema as Schema3 } from './v3/Schema'
 import {
-  Parameter2 as Definition2,
-  Parameter3 as Definition3,
+  Parameter2 as Definition2, Parameter3,
+  Parameter3 as Definition3, Reference,
   Schema3 as SchemaDefinition3
 } from './helpers/definition-types'
 import { LocationInput } from '../Exception'
-import { parameterSchemaContent } from './helpers/common-validators'
 
 type Definition = Definition2 | Definition3
 
 interface ComponentMap {
   Parameter: Component
   Schema: Component
+}
+
+// This function is for Parameter3 which can define a schema on either the schema or content properties.
+export function getSchema<Definition, Result> (definition: Definition): Result | Reference | undefined {
+  const def = definition as unknown as Definition3
+  if (def.schema !== undefined) return def.schema as unknown as Result
+  if (def.content !== null && typeof def.content === 'object') {
+    const mimeType = Object.keys(def.content)[0]
+    if (mimeType !== undefined) return def.content[mimeType]?.schema as unknown as Result
+  }
 }
 
 export function schemaGenerator (major: number, components: ComponentMap): ComponentSchema<Definition> {
@@ -183,10 +192,10 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
         type: 'string',
         default ({ cache }) {
           return cache.defaultStyle
-        },
-        enum ({ cache }) {
-          return cache.allowedStyles
         }
+        // enum ({ cache }) {
+        //   return cache.allowedStyles
+        // }
       }
     },
     {
@@ -247,23 +256,29 @@ export function schemaGenerator (major: number, components: ComponentMap): Compo
     }
 
     if (major === 3) {
+      const built = data.context.built as Definition3
+      const schema = getSchema<Definition3, SchemaDefinition3>(built)
+
       V.exampleExamplesConflict(data)
       V.examplesMatchSchema(data, Schema3)
       V.parameterSchemaContent(data)
 
       // if style is specified then check that it aligns with the schema type
-      const built = data.context.built as Definition3
-      const type = (built.schema as SchemaDefinition3)?.type ?? ''
+
+      const type = schema !== undefined && 'type' in schema ? schema.type ?? '' : ''
       const style = built.style ?? ''
+      const styleMatchesLocation = Serializer.styleMatchesIn(built.in, style as any)
+      const explode = built.explode as boolean
       if (type !== '') {
-        const validStyle = Serializer.styleMatchesType(built.in, style, type, built.explode as boolean)
-        if (!validStyle) {
-          exception.at('style').add.invalidStyle(data, { node: definition, key: 'style', type: 'value' }, style, type)
+        if (!styleMatchesLocation) {
+          exception.at('style').add.invalidStyle(data, { node: definition, key: 'style', type: 'value' }, style, type, built.in, explode, 'location')
+        } else if (!Serializer.styleMatchesType(built.in, style, type, built.explode as boolean)) {
+          exception.at('style').add.invalidStyle(data, { node: definition, key: 'style', type: 'value' }, style, type, built.in, explode, 'type')
         }
       }
 
       // ensure that the explode value is valid
-      if ('explode' in built) {
+      if ('explode' in built && styleMatchesLocation) {
         const validExplode = Serializer.styleMatchesExplode(built.in, style, built.explode as boolean)
         if (!validExplode) {
           exception.at('explode').add.invalidCookieExplode(data, { node: definition, key: 'explode', type: 'value' }, definition.name)

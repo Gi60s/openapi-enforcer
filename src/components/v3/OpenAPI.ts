@@ -1,5 +1,5 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
-import { DefinitionException } from '../../Exception'
+import { DefinitionException, Exception } from '../../Exception'
 import { OASComponent, componentValidate, LoaderOptions, loadRoot, normalizeLoaderOptions } from '../index'
 import { Components } from './Components'
 import { ExternalDocumentation } from '../ExternalDocumentation'
@@ -12,11 +12,15 @@ import { Tag } from '../Tag'
 import { Result } from '../../utils/Result'
 import { OpenAPI3 as Definition } from '../helpers/definition-types'
 import {
-  OpenAPIGetOperationResult,
+  Method,
+  GetOperationOptions,
+  GetOperationResult,
   OpenAPIMakeRequestInput,
   OpenAPIMakeRequestOptions,
-  OpenAPIMakeRequestOutput
+  OpenAPIMakeRequestOutput, PathsFindPathResult,
+  SerializedParameterMap
 } from '../helpers/function-interfaces'
+import { PathItem } from './PathItem'
 
 const rxVersion = /^\d+\.\d+\.\d+$/
 let openapiSchema: ComponentSchema<Definition>
@@ -36,16 +40,104 @@ export class OpenAPI extends OASComponent {
     super(OpenAPI, definition, version, arguments[2])
   }
 
-  getOperation (method: string, path: string): Result<OpenAPIGetOperationResult> {
+  findOperation (method: Method, path: string, options?: GetOperationOptions): GetOperationResult<Operation, PathItem> | undefined {
+    return this.paths.findOperation(method, path, options)
+  }
 
+  findPath (path: string): PathsFindPathResult<Operation, PathItem> | undefined {
+    return this.paths.findPath(path)
   }
 
   getOperationById (operationId: string): Operation | undefined {
     return this.enforcer.metadata.operationIdMap[operationId] as Operation
   }
 
-  makeRequest (req: OpenAPIMakeRequestInput, options?: OpenAPIMakeRequestOptions): Result<OpenAPIMakeRequestOutput> {
+  /**
+   *
+   * @param req The request object.
+   * @param [req.body] Optional, the body as a string, array, or object. The body should have already passed through a body parser / deserializer.
+   * @param [req.cookies] Optional, an object mapping cookies names to a value or an array of values.
+   * @param [req.headers] Optional, an object mapping header names to a value or array of values.
+   * @param req.method The lowercase HTTP method name.
+   * @param req.path The path as a string. If the path includes query parameters then those will be added to anything already in the query property.
+   * @param [req.query] Optional, an object mapping query parameter names to a value or array of values.
+   * @param [options] Optional, configuration options.
+   */
+  formatRequest (req: OpenAPIMakeRequestInput, options?: OpenAPIMakeRequestOptions): Result<OpenAPIMakeRequestOutput> {
+    const exception = new Exception('Unable to format request')
+    const [rawPath, rawQuery] = req.path.split('?')
+    const match = this.findOperation(req.method, rawPath)
+    if (match === undefined) {
+      // if we can't find the path then the problem is with the path, otherwise it's with the method
+      if (this.findPath(rawPath) === undefined) {
+        exception.add.pathNotFound(rawPath)
+      } else {
+        exception.add.operationNotFound(req.method, rawPath)
+      }
+      return new Result(null, exception)
+    } else {
+      const result: OpenAPIMakeRequestOutput = {
+        cookies: {},
+        headers: {},
+        operation: match.operation,
+        params: {},
+        path: match.path,
+        query: {}
+      }
 
+      // get lowercase headers map
+      const lowerCaseHeaders: SerializedParameterMap = {}
+      Object.entries(req.headers ?? {}).forEach(entry => {
+        lowerCaseHeaders[entry[0].toLowerCase()] = entry[1]
+      })
+
+      // extract cookies from headers and merge with passed in cookies object
+      const cookies: SerializedParameterMap = req.cookies ?? {}
+      if (lowerCaseHeaders.cookie !== undefined) {
+        const cookieData: string[] = typeof lowerCaseHeaders.cookie === 'string'
+          ? [lowerCaseHeaders.cookie]
+          : lowerCaseHeaders.cookie
+        cookieData.forEach(cookieString => {
+          cookieString.split(/; +/).forEach(([name, value]) => {
+            if (cookies[name] === undefined) cookies[name] = []
+            ;(cookies[name] as string[]).push(value.replace(/(%[\dA-F]{2})+/gi, decodeURIComponent))
+          })
+        })
+      }
+
+      // extract query parameters from the URL
+      const query: SerializedParameterMap = req.query ?? {}
+      if (rawQuery !== undefined && rawQuery.length > 0) {
+        const querySearch = new URLSearchParams(rawQuery)
+        // @ts-expect-error
+        const keys = querySearch.keys()
+        for (const key of keys) {
+          const values = querySearch.getAll(key)
+          if (key in query) {
+            const value: string | string[] | undefined = query[key]
+            if (typeof value === 'string') {
+              query[key] = [value]
+            } else if (value === undefined) {
+              query[key] = []
+            } else if (!Array.isArray(value)) {
+              throw Error('Unexpected query parameter value for key: ' + String(key) + '. Expected a string, string array, or undefined. Received: ' + String(value))
+            }
+            (query[key] as string[]).push(...values)
+          } else {
+            query[key] = values
+          }
+        }
+      }
+
+      // parse path parameters
+      const operation = match.operation
+      parseParametersByType(operation, exception, req.cookies, result.cookies)
+      parseParametersByType(operation, exception, req.headers, result.headers)
+      parseParametersByType(operation, exception, match.params, result.params)
+      parseParametersByType(operation, exception, req.query, result.query)
+
+      return new Result(result, exception)
+    }
   }
 
   static spec = {
@@ -174,5 +266,23 @@ export class OpenAPI extends OASComponent {
 
   static validate (definition: Definition, version?: Version): DefinitionException {
     return componentValidate(this, definition, version, arguments[2])
+  }
+}
+
+function parseParametersByType (operation: Operation, exception: Exception, input: Record<string, string | string[] | undefined> | undefined, target: Record<string, unknown>): void {
+  if (input !== undefined) {
+    Object.entries(input).forEach(([key, value]) => {
+      const parameter = operation.enforcer.parameters.path?.[key]
+      if (parameter === undefined || value === undefined) {
+        target[key] = value
+      } else {
+        const pv = parameter.parseValue(Array.isArray(value) ? value : [value])
+        if (pv.error === undefined) {
+          target[key] = pv.value
+        } else {
+          exception.at(key).add.detailedError(pv.exception as Exception)
+        }
+      }
+    })
   }
 }

@@ -250,9 +250,11 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
       after (data) {
         const built = data.context.built as Operation
         const { key, chain } = data.context
-        const { metadata, lastly } = data.root
+        const { metadata } = data.root
         if (metadata.operationIdMap === undefined) metadata.operationIdMap = {}
         metadata.operationIdMap[key] = built
+        if (metadata.operations === undefined) metadata.operations = []
+        metadata.operations.push(built)
 
         built.enforcer.method = (key as Method) ?? ''
         built.enforcer.path = chain[0]?.context.key ?? ''
@@ -287,6 +289,8 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
         const { metadata, lastly } = data.root
         const { operationId } = built
         if (metadata.operationIdMap === undefined) metadata.operationIdMap = {}
+        if (metadata.operations === undefined) metadata.operations = []
+        metadata.operations.push(built)
 
         // store metadata about operation id
         if (operationId !== undefined) {
@@ -334,8 +338,8 @@ export function schemaGenerator (components: ComponentsMap): ComponentSchema<Def
         }
 
         // only add this check once to the "lastly" array
-        if (!lastly.includes(reportNonUniqueOperationIds)) {
-          lastly.push(reportNonUniqueOperationIds)
+        if (!lastly.includes(operationFinalChecks)) {
+          lastly.push(operationFinalChecks)
         }
       }
     }
@@ -538,7 +542,7 @@ export function preRequest (request: RequestInput, operation: Operation, options
       Object.keys(data).forEach(name => {
         const parameter = parameters[key]?.[name]
         if (parameter !== undefined) {
-          const parsed = parameter.parse(data[name])
+          const parsed = parameter.parseValue(data[name])
           if (parsed.error !== undefined) {
             exception.at(key).at(name).add.detailedError(parsed.exception as Exception)
           } else {
@@ -583,7 +587,8 @@ export function reportParameterNamespaceConflicts (data: ValidatorData, operatio
   }
 }
 
-function reportNonUniqueOperationIds (data: ValidatorData): void {
+function operationFinalChecks (data: ValidatorData): void {
+  // make sure that every operation is unique
   const map = data.root.metadata.operationIdMap
   Object.keys(map)
     .filter(operationId => map[operationId].length > 1)
