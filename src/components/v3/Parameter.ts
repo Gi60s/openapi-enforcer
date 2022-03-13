@@ -120,7 +120,7 @@ export class Parameter extends OASComponent {
           }
         } else {
           const result = objectFlattened(',', value)
-          if (result === undefined) parsed = result
+          if (result !== undefined) parsed = result
         }
       } else {
         parsed = value

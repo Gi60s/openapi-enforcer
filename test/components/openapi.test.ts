@@ -51,9 +51,355 @@ describe('OpenAPI component', function () {
           const [value] = openapi.formatRequest({ method: 'get', path: '/5' })
           expect(value.params.foo).to.equal(5)
         })
+
+        it('can parse: simple false array', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'simple',
+              explode: false,
+              schema: { type: 'array', items: { type: 'number' } }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/3,4,5' })
+          expect(value.params.foo).to.deep.equal([3,4,5])
+        })
+
+        it('can parse: simple false object', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'simple',
+              explode: false,
+              schema: { 
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  age: { type: 'number' } 
+                }
+              }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/age,25,name,Bob' })
+          expect(value.params.foo).to.deep.equal({ name: 'Bob', age: 25 })
+        })
+        
+        it('can parse: simple true primitive', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'simple',
+              explode: true,
+              schema: { type: 'number' }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/5' })
+          expect(value.params.foo).to.equal(5)
+        })
+
+        it('can parse: simple true array', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'simple',
+              explode: true,
+              schema: { type: 'array', items: { type: 'number' } }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/3,4,5' })
+          expect(value.params.foo).to.deep.equal([3,4,5])
+        })
+
+        it('can parse: simple true object', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'simple',
+              explode: true,
+              schema: { 
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  age: { type: 'number' } 
+                }
+              }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/age=25,name=Bob' })
+          expect(value.params.foo).to.deep.equal({ name: 'Bob', age: 25 })
+        })
+
+
+
+
+
+
+        
+        it('can parse: label false primitive', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'label',
+              explode: false,
+              schema: { type: 'number' }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/.5' })
+          expect(value.params.foo).to.equal(5)
+        })
+
+        it('can parse: label false array', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'label',
+              explode: false,
+              schema: { type: 'array', items: { type: 'number' } }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/.3,4,5' })
+          expect(value.params.foo).to.deep.equal([3,4,5])
+        })
+
+        it('can parse: label false object', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'label',
+              explode: false,
+              schema: { 
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  age: { type: 'number' } 
+                }
+              }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/.age,25,name,Bob' })
+          expect(value.params.foo).to.deep.equal({ name: 'Bob', age: 25 })
+        })
+        
+        it('can parse: label true primitive', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'label',
+              explode: true,
+              schema: { type: 'number' }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/.5' })
+          expect(value.params.foo).to.equal(5)
+        })
+
+        it('can parse: label true array', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'label',
+              explode: true,
+              schema: { type: 'array', items: { type: 'number' } }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/.3.4.5' })
+          expect(value.params.foo).to.deep.equal([3,4,5])
+        })
+
+        it('can parse: label true object', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'label',
+              explode: true,
+              schema: { 
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  age: { type: 'number' } 
+                }
+              }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/.age=25.name=Bob' })
+          expect(value.params.foo).to.deep.equal({ name: 'Bob', age: 25 })
+        })
+        
+        it('can parse: matrix false primitive', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'matrix',
+              explode: false,
+              schema: { type: 'number' }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/;foo=5' })
+          expect(value.params.foo).to.equal(5)
+        })
+
+        it('can parse: matrix false array', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'matrix',
+              explode: false,
+              schema: { type: 'array', items: { type: 'number' } }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/;foo=3,4,5' })
+          expect(value.params.foo).to.deep.equal([3,4,5])
+        })
+
+        it('can parse: matrix false object', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'matrix',
+              explode: false,
+              schema: { 
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  age: { type: 'number' } 
+                }
+              }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/;foo=age,25,name,Bob' })
+          expect(value.params.foo).to.deep.equal({ name: 'Bob', age: 25 })
+        })
+        
+        it('can parse: matrix true primitive', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'matrix',
+              explode: true,
+              schema: { type: 'number' }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/;foo=5' })
+          expect(value.params.foo).to.equal(5)
+        })
+
+        it('can parse: matrix true array', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'matrix',
+              explode: true,
+              schema: { type: 'array', items: { type: 'number' } }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/;foo=3;foo=4;foo=5' })
+          expect(value.params.foo).to.deep.equal([3,4,5])
+        })
+
+        it('can parse: matrix true object', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'matrix',
+              explode: true,
+              schema: { 
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  age: { type: 'number' } 
+                }
+              }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/;age=25;name=Bob' })
+          expect(value.params.foo).to.deep.equal({ name: 'Bob', age: 25 })
+        })
       })
 
       describe('query parameters', () => {
+        it('can parse: form true primitive', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/', [
+            {
+              name: 'foo',
+              in: 'query',
+              style: 'form',
+              explode: true,
+              schema: { type: 'number' }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/?foo=5' })
+          expect(value.query.foo).to.equal(5)
+        })
+
+        it('can parse: form true array', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/', [
+            {
+              name: 'foo',
+              in: 'query',
+              style: 'form',
+              explode: true,
+              schema: { type: 'array', items: { type: 'number' } } 
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/?foo=3&foo=4&foo=5' })
+          expect(value.query.foo).to.deep.equal([3, 4, 5])
+        })
+
+        it('can parse: form true object', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
+            {
+              name: 'foo',
+              in: 'path',
+              required: true,
+              style: 'form',
+              explode: true,
+              schema: { 
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  age: { type: 'number' } 
+                }
+              }
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/age=25&name=Bob' })
+          expect(value.params.foo).to.deep.equal({ name: 'Bob', age: 25 })
+        })
+
         it('can parse: form false primitive', () => {
           const openapi = createOpenAPIForMakeRequest('get', '/', [
             {
@@ -65,7 +411,41 @@ describe('OpenAPI component', function () {
             }
           ])
           const [value] = openapi.formatRequest({ method: 'get', path: '/?foo=5' })
-          expect(value.params.foo).to.equal(5)
+          expect(value.query.foo).to.equal(5)
+        })
+
+        it('can parse: form false array', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/', [
+            {
+              name: 'foo',
+              in: 'query',
+              style: 'form',
+              explode: false,
+              schema: { type: 'array', items: { type: 'number' } } 
+            }
+          ])
+          const [value] = openapi.formatRequest({ method: 'get', path: '/?foo=3,4,5' })
+          expect(value.query.foo).to.deep.equal([3, 4, 5])
+        })
+
+        it('can parse: form false object', () => {
+          const openapi = createOpenAPIForMakeRequest('get', '/', [
+            {
+              name: 'foo',
+              in: 'query',
+              style: 'form',
+              explode: false,
+              schema: { 
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  age: { type: 'number' } 
+                }
+              }
+            }
+          ])
+          const [value,error] = openapi.formatRequest({ method: 'get', path: '/?foo=age,25,name,Bob' })
+          expect(value.query.foo).to.deep.equal({ name: 'Bob', age: 25 })
         })
       })
 

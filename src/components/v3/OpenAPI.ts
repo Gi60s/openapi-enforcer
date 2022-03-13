@@ -110,7 +110,7 @@ export class OpenAPI extends OASComponent {
       if (rawQuery !== undefined && rawQuery.length > 0) {
         const querySearch = new URLSearchParams(rawQuery)
         // @ts-expect-error
-        const keys = querySearch.keys()
+        const keys = Array.from(new Set(querySearch.keys())) as string[]
         for (const key of keys) {
           const values = querySearch.getAll(key)
           if (key in query) {
@@ -131,10 +131,10 @@ export class OpenAPI extends OASComponent {
 
       // parse path parameters
       const operation = match.operation
-      parseParametersByType(operation, exception, req.cookies, result.cookies)
-      parseParametersByType(operation, exception, req.headers, result.headers)
-      parseParametersByType(operation, exception, match.params, result.params)
-      parseParametersByType(operation, exception, req.query, result.query)
+      parseParametersByType(operation, exception, 'cookie', req.cookies, result.cookies)
+      parseParametersByType(operation, exception, 'header', req.headers, result.headers)
+      parseParametersByType(operation, exception, 'path', match.params, result.params)
+      parseParametersByType(operation, exception, 'query', query, result.query)
 
       return new Result(result, exception)
     }
@@ -269,10 +269,10 @@ export class OpenAPI extends OASComponent {
   }
 }
 
-function parseParametersByType (operation: Operation, exception: Exception, input: Record<string, string | string[] | undefined> | undefined, target: Record<string, unknown>): void {
+function parseParametersByType (operation: Operation, exception: Exception, location: 'cookie' | 'header' | 'path' | 'query', input: Record<string, string | string[] | undefined> | undefined, target: Record<string, unknown>): void {
   if (input !== undefined) {
     Object.entries(input).forEach(([key, value]) => {
-      const parameter = operation.enforcer.parameters.path?.[key]
+      const parameter = operation.enforcer.parameters[location]?.[key]
       if (parameter === undefined || value === undefined) {
         target[key] = value
       } else {
