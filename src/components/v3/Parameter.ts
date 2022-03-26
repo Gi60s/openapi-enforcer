@@ -53,10 +53,27 @@ export class Parameter extends OASComponent {
     return Core.getSchema<Parameter, Schema>(this) as Schema
   }
 
-  // the value is an array of all identified values (in case of query string this would be a `a=1&a=2` situation)
-  parseValue (multiValue: string[]): Result<any> {
+  /**
+   * Parse and deserialize a string formatted as only a deep object query string.
+   * @param value The value to parse. For example: user[name]=Bob&user[age]=25. 
+   */
+  parseDeepObjectValue (value: string): Result<any> {
+
+  }
+
+  /**
+   * Parse and deserialize a value using the parameter's specification.
+   *
+   * Depending on whether a parameter exists in the path, query, cookies, body, headers, etc., some of these types of
+   * parameters offer the ability to pass in multiple values while others do not. To simplify the caller this
+   * function standardizes on always receiving an array of strings as its input.
+   * @param value An array of values to parse. If the parameter style is deepObject then it should be an array of objects, otherwise it should be an array of strings.
+   * @returns A {@link Result} object that resolves, depending on the parameter type, to a single value or an array of values. The type of the values is determined by your OpenAPI document.
+   */
+  parseValue (multiValue: string[] | Array<Record<string, string>>): Result<any> {
     const exception = new Exception('Unable to parse value')
     const value = multiValue[multiValue.length - 1]
+    const valueType = typeof value as 'string' | 'object'
 
     // make sure that the schema is specified, otherwise we can't parse
     if (this.schema === undefined) {
@@ -87,17 +104,15 @@ export class Parameter extends OASComponent {
       return new Result(null, exception)
     }
 
+    // only deepObject can have an object for the value
+    if ((style === 'deepObject' && valueType !== 'object') || (style !== 'deepObject' && valueType !== 'string')) {
+      exception.add.parameterParseInvalidInput(value, style === 'deepObject' ? 'object' : 'string')
+      return new Result(null, exception)
+    }
+
     // style: deepObject
     if (style === 'deepObject') {
-      const rx = RegExp('(?:^|&)' + this.name + '\\[([^\\]]+)\\](?:=([^&]*))?', 'g')
-      const result: Record<string, string> = {}
-      let match
-      let hasValue = false
-      while ((match = rx.exec(value)) !== null) {
-        hasValue = true
-        result[match[1]] = match[2]
-      }
-      if (hasValue) parsed = result
+      parsed = value
 
     // style: form
     } else if (style === 'form') {
@@ -105,7 +120,7 @@ export class Parameter extends OASComponent {
         if (explode) {
           parsed = multiValue
         } else {
-          parsed = value.split(',')
+          parsed = (value as string).split(',')
         }
       } else if (type === 'object') {
         if (explode) {
@@ -119,7 +134,7 @@ export class Parameter extends OASComponent {
             })
           }
         } else {
-          const result = objectFlattened(',', value)
+          const result = objectFlattened(',', (value as string))
           if (result !== undefined) parsed = result
         }
       } else {
@@ -128,15 +143,16 @@ export class Parameter extends OASComponent {
 
     // style: label
     } else if (style === 'label') {
-      if (rxLabel.test(value)) {
+      const val = (value as string)
+      if (rxLabel.test(val)) {
         if (type === 'array') {
-          parsed = value.substr(1).split(explode ? '.' : ',')
+          parsed = val.substring(1).split(explode ? '.' : ',')
         } else if (type === 'object') {
           parsed = explode
-            ? objectExploded('.', '=', value)
-            : objectFlattened(',', value.substr(1))
+            ? objectExploded('.', '=', val)
+            : objectFlattened(',', val.substring(1))
         } else {
-          parsed = value.substr(1)
+          parsed = val.substring(1)
         }
       }
 
@@ -144,43 +160,45 @@ export class Parameter extends OASComponent {
     } else if (style === 'matrix') {
       const name = this.name
       const rx = RegExp('^;' + name + '(?:=|$)')
+      const val = (value as string)
       if (type === 'array') {
         if (explode) {
-          const result = arrayExploded(';', '=', name, value.substr(1))
+          const result = arrayExploded(';', '=', name, val.substring(1))
           if (result != null) parsed = result
         } else {
-          parsed = value.substr(name.length + 2).split(',')
+          parsed = val.substring(name.length + 2).split(',')
         }
       } else if (type === 'object') {
-        if (explode || rx.test(value)) {
+        if (explode || rx.test(val)) {
           const result = explode
-            ? objectExploded(';', '=', value)
-            : objectFlattened(',', value.substr(name.length + 2))
+            ? objectExploded(';', '=', val)
+            : objectFlattened(',', val.substring(name.length + 2))
           if (result != null) parsed = result
         }
-      } else if (rx.test(value)) {
-        parsed = value.substr(name.length + 2)
+      } else if (rx.test(val)) {
+        parsed = val.substring(name.length + 2)
       }
 
     // style: pipeDelimited
     } else if (style === 'pipeDelimited') {
-      parsed = explode ? multiValue : delimited(type as string, '|', value)
+      parsed = explode ? multiValue : delimited(type as string, '|', value as string)
 
     // style: simple
     } else if (style === 'simple') {
+      const val = (value as string)
       if (type === 'array') {
-        parsed = value.split(',')
+        parsed = val.split(',')
       } else if (type === 'object') {
         parsed = explode
-          ? objectExploded(',', '=', ',' + value)
-          : objectFlattened(',', value)
+          ? objectExploded(',', '=', ',' + val)
+          : objectFlattened(',', val)
       } else {
-        parsed = value
+        parsed = val
       }
 
     // style: spaceDelimited
     } else if (style === 'spaceDelimited') {
-      parsed = explode ? multiValue : delimited(type as string, ' ', value)
+      parsed = explode ? multiValue : delimited(type as string, ' ', value as string)
     }
 
     if (parsed === undefined) {

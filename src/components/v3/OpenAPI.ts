@@ -98,7 +98,8 @@ export class OpenAPI extends OASComponent {
           ? [lowerCaseHeaders.cookie]
           : lowerCaseHeaders.cookie
         cookieData.forEach(cookieString => {
-          cookieString.split(/; +/).forEach(([name, value]) => {
+          cookieString.split(/; +/).forEach((cookie: string) => {
+            const [name, value] = cookie.split('=')
             if (cookies[name] === undefined) cookies[name] = []
             ;(cookies[name] as string[]).push(value.replace(/(%[\dA-F]{2})+/gi, decodeURIComponent))
           })
@@ -131,7 +132,7 @@ export class OpenAPI extends OASComponent {
 
       // parse path parameters
       const operation = match.operation
-      parseParametersByType(operation, exception, 'cookie', req.cookies, result.cookies)
+      parseParametersByType(operation, exception, 'cookie', cookies, result.cookies)
       parseParametersByType(operation, exception, 'header', req.headers, result.headers)
       parseParametersByType(operation, exception, 'path', match.params, result.params)
       parseParametersByType(operation, exception, 'query', query, result.query)
@@ -271,7 +272,37 @@ export class OpenAPI extends OASComponent {
 
 function parseParametersByType (operation: Operation, exception: Exception, location: 'cookie' | 'header' | 'path' | 'query', input: Record<string, string | string[] | undefined> | undefined, target: Record<string, unknown>): void {
   if (input !== undefined) {
-    Object.entries(input).forEach(([key, value]) => {
+    const valuesMap: Record<string, string[] | Record<string, string> | undefined> = {}
+
+    Object.entries(input)
+      .forEach(([key, value]) => {
+        if (value === undefined) {
+          valuesMap[key] = undefined
+        } else {
+          const match = /^(.+?)\[(.+)]/.exec(key)
+          if (match === null) {
+            valuesMap[key] = Array.isArray(value) ? value : [value]
+          } else {
+            const name: string = match[1]
+            const parameter = operation.enforcer.parameters[location]?.[name]
+            if (parameter !== undefined && parameter.style === 'deepObject') {
+              const property: string = match[2]
+              const val: string = Array.isArray(value) ? value[0] : value
+              if (valuesMap[name] === undefined) {
+                valuesMap[name] = {
+                  [property]: val
+                }
+              } else {
+                (valuesMap[name] as Record<string, string>)[property] = val
+              }
+            } else {
+              valuesMap[key] = Array.isArray(value) ? value : [value]
+            }
+          }
+        }
+      })
+
+    Object.entries(valuesMap).forEach(([key, value]) => {
       const parameter = operation.enforcer.parameters[location]?.[key]
       if (parameter === undefined || value === undefined) {
         target[key] = value
