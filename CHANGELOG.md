@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+
+## 1.17.1
+
+### Fixed
+
+- **Lookup $ref Value Only When $ref is a string**
+
+  Previously any objects with a `$ref` property would treat the value of the `$ref` as a reference to resolve regardless of the value assigned to the `$ref` property. Now there is a check that makes sure that the value assigned to the `$ref` property is a string prior to attempting to look up the reference.
+
 ## 1.17.0
 
 ### Added
