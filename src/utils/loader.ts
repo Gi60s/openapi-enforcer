@@ -182,7 +182,7 @@ export function findRefs (node: any, parent: any = null, key: string = '', data:
   if (Array.isArray(node)) {
     node.forEach((n, i) => findRefs(n, node, String(i), data))
   } else if (node !== null && typeof node === 'object') {
-    if (node.$ref !== undefined) {
+    if (typeof node.$ref === 'string') {
       data.push({
         key,
         parent,
@@ -301,7 +301,7 @@ async function runLoaders (path: string, data: LoaderMetadata): Promise<any> {
     }
   }
 
-  data.exception?.message(E.loaderNotAvailable(path))
+  data.exception?.add.loaderNotAvailable(path)
 }
 
 function processJsonAst (data: ValueNode): any {
@@ -437,7 +437,7 @@ define(async function (path, data) {
     const res = await adapter.request(path)
     const contentType = res.headers['content-type']
     if (res.status < 200 || res.status >= 300) {
-      data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected response code: ' + String(res.status)))
+      data?.exception?.add.loaderFailedToLoadResource(path, 'Unexpected response code: ' + String(res.status))
       return { loaded: false }
     } else {
       const result: LoaderMatch = {
@@ -452,7 +452,7 @@ define(async function (path, data) {
       return result
     }
   } catch (err: any) {
-    data?.exception?.message(E.loaderFailedToLoadResource(path, 'Unexpected error: ' + (err.toString() as string)))
+    data?.exception?.add.loaderFailedToLoadResource(path, 'Unexpected error: ' + (err.toString() as string))
     return { loaded: false }
   }
 })
@@ -481,7 +481,7 @@ define(async function (path, data) {
         if (err.code === 'ENOENT') {
           resolve({ loaded: false })
         } else {
-          data?.exception?.message(E.loaderFailedToLoadResource(path, 'File could not load' + (err.code !== undefined ? ': ' + String(err.code) : '')))
+          data?.exception?.add.loaderFailedToLoadResource(path, 'File could not load' + (err.code !== undefined ? ': ' + String(err.code) : ''))
           resolve({ loaded: false })
         }
       }
