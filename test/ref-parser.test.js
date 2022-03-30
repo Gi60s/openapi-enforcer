@@ -90,6 +90,27 @@ describe('ref-parser', () => {
         expect(result.Value.properties.value.type).to.equal('integer');
     });
 
+    it('will only lookup reference if $ref value is of type string', async () => {
+        const obj = {
+            A: {
+                title: 'A',
+                pair: {
+                    $ref: '#/B/title'
+                },
+            },
+            B: {
+                title: 'B'
+            },
+            $ref: {
+                title: '$ref'
+            }
+        };
+        const parser = new RefParser(obj);
+        const [ result ] = await parser.dereference();
+        expect(result.A.pair).to.equal('B')
+        expect(result.$ref.title).to.equal('$ref')
+    })
+
     it('can handle circular references in same object', async () => {
         const obj = {
             A: {

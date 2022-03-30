@@ -281,7 +281,7 @@ async function parse (basePath, fullPath, source, value, that, map, chain, excep
         return value;
 
     } else if (value && typeof value === 'object') {
-        if (value.hasOwnProperty('$ref')) {
+        if (value.hasOwnProperty('$ref') && typeof value.$ref === 'string') {
             const infiniteLoop = chain.includes(value);
             if (infiniteLoop) {
                 exception.message('Unresolvable infinite loop');
