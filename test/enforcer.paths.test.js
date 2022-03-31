@@ -114,6 +114,24 @@ describe('enforcer/paths', () => {
         expect(warning).to.equal(undefined);
     });
 
+    it('allows duplicate paths using case sensitivity (default)', () => {
+        const [ , err ] = Enforcer.v2_0.Paths({
+            '/a': validPathObject(),
+            '/A': validPathObject()
+        });
+        expect(err).to.equal(undefined);
+    });
+
+    it('does not allow duplicate paths using case insensitivity', () => {
+        const config = require('../index').config
+        config.useCaseSensitivePaths = false
+        const [ , err, warning ] = Enforcer.v2_0.Paths({
+            '/a': validPathObject(),
+            '/A': validPathObject()
+        });
+        expect(err).to.match(/Equivalent paths are not allowed/);
+    });
+
     it('correctly prioritizes path selection', () => {
         const [ paths ] = Enforcer.v2_0.Paths({
             '/a/{a}': validPathObject([

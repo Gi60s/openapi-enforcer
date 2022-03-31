@@ -112,6 +112,88 @@ describe('enforcer/openapi', () => {
             expect(putPath.params.y).to.equal('abc');
         })
 
+        describe('path case sensitivity', () => {
+            const config = require('../index').config
+            let defaultCaseSensitivity
+
+            before(() => {
+                defaultCaseSensitivity = config.useCaseSensitivePaths
+            })
+
+            after(() => {
+                config.useCaseSensitivePaths = defaultCaseSensitivity
+            })
+
+            function init (useCaseSensitivePaths) {
+                config.useCaseSensitivePaths = useCaseSensitivePaths
+
+                return Enforcer.v2_0.Swagger({
+                    swagger: '2.0',
+                    info: { title: '', version: '1.0.0' },
+                    paths: {
+                        '/foo/Bar/baz': {
+                            get: {
+                                responses: { 200: { description: 'ok' } }
+                            }
+                        },
+                        '/foo/bar/baz': {
+                            get: {
+                                responses: { 200: { description: 'ok' } }
+                            }
+                        }
+                    }
+                });
+            }
+
+            it('can have case sensitive paths', async () => {
+                config.useCaseSensitivePaths = true
+                const [ openapi ] = Enforcer.v2_0.Swagger({
+                    swagger: '2.0',
+                    info: { title: '', version: '1.0.0' },
+                    paths: {
+                        '/foo/Bar/baz': {
+                            get: {
+                                responses: { 200: { description: 'ok' } }
+                            }
+                        },
+                        '/foo/bar/baz': {
+                            get: {
+                                responses: { 200: { description: 'ok' } }
+                            }
+                        }
+                    }
+                });
+    
+                const [ first ] = openapi.path('get', '/foo/Bar/baz');
+                expect(first.pathKey).to.equal('/foo/Bar/baz');
+    
+                const [ second ] = openapi.path('get', '/foo/bar/baz');
+                expect(second.pathKey).to.equal('/foo/bar/baz');
+            })
+    
+            it('can have case insensitive paths', async () => {
+                config.useCaseSensitivePaths = false
+                const [ openapi ] = Enforcer.v2_0.Swagger({
+                    swagger: '2.0',
+                    info: { title: '', version: '1.0.0' },
+                    paths: {
+                        '/foo/bar/baz': {
+                            get: {
+                                responses: { 200: { description: 'ok' } }
+                            }
+                        }
+                    }
+                });
+    
+                const [ first ] = openapi.path('get', '/foo/bar/baz');
+                expect(first.pathKey).to.equal('/foo/bar/baz');
+    
+                const [ second ] = openapi.path('get', '/FOO/Bar/Baz');
+                expect(second.pathKey).to.equal('/foo/bar/baz');
+            })
+
+        })
+
     });
 
     describe('request', () => {
