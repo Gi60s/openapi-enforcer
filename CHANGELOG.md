@@ -4,13 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.18.0
+
+### Added
+
+- **Case Sensitivity Optional For Paths**
+
+  The default behavior is for paths to be case sensitive. There is now an option `Enforcer.config.useCaseSensitivePaths` (defaulting to `true`) that when set to `false` will change how paths duplicates are validated and how paths are looked up when attempting to match a path to a request.
+
 ## 1.17.2
 
 ### Fixed
 
 - **Allow Two Similar Yet Distinct Paths When Methods Do Not Collide**
 
-  Before this fix you could not define two OpenAPI paths with the same path parameter location and different methods. For example, it was not possible to have both a `GET /{x}` and `POST /{y}`. This fix now allows that which also allows for different variable input so long as the paths have different variable names.
+  Before this fix you could define two OpenAPI paths with the same path parameter location and different methods, but when attempting to match a path to a request the second path would be unreachable. This fix resolves the issue, allowing both paths to be found.
 
 ## 1.17.1
 
