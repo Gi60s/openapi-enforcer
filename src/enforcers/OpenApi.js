@@ -44,24 +44,33 @@ module.exports = {
             method = method.toLowerCase();
 
             // find the path that matches the request
-            const pathMatch = this.paths.findMatch(path);
-            if (!pathMatch) {
+            const pathMatches = this.paths.findMatches(path);
+            if (pathMatches.length === 0) {
                 exception.message('Path not found');
                 exception.statusCode = 404;
                 return new Result(undefined, exception);
             }
 
             // check that a valid method was specified
-            const pathEnforcer = pathMatch.path;
-            if (!pathEnforcer.methods.includes(method)) {
+            const pathMatch = pathMatches.find(v => v.path.methods.includes(method))
+            if (!pathMatch) {
+                const allowedMethods = new Set()
+                pathMatches.forEach(pathMatch => {
+                    pathMatch.path.methods.forEach(method => {
+                        allowedMethods.add(method.toUpperCase())
+                    })
+                })
+
                 exception.message('Method not allowed: ' + method.toUpperCase());
                 exception.statusCode = 405;
-                exception.pathItem = pathEnforcer
-                exception.headers = { Allow: pathEnforcer.methods.map(v => v.toUpperCase()).join(', ') };
+                exception.pathItem = pathMatches[0].path
+                exception.pathItems = pathMatches.map(v => v.path)
+                exception.headers = { Allow: Array.from(allowedMethods).join(', ') };
                 return new Result(undefined, exception);
             }
 
             // parse and validate path parameters
+            const pathEnforcer = pathMatch.path;
             const operation = pathEnforcer[method];
             const pathParams = operation.parametersMap.path;
             const params = pathMatch.params;
