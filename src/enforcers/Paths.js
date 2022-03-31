@@ -217,25 +217,31 @@ module.exports = {
          * @returns {{ params: object, path: Path }|undefined}
          */
         findMatch: function (pathString) {
+            return this.findMatches(pathString)[0]
+        },
+
+        findMatches: function (pathString) {
             const { pathParsers } = this.enforcerData;
+            const matches = []
 
             // normalize the path
-            pathString = pathString.split('?')[0]; // util.edgeSlashes(pathString.split('?')[0], true, false);
+            pathString = pathString.split('?')[0];
 
             // get all parsers that fit the path length
             const pathLength = pathString.split('/').length - 1;
             const parsers = pathParsers[pathLength];
 
             // if the parser was not found then they have a bad path
-            if (!parsers) return;
+            if (!parsers) return matches;
 
             // find the right parser and run it
             const length = parsers.length;
             for (let i = 0; i < length; i++) {
                 const parser = parsers[i];
                 const results = parser(pathString);
-                if (results) return results;
+                if (results) matches.push(results);
             }
+            return matches
         }
     },
 
