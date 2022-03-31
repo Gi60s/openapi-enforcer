@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.17.2
+
+### Fixed
+
+- **Allow Two Similar Yet Distinct Paths When Methods Do Not Collide**
+
+  Before this fix you could not define two OpenAPI paths with the same path parameter location and different methods. For example, it was not possible to have both a `GET /{x}` and `POST /{y}`. This fix now allows that which also allows for different variable input so long as the paths have different variable names.
 
 ## 1.17.1
 
