@@ -84,6 +84,34 @@ describe('enforcer/openapi', () => {
             expect(err).to.match(/Expected integer to be greater than or equal to 0/);
         });
 
+        it('can distinguish between paths with mathing variable placement and different operations', () => {
+            const [ openapi, error ] = Enforcer.v2_0.Swagger({
+                swagger: '2.0',
+                info: { title: '', version: '1.0.0' },
+                paths: {
+                    '/{x}': { // distinct path due to different variable name
+                        get: { // not a collision due to different method
+                            parameters: [{ name: 'x', in: 'path', required: true, type: 'string' }],
+                            responses: { 200: { description: 'ok' } }
+                        }
+                    },
+                    '/{y}': { // distinct path due to different variable name
+                        put: { // not a collision due to different method
+                            parameters: [{ name: 'y', in: 'path', required: true, type: 'string' }],
+                            responses: { 200: { description: 'ok' } }
+                        }
+                    }
+                }
+            });
+            expect(error).to.equal(undefined)
+
+            const [ getPath ] = openapi.path('get', '/123');
+            expect(getPath.params.x).to.equal('123');
+
+            const [ putPath ] = openapi.path('put', '/abc');
+            expect(putPath.params.y).to.equal('abc');
+        })
+
     });
 
     describe('request', () => {
