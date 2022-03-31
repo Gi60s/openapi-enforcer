@@ -40,6 +40,8 @@ module.exports = {
         }
 
         plugins.push(() => {
+            const enforcerConfig = require('../../').config
+
             Object.keys(result).forEach((pathKey, index) => {
                 const path = result[pathKey];
                 const pathLength = pathKey.split('/').length - 1;
@@ -110,7 +112,9 @@ module.exports = {
                 //     }
                 // });
 
-                const rx = new RegExp('^' + rxStr + '$');
+                const rx = enforcerConfig.useCaseSensitivePaths
+                    ? new RegExp('^' + rxStr + '$')
+                    : new RegExp('^' + rxStr + '$', 'i');
 
                 // define parser function
                 const parser = pathString => {
@@ -161,7 +165,9 @@ module.exports = {
                         pathKeySignatures.push({
                             key: pathKey,
                             method,
-                            signature: [method].concat(pathSignature)
+                            signature: enforcerConfig.useCaseSensitivePaths
+                                ? [method].concat(pathSignature)
+                                : [method].concat(pathSignature.map(v => typeof v === 'string' ? v.toLowerCase() : v))
                         })
                     })
             })
