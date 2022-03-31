@@ -88,6 +88,7 @@ async function Enforcer(definition, options) {
 
 Enforcer.config = {
     examplesWarnAdditionalProperty: true,
+    useCaseSensitivePaths: true,
     useNewRefParser: false
 };
 
