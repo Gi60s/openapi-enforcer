@@ -36,6 +36,31 @@ describe('OpenAPI component', function () {
     })
 
     describe('makeRequest', () => {
+      describe('find path', () => {
+        it('can find the correct path when there are two similar paths with different operations', () => {
+          const openapi = new OpenAPI({
+            openapi: '3.0.0',
+            info: { title: '', version: '' },
+            paths: {
+              '/{x}': {
+                get: {
+                  parameters: [{ name: 'x', in: 'path', required: true, schema: { type: 'string' } }],
+                  responses: { 200: { description: 'ok' }}
+                }
+              },
+              '/{y}': {
+                get: {
+                  parameters: [{ name: 'x', in: 'path', required: true, schema: { type: 'string' } }],
+                  responses: { 200: { description: 'ok' }}
+                }
+              }
+            }
+          })
+          throw Error('to do: finish writing this test')
+          throw Error('to do, make sure validators allow this')
+        })
+      })
+
       describe('path parameters', () => {
         it('can parse: simple false primitive', () => {
           const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
