@@ -52,7 +52,7 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
   }
 
   getOperation (method: string, path: string): Result<SwaggerGetOperationResult> {
-
+    throw Error('TODO')
   }
 
   getOperationById (operationId: string): Operation | undefined {
@@ -60,7 +60,7 @@ export class Swagger extends OASComponent<Definition, typeof Swagger> {
   }
 
   makeRequest (req: SwaggerMakeRequestInput, options?: SwaggerMakeRequestOptions): Result<SwaggerMakeRequestOutput> {
-
+    throw Error('TODO')
   }
 
   static spec = {

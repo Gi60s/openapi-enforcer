@@ -479,11 +479,12 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
 
   let valid: boolean = true
   if ('allOf' in schema) {
-    const child = exception.nest('Did not validate against all schemas')
+    const child = new Exception('Did not validate against all schemas')
     schema.allOf?.forEach((schema, index) => {
       const { result } = validate(schema, value, map, child.at(index), options)
       if (result === false) valid = false
     })
+    if (!valid) exception.add.schemaAllValueNotValid(child)
   } else if ('anyOf' in schema && schema.anyOf !== undefined) {
     if ('discriminator' in schema) {
       const { key, schema: childSchema } = schema.discriminate(value)
@@ -507,7 +508,7 @@ export function validate (schema: Schema, value: any, map: MapStore<boolean>, ex
         }
       }
       if (!foundValidAnyOf) {
-        exception.push(anyOfException)
+        exception.add.schemaAnyValueNotValid(anyOfException)
         valid = false
       }
     }
@@ -808,7 +809,7 @@ function serializer (mode: 'deserialize' | 'serialize', schema: Schema, value: a
 
     // unable to deserialize or serialize
     const schemaKey = 'anyOf' in schema ? 'anyOf' : 'oneOf'
-    exception.at(schemaKey).message(...EC.schemaIndeterminate(mode))
+    exception.at(schemaKey).add.schemaIndeterminate(mode)
   } else if (type === '' || 'not' in schema) {
     return mapped.setResult(value)
   } else if (type === 'array') {
@@ -820,7 +821,7 @@ function serializer (mode: 'deserialize' | 'serialize', schema: Schema, value: a
       })
       return item
     } else {
-      exception.message(...EC.dataTypeInvalid('an array', value))
+      exception.add.dataTypeInvalid('an array', value)
     }
   } else if (type === 'object') {
     if (isObject(value)) {
@@ -842,7 +843,7 @@ function serializer (mode: 'deserialize' | 'serialize', schema: Schema, value: a
         if (d.schema !== null) {
           Object.assign(result, serializer(mode, d.schema as Schema, value, map, exception).result)
         } else {
-          exception.message(...EC.schemaDiscriminatorUnmapped(d.key, d.name))
+          exception.add.schemaDiscriminatorUnmapped(d.key, d.name)
         }
       }
       return item

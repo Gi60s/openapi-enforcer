@@ -123,7 +123,7 @@ export class Encoding extends OASComponent {
               const style = built.style ?? ''
               const validStyle = Serializer.styleMatchesType('query', style, cache.type, built.explode as boolean)
               if (!validStyle) {
-                exception.at('style').add.invalidStyle(data, { key: 'style', type: 'value' }, style, cache.type)
+                exception.at('style').add.invalidStyle(data, { key: 'style', type: 'value' }, style, cache.type, built.at, built.explode, 'type')
               }
             }
 

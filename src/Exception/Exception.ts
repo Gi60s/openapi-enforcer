@@ -47,6 +47,8 @@ interface Adders {
   parameterParseInvalidInput: (value: any, expectedType: string) => Message
 
   schemaAdditionalProperties: (properties: string[]) => Message
+  schemaAllValueNotValid: (exception: Exception) => Message
+  schemaAnyValueNotValid: (exception: Exception) => Message
   schemaDiscriminatorUnmapped: (key: string, name: string) => Message
   schemaIndeterminate: (operation: string) => Message
   schemaIndeterminateType: (operation: string) => Message
@@ -560,6 +562,34 @@ export class Exception extends ExceptionBase<Exception> {
         metadata: {
           properties
         },
+        reference: ''
+      })
+    },
+
+    schemaAnyValueNotValid: (exception: Exception) => {
+      return this.message({
+        alternateLevels: ['error'],
+        code: codePrefix + 'SCANNV',
+        level: 'error',
+        message: 'The value is not valid against at least one schema.',
+        metadata: {
+          exception
+        },
+        exception,
+        reference: ''
+      })
+    },
+
+    schemaAllValueNotValid: (exception: Exception) => {
+      return this.message({
+        alternateLevels: ['error'],
+        code: codePrefix + 'SCALNV',
+        level: 'error',
+        message: 'The value is not valid against all schemas.',
+        metadata: {
+          exception
+        },
+        exception,
         reference: ''
       })
     },

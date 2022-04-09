@@ -54,14 +54,6 @@ export class Parameter extends OASComponent {
   }
 
   /**
-   * Parse and deserialize a string formatted as only a deep object query string.
-   * @param value The value to parse. For example: user[name]=Bob&user[age]=25. 
-   */
-  parseDeepObjectValue (value: string): Result<any> {
-
-  }
-
-  /**
    * Parse and deserialize a value using the parameter's specification.
    *
    * Depending on whether a parameter exists in the path, query, cookies, body, headers, etc., some of these types of

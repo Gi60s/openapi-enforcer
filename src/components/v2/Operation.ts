@@ -33,7 +33,7 @@ export class Operation extends Core.Operation {
     // process body
     if (parameters.body !== undefined) {
       if (result.body !== undefined) {
-        const parsed = parameters.body.parse([result.body as string])
+        const parsed = parameters.body.parseValue([result.body as string])
         if (parsed.error !== undefined) {
           exception.at('body').add.detailedError(parsed.exception as Exception)
         } else {
@@ -49,7 +49,7 @@ export class Operation extends Core.Operation {
         Object.keys(result.body).forEach(key => {
           const parameter = parameters.formData?.[key]
           if (parameter !== undefined) {
-            const parsed = parameter.parse(result.body[key])
+            const parsed = parameter.parseValue(result.body[key])
             if (parsed.error !== undefined) {
               exception.at('body').at(key).add.detailedError(parsed.exception as Exception)
             } else {

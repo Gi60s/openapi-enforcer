@@ -8,16 +8,10 @@ export function parsePrimitive (parameter: Parameter2 | Schema3 | Items, excepti
   const type = parameter.type
   if (value === '') {
     if ('allowEmptyValue' in parameter && parameter.allowEmptyValue === true) return value
-    exception.message('PARA_PARS_NO_EMPTY_VALUE', 'Empty value not allowed.', { parameter })
+    exception.add.parameterParseEmptyValue()
   } else if (type === 'boolean' || type === 'integer' || type === 'number' || type === 'string') {
     const dataType = getDataTypeDefinition(type, parameter.format)
-    if (dataType !== undefined) {
-      try {
-        return dataType.deserialize(value, parameter as unknown as Schema3)
-      } catch (e: any) {
-        exception.message('TYPE_FORMAT_UNKNOWN', e.message, { type, format: parameter.format })
-      }
-    }
+    if (dataType !== undefined) return dataType.deserialize(value, parameter as unknown as Schema3)
   } else {
     throw Error('Non primitive cannot be parsed by the parsePrimitive function')
   }

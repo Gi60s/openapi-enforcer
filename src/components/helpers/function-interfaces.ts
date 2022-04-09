@@ -5,7 +5,7 @@
 
 import { PathItem } from '../PathItem'
 import { PathItem as PathItem2 } from '../v2/PathItem'
-import { PathItem as PathItem3 } from '../v3/PathItem'
+// import { PathItem as PathItem3 } from '../v3/PathItem'
 import { Operation } from '../Operation'
 import { Operation as Operation2 } from '../v2/Operation'
 import { Operation as Operation3 } from '../v3/Operation'
@@ -93,7 +93,7 @@ export interface PathsFindPathResult<O extends Operation, P extends PathItem<O>>
  * SWAGGER
  */
 
-export type SwaggerGetOperationResult = GetOperationResult
+export type SwaggerGetOperationResult = GetOperationResult<Operation2, PathItem2>
 export type SwaggerMakeRequestInput = OpenAPIMakeRequestInput
 export type SwaggerMakeRequestOptions = OpenAPIMakeRequestOptions
 export type SwaggerMakeRequestOutput = OpenAPIMakeRequestOutput
