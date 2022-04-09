@@ -1489,7 +1489,7 @@ describe('Component: Parameter', () => {
         const def: Parameter3Definition = { name: 'user', in: 'query', schema: {} }
         const [value, error] = new Parameter3(def).parseValue(['foo'])
         expect(value).to.equal(undefined)
-        expect(error).to.match(/Unable to perform operation "parse" because the schema has no type/)
+        expect(error).to.match(/Unable to perform operation "parseValue" because the schema has no type/)
       })
     })
   })

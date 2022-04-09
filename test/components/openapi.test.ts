@@ -51,7 +51,7 @@ describe('OpenAPI component', function () {
               '/{y}': {
                 get: {
                   parameters: [{ name: 'x', in: 'path', required: true, schema: { type: 'string' } }],
-                  responses: { 200: { description: 'ok' }}
+                  responses: { 200: { description: 'ok' } }
                 }
               }
             }
@@ -100,11 +100,11 @@ describe('OpenAPI component', function () {
               required: true,
               style: 'simple',
               explode: false,
-              schema: { 
+              schema: {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  age: { type: 'number' } 
+                  age: { type: 'number' }
                 }
               }
             }
@@ -112,7 +112,7 @@ describe('OpenAPI component', function () {
           const [value] = openapi.formatRequest({ method: 'get', path: '/age,25,name,Bob' })
           expect(value.params.foo).to.deep.equal({ name: 'Bob', age: 25 })
         })
-        
+
         it('can parse: simple true primitive', () => {
           const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
             {
@@ -151,11 +151,11 @@ describe('OpenAPI component', function () {
               required: true,
               style: 'simple',
               explode: true,
-              schema: { 
+              schema: {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  age: { type: 'number' } 
+                  age: { type: 'number' }
                 }
               }
             }
@@ -163,7 +163,7 @@ describe('OpenAPI component', function () {
           const [value] = openapi.formatRequest({ method: 'get', path: '/age=25,name=Bob' })
           expect(value.params.foo).to.deep.equal({ name: 'Bob', age: 25 })
         })
-        
+
         it('can parse: label false primitive', () => {
           const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
             {
@@ -202,11 +202,11 @@ describe('OpenAPI component', function () {
               required: true,
               style: 'label',
               explode: false,
-              schema: { 
+              schema: {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  age: { type: 'number' } 
+                  age: { type: 'number' }
                 }
               }
             }
@@ -214,7 +214,7 @@ describe('OpenAPI component', function () {
           const [value] = openapi.formatRequest({ method: 'get', path: '/.age,25,name,Bob' })
           expect(value.params.foo).to.deep.equal({ name: 'Bob', age: 25 })
         })
-        
+
         it('can parse: label true primitive', () => {
           const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
             {
@@ -253,11 +253,11 @@ describe('OpenAPI component', function () {
               required: true,
               style: 'label',
               explode: true,
-              schema: { 
+              schema: {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  age: { type: 'number' } 
+                  age: { type: 'number' }
                 }
               }
             }
@@ -265,7 +265,7 @@ describe('OpenAPI component', function () {
           const [value] = openapi.formatRequest({ method: 'get', path: '/.age=25.name=Bob' })
           expect(value.params.foo).to.deep.equal({ name: 'Bob', age: 25 })
         })
-        
+
         it('can parse: matrix false primitive', () => {
           const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
             {
@@ -304,11 +304,11 @@ describe('OpenAPI component', function () {
               required: true,
               style: 'matrix',
               explode: false,
-              schema: { 
+              schema: {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  age: { type: 'number' } 
+                  age: { type: 'number' }
                 }
               }
             }
@@ -316,7 +316,7 @@ describe('OpenAPI component', function () {
           const [value] = openapi.formatRequest({ method: 'get', path: '/;foo=age,25,name,Bob' })
           expect(value.params.foo).to.deep.equal({ name: 'Bob', age: 25 })
         })
-        
+
         it('can parse: matrix true primitive', () => {
           const openapi = createOpenAPIForMakeRequest('get', '/{foo}', [
             {
@@ -355,11 +355,11 @@ describe('OpenAPI component', function () {
               required: true,
               style: 'matrix',
               explode: true,
-              schema: { 
+              schema: {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  age: { type: 'number' } 
+                  age: { type: 'number' }
                 }
               }
             }
@@ -391,7 +391,7 @@ describe('OpenAPI component', function () {
               in: 'query',
               style: 'form',
               explode: true,
-              schema: { type: 'array', items: { type: 'number' } } 
+              schema: { type: 'array', items: { type: 'number' } }
             }
           ])
           const [value] = openapi.formatRequest({ method: 'get', path: '/?foo=3&foo=4&foo=5' })
@@ -406,11 +406,11 @@ describe('OpenAPI component', function () {
               required: true,
               style: 'form',
               explode: true,
-              schema: { 
+              schema: {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  age: { type: 'number' } 
+                  age: { type: 'number' }
                 }
               }
             }
@@ -440,7 +440,7 @@ describe('OpenAPI component', function () {
               in: 'query',
               style: 'form',
               explode: false,
-              schema: { type: 'array', items: { type: 'number' } } 
+              schema: { type: 'array', items: { type: 'number' } }
             }
           ])
           const [value] = openapi.formatRequest({ method: 'get', path: '/?foo=3,4,5' })
@@ -454,11 +454,11 @@ describe('OpenAPI component', function () {
               in: 'query',
               style: 'form',
               explode: false,
-              schema: { 
+              schema: {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  age: { type: 'number' } 
+                  age: { type: 'number' }
                 }
               }
             }
@@ -474,7 +474,7 @@ describe('OpenAPI component', function () {
               in: 'query',
               style: 'spaceDelimited',
               explode: true,
-              schema: { type: 'array', items: { type: 'number' } } 
+              schema: { type: 'array', items: { type: 'number' } }
             }
           ])
           const [value] = openapi.formatRequest({ method: 'get', path: '/?foo=3&foo=4&foo=5' })
@@ -488,7 +488,7 @@ describe('OpenAPI component', function () {
               in: 'query',
               style: 'spaceDelimited',
               explode: false,
-              schema: { type: 'array', items: { type: 'number' } } 
+              schema: { type: 'array', items: { type: 'number' } }
             }
           ])
           const [value] = openapi.formatRequest({ method: 'get', path: '/?foo=3%204%205' })
@@ -502,7 +502,7 @@ describe('OpenAPI component', function () {
               in: 'query',
               style: 'pipeDelimited',
               explode: true,
-              schema: { type: 'array', items: { type: 'number' } } 
+              schema: { type: 'array', items: { type: 'number' } }
             }
           ])
           const [value] = openapi.formatRequest({ method: 'get', path: '/?foo=3&foo=4&foo=5' })
@@ -516,7 +516,7 @@ describe('OpenAPI component', function () {
               in: 'query',
               style: 'pipeDelimited',
               explode: false,
-              schema: { type: 'array', items: { type: 'number' } } 
+              schema: { type: 'array', items: { type: 'number' } }
             }
           ])
           const [value] = openapi.formatRequest({ method: 'get', path: '/?foo=3|4|5' })
@@ -530,11 +530,11 @@ describe('OpenAPI component', function () {
               in: 'query',
               style: 'deepObject',
               explode: true,
-              schema:  { 
+              schema:  {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  age: { type: 'number' } 
+                  age: { type: 'number' }
                 }
               }
             }
@@ -582,11 +582,11 @@ describe('OpenAPI component', function () {
               in: 'header',
               style: 'simple',
               explode: false,
-              schema:  { 
+              schema:  {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  age: { type: 'number' } 
+                  age: { type: 'number' }
                 }
               }
             }
@@ -630,11 +630,11 @@ describe('OpenAPI component', function () {
               in: 'header',
               style: 'simple',
               explode: true,
-              schema:  { 
+              schema:  {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  age: { type: 'number' } 
+                  age: { type: 'number' }
                 }
               }
             }
@@ -708,11 +708,11 @@ describe('OpenAPI component', function () {
               in: 'cookie',
               style: 'form',
               explode: false,
-              schema:  { 
+              schema:  {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  age: { type: 'number' } 
+                  age: { type: 'number' }
                 }
               }
             }
