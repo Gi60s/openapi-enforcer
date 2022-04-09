@@ -17,7 +17,12 @@ interface LineEnding {
   lineLength: number
 }
 
-export type Loader = (path: string, data?: LoaderMetadata) => Promise<LoaderResult>
+export interface Loader {
+  name: string
+  loader: LoaderFunction
+}
+
+export type LoaderFunction = (path: string, data?: LoaderMetadata) => Promise<LoaderResult>
 
 export type LoaderResult = LoaderMismatch | LoaderMatch
 
@@ -29,6 +34,7 @@ interface LoaderMatch {
 
 interface LoaderMismatch {
   loaded: false
+  reason: string
 }
 
 export interface LoaderMetadata {
@@ -67,8 +73,8 @@ interface Reference {
   ref: string
 }
 
-export function define (loader: Loader): void {
-  loaders.unshift(loader)
+export function define (name: string, loader: LoaderFunction): void {
+  loaders.unshift({ name, loader })
 }
 
 // using a load cache, look up a node by its path
@@ -238,10 +244,13 @@ function getLocation (pos: number, lineEndings: LineEnding[]): Location['start']
 
 async function runLoaders (path: string, data: LoaderMetadata): Promise<any> {
   const length = loaders.length
+  const reasons: string[] = []
   for (let i = 0; i < length; i++) {
     const loader = loaders[i]
-    const result = await loader(path, data)
-    if (result.loaded) {
+    const result = await loader.loader(path, data)
+    if (!result.loaded) {
+      reasons.push(loader.name + ': ' + result.reason)
+    } else {
       // if type is not known then maybe the path can tell us
       if (result.type === undefined) {
         if (rxJson.test(path)) {
@@ -301,7 +310,7 @@ async function runLoaders (path: string, data: LoaderMetadata): Promise<any> {
     }
   }
 
-  data.exception?.add.loaderNotAvailable(path)
+  data.exception?.add.loaderNotAvailable(path, reasons)
 }
 
 function processJsonAst (data: ValueNode): any {
@@ -428,17 +437,18 @@ export function traverse (node: any, path: string): any {
 }
 
 // add http(s) GET loader
-define(async function (path, data) {
+define('http-get', async function (path, data) {
   if (!rxHttp.test(path)) {
-    return { loaded: false }
+    return { loaded: false, reason: 'Path does not appear to be a URL.' }
   }
 
   try {
     const res = await adapter.request(path)
     const contentType = res.headers['content-type']
     if (res.status < 200 || res.status >= 300) {
-      data?.exception?.add.loaderFailedToLoadResource(path, 'Unexpected response code: ' + String(res.status))
-      return { loaded: false }
+      const reason = 'Unexpected response code: ' + String(res.status)
+      data?.exception?.add.loaderFailedToLoadResource(path, reason)
+      return { loaded: false, reason }
     } else {
       const result: LoaderMatch = {
         loaded: true,
@@ -452,13 +462,14 @@ define(async function (path, data) {
       return result
     }
   } catch (err: any) {
-    data?.exception?.add.loaderFailedToLoadResource(path, 'Unexpected error: ' + (err.toString() as string))
-    return { loaded: false }
+    const reason = 'Unexpected error: ' + (err.toString() as string)
+    data?.exception?.add.loaderFailedToLoadResource(path, reason)
+    return { loaded: false, reason }
   }
 })
 
 // add file loader
-define(async function (path, data) {
+define('file-system-loader', async function (path, data) {
   if (fs === undefined) {
     try {
       fs = await import('fs')
@@ -467,7 +478,7 @@ define(async function (path, data) {
     }
   }
   if (fs === null || fs === undefined) {
-    return { loaded: false }
+    return { loaded: false, reason: 'File system loading not supported.' }
   }
   return await new Promise((resolve) => {
     fs.readFile(path, 'utf8', (err: any, content: string) => {
@@ -479,10 +490,11 @@ define(async function (path, data) {
         resolve(result)
       } else {
         if (err.code === 'ENOENT') {
-          resolve({ loaded: false })
+          resolve({ loaded: false, reason: 'File not found.' })
         } else {
-          data?.exception?.add.loaderFailedToLoadResource(path, 'File could not load' + (err.code !== undefined ? ': ' + String(err.code) : ''))
-          resolve({ loaded: false })
+          const reason = 'File could not load' + (err.code !== undefined ? ': ' + String(err.code) : '')
+          data?.exception?.add.loaderFailedToLoadResource(path, reason)
+          resolve({ loaded: false, reason })
         }
       }
     })
