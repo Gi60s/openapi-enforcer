@@ -24,6 +24,7 @@ export type Level = Config.Level
 
 export interface Message {
   alternateLevels: Level[]
+  additionalDetails?: string[]
   code: string
   definition?: any // component definition if available
   exception?: ExceptionBase<any>
@@ -434,6 +435,13 @@ function getReport<T extends ExceptionBase<T>> (report: ExceptionReport<T>, leve
             return s
           }).join(', ') + ')'
         }
+      }
+
+      // in case the message has additional details
+      if (message.additionalDetails !== undefined) {
+        message.additionalDetails.forEach(line => {
+          result += eol + indent + '  ' + line
+        })
       }
 
       if (message.exception !== undefined) {
