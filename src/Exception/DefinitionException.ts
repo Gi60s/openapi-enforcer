@@ -57,7 +57,7 @@ interface Adders {
   linkOperationMissing: (data: ValidatorData, location: LocationInput) => Message
   linkedOperationNotFound: (data: ValidatorData, location: LocationInput, key: 'operationId' | 'operationRef', value: string) => Message
   loaderFailedToLoadResource: (path: string, cause: string) => Message
-  loaderNotAvailable: (path: string) => Message
+  loaderNotAvailable: (path: string, reasons: string[]) => Message
   mediaTypeSchemaMustBeObject: (data: ValidatorData, location: LocationInput, type: string) => Message
   missingRequiredProperties: (data: ValidatorData, location: LocationInput, properties: string[]) => Message
   mustNotBeNull: (data: ValidatorData, location: LocationInput) => Message
@@ -533,13 +533,14 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
       }))
     },
 
-    loaderNotAvailable: (path: string) => {
+    loaderNotAvailable: (path: string, reasons: string[]) => {
       return this.message(getExceptionMessageData(null, [], false, {
         code: 'LONOAV',
         alternateLevels: [],
         level: 'error',
         message: 'No defined loaders were able to load the path: ' + smart(path),
-        metadata: { path }
+        metadata: { path, reasons },
+        additionalDetails: reasons
       }))
     },
 
