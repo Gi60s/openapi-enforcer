@@ -5,7 +5,7 @@ const path = require('path')
 // Automatically exclude all node_modules from the bundled version
 const { nodeExternalsPlugin } = require('esbuild-node-externals')
 
-const testDir = path.resolve(__dirname, 'src', 'test')
+const testDir = path.resolve(__dirname, 'test')
 const directive = process.argv[2] ?? ''
 
 const start = Date.now()
@@ -14,7 +14,7 @@ const start = Date.now()
   if (directive !== 'browser') {
     await esbuild.build({
       outdir: './dist/node',
-      entryPoints: ['./src/library/index.ts'],
+      entryPoints: ['./src/index.ts'],
       bundle: true,
       minify: false,
       keepNames: true,
