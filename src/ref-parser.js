@@ -270,7 +270,7 @@ async function parse (basePath, fullPath, source, value, that, map, chain, excep
     // console.log('Parse:\n  B: ' + basePath + '\n  S: ' + Object.keys(source));
     if (Array.isArray(value)) {
         const existing = map.has(value);
-        if (existing) return existing;
+        if (existing) return map.get(value);
         map.set(value, value);
         that.sourceMap[fullPath].push(value);
 
@@ -308,7 +308,8 @@ async function parse (basePath, fullPath, source, value, that, map, chain, excep
                     : undefined;
             }
 
-            return parse(newBasePath, newFullPath, newSource, result, that, map, chain.concat([ value ]), exception);
+            result = await parse(newBasePath, newFullPath, newSource, result, that, map, chain.concat([ value ]), exception);
+            return result;
 
         } else {
             const existing = map.get(value);
