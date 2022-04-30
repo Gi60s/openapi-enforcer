@@ -233,7 +233,44 @@ describe('documented issues fixes', () => {
     describe('issue-128 - format "byte" example', () => {
         it('will pass a valid byte example', async () => {
             const [ , err ] = await Enforcer(path.resolve(resourcesPath, 'issue-128/openapi.yml'), { fullResult: true });
-            console.log(err)
+            expect(err).to.equal(undefined);
+        })
+    })
+
+    describe('issue-138 - validation error on $ref linked arrays', function () {
+        it('can dereference arrays into a valid definition', async () => {
+            const [ , err ] = await Enforcer(path.resolve(resourcesPath, 'issue-138/openapi.yml'), { fullResult: true });
+            expect(err).to.equal(undefined);
+        })
+    });
+
+    describe('issue-139 - option to skip example validation', () => {
+        it('will produce a warning if the example does not match the schema', async () => {
+            const [ , err, warn ] = await Enforcer(path.resolve(resourcesPath, 'issue-139/openapi.yml'), { fullResult: true });
+            expect(err).to.equal(undefined);
+            expect(warn).to.match(/Expected an object. Received: "{ \\"a\\": 5 }"/);
+        })
+
+        it('will allow exception skip code WSCH006 to ignore example warnings', async () => {
+            const [ , err, warn ] = await Enforcer(path.resolve(resourcesPath, 'issue-139/openapi.yml'), {
+                fullResult: true,
+                componentOptions: {
+                    exceptionSkipCodes: ['WSCH006']
+                }
+            });
+            expect(err).to.equal(undefined);
+            expect(warn).to.equal(undefined);
+        })
+
+        it('will allow exception escalation for invalid examples', async () => {
+            const [ , err, warn ] = await Enforcer(path.resolve(resourcesPath, 'issue-139/openapi.yml'), {
+                fullResult: true,
+                componentOptions: {
+                    exceptionEscalateCodes: ['WSCH006']
+                }
+            });
+            expect(err).to.match(/Example not valid/);
+            expect(warn).to.equal(undefined);
         })
     })
 

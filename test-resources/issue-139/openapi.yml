@@ -1,0 +1,18 @@
+openapi: 3.0.0
+info:
+  title: issue-139
+  version: v1
+paths:
+  /:
+    get:
+      responses:
+        200:
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  a:
+                    type: number
+                example: '{ "a": 5 }'

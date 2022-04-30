@@ -303,9 +303,13 @@ module.exports = {
             }
             if (this.hasOwnProperty('example')) {
                 // TODO: should this produce an error or a warning? It's currently set to warn.
-                const value = deserializeAndValidate(this, warn.at('example'), this.example, {
+                const childException = new Exception('Example not valid. [WSCH006]')
+                const value = deserializeAndValidate(this, childException, this.example, {
                     isExample: true
                 });
+                if (childException.hasException && !skipCodes.WSCH006) {
+                    (escalateCodes.WSCH006 ? exception : warn).at('example').push(childException);
+                }
                 setProperty(this, 'example', freeze(value));
             }
         });
