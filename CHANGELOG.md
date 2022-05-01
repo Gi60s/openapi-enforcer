@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.19.0
+
+### Added
+
+- **exceptionSkipCodes and exceptionEscalateCodes for Invalid Example**
+
+  Add the escalate / skip code WSCH006 to better manage invalid examples that don't match schemas.
+
+### Fixed
+
+- **Normalized Invalid Example Severity**
+
+  Previously invalid examples would be warnings in some cases and errors in other places. Now all invalid examples are
+  warnings, but you can convert those to errors or ignore them entirely now by using
+  exceptionSkipCodes and exceptionEscalateCodes. See documentation on **Component Options** in the
+  [documentation](https://openapi-enforcer.com/api/#enforcer).
+
 ## 1.18.0
 
 ### Added
