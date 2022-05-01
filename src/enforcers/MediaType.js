@@ -23,9 +23,9 @@ const rxContentTypeMime = /(?:^multipart\/)|(?:^application\/x-www-form-urlencod
 
 module.exports = {
     init: function (data) {
-        const { exception, plugins } = data;
+        const { exception, warn, plugins, options } = data;
         plugins.push(() => {
-            util.validateExamples(this, exception);
+            util.validateExamples(this, exception, warn, options);
         });
     },
 

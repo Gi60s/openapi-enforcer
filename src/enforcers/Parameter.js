@@ -54,7 +54,9 @@ module.exports = {
             if (definition.content[key].schema) this.schema =  definition.content[key].schema;
         }
 
-        if (major === 3 && this.schema) util.validateExamples(this, exception);
+        if (major === 3 && this.schema) {
+            util.validateExamples(this, exception, warn, options);
+        }
     },
 
     prototype: {

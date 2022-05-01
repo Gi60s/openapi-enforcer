@@ -22,7 +22,7 @@ const util          = require('../util');
 
 module.exports = {
     init: function (data) {
-        const { context, exception, major, warn } = data;
+        const { context, exception, major, warn, options } = data;
         if (major === 2) {
             const def = base.extractSchemaDefinition({}, this);
             const [schema, error, warning] = context.Schema(def);
@@ -30,7 +30,7 @@ module.exports = {
             if (error) exception.merge(error);
             if (warning) warn.merge(warning);
         }
-        util.validateExamples(this, exception);
+        util.validateExamples(this, exception, warn, options);
     },
 
     prototype: {

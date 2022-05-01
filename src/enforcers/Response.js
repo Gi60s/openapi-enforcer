@@ -23,8 +23,8 @@ const rxLinkName = /^[a-zA-Z0-9.\-_]+$/;
 
 module.exports = {
     init: function (data) {
-        const { exception } = data;
-        util.validateExamples(this, exception);
+        const { exception, warn, options } = data;
+        util.validateExamples(this, exception, warn, options);
     },
 
     prototype: {},

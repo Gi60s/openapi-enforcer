@@ -18,6 +18,7 @@
 const queryString   = require('querystring');
 const rx            = require('./rx');
 
+const Exception = require('./exception');
 const rxMediaType = /^([\s\S]+?)\/(?:([\s\S]+?)\+)?([\s\S]+?)$/;
 const punctuation = ',,,,,,,,,,.................................:;!?';
 const punctuationCount = punctuation.length;
@@ -625,15 +626,21 @@ function ucFirst (value) {
     return value[0].toUpperCase() + value.substr(1);
 }
 
-function validateExamples(context, exception) {
+function validateExamples(context, exception, warn, options) {
+    const skipCodes = options.exceptionSkipCodes;
+    const escalateCodes = options.exceptionEscalateCodes;
+
     if (context.hasOwnProperty('schema')) {
         if (context.hasOwnProperty('example')) {
-            const child = exception.at('example');
             let value;
             let error;
             [ value, error ] = context.schema.deserialize(context.example);
             if (!error) error = context.schema.validate(value);
-            if (error) child.push(error);
+            if (error && !skipCodes.WSCH006) {
+                const child = new Exception('Example not valid. [WSCH006]');
+                child.push(error);
+                (escalateCodes.WSCH006 ? exception : warn).at('example').push(child);
+            }
             Object.defineProperty(context, 'example', {
                 configurable: true,
                 enumerable: true,
@@ -641,7 +648,6 @@ function validateExamples(context, exception) {
             });
         }
         if (context.hasOwnProperty('examples')) {
-            const child = exception.at('examples');
             const major = context.enforcerData.major;
             Object.keys(context.examples)
                 .forEach(key => {
@@ -652,9 +658,12 @@ function validateExamples(context, exception) {
                         : context.examples[key].value;
                     [ value, error ] = context.schema.deserialize(example);
                     if (!error) error = context.schema.validate(value);
-                    if (error) child.at(key).push(error);
+                    if (error && !skipCodes.WSCH006) {
+                        const child = new Exception('Example not valid. [WSCH006]');
+                        child.push(error);
+                        (escalateCodes.WSCH006 ? exception : warn).at('examples').at(key).push(child);
+                    }
                     if (major === 2) {
-
                         Object.defineProperty(context.examples, key, {
                             configurable: true,
                             enumerable: true,
