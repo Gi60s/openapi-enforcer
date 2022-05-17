@@ -62,8 +62,15 @@ function childData(parent, key, validator) {
     };
 }
 
-function normalize (data) {
+/**
+ *
+ * @param data
+ * @param superOptions Options that come from the super.js "build" function.
+ * @returns {*}
+ */
+function normalize (data, superOptions) {
     const { definitionType, exception, production, result } = data;
+    const skipCodes = superOptions.exceptionSkipCodes;
     let definition = data.definition;
 
     try {
@@ -95,7 +102,7 @@ function normalize (data) {
             if (definitionType === 'array' && !freeForm) {
                 definition.forEach((def, i) => {
                     const child = childData(data, i, validator.items);
-                    result.push(runChildValidator(child));
+                    result.push(runChildValidator(child, superOptions));
                 });
                 Object.freeze(result);
 
@@ -133,7 +140,7 @@ function normalize (data) {
                                 Object.defineProperty(result, key, {
                                     configurable: true,
                                     enumerable: true,
-                                    value: runChildValidator(child)
+                                    value: runChildValidator(child, superOptions)
                                 });
                                 valueSet = true;
                             }
@@ -192,7 +199,7 @@ function normalize (data) {
                                 Object.defineProperty(result, key, {
                                     configurable: true,
                                     enumerable: true,
-                                    value: runChildValidator(data)
+                                    value: runChildValidator(data, superOptions)
                                 });
                             }
                         } else if (allowed && keyValidator.required && fn(keyValidator.required, data)) {
@@ -203,9 +210,9 @@ function normalize (data) {
 
                 // report any keys that are not allowed
                 notAllowed.push.apply(notAllowed, unknownKeys);
-                if (notAllowed.length) {
+                if (notAllowed.length && !skipCodes.EDEV001) {
                     notAllowed.sort();
-                    exception.message('Propert' + (notAllowed.length === 1 ? 'y' : 'ies') + ' not allowed: ' + notAllowed.join(', '));
+                    exception.message('Propert' + (notAllowed.length === 1 ? 'y' : 'ies') + ' not allowed: ' + notAllowed.join(', ') + ' [EDEV001]');
                 }
 
                 // report missing required properties
@@ -235,7 +242,7 @@ function normalize (data) {
             if (definitionType === 'array') {
                 definition.forEach((def, i) => {
                     const child = childData(data, i, validator.items);
-                    result.push(runChildValidator(child));
+                    result.push(runChildValidator(child, superOptions));
                 });
                 Object.freeze(result);
             } else if (definitionType === 'object') {
@@ -252,7 +259,7 @@ function normalize (data) {
                     Object.defineProperty(result, key, {
                         configurable: true,
                         enumerable: true,
-                        value: runChildValidator(child)
+                        value: runChildValidator(child, superOptions)
                     });
                 });
 
@@ -369,19 +376,19 @@ function mapSetResult (data, value) {
     }
 }
 
-function runChildValidator(data) {
+function runChildValidator(data, superOptions) {
     const validator = fn(data.validator, data);
     data.validator = validator;
     if (EnforcerRef.isEnforcerRef(validator)) {
         const subValidator = data.validator.config;
         if (data.definitionType === 'boolean') {     // account for boolean instead of schema definition
             data.validator = data.validator.config;
-            return normalize(data);
+            return normalize(data, superOptions);
         } else if (!subValidator || validateType(data.definitionType, Object.assign({}, data, { validator: subValidator }))) {
             return new data.context[validator.value](new ValidatorState(data));
         }
     } else if (data.validator) {
-        return normalize(data);
+        return normalize(data, superOptions);
     } else {
         return data.result;
     }

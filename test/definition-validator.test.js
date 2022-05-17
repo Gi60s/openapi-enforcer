@@ -61,6 +61,19 @@ describe('definition-validator', () => {
             expect(err).to.match(/Property not allowed: a/);
         });
 
+        it('will allow normally unallowed properties if using exception skip code EDEV001', () => {
+            const validator = {
+                type: 'object',
+                properties: {}
+            };
+            validator.properties.child = validator;
+            const Enforcer = createEnforcer({ validator });
+            const [ , err ] = new Enforcer({ a: 1, child: { b: 2 } }, null, {
+                exceptionSkipCodes: [ 'EDEV001' ]
+            });
+            expect(err).to.equal(undefined);
+        });
+
         it('can use literal to allow', () => {
             const validator = {
                 type: 'object',

@@ -142,7 +142,7 @@ function createConstructor(version, name, enforcer) {
 
         if (existing) {
             data.result = result = existing.value;
-            definitionValidator(data)
+            definitionValidator(data, options)
         } else {
             // store the full set of enforcer data
             store.set(result, data);
@@ -150,7 +150,7 @@ function createConstructor(version, name, enforcer) {
 
             if (util.isPlainObject(data.definition)) {
                 if (!needsValidation) data.validator = true;
-                definitionValidator(data);
+                definitionValidator(data, options);
             } else {
                 data.exception.message('Value must be a plain object');
             }
