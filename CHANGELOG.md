@@ -4,6 +4,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.21.0
+
+### Added
+
+- **You Can Use Non-Spec Properties and Skip Exception**
+
+  Using a property that is not defined in the OpenAPI specification will generally result in an exception. Now there is an 
+  [exceptionSkipCode](https://openapi-enforcer.com/api/#enforcer) `EDEV001` that will allow you to use properties
+  that are not part of the OpenAPI specification.
+
+### Changed
+
+- **Warn of Required Properties that are Not Specified**
+
+  In the scenario where you define an object with a required property but do not include that property
+  in the `properties` list, the object is valid, according to the OpenAPI specification because `additionalProperties`
+  defaults to `true`.
+
+  ```yml
+  MySchema:
+    type: object
+    required:
+      - "a"
+      - "b"
+    properties:
+      a:
+        type: string
+        description: field a
+      c:
+        type: string
+        description: field c  
+  ```
+
+  With this change, when you specify a required property without also specifying the schema attached
+  to that property a warning will now be produced that can either be escalated or skipped using
+  [exceptionSkipCode](https://openapi-enforcer.com/api/#enforcer) `WSCH007`.
+
 ## 1.20.0
 
 ### Changed
