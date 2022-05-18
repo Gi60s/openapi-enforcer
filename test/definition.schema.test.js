@@ -1881,6 +1881,47 @@ describe('definition/schema', () => {
                 expect(err.count).to.equal(1);
             });
 
+            it('will warn if additionalProperties are allowed but required property is not found in listed properties', () => {
+                const def = {
+                    type: 'object',
+                    required: ['a', 'd'],
+                    additionalProperties: true,
+                    properties: {
+                        a: { type: 'number' },
+                    }
+                };
+                const [ , err, warn ] = Enforcer.v3_0.Schema(def);
+                expect(err).to.equal(undefined);
+                expect(warn).to.match(/Required property not specified as a property/);
+            });
+
+            it('can ignore warnings for unspecified required additional properties', () => {
+                const def = {
+                    type: 'object',
+                    required: ['a', 'd'],
+                    additionalProperties: true,
+                    properties: {
+                        a: { type: 'number' },
+                    }
+                };
+                const [ , err, warn ] = Enforcer.v3_0.Schema(def, null, { exceptionSkipCodes: ['WSCH007'] });
+                expect(err).to.equal(undefined);
+                expect(warn).to.equal(undefined);
+            });
+
+            it('can escalate warnings for unspecified required additional properties', () => {
+                const def = {
+                    type: 'object',
+                    required: ['a', 'd'],
+                    additionalProperties: true,
+                    properties: {
+                        a: { type: 'number' },
+                    }
+                };
+                const [ , err ] = Enforcer.v3_0.Schema(def, null, { exceptionEscalateCodes: ['WSCH007'] });
+                expect(err).to.match(/Required property not specified as a property/);
+            });
+
         });
 
         describe('uniqueItems', () => {

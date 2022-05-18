@@ -258,6 +258,24 @@ module.exports = {
             });
         }
 
+        // If there are required properties not defined in properties and additionalProperties are allowed then warn of additional properties
+        if (this.required && this.required.length > 0 && this.additionalProperties !== false) {
+            const additionalRequiredProperties = this.required.slice(0);
+            Object.keys(this.properties || {}).forEach(key => {
+                const index = additionalRequiredProperties.indexOf(key)
+                if (index !== -1) additionalRequiredProperties.splice(index, 1);
+            })
+            if (additionalRequiredProperties.length > 0 && !skipCodes.WSCH007) {
+                const e = escalateCodes.WSCH007 ? exception : warn;
+                if (additionalRequiredProperties.length === 1) {
+                    e.message('Required property not specified as a property but allowed via additionalProperties: ' + additionalRequiredProperties[0] + ' [WSCH007]')
+                } else {
+                    e.message('Required properties not specified as a property but allowed via additionalProperties: ' + additionalRequiredProperties.join(', ') + ' [WSCH007]')
+                }
+            }
+
+        }
+
         plugins.push(() => {
             // if there is a discriminator with mappings then resolve those references
             const discriminator = this.discriminator;
