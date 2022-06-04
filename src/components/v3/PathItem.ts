@@ -7,7 +7,7 @@ import * as Core from '../PathItem'
 import { PathItem3 as Definition } from '../helpers/definition-types'
 import { OpenAPI } from './OpenAPI'
 
-const methods = Core.methods.concat(['trace'])
+const methods = Core.methods3
 let pathItemSchema: ComponentSchema<Definition>
 
 export class PathItem extends Core.PathItem<Operation> {

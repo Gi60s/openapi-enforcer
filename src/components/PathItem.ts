@@ -1,6 +1,6 @@
 import { componentValidate, OASComponent } from './index'
 import { BuilderData, Component, ComponentSchema, ValidatorData, Version } from './helpers/builder-validator-types'
-import { DefinitionException, LocationInput } from '../Exception'
+import { DefinitionException } from '../Exception'
 import { addParameterToOperation, Operation, reportParameterNamespaceConflicts } from './Operation'
 import { Server } from './v3/Server'
 import {
@@ -9,8 +9,10 @@ import {
   Parameter2, Parameter3,
   Operation2, Operation3
 } from './helpers/definition-types'
+import { Method } from './helpers/function-interfaces'
 
-export const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch']
+export const methods2: Method[] = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch']
+export const methods3: Method[] = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']
 
 type Definition = Definition2 | Definition3
 type ParameterDefinition = Parameter2 | Parameter3

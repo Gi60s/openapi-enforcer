@@ -75,6 +75,7 @@ interface Adders {
   pathMissingMethods: (data: ValidatorData, location: LocationInput, path: string) => Message
   pathParameterMustBeRequired: (data: ValidatorData, location: LocationInput, parameterName: string) => Message
   pathParameterMismatch: (data: ValidatorData, locations: LocationInput[], parameterName: string, path: string, missingIn: 'path' | 'parameters') => Message
+  pathsNotUnique: (data: ValidatorData, locations: LocationInput[], paths: string[]) => Message
   propertiesMutuallyExclusive: (data: ValidatorData, locations: LocationInput[], properties: string[]) => Message
   propertyIgnored: (data: ValidatorData, location: LocationInput, value: string, reason: string) => Message
   propertyNotAllowed: (data: ValidatorData, location: LocationInput, propertyName: string, reason: string) => Message
@@ -714,6 +715,18 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
           ? 'Path is missing path parameter ' + smart(parameterName) + ' that is defined in the parameters array.'
           : 'Path contains a parameter ' + smart(parameterName) + ' that is not defined in the parameters array.',
         metadata: { parameterName, path, missingIn }
+      }))
+    },
+
+    pathsNotUnique: (data: ValidatorData, locations: LocationInput[], paths: string[]) => {
+      return this.message(getExceptionMessageData(data, locations, false, {
+        code: 'PATCON',
+        alternateLevels: [],
+        level: 'error',
+        message: 'Paths are in conflict because they share the same path and method: ' + smart(paths),
+        metadata: {
+          paths
+        }
       }))
     },
 

@@ -6,7 +6,7 @@ import * as Core from '../PathItem'
 import { Parameter } from './Parameter'
 import { PathItem2 as Definition } from '../helpers/definition-types'
 
-const methods = Core.methods.concat(['trace'])
+const methods = Core.methods2
 
 let pathItemSchema: ComponentSchema<Definition>
 

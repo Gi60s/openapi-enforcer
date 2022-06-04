@@ -18,8 +18,8 @@ export class Paths extends Core.Paths<Paths> {
     return super.findOperation(method, path, options)
   }
 
-  findPath (path: string): PathsFindPathResult<Operation, PathItem> | undefined {
-    return super.findPath(path)
+  findPaths (path: string): Array<PathsFindPathResult<Operation, PathItem>> {
+    return super.findPaths(path)
   }
 
   static spec = {
