@@ -44,8 +44,8 @@ export class OpenAPI extends OASComponent {
     return this.paths.findOperation(method, path, options)
   }
 
-  findPath (path: string): PathsFindPathResult<Operation, PathItem> | undefined {
-    return this.paths.findPath(path)
+  findPath (path: string): Array<PathsFindPathResult<Operation, PathItem>> {
+    return this.paths.findPaths(path)
   }
 
   getOperationById (operationId: string): Operation | undefined {

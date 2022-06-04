@@ -35,9 +35,9 @@ describe('OpenAPI component', function () {
       })
     })
 
-    describe('makeRequest', () => {
+    describe('formatRequest', () => {
       describe('find path', () => {
-        it('can find the correct path when there are two similar paths with different operations', () => {
+        it('can find the correct path when there are two similar paths with different methods', () => {
           const openapi = new OpenAPI({
             openapi: '3.0.0',
             info: { title: '', version: '' },
@@ -45,19 +45,21 @@ describe('OpenAPI component', function () {
               '/{x}': {
                 get: {
                   parameters: [{ name: 'x', in: 'path', required: true, schema: { type: 'string' } }],
-                  responses: { 200: { description: 'ok' }}
+                  responses: { 200: { description: 'ok' } }
                 }
               },
               '/{y}': {
-                get: {
+                put: {
                   parameters: [{ name: 'x', in: 'path', required: true, schema: { type: 'string' } }],
                   responses: { 200: { description: 'ok' } }
                 }
               }
             }
           })
-          throw Error('to do: finish writing this test')
-          throw Error('to do, make sure validators allow this')
+          const matches = openapi.findPath('/abc')
+          expect(matches.length).to.equal(2)
+          expect(matches[0].pathItem).to.haveOwnProperty('get')
+          expect(matches[1].pathItem).to.haveOwnProperty('put')
         })
       })
 
