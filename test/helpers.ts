@@ -22,7 +22,7 @@ export const resourcesDirectory = testResourcesDirectory
 export function initTestLoader (): void {
   if (!testLoaderInitialized) {
     testLoaderInitialized = true
-    Loader.define(async (path: string) => {
+    Loader.define('test-loader', async (path: string) => {
       const content = testLoaderRegistry[path]
       if (content !== undefined) {
         return {
@@ -31,7 +31,7 @@ export function initTestLoader (): void {
           type: 'json'
         }
       } else {
-        return { loaded: false }
+        return { loaded: false, reason: 'Content not populated' }
       }
     })
   }

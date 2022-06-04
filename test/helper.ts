@@ -22,7 +22,7 @@ export function exceptionHasCode (exceptionReport: ExceptionReport<any> | undefi
   return false
 }
 
-export const resourcesDirectory = path.resolve(__dirname, '..', 'test-resources')
+export const resourcesDirectory = path.resolve(__dirname, '..', '..', 'test-resources')
 
 export async function staticFileServer (directory: string): Promise<StaticFileServer> {
   let listener: any
