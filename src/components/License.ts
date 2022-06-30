@@ -3,10 +3,11 @@ import { ComponentSchema, Version } from './helpers/builder-validator-types'
 import { DefinitionException } from '../Exception'
 import { License as Definition } from './helpers/definition-types'
 import rx from '../utils/rx'
+import { ILicense } from './interfaces/ILicense'
 
 let licenseSchema: ComponentSchema<Definition>
 
-export class License extends OASComponent {
+export class License extends OASComponent implements ILicense {
   extensions!: Record<string, any>
   name!: string
   url?: string

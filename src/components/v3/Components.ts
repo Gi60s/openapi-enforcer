@@ -11,10 +11,11 @@ import { Response } from './Response'
 import { Schema } from './Schema'
 import { SecurityScheme } from './SecurityScheme'
 import { Components3 as Definition } from '../helpers/definition-types'
+import { IComponents } from '../interfaces/IComponents'
 
 let schemaComponent: ComponentSchema<Definition>
 
-export class Components extends OASComponent {
+export class Components extends OASComponent implements IComponents {
   extensions!: Record<string, any>
   callbacks?: Record<string, Callback>
   examples?: Record<string, Example>

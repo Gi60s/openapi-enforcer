@@ -3,10 +3,11 @@ import { DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
 import { OAuthFlow3 as Definition } from '../helpers/definition-types'
 import rx from '../../utils/rx'
+import { IOAuthFlow } from '../interfaces/IOauthFlow'
 
 let oauthFlowSchema: ComponentSchema<Definition>
 
-export class OAuthFlow extends OASComponent {
+export class OAuthFlow extends OASComponent implements IOAuthFlow {
   extensions!: Record<string, any>
   authorizationUrl?: string
   refreshUrl?: string

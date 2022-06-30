@@ -3,10 +3,11 @@ import { DefinitionException, LocationInput } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
 import rx from '../../utils/rx'
 import { Example3 as Definition } from '../helpers/definition-types'
+import { IExample } from '../interfaces/IExample'
 
 let schemaExample: ComponentSchema<Definition>
 
-export class Example extends OASComponent {
+export class Example extends OASComponent implements IExample {
   extensions!: Record<string, any>
   description?: string
   externalValue?: string

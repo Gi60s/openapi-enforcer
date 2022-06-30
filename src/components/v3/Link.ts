@@ -5,10 +5,11 @@ import { Server } from './Server'
 import { Link3 as Definition } from '../helpers/definition-types'
 import { traverse } from '../../utils/loader'
 import rx from '../../utils/rx'
+import { ILink } from '../interfaces/ILink'
 
 let schemaLink: ComponentSchema<Definition>
 
-export class Link extends OASComponent {
+export class Link extends OASComponent implements ILink {
   extensions!: Record<string, any>
   description?: string
   operationId?: string

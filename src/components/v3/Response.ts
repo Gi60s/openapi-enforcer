@@ -7,10 +7,11 @@ import * as Core from '../Response'
 import { MediaType } from './MediaType'
 import { Link } from './Link'
 import { Response3 as Definition } from '../helpers/definition-types'
+import { IResponse3 } from '../interfaces/IResponse'
 
 let responseSchema: ComponentSchema<Definition>
 
-export class Response extends Core.Response {
+export class Response extends Core.Response implements IResponse3 {
   content?: Record<string, MediaType>
   headers?: Record<string, Header>
   links?: Record<string, Link>

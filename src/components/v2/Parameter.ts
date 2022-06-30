@@ -1,5 +1,5 @@
-import { componentValidate, SchemaProperty, SchemaString } from '../index'
-import { ComponentData, ComponentSchema, Data, Version } from '../helpers/builder-validator-types'
+import { componentValidate, SchemaProperty } from '../index'
+import { ComponentData, ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { Exception, DefinitionException } from '../../Exception'
 import * as PartialSchema from '../helpers/PartialSchema'
 import { Items } from './Items'
@@ -8,10 +8,11 @@ import * as Core from '../Parameter'
 import { Parameter2 as Definition } from '../helpers/definition-types'
 import { Result } from '../../utils/Result'
 import { parsePrimitive } from '../helpers/Parameter'
+import { IParameter2 } from '../interfaces/IParameter'
 
 let parameterSchema: ComponentSchema<Definition>
 
-export class Parameter extends PartialSchema.PartialSchema<Items> {
+export class Parameter extends PartialSchema.PartialSchema<Items> implements IParameter2 {
   extensions!: Record<string, any>
   name!: string
   in!: 'body' | 'formData' | 'header' | 'path' | 'query'
@@ -27,13 +28,11 @@ export class Parameter extends PartialSchema.PartialSchema<Items> {
   }
 
   /**
-   * Get an example from the schema if it exists, otherwise get a randomly generated example.
-   * @param [options] Optional, options for specifying how to get the example.
-   * @param [options.allowRandom] Optional, whether to allow generating a random value for the example. This value will follow the {@link schema} if provided. Defaults to true unless the options.name property is specified.
-   * @param [options.source] Optional, the first source to pull the example from. Defaults to the parameter example, then the schema example, then a randomly generated value.
-   * @returns The example matching the type specified by your OpenAPI document.
+   * Get or generate an example.
+   * @param source Use 'random' to generate a random example, use 'schema' to use the schema example (if it exists), and use 'example` to use the parameter example if it exists. Use an array of sources to specify fallback sources.
+   * @returns The retrieved example if found, otherwise undefined.
    */
-  getExample (options?: { allowRandom?: boolean, source?: 'random' | 'schema' }): any {
+  getExample (source: 'random' | 'schema' | Array<'random' | 'schema'>): any {
     // TODO: write this function
   }
 

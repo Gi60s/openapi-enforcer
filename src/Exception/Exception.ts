@@ -1,65 +1,66 @@
-import { ExceptionBase, Message, smart } from './ExceptionBase'
+import { ExceptionBase, smart } from './ExceptionBase'
 import { ucFirst } from '../utils/util'
+import { IException, IExceptionMessage } from '../utils/IException'
 
 const codePrefix = 'OAE-E'
 
 interface Adders {
 
-  dataTypeEnum: (_enum: any[], value: any) => Message
-  dataTypeInvalid: (expectedType: string, actualValue: any) => Message
-  dataTypeMaximum: (maximum: number, exclusive: boolean, sValue: string, value: number) => Message
-  dataTypeMaxItems: (maximum: number, length: number) => Message
-  dataTypeMaxLength: (maximum: number, length: number) => Message
-  dataTypeMaxProperties: (maximum: number, length: number) => Message
-  dataTypeMinimum: (minimum: number, exclusive: boolean, sValue: string, value: number) => Message
-  dataTypeMinItems: (minimum: number, length: number) => Message
-  dataTypeMinLength: (maximum: number, length: number) => Message
-  dataTypeMinProperties: (minimum: number, length: number) => Message
-  dataTypeMultipleOf: (multipleOf: number, sValue: string, value: number) => Message
-  dataTypeMissingProperties: (properties: string[]) => Message
-  dataTypeNotAllOf: (exceptions: Exception[]) => Message
-  dataTypeNotOneOf: (exceptions: Exception[]) => Message
-  dataTypePropertiesNotAllowed: (properties: string[]) => Message
-  dataTypeReadOnly: (readOnlyProperties: string[]) => Message
-  dataTypeUnique: (indexes: number[], values: any[]) => Message
-  dataTypeWriteOnly: (writeOnlyProperties: string[]) => Message
+  dataTypeEnum: (_enum: any[], value: any) => IExceptionMessage<Exception>
+  dataTypeInvalid: (expectedType: string, actualValue: any) => IExceptionMessage<Exception>
+  dataTypeMaximum: (maximum: number, exclusive: boolean, sValue: string, value: number) => IExceptionMessage<Exception>
+  dataTypeMaxItems: (maximum: number, length: number) => IExceptionMessage<Exception>
+  dataTypeMaxLength: (maximum: number, length: number) => IExceptionMessage<Exception>
+  dataTypeMaxProperties: (maximum: number, length: number) => IExceptionMessage<Exception>
+  dataTypeMinimum: (minimum: number, exclusive: boolean, sValue: string, value: number) => IExceptionMessage<Exception>
+  dataTypeMinItems: (minimum: number, length: number) => IExceptionMessage<Exception>
+  dataTypeMinLength: (maximum: number, length: number) => IExceptionMessage<Exception>
+  dataTypeMinProperties: (minimum: number, length: number) => IExceptionMessage<Exception>
+  dataTypeMultipleOf: (multipleOf: number, sValue: string, value: number) => IExceptionMessage<Exception>
+  dataTypeMissingProperties: (properties: string[]) => IExceptionMessage<Exception>
+  dataTypeNotAllOf: (exceptions: Exception[]) => IExceptionMessage<Exception>
+  dataTypeNotOneOf: (exceptions: Exception[]) => IExceptionMessage<Exception>
+  dataTypePropertiesNotAllowed: (properties: string[]) => IExceptionMessage<Exception>
+  dataTypeReadOnly: (readOnlyProperties: string[]) => IExceptionMessage<Exception>
+  dataTypeUnique: (indexes: number[], values: any[]) => IExceptionMessage<Exception>
+  dataTypeWriteOnly: (writeOnlyProperties: string[]) => IExceptionMessage<Exception>
 
-  detailedError: (exception: Exception) => Message
+  detailedError: (exception: Exception) => IExceptionMessage<Exception>
 
-  definitionInvalid: (isOpenAPI: boolean) => Message
-  invalidInput: (explanation: string) => Message
+  definitionInvalid: (isOpenAPI: boolean) => IExceptionMessage<Exception>
+  invalidInput: (explanation: string) => IExceptionMessage<Exception>
 
-  operationNotFound: (method: string, path: string) => Message
-  operationMissingRequiredParameters: (at: string, names: string[]) => Message
-  operationRequestBodyNotAllowed: (method: string, path: string) => Message
-  operationRequestContentTypeNotProvided: () => Message
-  operationRequestContentTypeNotValid: (contentType: string, allowedTypes: string[]) => Message
-  operationResponseCodeInvalid: (code: string, allowedCodes: string[]) => Message
-  operationResponseContentTypeInvalid: (code: string, contentType: string, allowedTypes: string[]) => Message
+  operationNotFound: (method: string, path: string) => IExceptionMessage<Exception>
+  operationMissingRequiredParameters: (at: string, names: string[]) => IExceptionMessage<Exception>
+  operationRequestBodyNotAllowed: (method: string, path: string) => IExceptionMessage<Exception>
+  operationRequestContentTypeNotProvided: () => IExceptionMessage<Exception>
+  operationRequestContentTypeNotValid: (contentType: string, allowedTypes: string[]) => IExceptionMessage<Exception>
+  operationResponseCodeInvalid: (code: string, allowedCodes: string[]) => IExceptionMessage<Exception>
+  operationResponseContentTypeInvalid: (code: string, contentType: string, allowedTypes: string[]) => IExceptionMessage<Exception>
 
-  pathNotFound: (path: string) => Message
+  pathNotFound: (path: string) => IExceptionMessage<Exception>
 
   // TODO: how is parameterParseEmptyValue being used vs parameterParseNoValue? Do I need both?
-  parameterParseEmptyValue: () => Message
-  parameterParseNoSchema: () => Message
-  parameterParseNoValue: () => Message
-  parameterParseStyle: (style: string, type: string, explode: boolean) => Message
-  parameterParseInvalidInput: (value: any, expectedType: string) => Message
+  parameterParseEmptyValue: () => IExceptionMessage<Exception>
+  parameterParseNoSchema: () => IExceptionMessage<Exception>
+  parameterParseNoValue: () => IExceptionMessage<Exception>
+  parameterParseStyle: (style: string, type: string, explode: boolean) => IExceptionMessage<Exception>
+  parameterParseInvalidInput: (value: any, expectedType: string) => IExceptionMessage<Exception>
 
-  schemaAdditionalProperties: (properties: string[]) => Message
-  schemaAllValueNotValid: (exception: Exception) => Message
-  schemaAnyValueNotValid: (exception: Exception) => Message
-  schemaDiscriminatorUnmapped: (key: string, name: string) => Message
-  schemaIndeterminate: (operation: string) => Message
-  schemaIndeterminateType: (operation: string) => Message
-  schemaPopulateNotSchema: () => Message
-  schemaPopulateNoDiscriminator: (mode: 'anyOf' | 'oneOf') => Message
-  schemaShouldNotValidate: () => Message
+  schemaAdditionalProperties: (properties: string[]) => IExceptionMessage<Exception>
+  schemaAllValueNotValid: (exception: Exception) => IExceptionMessage<Exception>
+  schemaAnyValueNotValid: (exception: Exception) => IExceptionMessage<Exception>
+  schemaDiscriminatorUnmapped: (key: string, name: string) => IExceptionMessage<Exception>
+  schemaIndeterminate: (operation: string) => IExceptionMessage<Exception>
+  schemaIndeterminateType: (operation: string) => IExceptionMessage<Exception>
+  schemaPopulateNotSchema: () => IExceptionMessage<Exception>
+  schemaPopulateNoDiscriminator: (mode: 'anyOf' | 'oneOf') => IExceptionMessage<Exception>
+  schemaShouldNotValidate: () => IExceptionMessage<Exception>
 
-  unexpected: (error: Error | any) => Message
+  unexpected: (error: Error | any) => IExceptionMessage<Exception>
 }
 
-export class Exception extends ExceptionBase<Exception> {
+export class Exception extends ExceptionBase<Exception> implements IException<Exception> {
   at (key: string | number): Exception {
     return super.at(key) as Exception
   }

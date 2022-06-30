@@ -1,18 +1,16 @@
 import { adapter } from '../utils/adapter'
 import * as Config from '../utils/config'
-import { Location } from 'json-to-ast'
-import { lookupLocation } from '../utils/loader'
+import {
+  IException, IExceptionConfiguration, IExceptionLevel,
+  IExceptionLevelConfiguration,
+  IExceptionMessage,
+  IExceptionPreReport,
+  IExceptionReport
+} from '../utils/IException'
 
 const { inspect, eol } = adapter
-const exceptionMap = new WeakMap<ExceptionBase<any>, PreReport<any>>()
-const levels: Level[] = ['error', 'warn', 'info', 'ignore']
-
-export type ExceptionLevelConfig = Config.ExceptionLevelConfig
-
-interface ExceptionData<T extends ExceptionBase<T>> {
-  at: Record<string, T>
-  messages: Message[]
-}
+const exceptionMap = new WeakMap<ExceptionBase<any>, IExceptionPreReport<any>>()
+const levels: IExceptionLevel[] = ['error', 'warn', 'info', 'ignore']
 
 export interface LocationInput {
   node?: any // if node is not provided then the component definition is used for the node
@@ -20,63 +18,22 @@ export interface LocationInput {
   type?: 'value' | 'key' | 'both'
 }
 
-export type Level = Config.Level
-
-export interface Message {
-  alternateLevels: Level[]
-  additionalDetails?: string[]
-  code: string
-  definition?: any // component definition if available
-  exception?: ExceptionBase<any>
-  level: Level
-  locations?: Location[]
-  message: string
-  metadata: Record<string, any>
-  reference: string
-}
-
-interface PreReport<T extends ExceptionBase<T>> {
-  activeChildrenCount: {
-    error: number
-    warn: number
-    info: number
-    ignore: number
-  }
-  children: Array<{
-    at: string
-    data: PreReport<T>
-  }>
-  exception: ExceptionBase<T>
-  hasException: {
-    error: boolean
-    warn: boolean
-    info: boolean
-    ignore: boolean
-  }
-  messages: {
-    error: Message[]
-    warn: Message[]
-    info: Message[]
-    ignore: Message[]
-  }
-}
-
-type ExceptionReportDetailsItem = Message & {
+type ExceptionReportDetailsItem<T> = IExceptionMessage<T> & {
   breadcrumbs: string[]
 }
 
-export class ExceptionBase<T extends ExceptionBase<T>> {
+export class ExceptionBase<T extends IException<any>> implements IException<any> {
   public header: string | undefined
-  public data: ExceptionData<ExceptionBase<T>> = { at: {}, messages: [] }
-  public exceptionLevels: ExceptionLevelConfig
+  public data: { at: Record<string, IException<T>>, messages: Array<IExceptionMessage<T>> } = { at: {}, messages: [] }
+  public exceptionLevels: IExceptionLevelConfiguration
 
-  constructor (header?: string, exceptionLevels?: ExceptionLevelConfig) {
+  constructor (header?: string, exceptionLevels?: IExceptionLevelConfiguration) {
     this.header = header
     this.exceptionLevels = exceptionLevels ?? Config.get().exceptions?.levels ?? {}
   }
 
-  public adjustLevels (exceptionLevels: ExceptionLevelConfig): ExceptionBase<T> {
-    const store: Record<string, Message[]> = {}
+  public adjustLevels (exceptionLevels: IExceptionLevelConfiguration): ExceptionBase<T> {
+    const store: Record<string, Array<IExceptionMessage<T>>> = {}
     getMessagesByCode(this, store)
 
     Object.keys(exceptionLevels).forEach(code => {
@@ -102,9 +59,9 @@ export class ExceptionBase<T extends ExceptionBase<T>> {
     return at[key]
   }
 
-  public hasCode (code: string, levels?: Level | Level[]): boolean {
+  public hasCode (code: string, levels?: IExceptionLevel | IExceptionLevel[]): boolean {
     const { at, messages } = this.data
-    const lvl: Level[] | undefined = levels === undefined
+    const lvl: IExceptionLevel[] | undefined = levels === undefined
       ? undefined
       : Array.isArray(levels) ? levels : [levels]
 
@@ -122,12 +79,12 @@ export class ExceptionBase<T extends ExceptionBase<T>> {
     return false
   }
 
-  public message (message: Message): Message {
+  public message (message: IExceptionMessage<T>): IExceptionMessage<T> {
     // store the exception data
     this.data.messages.push(message)
 
     // adjust level as necessary
-    const newLevel: Level | undefined = this.exceptionLevels?.[message.code] ?? message.definition?.['x-enforcer']?.exceptions?.[message.code]
+    const newLevel: IExceptionLevel | undefined = this.exceptionLevels?.[message.code] ?? message.definition?.['x-enforcer']?.exceptions?.[message.code]
     if (newLevel !== undefined && newLevel !== message.level) {
       if (message.alternateLevels.includes(newLevel)) {
         message.level = newLevel
@@ -151,7 +108,7 @@ export class ExceptionBase<T extends ExceptionBase<T>> {
     return message
   }
 
-  public report (level: Level, options?: { indent: string, includeHeader: boolean }): ExceptionReport<T> | undefined {
+  public report (level: IExceptionLevel, options?: { indent: string, includeHeader: boolean }): IExceptionReport<T> | undefined {
     const config = Config.get().exceptions
     const data = runPreReport(config, this) // update the cache
     if (!data.hasException[level]) return
@@ -227,11 +184,11 @@ export class ExceptionBase<T extends ExceptionBase<T>> {
 // overwrite exception iterator, use array iterator
 ExceptionBase.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
 
-export class ExceptionReport<T extends ExceptionBase<T>> {
+export class ExceptionReport<T extends IException<T>> {
   public readonly message: string
-  public readonly exceptions: ExceptionReportDetailsItem[]
+  public readonly exceptions: Array<ExceptionReportDetailsItem<T>>
 
-  constructor (level: Level, data: PreReport<T>, header: string, indent = '') {
+  constructor (level: IExceptionLevel, data: IExceptionPreReport<T>, header: string, indent = '') {
     const { exceptions: config } = Config.get()
     this.message = 'Nothing to report'
     this.exceptions = []
@@ -296,10 +253,10 @@ export class ExceptionReport<T extends ExceptionBase<T>> {
   }
 }
 
-export class ErrorReport<T extends ExceptionBase<T>> extends ExceptionReport<T> {}
-export class WarningReport<T extends ExceptionBase<T>> extends ExceptionReport<T> {}
-export class InfoReport<T extends ExceptionBase<T>> extends ExceptionReport<T> {}
-export class IgnoredReport<T extends ExceptionBase<T>> extends ExceptionReport<T> {}
+export class ErrorReport<T extends IException<T>> extends ExceptionReport<T> {}
+export class WarningReport<T extends IException<T>> extends ExceptionReport<T> {}
+export class InfoReport<T extends IException<T>> extends ExceptionReport<T> {}
+export class IgnoredReport<T extends IException<T>> extends ExceptionReport<T> {}
 
 export function smart (value: any, options?: { addQuotationMarksToStrings?: boolean, wrapArray?: boolean }): string {
   const addQuotationMarksToStrings = options?.addQuotationMarksToStrings ?? true
@@ -319,7 +276,7 @@ export function smart (value: any, options?: { addQuotationMarksToStrings?: bool
   }
 }
 
-function getCachedPreReport<T extends ExceptionBase<T>> (exception: ExceptionBase<T>): PreReport<T> {
+function getCachedPreReport<T extends ExceptionBase<T>> (exception: ExceptionBase<T>): IExceptionPreReport<T> {
   const config = Config.get().exceptions
   const existing = exceptionMap.get(exception)
   const data = existing ?? runPreReport(config, exception)
@@ -327,7 +284,7 @@ function getCachedPreReport<T extends ExceptionBase<T>> (exception: ExceptionBas
   return data
 }
 
-function getReportByType<T extends ExceptionBase<T>> (level: Level, exception: ExceptionBase<T>): ExceptionReport<T> | undefined {
+function getReportByType<T extends ExceptionBase<T>> (level: IExceptionLevel, exception: ExceptionBase<T>): ExceptionReport<T> | undefined {
   const config = Config.get().exceptions
   const data = runPreReport(config, exception)
   if (!data.hasException[level]) return
@@ -336,9 +293,9 @@ function getReportByType<T extends ExceptionBase<T>> (level: Level, exception: E
   return new ErrorReport(level, data, header)
 }
 
-function runPreReport<T extends ExceptionBase<T>> (fullConfig: Required<Config.ExceptionConfiguration>, context: ExceptionBase<T>): PreReport<T> {
+function runPreReport<T extends IException<T>> (fullConfig: Required<IExceptionConfiguration>, context: ExceptionBase<T>): IExceptionPreReport<T> {
   const data = context.data
-  const result: PreReport<T> = {
+  const result: IExceptionPreReport<T> = {
     activeChildrenCount: {
       error: 0,
       warn: 0,
@@ -373,7 +330,7 @@ function runPreReport<T extends ExceptionBase<T>> (fullConfig: Required<Config.E
   const at = data.at
   Object.keys(at).forEach(key => {
     const data = runPreReport(fullConfig, at[key])
-    levels.forEach((level: Level) => {
+    levels.forEach((level: IExceptionLevel) => {
       if (data.hasException[level]) {
         result.hasException[level] = true
         result.activeChildrenCount[level]++
@@ -385,7 +342,7 @@ function runPreReport<T extends ExceptionBase<T>> (fullConfig: Required<Config.E
   return result
 }
 
-function getReport<T extends ExceptionBase<T>> (report: ExceptionReport<T>, level: Level, data: PreReport<T>, indent: string, isContinue: boolean, path: string[], extra: { footnotes: string }): string {
+function getReport<T extends IException<T>> (report: ExceptionReport<T>, level: IExceptionLevel, data: IExceptionPreReport<T>, indent: string, isContinue: boolean, path: string[], extra: { footnotes: string }): string {
   const indentPlus = indent + '  '
   const { exceptions: config } = Config.get()
   let result: string = ''
@@ -458,7 +415,7 @@ function getReport<T extends ExceptionBase<T>> (report: ExceptionReport<T>, leve
   return result
 }
 
-function getExceptionDetailsReport (indent: string, path: string[], message: Message): string {
+function getExceptionDetailsReport<T> (indent: string, path: string[], message: IExceptionMessage<T>): string {
   let result = ''
 
   // indent not added to first line only
@@ -477,7 +434,7 @@ function getExceptionDetailsReport (indent: string, path: string[], message: Mes
   return result
 }
 
-function getMessagesByCode (exception: ExceptionBase<any>, store: Record<string, Message[]>): void {
+function getMessagesByCode<T> (exception: ExceptionBase<any>, store: Record<string, Array<IExceptionMessage<T>>>): void {
   const at = exception.data.at
   Object.keys(at).forEach(key => {
     getMessagesByCode(at[key], store)

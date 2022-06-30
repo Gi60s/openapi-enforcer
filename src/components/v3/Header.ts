@@ -6,10 +6,11 @@ import { Example } from './Example'
 import { Schema } from './Schema'
 import { MediaType } from './MediaType'
 import { Header3 as Definition } from '../helpers/definition-types'
+import { IHeader3 } from '../interfaces/IHeader'
 
 let schemaHeaders: ComponentSchema<Definition>
 
-export class Header extends OASComponent<Definition, typeof Header> {
+export class Header extends OASComponent<Definition, typeof Header> implements IHeader3 {
   extensions!: Record<string, any>
   deprecated?: boolean // defaults to false
   description?: string

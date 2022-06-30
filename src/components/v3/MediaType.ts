@@ -8,10 +8,11 @@ import { Example } from './Example'
 import { RequestBody } from './RequestBody'
 import { Schema } from './Schema'
 import { MediaType3 as Definition } from '../helpers/definition-types'
+import { IMediaType } from '../interfaces/IMediaType'
 
 let mediaTypeSchema: ComponentSchema<Definition>
 
-export class MediaType extends OASComponent {
+export class MediaType extends OASComponent implements IMediaType {
   extensions!: Record<string, any>
   encoding?: Record<string, Encoding>
   example?: any

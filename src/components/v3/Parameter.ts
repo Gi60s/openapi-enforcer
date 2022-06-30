@@ -7,11 +7,12 @@ import * as Core from '../Parameter'
 import { Parameter3 as Definition } from '../helpers/definition-types'
 import { Result } from '../../utils/Result'
 import { parsePrimitive } from '../helpers/Parameter'
+import { IParameter3 } from '../interfaces/IParameter'
 
 const rxLabel = /^\./
 let parameterSchema: ComponentSchema<Definition>
 
-export class Parameter extends OASComponent {
+export class Parameter extends OASComponent implements IParameter3 {
   extensions!: Record<string, any>
   name!: string
   in!: 'cookie' | 'header' | 'path' | 'query'
@@ -33,15 +34,12 @@ export class Parameter extends OASComponent {
   }
 
   /**
-   * Get an example from the parameter if it exists, otherwise get the example from the schema if it exists,
-   * otherwise get a randomly generated example.
-   * @param [options] Optional, options for specifying how to get the example.
-   * @param [options.allowRandom] Optional, whether to allow generating a random value for the example. This value will follow the {@link schema} if provided. Defaults to true unless the options.name property is specified.
-   * @param [options.name] Optional, the name of the example to get. This is only applicable if the {@link examples} property is used. If the named example cannot be found an error will be thrown unless the option to allowRandom is specifically set to true.
-   * @param [options.source] Optional, the first source to pull the example from. Defaults to the parameter example, then the schema example, then a randomly generated value.
-   * @returns The example matching the type specified by your OpenAPI document.
+   * Get or generate an example.
+   * @param source Use 'random' to generate a random example, use 'schema' to use the schema example (if it exists), and use 'example` to use the parameter example if it exists.
+   * @param [name] If the source is set to `example` then you can specify a name or names of examples to use to get the example.
+   * @returns The retrieved example if found, otherwise undefined.
    */
-  getExample (options?: { allowRandom?: boolean, name?: string, source?: 'parameter' | 'random' | 'schema' }): any {
+  getExample (source: 'random' | 'schema' | 'example' | Array<'random' | 'schema' | 'example'>, name?: string): any {
     // TODO: write this function
   }
 
@@ -116,7 +114,7 @@ export class Parameter extends OASComponent {
         }
       } else if (type === 'object') {
         if (explode) {
-          const result = objectExploded('&', '=', '&' + value)
+          const result = objectExploded('&', '=', '&' + (value as string))
           if (result !== undefined) {
             parsed = {}
             Object.keys(result).forEach(name => {

@@ -1,29 +1,30 @@
 import { Version } from '../components/helpers/builder-validator-types'
+import { IExceptionConfiguration } from './IException'
 
-export type ExceptionLevelConfig = Record<string, Level>
+// export type ExceptionLevelConfig = Record<string, IExceptionLevel>
 
 export interface Configuration {
-  exceptions?: ExceptionConfiguration
+  exceptions?: IExceptionConfiguration
   version?: Version
 }
-
-export interface ExceptionConfiguration {
-  // none - show only message
-  // code - ex: Field is required. [codeX]
-  // footnote - ex: Field is required [2]
-  // locations - ex: Field is required \n my-file.js:20:7 (locations on following lines)
-  // detailed - shows code, id, locations, breadcrumbs
-  details: 'none' | 'all' | 'breadcrumbs' | 'code' | 'footnote' | 'locations'
-  levels?: ExceptionLevelConfig
-  message: 'text' | 'data' | 'json' // if "json" then details and locations settings are ignored
-}
+//
+// export interface ExceptionConfiguration {
+//   // none - show only message
+//   // code - ex: Field is required. [codeX]
+//   // footnote - ex: Field is required [2]
+//   // locations - ex: Field is required \n my-file.js:20:7 (locations on following lines)
+//   // detailed - shows code, id, locations, breadcrumbs
+//   details: 'none' | 'all' | 'breadcrumbs' | 'code' | 'footnote' | 'locations'
+//   levels?: ExceptionLevelConfig
+//   message: 'text' | 'data' | 'json' // if "json" then details and locations settings are ignored
+// }
 
 export interface FullConfiguration {
-  exceptions: Required<ExceptionConfiguration>
+  exceptions: Required<IExceptionConfiguration>
   version: Version
 }
 
-export type Level = 'ignore' | 'info' | 'warn' | 'error'
+// export type Level = 'ignore' | 'info' | 'warn' | 'error'
 
 let current: FullConfiguration = {
   exceptions: {

@@ -1,19 +1,15 @@
 import { OASComponent } from './'
 import { Component, ComponentSchema } from './helpers/builder-validator-types'
-import { Operation } from './Operation'
 import { PathItem, methods3 } from './PathItem'
 import { LocationInput } from '../Exception'
-import {
-  Method,
-  GetOperationOptions,
-  GetOperationResult,
-  PathsFindPathResult
-} from './helpers/function-interfaces'
 import { edgeSlashes } from '../utils/util'
+import { IPathItem2, IPathItem3 } from './interfaces/IPathItem'
+import { IFindPathsResulItem, IFindPathsResult } from './interfaces/IPaths'
+import { IMethod, IGetOperationOptions, IGetOperationResult, IOperation2, IOperation3 } from './interfaces/IOperation'
 
-const pathParsersMap: WeakMap<Paths<any>, PathParserStore> = new WeakMap()
+const pathParsersMap: WeakMap<IPathItem2 | IPathItem3, PathParserStore> = new WeakMap()
 
-type PathParser = (path: string) => PathsFindPathResult<Operation, PathItem<Operation>> | undefined
+type PathParser = (path: string) => IFindPathsResulItem<IPathItem2 | IPathItem3> | undefined
 type PathParserStore = PathParser[]
 
 export function schemaGenerator<Definition> (PathItemComponent: Component): ComponentSchema<Definition> {
@@ -102,7 +98,7 @@ export function schemaGenerator<Definition> (PathItemComponent: Component): Comp
         }
 
         duplicatePaths.forEach(paths => {
-          const methods: Method[] = []
+          const methods: IMethod[] = []
           paths.forEach(path => {
             const def = definition[path]
             methods3.forEach(method => {
@@ -135,19 +131,19 @@ export function schemaGenerator<Definition> (PathItemComponent: Component): Comp
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export abstract class Paths<Operation> extends OASComponent {
+export abstract class Paths<IOperation extends IOperation2 | IOperation3, IPathItem extends IPathItem2 | IPathItem3> extends OASComponent {
   extensions!: Record<string, any>
   paths!: {
-    [path: string]: PathItem<Operation>
+    [path: string]: IPathItem
   }
 
-  findOperation<P extends PathItem<any>> (method: Method, path: string, options?: GetOperationOptions): GetOperationResult<any, any> | undefined {
+  findOperation (method: IMethod, path: string, options?: IGetOperationOptions): IGetOperationResult<IOperation, IPathItem> | undefined {
     if (options === undefined) options = {}
     if (options.normalizePath === undefined) options.normalizePath = true
 
     path = path.split('?')[0]
 
-    method = method.toLowerCase() as Method
+    method = method.toLowerCase() as IMethod
     path = path.split('?')[0]
     if (options?.normalizePath) path = edgeSlashes(path, true, false)
 
@@ -155,9 +151,9 @@ export abstract class Paths<Operation> extends OASComponent {
     const matchesLength = matches.length
     if (matches.length === 0) return
 
-    let match: PathsFindPathResult<any, any> | undefined
-    let pathItem: P | undefined
-    let operation: Operation | undefined
+    let match: IFindPathsResulItem<IPathItem2 | IPathItem3> | undefined
+    let pathItem: IPathItem2 | IPathItem3 | undefined
+    let operation: IOperation2 | IOperation3 | undefined
     for (let i = 0; i < matchesLength; i++) {
       match = matches[i]
       pathItem = match.pathItem
@@ -168,20 +164,20 @@ export abstract class Paths<Operation> extends OASComponent {
     if (operation === undefined) return
 
     return {
-      operation,
+      operation: operation as IOperation,
       params: match?.params as Record<string, string>,
       path: match?.path as string,
-      pathItem: pathItem as P
+      pathItem: pathItem as IPathItem
     }
   }
 
-  findPaths (path: string): Array<PathsFindPathResult<any, any>> {
+  findPaths (path: string): IFindPathsResult<IPathItem2 | IPathItem3> {
     const parsers = pathParsersMap.get(this)
     if (parsers === undefined) throw Error('Invalid execution context. Make sure you are calling from the context of the Paths instance.')
 
     return parsers
       .map(parser => parser(path))
-      .filter(match => match !== null) as Array<PathsFindPathResult<any, any>>
+      .filter(match => match !== null) as IFindPathsResult<IPathItem2 | IPathItem3>
   }
 }
 

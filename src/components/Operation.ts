@@ -30,44 +30,6 @@ interface ComponentsMap {
   Responses: Component
 }
 
-type EnforcerOperationData = EnforcerDataOperation2 | EnforcerDataOperation3
-
-export interface EnforcerDataOperation2 {
-  method: Method
-  path: string
-  parameters: {
-    body?: Parameter2
-    formData?: Record<string, Parameter2>
-    header?: Record<string, Parameter2>
-    path?: Record<string, Parameter2>
-    query?: Record<string, Parameter2>
-  }
-  requiredParameters: {
-    body: boolean
-    formData: string[]
-    header: string[]
-    path: string[]
-    query: string[]
-  }
-}
-
-export interface EnforcerDataOperation3 {
-  method: Method
-  path: string
-  parameters: {
-    cookie?: Record<string, Parameter3>
-    header?: Record<string, Parameter3>
-    path?: Record<string, Parameter3>
-    query?: Record<string, Parameter3>
-  }
-  requiredParameters: {
-    cookie: string[]
-    header: string[]
-    path: string[]
-    query: string[]
-  }
-}
-
 type RecordArray = Record<string, string[]>
 
 export type RequestInput = OperationMakeRequestInput

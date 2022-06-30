@@ -6,13 +6,14 @@ import { Header } from './Header'
 import { MediaType } from './MediaType'
 import { Encoding3 as Definition, MediaType3 as MediaTypeDefinition, Schema3 as SchemaDefinition } from '../helpers/definition-types'
 import * as Serializer from '../helpers/serializer'
+import { IEncoding } from '../interfaces/IEncoding'
 
 const ignoreStyle = checkIfIgnored('style', 'application/x-www-form-urlencoded', 'The "style" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
 const ignoreAllowReserved = checkIfIgnored('allowReserved', 'application/x-www-form-urlencoded', 'The "allowReserved" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
 const ignoreExplode = checkIfIgnored('explode', 'application/x-www-form-urlencoded', 'The "explode" property is ignored unless the request body media type is "application/x-www-form-urlencoded".')
 let schemaEncoding: ComponentSchema<Definition>
 
-export class Encoding extends OASComponent {
+export class Encoding extends OASComponent implements IEncoding {
   extensions!: Record<string, any>
   allowReserved?: boolean
   contentType?: string

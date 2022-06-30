@@ -3,10 +3,11 @@ import { DefinitionException } from '../../Exception'
 import { OASComponent, componentValidate } from '../index'
 import { PathItem } from './PathItem'
 import { Callback3 as Definition } from '../helpers/definition-types'
+import { ICallback } from '../interfaces/ICallback'
 
 let callbackSchema: ComponentSchema<Definition>
 
-export class Callback extends OASComponent {
+export class Callback extends OASComponent implements ICallback {
   extensions!: Record<string, any>
   expression!: {
     [expression: string]: PathItem

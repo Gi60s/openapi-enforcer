@@ -12,11 +12,12 @@ import { Result } from '../../utils/Result'
 import { MediaTypeParser } from '../../utils/MediaTypeParser'
 import { PathItem } from './PathItem'
 import { OpenAPI } from './OpenAPI'
+import { EnforcerDataOperation3, IOperation3 } from '../interfaces/IOperation'
 
 let operationSchema: ComponentSchema<Definition>
 
-export class Operation extends Core.Operation {
-  enforcer!: EnforcerData<Operation> & Core.EnforcerDataOperation3
+export class Operation extends Core.Operation implements IOperation3 {
+  enforcer!: EnforcerData<Operation> & EnforcerDataOperation3
 
   callbacks?: Record<string, Callback>
   parameters?: Parameter[]
@@ -27,7 +28,7 @@ export class Operation extends Core.Operation {
     super(Operation, definition, version, arguments[2])
   }
 
-  makeRequest (request: Core.RequestInput, options?: Core.RequestOptions): Result<Core.RequestOutput> {
+  parseRequest (request: Core.RequestInput, options?: Core.RequestOptions): Result<Core.RequestOutput> {
     const { exception, result } = Core.preRequest(request, this, options)
 
     if (result.body !== undefined) {

@@ -6,11 +6,12 @@ import { Parameter } from './Parameter'
 import * as Core from '../PathItem'
 import { PathItem3 as Definition } from '../helpers/definition-types'
 import { OpenAPI } from './OpenAPI'
+import { IPathItem3 } from '../interfaces/IPathItem'
 
 const methods = Core.methods3
 let pathItemSchema: ComponentSchema<Definition>
 
-export class PathItem extends Core.PathItem<Operation> {
+export class PathItem extends Core.PathItem<Operation> implements IPathItem3 {
   description?: string
   parameters?: Parameter[]
   trace?: Operation

@@ -3,10 +3,11 @@ import { ComponentSchema, Version } from './helpers/builder-validator-types'
 import { DefinitionException } from '../Exception'
 import rx from '../utils/rx'
 import { Contact as Definition } from './helpers/definition-types'
+import { IContact } from './interfaces/IContact'
 
 let contactSchema: ComponentSchema<Definition>
 
-export class Contact extends OASComponent {
+export class Contact extends OASComponent implements IContact {
   extensions!: Record<string, any>
   email?: string
   name?: string

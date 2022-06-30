@@ -4,11 +4,12 @@ import { DefinitionException } from '../Exception'
 import { Contact } from './Contact'
 import { License } from './License'
 import { Info as Definition } from './helpers/definition-types'
+import { IInfo } from './interfaces/IInfo'
 import rx from '../utils/rx'
 
 let infoSchema: ComponentSchema<Definition>
 
-export class Info extends OASComponent<Definition> {
+export class Info extends OASComponent<Definition> implements IInfo {
   extensions!: Record<string, any>
   title!: string
   description?: string

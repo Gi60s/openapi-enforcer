@@ -11,10 +11,11 @@ import {
   GetOperationResult,
   PathsFindPathResult
 } from '../helpers/function-interfaces'
+import { IPaths2 } from '../interfaces/IPaths'
 
 let pathsSchema: ComponentSchema<Definition>
 
-export class Paths extends Core.Paths<PathItem> {
+export class Paths extends Core.Paths<PathItem> implements IPaths2 {
   constructor (definition: Definition, version?: Version) {
     super(Paths, definition, version, arguments[2])
   }

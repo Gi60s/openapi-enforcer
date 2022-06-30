@@ -1,5 +1,6 @@
 import { Exception } from './Exception'
-import { ExceptionBase, Message, smart } from './ExceptionBase'
+import { ExceptionBase, smart } from './ExceptionBase'
+import { IExceptionMessage } from '../utils/IException'
 import { ValidatorData } from '../components/helpers/builder-validator-types'
 import {
   Operation2 as OperationDefinition2,
@@ -16,84 +17,84 @@ export interface LocationInput {
 type OperationDefinition = OperationDefinition2 | OperationDefinition3
 
 interface Adders {
-  $refIgnoresSiblings: (data: ValidatorData, location: LocationInput, siblingProperties: string[]) => Message
-  $refNotAllowed: (data: ValidatorData, location: LocationInput) => Message
-  additionalPropertiesInValue: (data: ValidatorData, locations: LocationInput[], additionalProperties: string[]) => Message
-  allOfConflictingSchemaTypes: (data: ValidatorData, location: LocationInput, types: string[]) => Message
-  allOfConflictingSchemaFormats: (data: ValidatorData, location: LocationInput, formats: string[]) => Message
-  constraintIsNotAMultiple: (data: ValidatorData, location: LocationInput, constraint: 'minimum' | 'maximum', value: string | number, multipleOf: string | number) => Message
-  defaultRequiredConflict: (data: ValidatorData, locations: LocationInput[]) => Message
-  defaultValueDoesNotMatchSchema: (data: ValidatorData, location: LocationInput, defaultValue: any, exception: Exception) => Message
-  encodingMissingAssociatedSchema: (data: ValidatorData, location: LocationInput) => Message
-  encodingNameNotMatched: (data: ValidatorData, location: LocationInput, encodingName: string) => Message
-  encodingHeaderContentType: (data: ValidatorData, location: LocationInput) => Message
-  encodingHeadersIgnored: (data: ValidatorData, location: LocationInput) => Message
-  enumMissingValues: (data: ValidatorData, location: LocationInput) => Message
-  enumNotMet: (data: ValidatorData, location: LocationInput, acceptableValues: any[], invalidValue: any) => Message
-  enumValueDoesNotMatchSchema: (data: ValidatorData, location: LocationInput, value: any, exception: Exception) => Message
-  exampleMediaTypeNotProduced: (data: ValidatorData, location: LocationInput, mediaType: string, produces: string[]) => Message
-  exampleNotSerializable: (data: ValidatorData, location: LocationInput, example: any, schema: any, exception: Exception) => Message
-  exampleNotValid: (data: ValidatorData, location: LocationInput, example: any, schema: any, exception: Exception) => Message
-  exampleWithoutSchema: (data: ValidatorData, location: LocationInput) => Message
-  exceedsArrayLengthBounds: (data: ValidatorData, location: LocationInput, boundBy: 'maxItems' | 'minItems', boundValue: number, actualCount: number) => Message
-  exceedsNumberBounds: (data: ValidatorData, location: LocationInput, boundBy: 'maximum' | 'minimum', allowEqual: boolean, boundValue: any, invalidValue: number) => Message
-  exceedsStringLengthBounds: (data: ValidatorData, location: LocationInput, boundBy: 'maxLength' | 'minLength', boundValue: number, invalidValue: string) => Message
-  exceedsSummaryLength: (data: ValidatorData, location: LocationInput, summary: string) => Message
-  extensionNotAllowed: (data: ValidatorData, location: LocationInput) => Message
-  invalidAdditionalPropertiesSchema: (data: ValidatorData, location: LocationInput, invalidSchema: any) => Message
-  invalidCookieExplode: (data: ValidatorData, location: LocationInput, parameterName: string) => Message
-  invalidEmail: (data: ValidatorData, location: LocationInput, invalidValue: any) => Message
-  invalidMaxMin: (data: ValidatorData, locations: LocationInput[], minimum: any, maximum: any, minProperty: string, maxProperty: string, exclusive: boolean) => Message
-  invalidMediaType: (data: ValidatorData, location: LocationInput, mediaType: string) => Message
-  invalidOpenApiVersionNumber: (data: ValidatorData, location: LocationInput, version: string) => Message
-  invalidResponseCode: (data: ValidatorData, location: LocationInput, code: string) => Message
-  invalidResponseLinkKey: (data: ValidatorData, location: LocationInput, key: string) => Message
-  invalidSemanticVersionNumber: (data: ValidatorData, location: LocationInput, version: string) => Message
-  invalidStyle: (data: ValidatorData, location: LocationInput, style: string, type: string, at: string, explode: boolean, mode: 'type' | 'location') => Message
-  invalidType: (data: ValidatorData, location: LocationInput, expectedType: string, invalidValue: any, reference?: string) => Message
-  invalidUrl: (data: ValidatorData, location: LocationInput, invalidValue: any) => Message
-  invalidVersionForComponent: (data: ValidatorData, location: LocationInput, componentName: string, version: string) => Message
-  linkOperationConflict: (data: ValidatorData, locations: LocationInput[]) => Message
-  linkOperationMissing: (data: ValidatorData, location: LocationInput) => Message
-  linkedOperationNotFound: (data: ValidatorData, location: LocationInput, key: 'operationId' | 'operationRef', value: string) => Message
-  loaderFailedToLoadResource: (path: string, cause: string) => Message
-  loaderNotAvailable: (path: string, reasons: string[]) => Message
-  mediaTypeSchemaMustBeObject: (data: ValidatorData, location: LocationInput, type: string) => Message
-  missingRequiredProperties: (data: ValidatorData, location: LocationInput, properties: string[]) => Message
-  mustNotBeNull: (data: ValidatorData, location: LocationInput) => Message
-  noPathsDefined: (data: ValidatorData, location: LocationInput) => Message
-  notRecommended: (data: ValidatorData, location: LocationInput, message: string) => Message
-  operationMethodShouldNotHaveBody: (data: ValidatorData, location: LocationInput, method: string) => Message
-  operationIdMustBeUnique: (data: ValidatorData, locations: LocationInput[], operationId: string, conflictsData: Array<ValidatorData<OperationDefinition>>) => Message
-  parameterBodyFormDataConflict: (data: ValidatorData, locations: LocationInput[]) => Message
-  parameterCollectionMultiFormat: (data: ValidatorData, location: LocationInput) => Message
-  parameterContentMediaTypeCount: (data: ValidatorData, locations: LocationInput[], mediaTypes: string[]) => Message
-  parameterFileTypeConstraintsNotMet: (data: ValidatorData, location: LocationInput) => Message,
-  parameterNamespaceConflict: (data: ValidatorData, locations: LocationInput[], name: string, at: string) => Message
-  parameterSchemaContentRequired: (data: ValidatorData, location: LocationInput) => Message
-  pathEndingsInconsistent: (data: ValidatorData, locations: LocationInput[], pathsWithTrailingSlash: string[], pathsWithoutTrailingSlash: string[]) => Message
-  pathMissingMethods: (data: ValidatorData, location: LocationInput, path: string) => Message
-  pathParameterMustBeRequired: (data: ValidatorData, location: LocationInput, parameterName: string) => Message
-  pathParameterMismatch: (data: ValidatorData, locations: LocationInput[], parameterName: string, path: string, missingIn: 'path' | 'parameters') => Message
-  pathsNotUnique: (data: ValidatorData, locations: LocationInput[], paths: string[]) => Message
-  propertiesMutuallyExclusive: (data: ValidatorData, locations: LocationInput[], properties: string[]) => Message
-  propertyIgnored: (data: ValidatorData, location: LocationInput, value: string, reason: string) => Message
-  propertyNotAllowed: (data: ValidatorData, location: LocationInput, propertyName: string, reason: string) => Message
-  refNotResolved: (data: ValidatorData, location: LocationInput, ref: string, from: string) => Message
-  requestBodyContentEmpty: (data: ValidatorData, location: LocationInput) => Message
-  responseBodyNotAllowed: (data: ValidatorData, location: LocationInput, type: 'schema' | 'content') => Message
-  responseRequired: (data: ValidatorData, location: LocationInput) => Message
-  responseShouldIncludeLocationHeader: (data: ValidatorData, location: LocationInput) => Message
-  responsesShouldIncludeSuccess: (data: ValidatorData, location: LocationInput) => Message
-  securityRequirementNotEmptyArray: (data: ValidatorData, location: LocationInput, major: number) => Message
-  securitySchemeMissingReference: (data: ValidatorData, location: LocationInput, major: number) => Message
-  swaggerBasePathInvalid: (data: ValidatorData, location: LocationInput, basePath: string) => Message
-  swaggerBasePathTemplating: (data: ValidatorData, location: LocationInput, basePath: string) => Message
-  swaggerHostDoesNotSupportPathTemplating: (data: ValidatorData, location: LocationInput, host: string) => Message
-  swaggerHostHasScheme: (data: ValidatorData, location: LocationInput, host: string, scheme: string) => Message
-  swaggerHostHasSubPath: (data: ValidatorData, location: LocationInput, host: string, subPath: string) => Message
-  unknownTypeFormat: (data: ValidatorData, location: LocationInput, type: string, format: string) => Message
-  valueIgnored: (data: ValidatorData, location: LocationInput, value: string, reason: string) => Message
+  $refIgnoresSiblings: (data: ValidatorData, location: LocationInput, siblingProperties: string[]) => IExceptionMessage<DefinitionException>
+  $refNotAllowed: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  additionalPropertiesInValue: (data: ValidatorData, locations: LocationInput[], additionalProperties: string[]) => IExceptionMessage<DefinitionException>
+  allOfConflictingSchemaTypes: (data: ValidatorData, location: LocationInput, types: string[]) => IExceptionMessage<DefinitionException>
+  allOfConflictingSchemaFormats: (data: ValidatorData, location: LocationInput, formats: string[]) => IExceptionMessage<DefinitionException>
+  constraintIsNotAMultiple: (data: ValidatorData, location: LocationInput, constraint: 'minimum' | 'maximum', value: string | number, multipleOf: string | number) => IExceptionMessage<DefinitionException>
+  defaultRequiredConflict: (data: ValidatorData, locations: LocationInput[]) => IExceptionMessage<DefinitionException>
+  defaultValueDoesNotMatchSchema: (data: ValidatorData, location: LocationInput, defaultValue: any, exception: Exception) => IExceptionMessage<DefinitionException>
+  encodingMissingAssociatedSchema: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  encodingNameNotMatched: (data: ValidatorData, location: LocationInput, encodingName: string) => IExceptionMessage<DefinitionException>
+  encodingHeaderContentType: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  encodingHeadersIgnored: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  enumMissingValues: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  enumNotMet: (data: ValidatorData, location: LocationInput, acceptableValues: any[], invalidValue: any) => IExceptionMessage<DefinitionException>
+  enumValueDoesNotMatchSchema: (data: ValidatorData, location: LocationInput, value: any, exception: Exception) => IExceptionMessage<DefinitionException>
+  exampleMediaTypeNotProduced: (data: ValidatorData, location: LocationInput, mediaType: string, produces: string[]) => IExceptionMessage<DefinitionException>
+  exampleNotSerializable: (data: ValidatorData, location: LocationInput, example: any, schema: any, exception: Exception) => IExceptionMessage<DefinitionException>
+  exampleNotValid: (data: ValidatorData, location: LocationInput, example: any, schema: any, exception: Exception) => IExceptionMessage<DefinitionException>
+  exampleWithoutSchema: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  exceedsArrayLengthBounds: (data: ValidatorData, location: LocationInput, boundBy: 'maxItems' | 'minItems', boundValue: number, actualCount: number) => IExceptionMessage<DefinitionException>
+  exceedsNumberBounds: (data: ValidatorData, location: LocationInput, boundBy: 'maximum' | 'minimum', allowEqual: boolean, boundValue: any, invalidValue: number) => IExceptionMessage<DefinitionException>
+  exceedsStringLengthBounds: (data: ValidatorData, location: LocationInput, boundBy: 'maxLength' | 'minLength', boundValue: number, invalidValue: string) => IExceptionMessage<DefinitionException>
+  exceedsSummaryLength: (data: ValidatorData, location: LocationInput, summary: string) => IExceptionMessage<DefinitionException>
+  extensionNotAllowed: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  invalidAdditionalPropertiesSchema: (data: ValidatorData, location: LocationInput, invalidSchema: any) => IExceptionMessage<DefinitionException>
+  invalidCookieExplode: (data: ValidatorData, location: LocationInput, parameterName: string) => IExceptionMessage<DefinitionException>
+  invalidEmail: (data: ValidatorData, location: LocationInput, invalidValue: any) => IExceptionMessage<DefinitionException>
+  invalidMaxMin: (data: ValidatorData, locations: LocationInput[], minimum: any, maximum: any, minProperty: string, maxProperty: string, exclusive: boolean) => IExceptionMessage<DefinitionException>
+  invalidMediaType: (data: ValidatorData, location: LocationInput, mediaType: string) => IExceptionMessage<DefinitionException>
+  invalidOpenApiVersionNumber: (data: ValidatorData, location: LocationInput, version: string) => IExceptionMessage<DefinitionException>
+  invalidResponseCode: (data: ValidatorData, location: LocationInput, code: string) => IExceptionMessage<DefinitionException>
+  invalidResponseLinkKey: (data: ValidatorData, location: LocationInput, key: string) => IExceptionMessage<DefinitionException>
+  invalidSemanticVersionNumber: (data: ValidatorData, location: LocationInput, version: string) => IExceptionMessage<DefinitionException>
+  invalidStyle: (data: ValidatorData, location: LocationInput, style: string, type: string, at: string, explode: boolean, mode: 'type' | 'location') => IExceptionMessage<DefinitionException>
+  invalidType: (data: ValidatorData, location: LocationInput, expectedType: string, invalidValue: any, reference?: string) => IExceptionMessage<DefinitionException>
+  invalidUrl: (data: ValidatorData, location: LocationInput, invalidValue: any) => IExceptionMessage<DefinitionException>
+  invalidVersionForComponent: (data: ValidatorData, location: LocationInput, componentName: string, version: string) => IExceptionMessage<DefinitionException>
+  linkOperationConflict: (data: ValidatorData, locations: LocationInput[]) => IExceptionMessage<DefinitionException>
+  linkOperationMissing: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  linkedOperationNotFound: (data: ValidatorData, location: LocationInput, key: 'operationId' | 'operationRef', value: string) => IExceptionMessage<DefinitionException>
+  loaderFailedToLoadResource: (path: string, cause: string) => IExceptionMessage<DefinitionException>
+  loaderNotAvailable: (path: string, reasons: string[]) => IExceptionMessage<DefinitionException>
+  mediaTypeSchemaMustBeObject: (data: ValidatorData, location: LocationInput, type: string) => IExceptionMessage<DefinitionException>
+  missingRequiredProperties: (data: ValidatorData, location: LocationInput, properties: string[]) => IExceptionMessage<DefinitionException>
+  mustNotBeNull: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  noPathsDefined: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  notRecommended: (data: ValidatorData, location: LocationInput, message: string) => IExceptionMessage<DefinitionException>
+  operationMethodShouldNotHaveBody: (data: ValidatorData, location: LocationInput, method: string) => IExceptionMessage<DefinitionException>
+  operationIdMustBeUnique: (data: ValidatorData, locations: LocationInput[], operationId: string, conflictsData: Array<ValidatorData<OperationDefinition>>) => IExceptionMessage<DefinitionException>
+  parameterBodyFormDataConflict: (data: ValidatorData, locations: LocationInput[]) => IExceptionMessage<DefinitionException>
+  parameterCollectionMultiFormat: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  parameterContentMediaTypeCount: (data: ValidatorData, locations: LocationInput[], mediaTypes: string[]) => IExceptionMessage<DefinitionException>
+  parameterFileTypeConstraintsNotMet: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  parameterNamespaceConflict: (data: ValidatorData, locations: LocationInput[], name: string, at: string) => IExceptionMessage<DefinitionException>
+  parameterSchemaContentRequired: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  pathEndingsInconsistent: (data: ValidatorData, locations: LocationInput[], pathsWithTrailingSlash: string[], pathsWithoutTrailingSlash: string[]) => IExceptionMessage<DefinitionException>
+  pathMissingMethods: (data: ValidatorData, location: LocationInput, path: string) => IExceptionMessage<DefinitionException>
+  pathParameterMustBeRequired: (data: ValidatorData, location: LocationInput, parameterName: string) => IExceptionMessage<DefinitionException>
+  pathParameterMismatch: (data: ValidatorData, locations: LocationInput[], parameterName: string, path: string, missingIn: 'path' | 'parameters') => IExceptionMessage<DefinitionException>
+  pathsNotUnique: (data: ValidatorData, locations: LocationInput[], paths: string[]) => IExceptionMessage<DefinitionException>
+  propertiesMutuallyExclusive: (data: ValidatorData, locations: LocationInput[], properties: string[]) => IExceptionMessage<DefinitionException>
+  propertyIgnored: (data: ValidatorData, location: LocationInput, value: string, reason: string) => IExceptionMessage<DefinitionException>
+  propertyNotAllowed: (data: ValidatorData, location: LocationInput, propertyName: string, reason: string) => IExceptionMessage<DefinitionException>
+  refNotResolved: (data: ValidatorData, location: LocationInput, ref: string, from: string) => IExceptionMessage<DefinitionException>
+  requestBodyContentEmpty: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  responseBodyNotAllowed: (data: ValidatorData, location: LocationInput, type: 'schema' | 'content') => IExceptionMessage<DefinitionException>
+  responseRequired: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  responseShouldIncludeLocationHeader: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  responsesShouldIncludeSuccess: (data: ValidatorData, location: LocationInput) => IExceptionMessage<DefinitionException>
+  securityRequirementNotEmptyArray: (data: ValidatorData, location: LocationInput, major: number) => IExceptionMessage<DefinitionException>
+  securitySchemeMissingReference: (data: ValidatorData, location: LocationInput, major: number) => IExceptionMessage<DefinitionException>
+  swaggerBasePathInvalid: (data: ValidatorData, location: LocationInput, basePath: string) => IExceptionMessage<DefinitionException>
+  swaggerBasePathTemplating: (data: ValidatorData, location: LocationInput, basePath: string) => IExceptionMessage<DefinitionException>
+  swaggerHostDoesNotSupportPathTemplating: (data: ValidatorData, location: LocationInput, host: string) => IExceptionMessage<DefinitionException>
+  swaggerHostHasScheme: (data: ValidatorData, location: LocationInput, host: string, scheme: string) => IExceptionMessage<DefinitionException>
+  swaggerHostHasSubPath: (data: ValidatorData, location: LocationInput, host: string, subPath: string) => IExceptionMessage<DefinitionException>
+  unknownTypeFormat: (data: ValidatorData, location: LocationInput, type: string, format: string) => IExceptionMessage<DefinitionException>
+  valueIgnored: (data: ValidatorData, location: LocationInput, value: string, reason: string) => IExceptionMessage<DefinitionException>
 }
 
 export class DefinitionException extends ExceptionBase<DefinitionException> {
@@ -909,7 +910,7 @@ export class DefinitionException extends ExceptionBase<DefinitionException> {
   }
 }
 
-function getExceptionMessageData (data: ValidatorData | null, locations: LocationInput[], reference: boolean | string, message: Partial<Message>): Message {
+function getExceptionMessageData (data: ValidatorData | null, locations: LocationInput[], reference: boolean | string, message: Partial<IExceptionMessage<DefinitionException>>): IExceptionMessage<DefinitionException> {
   // convert location lookup data to actual locations
   const actualLocations = locations
     .map(location => {
@@ -926,5 +927,5 @@ function getExceptionMessageData (data: ValidatorData | null, locations: Locatio
     reference: reference === true
       ? data === null ? '' : data.component.reference
       : reference === false ? '' : reference
-  }) as Message
+  }) as IExceptionMessage<DefinitionException>
 }

@@ -2,24 +2,16 @@ import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { DefinitionException } from '../../Exception'
 import { componentValidate } from '../index'
 import { PathItem } from './PathItem'
-import { Operation } from './Operation'
 import * as Core from '../Paths'
 import { Paths3 as Definition } from '../helpers/definition-types'
-import { GetOperationOptions, GetOperationResult, Method, PathsFindPathResult } from '../helpers/function-interfaces'
+import { IOperation3 } from '../interfaces/IOperation'
+import { IPaths3 } from '../interfaces/IPaths'
 
 let pathsSchema: ComponentSchema<Definition>
 
-export class Paths extends Core.Paths<Paths> {
+export class Paths extends Core.Paths<IOperation3> implements IPaths3 {
   constructor (definition: Definition, version?: Version) {
     super(Paths, definition, version, arguments[2])
-  }
-
-  findOperation (method: Method, path: string, options?: GetOperationOptions): GetOperationResult<Operation, PathItem> | undefined {
-    return super.findOperation(method, path, options)
-  }
-
-  findPaths (path: string): Array<PathsFindPathResult<Operation, PathItem>> {
-    return super.findPaths(path)
   }
 
   static spec = {

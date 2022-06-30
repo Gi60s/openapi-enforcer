@@ -4,10 +4,11 @@ import { OASComponent, componentValidate } from '../index'
 import { Schema } from './Schema'
 import { lookupLocation, getReferenceNode, traverse } from '../../utils/loader'
 import { Discriminator3 as Definition } from '../helpers/definition-types'
+import { IDiscriminator } from '../interfaces/IDiscriminator'
 
 let schemaDiscriminator: ComponentSchema<Definition>
 
-export class Discriminator extends OASComponent {
+export class Discriminator extends OASComponent implements IDiscriminator {
   propertyName!: string
   mapping?: Record<string, Schema>
 

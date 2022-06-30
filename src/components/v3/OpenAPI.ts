@@ -11,27 +11,28 @@ import { Server } from './Server'
 import { Tag } from '../Tag'
 import { Result } from '../../utils/Result'
 import { OpenAPI3 as Definition } from '../helpers/definition-types'
-import {
-  Method,
-  GetOperationOptions,
-  GetOperationResult,
-  OpenAPIMakeRequestInput,
-  OpenAPIMakeRequestOptions,
-  OpenAPIMakeRequestOutput, PathsFindPathResult,
-  SerializedParameterMap
-} from '../helpers/function-interfaces'
 import { PathItem } from './PathItem'
+import { IOpenAPI } from '../interfaces/IOpenAPI'
+import { IFindPathsResult, IPaths3 } from '../interfaces/IPaths'
+import {
+  IGetOperationOptions, IGetOperationResult,
+  IMethod, IOperation3,
+  IParseRequestInput,
+  IParseRequestOptions,
+  IParseRequestResult
+} from '../interfaces/IOperation'
+import { ISerializedParameterMap } from '../interfaces/IParameter'
 
 const rxVersion = /^\d+\.\d+\.\d+$/
 let openapiSchema: ComponentSchema<Definition>
 
-export class OpenAPI extends OASComponent {
+export class OpenAPI extends OASComponent implements IOpenAPI {
   extensions!: Record<string, any>
   components?: Components
   externalDocs?: ExternalDocumentation
   info!: Info
   openapi!: string
-  paths!: Paths
+  paths!: IPaths3
   security?: SecurityRequirement[]
   servers!: Server[]
   tags?: Tag[]
@@ -40,43 +41,43 @@ export class OpenAPI extends OASComponent {
     super(OpenAPI, definition, version, arguments[2])
   }
 
-  findOperation (method: Method, path: string, options?: GetOperationOptions): GetOperationResult<Operation, PathItem> | undefined {
+  findOperation (method: IMethod, path: string, options?: IGetOperationOptions): IGetOperationResult<Operation, PathItem> | undefined {
     return this.paths.findOperation(method, path, options)
   }
 
-  findPath (path: string): Array<PathsFindPathResult<Operation, PathItem>> {
-    return this.paths.findPaths(path)
+  findPaths (path: string): IFindPathsResult<PathItem> {
+    return this.paths.findPaths(path) as IFindPathsResult<PathItem>
   }
 
   getOperationById (operationId: string): Operation | undefined {
     return this.enforcer.metadata.operationIdMap[operationId] as Operation
   }
 
-  /**
-   *
-   * @param req The request object.
-   * @param [req.body] Optional, the body as a string, array, or object. The body should have already passed through a body parser / deserializer.
-   * @param [req.cookies] Optional, an object mapping cookies names to a value or an array of values.
-   * @param [req.headers] Optional, an object mapping header names to a value or array of values.
-   * @param req.method The lowercase HTTP method name.
-   * @param req.path The path as a string. If the path includes query parameters then those will be added to anything already in the query property.
-   * @param [req.query] Optional, an object mapping query parameter names to a value or array of values.
-   * @param [options] Optional, configuration options.
-   */
-  formatRequest (req: OpenAPIMakeRequestInput, options?: OpenAPIMakeRequestOptions): Result<OpenAPIMakeRequestOutput> {
+  // /**
+  //  *
+  //  * @param req The request object.
+  //  * @param [req.body] Optional, the body as a string, array, or object. The body should have already passed through a body parser / deserializer.
+  //  * @param [req.cookies] Optional, an object mapping cookies names to a value or an array of values.
+  //  * @param [req.headers] Optional, an object mapping header names to a value or array of values.
+  //  * @param req.method The lowercase HTTP method name.
+  //  * @param req.path The path as a string. If the path includes query parameters then those will be added to anything already in the query property.
+  //  * @param [req.query] Optional, an object mapping query parameter names to a value or array of values.
+  //  * @param [options] Optional, configuration options.
+  //  */
+  parseRequest (req: IParseRequestInput, options?: IParseRequestOptions): Result<IParseRequestResult<IOperation3>> {
     const exception = new Exception('Unable to format request')
     const [rawPath, rawQuery] = req.path.split('?')
     const match = this.findOperation(req.method, rawPath)
     if (match === undefined) {
       // if we can't find the path then the problem is with the path, otherwise it's with the method
-      if (this.findPath(rawPath) === undefined) {
+      if (this.findPaths(rawPath).length === 0) {
         exception.add.pathNotFound(rawPath)
       } else {
         exception.add.operationNotFound(req.method, rawPath)
       }
       return new Result(null, exception)
     } else {
-      const result: OpenAPIMakeRequestOutput = {
+      const result: IParseRequestResult<IOperation3> = {
         cookies: {},
         headers: {},
         operation: match.operation,
@@ -86,13 +87,13 @@ export class OpenAPI extends OASComponent {
       }
 
       // get lowercase headers map
-      const lowerCaseHeaders: SerializedParameterMap = {}
+      const lowerCaseHeaders: ISerializedParameterMap = {}
       Object.entries(req.headers ?? {}).forEach(entry => {
         lowerCaseHeaders[entry[0].toLowerCase()] = entry[1]
       })
 
       // extract cookies from headers and merge with passed in cookies object
-      const cookies: SerializedParameterMap = req.cookies ?? {}
+      const cookies: ISerializedParameterMap = req.cookies ?? {}
       if (lowerCaseHeaders.cookie !== undefined) {
         const cookieData: string[] = typeof lowerCaseHeaders.cookie === 'string'
           ? [lowerCaseHeaders.cookie]
@@ -107,11 +108,11 @@ export class OpenAPI extends OASComponent {
       }
 
       // extract query parameters from the URL
-      const query: SerializedParameterMap = req.query ?? {}
+      const query: ISerializedParameterMap = req.query ?? {}
       if (rawQuery !== undefined && rawQuery.length > 0) {
         const querySearch = new URLSearchParams(rawQuery)
         // @ts-expect-error
-        const keys = Array.from(new Set(querySearch.keys())) as string[]
+        const keys: string[] = Array.from(new Set(querySearch.keys()))
         for (const key of keys) {
           const values = querySearch.getAll(key)
           if (key in query) {
