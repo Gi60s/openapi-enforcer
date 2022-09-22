@@ -1,0 +1,14 @@
+openapi: 3.0.0
+info:
+  title: title
+  version: v1
+paths:
+  /:
+    parameters:
+      - name: foo
+        in: query
+        schema:
+          default: false
+          anyOf:
+            - type: boolean
+            - type: number

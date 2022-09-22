@@ -274,4 +274,14 @@ describe('documented issues fixes', () => {
         })
     })
 
+    describe('issue-145 - default with multiple types', () => {
+        it('can have a default at the top and anyof subtypes', async () => {
+            const [ value, err, warn ] = await Enforcer(path.resolve(resourcesPath, 'issue-145/openapi.yml'), {
+                fullResult: true,
+                componentOptions: {}
+            });
+            expect(err).to.equal(undefined);
+        })
+    })
+
 });

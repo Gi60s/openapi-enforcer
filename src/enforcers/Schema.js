@@ -504,9 +504,35 @@ module.exports = {
                 },
                 default: {
                     freeForm: true,
-                    type: ({ parent }) => {
+                    type: ({ parent, definition }) => {
                         const def = parent.definition;
-                        const types = [ def.type ];
+                        const types = [];
+                        if (def.type !== undefined) {
+                            types.push(def.type);
+                        } else if (def.anyOf || def.oneOf) {
+                            const schema = util.determineSchemaFromSchemas(def.anyOf ?? def.oneOf, definition);
+                            if (schema === null) {
+                                if (Array.isArray(definition)) {
+                                    types.push('array');
+                                } else if (typeof definition === 'object') {
+                                    types.push('object');
+                                } else {
+                                    types.push(typeof definition);
+                                }
+                            } else if (schema.type !== undefined) {
+                                types.push(schema.type);
+                            }
+                        } else if (def.allOf) {
+                            const length = def.allOf.length;
+                            for (let i = 0; i < length; i++) {
+                                const s = def.allOf[i];
+                                if (s.type !== undefined) {
+                                    types.push(s.type);
+                                    break;
+                                }
+                            }
+                        }
+
                         if (def.nullable === true || def['x-nullable'] === true) types.push('null');
                         return types;
                     }

@@ -31,6 +31,7 @@ module.exports = {
         const map = new Map();
         return copy(map, value);
     },
+    determineSchemaFromSchemas,
     edgeSlashes,
     findMediaMatch,
     freeze,
@@ -118,6 +119,37 @@ function copy(map, value) {
 
 function dateIsFrozen() {
     throw Error('Date object cannot be modified');
+}
+
+// given multiple possible schemas (anyOf or oneOf) find the correct schema based on the provided value
+function determineSchemaFromSchemas(schemas, value) {
+    const type = typeof value;
+    const length = schemas.length;
+    for (let i = 0; i < length; i++) {
+        const schema = schemas[i];
+        if (schema.type === 'array' && Array.isArray(value)) return schema;
+        if (schema.type === 'boolean' && type === 'boolean') return schema;
+        if (schema.type === 'integer' && type === 'number' && /^\d+$/.test(String(value))) return schema;
+        if (schema.type === 'number' && type === 'number') return schema;
+        if (schema.type === 'string' && type === 'string') return schema;
+        if (schema.type === 'object' && type === 'object' && value !== null) return schema;
+        if (value === null && (schema.nullable || schema['x-nullable'])) return schema;
+        if (schema.anyOf) {
+            const schema = determineSchemaFromSchemas(schema.anyOf, value)
+            if (schema !== null) return schema;
+        } else if (schema.oneOf) {
+            const schema = determineSchemaFromSchemas(schema.oneOf, value)
+            if (schema !== null) return schema;
+        } else if (schema.allOf) {
+            const length = schema.allOf.length;
+            for (let j = 0; j < length; j++) {
+                const schema = schema.allOf[j];
+                if (schema.type !== undefined) return schema;
+                if (schema.anyOf || schema.oneOf) return determineSchemaFromSchemas(schema.anyOf ?? schema.oneOf, value);
+            }
+        }
+    }
+    return null;
 }
 
 function edgeSlashes (value, start, end) {
