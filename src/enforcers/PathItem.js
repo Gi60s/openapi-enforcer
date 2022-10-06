@@ -28,7 +28,7 @@ module.exports = {
 
     prototype: {},
 
-    validator: function ({ major, options }) {
+    validator: function ({ major, options, definition: componentDefinition }) {
         const Operation = require('./Operation');
         const skipCodes = options.exceptionSkipCodes;
         const escalateCodes = options.exceptionEscalateCodes;
@@ -70,7 +70,7 @@ module.exports = {
                         break;
                     }
                 }
-                if (!hasMethod && !skipCodes.WPAT001) {
+                if (!hasMethod && !skipCodes.WPAT001 && !util.schemaObjectHasSkipCode(componentDefinition, 'WPAT001')) {
                     (escalateCodes.WPAT001 ? exception : warn).message('No methods defined. [WPAT001]')
                 }
             }

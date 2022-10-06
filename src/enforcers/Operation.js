@@ -481,7 +481,7 @@ module.exports = {
         }
     },
 
-    validator: function ({ major }) {
+    validator: function ({ major, definition: componentDefinition }) {
         return {
             type: 'object',
             properties: {
@@ -553,8 +553,8 @@ module.exports = {
                 },
                 summary: {
                     type: 'string',
-                    errors: ({ definition, warn, options }) => {
-                        if (definition.length >= 120 && !options.exceptionSkipCodes.WOPE003) {
+                    errors: ({ definition, warn, options, parent }) => {
+                        if (definition.length >= 120 && !options.exceptionSkipCodes.WOPE003 && !util.schemaObjectHasSkipCode(componentDefinition, 'WOPE003')) {
                             (options.exceptionEscalateCodes.WOPE003 ? exception : warn).message('Value should be less than 120 characters. [WOPE003]');
                         }
                     }

@@ -15,7 +15,8 @@
  *    limitations under the License.
  **/
 'use strict';
-const EnforcerRef  = require('../enforcer-ref');
+const EnforcerRef   = require('../enforcer-ref');
+const util          = require('../util');
 
 const rxCode = /^[1-5]\d{2}$/;
 const rxLocation = /^location$/i;
@@ -29,7 +30,7 @@ module.exports = {
     prototype: {},
 
     validator: function (data) {
-        const { major, options } = data;
+        const { major, options, definition: componentDefinition } = data;
         const skipCodes = options.exceptionSkipCodes;
         const escalateCodes = options.exceptionEscalateCodes;
         return {
@@ -45,13 +46,13 @@ module.exports = {
                                     ? Object.keys(definition.headers)
                                         .filter(v => rxLocation.test(v))[0]
                                     : null;
-                                if ((!key || !definition.headers[key]) && !skipCodes.WRES001) {
+                                if ((!key || !definition.headers[key]) && !skipCodes.WRES001 && !util.schemaObjectHasSkipCode(componentDefinition, 'WRES001')) {
                                     (escalateCodes.WRES001 ? exception : warn).message('A 201 response for a POST request should return a location header (https://tools.ietf.org/html/rfc7231#section-4.3.3) and this is not documented in your OpenAPI document. [WRES001]')
                                 }
                             } else if (key === '204') {
-                                if (major === 2 && definition.schema && !skipCodes.WRES002) {
+                                if (major === 2 && definition.schema && !skipCodes.WRES002 && !util.schemaObjectHasSkipCode(componentDefinition, 'WRES002')) {
                                     (escalateCodes.WRES002 ? exception : warn).message('A 204 response must not contain a body (https://tools.ietf.org/html/rfc7231#section-6.3.5) but this response has a defined schema. [WRES002]')
-                                } else if (major === 3 && definition.content && !skipCodes.WRES003) {
+                                } else if (major === 3 && definition.content && !skipCodes.WRES003 && !util.schemaObjectHasSkipCode(componentDefinition, 'WRES003')) {
                                     (escalateCodes.WRES003 ? exception : warn).message('A 204 response must not contain a body (https://tools.ietf.org/html/rfc7231#section-6.3.5) but this response has a defined content. [WRES003]')
                                 }
                             }

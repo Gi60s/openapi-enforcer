@@ -210,7 +210,7 @@ function normalize (data, superOptions) {
 
                 // report any keys that are not allowed
                 notAllowed.push.apply(notAllowed, unknownKeys);
-                if (notAllowed.length && !skipCodes.EDEV001) {
+                if (notAllowed.length && !skipCodes.EDEV001 && !util.schemaObjectHasSkipCode(definition, 'EDEV001')) {
                     notAllowed.sort();
                     exception.message('Propert' + (notAllowed.length === 1 ? 'y' : 'ies') + ' not allowed: ' + notAllowed.join(', ') + ' [EDEV001]');
                 }

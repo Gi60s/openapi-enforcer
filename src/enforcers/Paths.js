@@ -255,6 +255,7 @@ module.exports = {
         const disablePathNormalization = data.options.disablePathNormalization;
         const skipCodes = data.options.exceptionSkipCodes;
         const escalateCodes = data.options.exceptionEscalateCodes;
+        const componentDefinition = data.definition;
 
         return {
             required: true,
@@ -275,7 +276,7 @@ module.exports = {
                     if (!disablePathNormalization) {
                         const normalizedKey = util.edgeSlashes(key, true, false);
                         if (map[normalizedKey]) normalizeException.message(key + ' --> ' + normalizedKey);
-                        if (normalizedKey !== key && !skipCodes.WPAS001) {
+                        if (normalizedKey !== key && !skipCodes.WPAS001 && !util.schemaObjectHasSkipCode(componentDefinition, 'WPAS001')) {
                             (escalateCodes.WPAS001 ? exception : warn).at(key).message('Path normalized from ' + key + ' to ' + normalizedKey + '. [WPAS001]');
                         }
                         map[key] = normalizedKey;
@@ -290,7 +291,7 @@ module.exports = {
                     }
                 });
 
-                if (!paths.length && !skipCodes.WPAS002) {
+                if (!paths.length && !skipCodes.WPAS002 && !util.schemaObjectHasSkipCode(componentDefinition, 'WPAS002')) {
                     (escalateCodes.WPAS002 ? exception : warn).message('No paths defined. [WPAS002]');
                 }
 
@@ -299,10 +300,10 @@ module.exports = {
                     const clean = child.nest('Paths without trailing slashes:');
                     const trailing = child.nest('Paths with trailing slashes:');
                     omitsTrainingSlashes.forEach(key => {
-                        if (!skipCodes.WPAS003) clean.message(key + ' [WPAS003]');
+                        if (!skipCodes.WPAS003 && !util.schemaObjectHasSkipCode(componentDefinition, 'WPAS003')) clean.message(key + ' [WPAS003]');
                     });
                     includesTrailingSlashes.forEach(key => {
-                        if (!skipCodes.WPAS003) trailing.message(key + ' [WPAS003]')
+                        if (!skipCodes.WPAS003 && !util.schemaObjectHasSkipCode(componentDefinition, 'WPAS003')) trailing.message(key + ' [WPAS003]')
                     });
                 }
             }

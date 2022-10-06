@@ -284,4 +284,56 @@ describe('documented issues fixes', () => {
         })
     })
 
+    describe('issue-146 - ignore exception for specific instance', () => {
+        function getDefinition () {
+            return {
+                openapi: '3.0.1',
+                info: { title: '', version: '' },
+                paths: {
+                    '/foo': {
+                        delete: {
+                            requestBody: {
+                                content: {
+                                    'application/json': {
+                                        type: 'number'
+                                    }
+                                }
+                            },
+                            responses: {
+                                200: { description: 'ok' }
+                            }
+                        }
+                    },
+                    '/bar': {
+                        delete: {
+                            requestBody: {
+                                content: {
+                                    'application/json': {
+                                        type: 'number'
+                                    }
+                                }
+                            },
+                            responses: {
+                                200: { description: 'ok' }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        it('will not ignore the exception by default', async () => {
+            const def = getDefinition();
+            const [value, err, warn] = await Enforcer(def, { fullResult: true });
+            expect(err.count).to.equal(2);
+        });
+
+        it('can ignore an individual exception', async () => {
+            const def = getDefinition();
+            def.paths['/foo'].delete['x-enforcer-exception-skip-codes'] = 'EDEV001';
+            const [value, err, warn] = await Enforcer(def, { fullResult: true });
+            expect(err.count).to.equal(1);
+        });
+    });
+
 });

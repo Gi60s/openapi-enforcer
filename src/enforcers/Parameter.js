@@ -30,7 +30,7 @@ module.exports = {
     init: function (data) {
         const { context, definition, exception, major, warn, options } = data;
 
-        if (definition.in === 'header' && definition.name !== definition.name.toLowerCase() && !options.exceptionSkipCodes.WPAR001) {
+        if (definition.in === 'header' && definition.name !== definition.name.toLowerCase() && !options.exceptionSkipCodes.WPAR001 && !util.schemaObjectHasSkipCode(definition, 'WPAR001')) {
             (options.exceptionEscalateCodes.WPAR001 ? exception : warn).message('Header names are case insensitive and their lower case equivalent will be used. [WPAR001]');
         }
 
@@ -249,7 +249,7 @@ module.exports = {
     },
 
     validator: function (data) {
-        const { major, options } = data;
+        const { major, options, definition: componentDefinition } = data;
         const base = Base.validator(data);
         const skipCodes = options.exceptionSkipCodes;
         const escalateCodes = data.options.exceptionEscalateCodes;
@@ -261,7 +261,7 @@ module.exports = {
                     type: 'boolean',
                     default: false,
                     errors: ({ exception, warn, major, usedDefault }) => {
-                        if (major === 3 && !usedDefault && !skipCodes.WPAR002) {
+                        if (major === 3 && !usedDefault && !skipCodes.WPAR002 && !util.schemaObjectHasSkipCode(componentDefinition, 'WPAR002')) {
                             (escalateCodes.WPAR002 ? exception : warn).message('Per OAS 3.0.2: "Use of this property is NOT RECOMMENDED, as it is likely to be removed in a later revision." [WPAR002]')
                         }
                     }
@@ -305,7 +305,7 @@ module.exports = {
                                 case 'number': enums.push('float', 'double'); break;
                                 case 'string': enums.push('binary', 'byte', 'date', 'date-time', 'password'); break;
                             }
-                            if (!enums.includes(format) && !skipCodes.WPAR003) {
+                            if (!enums.includes(format) && !skipCodes.WPAR003 && !util.schemaObjectHasSkipCode(componentDefinition, 'WPAR003')) {
                                 (escalateCodes.WPAR003 ? exception : warn).message('Non standard format used: ' + format + '. [WPAR003]');
                             }
                         }

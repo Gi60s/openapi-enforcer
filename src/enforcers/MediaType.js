@@ -34,6 +34,7 @@ module.exports = {
     validator: function (data) {
         const escalateCodes = data.options.exceptionEscalateCodes;
         const skipCodes = data.options.exceptionSkipCodes;
+        const definition = data.definition;
         return {
             type: 'object',
             properties: {
@@ -56,7 +57,7 @@ module.exports = {
             },
             errors: ({ parent, key, exception, warn }) => {
                 if (parent && parent.key === 'content') {
-                    if (!module.exports.rx.mediaType.test(key) && !skipCodes.WMED001) {
+                    if (!module.exports.rx.mediaType.test(key) && !skipCodes.WMED001 && !util.schemaObjectHasSkipCode(definition, 'WMED001')) {
                         (escalateCodes.WMED001 ? exception : warn).message('Media type appears invalid. [WMED001]');
                     }
                 }

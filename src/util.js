@@ -59,6 +59,7 @@ module.exports = {
     reject,
     rxStringToRx,
     same,
+    schemaObjectHasSkipCode,
     smart,
     toPlainObject: function (value, options) {
         const map = new Map();
@@ -594,6 +595,14 @@ function same (v1, v2) {
     }
 }
 
+function schemaObjectHasSkipCode(schema, skipCode) {
+    const skipCodes = typeof schema === 'object' && schema !== null
+        ? schema['x-enforcer-exception-skip-codes'] ?? ''
+        : ''
+    const codes = skipCodes.split(/ +/).map(code => code.trim())
+    return codes.includes(skipCode);
+}
+
 function smart (value) {
     const type = typeof value;
     if (type === 'string') return '"' + value.replace(/"/g, '\\"') + '"';
@@ -668,7 +677,7 @@ function validateExamples(context, exception, warn, options) {
             let error;
             [ value, error ] = context.schema.deserialize(context.example);
             if (!error) error = context.schema.validate(value);
-            if (error && !skipCodes.WSCH006) {
+            if (error && !skipCodes.WSCH006 && !schemaObjectHasSkipCode(context, 'WSCH006')) {
                 const child = new Exception('Example not valid. [WSCH006]');
                 child.push(error);
                 (escalateCodes.WSCH006 ? exception : warn).at('example').push(child);
@@ -690,7 +699,7 @@ function validateExamples(context, exception, warn, options) {
                         : context.examples[key].value;
                     [ value, error ] = context.schema.deserialize(example);
                     if (!error) error = context.schema.validate(value);
-                    if (error && !skipCodes.WSCH006) {
+                    if (error && !skipCodes.WSCH006 && !schemaObjectHasSkipCode(context, 'WSCH006')) {
                         const child = new Exception('Example not valid. [WSCH006]');
                         child.push(error);
                         (escalateCodes.WSCH006 ? exception : warn).at('examples').at(key).push(child);

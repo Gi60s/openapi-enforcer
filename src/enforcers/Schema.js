@@ -219,7 +219,7 @@ const prototype = {
 
 module.exports = {
     init: function (data) {
-        const { exception, major, plugins, refParser, staticData, warn, options } = data;
+        const { exception, major, plugins, refParser, staticData, warn, options, definition: componentDefinition } = data;
         const skipCodes = options.exceptionSkipCodes;
         const escalateCodes = options.exceptionEscalateCodes;
 
@@ -265,7 +265,7 @@ module.exports = {
                 const index = additionalRequiredProperties.indexOf(key)
                 if (index !== -1) additionalRequiredProperties.splice(index, 1);
             })
-            if (additionalRequiredProperties.length > 0 && !skipCodes.WSCH007) {
+            if (additionalRequiredProperties.length > 0 && !skipCodes.WSCH007 && !util.schemaObjectHasSkipCode(componentDefinition, 'WSCH007')) {
                 const e = escalateCodes.WSCH007 ? exception : warn;
                 if (additionalRequiredProperties.length === 1) {
                     e.message('Required property not specified as a property but allowed via additionalProperties: ' + additionalRequiredProperties[0] + ' [WSCH007]')
@@ -325,7 +325,7 @@ module.exports = {
                 const value = deserializeAndValidate(this, childException, this.example, {
                     isExample: true
                 });
-                if (childException.hasException && !skipCodes.WSCH006) {
+                if (childException.hasException && !skipCodes.WSCH006 && !util.schemaObjectHasSkipCode(componentDefinition, 'WSCH006')) {
                     (escalateCodes.WSCH006 ? exception : warn).at('example').push(childException);
                 }
                 setProperty(this, 'example', freeze(value));
@@ -419,7 +419,7 @@ module.exports = {
     },
 
     validator: function (data) {
-        const { major, options } = data;
+        const { major, options, definition: componentDefinition } = data;
         const skipCodes = options.exceptionSkipCodes;
         const escalateCodes = options.exceptionEscalateCodes;
 
@@ -673,7 +673,7 @@ module.exports = {
                             const dataTypes = parent.staticData.dataTypes;
                             const formats = dataTypes[type];
                             const enums = formats ? Object.keys(formats) : [];
-                            if (!enums.includes(format) && !skipCodes.WSCH001) {
+                            if (!enums.includes(format) && !skipCodes.WSCH001 && !util.schemaObjectHasSkipCode(componentDefinition, 'WSCH001')) {
                                 (escalateCodes.WSCH001 ? exception : warn).message('Non standard format "' + format + '" used for type "' +  type + '". [WSCH001]');
                             }
                         }
@@ -734,7 +734,7 @@ module.exports = {
                     type: 'boolean',
                     default: false,
                     errors: ({ major, parent, definition }) => {
-                        if (major === 2 && definition && parent && parent.parent && parent.parent.parent && parent.parent.parent.definition.required && parent.parent.parent.definition.required.includes(parent.key) && !skipCodes.WSCH002) {
+                        if (major === 2 && definition && parent && parent.parent && parent.parent.parent && parent.parent.parent.definition.required && parent.parent.parent.definition.required.includes(parent.key) && !skipCodes.WSCH002 && !util.schemaObjectHasSkipCode(componentDefinition, 'WSCH002')) {
                             // note, this restriction is only in place for major version 2
                             parent[escalateCodes.WSCH002 ? 'exception' : 'warn'].message('Property should not be marked as both read only and required. [WSCH002]');
                         }
@@ -834,7 +834,7 @@ module.exports = {
                 if (!definition.hasOwnProperty('allOf') && !definition.hasOwnProperty('anyOf') &&
                     !definition.hasOwnProperty('not') && !definition.hasOwnProperty('oneOf')) {
 
-                    if (!('type' in definition) && !skipCodes.WSCH005) {
+                    if (!('type' in definition) && !skipCodes.WSCH005 && !util.schemaObjectHasSkipCode(componentDefinition, 'WSCH005')) {
                         (escalateCodes.WSCH005 ? exception : warn).message('Schemas with an indeterminable type cannot serialize, deserialize, or validate values. [WSCH005]');
                     }
                 }
@@ -959,6 +959,20 @@ function merge (exception, warning, schemas, dataTypes, major, skipCodes, escala
     if (types.length > 1) return exception.message('All items must be of the same type. Found: ' + types.join(', '));
     if (formats.length > 1) return exception.message('All items must be of the same format. Found: ' + formats.join(', '));
 
+    // create a definition object that only contains skip code information
+    const skipCodeDefinition = {}
+    schemas.forEach(schema => {
+        if (typeof schema === 'object' && schema !== null) {
+            const definitionSkipCodes = schema['x-enforcer-exception-skip-codes'];
+            if (definitionSkipCodes !== undefined) {
+                if (skipCodeDefinition['x-enforcer-exception-skip-codes'] === undefined) {
+                    skipCodeDefinition['x-enforcer-exception-skip-codes'] = '';
+                }
+                skipCodeDefinition['x-enforcer-exception-skip-codes'] += ' ' + definitionSkipCodes;
+            }
+        }
+    })
+
     const type = types[0];
     const format = formats[0];
     const dataType = formats.length > 0 ? dataTypes[type][formats[0]] : null;
@@ -969,7 +983,7 @@ function merge (exception, warning, schemas, dataTypes, major, skipCodes, escala
 
     // set default
     const defaults = Array.from(new Set(schemas.filter(schema => schema.hasOwnProperty('default')).map(schema => schema.default)));
-    if (defaults.length > 1 && !skipCodes.WSCH003) {
+    if (defaults.length > 1 && !skipCodes.WSCH003 && !util.schemaObjectHasSkipCode(skipCodeDefinition, 'WSCH003')) {
         (escalateCodes.WSCH003 ? exception : warning).message('Two or more defaults found. Using first default. [WSCH003]');
     }
     if (defaults.length > 0) result.default = defaults[0];
@@ -1015,7 +1029,7 @@ function merge (exception, warning, schemas, dataTypes, major, skipCodes, escala
 
     // set example
     const examples = Array.from(new Set(schemas.filter(schema => schema.hasOwnProperty('example')).map(schema => schema.example)));
-    if (examples.length > 1 && !skipCodes.WSCH004) {
+    if (examples.length > 1 && !skipCodes.WSCH004 && !util.schemaObjectHasSkipCode(skipCodeDefinition, 'WSCH004')) {
         (escalateCodes.WSCH004 ? exception : warning).message('Two or more examples found. Using first example. [WSCH004]');
     }
     if (examples.length > 0) result.example = examples[0];
