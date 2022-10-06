@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.22.0
+
+### Added
+
+- **You Can Now Skip Instances of an Exception**
+
+  Being able to skip a specific type of exception has been around for a while, but if you want to skip just a single
+  instance of an exception, that is now possible. Find the nearest component to where your exception is occurring and
+  add the extension `x-enforcer-exception-skip-codes` followed by a space seperated list of all exceptions that should
+  be skipped in that component. This will not affect child components of this component, only the exceptions that 
+  specifically belong to this component.
+
+  ```yaml
+  MySchema:
+    x-enforcer-exception-skip-codes: WSCH001 WSCH002
+    type: string
+    format: tacos
+  ```
+
 ## 1.21.1
 
 ### Fixed
