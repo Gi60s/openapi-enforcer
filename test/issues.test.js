@@ -274,6 +274,16 @@ describe('documented issues fixes', () => {
         })
     })
 
+    describe('issue-140 - skip codes not respected by subcomponents', () => {
+        it('will keep skip codes for subcomponents', async () => {
+            const fullPath = path.resolve(resourcesPath, 'issue-140/openapi.yml');
+            const [value, err, warn] = await Enforcer(fullPath, { fullResult: true, componentOptions: {
+                    exceptionSkipCodes: ['WSCH006', 'EDEV001']
+                }});
+            expect(err).to.equal(undefined);
+        })
+    })
+
     describe('issue-145 - default with multiple types', () => {
         it('can have a default at the top and anyof subtypes', async () => {
             const [ value, err, warn ] = await Enforcer(path.resolve(resourcesPath, 'issue-145/openapi.yml'), {
@@ -284,7 +294,7 @@ describe('documented issues fixes', () => {
         })
     })
 
-    describe('issue-146 - ignore exception for specific instance', () => {
+    describe('issue-140 - ignore exception for specific instance', () => {
         function getDefinition () {
             return {
                 openapi: '3.0.1',
@@ -334,6 +344,13 @@ describe('documented issues fixes', () => {
             const [value, err, warn] = await Enforcer(def, { fullResult: true });
             expect(err.count).to.equal(1);
         });
+
+        it('will not carry the exception to subcomponents', async () => {
+            const def = getDefinition();
+            def['x-enforcer-exception-skip-codes'] = 'EDEV001';
+            const [value, err, warn] = await Enforcer(def, { fullResult: true });
+            expect(err.count).to.equal(2);
+        })
     });
 
 });

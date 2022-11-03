@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.22.1
+
+### Fixed
+
+- **Exception Skip Codes Bug Fix**
+
+  The exception skip codes that were defined via the options were not being carried through to child components. This
+  fix allows those settings to be carried. Exception skip codes defined by an instance (see change 1.22.0) are still
+  limited to just the component.
+
 ## 1.22.0
 
 ### Added

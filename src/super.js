@@ -90,16 +90,20 @@ function createConstructor(version, name, enforcer) {
         options.apiSuggestions = options.hasOwnProperty('apiSuggestions') ? !!options.apiSuggestions : true;
         options.production = !!options.production;
         options.exceptionSkipCodes = options.hasOwnProperty('exceptionSkipCodes')
-            ? options.exceptionSkipCodes.reduce((p, c) => {
-                p[c] = true;
-                return p;
-            }, {})
+            ? Array.isArray(options.exceptionSkipCodes)
+                ? options.exceptionSkipCodes.reduce((p, c) => {
+                    p[c] = true;
+                    return p;
+                }, {})
+                : options.exceptionSkipCodes
             : {};
         options.exceptionEscalateCodes = options.hasOwnProperty('exceptionEscalateCodes')
-            ? options.exceptionEscalateCodes.reduce((p, c) => {
-                p[c] = true;
-                return p;
-            }, {})
+            ? Array.isArray(options.exceptionEscalateCodes)
+                ? options.exceptionEscalateCodes.reduce((p, c) => {
+                    p[c] = true;
+                    return p;
+                }, {})
+                : options.exceptionEscalateCodes
             : {};
 
         // validate the definition
@@ -142,7 +146,7 @@ function createConstructor(version, name, enforcer) {
 
         if (existing) {
             data.result = result = existing.value;
-            definitionValidator(data, options)
+            definitionValidator(data, refParser, options)
         } else {
             // store the full set of enforcer data
             store.set(result, data);
@@ -150,7 +154,7 @@ function createConstructor(version, name, enforcer) {
 
             if (util.isPlainObject(data.definition)) {
                 if (!needsValidation) data.validator = true;
-                definitionValidator(data, options);
+                definitionValidator(data, refParser, options);
             } else {
                 data.exception.message('Value must be a plain object');
             }

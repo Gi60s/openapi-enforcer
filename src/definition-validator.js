@@ -68,7 +68,7 @@ function childData(parent, key, validator) {
  * @param superOptions Options that come from the super.js "build" function.
  * @returns {*}
  */
-function normalize (data, superOptions) {
+function normalize (data, refParser, superOptions) {
     const { definitionType, exception, production, result } = data;
     const skipCodes = superOptions.exceptionSkipCodes;
     let definition = data.definition;
@@ -102,7 +102,7 @@ function normalize (data, superOptions) {
             if (definitionType === 'array' && !freeForm) {
                 definition.forEach((def, i) => {
                     const child = childData(data, i, validator.items);
-                    result.push(runChildValidator(child, superOptions));
+                    result.push(runChildValidator(child, refParser, superOptions));
                 });
                 Object.freeze(result);
 
@@ -140,7 +140,7 @@ function normalize (data, superOptions) {
                                 Object.defineProperty(result, key, {
                                     configurable: true,
                                     enumerable: true,
-                                    value: runChildValidator(child, superOptions)
+                                    value: runChildValidator(child, refParser, superOptions)
                                 });
                                 valueSet = true;
                             }
@@ -199,7 +199,7 @@ function normalize (data, superOptions) {
                                 Object.defineProperty(result, key, {
                                     configurable: true,
                                     enumerable: true,
-                                    value: runChildValidator(data, superOptions)
+                                    value: runChildValidator(data, refParser, superOptions)
                                 });
                             }
                         } else if (allowed && keyValidator.required && fn(keyValidator.required, data)) {
@@ -242,7 +242,7 @@ function normalize (data, superOptions) {
             if (definitionType === 'array') {
                 definition.forEach((def, i) => {
                     const child = childData(data, i, validator.items);
-                    result.push(runChildValidator(child, superOptions));
+                    result.push(runChildValidator(child, refParser, superOptions));
                 });
                 Object.freeze(result);
             } else if (definitionType === 'object') {
@@ -259,7 +259,7 @@ function normalize (data, superOptions) {
                     Object.defineProperty(result, key, {
                         configurable: true,
                         enumerable: true,
-                        value: runChildValidator(child, superOptions)
+                        value: runChildValidator(child, refParser, superOptions)
                     });
                 });
 
@@ -376,19 +376,19 @@ function mapSetResult (data, value) {
     }
 }
 
-function runChildValidator(data, superOptions) {
+function runChildValidator(data, refParser, superOptions) {
     const validator = fn(data.validator, data);
     data.validator = validator;
     if (EnforcerRef.isEnforcerRef(validator)) {
         const subValidator = data.validator.config;
         if (data.definitionType === 'boolean') {     // account for boolean instead of schema definition
             data.validator = data.validator.config;
-            return normalize(data, superOptions);
+            return normalize(data, refParser, superOptions);
         } else if (!subValidator || validateType(data.definitionType, Object.assign({}, data, { validator: subValidator }))) {
-            return new data.context[validator.value](new ValidatorState(data));
+            return new data.context[validator.value](new ValidatorState(data), refParser, superOptions);
         }
     } else if (data.validator) {
-        return normalize(data, superOptions);
+        return normalize(data, refParser, superOptions);
     } else {
         return data.result;
     }
