@@ -30,11 +30,11 @@ components:
           type: number
     Pet:
       oneOf:
-        - $ref: '#/components/schemas/Cat'
-        - $ref: '#/components/schemas/Dog'
+        - $ref: '#/components-old/schemas/Cat'
+        - $ref: '#/components-old/schemas/Dog'
       discriminator:
         propertyName: petType
         mapping:
-          cat: '#/components/schemas/Cat'
-          dog: '#/components/schemas/Dog'
-          lizard: '#/components/schemas/Lizard'
+          cat: '#/components-old/schemas/Cat'
+          dog: '#/components-old/schemas/Dog'
+          lizard: '#/components-old/schemas/Lizard'
