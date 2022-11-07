@@ -17,28 +17,36 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
 import { ISchemaProcessor } from '../ISchemaProcessor'
 import {
-  IHeader2,
-  IHeader2Definition,
   IItems2,
   IItems2Definition,
-  Items2
+  IParameter2,
+  IParameter2Definition,
+  ISchema2,
+  ISchema2Definition,
+  Items2,
+  Schema2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
 
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IHeader2Definition, IHeader2> | null = null
+let cachedSchema: ISchema.IDefinition<IParameter2Definition, IParameter2> | null = null
 
-export class Header extends EnforcerComponent implements IHeader2 {
+export class Parameter extends EnforcerComponent implements IParameter2 {
   [extension: `x-${string}`]: any
+  name!: string
+  in!: 'body'|'formData'|'header'|'path'|'query'
   description?: string
-  type!: 'array'|'boolean'|'integer'|'number'|'string'
+  required?: boolean
+  schema?: ISchema2
+  type?: 'array'|'boolean'|'file'|'integer'|'number'|'string'
   format?: string
+  allowEmptyValue?: boolean
   items?: IItems2
-  collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'
+  collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'|'multi'
   default?: any
   maximum?: number
-  exclusiveMaximum?: number
+  exclusiveMaximum?: boolean
   minimum?: number
   exclusiveMinimum?: number
   maxLength?: number
@@ -50,21 +58,38 @@ export class Header extends EnforcerComponent implements IHeader2 {
   enum?: any[]
   multipleOf?: number
 
-  constructor (definition: IHeader2Definition, version?: IVersion) {
+  constructor (definition: IParameter2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
   static spec: IComponentSpec = {
-    '2.0': 'https://spec.openapis.org/oas/v2.0#header-object',
+    '2.0': 'https://spec.openapis.org/oas/v2.0#parameter-object',
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IHeader2Definition, IHeader2> {
+  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IParameter2Definition, IParameter2> {
     if (cachedSchema !== null) {
       return cachedSchema
+    }
+
+    const name: ISchema.IProperty<ISchema.IString> = {
+      name: 'name',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    }
+
+    const in: ISchema.IProperty<any> = {
+      name: 'in',
+      required: true,
+      schema: {
+        type: 'string',
+        enum: ['body', 'formData', 'header', 'path', 'query']
+      }
     }
 
     const description: ISchema.IProperty<ISchema.IString> = {
@@ -74,12 +99,27 @@ export class Header extends EnforcerComponent implements IHeader2 {
       }
     }
 
+    const required: ISchema.IProperty<ISchema.IBoolean> = {
+      name: 'required',
+      schema: {
+        type: 'boolean'
+      }
+    }
+
+    const schema: ISchema.IProperty<ISchema.IComponent<ISchema2Definition, ISchema2>> = {
+      name: 'schema',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: Schema2
+      }
+    }
+
     const type: ISchema.IProperty<any> = {
       name: 'type',
-      required: true,
       schema: {
         type: 'string',
-        enum: ['array', 'boolean', 'integer', 'number', 'string']
+        enum: ['array', 'boolean', 'file', 'integer', 'number', 'string']
       }
     }
 
@@ -87,6 +127,13 @@ export class Header extends EnforcerComponent implements IHeader2 {
       name: 'format',
       schema: {
         type: 'string'
+      }
+    }
+
+    const allowEmptyValue: ISchema.IProperty<ISchema.IBoolean> = {
+      name: 'allowEmptyValue',
+      schema: {
+        type: 'boolean'
       }
     }
 
@@ -103,7 +150,7 @@ export class Header extends EnforcerComponent implements IHeader2 {
       name: 'collectionFormat',
       schema: {
         type: 'string',
-        enum: ['csv', 'ssv', 'tsv', 'pipes']
+        enum: ['csv', 'ssv', 'tsv', 'pipes', 'multi']
       }
     }
 
@@ -121,10 +168,10 @@ export class Header extends EnforcerComponent implements IHeader2 {
       }
     }
 
-    const exclusiveMaximum: ISchema.IProperty<ISchema.INumber> = {
+    const exclusiveMaximum: ISchema.IProperty<ISchema.IBoolean> = {
       name: 'exclusiveMaximum',
       schema: {
-        type: 'number'
+        type: 'boolean'
       }
     }
 
@@ -198,13 +245,18 @@ export class Header extends EnforcerComponent implements IHeader2 {
       }
     }
 
-    const schema: ISchema.IDefinition<IHeader2Definition, IHeader2> = {
+    const schema: ISchema.IDefinition<IParameter2Definition, IParameter2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
+        name,
+        in,
         description,
+        required,
+        schema,
         type,
         format,
+        allowEmptyValue,
         items,
         collectionFormat,
         _default,
@@ -231,7 +283,7 @@ export class Header extends EnforcerComponent implements IHeader2 {
     return schema
   }
 
-  static validate (definition: IHeader2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IParameter2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

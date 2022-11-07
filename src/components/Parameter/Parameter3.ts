@@ -20,10 +20,10 @@ import {
   Example3,
   IExample3,
   IExample3Definition,
-  IHeader3,
-  IHeader3Definition,
   IMediaType3,
   IMediaType3Definition,
+  IParameter3,
+  IParameter3Definition,
   ISchema3,
   ISchema3Definition,
   MediaType3,
@@ -33,15 +33,17 @@ import {
 
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IHeader3Definition, IHeader3> | null = null
+let cachedSchema: ISchema.IDefinition<IParameter3Definition, IParameter3> | null = null
 
-export class Header extends EnforcerComponent implements IHeader3 {
+export class Parameter extends EnforcerComponent implements IParameter3 {
   [extension: `x-${string}`]: any
+  name!: string
+  in!: 'cookie'|'header'|'path'|'query'
   description?: string
   required?: boolean
   deprecated?: boolean
   allowEmptyValue?: boolean
-  style?: 'simple'
+  style?: 'deepObject'|'form'|'label'|'matrix'|'pipeDelimited'|'simple'|'spaceDelimited'
   explode?: boolean
   allowReserved?: boolean
   schema?: ISchema3
@@ -49,21 +51,38 @@ export class Header extends EnforcerComponent implements IHeader3 {
   examples?: Record<string, IExample3>
   content?: Record<string, IMediaType3>
 
-  constructor (definition: IHeader3Definition, version?: IVersion) {
+  constructor (definition: IParameter3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
   static spec: IComponentSpec = {
     '2.0': true,
-    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#header-object',
-    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#header-object',
-    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#header-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#header-object'
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#parameter-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#parameter-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#parameter-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#parameter-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IHeader3Definition, IHeader3> {
+  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IParameter3Definition, IParameter3> {
     if (cachedSchema !== null) {
       return cachedSchema
+    }
+
+    const name: ISchema.IProperty<ISchema.IString> = {
+      name: 'name',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    }
+
+    const in: ISchema.IProperty<any> = {
+      name: 'in',
+      required: true,
+      schema: {
+        type: 'string',
+        enum: ['cookie', 'header', 'path', 'query']
+      }
     }
 
     const description: ISchema.IProperty<ISchema.IString> = {
@@ -98,7 +117,7 @@ export class Header extends EnforcerComponent implements IHeader3 {
       name: 'style',
       schema: {
         type: 'string',
-        enum: ['simple']
+        enum: ['deepObject', 'form', 'label', 'matrix', 'pipeDelimited', 'simple', 'spaceDelimited']
       }
     }
 
@@ -150,10 +169,12 @@ export class Header extends EnforcerComponent implements IHeader3 {
       }
     }
 
-    const schema: ISchema.IDefinition<IHeader3Definition, IHeader3> = {
+    const schema: ISchema.IDefinition<IParameter3Definition, IParameter3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
+        name,
+        in,
         description,
         required,
         deprecated,
@@ -176,7 +197,7 @@ export class Header extends EnforcerComponent implements IHeader3 {
     return schema
   }
 
-  static validate (definition: IHeader3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IParameter3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

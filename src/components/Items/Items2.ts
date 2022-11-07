@@ -17,8 +17,6 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
 import { ISchemaProcessor } from '../ISchemaProcessor'
 import {
-  IHeader2,
-  IHeader2Definition,
   IItems2,
   IItems2Definition,
   Items2
@@ -27,18 +25,17 @@ import {
 
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IHeader2Definition, IHeader2> | null = null
+let cachedSchema: ISchema.IDefinition<IItems2Definition, IItems2> | null = null
 
-export class Header extends EnforcerComponent implements IHeader2 {
+export class Items extends EnforcerComponent implements IItems2 {
   [extension: `x-${string}`]: any
-  description?: string
   type!: 'array'|'boolean'|'integer'|'number'|'string'
   format?: string
   items?: IItems2
   collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'
   default?: any
   maximum?: number
-  exclusiveMaximum?: number
+  exclusiveMaximum?: boolean
   minimum?: number
   exclusiveMinimum?: number
   maxLength?: number
@@ -50,28 +47,21 @@ export class Header extends EnforcerComponent implements IHeader2 {
   enum?: any[]
   multipleOf?: number
 
-  constructor (definition: IHeader2Definition, version?: IVersion) {
+  constructor (definition: IItems2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
   static spec: IComponentSpec = {
-    '2.0': 'https://spec.openapis.org/oas/v2.0#header-object',
-    '3.0.0': true,
-    '3.0.1': true,
-    '3.0.2': true,
-    '3.0.3': true
+    '2.0': 'https://spec.openapis.org/oas/v2.0#items-object',
+    '3.0.0': false,
+    '3.0.1': false,
+    '3.0.2': false,
+    '3.0.3': false
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IHeader2Definition, IHeader2> {
+  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IItems2Definition, IItems2> {
     if (cachedSchema !== null) {
       return cachedSchema
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
     }
 
     const type: ISchema.IProperty<any> = {
@@ -121,10 +111,10 @@ export class Header extends EnforcerComponent implements IHeader2 {
       }
     }
 
-    const exclusiveMaximum: ISchema.IProperty<ISchema.INumber> = {
+    const exclusiveMaximum: ISchema.IProperty<ISchema.IBoolean> = {
       name: 'exclusiveMaximum',
       schema: {
-        type: 'number'
+        type: 'boolean'
       }
     }
 
@@ -198,11 +188,10 @@ export class Header extends EnforcerComponent implements IHeader2 {
       }
     }
 
-    const schema: ISchema.IDefinition<IHeader2Definition, IHeader2> = {
+    const schema: ISchema.IDefinition<IItems2Definition, IItems2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        description,
         type,
         format,
         items,
@@ -231,7 +220,7 @@ export class Header extends EnforcerComponent implements IHeader2 {
     return schema
   }
 
-  static validate (definition: IHeader2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IItems2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

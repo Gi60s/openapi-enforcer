@@ -17,103 +17,46 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
 import { ISchemaProcessor } from '../ISchemaProcessor'
 import {
+  Encoding3,
   Example3,
+  IEncoding3,
+  IEncoding3Definition,
   IExample3,
   IExample3Definition,
-  IHeader3,
-  IHeader3Definition,
   IMediaType3,
   IMediaType3Definition,
   ISchema3,
   ISchema3Definition,
-  MediaType3,
   Schema3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
 
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IHeader3Definition, IHeader3> | null = null
+let cachedSchema: ISchema.IDefinition<IMediaType3Definition, IMediaType3> | null = null
 
-export class Header extends EnforcerComponent implements IHeader3 {
+export class MediaType extends EnforcerComponent implements IMediaType3 {
   [extension: `x-${string}`]: any
-  description?: string
-  required?: boolean
-  deprecated?: boolean
-  allowEmptyValue?: boolean
-  style?: 'simple'
-  explode?: boolean
-  allowReserved?: boolean
   schema?: ISchema3
   example?: any
   examples?: Record<string, IExample3>
-  content?: Record<string, IMediaType3>
+  encoding?: Record<string, IEncoding3>
 
-  constructor (definition: IHeader3Definition, version?: IVersion) {
+  constructor (definition: IMediaType3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
   static spec: IComponentSpec = {
-    '2.0': true,
-    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#header-object',
-    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#header-object',
-    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#header-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#header-object'
+    '2.0': false,
+    '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#media-type-object',
+    '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#media-type-object',
+    '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#media-type-object',
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#media-type-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IHeader3Definition, IHeader3> {
+  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IMediaType3Definition, IMediaType3> {
     if (cachedSchema !== null) {
       return cachedSchema
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const required: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'required',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const deprecated: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'deprecated',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const allowEmptyValue: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'allowEmptyValue',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const style: ISchema.IProperty<any> = {
-      name: 'style',
-      schema: {
-        type: 'string',
-        enum: ['simple']
-      }
-    }
-
-    const explode: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'explode',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const allowReserved: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'allowReserved',
-      schema: {
-        type: 'boolean'
-      }
     }
 
     const schema: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>> = {
@@ -141,30 +84,23 @@ export class Header extends EnforcerComponent implements IHeader3 {
       }
     }
 
-    const content: ISchema.IProperty<ISchema.IComponent<IMediaType3Definition, IMediaType3>> = {
-      name: 'content',
+    const encoding: ISchema.IProperty<ISchema.IComponent<IEncoding3Definition, IEncoding3>> = {
+      name: 'encoding',
       schema: {
         type: 'component',
         allowsRef: false,
-        component: MediaType3
+        component: Encoding3
       }
     }
 
-    const schema: ISchema.IDefinition<IHeader3Definition, IHeader3> = {
+    const schema: ISchema.IDefinition<IMediaType3Definition, IMediaType3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        description,
-        required,
-        deprecated,
-        allowEmptyValue,
-        style,
-        explode,
-        allowReserved,
         schema,
         example,
         examples,
-        content
+        encoding
       ]
     }
 
@@ -176,7 +112,7 @@ export class Header extends EnforcerComponent implements IHeader3 {
     return schema
   }
 
-  static validate (definition: IHeader3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IMediaType3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
