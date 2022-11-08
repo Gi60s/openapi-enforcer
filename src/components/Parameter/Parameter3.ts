@@ -76,7 +76,7 @@ export class Parameter extends EnforcerComponent implements IParameter3 {
       }
     }
 
-    const in: ISchema.IProperty<any> = {
+    const in: ISchema.IProperty<ISchema.IString> = {
       name: 'in',
       required: true,
       schema: {
@@ -113,7 +113,7 @@ export class Parameter extends EnforcerComponent implements IParameter3 {
       }
     }
 
-    const style: ISchema.IProperty<any> = {
+    const style: ISchema.IProperty<ISchema.IString> = {
       name: 'style',
       schema: {
         type: 'string',
@@ -151,21 +151,27 @@ export class Parameter extends EnforcerComponent implements IParameter3 {
       }
     }
 
-    const examples: ISchema.IProperty<ISchema.IComponent<IExample3Definition, IExample3>> = {
+    const examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IExample3Definition, IExample3>>> = {
       name: 'examples',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Example3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Example3
+        }
       }
     }
 
-    const content: ISchema.IProperty<ISchema.IComponent<IMediaType3Definition, IMediaType3>> = {
+    const content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>> = {
       name: 'content',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: MediaType3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: MediaType3
+        }
       }
     }
 

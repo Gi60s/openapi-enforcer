@@ -94,7 +94,7 @@ export class Header extends EnforcerComponent implements IHeader3 {
       }
     }
 
-    const style: ISchema.IProperty<any> = {
+    const style: ISchema.IProperty<ISchema.IString> = {
       name: 'style',
       schema: {
         type: 'string',
@@ -132,21 +132,27 @@ export class Header extends EnforcerComponent implements IHeader3 {
       }
     }
 
-    const examples: ISchema.IProperty<ISchema.IComponent<IExample3Definition, IExample3>> = {
+    const examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IExample3Definition, IExample3>>> = {
       name: 'examples',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Example3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Example3
+        }
       }
     }
 
-    const content: ISchema.IProperty<ISchema.IComponent<IMediaType3Definition, IMediaType3>> = {
+    const content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>> = {
       name: 'content',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: MediaType3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: MediaType3
+        }
       }
     }
 

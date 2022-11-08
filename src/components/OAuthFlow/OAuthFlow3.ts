@@ -71,10 +71,13 @@ export class OAuthFlow extends EnforcerComponent implements IOAuthFlow3 {
       }
     }
 
-    const scopes: ISchema.IProperty<ISchema.IString> = {
+    const scopes: ISchema.IProperty<ISchema.IObject<ISchema.IString>> = {
       name: 'scopes',
       schema: {
-        type: 'string'
+        type: 'object',
+        additionalProperties: {
+          type: 'string'
+        }
       }
     }
 

@@ -131,12 +131,14 @@ export class PathItem extends EnforcerComponent implements IPathItem2 {
       }
     }
 
-    const parameters: ISchema.IProperty<ISchema.IComponent<IParameter2Definition, IParameter2>> = {
+    const parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter2Definition, IParameter2>>> = {
       name: 'parameters',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Parameter2
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: true,    
+      component: Parameter2
+        }
       }
     }
 

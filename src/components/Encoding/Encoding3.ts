@@ -61,12 +61,15 @@ export class Encoding extends EnforcerComponent implements IEncoding3 {
       }
     }
 
-    const headers: ISchema.IProperty<ISchema.IComponent<IHeader3Definition, IHeader3>> = {
+    const headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader3Definition, IHeader3>>> = {
       name: 'headers',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Header3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Header3
+        }
       }
     }
 

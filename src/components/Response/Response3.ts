@@ -67,30 +67,39 @@ export class Response extends EnforcerComponent implements IResponse3 {
       }
     }
 
-    const headers: ISchema.IProperty<ISchema.IComponent<IHeader3Definition, IHeader3>> = {
+    const headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader3Definition, IHeader3>>> = {
       name: 'headers',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Header3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Header3
+        }
       }
     }
 
-    const content: ISchema.IProperty<ISchema.IComponent<IMediaType3Definition, IMediaType3>> = {
+    const content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>> = {
       name: 'content',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: MediaType3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: MediaType3
+        }
       }
     }
 
-    const links: ISchema.IProperty<ISchema.IComponent<ILink3Definition, ILink3>> = {
+    const links: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ILink3Definition, ILink3>>> = {
       name: 'links',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Link3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Link3
+        }
       }
     }
 

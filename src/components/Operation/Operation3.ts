@@ -79,10 +79,12 @@ export class Operation extends EnforcerComponent implements IOperation3 {
       return cachedSchema
     }
 
-    const tags: ISchema.IProperty<ISchema.IString> = {
+    const tags: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'tags',
       schema: {
-        type: 'string'
+        type: 'array',  items: {
+          type: 'string'
+        }
       }
     }
 
@@ -116,12 +118,14 @@ export class Operation extends EnforcerComponent implements IOperation3 {
       }
     }
 
-    const parameters: ISchema.IProperty<ISchema.IComponent<IParameter3Definition, IParameter3>> = {
+    const parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter3Definition, IParameter3>>> = {
       name: 'parameters',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Parameter3
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: true,    
+      component: Parameter3
+        }
       }
     }
 
@@ -144,12 +148,15 @@ export class Operation extends EnforcerComponent implements IOperation3 {
       }
     }
 
-    const callbacks: ISchema.IProperty<ISchema.IComponent<ICallback3Definition, ICallback3>> = {
+    const callbacks: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ICallback3Definition, ICallback3>>> = {
       name: 'callbacks',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Callback3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Callback3
+        }
       }
     }
 
@@ -160,21 +167,25 @@ export class Operation extends EnforcerComponent implements IOperation3 {
       }
     }
 
-    const security: ISchema.IProperty<ISchema.IComponent<ISecurityRequirement3Definition, ISecurityRequirement3>> = {
+    const security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement3Definition, ISecurityRequirement3>>> = {
       name: 'security',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: SecurityRequirement3
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: false,    
+      component: SecurityRequirement3
+        }
       }
     }
 
-    const servers: ISchema.IProperty<ISchema.IComponent<IServer3Definition, IServer3>> = {
+    const servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>> = {
       name: 'servers',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Server3
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: false,    
+      component: Server3
+        }
       }
     }
 

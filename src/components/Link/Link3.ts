@@ -69,10 +69,13 @@ export class Link extends EnforcerComponent implements ILink3 {
       }
     }
 
-    const parameters: ISchema.IProperty<any> = {
+    const parameters: ISchema.IProperty<ISchema.IObject<any>> = {
       name: 'parameters',
       schema: {
-        type: 'any'
+        type: 'object',
+        additionalProperties: {
+          type: 'any'
+        }
       }
     }
 

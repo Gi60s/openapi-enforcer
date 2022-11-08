@@ -64,7 +64,7 @@ export class Items extends EnforcerComponent implements IItems2 {
       return cachedSchema
     }
 
-    const type: ISchema.IProperty<any> = {
+    const type: ISchema.IProperty<ISchema.IString> = {
       name: 'type',
       required: true,
       schema: {
@@ -89,7 +89,7 @@ export class Items extends EnforcerComponent implements IItems2 {
       }
     }
 
-    const collectionFormat: ISchema.IProperty<any> = {
+    const collectionFormat: ISchema.IProperty<ISchema.IString> = {
       name: 'collectionFormat',
       schema: {
         type: 'string',
@@ -174,10 +174,12 @@ export class Items extends EnforcerComponent implements IItems2 {
       }
     }
 
-    const _enum: ISchema.IProperty<any> = {
+    const _enum: ISchema.IProperty<ISchema.IArray<any>> = {
       name: 'enum',
       schema: {
-        type: 'any'
+        type: 'array',  items: {
+          type: 'any'
+        }
       }
     }
 

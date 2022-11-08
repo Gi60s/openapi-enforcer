@@ -24,7 +24,9 @@ import {
   ServerVariable3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+import rx from '../../rx'
+import { urlInvalid } from '../../Exception/methods'
+import { getLocation } from '../../Locator/Locator'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IServer3Definition, IServer3> | null = null
@@ -67,12 +69,15 @@ export class Server extends EnforcerComponent implements IServer3 {
       }
     }
 
-    const variables: ISchema.IProperty<ISchema.IComponent<IServerVariable3Definition, IServerVariable3>> = {
+    const variables: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IServerVariable3Definition, IServerVariable3>>> = {
       name: 'variables',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: ServerVariable3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: ServerVariable3
+        }
       }
     }
 
@@ -87,7 +92,16 @@ export class Server extends EnforcerComponent implements IServer3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    schema.after = function (data: ISchemaProcessor<any, any>, mode: 'build' | 'validate'): void {
+      const { exception } = data.root
+      const { definition } = data.cmp
+      if (mode === 'validate') {
+        const url = definition.url
+        if (url !== undefined && !rx.url.test(url)) {
+          exception.add(urlInvalid(data.cmp, url, [getLocation(definition, 'url', 'value')]))
+        }
+      }
+    }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = schema
@@ -99,7 +113,7 @@ export class Server extends EnforcerComponent implements IServer3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+
   // <!# Custom Content End: BODY #!>
 }
 

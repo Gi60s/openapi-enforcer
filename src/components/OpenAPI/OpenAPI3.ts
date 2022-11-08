@@ -49,7 +49,7 @@ let cachedSchema: ISchema.IDefinition<IOpenAPI3Definition, IOpenAPI3> | null = n
 
 export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
   [extension: `x-${string}`]: any
-  openapi!: string
+  openapi!: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
   info!: IInfo3
   servers?: IServer3[]
   paths!: IPaths3
@@ -79,7 +79,8 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
       name: 'openapi',
       required: true,
       schema: {
-        type: 'string'
+        type: 'string',
+        enum: ['3.0.0', '3.0.1', '3.0.2', '3.0.3']
       }
     }
 
@@ -93,12 +94,14 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
       }
     }
 
-    const servers: ISchema.IProperty<ISchema.IComponent<IServer3Definition, IServer3>> = {
+    const servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>> = {
       name: 'servers',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Server3
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: false,    
+      component: Server3
+        }
       }
     }
 
@@ -121,21 +124,25 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
       }
     }
 
-    const security: ISchema.IProperty<ISchema.IComponent<ISecurityRequirement3Definition, ISecurityRequirement3>> = {
+    const security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement3Definition, ISecurityRequirement3>>> = {
       name: 'security',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: SecurityRequirement3
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: false,    
+      component: SecurityRequirement3
+        }
       }
     }
 
-    const tags: ISchema.IProperty<ISchema.IComponent<ITag3Definition, ITag3>> = {
+    const tags: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ITag3Definition, ITag3>>> = {
       name: 'tags',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Tag3
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: false,    
+      component: Tag3
+        }
       }
     }
 
@@ -164,7 +171,7 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    openapi.schema.enum = ['3.0.0', '3.0.1', '3.0.2', '3.0.3']
+
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = schema

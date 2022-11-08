@@ -82,84 +82,111 @@ export class Components extends EnforcerComponent implements IComponents3 {
       return cachedSchema
     }
 
-    const schemas: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>> = {
+    const schemas: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISchema3Definition, ISchema3>>> = {
       name: 'schemas',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Schema3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Schema3
+        }
       }
     }
 
-    const responses: ISchema.IProperty<ISchema.IComponent<IResponse3Definition, IResponse3>> = {
+    const responses: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IResponse3Definition, IResponse3>>> = {
       name: 'responses',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Response3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Response3
+        }
       }
     }
 
-    const parameters: ISchema.IProperty<ISchema.IComponent<IParameter3Definition, IParameter3>> = {
+    const parameters: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IParameter3Definition, IParameter3>>> = {
       name: 'parameters',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Parameter3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Parameter3
+        }
       }
     }
 
-    const examples: ISchema.IProperty<ISchema.IComponent<IExample3Definition, IExample3>> = {
+    const examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IExample3Definition, IExample3>>> = {
       name: 'examples',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Example3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Example3
+        }
       }
     }
 
-    const requestBodies: ISchema.IProperty<ISchema.IComponent<IRequestBody3Definition, IRequestBody3>> = {
+    const requestBodies: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IRequestBody3Definition, IRequestBody3>>> = {
       name: 'requestBodies',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: RequestBody3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: RequestBody3
+        }
       }
     }
 
-    const headers: ISchema.IProperty<ISchema.IComponent<IHeader3Definition, IHeader3>> = {
+    const headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader3Definition, IHeader3>>> = {
       name: 'headers',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Header3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Header3
+        }
       }
     }
 
-    const securitySchemes: ISchema.IProperty<ISchema.IComponent<ISecurityScheme3Definition, ISecurityScheme3>> = {
+    const securitySchemes: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISecurityScheme3Definition, ISecurityScheme3>>> = {
       name: 'securitySchemes',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: SecurityScheme3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: SecurityScheme3
+        }
       }
     }
 
-    const links: ISchema.IProperty<ISchema.IComponent<ILink3Definition, ILink3>> = {
+    const links: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ILink3Definition, ILink3>>> = {
       name: 'links',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Link3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Link3
+        }
       }
     }
 
-    const callbacks: ISchema.IProperty<ISchema.IComponent<ICallback3Definition, ICallback3>> = {
+    const callbacks: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ICallback3Definition, ICallback3>>> = {
       name: 'callbacks',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Callback3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Callback3
+        }
       }
     }
 

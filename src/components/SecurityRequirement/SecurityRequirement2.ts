@@ -45,8 +45,10 @@ export class SecurityRequirement extends EnforcerComponent implements ISecurityR
       return cachedSchema
     }
 
-    const additionalProperties: ISchema.IString = {
-      type: 'string'
+    const additionalProperties: ISchema.IArray<ISchema.IString> = {
+      type: 'array',  items: {
+        type: 'string'
+      }
     }
 
     const schema: ISchema.IDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> = {

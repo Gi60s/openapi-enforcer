@@ -76,12 +76,15 @@ export class Response extends EnforcerComponent implements IResponse2 {
       }
     }
 
-    const headers: ISchema.IProperty<ISchema.IComponent<IHeader2Definition, IHeader2>> = {
+    const headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader2Definition, IHeader2>>> = {
       name: 'headers',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Header2
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: Header2
+        }
       }
     }
 

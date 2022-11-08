@@ -188,10 +188,12 @@ export class Schema extends EnforcerComponent implements ISchema2 {
       }
     }
 
-    const _enum: ISchema.IProperty<any> = {
+    const _enum: ISchema.IProperty<ISchema.IArray<any>> = {
       name: 'enum',
       schema: {
-        type: 'any'
+        type: 'array',  items: {
+          type: 'any'
+        }
       }
     }
 
@@ -202,10 +204,12 @@ export class Schema extends EnforcerComponent implements ISchema2 {
       }
     }
 
-    const required: ISchema.IProperty<ISchema.IString> = {
+    const required: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'required',
       schema: {
-        type: 'string'
+        type: 'array',  items: {
+          type: 'string'
+        }
       }
     }
 
@@ -225,21 +229,26 @@ export class Schema extends EnforcerComponent implements ISchema2 {
       }
     }
 
-    const allOf: ISchema.IProperty<ISchema.IComponent<ISchema2Definition, ISchema2>> = {
+    const allOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema2Definition, ISchema2>>> = {
       name: 'allOf',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Schema2
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: true,    
+      component: Schema2
+        }
       }
     }
 
-    const properties: ISchema.IProperty<ISchema.IComponent<ISchema2Definition, ISchema2>> = {
+    const properties: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISchema2Definition, ISchema2>>> = {
       name: 'properties',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Schema2
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Schema2
+        }
       }
     }
 

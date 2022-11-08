@@ -57,7 +57,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
       return cachedSchema
     }
 
-    const type: ISchema.IProperty<any> = {
+    const type: ISchema.IProperty<ISchema.IString> = {
       name: 'type',
       schema: {
         type: 'string',
@@ -79,7 +79,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
       }
     }
 
-    const in: ISchema.IProperty<any> = {
+    const in: ISchema.IProperty<ISchema.IString> = {
       name: 'in',
       schema: {
         type: 'string',

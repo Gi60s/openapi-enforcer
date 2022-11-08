@@ -161,21 +161,25 @@ export class PathItem extends EnforcerComponent implements IPathItem3 {
       }
     }
 
-    const servers: ISchema.IProperty<ISchema.IComponent<IServer3Definition, IServer3>> = {
+    const servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>> = {
       name: 'servers',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Server3
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: false,    
+      component: Server3
+        }
       }
     }
 
-    const parameters: ISchema.IProperty<ISchema.IComponent<IParameter3Definition, IParameter3>> = {
+    const parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter3Definition, IParameter3>>> = {
       name: 'parameters',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Parameter3
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: true,    
+      component: Parameter3
+        }
       }
     }
 

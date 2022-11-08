@@ -97,7 +97,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
       }
     }
 
-    const in: ISchema.IProperty<any> = {
+    const in: ISchema.IProperty<ISchema.IString> = {
       name: 'in',
       schema: {
         type: 'string',
@@ -105,7 +105,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
       }
     }
 
-    const flow: ISchema.IProperty<any> = {
+    const flow: ISchema.IProperty<ISchema.IString> = {
       name: 'flow',
       schema: {
         type: 'string',
@@ -127,10 +127,13 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
       }
     }
 
-    const scopes: ISchema.IProperty<ISchema.IString> = {
+    const scopes: ISchema.IProperty<ISchema.IObject<ISchema.IString>> = {
       name: 'scopes',
       schema: {
-        type: 'string'
+        type: 'object',
+        additionalProperties: {
+          type: 'string'
+        }
       }
     }
 

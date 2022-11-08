@@ -55,10 +55,13 @@ export class Discriminator extends EnforcerComponent implements IDiscriminator3 
       }
     }
 
-    const mapping: ISchema.IProperty<ISchema.IString> = {
+    const mapping: ISchema.IProperty<ISchema.IObject<ISchema.IString>> = {
       name: 'mapping',
       schema: {
-        type: 'string'
+        type: 'object',
+        additionalProperties: {
+          type: 'string'
+        }
       }
     }
 

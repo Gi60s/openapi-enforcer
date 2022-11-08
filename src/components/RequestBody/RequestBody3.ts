@@ -59,12 +59,15 @@ export class RequestBody extends EnforcerComponent implements IRequestBody3 {
       }
     }
 
-    const content: ISchema.IProperty<ISchema.IComponent<IMediaType3Definition, IMediaType3>> = {
+    const content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>> = {
       name: 'content',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: MediaType3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: MediaType3
+        }
       }
     }
 

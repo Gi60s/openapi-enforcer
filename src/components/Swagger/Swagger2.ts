@@ -88,7 +88,7 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
       return cachedSchema
     }
 
-    const swagger: ISchema.IProperty<any> = {
+    const swagger: ISchema.IProperty<ISchema.IString> = {
       name: 'swagger',
       required: true,
       schema: {
@@ -121,24 +121,30 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
       }
     }
 
-    const schemes: ISchema.IProperty<ISchema.IString> = {
+    const schemes: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'schemes',
       schema: {
-        type: 'string'
+        type: 'array',  items: {
+          type: 'string'
+        }
       }
     }
 
-    const consumes: ISchema.IProperty<ISchema.IString> = {
+    const consumes: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'consumes',
       schema: {
-        type: 'string'
+        type: 'array',  items: {
+          type: 'string'
+        }
       }
     }
 
-    const produces: ISchema.IProperty<ISchema.IString> = {
+    const produces: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'produces',
       schema: {
-        type: 'string'
+        type: 'array',  items: {
+          type: 'string'
+        }
       }
     }
 
@@ -152,57 +158,73 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
       }
     }
 
-    const definitions: ISchema.IProperty<ISchema.IComponent<ISchema2Definition, ISchema2>> = {
+    const definitions: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISchema2Definition, ISchema2>>> = {
       name: 'definitions',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Schema2
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: Schema2
+        }
       }
     }
 
-    const parameters: ISchema.IProperty<ISchema.IComponent<IParameter2Definition, IParameter2>> = {
+    const parameters: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IParameter2Definition, IParameter2>>> = {
       name: 'parameters',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Parameter2
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: Parameter2
+        }
       }
     }
 
-    const responses: ISchema.IProperty<ISchema.IComponent<IResponse2Definition, IResponse2>> = {
+    const responses: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IResponse2Definition, IResponse2>>> = {
       name: 'responses',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Response2
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: Response2
+        }
       }
     }
 
-    const securityDefinitions: ISchema.IProperty<ISchema.IComponent<ISecurityScheme2Definition, ISecurityScheme2>> = {
+    const securityDefinitions: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISecurityScheme2Definition, ISecurityScheme2>>> = {
       name: 'securityDefinitions',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: SecurityScheme2
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: SecurityScheme2
+        }
       }
     }
 
-    const security: ISchema.IProperty<ISchema.IComponent<ISecurityRequirement2Definition, ISecurityRequirement2>> = {
+    const security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement2Definition, ISecurityRequirement2>>> = {
       name: 'security',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: SecurityRequirement2
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: false,    
+      component: SecurityRequirement2
+        }
       }
     }
 
-    const tags: ISchema.IProperty<ISchema.IComponent<ITag2Definition, ITag2>> = {
+    const tags: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ITag2Definition, ITag2>>> = {
       name: 'tags',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Tag2
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: false,    
+      component: Tag2
+        }
       }
     }
 

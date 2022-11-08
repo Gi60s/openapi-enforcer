@@ -22,7 +22,7 @@ import { IExternalDocumentation3, IExternalDocumentation3Definition } from '../E
 
 export interface IOpenAPI3Definition {
   [extension: `x-${string}`]: any
-  openapi: string
+  openapi: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
   info: IInfo3Definition
   servers?: IServer3Definition[]
   paths: IPaths3Definition
@@ -34,7 +34,7 @@ export interface IOpenAPI3Definition {
 
 export interface IOpenAPI3 extends IComponentInstance {
   [extension: `x-${string}`]: any
-  openapi: string
+  openapi: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
   info: IInfo3
   servers?: IServer3[]
   paths: IPaths3

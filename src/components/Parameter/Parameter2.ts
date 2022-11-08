@@ -83,7 +83,7 @@ export class Parameter extends EnforcerComponent implements IParameter2 {
       }
     }
 
-    const in: ISchema.IProperty<any> = {
+    const in: ISchema.IProperty<ISchema.IString> = {
       name: 'in',
       required: true,
       schema: {
@@ -115,7 +115,7 @@ export class Parameter extends EnforcerComponent implements IParameter2 {
       }
     }
 
-    const type: ISchema.IProperty<any> = {
+    const type: ISchema.IProperty<ISchema.IString> = {
       name: 'type',
       schema: {
         type: 'string',
@@ -146,7 +146,7 @@ export class Parameter extends EnforcerComponent implements IParameter2 {
       }
     }
 
-    const collectionFormat: ISchema.IProperty<any> = {
+    const collectionFormat: ISchema.IProperty<ISchema.IString> = {
       name: 'collectionFormat',
       schema: {
         type: 'string',
@@ -231,10 +231,12 @@ export class Parameter extends EnforcerComponent implements IParameter2 {
       }
     }
 
-    const _enum: ISchema.IProperty<any> = {
+    const _enum: ISchema.IProperty<ISchema.IArray<any>> = {
       name: 'enum',
       schema: {
-        type: 'any'
+        type: 'array',  items: {
+          type: 'any'
+        }
       }
     }
 

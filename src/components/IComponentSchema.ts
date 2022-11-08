@@ -38,6 +38,7 @@ export interface IComponent<Definition, Built> extends Base<Definition | Built> 
 
 // this interface is used only by component's getSchema() method which returns it
 export interface IDefinition<Definition, Built> extends IObject {
+  allowsSchemaExtensions: boolean
   after?: (data: ISchemaProcessor<Definition, Built>, mode: 'build' | 'validate') => void // runs after build or validate functions
   build?: (data: ISchemaProcessor<Definition, Built>) => void
   validate?: (data: ISchemaProcessor<Definition, Built>) => void
@@ -59,10 +60,9 @@ export interface IOneOf extends Base<any> {
   error: (data: ISchemaProcessor) => void // only called by validator, not builder
 }
 
-export interface IObject extends Base<Record<string, any>> {
+export interface IObject<T=ISchema> extends Base<Record<string, any>> {
   type: 'object'
-  allowsSchemaExtensions: boolean
-  additionalProperties?: ISchema
+  additionalProperties?: T
   properties?: IProperty[]
 }
 

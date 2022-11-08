@@ -70,10 +70,12 @@ export class Operation extends EnforcerComponent implements IOperation2 {
       return cachedSchema
     }
 
-    const tags: ISchema.IProperty<ISchema.IString> = {
+    const tags: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'tags',
       schema: {
-        type: 'string'
+        type: 'array',  items: {
+          type: 'string'
+        }
       }
     }
 
@@ -107,26 +109,32 @@ export class Operation extends EnforcerComponent implements IOperation2 {
       }
     }
 
-    const consumes: ISchema.IProperty<ISchema.IString> = {
+    const consumes: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'consumes',
       schema: {
-        type: 'string'
+        type: 'array',  items: {
+          type: 'string'
+        }
       }
     }
 
-    const produces: ISchema.IProperty<ISchema.IString> = {
+    const produces: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'produces',
       schema: {
-        type: 'string'
+        type: 'array',  items: {
+          type: 'string'
+        }
       }
     }
 
-    const parameters: ISchema.IProperty<ISchema.IComponent<IParameter2Definition, IParameter2>> = {
+    const parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter2Definition, IParameter2>>> = {
       name: 'parameters',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Parameter2
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: true,    
+      component: Parameter2
+        }
       }
     }
 
@@ -140,10 +148,12 @@ export class Operation extends EnforcerComponent implements IOperation2 {
       }
     }
 
-    const schemes: ISchema.IProperty<ISchema.IString> = {
+    const schemes: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'schemes',
       schema: {
-        type: 'string'
+        type: 'array',  items: {
+          type: 'string'
+        }
       }
     }
 
@@ -154,12 +164,14 @@ export class Operation extends EnforcerComponent implements IOperation2 {
       }
     }
 
-    const security: ISchema.IProperty<ISchema.IComponent<ISecurityRequirement2Definition, ISecurityRequirement2>> = {
+    const security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement2Definition, ISecurityRequirement2>>> = {
       name: 'security',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: SecurityRequirement2
+        type: 'array',  items: {
+          type: 'component',    
+      allowsRef: false,    
+      component: SecurityRequirement2
+        }
       }
     }
 

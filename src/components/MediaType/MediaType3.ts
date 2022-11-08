@@ -75,21 +75,27 @@ export class MediaType extends EnforcerComponent implements IMediaType3 {
       }
     }
 
-    const examples: ISchema.IProperty<ISchema.IComponent<IExample3Definition, IExample3>> = {
+    const examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IExample3Definition, IExample3>>> = {
       name: 'examples',
       schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Example3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Example3
+        }
       }
     }
 
-    const encoding: ISchema.IProperty<ISchema.IComponent<IEncoding3Definition, IEncoding3>> = {
+    const encoding: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IEncoding3Definition, IEncoding3>>> = {
       name: 'encoding',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Encoding3
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: Encoding3
+        }
       }
     }
 

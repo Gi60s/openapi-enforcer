@@ -49,10 +49,12 @@ export class ServerVariable extends EnforcerComponent implements IServerVariable
       return cachedSchema
     }
 
-    const _enum: ISchema.IProperty<ISchema.IString> = {
+    const _enum: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'enum',
       schema: {
-        type: 'string'
+        type: 'array',  items: {
+          type: 'string'
+        }
       }
     }
 
