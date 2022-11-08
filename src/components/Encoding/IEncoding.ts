@@ -12,7 +12,10 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IHeader3, IHeader3Definition } from '../Header/IHeader'
+import {
+  IHeader3,
+  IHeader3Definition
+} from '../'
 
 export interface IEncoding3Definition {
   [extension: `x-${string}`]: any
@@ -22,7 +25,6 @@ export interface IEncoding3Definition {
   explode?: boolean
   allowReserved?: boolean
 }
-
 export interface IEncoding3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   contentType?: string
@@ -31,4 +33,3 @@ export interface IEncoding3 extends IComponentInstance {
   explode?: boolean
   allowReserved?: boolean
 }
-

@@ -12,13 +12,22 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IInfo3, IInfo3Definition } from '../Info/IInfo'
-import { IServer3, IServer3Definition } from '../Server/IServer'
-import { IPaths3, IPaths3Definition } from '../Paths/IPaths'
-import { IComponents3, IComponents3Definition } from '../Components/IComponents'
-import { ISecurityRequirement3, ISecurityRequirement3Definition } from '../SecurityRequirement/ISecurityRequirement'
-import { ITag3, ITag3Definition } from '../Tag/ITag'
-import { IExternalDocumentation3, IExternalDocumentation3Definition } from '../ExternalDocumentation/IExternalDocumentation'
+import {
+  IComponents3,
+  IComponents3Definition,
+  IExternalDocumentation3,
+  IExternalDocumentation3Definition,
+  IInfo3,
+  IInfo3Definition,
+  IPaths3,
+  IPaths3Definition,
+  ISecurityRequirement3,
+  ISecurityRequirement3Definition,
+  IServer3,
+  IServer3Definition,
+  ITag3,
+  ITag3Definition
+} from '../'
 
 export interface IOpenAPI3Definition {
   [extension: `x-${string}`]: any
@@ -31,7 +40,6 @@ export interface IOpenAPI3Definition {
   tags?: ITag3Definition[]
   externalDocs?: IExternalDocumentation3Definition
 }
-
 export interface IOpenAPI3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   openapi: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
@@ -43,4 +51,3 @@ export interface IOpenAPI3 extends IComponentInstance {
   tags?: ITag3[]
   externalDocs?: IExternalDocumentation3
 }
-

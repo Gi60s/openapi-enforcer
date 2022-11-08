@@ -19,25 +19,21 @@ export interface IContact2Definition {
   url?: string
   email?: string
 }
-
 export interface IContact2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name?: string
   url?: string
   email?: string
 }
-
 export interface IContact3Definition {
   [extension: `x-${string}`]: any
   name?: string
   url?: string
   email?: string
 }
-
 export interface IContact3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name?: string
   url?: string
   email?: string
 }
-

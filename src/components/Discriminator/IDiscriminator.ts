@@ -17,9 +17,7 @@ export interface IDiscriminator3Definition {
   propertyName: string
   mapping?: Record<string, string>
 }
-
 export interface IDiscriminator3 extends IComponentInstance {
   propertyName: string
   mapping?: Record<string, string>
 }
-

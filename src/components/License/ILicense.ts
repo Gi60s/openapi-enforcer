@@ -18,22 +18,18 @@ export interface ILicense2Definition {
   name: string
   url?: string
 }
-
 export interface ILicense2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name: string
   url?: string
 }
-
 export interface ILicense3Definition {
   [extension: `x-${string}`]: any
   name: string
   url?: string
 }
-
 export interface ILicense3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name: string
   url?: string
 }
-

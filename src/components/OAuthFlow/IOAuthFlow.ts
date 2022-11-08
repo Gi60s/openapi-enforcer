@@ -20,7 +20,6 @@ export interface IOAuthFlow3Definition {
   refreshUrl?: string
   scopes?: Record<string, string>
 }
-
 export interface IOAuthFlow3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   authorizationUrl?: string
@@ -28,4 +27,3 @@ export interface IOAuthFlow3 extends IComponentInstance {
   refreshUrl?: string
   scopes?: Record<string, string>
 }
-

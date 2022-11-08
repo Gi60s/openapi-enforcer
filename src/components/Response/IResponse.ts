@@ -12,11 +12,20 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { ISchema2, ISchema2Definition } from '../Schema/ISchema'
-import { IHeader2, IHeader2Definition, IHeader3, IHeader3Definition } from '../Header/IHeader'
-import { IExample2, IExample2Definition } from '../Example/IExample'
-import { IMediaType3, IMediaType3Definition } from '../MediaType/IMediaType'
-import { ILink3, ILink3Definition } from '../Link/ILink'
+import {
+  IExample2,
+  IExample2Definition,
+  IHeader2,
+  IHeader2Definition,
+  IHeader3,
+  IHeader3Definition,
+  ILink3,
+  ILink3Definition,
+  IMediaType3,
+  IMediaType3Definition,
+  ISchema2,
+  ISchema2Definition
+} from '../'
 
 export interface IResponse2Definition {
   [extension: `x-${string}`]: any
@@ -25,7 +34,6 @@ export interface IResponse2Definition {
   headers?: Record<string, IHeader2Definition>
   examples?: IExample2Definition
 }
-
 export interface IResponse2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   description: string
@@ -33,7 +41,6 @@ export interface IResponse2 extends IComponentInstance {
   headers?: Record<string, IHeader2>
   examples?: IExample2
 }
-
 export interface IResponse3Definition {
   [extension: `x-${string}`]: any
   description: string
@@ -41,7 +48,6 @@ export interface IResponse3Definition {
   content?: Record<string, IMediaType3Definition>
   links?: Record<string, ILink3Definition>
 }
-
 export interface IResponse3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   description: string
@@ -49,4 +55,3 @@ export interface IResponse3 extends IComponentInstance {
   content?: Record<string, IMediaType3>
   links?: Record<string, ILink3>
 }
-

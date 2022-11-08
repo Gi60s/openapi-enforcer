@@ -18,22 +18,18 @@ export interface IExternalDocumentation2Definition {
   description?: string
   url: string
 }
-
 export interface IExternalDocumentation2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   description?: string
   url: string
 }
-
 export interface IExternalDocumentation3Definition {
   [extension: `x-${string}`]: any
   description?: string
   url: string
 }
-
 export interface IExternalDocumentation3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   description?: string
   url: string
 }
-

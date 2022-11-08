@@ -12,9 +12,14 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { ISchema3, ISchema3Definition } from '../Schema/ISchema'
-import { IExample3, IExample3Definition } from '../Example/IExample'
-import { IEncoding3, IEncoding3Definition } from '../Encoding/IEncoding'
+import {
+  IEncoding3,
+  IEncoding3Definition,
+  IExample3,
+  IExample3Definition,
+  ISchema3,
+  ISchema3Definition
+} from '../'
 
 export interface IMediaType3Definition {
   [extension: `x-${string}`]: any
@@ -23,7 +28,6 @@ export interface IMediaType3Definition {
   examples?: Record<string, IExample3Definition>
   encoding?: Record<string, IEncoding3Definition>
 }
-
 export interface IMediaType3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   schema?: ISchema3
@@ -31,4 +35,3 @@ export interface IMediaType3 extends IComponentInstance {
   examples?: Record<string, IExample3>
   encoding?: Record<string, IEncoding3>
 }
-

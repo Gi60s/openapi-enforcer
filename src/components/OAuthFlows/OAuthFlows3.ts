@@ -17,11 +17,11 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
 import { ISchemaProcessor } from '../ISchemaProcessor'
 import {
-  IOAuth Flow3,
-  IOAuth Flow3Definition,
+  IOAuthFlow3,
+  IOAuthFlow3Definition,
   IOAuthFlows3,
   IOAuthFlows3Definition,
-  OAuth Flow3
+  OAuthFlow3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
 
@@ -31,10 +31,10 @@ let cachedSchema: ISchema.IDefinition<IOAuthFlows3Definition, IOAuthFlows3> | nu
 
 export class OAuthFlows extends EnforcerComponent implements IOAuthFlows3 {
   [extension: `x-${string}`]: any
-  implicit?: IOAuth Flow3
-  password?: IOAuth Flow3
-  clientCredentials?: IOAuth Flow3
-  authorizationCode?: IOAuth Flow3
+  implicit?: IOAuthFlow3
+  password?: IOAuthFlow3
+  clientCredentials?: IOAuthFlow3
+  authorizationCode?: IOAuthFlow3
 
   constructor (definition: IOAuthFlows3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -53,39 +53,39 @@ export class OAuthFlows extends EnforcerComponent implements IOAuthFlows3 {
       return cachedSchema
     }
 
-    const implicit: ISchema.IProperty<ISchema.IComponent<IOAuth Flow3Definition, IOAuth Flow3>> = {
+    const implicit: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>> = {
       name: 'implicit',
       schema: {
         type: 'component',
         allowsRef: false,
-        component: OAuth Flow3
+        component: OAuthFlow3
       }
     }
 
-    const password: ISchema.IProperty<ISchema.IComponent<IOAuth Flow3Definition, IOAuth Flow3>> = {
+    const password: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>> = {
       name: 'password',
       schema: {
         type: 'component',
         allowsRef: false,
-        component: OAuth Flow3
+        component: OAuthFlow3
       }
     }
 
-    const clientCredentials: ISchema.IProperty<ISchema.IComponent<IOAuth Flow3Definition, IOAuth Flow3>> = {
+    const clientCredentials: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>> = {
       name: 'clientCredentials',
       schema: {
         type: 'component',
         allowsRef: false,
-        component: OAuth Flow3
+        component: OAuthFlow3
       }
     }
 
-    const authorizationCode: ISchema.IProperty<ISchema.IComponent<IOAuth Flow3Definition, IOAuth Flow3>> = {
+    const authorizationCode: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>> = {
       name: 'authorizationCode',
       schema: {
         type: 'component',
         allowsRef: false,
-        component: OAuth Flow3
+        component: OAuthFlow3
       }
     }
 

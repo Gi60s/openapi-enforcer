@@ -12,11 +12,14 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IOAuthFlows3, IOAuthFlows3Definition } from '../OAuthFlows/IOAuthFlows'
+import {
+  IOAuthFlows3,
+  IOAuthFlows3Definition
+} from '../'
 
 export interface ISecurityScheme2Definition {
   [extension: `x-${string}`]: any
-  type: "basic" | "apiKey" | "oauth2"
+  type: 'basic'|'apiKey'|'oauth2'
   description?: string
   name?: string
   in?: 'query'|'header'
@@ -25,10 +28,9 @@ export interface ISecurityScheme2Definition {
   tokenUrl?: string
   scopes?: Record<string, string>
 }
-
 export interface ISecurityScheme2 extends IComponentInstance {
   [extension: `x-${string}`]: any
-  type: "basic" | "apiKey" | "oauth2"
+  type: 'basic'|'apiKey'|'oauth2'
   description?: string
   name?: string
   in?: 'query'|'header'
@@ -37,7 +39,6 @@ export interface ISecurityScheme2 extends IComponentInstance {
   tokenUrl?: string
   scopes?: Record<string, string>
 }
-
 export interface ISecurityScheme3Definition {
   [extension: `x-${string}`]: any
   type?: 'apiKey'|'http'|'oauth2'|'openIdConnect'
@@ -49,7 +50,6 @@ export interface ISecurityScheme3Definition {
   flows?: IOAuthFlows3Definition
   openIdConnectUrl?: string
 }
-
 export interface ISecurityScheme3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   type?: 'apiKey'|'http'|'oauth2'|'openIdConnect'
@@ -61,4 +61,3 @@ export interface ISecurityScheme3 extends IComponentInstance {
   flows?: IOAuthFlows3
   openIdConnectUrl?: string
 }
-

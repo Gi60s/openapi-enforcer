@@ -12,13 +12,30 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IExternalDocumentation2, IExternalDocumentation2Definition, IExternalDocumentation3, IExternalDocumentation3Definition } from '../ExternalDocumentation/IExternalDocumentation'
-import { IParameter2, IParameter2Definition, IParameter3, IParameter3Definition } from '../Parameter/IParameter'
-import { IResponses2, IResponses2Definition, IResponses3, IResponses3Definition } from '../Responses/IResponses'
-import { ISecurityRequirement2, ISecurityRequirement2Definition, ISecurityRequirement3, ISecurityRequirement3Definition } from '../SecurityRequirement/ISecurityRequirement'
-import { IRequestBody3, IRequestBody3Definition } from '../RequestBody/IRequestBody'
-import { ICallback3, ICallback3Definition } from '../Callback/ICallback'
-import { IServer3, IServer3Definition } from '../Server/IServer'
+import {
+  ICallback3,
+  ICallback3Definition,
+  IExternalDocumentation2,
+  IExternalDocumentation2Definition,
+  IExternalDocumentation3,
+  IExternalDocumentation3Definition,
+  IParameter2,
+  IParameter2Definition,
+  IParameter3,
+  IParameter3Definition,
+  IRequestBody3,
+  IRequestBody3Definition,
+  IResponses2,
+  IResponses2Definition,
+  IResponses3,
+  IResponses3Definition,
+  ISecurityRequirement2,
+  ISecurityRequirement2Definition,
+  ISecurityRequirement3,
+  ISecurityRequirement3Definition,
+  IServer3,
+  IServer3Definition
+} from '../'
 
 export interface IOperation2Definition {
   [extension: `x-${string}`]: any
@@ -35,7 +52,6 @@ export interface IOperation2Definition {
   deprecated?: boolean
   security?: ISecurityRequirement2Definition[]
 }
-
 export interface IOperation2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   tags?: string[]
@@ -51,7 +67,6 @@ export interface IOperation2 extends IComponentInstance {
   deprecated?: boolean
   security?: ISecurityRequirement2[]
 }
-
 export interface IOperation3Definition {
   [extension: `x-${string}`]: any
   tags?: string[]
@@ -67,7 +82,6 @@ export interface IOperation3Definition {
   security?: ISecurityRequirement3Definition[]
   servers?: IServer3Definition[]
 }
-
 export interface IOperation3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   tags?: string[]
@@ -83,4 +97,3 @@ export interface IOperation3 extends IComponentInstance {
   security?: ISecurityRequirement3[]
   servers?: IServer3[]
 }
-

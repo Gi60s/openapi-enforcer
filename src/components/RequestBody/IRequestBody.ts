@@ -12,7 +12,10 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IMediaType3, IMediaType3Definition } from '../MediaType/IMediaType'
+import {
+  IMediaType3,
+  IMediaType3Definition
+} from '../'
 
 export interface IRequestBody3Definition {
   [extension: `x-${string}`]: any
@@ -20,11 +23,9 @@ export interface IRequestBody3Definition {
   content?: Record<string, IMediaType3Definition>
   required?: boolean
 }
-
 export interface IRequestBody3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   description?: string
   content?: Record<string, IMediaType3>
   required?: boolean
 }
-

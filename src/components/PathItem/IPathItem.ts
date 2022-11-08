@@ -12,9 +12,18 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IOperation2, IOperation2Definition, IOperation3, IOperation3Definition } from '../Operation/IOperation'
-import { IParameter2, IParameter2Definition, IParameter3, IParameter3Definition } from '../Parameter/IParameter'
-import { IServer3, IServer3Definition } from '../Server/IServer'
+import {
+  IOperation2,
+  IOperation2Definition,
+  IOperation3,
+  IOperation3Definition,
+  IParameter2,
+  IParameter2Definition,
+  IParameter3,
+  IParameter3Definition,
+  IServer3,
+  IServer3Definition
+} from '../'
 
 export interface IPathItem2Definition {
   [extension: `x-${string}`]: any
@@ -28,7 +37,6 @@ export interface IPathItem2Definition {
   patch?: IOperation2Definition
   parameters?: IParameter2Definition[]
 }
-
 export interface IPathItem2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   $ref?: string
@@ -41,7 +49,6 @@ export interface IPathItem2 extends IComponentInstance {
   patch?: IOperation2
   parameters?: IParameter2[]
 }
-
 export interface IPathItem3Definition {
   [extension: `x-${string}`]: any
   $ref?: string
@@ -58,7 +65,6 @@ export interface IPathItem3Definition {
   servers?: IServer3Definition[]
   parameters?: IParameter3Definition[]
 }
-
 export interface IPathItem3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   $ref?: string
@@ -75,4 +81,3 @@ export interface IPathItem3 extends IComponentInstance {
   servers?: IServer3[]
   parameters?: IParameter3[]
 }
-

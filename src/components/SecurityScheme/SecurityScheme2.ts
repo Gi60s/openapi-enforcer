@@ -28,7 +28,7 @@ let cachedSchema: ISchema.IDefinition<ISecurityScheme2Definition, ISecuritySchem
 
 export class SecurityScheme extends EnforcerComponent implements ISecurityScheme2 {
   [extension: `x-${string}`]: any
-  type!: "basic" | "apiKey" | "oauth2"
+  type!: 'basic'|'apiKey'|'oauth2'
   description?: string
   name?: string
   in?: 'query'|'header'
@@ -54,32 +54,12 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
       return cachedSchema
     }
 
-    const type: ISchema.IProperty<ISchema.IOneOf> = {
+    const type: ISchema.IProperty<ISchema.IString> = {
       name: 'type',
       required: true,
       schema: {
-        type: 'oneOf',
-        oneOf: [
-          {
-            condition: () => true,
-            schema: {
-              type: '"basic"'
-            }
-          },
-          {
-            condition: () => false,
-            schema: {
-              type: '"apiKey"'
-            }
-          },
-          {
-            condition: () => false,
-            schema: {
-              type: '"oauth2"'
-            }
-          }
-        ],
-        error: () => {}
+        type: 'string',
+        enum: ['basic', 'apiKey', 'oauth2']
       }
     }
 
@@ -97,7 +77,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
       }
     }
 
-    const in: ISchema.IProperty<ISchema.IString> = {
+    const _in: ISchema.IProperty<ISchema.IString> = {
       name: 'in',
       schema: {
         type: 'string',
@@ -144,7 +124,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
         type,
         description,
         name,
-        in,
+        _in,
         flow,
         authorizationUrl,
         tokenUrl,

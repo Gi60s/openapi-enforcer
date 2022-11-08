@@ -16,16 +16,12 @@ import { IComponentInstance } from '../IComponent'
 export interface IReference2Definition {
   $ref: string
 }
-
 export interface IReference2 extends IComponentInstance {
   $ref: string
 }
-
 export interface IReference3Definition {
   $ref: string
 }
-
 export interface IReference3 extends IComponentInstance {
   $ref: string
 }
-

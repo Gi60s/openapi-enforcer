@@ -12,7 +12,10 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IServer3, IServer3Definition } from '../Server/IServer'
+import {
+  IServer3,
+  IServer3Definition
+} from '../'
 
 export interface ILink3Definition {
   [extension: `x-${string}`]: any
@@ -23,7 +26,6 @@ export interface ILink3Definition {
   description?: string
   server?: IServer3Definition
 }
-
 export interface ILink3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   operationRef?: string
@@ -33,4 +35,3 @@ export interface ILink3 extends IComponentInstance {
   description?: string
   server?: IServer3
 }
-

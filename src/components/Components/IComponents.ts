@@ -12,15 +12,26 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { ISchema3, ISchema3Definition } from '../Schema/ISchema'
-import { IResponse3, IResponse3Definition } from '../Response/IResponse'
-import { IParameter3, IParameter3Definition } from '../Parameter/IParameter'
-import { IExample3, IExample3Definition } from '../Example/IExample'
-import { IRequestBody3, IRequestBody3Definition } from '../RequestBody/IRequestBody'
-import { IHeader3, IHeader3Definition } from '../Header/IHeader'
-import { ISecurityScheme3, ISecurityScheme3Definition } from '../SecurityScheme/ISecurityScheme'
-import { ILink3, ILink3Definition } from '../Link/ILink'
-import { ICallback3, ICallback3Definition } from '../Callback/ICallback'
+import {
+  ICallback3,
+  ICallback3Definition,
+  IExample3,
+  IExample3Definition,
+  IHeader3,
+  IHeader3Definition,
+  ILink3,
+  ILink3Definition,
+  IParameter3,
+  IParameter3Definition,
+  IRequestBody3,
+  IRequestBody3Definition,
+  IResponse3,
+  IResponse3Definition,
+  ISchema3,
+  ISchema3Definition,
+  ISecurityScheme3,
+  ISecurityScheme3Definition
+} from '../'
 
 export interface IComponents3Definition {
   [extension: `x-${string}`]: any
@@ -34,7 +45,6 @@ export interface IComponents3Definition {
   links?: Record<string, ILink3Definition>
   callbacks?: Record<string, ICallback3Definition>
 }
-
 export interface IComponents3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   schemas?: Record<string, ISchema3>
@@ -47,4 +57,3 @@ export interface IComponents3 extends IComponentInstance {
   links?: Record<string, ILink3>
   callbacks?: Record<string, ICallback3>
 }
-

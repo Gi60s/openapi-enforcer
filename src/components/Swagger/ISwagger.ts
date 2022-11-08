@@ -12,15 +12,26 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IInfo2, IInfo2Definition } from '../Info/IInfo'
-import { IPaths2, IPaths2Definition } from '../Paths/IPaths'
-import { ISchema2, ISchema2Definition } from '../Schema/ISchema'
-import { IParameter2, IParameter2Definition } from '../Parameter/IParameter'
-import { IResponse2, IResponse2Definition } from '../Response/IResponse'
-import { ISecurityScheme2, ISecurityScheme2Definition } from '../SecurityScheme/ISecurityScheme'
-import { ISecurityRequirement2, ISecurityRequirement2Definition } from '../SecurityRequirement/ISecurityRequirement'
-import { ITag2, ITag2Definition } from '../Tag/ITag'
-import { IExternalDocumentation2, IExternalDocumentation2Definition } from '../ExternalDocumentation/IExternalDocumentation'
+import {
+  IExternalDocumentation2,
+  IExternalDocumentation2Definition,
+  IInfo2,
+  IInfo2Definition,
+  IParameter2,
+  IParameter2Definition,
+  IPaths2,
+  IPaths2Definition,
+  IResponse2,
+  IResponse2Definition,
+  ISchema2,
+  ISchema2Definition,
+  ISecurityRequirement2,
+  ISecurityRequirement2Definition,
+  ISecurityScheme2,
+  ISecurityScheme2Definition,
+  ITag2,
+  ITag2Definition
+} from '../'
 
 export interface ISwagger2Definition {
   [extension: `x-${string}`]: any
@@ -40,7 +51,6 @@ export interface ISwagger2Definition {
   tags?: ITag2Definition[]
   externalDocs?: IExternalDocumentation2Definition
 }
-
 export interface ISwagger2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   swagger: '2.0'
@@ -59,4 +69,3 @@ export interface ISwagger2 extends IComponentInstance {
   tags?: ITag2[]
   externalDocs?: IExternalDocumentation2
 }
-

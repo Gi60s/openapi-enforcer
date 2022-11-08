@@ -12,11 +12,18 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { ISchema2, ISchema2Definition, ISchema3, ISchema3Definition } from '../Schema/ISchema'
-import { IXml2, IXml2Definition, IXml3, IXml3Definition } from '../Xml/IXml'
-import { IExternalDocs2, IExternalDocs2Definition } from '../ExternalDocs/IExternalDocs'
-import { IDiscriminator3, IDiscriminator3Definition } from '../Discriminator/IDiscriminator'
-import { IExternalDocumentation3, IExternalDocumentation3Definition } from '../ExternalDocumentation/IExternalDocumentation'
+import {
+  IDiscriminator3,
+  IDiscriminator3Definition,
+  IExternalDocs2,
+  IExternalDocs2Definition,
+  IExternalDocumentation3,
+  IExternalDocumentation3Definition,
+  IXml2,
+  IXml2Definition,
+  IXml3,
+  IXml3Definition
+} from '../'
 
 export interface ISchema2Definition {
   [extension: `x-${string}`]: any
@@ -50,7 +57,6 @@ export interface ISchema2Definition {
   externalDocs?: IExternalDocs2Definition
   example?: any
 }
-
 export interface ISchema2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   format?: string
@@ -83,7 +89,6 @@ export interface ISchema2 extends IComponentInstance {
   externalDocs?: IExternalDocs2
   example?: any
 }
-
 export interface ISchema3Definition {
   [extension: `x-${string}`]: any
   type?: string
@@ -122,7 +127,6 @@ export interface ISchema3Definition {
   example?: any
   deprecated?: boolean
 }
-
 export interface ISchema3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   type?: string
@@ -161,4 +165,3 @@ export interface ISchema3 extends IComponentInstance {
   example?: any
   deprecated?: boolean
 }
-

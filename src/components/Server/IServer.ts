@@ -12,7 +12,10 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IServerVariable3, IServerVariable3Definition } from '../ServerVariable/IServerVariable'
+import {
+  IServerVariable3,
+  IServerVariable3Definition
+} from '../'
 
 export interface IServer3Definition {
   [extension: `x-${string}`]: any
@@ -20,11 +23,9 @@ export interface IServer3Definition {
   description?: string
   variables?: Record<string, IServerVariable3Definition>
 }
-
 export interface IServer3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   url: string
   description?: string
   variables?: Record<string, IServerVariable3>
 }
-

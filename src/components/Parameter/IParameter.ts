@@ -12,10 +12,18 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { ISchema2, ISchema2Definition, ISchema3, ISchema3Definition } from '../Schema/ISchema'
-import { IItems2, IItems2Definition } from '../Items/IItems'
-import { IExample3, IExample3Definition } from '../Example/IExample'
-import { IMediaType3, IMediaType3Definition } from '../MediaType/IMediaType'
+import {
+  IExample3,
+  IExample3Definition,
+  IItems2,
+  IItems2Definition,
+  IMediaType3,
+  IMediaType3Definition,
+  ISchema2,
+  ISchema2Definition,
+  ISchema3,
+  ISchema3Definition
+} from '../'
 
 export interface IParameter2Definition {
   [extension: `x-${string}`]: any
@@ -43,7 +51,6 @@ export interface IParameter2Definition {
   enum?: any[]
   multipleOf?: number
 }
-
 export interface IParameter2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name: string
@@ -70,7 +77,6 @@ export interface IParameter2 extends IComponentInstance {
   enum?: any[]
   multipleOf?: number
 }
-
 export interface IParameter3Definition {
   [extension: `x-${string}`]: any
   name: string
@@ -87,7 +93,6 @@ export interface IParameter3Definition {
   examples?: Record<string, IExample3Definition>
   content?: Record<string, IMediaType3Definition>
 }
-
 export interface IParameter3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name: string
@@ -104,4 +109,3 @@ export interface IParameter3 extends IComponentInstance {
   examples?: Record<string, IExample3>
   content?: Record<string, IMediaType3>
 }
-

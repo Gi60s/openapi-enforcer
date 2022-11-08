@@ -16,11 +16,9 @@ import { IComponentInstance } from '../IComponent'
 export interface IExample2Definition {
   [key: string]: any
 }
-
 export interface IExample2 extends IComponentInstance {
   [key: string]: any
 }
-
 export interface IExample3Definition {
   [extension: `x-${string}`]: any
   summary?: string
@@ -28,7 +26,6 @@ export interface IExample3Definition {
   value?: any
   externalValue?: string
 }
-
 export interface IExample3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   summary?: string
@@ -36,4 +33,3 @@ export interface IExample3 extends IComponentInstance {
   value?: any
   externalValue?: string
 }
-

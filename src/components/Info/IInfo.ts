@@ -12,8 +12,16 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IContact2, IContact2Definition, IContact3, IContact3Definition } from '../Contact/IContact'
-import { ILicense2, ILicense2Definition, ILicense3, ILicense3Definition } from '../License/ILicense'
+import {
+  IContact2,
+  IContact2Definition,
+  IContact3,
+  IContact3Definition,
+  ILicense2,
+  ILicense2Definition,
+  ILicense3,
+  ILicense3Definition
+} from '../'
 
 export interface IInfo2Definition {
   [extension: `x-${string}`]: any
@@ -24,7 +32,6 @@ export interface IInfo2Definition {
   license?: ILicense2Definition
   version: string
 }
-
 export interface IInfo2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   title: string
@@ -34,7 +41,6 @@ export interface IInfo2 extends IComponentInstance {
   license?: ILicense2
   version: string
 }
-
 export interface IInfo3Definition {
   [extension: `x-${string}`]: any
   title: string
@@ -44,7 +50,6 @@ export interface IInfo3Definition {
   license?: ILicense3Definition
   version: string
 }
-
 export interface IInfo3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   title: string
@@ -54,4 +59,3 @@ export interface IInfo3 extends IComponentInstance {
   license?: ILicense3
   version: string
 }
-

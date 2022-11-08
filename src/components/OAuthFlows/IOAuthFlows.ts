@@ -12,21 +12,22 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IOAuth Flow3, IOAuth Flow3Definition } from '../OAuth Flow/IOAuth Flow'
+import {
+  IOAuthFlow3,
+  IOAuthFlow3Definition
+} from '../'
 
 export interface IOAuthFlows3Definition {
   [extension: `x-${string}`]: any
-  implicit?: IOAuth Flow3Definition
-  password?: IOAuth Flow3Definition
-  clientCredentials?: IOAuth Flow3Definition
-  authorizationCode?: IOAuth Flow3Definition
+  implicit?: IOAuthFlow3Definition
+  password?: IOAuthFlow3Definition
+  clientCredentials?: IOAuthFlow3Definition
+  authorizationCode?: IOAuthFlow3Definition
 }
-
 export interface IOAuthFlows3 extends IComponentInstance {
   [extension: `x-${string}`]: any
-  implicit?: IOAuth Flow3
-  password?: IOAuth Flow3
-  clientCredentials?: IOAuth Flow3
-  authorizationCode?: IOAuth Flow3
+  implicit?: IOAuthFlow3
+  password?: IOAuthFlow3
+  clientCredentials?: IOAuthFlow3
+  authorizationCode?: IOAuthFlow3
 }
-

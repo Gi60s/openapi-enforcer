@@ -19,11 +19,9 @@ export interface IServerVariable3Definition {
   default: string
   description?: string
 }
-
 export interface IServerVariable3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   enum?: string[]
   default: string
   description?: string
 }
-

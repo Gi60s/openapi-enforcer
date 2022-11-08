@@ -12,7 +12,6 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IItems2, IItems2Definition } from '../Items/IItems'
 
 export interface IItems2Definition {
   [extension: `x-${string}`]: any
@@ -34,7 +33,6 @@ export interface IItems2Definition {
   enum?: any[]
   multipleOf?: number
 }
-
 export interface IItems2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   type: 'array'|'boolean'|'integer'|'number'|'string'
@@ -55,4 +53,3 @@ export interface IItems2 extends IComponentInstance {
   enum?: any[]
   multipleOf?: number
 }
-

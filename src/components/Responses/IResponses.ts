@@ -12,29 +12,30 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IResponse2, IResponse2Definition, IResponse3, IResponse3Definition } from '../Response/IResponse'
+import {
+  IResponse2,
+  IResponse2Definition,
+  IResponse3,
+  IResponse3Definition
+} from '../'
 
 export interface IResponses2Definition {
   [extension: `x-${string}`]: any
   [key: number]: IResponse2Definition
   default?: IResponse2Definition
 }
-
 export interface IResponses2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   [key: number]: IResponse2
   default?: IResponse2
 }
-
 export interface IResponses3Definition {
   [extension: `x-${string}`]: any
   [key: number]: IResponse3Definition
   default?: IResponse3Definition
 }
-
 export interface IResponses3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   [key: number]: IResponse3
   default?: IResponse3
 }
-

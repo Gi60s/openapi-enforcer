@@ -12,15 +12,16 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import { IPathItem3, IPathItem3Definition } from '../PathItem/IPathItem'
+import {
+  IPathItem3,
+  IPathItem3Definition
+} from '../'
 
 export interface ICallback3Definition {
   [extension: `x-${string}`]: any
   [key: string]: IPathItem3Definition
 }
-
 export interface ICallback3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   [key: string]: IPathItem3
 }
-
