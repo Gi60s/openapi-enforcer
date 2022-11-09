@@ -80,17 +80,17 @@ export function parameterStyleInvalid (data: Data, style: string, type: string, 
   }
 }
 
-export function propertiesMutuallyExclusive (data: Data, properties: string[]): IExceptionData {
-  const { componentId, definition, reference } = data
-  return {
-    id: componentId + '_PROPERTY_CONFLICT',
-    level: 'error',
-    locations: properties.map(p => getLocation(definition, p, 'key')),
-    message: 'These properties are mutually exclusive: ' + smart(properties),
-    metadata: { properties },
-    reference
-  }
-}
+// export function propertiesMutuallyExclusive (data: Data, properties: string[]): IExceptionData {
+//   const { componentId, definition, reference } = data
+//   return {
+//     id: componentId + '_PROPERTY_CONFLICT',
+//     level: 'error',
+//     locations: properties.map(p => getLocation(definition, p, 'key')),
+//     message: 'These properties are mutually exclusive: ' + smart(properties),
+//     metadata: { properties },
+//     reference
+//   }
+// }
 
 export function styleInvalid (data: Data, style: string, type: string, explode: boolean): IExceptionData {
   const { componentId, definition, reference } = data
@@ -108,15 +108,15 @@ export function styleInvalid (data: Data, style: string, type: string, explode: 
   }
 }
 
-export function urlInvalid (cmp: ISchemaProcessorComponentData, url: string, locations: ILocations): IExceptionData {
-  return {
-    id: cmp.id + '_URL_INVALID',
-    level: 'warn',
-    locations,
-    message: 'URL appears to be invalid: ' + smart(url),
-    metadata: {
-      url: url
-    },
-    reference: cmp.reference
-  }
-}
+// export function urlInvalid (cmp: ISchemaProcessorComponentData, url: string, locations: ILocations): IExceptionData {
+//   return {
+//     id: cmp.id + '_URL_INVALID',
+//     level: 'warn',
+//     locations,
+//     message: 'URL appears to be invalid: ' + smart(url),
+//     metadata: {
+//       url: url
+//     },
+//     reference: cmp.reference
+//   }
+// }
