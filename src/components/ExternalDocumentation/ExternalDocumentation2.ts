@@ -21,7 +21,7 @@ import {
   IExternalDocumentation2Definition
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> | null = null
@@ -43,7 +43,7 @@ export class ExternalDocumentation extends EnforcerComponent implements IExterna
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -63,7 +63,7 @@ export class ExternalDocumentation extends EnforcerComponent implements IExterna
       }
     }
 
-    const schema: ISchema.IDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> = {
+    const result: ISchema.IDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -73,11 +73,11 @@ export class ExternalDocumentation extends EnforcerComponent implements IExterna
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IExternalDocumentation2Definition, version?: IVersion): ExceptionStore {
@@ -85,10 +85,10 @@ export class ExternalDocumentation extends EnforcerComponent implements IExterna
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

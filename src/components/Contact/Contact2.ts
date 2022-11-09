@@ -44,7 +44,7 @@ export class Contact extends EnforcerComponent implements IContact2 {
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IContact2Definition, IContact2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IContact2Definition, IContact2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -70,7 +70,7 @@ export class Contact extends EnforcerComponent implements IContact2 {
       }
     }
 
-    const schema: ISchema.IDefinition<IContact2Definition, IContact2> = {
+    const result: ISchema.IDefinition<IContact2Definition, IContact2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -81,11 +81,11 @@ export class Contact extends EnforcerComponent implements IContact2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    schema.after = after
+    result.after = after
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IContact2Definition, version?: IVersion): ExceptionStore {
@@ -98,5 +98,5 @@ export class Contact extends EnforcerComponent implements IContact2 {
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

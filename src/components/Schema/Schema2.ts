@@ -28,7 +28,7 @@ import {
   Xml2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 export class Schema extends EnforcerComponent implements ISchema2 {
@@ -75,7 +75,7 @@ export class Schema extends EnforcerComponent implements ISchema2 {
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<ISchema2Definition, ISchema2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ISchema2Definition, ISchema2> {
     const format: ISchema.IProperty<ISchema.IString> = {
       name: 'format',
       schema: {
@@ -191,7 +191,8 @@ export class Schema extends EnforcerComponent implements ISchema2 {
     const _enum: ISchema.IProperty<ISchema.IArray<any>> = {
       name: 'enum',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'any'
         }
       }
@@ -207,7 +208,8 @@ export class Schema extends EnforcerComponent implements ISchema2 {
     const required: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'required',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'string'
         }
       }
@@ -232,10 +234,11 @@ export class Schema extends EnforcerComponent implements ISchema2 {
     const allOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema2Definition, ISchema2>>> = {
       name: 'allOf',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: true,    
-      component: Schema2
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: Schema2
         }
       }
     }
@@ -315,7 +318,7 @@ export class Schema extends EnforcerComponent implements ISchema2 {
       }
     }
 
-    const schema: ISchema.IDefinition<ISchema2Definition, ISchema2> = {
+    const result: ISchema.IDefinition<ISchema2Definition, ISchema2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -352,10 +355,10 @@ export class Schema extends EnforcerComponent implements ISchema2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    return schema
+    return result
   }
 
   static validate (definition: ISchema2Definition, version?: IVersion): ExceptionStore {
@@ -363,10 +366,10 @@ export class Schema extends EnforcerComponent implements ISchema2 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

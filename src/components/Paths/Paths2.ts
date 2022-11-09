@@ -24,7 +24,7 @@ import {
   Path2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IPaths2Definition, IPaths2> | null = null
@@ -44,7 +44,7 @@ export class Paths extends EnforcerComponent implements IPaths2 {
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IPaths2Definition, IPaths2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IPaths2Definition, IPaths2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -55,18 +55,18 @@ export class Paths extends EnforcerComponent implements IPaths2 {
       component: Path2
     }
 
-    const schema: ISchema.IDefinition<IPaths2Definition, IPaths2> = {
+    const result: ISchema.IDefinition<IPaths2Definition, IPaths2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IPaths2Definition, version?: IVersion): ExceptionStore {
@@ -74,10 +74,10 @@ export class Paths extends EnforcerComponent implements IPaths2 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

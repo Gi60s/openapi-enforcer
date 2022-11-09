@@ -31,7 +31,7 @@ import {
   Xml3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 export class Schema extends EnforcerComponent implements ISchema3 {
@@ -84,7 +84,7 @@ export class Schema extends EnforcerComponent implements ISchema3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#schema-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<ISchema3Definition, ISchema3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ISchema3Definition, ISchema3> {
     const type: ISchema.IProperty<ISchema.IString> = {
       name: 'type',
       schema: {
@@ -95,10 +95,11 @@ export class Schema extends EnforcerComponent implements ISchema3 {
     const allOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema3Definition, ISchema3>>> = {
       name: 'allOf',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: true,    
-      component: Schema3
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: Schema3
         }
       }
     }
@@ -106,10 +107,11 @@ export class Schema extends EnforcerComponent implements ISchema3 {
     const oneOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema3Definition, ISchema3>>> = {
       name: 'oneOf',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: true,    
-      component: Schema3
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: Schema3
         }
       }
     }
@@ -117,10 +119,11 @@ export class Schema extends EnforcerComponent implements ISchema3 {
     const anyOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema3Definition, ISchema3>>> = {
       name: 'anyOf',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: true,    
-      component: Schema3
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: Schema3
         }
       }
     }
@@ -228,7 +231,8 @@ export class Schema extends EnforcerComponent implements ISchema3 {
     const _enum: ISchema.IProperty<ISchema.IArray<any>> = {
       name: 'enum',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'any'
         }
       }
@@ -244,7 +248,8 @@ export class Schema extends EnforcerComponent implements ISchema3 {
     const required: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'required',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'string'
         }
       }
@@ -378,7 +383,7 @@ export class Schema extends EnforcerComponent implements ISchema3 {
       }
     }
 
-    const schema: ISchema.IDefinition<ISchema3Definition, ISchema3> = {
+    const result: ISchema.IDefinition<ISchema3Definition, ISchema3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -421,10 +426,10 @@ export class Schema extends EnforcerComponent implements ISchema3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    return schema
+    return result
   }
 
   static validate (definition: ISchema3Definition, version?: IVersion): ExceptionStore {
@@ -432,10 +437,10 @@ export class Schema extends EnforcerComponent implements ISchema3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

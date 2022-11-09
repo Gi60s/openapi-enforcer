@@ -24,7 +24,7 @@ import {
   Server3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<ILink3Definition, ILink3> | null = null
@@ -50,7 +50,7 @@ export class Link extends EnforcerComponent implements ILink3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#link-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<ILink3Definition, ILink3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ILink3Definition, ILink3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -102,7 +102,7 @@ export class Link extends EnforcerComponent implements ILink3 {
       }
     }
 
-    const schema: ISchema.IDefinition<ILink3Definition, ILink3> = {
+    const result: ISchema.IDefinition<ILink3Definition, ILink3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -116,11 +116,11 @@ export class Link extends EnforcerComponent implements ILink3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: ILink3Definition, version?: IVersion): ExceptionStore {
@@ -128,10 +128,10 @@ export class Link extends EnforcerComponent implements ILink3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

@@ -44,7 +44,7 @@ export class Contact extends EnforcerComponent implements IContact3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#contact-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IContact3Definition, IContact3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IContact3Definition, IContact3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -70,7 +70,7 @@ export class Contact extends EnforcerComponent implements IContact3 {
       }
     }
 
-    const schema: ISchema.IDefinition<IContact3Definition, IContact3> = {
+    const result: ISchema.IDefinition<IContact3Definition, IContact3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -81,11 +81,11 @@ export class Contact extends EnforcerComponent implements IContact3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    schema.after = after
+    result.after = after
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IContact3Definition, version?: IVersion): ExceptionStore {
@@ -98,5 +98,5 @@ export class Contact extends EnforcerComponent implements IContact3 {
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

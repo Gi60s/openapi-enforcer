@@ -21,7 +21,7 @@ import {
   IServerVariable3Definition
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IServerVariable3Definition, IServerVariable3> | null = null
@@ -44,7 +44,7 @@ export class ServerVariable extends EnforcerComponent implements IServerVariable
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-variable-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IServerVariable3Definition, IServerVariable3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IServerVariable3Definition, IServerVariable3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -52,7 +52,8 @@ export class ServerVariable extends EnforcerComponent implements IServerVariable
     const _enum: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'enum',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'string'
         }
       }
@@ -73,7 +74,7 @@ export class ServerVariable extends EnforcerComponent implements IServerVariable
       }
     }
 
-    const schema: ISchema.IDefinition<IServerVariable3Definition, IServerVariable3> = {
+    const result: ISchema.IDefinition<IServerVariable3Definition, IServerVariable3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -84,11 +85,11 @@ export class ServerVariable extends EnforcerComponent implements IServerVariable
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IServerVariable3Definition, version?: IVersion): ExceptionStore {
@@ -96,10 +97,10 @@ export class ServerVariable extends EnforcerComponent implements IServerVariable
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

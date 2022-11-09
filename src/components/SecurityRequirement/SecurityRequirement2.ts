@@ -21,7 +21,7 @@ import {
   ISecurityRequirement2Definition
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> | null = null
@@ -40,29 +40,30 @@ export class SecurityRequirement extends EnforcerComponent implements ISecurityR
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const additionalProperties: ISchema.IArray<ISchema.IString> = {
-      type: 'array',  items: {
+      type: 'array',
+      items: {
         type: 'string'
       }
     }
 
-    const schema: ISchema.IDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> = {
+    const result: ISchema.IDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> = {
       type: 'object',
       allowsSchemaExtensions: false,
       additionalProperties
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: ISecurityRequirement2Definition, version?: IVersion): ExceptionStore {
@@ -70,10 +71,10 @@ export class SecurityRequirement extends EnforcerComponent implements ISecurityR
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

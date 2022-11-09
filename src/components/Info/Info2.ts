@@ -27,7 +27,7 @@ import {
   License2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IInfo2Definition, IInfo2> | null = null
@@ -53,7 +53,7 @@ export class Info extends EnforcerComponent implements IInfo2 {
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IInfo2Definition, IInfo2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IInfo2Definition, IInfo2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -106,7 +106,7 @@ export class Info extends EnforcerComponent implements IInfo2 {
       }
     }
 
-    const schema: ISchema.IDefinition<IInfo2Definition, IInfo2> = {
+    const result: ISchema.IDefinition<IInfo2Definition, IInfo2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -120,11 +120,11 @@ export class Info extends EnforcerComponent implements IInfo2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IInfo2Definition, version?: IVersion): ExceptionStore {
@@ -132,10 +132,10 @@ export class Info extends EnforcerComponent implements IInfo2 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

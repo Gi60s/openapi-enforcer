@@ -30,7 +30,7 @@ import {
   Schema3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IHeader3Definition, IHeader3> | null = null
@@ -61,7 +61,7 @@ export class Header extends EnforcerComponent implements IHeader3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#header-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IHeader3Definition, IHeader3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IHeader3Definition, IHeader3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -156,7 +156,7 @@ export class Header extends EnforcerComponent implements IHeader3 {
       }
     }
 
-    const schema: ISchema.IDefinition<IHeader3Definition, IHeader3> = {
+    const result: ISchema.IDefinition<IHeader3Definition, IHeader3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -175,11 +175,11 @@ export class Header extends EnforcerComponent implements IHeader3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IHeader3Definition, version?: IVersion): ExceptionStore {
@@ -187,10 +187,10 @@ export class Header extends EnforcerComponent implements IHeader3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

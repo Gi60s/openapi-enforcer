@@ -42,7 +42,7 @@ import {
   Tag3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IOpenAPI3Definition, IOpenAPI3> | null = null
@@ -70,7 +70,7 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#openapi-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IOpenAPI3Definition, IOpenAPI3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IOpenAPI3Definition, IOpenAPI3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -97,10 +97,11 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
     const servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>> = {
       name: 'servers',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: false,    
-      component: Server3
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: Server3
         }
       }
     }
@@ -127,10 +128,11 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
     const security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement3Definition, ISecurityRequirement3>>> = {
       name: 'security',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: false,    
-      component: SecurityRequirement3
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: SecurityRequirement3
         }
       }
     }
@@ -138,10 +140,11 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
     const tags: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ITag3Definition, ITag3>>> = {
       name: 'tags',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: false,    
-      component: Tag3
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: Tag3
         }
       }
     }
@@ -155,7 +158,7 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
       }
     }
 
-    const schema: ISchema.IDefinition<IOpenAPI3Definition, IOpenAPI3> = {
+    const result: ISchema.IDefinition<IOpenAPI3Definition, IOpenAPI3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -174,8 +177,8 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
 
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IOpenAPI3Definition, version?: IVersion): ExceptionStore {
@@ -188,5 +191,5 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

@@ -24,7 +24,7 @@ import {
   OAuthFlows3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<ISecurityScheme3Definition, ISecurityScheme3> | null = null
@@ -52,7 +52,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-scheme-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<ISecurityScheme3Definition, ISecurityScheme3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ISecurityScheme3Definition, ISecurityScheme3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -117,7 +117,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
       }
     }
 
-    const schema: ISchema.IDefinition<ISecurityScheme3Definition, ISecurityScheme3> = {
+    const result: ISchema.IDefinition<ISecurityScheme3Definition, ISecurityScheme3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -133,11 +133,11 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: ISecurityScheme3Definition, version?: IVersion): ExceptionStore {
@@ -145,10 +145,10 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

@@ -24,7 +24,7 @@ import {
   Response2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IResponses2Definition, IResponses2> | null = null
@@ -46,7 +46,7 @@ export class Responses extends EnforcerComponent implements IResponses2 {
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IResponses2Definition, IResponses2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IResponses2Definition, IResponses2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -66,7 +66,7 @@ export class Responses extends EnforcerComponent implements IResponses2 {
       }
     }
 
-    const schema: ISchema.IDefinition<IResponses2Definition, IResponses2> = {
+    const result: ISchema.IDefinition<IResponses2Definition, IResponses2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties,
@@ -76,11 +76,11 @@ export class Responses extends EnforcerComponent implements IResponses2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IResponses2Definition, version?: IVersion): ExceptionStore {
@@ -88,10 +88,10 @@ export class Responses extends EnforcerComponent implements IResponses2 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

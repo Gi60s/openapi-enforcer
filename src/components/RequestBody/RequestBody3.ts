@@ -24,7 +24,7 @@ import {
   MediaType3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IRequestBody3Definition, IRequestBody3> | null = null
@@ -47,7 +47,7 @@ export class RequestBody extends EnforcerComponent implements IRequestBody3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#request-body-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IRequestBody3Definition, IRequestBody3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IRequestBody3Definition, IRequestBody3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -78,7 +78,7 @@ export class RequestBody extends EnforcerComponent implements IRequestBody3 {
       }
     }
 
-    const schema: ISchema.IDefinition<IRequestBody3Definition, IRequestBody3> = {
+    const result: ISchema.IDefinition<IRequestBody3Definition, IRequestBody3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -89,11 +89,11 @@ export class RequestBody extends EnforcerComponent implements IRequestBody3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IRequestBody3Definition, version?: IVersion): ExceptionStore {
@@ -101,10 +101,10 @@ export class RequestBody extends EnforcerComponent implements IRequestBody3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

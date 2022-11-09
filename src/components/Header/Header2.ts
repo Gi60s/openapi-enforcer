@@ -24,7 +24,7 @@ import {
   Items2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IHeader2Definition, IHeader2> | null = null
@@ -62,7 +62,7 @@ export class Header extends EnforcerComponent implements IHeader2 {
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IHeader2Definition, IHeader2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IHeader2Definition, IHeader2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -187,7 +187,8 @@ export class Header extends EnforcerComponent implements IHeader2 {
     const _enum: ISchema.IProperty<ISchema.IArray<any>> = {
       name: 'enum',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'any'
         }
       }
@@ -200,7 +201,7 @@ export class Header extends EnforcerComponent implements IHeader2 {
       }
     }
 
-    const schema: ISchema.IDefinition<IHeader2Definition, IHeader2> = {
+    const result: ISchema.IDefinition<IHeader2Definition, IHeader2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -226,11 +227,11 @@ export class Header extends EnforcerComponent implements IHeader2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IHeader2Definition, version?: IVersion): ExceptionStore {
@@ -238,10 +239,10 @@ export class Header extends EnforcerComponent implements IHeader2 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

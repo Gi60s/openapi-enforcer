@@ -24,7 +24,7 @@ import {
   PathItem3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<ICallback3Definition, ICallback3> | null = null
@@ -44,7 +44,7 @@ export class Callback extends EnforcerComponent implements ICallback3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#callback-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<ICallback3Definition, ICallback3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ICallback3Definition, ICallback3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -55,7 +55,7 @@ export class Callback extends EnforcerComponent implements ICallback3 {
       component: PathItem3
     }
 
-    const schema: ISchema.IDefinition<ICallback3Definition, ICallback3> = {
+    const result: ISchema.IDefinition<ICallback3Definition, ICallback3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties
@@ -65,8 +65,8 @@ export class Callback extends EnforcerComponent implements ICallback3 {
 
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: ICallback3Definition, version?: IVersion): ExceptionStore {
@@ -79,5 +79,5 @@ export class Callback extends EnforcerComponent implements ICallback3 {
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

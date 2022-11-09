@@ -21,7 +21,7 @@ import {
   ILicense3Definition
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<ILicense3Definition, ILicense3> | null = null
@@ -43,7 +43,7 @@ export class License extends EnforcerComponent implements ILicense3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#license-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<ILicense3Definition, ILicense3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ILicense3Definition, ILicense3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -63,7 +63,7 @@ export class License extends EnforcerComponent implements ILicense3 {
       }
     }
 
-    const schema: ISchema.IDefinition<ILicense3Definition, ILicense3> = {
+    const result: ISchema.IDefinition<ILicense3Definition, ILicense3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -73,11 +73,11 @@ export class License extends EnforcerComponent implements ILicense3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: ILicense3Definition, version?: IVersion): ExceptionStore {
@@ -85,10 +85,10 @@ export class License extends EnforcerComponent implements ILicense3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

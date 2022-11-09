@@ -27,7 +27,7 @@ import {
   Schema2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IParameter2Definition, IParameter2> | null = null
@@ -70,7 +70,7 @@ export class Parameter extends EnforcerComponent implements IParameter2 {
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IParameter2Definition, IParameter2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IParameter2Definition, IParameter2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -234,7 +234,8 @@ export class Parameter extends EnforcerComponent implements IParameter2 {
     const _enum: ISchema.IProperty<ISchema.IArray<any>> = {
       name: 'enum',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'any'
         }
       }
@@ -247,7 +248,7 @@ export class Parameter extends EnforcerComponent implements IParameter2 {
       }
     }
 
-    const schema: ISchema.IDefinition<IParameter2Definition, IParameter2> = {
+    const result: ISchema.IDefinition<IParameter2Definition, IParameter2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -278,11 +279,11 @@ export class Parameter extends EnforcerComponent implements IParameter2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IParameter2Definition, version?: IVersion): ExceptionStore {
@@ -290,10 +291,10 @@ export class Parameter extends EnforcerComponent implements IParameter2 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

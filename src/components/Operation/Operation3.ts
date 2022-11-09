@@ -42,7 +42,7 @@ import {
   Server3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IOperation3Definition, IOperation3> | null = null
@@ -74,7 +74,7 @@ export class Operation extends EnforcerComponent implements IOperation3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#operation-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IOperation3Definition, IOperation3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IOperation3Definition, IOperation3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -82,7 +82,8 @@ export class Operation extends EnforcerComponent implements IOperation3 {
     const tags: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'tags',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'string'
         }
       }
@@ -121,10 +122,11 @@ export class Operation extends EnforcerComponent implements IOperation3 {
     const parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter3Definition, IParameter3>>> = {
       name: 'parameters',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: true,    
-      component: Parameter3
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: Parameter3
         }
       }
     }
@@ -170,10 +172,11 @@ export class Operation extends EnforcerComponent implements IOperation3 {
     const security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement3Definition, ISecurityRequirement3>>> = {
       name: 'security',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: false,    
-      component: SecurityRequirement3
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: SecurityRequirement3
         }
       }
     }
@@ -181,15 +184,16 @@ export class Operation extends EnforcerComponent implements IOperation3 {
     const servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>> = {
       name: 'servers',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: false,    
-      component: Server3
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: Server3
         }
       }
     }
 
-    const schema: ISchema.IDefinition<IOperation3Definition, IOperation3> = {
+    const result: ISchema.IDefinition<IOperation3Definition, IOperation3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -209,11 +213,11 @@ export class Operation extends EnforcerComponent implements IOperation3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IOperation3Definition, version?: IVersion): ExceptionStore {
@@ -221,10 +225,10 @@ export class Operation extends EnforcerComponent implements IOperation3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

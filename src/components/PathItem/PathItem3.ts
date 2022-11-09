@@ -30,7 +30,7 @@ import {
   Server3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IPathItem3Definition, IPathItem3> | null = null
@@ -63,7 +63,7 @@ export class PathItem extends EnforcerComponent implements IPathItem3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#path-item-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IPathItem3Definition, IPathItem3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IPathItem3Definition, IPathItem3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -116,7 +116,7 @@ export class PathItem extends EnforcerComponent implements IPathItem3 {
       }
     }
 
-    const delete: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>> = {
+    const _delete: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>> = {
       name: 'delete',
       schema: {
         type: 'component',
@@ -164,10 +164,11 @@ export class PathItem extends EnforcerComponent implements IPathItem3 {
     const servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>> = {
       name: 'servers',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: false,    
-      component: Server3
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: Server3
         }
       }
     }
@@ -175,15 +176,16 @@ export class PathItem extends EnforcerComponent implements IPathItem3 {
     const parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter3Definition, IParameter3>>> = {
       name: 'parameters',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: true,    
-      component: Parameter3
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: Parameter3
         }
       }
     }
 
-    const schema: ISchema.IDefinition<IPathItem3Definition, IPathItem3> = {
+    const result: ISchema.IDefinition<IPathItem3Definition, IPathItem3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -193,7 +195,7 @@ export class PathItem extends EnforcerComponent implements IPathItem3 {
         get,
         put,
         post,
-        delete,
+        _delete,
         options,
         head,
         patch,
@@ -204,11 +206,11 @@ export class PathItem extends EnforcerComponent implements IPathItem3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IPathItem3Definition, version?: IVersion): ExceptionStore {
@@ -216,10 +218,10 @@ export class PathItem extends EnforcerComponent implements IPathItem3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

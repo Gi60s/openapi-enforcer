@@ -21,7 +21,7 @@ import {
   IReference3Definition
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IReference3Definition, IReference3> | null = null
@@ -41,7 +41,7 @@ export class Reference extends EnforcerComponent implements IReference3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#reference-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IReference3Definition, IReference3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IReference3Definition, IReference3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -54,7 +54,7 @@ export class Reference extends EnforcerComponent implements IReference3 {
       }
     }
 
-    const schema: ISchema.IDefinition<IReference3Definition, IReference3> = {
+    const result: ISchema.IDefinition<IReference3Definition, IReference3> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [
@@ -63,11 +63,11 @@ export class Reference extends EnforcerComponent implements IReference3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IReference3Definition, version?: IVersion): ExceptionStore {
@@ -75,10 +75,10 @@ export class Reference extends EnforcerComponent implements IReference3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

@@ -27,7 +27,7 @@ import {
   Parameter2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IPathItem2Definition, IPathItem2> | null = null
@@ -56,7 +56,7 @@ export class PathItem extends EnforcerComponent implements IPathItem2 {
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IPathItem2Definition, IPathItem2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IPathItem2Definition, IPathItem2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -95,7 +95,7 @@ export class PathItem extends EnforcerComponent implements IPathItem2 {
       }
     }
 
-    const delete: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>> = {
+    const _delete: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>> = {
       name: 'delete',
       schema: {
         type: 'component',
@@ -134,15 +134,16 @@ export class PathItem extends EnforcerComponent implements IPathItem2 {
     const parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter2Definition, IParameter2>>> = {
       name: 'parameters',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: true,    
-      component: Parameter2
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: Parameter2
         }
       }
     }
 
-    const schema: ISchema.IDefinition<IPathItem2Definition, IPathItem2> = {
+    const result: ISchema.IDefinition<IPathItem2Definition, IPathItem2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -150,7 +151,7 @@ export class PathItem extends EnforcerComponent implements IPathItem2 {
         get,
         put,
         post,
-        delete,
+        _delete,
         options,
         head,
         patch,
@@ -159,11 +160,11 @@ export class PathItem extends EnforcerComponent implements IPathItem2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IPathItem2Definition, version?: IVersion): ExceptionStore {
@@ -171,10 +172,10 @@ export class PathItem extends EnforcerComponent implements IPathItem2 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

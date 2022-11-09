@@ -24,7 +24,7 @@ import {
   ITag2Definition
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<ITag2Definition, ITag2> | null = null
@@ -47,7 +47,7 @@ export class Tag extends EnforcerComponent implements ITag2 {
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<ITag2Definition, ITag2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ITag2Definition, ITag2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -76,7 +76,7 @@ export class Tag extends EnforcerComponent implements ITag2 {
       }
     }
 
-    const schema: ISchema.IDefinition<ITag2Definition, ITag2> = {
+    const result: ISchema.IDefinition<ITag2Definition, ITag2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -87,11 +87,11 @@ export class Tag extends EnforcerComponent implements ITag2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: ITag2Definition, version?: IVersion): ExceptionStore {
@@ -99,10 +99,10 @@ export class Tag extends EnforcerComponent implements ITag2 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

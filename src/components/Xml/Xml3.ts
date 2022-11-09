@@ -21,7 +21,7 @@ import {
   IXml3Definition
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IXml3Definition, IXml3> | null = null
@@ -46,7 +46,7 @@ export class Xml extends EnforcerComponent implements IXml3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#xml-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IXml3Definition, IXml3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IXml3Definition, IXml3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -86,7 +86,7 @@ export class Xml extends EnforcerComponent implements IXml3 {
       }
     }
 
-    const schema: ISchema.IDefinition<IXml3Definition, IXml3> = {
+    const result: ISchema.IDefinition<IXml3Definition, IXml3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -99,11 +99,11 @@ export class Xml extends EnforcerComponent implements IXml3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IXml3Definition, version?: IVersion): ExceptionStore {
@@ -111,10 +111,10 @@ export class Xml extends EnforcerComponent implements IXml3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

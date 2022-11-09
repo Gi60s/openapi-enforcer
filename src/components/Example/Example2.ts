@@ -21,7 +21,7 @@ import {
   IExample2Definition
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IExample2Definition, IExample2> | null = null
@@ -40,7 +40,7 @@ export class Example extends EnforcerComponent implements IExample2 {
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IExample2Definition, IExample2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IExample2Definition, IExample2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -49,18 +49,18 @@ export class Example extends EnforcerComponent implements IExample2 {
       type: 'any'
     }
 
-    const schema: ISchema.IDefinition<IExample2Definition, IExample2> = {
+    const result: ISchema.IDefinition<IExample2Definition, IExample2> = {
       type: 'object',
       allowsSchemaExtensions: false,
       additionalProperties
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IExample2Definition, version?: IVersion): ExceptionStore {
@@ -68,10 +68,10 @@ export class Example extends EnforcerComponent implements IExample2 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

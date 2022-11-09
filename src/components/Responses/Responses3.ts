@@ -24,7 +24,7 @@ import {
   Response3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IResponses3Definition, IResponses3> | null = null
@@ -46,7 +46,7 @@ export class Responses extends EnforcerComponent implements IResponses3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#responses-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IResponses3Definition, IResponses3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IResponses3Definition, IResponses3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -66,7 +66,7 @@ export class Responses extends EnforcerComponent implements IResponses3 {
       }
     }
 
-    const schema: ISchema.IDefinition<IResponses3Definition, IResponses3> = {
+    const result: ISchema.IDefinition<IResponses3Definition, IResponses3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties,
@@ -76,11 +76,11 @@ export class Responses extends EnforcerComponent implements IResponses3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IResponses3Definition, version?: IVersion): ExceptionStore {
@@ -88,10 +88,10 @@ export class Responses extends EnforcerComponent implements IResponses3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

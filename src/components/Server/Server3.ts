@@ -47,7 +47,7 @@ export class Server extends EnforcerComponent implements IServer3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IServer3Definition, IServer3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IServer3Definition, IServer3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -79,7 +79,7 @@ export class Server extends EnforcerComponent implements IServer3 {
       }
     }
 
-    const schema: ISchema.IDefinition<IServer3Definition, IServer3> = {
+    const result: ISchema.IDefinition<IServer3Definition, IServer3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -97,8 +97,8 @@ export class Server extends EnforcerComponent implements IServer3 {
     }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IServer3Definition, version?: IVersion): ExceptionStore {
@@ -111,5 +111,5 @@ export class Server extends EnforcerComponent implements IServer3 {
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

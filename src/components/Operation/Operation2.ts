@@ -33,7 +33,7 @@ import {
   SecurityRequirement2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IOperation2Definition, IOperation2> | null = null
@@ -65,7 +65,7 @@ export class Operation extends EnforcerComponent implements IOperation2 {
     '3.0.3': true
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IOperation2Definition, IOperation2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IOperation2Definition, IOperation2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -73,7 +73,8 @@ export class Operation extends EnforcerComponent implements IOperation2 {
     const tags: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'tags',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'string'
         }
       }
@@ -112,7 +113,8 @@ export class Operation extends EnforcerComponent implements IOperation2 {
     const consumes: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'consumes',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'string'
         }
       }
@@ -121,7 +123,8 @@ export class Operation extends EnforcerComponent implements IOperation2 {
     const produces: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'produces',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'string'
         }
       }
@@ -130,10 +133,11 @@ export class Operation extends EnforcerComponent implements IOperation2 {
     const parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter2Definition, IParameter2>>> = {
       name: 'parameters',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: true,    
-      component: Parameter2
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: Parameter2
         }
       }
     }
@@ -151,7 +155,8 @@ export class Operation extends EnforcerComponent implements IOperation2 {
     const schemes: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'schemes',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'string'
         }
       }
@@ -167,15 +172,16 @@ export class Operation extends EnforcerComponent implements IOperation2 {
     const security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement2Definition, ISecurityRequirement2>>> = {
       name: 'security',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: false,    
-      component: SecurityRequirement2
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: SecurityRequirement2
         }
       }
     }
 
-    const schema: ISchema.IDefinition<IOperation2Definition, IOperation2> = {
+    const result: ISchema.IDefinition<IOperation2Definition, IOperation2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -195,11 +201,11 @@ export class Operation extends EnforcerComponent implements IOperation2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IOperation2Definition, version?: IVersion): ExceptionStore {
@@ -207,10 +213,10 @@ export class Operation extends EnforcerComponent implements IOperation2 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

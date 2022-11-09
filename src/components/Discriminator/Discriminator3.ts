@@ -21,7 +21,7 @@ import {
   IDiscriminator3Definition
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IDiscriminator3Definition, IDiscriminator3> | null = null
@@ -42,7 +42,7 @@ export class Discriminator extends EnforcerComponent implements IDiscriminator3 
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#discriminator-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IDiscriminator3Definition, IDiscriminator3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IDiscriminator3Definition, IDiscriminator3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -65,7 +65,7 @@ export class Discriminator extends EnforcerComponent implements IDiscriminator3 
       }
     }
 
-    const schema: ISchema.IDefinition<IDiscriminator3Definition, IDiscriminator3> = {
+    const result: ISchema.IDefinition<IDiscriminator3Definition, IDiscriminator3> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [
@@ -75,11 +75,11 @@ export class Discriminator extends EnforcerComponent implements IDiscriminator3 
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IDiscriminator3Definition, version?: IVersion): ExceptionStore {
@@ -87,10 +87,10 @@ export class Discriminator extends EnforcerComponent implements IDiscriminator3 
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

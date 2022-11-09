@@ -1,5 +1,4 @@
 import rx from '../rx'
-import { urlInvalid } from '../Exception/methods'
 import { getLocation } from '../Locator/Locator'
 import { ISchemaProcessor } from './ISchemaProcessor'
 import { smart } from '../util'

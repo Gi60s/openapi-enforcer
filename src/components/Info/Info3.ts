@@ -27,7 +27,7 @@ import {
   License3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IInfo3Definition, IInfo3> | null = null
@@ -53,7 +53,7 @@ export class Info extends EnforcerComponent implements IInfo3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#info-object'
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<IInfo3Definition, IInfo3> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IInfo3Definition, IInfo3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -106,7 +106,7 @@ export class Info extends EnforcerComponent implements IInfo3 {
       }
     }
 
-    const schema: ISchema.IDefinition<IInfo3Definition, IInfo3> = {
+    const result: ISchema.IDefinition<IInfo3Definition, IInfo3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -120,11 +120,11 @@ export class Info extends EnforcerComponent implements IInfo3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: IInfo3Definition, version?: IVersion): ExceptionStore {
@@ -132,10 +132,10 @@ export class Info extends EnforcerComponent implements IInfo3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>

@@ -48,7 +48,7 @@ import {
   Tag2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-
+// Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<ISwagger2Definition, ISwagger2> | null = null
@@ -83,7 +83,7 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
     '3.0.3': false
   }
 
-  static getSchema (data: ISchemaProcessor): ISchema.IDefinition<ISwagger2Definition, ISwagger2> {
+  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ISwagger2Definition, ISwagger2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -124,7 +124,8 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
     const schemes: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'schemes',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'string'
         }
       }
@@ -133,7 +134,8 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
     const consumes: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'consumes',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'string'
         }
       }
@@ -142,7 +144,8 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
     const produces: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
       name: 'produces',
       schema: {
-        type: 'array',  items: {
+        type: 'array',
+        items: {
           type: 'string'
         }
       }
@@ -209,10 +212,11 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
     const security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement2Definition, ISecurityRequirement2>>> = {
       name: 'security',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: false,    
-      component: SecurityRequirement2
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: SecurityRequirement2
         }
       }
     }
@@ -220,10 +224,11 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
     const tags: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ITag2Definition, ITag2>>> = {
       name: 'tags',
       schema: {
-        type: 'array',  items: {
-          type: 'component',    
-      allowsRef: false,    
-      component: Tag2
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: Tag2
         }
       }
     }
@@ -237,7 +242,7 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
       }
     }
 
-    const schema: ISchema.IDefinition<ISwagger2Definition, ISwagger2> = {
+    const result: ISchema.IDefinition<ISwagger2Definition, ISwagger2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -260,11 +265,11 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    
+    // Put your code here.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
-    cachedSchema = schema
-    return schema
+    cachedSchema = result
+    return result
   }
 
   static validate (definition: ISwagger2Definition, version?: IVersion): ExceptionStore {
@@ -272,10 +277,10 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  
+  // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-
+// Put your code here.
 // <!# Custom Content End: FOOTER #!>
