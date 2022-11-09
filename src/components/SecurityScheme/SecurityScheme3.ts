@@ -79,7 +79,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
       }
     }
 
-    const in: ISchema.IProperty<ISchema.IString> = {
+    const _in: ISchema.IProperty<ISchema.IString> = {
       name: 'in',
       schema: {
         type: 'string',
@@ -124,7 +124,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
         type,
         description,
         name,
-        in,
+        _in,
         scheme,
         bearerFormat,
         flows,

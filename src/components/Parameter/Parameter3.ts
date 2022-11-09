@@ -76,7 +76,7 @@ export class Parameter extends EnforcerComponent implements IParameter3 {
       }
     }
 
-    const in: ISchema.IProperty<ISchema.IString> = {
+    const _in: ISchema.IProperty<ISchema.IString> = {
       name: 'in',
       required: true,
       schema: {
@@ -180,7 +180,7 @@ export class Parameter extends EnforcerComponent implements IParameter3 {
       allowsSchemaExtensions: true,
       properties: [
         name,
-        in,
+        _in,
         description,
         required,
         deprecated,
