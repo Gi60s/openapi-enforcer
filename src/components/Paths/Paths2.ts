@@ -17,11 +17,11 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
 import { ISchemaProcessor } from '../ISchemaProcessor'
 import {
-  IPath2,
-  IPath2Definition,
+  IPathItem2,
+  IPathItem2Definition,
   IPaths2,
   IPaths2Definition,
-  Path2
+  PathItem2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -31,7 +31,7 @@ let cachedSchema: ISchema.IDefinition<IPaths2Definition, IPaths2> | null = null
 
 export class Paths extends EnforcerComponent implements IPaths2 {
   [extension: `x-${string}`]: any
-  [key: `/${string}`]: IPath2
+  [key: `/${string}`]: IPathItem2
   constructor (definition: IPaths2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
@@ -49,10 +49,10 @@ export class Paths extends EnforcerComponent implements IPaths2 {
       return cachedSchema
     }
 
-    const additionalProperties: ISchema.IComponent<IPath2Definition, IPath2> = {
+    const additionalProperties: ISchema.IComponent<IPathItem2Definition, IPathItem2> = {
       type: 'component',
       allowsRef: false,
-      component: Path2
+      component: PathItem2
     }
 
     const result: ISchema.IDefinition<IPaths2Definition, IPaths2> = {

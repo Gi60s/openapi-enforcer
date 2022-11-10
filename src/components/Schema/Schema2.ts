@@ -17,9 +17,9 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
 import { ISchemaProcessor } from '../ISchemaProcessor'
 import {
-  ExternalDocs2,
-  IExternalDocs2,
-  IExternalDocs2Definition,
+  ExternalDocumentation2,
+  IExternalDocumentation2,
+  IExternalDocumentation2Definition,
   ISchema2,
   ISchema2Definition,
   IXml2,
@@ -60,7 +60,7 @@ export class Schema extends EnforcerComponent implements ISchema2 {
   discriminator?: string
   readOnly?: boolean
   xml?: IXml2
-  externalDocs?: IExternalDocs2
+  externalDocs?: IExternalDocumentation2
   example?: any
 
   constructor (definition: ISchema2Definition, version?: IVersion) {
@@ -302,12 +302,12 @@ export class Schema extends EnforcerComponent implements ISchema2 {
       }
     }
 
-    const externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocs2Definition, IExternalDocs2>> = {
+    const externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation2Definition, IExternalDocumentation2>> = {
       name: 'externalDocs',
       schema: {
         type: 'component',
         allowsRef: false,
-        component: ExternalDocs2
+        component: ExternalDocumentation2
       }
     }
 

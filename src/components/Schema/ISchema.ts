@@ -15,8 +15,8 @@ import { IComponentInstance } from '../IComponent'
 import {
   IDiscriminator3,
   IDiscriminator3Definition,
-  IExternalDocs2,
-  IExternalDocs2Definition,
+  IExternalDocumentation2,
+  IExternalDocumentation2Definition,
   IExternalDocumentation3,
   IExternalDocumentation3Definition,
   IXml2,
@@ -54,7 +54,7 @@ export interface ISchema2Definition {
   discriminator?: string
   readOnly?: boolean
   xml?: IXml2Definition
-  externalDocs?: IExternalDocs2Definition
+  externalDocs?: IExternalDocumentation2Definition
   example?: any
 }
 export interface ISchema2 extends IComponentInstance {
@@ -86,7 +86,7 @@ export interface ISchema2 extends IComponentInstance {
   discriminator?: string
   readOnly?: boolean
   xml?: IXml2
-  externalDocs?: IExternalDocs2
+  externalDocs?: IExternalDocumentation2
   example?: any
 }
 export interface ISchema3Definition {

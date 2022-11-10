@@ -13,25 +13,25 @@
 
 import { IComponentInstance } from '../IComponent'
 import {
-  IPath2,
-  IPath2Definition,
-  IPath3,
-  IPath3Definition
+  IPathItem2,
+  IPathItem2Definition,
+  IPathItem3,
+  IPathItem3Definition
 } from '../'
 
 export interface IPaths2Definition {
   [extension: `x-${string}`]: any
-  [key: `/${string}`]: IPath2Definition
+  [key: `/${string}`]: IPathItem2Definition
 }
 export interface IPaths2 extends IComponentInstance {
   [extension: `x-${string}`]: any
-  [key: `/${string}`]: IPath2
+  [key: `/${string}`]: IPathItem2
 }
 export interface IPaths3Definition {
   [extension: `x-${string}`]: any
-  [key: `/${string}`]: IPath3Definition
+  [key: `/${string}`]: IPathItem3Definition
 }
 export interface IPaths3 extends IComponentInstance {
   [extension: `x-${string}`]: any
-  [key: `/${string}`]: IPath3
+  [key: `/${string}`]: IPathItem3
 }
