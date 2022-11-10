@@ -90,7 +90,7 @@ export class Server extends EnforcerComponent implements IServer3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    schema.after = function (data: ISchemaProcessor<any, any>, mode: 'build' | 'validate'): void {
+    result.after = function (data: ISchemaProcessor<any, any>, mode: 'build' | 'validate'): void {
       if (mode === 'validate') {
         isUrl('url', data)
       }
