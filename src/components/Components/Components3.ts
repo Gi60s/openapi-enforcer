@@ -48,7 +48,10 @@ import {
   SecurityScheme3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-// Put your code here.
+import { getLocation } from '../../Locator/Locator'
+import { smart } from '../../util'
+
+const rxPropertyName = /^[a-zA-Z0-9._-]+$/
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IComponents3Definition, IComponents3> | null = null
@@ -207,7 +210,33 @@ export class Components extends EnforcerComponent implements IComponents3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    // Put your code here.
+    result.after = (data, mode) => {
+      if (mode === 'validate') {
+        const { definition, reference, id } = data.cmp
+        const { exception } = data.root
+        const properties: Array<keyof IComponents3Definition> = ['schemas', 'responses',
+          'parameters', 'examples', 'requestBodies', 'headers', 'securitySchemes', 'links', 'callbacks']
+        properties.forEach(key => {
+          if (definition[key] !== undefined) {
+            Object.keys(definition[key]).forEach(name => {
+              if (!rxPropertyName.test(name)) {
+                exception.add({
+                  id: id + '_FIELD_MAPPED_NAME_INVALID',
+                  level: 'error',
+                  locations: [getLocation(definition[key], name, 'key')],
+                  message: 'The property name ' + smart(name) + ' can only contain letters, numbers, dots, dashes, and underscores.',
+                  metadata: {
+                    field: key,
+                    name
+                  },
+                  reference
+                })
+              }
+            })
+          }
+        })
+      }
+    }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = result
