@@ -32,6 +32,9 @@ import {
   ITag2,
   ITag2Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface ISwagger2Definition {
   [extension: `x-${string}`]: any
@@ -51,6 +54,7 @@ export interface ISwagger2Definition {
   tags?: ITag2Definition[]
   externalDocs?: IExternalDocumentation2Definition
 }
+
 export interface ISwagger2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   swagger: '2.0'
@@ -69,3 +73,7 @@ export interface ISwagger2 extends IComponentInstance {
   tags?: ITag2[]
   externalDocs?: IExternalDocumentation2
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

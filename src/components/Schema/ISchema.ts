@@ -24,6 +24,9 @@ import {
   IXml3,
   IXml3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface ISchema2Definition {
   [extension: `x-${string}`]: any
@@ -57,6 +60,7 @@ export interface ISchema2Definition {
   externalDocs?: IExternalDocumentation2Definition
   example?: any
 }
+
 export interface ISchema2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   format?: string
@@ -89,6 +93,7 @@ export interface ISchema2 extends IComponentInstance {
   externalDocs?: IExternalDocumentation2
   example?: any
 }
+
 export interface ISchema3Definition {
   [extension: `x-${string}`]: any
   type?: string
@@ -127,6 +132,7 @@ export interface ISchema3Definition {
   example?: any
   deprecated?: boolean
 }
+
 export interface ISchema3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   type?: string
@@ -165,3 +171,7 @@ export interface ISchema3 extends IComponentInstance {
   example?: any
   deprecated?: boolean
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

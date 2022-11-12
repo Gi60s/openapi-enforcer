@@ -27,7 +27,7 @@ import {
   Parameter2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-// Put your code here.
+import { after } from './common'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IPathItem2Definition, IPathItem2> | null = null
@@ -160,7 +160,7 @@ export class PathItem extends EnforcerComponent implements IPathItem2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    // Put your code here.
+    result.after = after
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = result

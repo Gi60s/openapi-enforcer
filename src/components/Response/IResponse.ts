@@ -26,6 +26,9 @@ import {
   ISchema2,
   ISchema2Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IResponse2Definition {
   [extension: `x-${string}`]: any
@@ -34,6 +37,7 @@ export interface IResponse2Definition {
   headers?: Record<string, IHeader2Definition>
   examples?: IExample2Definition
 }
+
 export interface IResponse2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   description: string
@@ -41,6 +45,7 @@ export interface IResponse2 extends IComponentInstance {
   headers?: Record<string, IHeader2>
   examples?: IExample2
 }
+
 export interface IResponse3Definition {
   [extension: `x-${string}`]: any
   description: string
@@ -48,6 +53,7 @@ export interface IResponse3Definition {
   content?: Record<string, IMediaType3Definition>
   links?: Record<string, ILink3Definition>
 }
+
 export interface IResponse3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   description: string
@@ -55,3 +61,7 @@ export interface IResponse3 extends IComponentInstance {
   content?: Record<string, IMediaType3>
   links?: Record<string, ILink3>
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

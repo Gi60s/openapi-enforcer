@@ -16,12 +16,20 @@ import {
   IPathItem3,
   IPathItem3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface ICallback3Definition {
   [extension: `x-${string}`]: any
   [key: string]: IPathItem3Definition
 }
+
 export interface ICallback3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   [key: string]: IPathItem3
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

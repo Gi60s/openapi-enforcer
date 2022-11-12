@@ -12,6 +12,9 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IXml2Definition {
   [extension: `x-${string}`]: any
@@ -21,6 +24,7 @@ export interface IXml2Definition {
   attribute?: boolean
   wrapped?: boolean
 }
+
 export interface IXml2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name?: string
@@ -29,6 +33,7 @@ export interface IXml2 extends IComponentInstance {
   attribute?: boolean
   wrapped?: boolean
 }
+
 export interface IXml3Definition {
   [extension: `x-${string}`]: any
   name?: string
@@ -37,6 +42,7 @@ export interface IXml3Definition {
   attribute?: boolean
   wrapped?: boolean
 }
+
 export interface IXml3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name?: string
@@ -45,3 +51,7 @@ export interface IXml3 extends IComponentInstance {
   attribute?: boolean
   wrapped?: boolean
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

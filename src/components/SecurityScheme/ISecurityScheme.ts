@@ -16,6 +16,9 @@ import {
   IOAuthFlows3,
   IOAuthFlows3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface ISecurityScheme2Definition {
   [extension: `x-${string}`]: any
@@ -28,6 +31,7 @@ export interface ISecurityScheme2Definition {
   tokenUrl?: string
   scopes?: Record<string, string>
 }
+
 export interface ISecurityScheme2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   type: 'basic'|'apiKey'|'oauth2'
@@ -39,6 +43,7 @@ export interface ISecurityScheme2 extends IComponentInstance {
   tokenUrl?: string
   scopes?: Record<string, string>
 }
+
 export interface ISecurityScheme3Definition {
   [extension: `x-${string}`]: any
   type?: 'apiKey'|'http'|'oauth2'|'openIdConnect'
@@ -50,6 +55,7 @@ export interface ISecurityScheme3Definition {
   flows?: IOAuthFlows3Definition
   openIdConnectUrl?: string
 }
+
 export interface ISecurityScheme3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   type?: 'apiKey'|'http'|'oauth2'|'openIdConnect'
@@ -61,3 +67,7 @@ export interface ISecurityScheme3 extends IComponentInstance {
   flows?: IOAuthFlows3
   openIdConnectUrl?: string
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

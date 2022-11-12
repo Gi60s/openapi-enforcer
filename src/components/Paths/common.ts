@@ -1,19 +1,66 @@
 import { ISchemaProcessor } from '../ISchemaProcessor'
 import { getLocation } from '../../Locator/Locator'
 import { methods } from '../PathItem/common'
+import { IPaths2, IPaths3 } from './IPaths'
+import { IPathItemMethod, IFindPathMatchesOptions, IFindPathMatchesResult } from '../PathItem'
 
 interface IPathLink {
   type: 'static' | 'param'
   value: string
 }
 
-const rxPathVariable = /^({.+?})$/
+interface IPathConflict {
+  paths: string[]
+  methods: Record<IPathItemMethod, number>
+  conflict: 'none' | 'partial' | 'full'
+}
 
-export const after = function (data: ISchemaProcessor<any, any>, mode: 'build' | 'validate'): void {
-  if (mode === 'validate') {
-    const { definition, id, reference } = data.cmp
+interface IPathRegExp {
+  path: string
+  paramNames: string[]
+  regexCaseSensitive: RegExp
+  regexCaseInsensitive: RegExp
+}
+
+const rxPathVariable = /^({.+?})$/
+const pathLookupMap: WeakMap<IPaths2 | IPaths3, IPathRegExp[]> = new WeakMap<IPaths2 | IPaths3, IPathRegExp[]>()
+
+export const after = function (this: IPaths2 | IPaths3, data: ISchemaProcessor<any, any>, mode: 'build' | 'validate'): void {
+  const { definition, id, reference } = data.cmp
+  const paths = Object.keys(definition)
+
+  if (mode === 'build') {
+    const rxPaths: IPathRegExp[] = []
+    pathLookupMap.set(this, rxPaths)
+
+    paths.forEach(path => {
+      const rxFind = /{([^}]+)}/g
+      const paramNames: string[] = []
+      let subStr
+      let rxStr = ''
+      let offset = 0
+      let match: RegExpMatchArray | null
+      while ((match = rxFind.exec(path)) !== null) {
+        paramNames.push(match[1])
+        subStr = path.substring(offset, match.index)
+        rxStr += escapeRegExp(subStr) + '([\\s\\S]+?)'
+        offset = (match.index ?? 0) + match[0].length
+      }
+      subStr = path.substring(offset)
+      if (subStr.length > 0) {
+        rxStr += escapeRegExp(subStr)
+      }
+      rxStr = rxStr.replace(/\/+$/, '')
+
+      rxPaths.push({
+        paramNames,
+        path,
+        regexCaseSensitive: new RegExp('^' + rxStr + '$'),
+        regexCaseInsensitive: new RegExp('^' + rxStr + '$', 'i')
+      })
+    })
+  } else if (mode === 'validate') {
     const { exception } = data.root
-    const paths = Object.keys(definition)
     if (paths.length === 0) {
       // according to the spec, it is allowed to have an empty paths object, but the user may want to know, so we
       // register it as an "ignore" and if the user wants then they can change the level
@@ -27,8 +74,7 @@ export const after = function (data: ISchemaProcessor<any, any>, mode: 'build' |
     } else {
       const pathsEndingWithSlash: string[] = []
       const pathsEndingWithoutSlash: string[] = []
-      const store: Record<string, IPathLink[]> = {}
-      const pathMethods: Record<string, string[]> = {}
+      const store: Record<string, IPathConflict> = {}
 
       paths.forEach(path => {
         // look for paths that do not start with a slash
@@ -55,54 +101,61 @@ export const after = function (data: ISchemaProcessor<any, any>, mode: 'build' |
         // a "warn" exception will be issued if paths conflict but methods are different
         // an "error" exception will be issued if paths conflict and methods conflict
         const parsed = parsePath(path)
-        const parsedLength = parsed.length
+        const parsedKey = parsed.map(item => item.type === 'param' ? '{}' : item.value).join('/')
         const currMethods = methods.filter(method => method in definition[path])
-        const partialConflictPaths: string[] = [path]
-        const fullConflictPaths: string[] = [path]
-        Object.keys(store)
-          .filter(key => store[key].length === parsedLength) // limit to paths with matching length
-          .forEach(key => {
-            const p = store[key]
-            for (let i = 0; i < parsedLength; i++) {
-              const prev = p[i]
-              const curr = parsed[i]
-              if (prev.type !== curr.type) return // different types
-              if (prev.type === 'static' && prev.value !== curr.value) return // both static, different values
+        if (store[parsedKey] === undefined) {
+          store[parsedKey] = {
+            paths: [path],
+            methods: {
+              get: currMethods.includes('get') ? 1 : 0,
+              put: currMethods.includes('put') ? 1 : 0,
+              post: currMethods.includes('post') ? 1 : 0,
+              delete: currMethods.includes('delete') ? 1 : 0,
+              options: currMethods.includes('options') ? 1 : 0,
+              head: currMethods.includes('head') ? 1 : 0,
+              patch: currMethods.includes('patch') ? 1 : 0,
+              trace: currMethods.includes('trace') ? 1 : 0
+            },
+            get conflict (): 'none' | 'partial' | 'full' {
+              const length = methods.length
+              let result: 'none' | 'partial' | 'full' = 'none'
+              if (this.paths.length > 1) result = 'partial'
+              for (let i = 0; i < length; i++) {
+                if (this.methods[methods[i]] > 1) {
+                  result = 'full'
+                  break
+                }
+              }
+              return result
             }
-
-            TODO: fix duplication of errors. It could find a problem between two and report, then find another and report again on three
-
-            // they match so far, check for matching methods
-            const existingMethods = pathMethods[key]
-            const intersection = currMethods.filter(method => existingMethods.includes(method))
-            if (intersection.length > 0) {
-              fullConflictPaths.push(key)
-            } else {
-              partialConflictPaths.push(key)
-            }
-          })
-
-        pathMethods[path] = currMethods
-        store[path] = parsed
-
-        if (fullConflictPaths.length > 1) {
-          exception.add({
-            id: id + '_PATH_OPERATION_CONFLICT',
-            level: 'error',
-            locations: fullConflictPaths.map(path => getLocation(definition, path, 'key')),
-            message: 'One or more paths are indistinguishable due to duplicate paths and methods.',
-            metadata: { paths: fullConflictPaths },
-            reference
+          }
+        } else {
+          const match = store[parsedKey]
+          currMethods.forEach(method => {
+            match.methods[method]++
           })
         }
+      })
 
-        if (partialConflictPaths.length > 1) {
+      Object.keys(store).forEach(key => {
+        const item = store[key]
+        if (item.conflict === 'partial') {
           exception.add({
             id: id + '_PATH_CONFLICT',
             level: 'warn',
-            locations: partialConflictPaths.map(path => getLocation(definition, path, 'key')),
-            message: 'One or more paths are duplicates, although they do have different methods which makes them distinguishable.',
-            metadata: { paths: partialConflictPaths },
+            locations: item.paths.map(path => getLocation(definition, path, 'key')),
+            message: 'One or more paths are considered invalid by the standards of the OpenAPI specification due to ' +
+              'path collision, but because they have different methods they are distinguishable.',
+            metadata: { paths: item.paths },
+            reference
+          })
+        } else if (item.conflict === 'full') {
+          exception.add({
+            id: id + '_PATH_OPERATION_CONFLICT',
+            level: 'error',
+            locations: item.paths.map(path => getLocation(definition, path, 'key')),
+            message: 'One or more paths are indistinguishable due to duplicate paths and methods.',
+            metadata: { paths: item.paths },
             reference
           })
         }
@@ -113,12 +166,52 @@ export const after = function (data: ISchemaProcessor<any, any>, mode: 'build' |
           id: id + '_PATH_ENDINGS_INCONSISTENT',
           level: 'ignore',
           locations: paths.map(path => getLocation(definition, path, 'key')),
-          message: 'Some paths end with a slash and some do not. This may confuse the users of your API.',
+          message: 'Some paths end with a slash and some do not. This inconsistency may confuse the users of your API.',
           metadata: { pathsEndingWithSlash, pathsEndingWithoutSlash }
         })
       }
     }
   }
+}
+
+export function findPathMatches (context: IPaths2 | IPaths3, searchPath: string, options: Required<IFindPathMatchesOptions>): IFindPathMatchesResult {
+  const lookups = pathLookupMap.get(context)
+  const results: Array<{
+    params: Record<string, string>
+    path: string
+  }> = []
+
+  searchPath = searchPath.split('?')[0]
+  if (options.trimTrailingSlashes) {
+    searchPath = searchPath.replace(/\/+$/, '')
+  }
+
+  if (lookups !== undefined) {
+    const length = lookups.length
+    for (let i = 0; i < length; i++) {
+      const lookup = lookups[i]
+      const rx = options.useCaseSensitivePaths ? lookup.regexCaseSensitive : lookup.regexCaseInsensitive
+      const match = rx.exec(searchPath)
+      if (match !== null) {
+        results.push({
+          params: Array.from(match).reduce<Record<string, string>>((map, value, index) => {
+            if (index > 0) {
+              const name = lookup.paramNames[index - 1]
+              map[name] = value
+            }
+            return map
+          }, {}),
+          path: lookup.path
+        })
+      }
+    }
+  }
+
+  return results
+}
+
+function escapeRegExp (text: string): string {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }
 
 function parsePath (path: string): IPathLink[] {

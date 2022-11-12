@@ -28,6 +28,9 @@ import {
   ITag3,
   ITag3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IOpenAPI3Definition {
   [extension: `x-${string}`]: any
@@ -40,6 +43,7 @@ export interface IOpenAPI3Definition {
   tags?: ITag3Definition[]
   externalDocs?: IExternalDocumentation3Definition
 }
+
 export interface IOpenAPI3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   openapi: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
@@ -51,3 +55,7 @@ export interface IOpenAPI3 extends IComponentInstance {
   tags?: ITag3[]
   externalDocs?: IExternalDocumentation3
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

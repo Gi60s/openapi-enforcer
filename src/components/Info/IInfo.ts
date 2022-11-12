@@ -22,6 +22,9 @@ import {
   ILicense3,
   ILicense3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IInfo2Definition {
   [extension: `x-${string}`]: any
@@ -32,6 +35,7 @@ export interface IInfo2Definition {
   license?: ILicense2Definition
   version: string
 }
+
 export interface IInfo2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   title: string
@@ -41,6 +45,7 @@ export interface IInfo2 extends IComponentInstance {
   license?: ILicense2
   version: string
 }
+
 export interface IInfo3Definition {
   [extension: `x-${string}`]: any
   title: string
@@ -50,6 +55,7 @@ export interface IInfo3Definition {
   license?: ILicense3Definition
   version: string
 }
+
 export interface IInfo3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   title: string
@@ -59,3 +65,7 @@ export interface IInfo3 extends IComponentInstance {
   license?: ILicense3
   version: string
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

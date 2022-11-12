@@ -12,6 +12,9 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IServerVariable3Definition {
   [extension: `x-${string}`]: any
@@ -19,9 +22,14 @@ export interface IServerVariable3Definition {
   default: string
   description?: string
 }
+
 export interface IServerVariable3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   enum?: string[]
   default: string
   description?: string
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

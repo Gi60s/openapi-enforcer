@@ -16,6 +16,9 @@ import {
   IOAuthFlow3,
   IOAuthFlow3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IOAuthFlows3Definition {
   [extension: `x-${string}`]: any
@@ -24,6 +27,7 @@ export interface IOAuthFlows3Definition {
   clientCredentials?: IOAuthFlow3Definition
   authorizationCode?: IOAuthFlow3Definition
 }
+
 export interface IOAuthFlows3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   implicit?: IOAuthFlow3
@@ -31,3 +35,7 @@ export interface IOAuthFlows3 extends IComponentInstance {
   clientCredentials?: IOAuthFlow3
   authorizationCode?: IOAuthFlow3
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

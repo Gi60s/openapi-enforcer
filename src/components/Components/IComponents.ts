@@ -32,6 +32,9 @@ import {
   ISecurityScheme3,
   ISecurityScheme3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IComponents3Definition {
   [extension: `x-${string}`]: any
@@ -45,6 +48,7 @@ export interface IComponents3Definition {
   links?: Record<string, ILink3Definition>
   callbacks?: Record<string, ICallback3Definition>
 }
+
 export interface IComponents3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   schemas?: Record<string, ISchema3>
@@ -57,3 +61,7 @@ export interface IComponents3 extends IComponentInstance {
   links?: Record<string, ILink3>
   callbacks?: Record<string, ICallback3>
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

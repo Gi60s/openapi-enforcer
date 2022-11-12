@@ -16,6 +16,9 @@ import {
   IMediaType3,
   IMediaType3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IRequestBody3Definition {
   [extension: `x-${string}`]: any
@@ -23,9 +26,14 @@ export interface IRequestBody3Definition {
   content?: Record<string, IMediaType3Definition>
   required?: boolean
 }
+
 export interface IRequestBody3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   description?: string
   content?: Record<string, IMediaType3>
   required?: boolean
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

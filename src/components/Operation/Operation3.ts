@@ -42,7 +42,7 @@ import {
   Server3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-// Put your code here.
+import { after } from './common'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IOperation3Definition, IOperation3> | null = null
@@ -213,7 +213,7 @@ export class Operation extends EnforcerComponent implements IOperation3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    // Put your code here.
+    result.after = after
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = result

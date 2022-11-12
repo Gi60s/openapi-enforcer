@@ -24,6 +24,9 @@ import {
   IServer3,
   IServer3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IPathItem2Definition {
   [extension: `x-${string}`]: any
@@ -37,6 +40,7 @@ export interface IPathItem2Definition {
   patch?: IOperation2Definition
   parameters?: IParameter2Definition[]
 }
+
 export interface IPathItem2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   $ref?: string
@@ -49,6 +53,7 @@ export interface IPathItem2 extends IComponentInstance {
   patch?: IOperation2
   parameters?: IParameter2[]
 }
+
 export interface IPathItem3Definition {
   [extension: `x-${string}`]: any
   $ref?: string
@@ -65,6 +70,7 @@ export interface IPathItem3Definition {
   servers?: IServer3Definition[]
   parameters?: IParameter3Definition[]
 }
+
 export interface IPathItem3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   $ref?: string
@@ -81,3 +87,17 @@ export interface IPathItem3 extends IComponentInstance {
   servers?: IServer3[]
   parameters?: IParameter3[]
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+export type IPathItemMethod = 'get' | 'put' | 'post' | 'delete' | 'options' | 'head' | 'patch' | 'trace'
+
+export interface IFindPathMatchesOptions {
+  trimTrailingSlashes?: boolean
+  useCaseSensitivePaths?: boolean
+}
+
+export type IFindPathMatchesResult = Array<{
+  params: Record<string, string>
+  path: string
+}>
+// <!# Custom Content End: FOOTER #!>

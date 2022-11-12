@@ -18,20 +18,30 @@ import {
   IPathItem3,
   IPathItem3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IPaths2Definition {
   [extension: `x-${string}`]: any
   [key: `/${string}`]: IPathItem2Definition
 }
+
 export interface IPaths2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   [key: `/${string}`]: IPathItem2
 }
+
 export interface IPaths3Definition {
   [extension: `x-${string}`]: any
   [key: `/${string}`]: IPathItem3Definition
 }
+
 export interface IPaths3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   [key: `/${string}`]: IPathItem3
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

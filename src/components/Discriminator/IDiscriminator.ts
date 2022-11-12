@@ -12,12 +12,20 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IDiscriminator3Definition {
   propertyName: string
   mapping?: Record<string, string>
 }
+
 export interface IDiscriminator3 extends IComponentInstance {
   propertyName: string
   mapping?: Record<string, string>
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

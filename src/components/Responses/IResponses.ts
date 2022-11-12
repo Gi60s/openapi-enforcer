@@ -18,24 +18,34 @@ import {
   IResponse3,
   IResponse3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IResponses2Definition {
   [extension: `x-${string}`]: any
   [key: number]: IResponse2Definition
   default?: IResponse2Definition
 }
+
 export interface IResponses2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   [key: number]: IResponse2
   default?: IResponse2
 }
+
 export interface IResponses3Definition {
   [extension: `x-${string}`]: any
   [key: number]: IResponse3Definition
   default?: IResponse3Definition
 }
+
 export interface IResponses3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   [key: number]: IResponse3
   default?: IResponse3
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

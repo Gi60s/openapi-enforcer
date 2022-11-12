@@ -12,16 +12,26 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IReference2Definition {
   $ref: string
 }
+
 export interface IReference2 extends IComponentInstance {
   $ref: string
 }
+
 export interface IReference3Definition {
   $ref: string
 }
+
 export interface IReference3 extends IComponentInstance {
   $ref: string
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

@@ -16,6 +16,9 @@ import {
   IServerVariable3,
   IServerVariable3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IServer3Definition {
   [extension: `x-${string}`]: any
@@ -23,9 +26,14 @@ export interface IServer3Definition {
   description?: string
   variables?: Record<string, IServerVariable3Definition>
 }
+
 export interface IServer3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   url: string
   description?: string
   variables?: Record<string, IServerVariable3>
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

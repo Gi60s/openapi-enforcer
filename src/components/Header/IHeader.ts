@@ -22,6 +22,9 @@ import {
   ISchema3,
   ISchema3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IHeader2Definition {
   [extension: `x-${string}`]: any
@@ -44,6 +47,7 @@ export interface IHeader2Definition {
   enum?: any[]
   multipleOf?: number
 }
+
 export interface IHeader2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   description?: string
@@ -65,6 +69,7 @@ export interface IHeader2 extends IComponentInstance {
   enum?: any[]
   multipleOf?: number
 }
+
 export interface IHeader3Definition {
   [extension: `x-${string}`]: any
   description?: string
@@ -79,6 +84,7 @@ export interface IHeader3Definition {
   examples?: Record<string, IExample3Definition>
   content?: Record<string, IMediaType3Definition>
 }
+
 export interface IHeader3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   description?: string
@@ -93,3 +99,7 @@ export interface IHeader3 extends IComponentInstance {
   examples?: Record<string, IExample3>
   content?: Record<string, IMediaType3>
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

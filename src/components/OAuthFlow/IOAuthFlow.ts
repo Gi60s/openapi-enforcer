@@ -12,6 +12,9 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IOAuthFlow3Definition {
   [extension: `x-${string}`]: any
@@ -20,6 +23,7 @@ export interface IOAuthFlow3Definition {
   refreshUrl?: string
   scopes?: Record<string, string>
 }
+
 export interface IOAuthFlow3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   authorizationUrl?: string
@@ -27,3 +31,7 @@ export interface IOAuthFlow3 extends IComponentInstance {
   refreshUrl?: string
   scopes?: Record<string, string>
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

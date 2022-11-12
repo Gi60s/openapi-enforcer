@@ -17,6 +17,7 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
 import { ISchemaProcessor } from '../ISchemaProcessor'
 import {
+  IFindPathMatchesOptions, IFindPathMatchesResult,
   IPathItem3,
   IPathItem3Definition,
   IPaths3,
@@ -24,7 +25,8 @@ import {
   PathItem3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-import { after } from './common'
+import { after, findPathMatches } from './common'
+import * as config from '../../global-config'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IPaths3Definition, IPaths3> | null = null
@@ -74,7 +76,10 @@ export class Paths extends EnforcerComponent implements IPaths3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  // Put your code here.
+  findMatches (path: string, options?: IFindPathMatchesOptions): IFindPathMatchesResult {
+    return findPathMatches(this, path,
+      config.normalize<IFindPathMatchesOptions>('components.paths.findPathMatches', options) as Required<IFindPathMatchesOptions>)
+  }
   // <!# Custom Content End: BODY #!>
 }
 

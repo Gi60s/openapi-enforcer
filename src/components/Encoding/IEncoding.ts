@@ -16,6 +16,9 @@ import {
   IHeader3,
   IHeader3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IEncoding3Definition {
   [extension: `x-${string}`]: any
@@ -25,6 +28,7 @@ export interface IEncoding3Definition {
   explode?: boolean
   allowReserved?: boolean
 }
+
 export interface IEncoding3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   contentType?: string
@@ -33,3 +37,7 @@ export interface IEncoding3 extends IComponentInstance {
   explode?: boolean
   allowReserved?: boolean
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

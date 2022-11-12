@@ -36,6 +36,9 @@ import {
   IServer3,
   IServer3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IOperation2Definition {
   [extension: `x-${string}`]: any
@@ -52,6 +55,7 @@ export interface IOperation2Definition {
   deprecated?: boolean
   security?: ISecurityRequirement2Definition[]
 }
+
 export interface IOperation2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   tags?: string[]
@@ -67,6 +71,7 @@ export interface IOperation2 extends IComponentInstance {
   deprecated?: boolean
   security?: ISecurityRequirement2[]
 }
+
 export interface IOperation3Definition {
   [extension: `x-${string}`]: any
   tags?: string[]
@@ -82,6 +87,7 @@ export interface IOperation3Definition {
   security?: ISecurityRequirement3Definition[]
   servers?: IServer3Definition[]
 }
+
 export interface IOperation3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   tags?: string[]
@@ -97,3 +103,7 @@ export interface IOperation3 extends IComponentInstance {
   security?: ISecurityRequirement3[]
   servers?: IServer3[]
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

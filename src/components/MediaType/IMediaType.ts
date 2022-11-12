@@ -20,6 +20,9 @@ import {
   ISchema3,
   ISchema3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IMediaType3Definition {
   [extension: `x-${string}`]: any
@@ -28,6 +31,7 @@ export interface IMediaType3Definition {
   examples?: Record<string, IExample3Definition>
   encoding?: Record<string, IEncoding3Definition>
 }
+
 export interface IMediaType3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   schema?: ISchema3
@@ -35,3 +39,7 @@ export interface IMediaType3 extends IComponentInstance {
   examples?: Record<string, IExample3>
   encoding?: Record<string, IEncoding3>
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

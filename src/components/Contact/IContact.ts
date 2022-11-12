@@ -12,6 +12,9 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IContact2Definition {
   [extension: `x-${string}`]: any
@@ -19,21 +22,28 @@ export interface IContact2Definition {
   url?: string
   email?: string
 }
+
 export interface IContact2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name?: string
   url?: string
   email?: string
 }
+
 export interface IContact3Definition {
   [extension: `x-${string}`]: any
   name?: string
   url?: string
   email?: string
 }
+
 export interface IContact3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name?: string
   url?: string
   email?: string
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

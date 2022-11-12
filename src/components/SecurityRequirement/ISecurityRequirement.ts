@@ -12,16 +12,26 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface ISecurityRequirement2Definition {
   [key: string]: string[]
 }
+
 export interface ISecurityRequirement2 extends IComponentInstance {
   [key: string]: string[]
 }
+
 export interface ISecurityRequirement3Definition {
   [key: string]: string[]
 }
+
 export interface ISecurityRequirement3 extends IComponentInstance {
   [key: string]: string[]
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

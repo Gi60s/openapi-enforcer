@@ -12,24 +12,34 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface ILicense2Definition {
   [extension: `x-${string}`]: any
   name: string
   url?: string
 }
+
 export interface ILicense2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name: string
   url?: string
 }
+
 export interface ILicense3Definition {
   [extension: `x-${string}`]: any
   name: string
   url?: string
 }
+
 export interface ILicense3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name: string
   url?: string
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

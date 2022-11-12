@@ -12,24 +12,34 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface IExternalDocumentation2Definition {
   [extension: `x-${string}`]: any
   description?: string
   url: string
 }
+
 export interface IExternalDocumentation2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   description?: string
   url: string
 }
+
 export interface IExternalDocumentation3Definition {
   [extension: `x-${string}`]: any
   description?: string
   url: string
 }
+
 export interface IExternalDocumentation3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   description?: string
   url: string
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

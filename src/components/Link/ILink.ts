@@ -16,6 +16,9 @@ import {
   IServer3,
   IServer3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface ILink3Definition {
   [extension: `x-${string}`]: any
@@ -26,6 +29,7 @@ export interface ILink3Definition {
   description?: string
   server?: IServer3Definition
 }
+
 export interface ILink3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   operationRef?: string
@@ -35,3 +39,7 @@ export interface ILink3 extends IComponentInstance {
   description?: string
   server?: IServer3
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

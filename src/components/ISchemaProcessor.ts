@@ -2,10 +2,10 @@ import { ExceptionStore } from '../Exception/ExceptionStore'
 import { ILastly } from '../Lastly/ILastly'
 import { Chain } from '../Chain/Chain'
 import { IComponentClass, IVersion } from './IComponent'
-import { ISecurityScheme2, ISecuritySchemeDefinition2, ISecurityScheme3, ISecuritySchemeDefinition3 } from './SecurityScheme'
+import { ISecurityScheme2, ISecurityScheme2Definition, ISecurityScheme3, ISecurityScheme3Definition } from './SecurityScheme'
 
 type ISecurityScheme = ISecurityScheme2 | ISecurityScheme3
-type ISecuritySchemeDefinition = ISecuritySchemeDefinition2 | ISecuritySchemeDefinition3
+type ISecuritySchemeDefinition = ISecurityScheme2Definition | ISecurityScheme3Definition
 
 export type ISchemaProcessorChain = Chain<ISchemaProcessor>
 

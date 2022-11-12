@@ -18,6 +18,9 @@ import {
   IExternalDocumentation3,
   IExternalDocumentation3Definition
 } from '../'
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export interface ITag2Definition {
   [extension: `x-${string}`]: any
@@ -25,21 +28,28 @@ export interface ITag2Definition {
   description?: string
   externalDocs?: IExternalDocumentation2Definition
 }
+
 export interface ITag2 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name: string
   description?: string
   externalDocs?: IExternalDocumentation2
 }
+
 export interface ITag3Definition {
   [extension: `x-${string}`]: any
   name: string
   description?: string
   externalDocs?: IExternalDocumentation3Definition
 }
+
 export interface ITag3 extends IComponentInstance {
   [extension: `x-${string}`]: any
   name: string
   description?: string
   externalDocs?: IExternalDocumentation3
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>
