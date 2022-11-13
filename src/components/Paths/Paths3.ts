@@ -17,7 +17,6 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
 import { ISchemaProcessor } from '../ISchemaProcessor'
 import {
-  IFindPathMatchesOptions, IFindPathMatchesResult,
   IPathItem3,
   IPathItem3Definition,
   IPaths3,

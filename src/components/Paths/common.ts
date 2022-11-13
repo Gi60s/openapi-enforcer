@@ -210,6 +210,15 @@ export function findPathMatches (context: IPaths2 | IPaths3, searchPath: string,
   return results
 }
 
+export function getPathParameterNames (context: IPaths2 | IPaths3, path: string): string[] {
+  const lookups = pathLookupMap.get(context)
+  const match = lookups?.find(lookup => lookup.path === path)
+  if (match === undefined) {
+    throw new Error('Specified path not found in paths: ' + path)
+  }
+  return match.paramNames.slice(0)
+}
+
 function escapeRegExp (text: string): string {
   return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }

@@ -1,3 +1,6 @@
+import { ISchemaProcessor } from './components/ISchemaProcessor'
+import { Chain } from './Chain/Chain'
+
 /**
  * If a function has been deprecated, use this function to provide a console message once every 10 minutes when
  * called.
