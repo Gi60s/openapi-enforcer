@@ -33,7 +33,9 @@ import {
   SecurityRequirement2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-import { after } from './common'
+import { after, getMergedParameters } from './common'
+import { IOperation, IOperationDefinition } from '../IInternalTypes'
+import { getLocation } from '../../Locator/Locator'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IOperation2Definition, IOperation2> | null = null
@@ -49,7 +51,7 @@ export class Operation extends EnforcerComponent implements IOperation2 {
   produces?: string[]
   parameters?: IParameter2[]
   responses!: IResponses2
-  schemes?: string[]
+  schemes?: Array<'http'|'https'|'ws'|'wss'>
   deprecated?: boolean
   security?: ISecurityRequirement2[]
 
@@ -157,7 +159,8 @@ export class Operation extends EnforcerComponent implements IOperation2 {
       schema: {
         type: 'array',
         items: {
-          type: 'string'
+          type: 'string',
+          enum: ['http', 'https', 'ws', 'wss']
         }
       }
     }
@@ -201,7 +204,49 @@ export class Operation extends EnforcerComponent implements IOperation2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    result.after = after
+    result.after = function (data, mode) {
+      const d = data as ISchemaProcessor<IOperationDefinition, IOperation>
+      after(d.definition, d, mode)
+
+      if (mode === 'validate') {
+        const { definition, exception, id, reference } = d
+        const parameters = getMergedParameters(d)
+        const bodies: IParameter2Definition[] = []
+        const forms: IParameter2Definition[] = []
+        parameters.forEach(parameter => {
+          if (parameter.in === 'body') {
+            bodies.push(parameter)
+          } else if (parameter.in === 'formData') {
+            forms.push(parameter)
+          }
+        })
+
+        if (bodies.length > 1) {
+          exception.add({
+            id: id + '_BODY_NOT_UNIQUE',
+            level: 'error',
+            locations: bodies.map(parameter => getLocation(parameter)),
+            message: 'Only one body parameter allowed.',
+            metadata: { bodyParameters: parameters },
+            reference
+          })
+        }
+
+        if (bodies.length > 0 && forms.length > 0) {
+          exception.add({
+            id: id + '_BODY_FORM_DATA_CONFLICT',
+            level: 'error',
+            locations: bodies.map(parameter => getLocation(parameter))
+              .concat(forms.map(parameter => getLocation(parameter))),
+            message: 'The body parameter and formData parameter are mutually exclusive.',
+            metadata: { bodyParameters: parameters, formDataParameters: forms },
+            reference
+          })
+        }
+
+        // TODO: check consumes and formdata
+      }
+    }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = result

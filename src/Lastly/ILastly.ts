@@ -1,4 +1,6 @@
 
-export interface ILastly<D> extends Array<(data: D) => void> {
-  run: (data: D) => void
+export interface ILastly {
+  add: (fn: () => void) => void
+  addSingleton: (componentId: string, fn: (() => void)) => void
+  run: () => void
 }

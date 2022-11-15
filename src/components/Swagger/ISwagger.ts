@@ -42,7 +42,7 @@ export interface ISwagger2Definition {
   info: IInfo2Definition
   host?: string
   basePath?: string
-  schemes?: string[]
+  schemes?: Array<'http'|'https'|'ws'|'wss'>
   consumes?: string[]
   produces?: string[]
   paths: IPaths2Definition
@@ -61,7 +61,7 @@ export interface ISwagger2 extends IComponentInstance {
   info: IInfo2
   host?: string
   basePath?: string
-  schemes?: string[]
+  schemes?: Array<'http'|'https'|'ws'|'wss'>
   consumes?: string[]
   produces?: string[]
   paths: IPaths2

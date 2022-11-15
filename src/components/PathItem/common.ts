@@ -5,8 +5,8 @@ import { parametersAreUnique } from '../validations'
 
 export const after = function (data: ISchemaProcessor<any, any>, mode: 'build' | 'validate'): void {
   if (mode === 'validate') {
-    const { exception } = data.root
-    const { definition, id } = data.cmp
+    const { definition, exception, id } = data
+
     if ('$ref' in definition && Object.keys(definition).length > 1) {
       exception.add({
         id: id + '_FIELD_NOT_SUPPORTED',

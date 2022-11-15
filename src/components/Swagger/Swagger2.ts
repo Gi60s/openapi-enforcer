@@ -59,7 +59,7 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
   info!: IInfo2
   host?: string
   basePath?: string
-  schemes?: string[]
+  schemes?: Array<'http'|'https'|'ws'|'wss'>
   consumes?: string[]
   produces?: string[]
   paths!: IPaths2
@@ -126,7 +126,8 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
       schema: {
         type: 'array',
         items: {
-          type: 'string'
+          type: 'string',
+          enum: ['http', 'https', 'ws', 'wss']
         }
       }
     }

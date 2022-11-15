@@ -51,7 +51,7 @@ export interface IOperation2Definition {
   produces?: string[]
   parameters?: IParameter2Definition[]
   responses: IResponses2Definition
-  schemes?: string[]
+  schemes?: Array<'http'|'https'|'ws'|'wss'>
   deprecated?: boolean
   security?: ISecurityRequirement2Definition[]
 }
@@ -67,7 +67,7 @@ export interface IOperation2 extends IComponentInstance {
   produces?: string[]
   parameters?: IParameter2[]
   responses: IResponses2
-  schemes?: string[]
+  schemes?: Array<'http'|'https'|'ws'|'wss'>
   deprecated?: boolean
   security?: ISecurityRequirement2[]
 }

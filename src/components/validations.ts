@@ -3,21 +3,14 @@ import { getLocation } from '../Locator/Locator'
 import { ISchemaProcessor } from './ISchemaProcessor'
 import { smart } from '../util'
 import {
-  IParameter2Definition, IParameter3Definition,
-  IPathItem2, IPathItem3, IPathItem2Definition, IPathItem3Definition,
-  IOperation2, IOperation3, IOperation2Definition, IOperation3Definition
-} from './'
-
-type IPathItem = IPathItem2 | IPathItem3
-type IPathItemDefinition = IPathItem2Definition | IPathItem3Definition
-type IOperation = IOperation2 | IOperation3
-type IOperationDefinition = IOperation2Definition | IOperation3Definition
-type IParameterDefinition = IParameter2Definition | IParameter3Definition
+  IOperation, IOperationDefinition,
+  IParameterDefinition,
+  IPathItem, IPathItemDefinition
+} from './IInternalTypes'
 
 export function isUrl (key: string, data: ISchemaProcessor): void {
-  const { exception } = data.root
-  const { definition, id, reference } = data.cmp
-  const url = definition[key]
+  const { definition, exception, id, reference } = data
+  const url = (definition as any)[key]
   if (url !== undefined && !rx.url.test(url)) {
     exception.add({
       id: id + '_URL_INVALID',
@@ -33,8 +26,7 @@ export function isUrl (key: string, data: ISchemaProcessor): void {
 }
 
 export function parametersAreUnique (data: ISchemaProcessor<IPathItemDefinition, IPathItem> | ISchemaProcessor<IOperationDefinition, IOperation>): void {
-  const { exception } = data.root
-  const { definition, id, reference } = data.cmp
+  const { definition, exception, id, reference } = data
   const existing: Record<string, Record<string, IParameterDefinition[]>> = {}
   definition.parameters?.forEach((parameter, index) => {
     const name = parameter.name
@@ -69,12 +61,28 @@ export function parametersAreUnique (data: ISchemaProcessor<IPathItemDefinition,
   })
 }
 
+export function parametersNotInPath (data: ISchemaProcessor<IOperationDefinition, IOperation> | ISchemaProcessor<IPathItemDefinition, IPathItem>, pathParameterNames: string[]): void {
+  const { definition, exception, id, reference } = data
+  const parameters = (definition.parameters ?? []) as IParameterDefinition[]
+  parameters.forEach((p) => {
+    if (p.in === 'path' && !pathParameterNames.includes(p.name)) {
+      exception.add({
+        id: id + '_DEFINED_PATH_PARAMETER_NOT_IN_PATH',
+        level: 'error',
+        locations: [getLocation(p)],
+        message: 'A path parameter was defined in the parameters array that is not found in the path: ' + smart(p.name),
+        metadata: { parameterName: p.name },
+        reference
+      })
+    }
+  })
+}
+
 export function mutuallyExclusiveProperties (properties: string[], data: ISchemaProcessor): void {
-  const { exception } = data.root
-  const { definition, id, reference } = data.cmp
+  const { definition, exception, id, reference } = data
   const propertiesFound: string[] = []
   properties.forEach(property => {
-    if (definition[property] !== undefined) {
+    if ((definition as any)[property] !== undefined) {
       propertiesFound.push(property)
     }
   })
