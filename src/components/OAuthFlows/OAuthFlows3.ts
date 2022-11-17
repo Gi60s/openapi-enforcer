@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IOAuthFlowsSchemaProcessor } from '../IInternalTypes'
 import {
   IOAuthFlow3,
   IOAuthFlow3Definition,
@@ -48,7 +48,7 @@ export class OAuthFlows extends EnforcerComponent implements IOAuthFlows3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#oauth-flows-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IOAuthFlows3Definition, IOAuthFlows3> {
+  static getSchema (_data: IOAuthFlowsSchemaProcessor): ISchema.IDefinition<IOAuthFlows3Definition, IOAuthFlows3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

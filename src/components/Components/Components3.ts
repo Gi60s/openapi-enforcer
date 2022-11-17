@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IComponentsSchemaProcessor } from '../IInternalTypes'
 import {
   Callback3,
   Example3,
@@ -80,7 +80,7 @@ export class Components extends EnforcerComponent implements IComponents3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#components-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IComponents3Definition, IComponents3> {
+  static getSchema (_data: IComponentsSchemaProcessor): ISchema.IDefinition<IComponents3Definition, IComponents3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

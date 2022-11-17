@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IHeaderSchemaProcessor } from '../IInternalTypes'
 import {
   Example3,
   IExample3,
@@ -61,7 +61,7 @@ export class Header extends EnforcerComponent implements IHeader3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#header-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IHeader3Definition, IHeader3> {
+  static getSchema (_data: IHeaderSchemaProcessor): ISchema.IDefinition<IHeader3Definition, IHeader3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

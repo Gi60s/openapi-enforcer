@@ -6,6 +6,7 @@ import {
   IPathItem, IPathItemDefinition,
   IPaths, IPathsDefinition
 } from '../IInternalTypes'
+import { IOperation2, IOperation2Definition, IOperation3, IOperation3Definition } from '../'
 import { findAncestorComponentData } from '../common'
 import { getPathParameterNames } from '../Paths/common'
 import { Result } from '../../Result'
@@ -13,10 +14,11 @@ import { getLocation } from '../../Locator/Locator'
 import { smart } from '../../util'
 
 type IFromParameterArray = Array<IParameter | IParameterDefinition>
+type ISchemaProcessorData = ISchemaProcessor<IOperation2Definition, IOperation2> | ISchemaProcessor<IOperation3Definition, IOperation3>
 
 const mergedParametersMap = new WeakMap<IOperationDefinition, IFromParameterArray>()
 
-export function after (context: IOperationDefinition, data: ISchemaProcessor<IOperationDefinition, IOperation>, mode: 'build' | 'validate'): void {
+export function after (context: IOperationDefinition, data: ISchemaProcessorData, mode: 'build' | 'validate'): void {
   const { chain, definition, exception, id, key: path, lastly, reference, store } = data
 
   // TODO: make sure we're getting the path item when there is one
@@ -91,7 +93,7 @@ export function after (context: IOperationDefinition, data: ISchemaProcessor<IOp
   }
 }
 
-export function getMergedParameters (data: ISchemaProcessor<IOperationDefinition, IOperation>): IFromParameterArray {
+export function getMergedParameters (data: ISchemaProcessorData): IFromParameterArray {
   let results = mergedParametersMap.get(data.definition)
   if (results === undefined) {
     const { chain, definition } = data

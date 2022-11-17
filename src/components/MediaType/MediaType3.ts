@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IMediaTypeSchemaProcessor } from '../IInternalTypes'
 import {
   Encoding3,
   Example3,
@@ -54,7 +54,7 @@ export class MediaType extends EnforcerComponent implements IMediaType3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#media-type-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IMediaType3Definition, IMediaType3> {
+  static getSchema (_data: IMediaTypeSchemaProcessor): ISchema.IDefinition<IMediaType3Definition, IMediaType3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

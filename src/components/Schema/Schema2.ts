@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ISchemaSchemaProcessor } from '../IInternalTypes'
 import {
   ExternalDocumentation2,
   IExternalDocumentation2,
@@ -75,7 +75,7 @@ export class Schema extends EnforcerComponent implements ISchema2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ISchema2Definition, ISchema2> {
+  static getSchema (_data: ISchemaSchemaProcessor): ISchema.IDefinition<ISchema2Definition, ISchema2> {
     const format: ISchema.IProperty<ISchema.IString> = {
       name: 'format',
       schema: {

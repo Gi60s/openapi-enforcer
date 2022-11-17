@@ -130,7 +130,7 @@ const config: IComponentsConfiguration = {
         schema: 'Schema|Reference',
         example: 'any',
         examples: 'Example|Reference{}',
-        content: 'MediaType{}'
+        content: 'ContentType{}'
       }
     }
   },
@@ -339,7 +339,7 @@ const config: IComponentsConfiguration = {
         schema: 'Schema|Reference',
         example: 'any',
         examples: 'Example|Reference{}',
-        content: 'MediaType{}'
+        content: 'ContentType{}'
       }
     }
   },
@@ -410,7 +410,7 @@ const config: IComponentsConfiguration = {
       allowsExtensions: true,
       properties: {
         description: 'string',
-        content: 'MediaType{}',
+        content: 'ContentType{}',
         required: 'boolean'
       }
     }
@@ -430,7 +430,7 @@ const config: IComponentsConfiguration = {
       properties: {
         description: 'string!',
         headers: 'Header|Reference{}',
-        content: 'MediaType{}',
+        content: 'ContentType{}',
         links: 'Link|Reference{}'
       }
     }

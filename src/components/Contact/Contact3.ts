@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IContactSchemaProcessor } from '../IInternalTypes'
 import {
   IContact3,
   IContact3Definition
@@ -44,7 +44,7 @@ export class Contact extends EnforcerComponent implements IContact3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#contact-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IContact3Definition, IContact3> {
+  static getSchema (_data: IContactSchemaProcessor): ISchema.IDefinition<IContact3Definition, IContact3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

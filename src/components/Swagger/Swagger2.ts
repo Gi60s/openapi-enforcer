@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ISwaggerSchemaProcessor } from '../IInternalTypes'
 import {
   ExternalDocumentation2,
   IExternalDocumentation2,
@@ -83,7 +83,7 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
     '3.0.3': false
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ISwagger2Definition, ISwagger2> {
+  static getSchema (_data: ISwaggerSchemaProcessor): ISchema.IDefinition<ISwagger2Definition, ISwagger2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

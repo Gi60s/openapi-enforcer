@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IContactSchemaProcessor } from '../IInternalTypes'
 import {
   IContact2,
   IContact2Definition
@@ -44,7 +44,7 @@ export class Contact extends EnforcerComponent implements IContact2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IContact2Definition, IContact2> {
+  static getSchema (_data: IContactSchemaProcessor): ISchema.IDefinition<IContact2Definition, IContact2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

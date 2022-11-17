@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IExternalDocumentationSchemaProcessor } from '../IInternalTypes'
 import {
   IExternalDocumentation2,
   IExternalDocumentation2Definition
@@ -43,7 +43,7 @@ export class ExternalDocumentation extends EnforcerComponent implements IExterna
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> {
+  static getSchema (_data: IExternalDocumentationSchemaProcessor): ISchema.IDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

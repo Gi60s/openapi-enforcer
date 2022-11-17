@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IXmlSchemaProcessor } from '../IInternalTypes'
 import {
   IXml3,
   IXml3Definition
@@ -46,7 +46,7 @@ export class Xml extends EnforcerComponent implements IXml3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#xml-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IXml3Definition, IXml3> {
+  static getSchema (_data: IXmlSchemaProcessor): ISchema.IDefinition<IXml3Definition, IXml3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

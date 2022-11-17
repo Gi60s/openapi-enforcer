@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IExternalDocumentationSchemaProcessor } from '../IInternalTypes'
 import {
   IExternalDocumentation3,
   IExternalDocumentation3Definition
@@ -43,7 +43,7 @@ export class ExternalDocumentation extends EnforcerComponent implements IExterna
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#external-documentation-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IExternalDocumentation3Definition, IExternalDocumentation3> {
+  static getSchema (_data: IExternalDocumentationSchemaProcessor): ISchema.IDefinition<IExternalDocumentation3Definition, IExternalDocumentation3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

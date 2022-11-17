@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IDiscriminatorSchemaProcessor } from '../IInternalTypes'
 import {
   IDiscriminator3,
   IDiscriminator3Definition
@@ -42,7 +42,7 @@ export class Discriminator extends EnforcerComponent implements IDiscriminator3 
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#discriminator-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IDiscriminator3Definition, IDiscriminator3> {
+  static getSchema (_data: IDiscriminatorSchemaProcessor): ISchema.IDefinition<IDiscriminator3Definition, IDiscriminator3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

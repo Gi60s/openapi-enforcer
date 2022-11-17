@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IServerSchemaProcessor } from '../IInternalTypes'
 import {
   IServer3,
   IServer3Definition,
@@ -47,7 +47,7 @@ export class Server extends EnforcerComponent implements IServer3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IServer3Definition, IServer3> {
+  static getSchema (_data: IServerSchemaProcessor): ISchema.IDefinition<IServer3Definition, IServer3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

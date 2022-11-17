@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IPathItemSchemaProcessor } from '../IInternalTypes'
 import {
   IOperation3,
   IOperation3Definition,
@@ -63,7 +63,7 @@ export class PathItem extends EnforcerComponent implements IPathItem3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#path-item-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IPathItem3Definition, IPathItem3> {
+  static getSchema (_data: IPathItemSchemaProcessor): ISchema.IDefinition<IPathItem3Definition, IPathItem3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

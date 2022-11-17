@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IHeaderSchemaProcessor } from '../IInternalTypes'
 import {
   IHeader2,
   IHeader2Definition,
@@ -62,7 +62,7 @@ export class Header extends EnforcerComponent implements IHeader2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IHeader2Definition, IHeader2> {
+  static getSchema (_data: IHeaderSchemaProcessor): ISchema.IDefinition<IHeader2Definition, IHeader2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

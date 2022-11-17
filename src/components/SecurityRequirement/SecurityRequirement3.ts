@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ISecurityRequirementSchemaProcessor } from '../IInternalTypes'
 import {
   ISecurityRequirement3,
   ISecurityRequirement3Definition
@@ -40,7 +40,7 @@ export class SecurityRequirement extends EnforcerComponent implements ISecurityR
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-requirement-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> {
+  static getSchema (_data: ISecurityRequirementSchemaProcessor): ISchema.IDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

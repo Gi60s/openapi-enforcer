@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IEncodingSchemaProcessor } from '../IInternalTypes'
 import {
   Header3,
   IEncoding3,
@@ -49,7 +49,7 @@ export class Encoding extends EnforcerComponent implements IEncoding3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#encoding-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IEncoding3Definition, IEncoding3> {
+  static getSchema (_data: IEncodingSchemaProcessor): ISchema.IDefinition<IEncoding3Definition, IEncoding3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

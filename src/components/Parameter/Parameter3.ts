@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IParameterSchemaProcessor } from '../IInternalTypes'
 import {
   Example3,
   IExample3,
@@ -63,7 +63,7 @@ export class Parameter extends EnforcerComponent implements IParameter3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#parameter-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IParameter3Definition, IParameter3> {
+  static getSchema (_data: IParameterSchemaProcessor): ISchema.IDefinition<IParameter3Definition, IParameter3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IOperationSchemaProcessor } from '../IInternalTypes'
 import {
   ExternalDocumentation2,
   IExternalDocumentation2,
@@ -34,8 +34,11 @@ import {
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
 import { after, getMergedParameters } from './common'
-import { IOperation, IOperationDefinition } from '../IInternalTypes'
 import { getLocation } from '../../Locator/Locator'
+import { findAncestorComponentData } from '../common'
+import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ISwagger2Definition } from '../Swagger'
+import { ContentType } from '../../ContentType/ContentType'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.IDefinition<IOperation2Definition, IOperation2> | null = null
@@ -67,7 +70,7 @@ export class Operation extends EnforcerComponent implements IOperation2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IOperation2Definition, IOperation2> {
+  static getSchema (_data: IOperationSchemaProcessor): ISchema.IDefinition<IOperation2Definition, IOperation2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -205,12 +208,11 @@ export class Operation extends EnforcerComponent implements IOperation2 {
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
     result.after = function (data, mode) {
-      const d = data as ISchemaProcessor<IOperationDefinition, IOperation>
-      after(d.definition, d, mode)
+      const { chain, definition, exception, id, reference } = data
+      after(definition, data, mode)
 
       if (mode === 'validate') {
-        const { definition, exception, id, reference } = d
-        const parameters = getMergedParameters(d)
+        const parameters = getMergedParameters(data)
         const bodies: IParameter2Definition[] = []
         const forms: IParameter2Definition[] = []
         parameters.forEach(parameter => {
@@ -244,7 +246,35 @@ export class Operation extends EnforcerComponent implements IOperation2 {
           })
         }
 
-        // TODO: check consumes and formdata
+        const swaggerData: ISchemaProcessor<ISwagger2Definition, any, any> | undefined =
+          findAncestorComponentData(chain, 'Swagger') as ISchemaProcessor<ISwagger2Definition, any, any>
+        const consumes = (definition.consumes ?? []).concat(swaggerData?.definition.consumes ?? [])
+        const accepts = consumes.map(c => ContentType.fromString(c))
+
+        // check consumes values for form data
+        if (forms.length > 0) {
+          const matchTypes = [
+            ContentType.fromString('multipart/form-data'),
+            ContentType.fromString('application/x-www-form-urlencoded')
+          ]
+          const consumesFormData = accepts.find(v => v?.findMatches(matchTypes) !== undefined)
+          if (consumesFormData === undefined) {
+            exception.add({
+              id: id + '_FORM_DATA_CONSUMES',
+              level: 'warn',
+              locations: [getLocation(definition)],
+              message: 'Input parameters in formData or file should also be accompanied with a consumes property value of either "multipart/form-data" or "application/x-www-form-urlencoded',
+              metadata: { consumes }
+            })
+          }
+        }
+
+        if (bodies.length === 1) {
+          const body = bodies[0]
+          if ((body.schema?.type === 'array' || body.schema?.type === 'object')) {
+            working here
+          }
+        }
       }
     }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>

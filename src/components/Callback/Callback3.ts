@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ICallbackSchemaProcessor } from '../IInternalTypes'
 import {
   ICallback3,
   ICallback3Definition,
@@ -44,7 +44,7 @@ export class Callback extends EnforcerComponent implements ICallback3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#callback-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ICallback3Definition, ICallback3> {
+  static getSchema (_data: ICallbackSchemaProcessor): ISchema.IDefinition<ICallback3Definition, ICallback3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

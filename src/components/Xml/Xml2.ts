@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IXmlSchemaProcessor } from '../IInternalTypes'
 import {
   IXml2,
   IXml2Definition
@@ -46,7 +46,7 @@ export class Xml extends EnforcerComponent implements IXml2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IXml2Definition, IXml2> {
+  static getSchema (_data: IXmlSchemaProcessor): ISchema.IDefinition<IXml2Definition, IXml2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

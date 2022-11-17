@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IRequestBodySchemaProcessor } from '../IInternalTypes'
 import {
   IMediaType3,
   IMediaType3Definition,
@@ -47,7 +47,7 @@ export class RequestBody extends EnforcerComponent implements IRequestBody3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#request-body-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IRequestBody3Definition, IRequestBody3> {
+  static getSchema (_data: IRequestBodySchemaProcessor): ISchema.IDefinition<IRequestBody3Definition, IRequestBody3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

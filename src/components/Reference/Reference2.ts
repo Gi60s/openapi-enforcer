@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IReferenceSchemaProcessor } from '../IInternalTypes'
 import {
   IReference2,
   IReference2Definition
@@ -41,7 +41,7 @@ export class Reference extends EnforcerComponent implements IReference2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IReference2Definition, IReference2> {
+  static getSchema (_data: IReferenceSchemaProcessor): ISchema.IDefinition<IReference2Definition, IReference2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

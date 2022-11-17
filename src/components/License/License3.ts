@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ILicenseSchemaProcessor } from '../IInternalTypes'
 import {
   ILicense3,
   ILicense3Definition
@@ -43,7 +43,7 @@ export class License extends EnforcerComponent implements ILicense3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#license-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ILicense3Definition, ILicense3> {
+  static getSchema (_data: ILicenseSchemaProcessor): ISchema.IDefinition<ILicense3Definition, ILicense3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IInfoSchemaProcessor } from '../IInternalTypes'
 import {
   Contact3,
   IContact3,
@@ -53,7 +53,7 @@ export class Info extends EnforcerComponent implements IInfo3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#info-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IInfo3Definition, IInfo3> {
+  static getSchema (_data: IInfoSchemaProcessor): ISchema.IDefinition<IInfo3Definition, IInfo3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

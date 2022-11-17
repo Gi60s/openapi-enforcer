@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IOperationSchemaProcessor } from '../IInternalTypes'
 import {
   Callback3,
   ExternalDocumentation3,
@@ -74,7 +74,7 @@ export class Operation extends EnforcerComponent implements IOperation3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#operation-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IOperation3Definition, IOperation3> {
+  static getSchema (_data: IOperationSchemaProcessor): ISchema.IDefinition<IOperation3Definition, IOperation3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

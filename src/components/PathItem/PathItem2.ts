@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IPathItemSchemaProcessor } from '../IInternalTypes'
 import {
   IOperation2,
   IOperation2Definition,
@@ -56,7 +56,7 @@ export class PathItem extends EnforcerComponent implements IPathItem2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IPathItem2Definition, IPathItem2> {
+  static getSchema (_data: IPathItemSchemaProcessor): ISchema.IDefinition<IPathItem2Definition, IPathItem2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

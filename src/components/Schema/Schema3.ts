@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ISchemaSchemaProcessor } from '../IInternalTypes'
 import {
   Discriminator3,
   ExternalDocumentation3,
@@ -84,7 +84,7 @@ export class Schema extends EnforcerComponent implements ISchema3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#schema-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ISchema3Definition, ISchema3> {
+  static getSchema (_data: ISchemaSchemaProcessor): ISchema.IDefinition<ISchema3Definition, ISchema3> {
     const type: ISchema.IProperty<ISchema.IString> = {
       name: 'type',
       schema: {

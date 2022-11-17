@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IReferenceSchemaProcessor } from '../IInternalTypes'
 import {
   IReference3,
   IReference3Definition
@@ -41,7 +41,7 @@ export class Reference extends EnforcerComponent implements IReference3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#reference-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IReference3Definition, IReference3> {
+  static getSchema (_data: IReferenceSchemaProcessor): ISchema.IDefinition<IReference3Definition, IReference3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

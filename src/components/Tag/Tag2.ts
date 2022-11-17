@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ITagSchemaProcessor } from '../IInternalTypes'
 import {
   ExternalDocumentation2,
   IExternalDocumentation2,
@@ -47,7 +47,7 @@ export class Tag extends EnforcerComponent implements ITag2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ITag2Definition, ITag2> {
+  static getSchema (_data: ITagSchemaProcessor): ISchema.IDefinition<ITag2Definition, ITag2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

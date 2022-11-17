@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ITagSchemaProcessor } from '../IInternalTypes'
 import {
   ExternalDocumentation3,
   IExternalDocumentation3,
@@ -47,7 +47,7 @@ export class Tag extends EnforcerComponent implements ITag3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#tag-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ITag3Definition, ITag3> {
+  static getSchema (_data: ITagSchemaProcessor): ISchema.IDefinition<ITag3Definition, ITag3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

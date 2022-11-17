@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IOpenAPISchemaProcessor } from '../IInternalTypes'
 import {
   Components3,
   ExternalDocumentation3,
@@ -70,7 +70,7 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#openapi-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IOpenAPI3Definition, IOpenAPI3> {
+  static getSchema (_data: IOpenAPISchemaProcessor): ISchema.IDefinition<IOpenAPI3Definition, IOpenAPI3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

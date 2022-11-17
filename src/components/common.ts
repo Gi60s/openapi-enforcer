@@ -1,11 +1,10 @@
 import { Chain } from '../Chain/Chain'
 import { ISchemaProcessor } from './ISchemaProcessor'
-import { IDefinition, IComponent } from './IInternalTypes'
 
-export function findAncestorComponentData<Definition extends IDefinition, Built extends IComponent, Metadata = any> (
-  chain: Chain<ISchemaProcessor>,
+export function findAncestorComponentData<SchemaProcessor extends ISchemaProcessor> (
+  chain: Chain<SchemaProcessor>,
   componentName: string
-): ISchemaProcessor<Definition, Built, Metadata> {
+): SchemaProcessor | undefined {
   return chain.getAncestor(item =>
-    item.cmp.name === componentName) as ISchemaProcessor<Definition, Built, Metadata>
+    item.name === componentName) as SchemaProcessor
 }

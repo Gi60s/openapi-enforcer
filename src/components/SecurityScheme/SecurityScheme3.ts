@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ISecuritySchemeSchemaProcessor } from '../IInternalTypes'
 import {
   IOAuthFlows3,
   IOAuthFlows3Definition,
@@ -52,7 +52,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-scheme-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ISecurityScheme3Definition, ISecurityScheme3> {
+  static getSchema (_data: ISecuritySchemeSchemaProcessor): ISchema.IDefinition<ISecurityScheme3Definition, ISecurityScheme3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IResponsesSchemaProcessor } from '../IInternalTypes'
 import {
   IResponse2,
   IResponse2Definition,
@@ -46,7 +46,7 @@ export class Responses extends EnforcerComponent implements IResponses2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IResponses2Definition, IResponses2> {
+  static getSchema (_data: IResponsesSchemaProcessor): ISchema.IDefinition<IResponses2Definition, IResponses2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

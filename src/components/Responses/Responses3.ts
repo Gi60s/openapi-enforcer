@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IResponsesSchemaProcessor } from '../IInternalTypes'
 import {
   IResponse3,
   IResponse3Definition,
@@ -46,7 +46,7 @@ export class Responses extends EnforcerComponent implements IResponses3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#responses-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IResponses3Definition, IResponses3> {
+  static getSchema (_data: IResponsesSchemaProcessor): ISchema.IDefinition<IResponses3Definition, IResponses3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

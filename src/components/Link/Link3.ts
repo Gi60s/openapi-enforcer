@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ILinkSchemaProcessor } from '../IInternalTypes'
 import {
   ILink3,
   ILink3Definition,
@@ -50,7 +50,7 @@ export class Link extends EnforcerComponent implements ILink3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#link-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ILink3Definition, ILink3> {
+  static getSchema (_data: ILinkSchemaProcessor): ISchema.IDefinition<ILink3Definition, ILink3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ISecurityRequirementSchemaProcessor } from '../IInternalTypes'
 import {
   ISecurityRequirement2,
   ISecurityRequirement2Definition
@@ -40,7 +40,7 @@ export class SecurityRequirement extends EnforcerComponent implements ISecurityR
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> {
+  static getSchema (_data: ISecurityRequirementSchemaProcessor): ISchema.IDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

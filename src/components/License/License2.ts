@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ILicenseSchemaProcessor } from '../IInternalTypes'
 import {
   ILicense2,
   ILicense2Definition
@@ -43,7 +43,7 @@ export class License extends EnforcerComponent implements ILicense2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<ILicense2Definition, ILicense2> {
+  static getSchema (_data: ILicenseSchemaProcessor): ISchema.IDefinition<ILicense2Definition, ILicense2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }

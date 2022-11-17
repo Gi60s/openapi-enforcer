@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../IComponentSchema'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { IServerVariableSchemaProcessor } from '../IInternalTypes'
 import {
   IServerVariable3,
   IServerVariable3Definition
@@ -44,7 +44,7 @@ export class ServerVariable extends EnforcerComponent implements IServerVariable
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-variable-object'
   }
 
-  static getSchema (_data: ISchemaProcessor): ISchema.IDefinition<IServerVariable3Definition, IServerVariable3> {
+  static getSchema (_data: IServerVariableSchemaProcessor): ISchema.IDefinition<IServerVariable3Definition, IServerVariable3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
