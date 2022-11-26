@@ -16,6 +16,12 @@ import { IComponentInstance } from '../IComponent'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IOAuthFlowComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+// Put your code here.
+// <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IOAuthFlow3Definition {
   [extension: `x-${string}`]: any
   authorizationUrl?: string
@@ -24,7 +30,7 @@ export interface IOAuthFlow3Definition {
   scopes?: Record<string, string>
 }
 
-export interface IOAuthFlow3 extends IComponentInstance {
+export interface IOAuthFlow3 extends IOAuthFlowComponent {
   [extension: `x-${string}`]: any
   authorizationUrl?: string
   tokenUrl?: string

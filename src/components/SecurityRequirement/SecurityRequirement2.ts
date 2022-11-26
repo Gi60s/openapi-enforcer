@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ISecurityRequirementSchemaProcessor } from '../IInternalTypes'
 import {
   ISecurityRequirement2,
@@ -24,10 +24,11 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> | null = null
 
-export class SecurityRequirement extends EnforcerComponent implements ISecurityRequirement2 {
+export class SecurityRequirement extends EnforcerComponent<ISecurityRequirement2Definition, ISecurityRequirement2> implements ISecurityRequirement2 {
   [key: string]: string[]
+
   constructor (definition: ISecurityRequirement2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
@@ -40,7 +41,7 @@ export class SecurityRequirement extends EnforcerComponent implements ISecurityR
     '3.0.3': true
   }
 
-  static getSchema (_data: ISecurityRequirementSchemaProcessor): ISchema.IDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> {
+  static getSchemaDefinition (_data: ISecurityRequirementSchemaProcessor): ISchema.ISchemaDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -52,7 +53,7 @@ export class SecurityRequirement extends EnforcerComponent implements ISecurityR
       }
     }
 
-    const result: ISchema.IDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> = {
+    const result: ISchema.ISchemaDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> = {
       type: 'object',
       allowsSchemaExtensions: false,
       additionalProperties

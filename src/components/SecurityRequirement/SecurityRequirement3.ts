@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ISecurityRequirementSchemaProcessor } from '../IInternalTypes'
 import {
   ISecurityRequirement3,
@@ -24,10 +24,11 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> | null = null
 
-export class SecurityRequirement extends EnforcerComponent implements ISecurityRequirement3 {
+export class SecurityRequirement extends EnforcerComponent<ISecurityRequirement3Definition, ISecurityRequirement3> implements ISecurityRequirement3 {
   [key: string]: string[]
+
   constructor (definition: ISecurityRequirement3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
@@ -40,7 +41,7 @@ export class SecurityRequirement extends EnforcerComponent implements ISecurityR
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-requirement-object'
   }
 
-  static getSchema (_data: ISecurityRequirementSchemaProcessor): ISchema.IDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> {
+  static getSchemaDefinition (_data: ISecurityRequirementSchemaProcessor): ISchema.ISchemaDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -52,7 +53,7 @@ export class SecurityRequirement extends EnforcerComponent implements ISecurityR
       }
     }
 
-    const result: ISchema.IDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> = {
+    const result: ISchema.ISchemaDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> = {
       type: 'object',
       allowsSchemaExtensions: false,
       additionalProperties

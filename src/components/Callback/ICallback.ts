@@ -20,12 +20,18 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface ICallbackComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface ICallback3Definition {
   [extension: `x-${string}`]: any
   [key: string]: IPathItem3Definition
 }
 
-export interface ICallback3 extends IComponentInstance {
+export interface ICallback3 extends ICallbackComponent {
   [extension: `x-${string}`]: any
   [key: string]: IPathItem3
 }

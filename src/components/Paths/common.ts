@@ -1,4 +1,4 @@
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
 import { getLocation } from '../../Locator/Locator'
 import { methods } from '../PathItem/common'
 import { IPaths2, IPaths3 } from './IPaths'

@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IComponentsSchemaProcessor } from '../IInternalTypes'
 import {
   Callback3,
@@ -54,19 +54,10 @@ import { smart } from '../../util'
 const rxPropertyName = /^[a-zA-Z0-9._-]+$/
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IComponents3Definition, IComponents3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IComponents3Definition, IComponents3> | null = null
 
-export class Components extends EnforcerComponent implements IComponents3 {
-  [extension: `x-${string}`]: any
-  schemas?: Record<string, ISchema3>
-  responses?: Record<string, IResponse3>
-  parameters?: Record<string, IParameter3>
-  examples?: Record<string, IExample3>
-  requestBodies?: Record<string, IRequestBody3>
-  headers?: Record<string, IHeader3>
-  securitySchemes?: Record<string, ISecurityScheme3>
-  links?: Record<string, ILink3>
-  callbacks?: Record<string, ICallback3>
+export class Components extends EnforcerComponent<IComponents3Definition, IComponents3> implements IComponents3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IComponents3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -80,7 +71,7 @@ export class Components extends EnforcerComponent implements IComponents3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#components-object'
   }
 
-  static getSchema (_data: IComponentsSchemaProcessor): ISchema.IDefinition<IComponents3Definition, IComponents3> {
+  static getSchemaDefinition (_data: IComponentsSchemaProcessor): ISchema.ISchemaDefinition<IComponents3Definition, IComponents3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -193,7 +184,7 @@ export class Components extends EnforcerComponent implements IComponents3 {
       }
     }
 
-    const result: ISchema.IDefinition<IComponents3Definition, IComponents3> = {
+    const result: ISchema.ISchemaDefinition<IComponents3Definition, IComponents3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -212,8 +203,7 @@ export class Components extends EnforcerComponent implements IComponents3 {
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
     result.after = (data, mode) => {
       if (mode === 'validate') {
-        const { definition, reference, id } = data.cmp
-        const { exception } = data.root
+        const { definition, exception, reference, id } = data
         const properties: Array<keyof IComponents3Definition> = ['schemas', 'responses',
           'parameters', 'examples', 'requestBodies', 'headers', 'securitySchemes', 'links', 'callbacks']
         properties.forEach(key => {
@@ -245,6 +235,78 @@ export class Components extends EnforcerComponent implements IComponents3 {
 
   static validate (definition: IComponents3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get schemas (): Record<string, ISchema3> | undefined {
+    return this.getProperty('schemas')
+  }
+
+  set schemas (value: Record<string, ISchema3> | undefined) {
+    this.setProperty('schemas', value)
+  }
+
+  get responses (): Record<string, IResponse3> | undefined {
+    return this.getProperty('responses')
+  }
+
+  set responses (value: Record<string, IResponse3> | undefined) {
+    this.setProperty('responses', value)
+  }
+
+  get parameters (): Record<string, IParameter3> | undefined {
+    return this.getProperty('parameters')
+  }
+
+  set parameters (value: Record<string, IParameter3> | undefined) {
+    this.setProperty('parameters', value)
+  }
+
+  get examples (): Record<string, IExample3> | undefined {
+    return this.getProperty('examples')
+  }
+
+  set examples (value: Record<string, IExample3> | undefined) {
+    this.setProperty('examples', value)
+  }
+
+  get requestBodies (): Record<string, IRequestBody3> | undefined {
+    return this.getProperty('requestBodies')
+  }
+
+  set requestBodies (value: Record<string, IRequestBody3> | undefined) {
+    this.setProperty('requestBodies', value)
+  }
+
+  get headers (): Record<string, IHeader3> | undefined {
+    return this.getProperty('headers')
+  }
+
+  set headers (value: Record<string, IHeader3> | undefined) {
+    this.setProperty('headers', value)
+  }
+
+  get securitySchemes (): Record<string, ISecurityScheme3> | undefined {
+    return this.getProperty('securitySchemes')
+  }
+
+  set securitySchemes (value: Record<string, ISecurityScheme3> | undefined) {
+    this.setProperty('securitySchemes', value)
+  }
+
+  get links (): Record<string, ILink3> | undefined {
+    return this.getProperty('links')
+  }
+
+  set links (value: Record<string, ILink3> | undefined) {
+    this.setProperty('links', value)
+  }
+
+  get callbacks (): Record<string, ICallback3> | undefined {
+    return this.getProperty('callbacks')
+  }
+
+  set callbacks (value: Record<string, ICallback3> | undefined) {
+    this.setProperty('callbacks', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IPathItemSchemaProcessor } from '../IInternalTypes'
 import {
   IOperation3,
@@ -33,23 +33,10 @@ import {
 import { after } from './common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IPathItem3Definition, IPathItem3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IPathItem3Definition, IPathItem3> | null = null
 
-export class PathItem extends EnforcerComponent implements IPathItem3 {
-  [extension: `x-${string}`]: any
-  $ref?: string
-  summary?: string
-  description?: string
-  get?: IOperation3
-  put?: IOperation3
-  post?: IOperation3
-  delete?: IOperation3
-  options?: IOperation3
-  head?: IOperation3
-  patch?: IOperation3
-  trace?: IOperation3
-  servers?: IServer3[]
-  parameters?: IParameter3[]
+export class PathItem extends EnforcerComponent<IPathItem3Definition, IPathItem3> implements IPathItem3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IPathItem3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -63,7 +50,7 @@ export class PathItem extends EnforcerComponent implements IPathItem3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#path-item-object'
   }
 
-  static getSchema (_data: IPathItemSchemaProcessor): ISchema.IDefinition<IPathItem3Definition, IPathItem3> {
+  static getSchemaDefinition (_data: IPathItemSchemaProcessor): ISchema.ISchemaDefinition<IPathItem3Definition, IPathItem3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -185,7 +172,7 @@ export class PathItem extends EnforcerComponent implements IPathItem3 {
       }
     }
 
-    const result: ISchema.IDefinition<IPathItem3Definition, IPathItem3> = {
+    const result: ISchema.ISchemaDefinition<IPathItem3Definition, IPathItem3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -215,6 +202,110 @@ export class PathItem extends EnforcerComponent implements IPathItem3 {
 
   static validate (definition: IPathItem3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get $ref (): string | undefined {
+    return this.getProperty('$ref')
+  }
+
+  set $ref (value: string | undefined) {
+    this.setProperty('$ref', value)
+  }
+
+  get summary (): string | undefined {
+    return this.getProperty('summary')
+  }
+
+  set summary (value: string | undefined) {
+    this.setProperty('summary', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get get (): IOperation3 | undefined {
+    return this.getProperty('get')
+  }
+
+  set get (value: IOperation3 | undefined) {
+    this.setProperty('get', value)
+  }
+
+  get put (): IOperation3 | undefined {
+    return this.getProperty('put')
+  }
+
+  set put (value: IOperation3 | undefined) {
+    this.setProperty('put', value)
+  }
+
+  get post (): IOperation3 | undefined {
+    return this.getProperty('post')
+  }
+
+  set post (value: IOperation3 | undefined) {
+    this.setProperty('post', value)
+  }
+
+  get delete (): IOperation3 | undefined {
+    return this.getProperty('delete')
+  }
+
+  set delete (value: IOperation3 | undefined) {
+    this.setProperty('delete', value)
+  }
+
+  get options (): IOperation3 | undefined {
+    return this.getProperty('options')
+  }
+
+  set options (value: IOperation3 | undefined) {
+    this.setProperty('options', value)
+  }
+
+  get head (): IOperation3 | undefined {
+    return this.getProperty('head')
+  }
+
+  set head (value: IOperation3 | undefined) {
+    this.setProperty('head', value)
+  }
+
+  get patch (): IOperation3 | undefined {
+    return this.getProperty('patch')
+  }
+
+  set patch (value: IOperation3 | undefined) {
+    this.setProperty('patch', value)
+  }
+
+  get trace (): IOperation3 | undefined {
+    return this.getProperty('trace')
+  }
+
+  set trace (value: IOperation3 | undefined) {
+    this.setProperty('trace', value)
+  }
+
+  get servers (): IServer3[] | undefined {
+    return this.getProperty('servers')
+  }
+
+  set servers (value: IServer3[] | undefined) {
+    this.setProperty('servers', value)
+  }
+
+  get parameters (): IParameter3[] | undefined {
+    return this.getProperty('parameters')
+  }
+
+  set parameters (value: IParameter3[] | undefined) {
+    this.setProperty('parameters', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

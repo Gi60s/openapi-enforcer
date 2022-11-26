@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IMediaTypeSchemaProcessor } from '../IInternalTypes'
 import {
   Encoding3,
@@ -33,14 +33,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IMediaType3Definition, IMediaType3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IMediaType3Definition, IMediaType3> | null = null
 
-export class MediaType extends EnforcerComponent implements IMediaType3 {
-  [extension: `x-${string}`]: any
-  schema?: ISchema3
-  example?: any
-  examples?: Record<string, IExample3>
-  encoding?: Record<string, IEncoding3>
+export class MediaType extends EnforcerComponent<IMediaType3Definition, IMediaType3> implements IMediaType3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IMediaType3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -54,7 +50,7 @@ export class MediaType extends EnforcerComponent implements IMediaType3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#media-type-object'
   }
 
-  static getSchema (_data: IMediaTypeSchemaProcessor): ISchema.IDefinition<IMediaType3Definition, IMediaType3> {
+  static getSchemaDefinition (_data: IMediaTypeSchemaProcessor): ISchema.ISchemaDefinition<IMediaType3Definition, IMediaType3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -99,7 +95,7 @@ export class MediaType extends EnforcerComponent implements IMediaType3 {
       }
     }
 
-    const result: ISchema.IDefinition<IMediaType3Definition, IMediaType3> = {
+    const result: ISchema.ISchemaDefinition<IMediaType3Definition, IMediaType3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -120,6 +116,38 @@ export class MediaType extends EnforcerComponent implements IMediaType3 {
 
   static validate (definition: IMediaType3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get schema (): ISchema3 | undefined {
+    return this.getProperty('schema')
+  }
+
+  set schema (value: ISchema3 | undefined) {
+    this.setProperty('schema', value)
+  }
+
+  get example (): any | undefined {
+    return this.getProperty('example')
+  }
+
+  set example (value: any | undefined) {
+    this.setProperty('example', value)
+  }
+
+  get examples (): Record<string, IExample3> | undefined {
+    return this.getProperty('examples')
+  }
+
+  set examples (value: Record<string, IExample3> | undefined) {
+    this.setProperty('examples', value)
+  }
+
+  get encoding (): Record<string, IEncoding3> | undefined {
+    return this.getProperty('encoding')
+  }
+
+  set encoding (value: Record<string, IEncoding3> | undefined) {
+    this.setProperty('encoding', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

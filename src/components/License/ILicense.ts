@@ -16,13 +16,19 @@ import { IComponentInstance } from '../IComponent'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface ILicenseComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface ILicense2Definition {
   [extension: `x-${string}`]: any
   name: string
   url?: string
 }
 
-export interface ILicense2 extends IComponentInstance {
+export interface ILicense2 extends ILicenseComponent {
   [extension: `x-${string}`]: any
   name: string
   url?: string
@@ -34,7 +40,7 @@ export interface ILicense3Definition {
   url?: string
 }
 
-export interface ILicense3 extends IComponentInstance {
+export interface ILicense3 extends ILicenseComponent {
   [extension: `x-${string}`]: any
   name: string
   url?: string

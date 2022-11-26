@@ -26,6 +26,12 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IHeaderComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IHeader2Definition {
   [extension: `x-${string}`]: any
   description?: string
@@ -48,7 +54,7 @@ export interface IHeader2Definition {
   multipleOf?: number
 }
 
-export interface IHeader2 extends IComponentInstance {
+export interface IHeader2 extends IHeaderComponent {
   [extension: `x-${string}`]: any
   description?: string
   type: 'array'|'boolean'|'integer'|'number'|'string'
@@ -85,7 +91,7 @@ export interface IHeader3Definition {
   content?: Record<string, IMediaType3Definition>
 }
 
-export interface IHeader3 extends IComponentInstance {
+export interface IHeader3 extends IHeaderComponent {
   [extension: `x-${string}`]: any
   description?: string
   required?: boolean

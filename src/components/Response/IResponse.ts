@@ -27,8 +27,14 @@ import {
   ISchema2Definition
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-// Put your code here.
+import { IContentType } from '../../ContentType/IContentType'
 // <!# Custom Content End: HEADER #!>
+
+interface IResponseComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  canProduceContentType: (code: number | 'default', contentType: string | IContentType) => boolean
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
 
 export interface IResponse2Definition {
   [extension: `x-${string}`]: any
@@ -38,7 +44,7 @@ export interface IResponse2Definition {
   examples?: IExample2Definition
 }
 
-export interface IResponse2 extends IComponentInstance {
+export interface IResponse2 extends IResponseComponent {
   [extension: `x-${string}`]: any
   description: string
   schema?: ISchema2
@@ -54,7 +60,7 @@ export interface IResponse3Definition {
   links?: Record<string, ILink3Definition>
 }
 
-export interface IResponse3 extends IComponentInstance {
+export interface IResponse3 extends IResponseComponent {
   [extension: `x-${string}`]: any
   description: string
   headers?: Record<string, IHeader3>

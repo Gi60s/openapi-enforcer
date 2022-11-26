@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IPathsSchemaProcessor } from '../IInternalTypes'
 import {
   IPathItem2,
@@ -28,11 +28,12 @@ import { after, findPathMatches } from './common'
 import * as config from '../../global-config'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IPaths2Definition, IPaths2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IPaths2Definition, IPaths2> | null = null
 
-export class Paths extends EnforcerComponent implements IPaths2 {
-  [extension: `x-${string}`]: any
+export class Paths extends EnforcerComponent<IPaths2Definition, IPaths2> implements IPaths2 {
+  [extension: `x${string}`]: any
   [key: `/${string}`]: IPathItem2
+
   constructor (definition: IPaths2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
@@ -45,7 +46,7 @@ export class Paths extends EnforcerComponent implements IPaths2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: IPathsSchemaProcessor): ISchema.IDefinition<IPaths2Definition, IPaths2> {
+  static getSchemaDefinition (_data: IPathsSchemaProcessor): ISchema.ISchemaDefinition<IPaths2Definition, IPaths2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -56,7 +57,7 @@ export class Paths extends EnforcerComponent implements IPaths2 {
       component: PathItem2
     }
 
-    const result: ISchema.IDefinition<IPaths2Definition, IPaths2> = {
+    const result: ISchema.ISchemaDefinition<IPaths2Definition, IPaths2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties

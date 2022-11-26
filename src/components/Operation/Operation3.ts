@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IOperationSchemaProcessor } from '../IInternalTypes'
 import {
   Callback3,
@@ -42,25 +42,18 @@ import {
   Server3
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
+import { ContentType } from '../../ContentType/ContentType'
+import { getExistingProcessorData } from '../../ComponentSchemaDefinition/schema-processor'
+import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
+import { findAncestorComponentData } from '../common'
+import { IOpenAPI3, IOpenAPI3Definition } from '../OpenAPI'
 import { after } from './common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IOperation3Definition, IOperation3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IOperation3Definition, IOperation3> | null = null
 
-export class Operation extends EnforcerComponent implements IOperation3 {
-  [extension: `x-${string}`]: any
-  tags?: string[]
-  summary?: string
-  description?: string
-  externalDocs?: IExternalDocumentation3
-  operationId?: string
-  parameters?: IParameter3[]
-  requestBody?: IRequestBody3
-  responses!: IResponses3
-  callbacks?: Record<string, ICallback3>
-  deprecated?: boolean
-  security?: ISecurityRequirement3[]
-  servers?: IServer3[]
+export class Operation extends EnforcerComponent<IOperation3Definition, IOperation3> implements IOperation3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IOperation3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -74,7 +67,7 @@ export class Operation extends EnforcerComponent implements IOperation3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#operation-object'
   }
 
-  static getSchema (_data: IOperationSchemaProcessor): ISchema.IDefinition<IOperation3Definition, IOperation3> {
+  static getSchemaDefinition (_data: IOperationSchemaProcessor): ISchema.ISchemaDefinition<IOperation3Definition, IOperation3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -193,7 +186,7 @@ export class Operation extends EnforcerComponent implements IOperation3 {
       }
     }
 
-    const result: ISchema.IDefinition<IOperation3Definition, IOperation3> = {
+    const result: ISchema.ISchemaDefinition<IOperation3Definition, IOperation3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -213,7 +206,26 @@ export class Operation extends EnforcerComponent implements IOperation3 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    result.after = after
+    result.after = function (data, mode) {
+      const { definition } = data
+      after(definition, data, mode)
+
+      if (mode === 'validate') {
+        // TODO: add validations
+      }
+
+      if (mode === 'build') {
+        data.lastly.add(() => {
+          const openapiData: ISchemaProcessor<IOpenAPI3Definition, IOpenAPI3> | undefined =
+            findAncestorComponentData<ISchemaProcessor<IOpenAPI3Definition, IOpenAPI3>>(data.chain, 'OpenAPI')
+          const operation = data.built
+          operation.watchProperty('consumes', () => operation.clearCache('allConsumes'))
+          operation.watchProperty('produces', () => operation.clearCache('allProduces'))
+          openapiData?.built.watchProperty('consumes', () => operation.clearCache('allConsumes'))
+          openapiData?.built.watchProperty('produces', () => operation.clearCache('allProduces'))
+        })
+      }
+    }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = result
@@ -224,11 +236,142 @@ export class Operation extends EnforcerComponent implements IOperation3 {
     return super.validate(definition, version, arguments[2])
   }
 
+  get tags (): string[] | undefined {
+    return this.getProperty('tags')
+  }
+
+  set tags (value: string[] | undefined) {
+    this.setProperty('tags', value)
+  }
+
+  get summary (): string | undefined {
+    return this.getProperty('summary')
+  }
+
+  set summary (value: string | undefined) {
+    this.setProperty('summary', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get externalDocs (): IExternalDocumentation3 | undefined {
+    return this.getProperty('externalDocs')
+  }
+
+  set externalDocs (value: IExternalDocumentation3 | undefined) {
+    this.setProperty('externalDocs', value)
+  }
+
+  get operationId (): string | undefined {
+    return this.getProperty('operationId')
+  }
+
+  set operationId (value: string | undefined) {
+    this.setProperty('operationId', value)
+  }
+
+  get parameters (): IParameter3[] | undefined {
+    return this.getProperty('parameters')
+  }
+
+  set parameters (value: IParameter3[] | undefined) {
+    this.setProperty('parameters', value)
+  }
+
+  get requestBody (): IRequestBody3 | undefined {
+    return this.getProperty('requestBody')
+  }
+
+  set requestBody (value: IRequestBody3 | undefined) {
+    this.setProperty('requestBody', value)
+  }
+
+  get responses (): IResponses3 {
+    return this.getProperty('responses')
+  }
+
+  set responses (value: IResponses3) {
+    this.setProperty('responses', value)
+  }
+
+  get callbacks (): Record<string, ICallback3> | undefined {
+    return this.getProperty('callbacks')
+  }
+
+  set callbacks (value: Record<string, ICallback3> | undefined) {
+    this.setProperty('callbacks', value)
+  }
+
+  get deprecated (): boolean | undefined {
+    return this.getProperty('deprecated')
+  }
+
+  set deprecated (value: boolean | undefined) {
+    this.setProperty('deprecated', value)
+  }
+
+  get security (): ISecurityRequirement3[] | undefined {
+    return this.getProperty('security')
+  }
+
+  set security (value: ISecurityRequirement3[] | undefined) {
+    this.setProperty('security', value)
+  }
+
+  get servers (): IServer3[] | undefined {
+    return this.getProperty('servers')
+  }
+
+  set servers (value: IServer3[] | undefined) {
+    this.setProperty('servers', value)
+  }
+
   // <!# Custom Content Begin: BODY #!>
-  // Put your code here.
+  getResponsesThatCanProduceContentType (contentType: string | ContentType): Array<{ code: number | 'default', response: IResponse3 }> {
+    const data = getExistingProcessorData<IOperation3Definition, IOperation3>(this)
+    const input = [contentType]
+    const allProducesTypes: ContentType[] = cached('allProduces', this, getAllProduces, data)
+    const result: Array<{ code: number | 'default', response: IResponse3 }> = []
+
+    const match = allProducesTypes.find(c => c.findMatches(input).length > 0)
+    if (match !== undefined) {
+      Object.keys(this.responses).forEach(key => {
+        if (key === 'default' || typeof key === 'number') {
+          result.push({ code: key, response: this.responses[key] as IResponse3 })
+        }
+      })
+    }
+
+    return result
+  }
+
+  willAcceptContentType (contentType: string | ContentType): boolean {
+    const data = getExistingProcessorData<IOperation3Definition, IOperation3>(this)
+    const input = [contentType]
+    return getAllConsumes(data)
+      .find(c => c.findMatches(input).length > 0) !== undefined
+  }
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-// Put your code here.
+function getAllConsumes (data: ISchemaProcessor<IOperation3Definition, IOperation3>): ContentType[] {
+  const { definition } = data
+  const content = definition.requestBody?.content
+  if (content === undefined) return []
+
+  return Object.keys(content)
+    .map(ContentType.fromString)
+    .filter(type => type !== undefined) as ContentType[]
+}
+
+function getAllProduces (data: ISchemaProcessor<IOperation3Definition, IOperation3>): ContentType[] {
+  const { definition } = data
+}
 // <!# Custom Content End: FOOTER #!>

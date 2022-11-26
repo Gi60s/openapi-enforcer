@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IXmlSchemaProcessor } from '../IInternalTypes'
 import {
   IXml3,
@@ -24,15 +24,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IXml3Definition, IXml3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IXml3Definition, IXml3> | null = null
 
-export class Xml extends EnforcerComponent implements IXml3 {
-  [extension: `x-${string}`]: any
-  name?: string
-  namespace?: string
-  prefix?: string
-  attribute?: boolean
-  wrapped?: boolean
+export class Xml extends EnforcerComponent<IXml3Definition, IXml3> implements IXml3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IXml3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -46,7 +41,7 @@ export class Xml extends EnforcerComponent implements IXml3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#xml-object'
   }
 
-  static getSchema (_data: IXmlSchemaProcessor): ISchema.IDefinition<IXml3Definition, IXml3> {
+  static getSchemaDefinition (_data: IXmlSchemaProcessor): ISchema.ISchemaDefinition<IXml3Definition, IXml3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -86,7 +81,7 @@ export class Xml extends EnforcerComponent implements IXml3 {
       }
     }
 
-    const result: ISchema.IDefinition<IXml3Definition, IXml3> = {
+    const result: ISchema.ISchemaDefinition<IXml3Definition, IXml3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -108,6 +103,46 @@ export class Xml extends EnforcerComponent implements IXml3 {
 
   static validate (definition: IXml3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get name (): string | undefined {
+    return this.getProperty('name')
+  }
+
+  set name (value: string | undefined) {
+    this.setProperty('name', value)
+  }
+
+  get namespace (): string | undefined {
+    return this.getProperty('namespace')
+  }
+
+  set namespace (value: string | undefined) {
+    this.setProperty('namespace', value)
+  }
+
+  get prefix (): string | undefined {
+    return this.getProperty('prefix')
+  }
+
+  set prefix (value: string | undefined) {
+    this.setProperty('prefix', value)
+  }
+
+  get attribute (): boolean | undefined {
+    return this.getProperty('attribute')
+  }
+
+  set attribute (value: boolean | undefined) {
+    this.setProperty('attribute', value)
+  }
+
+  get wrapped (): boolean | undefined {
+    return this.getProperty('wrapped')
+  }
+
+  set wrapped (value: boolean | undefined) {
+    this.setProperty('wrapped', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

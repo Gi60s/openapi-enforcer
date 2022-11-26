@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IContactSchemaProcessor } from '../IInternalTypes'
 import {
   IContact2,
@@ -24,13 +24,10 @@ import {
 import { after } from './common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IContact2Definition, IContact2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IContact2Definition, IContact2> | null = null
 
-export class Contact extends EnforcerComponent implements IContact2 {
-  [extension: `x-${string}`]: any
-  name?: string
-  url?: string
-  email?: string
+export class Contact extends EnforcerComponent<IContact2Definition, IContact2> implements IContact2 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IContact2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -44,7 +41,7 @@ export class Contact extends EnforcerComponent implements IContact2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: IContactSchemaProcessor): ISchema.IDefinition<IContact2Definition, IContact2> {
+  static getSchemaDefinition (_data: IContactSchemaProcessor): ISchema.ISchemaDefinition<IContact2Definition, IContact2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -70,7 +67,7 @@ export class Contact extends EnforcerComponent implements IContact2 {
       }
     }
 
-    const result: ISchema.IDefinition<IContact2Definition, IContact2> = {
+    const result: ISchema.ISchemaDefinition<IContact2Definition, IContact2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -90,6 +87,30 @@ export class Contact extends EnforcerComponent implements IContact2 {
 
   static validate (definition: IContact2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get name (): string | undefined {
+    return this.getProperty('name')
+  }
+
+  set name (value: string | undefined) {
+    this.setProperty('name', value)
+  }
+
+  get url (): string | undefined {
+    return this.getProperty('url')
+  }
+
+  set url (value: string | undefined) {
+    this.setProperty('url', value)
+  }
+
+  get email (): string | undefined {
+    return this.getProperty('email')
+  }
+
+  set email (value: string | undefined) {
+    this.setProperty('email', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

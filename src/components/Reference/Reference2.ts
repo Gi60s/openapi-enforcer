@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IReferenceSchemaProcessor } from '../IInternalTypes'
 import {
   IReference2,
@@ -24,10 +24,9 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IReference2Definition, IReference2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IReference2Definition, IReference2> | null = null
 
-export class Reference extends EnforcerComponent implements IReference2 {
-  $ref!: string
+export class Reference extends EnforcerComponent<IReference2Definition, IReference2> implements IReference2 {
 
   constructor (definition: IReference2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -41,7 +40,7 @@ export class Reference extends EnforcerComponent implements IReference2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: IReferenceSchemaProcessor): ISchema.IDefinition<IReference2Definition, IReference2> {
+  static getSchemaDefinition (_data: IReferenceSchemaProcessor): ISchema.ISchemaDefinition<IReference2Definition, IReference2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -54,7 +53,7 @@ export class Reference extends EnforcerComponent implements IReference2 {
       }
     }
 
-    const result: ISchema.IDefinition<IReference2Definition, IReference2> = {
+    const result: ISchema.ISchemaDefinition<IReference2Definition, IReference2> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [
@@ -72,6 +71,14 @@ export class Reference extends EnforcerComponent implements IReference2 {
 
   static validate (definition: IReference2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get $ref (): string {
+    return this.getProperty('$ref')
+  }
+
+  set $ref (value: string) {
+    this.setProperty('$ref', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ISchemaSchemaProcessor } from '../IInternalTypes'
 import {
   ExternalDocumentation2,
@@ -31,37 +31,8 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-export class Schema extends EnforcerComponent implements ISchema2 {
-  [extension: `x-${string}`]: any
-  format?: string
-  title?: string
-  description?: string
-  default?: any
-  maximum?: number
-  exclusiveMaximum?: number
-  minimum?: number
-  exclusiveMinimum?: number
-  maxLength?: number
-  minLength?: number
-  pattern?: string
-  maxItems?: number
-  minItems?: number
-  maxProperties?: number
-  minProperties?: number
-  uniqueItems?: boolean
-  enum?: any[]
-  multipleOf?: number
-  required?: string[]
-  type?: string
-  items?: ISchema2
-  allOf?: ISchema2[]
-  properties?: Record<string, ISchema2>
-  additionalProperties?: ISchema2 | boolean
-  discriminator?: string
-  readOnly?: boolean
-  xml?: IXml2
-  externalDocs?: IExternalDocumentation2
-  example?: any
+export class Schema extends EnforcerComponent<ISchema2Definition, ISchema2> implements ISchema2 {
+  [extension: `x${string}`]: any
 
   constructor (definition: ISchema2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -75,7 +46,7 @@ export class Schema extends EnforcerComponent implements ISchema2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: ISchemaSchemaProcessor): ISchema.IDefinition<ISchema2Definition, ISchema2> {
+  static getSchemaDefinition (_data: ISchemaSchemaProcessor): ISchema.ISchemaDefinition<ISchema2Definition, ISchema2> {
     const format: ISchema.IProperty<ISchema.IString> = {
       name: 'format',
       schema: {
@@ -318,7 +289,7 @@ export class Schema extends EnforcerComponent implements ISchema2 {
       }
     }
 
-    const result: ISchema.IDefinition<ISchema2Definition, ISchema2> = {
+    const result: ISchema.ISchemaDefinition<ISchema2Definition, ISchema2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -363,6 +334,238 @@ export class Schema extends EnforcerComponent implements ISchema2 {
 
   static validate (definition: ISchema2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get format (): string | undefined {
+    return this.getProperty('format')
+  }
+
+  set format (value: string | undefined) {
+    this.setProperty('format', value)
+  }
+
+  get title (): string | undefined {
+    return this.getProperty('title')
+  }
+
+  set title (value: string | undefined) {
+    this.setProperty('title', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get default (): any | undefined {
+    return this.getProperty('default')
+  }
+
+  set default (value: any | undefined) {
+    this.setProperty('default', value)
+  }
+
+  get maximum (): number | undefined {
+    return this.getProperty('maximum')
+  }
+
+  set maximum (value: number | undefined) {
+    this.setProperty('maximum', value)
+  }
+
+  get exclusiveMaximum (): number | undefined {
+    return this.getProperty('exclusiveMaximum')
+  }
+
+  set exclusiveMaximum (value: number | undefined) {
+    this.setProperty('exclusiveMaximum', value)
+  }
+
+  get minimum (): number | undefined {
+    return this.getProperty('minimum')
+  }
+
+  set minimum (value: number | undefined) {
+    this.setProperty('minimum', value)
+  }
+
+  get exclusiveMinimum (): number | undefined {
+    return this.getProperty('exclusiveMinimum')
+  }
+
+  set exclusiveMinimum (value: number | undefined) {
+    this.setProperty('exclusiveMinimum', value)
+  }
+
+  get maxLength (): number | undefined {
+    return this.getProperty('maxLength')
+  }
+
+  set maxLength (value: number | undefined) {
+    this.setProperty('maxLength', value)
+  }
+
+  get minLength (): number | undefined {
+    return this.getProperty('minLength')
+  }
+
+  set minLength (value: number | undefined) {
+    this.setProperty('minLength', value)
+  }
+
+  get pattern (): string | undefined {
+    return this.getProperty('pattern')
+  }
+
+  set pattern (value: string | undefined) {
+    this.setProperty('pattern', value)
+  }
+
+  get maxItems (): number | undefined {
+    return this.getProperty('maxItems')
+  }
+
+  set maxItems (value: number | undefined) {
+    this.setProperty('maxItems', value)
+  }
+
+  get minItems (): number | undefined {
+    return this.getProperty('minItems')
+  }
+
+  set minItems (value: number | undefined) {
+    this.setProperty('minItems', value)
+  }
+
+  get maxProperties (): number | undefined {
+    return this.getProperty('maxProperties')
+  }
+
+  set maxProperties (value: number | undefined) {
+    this.setProperty('maxProperties', value)
+  }
+
+  get minProperties (): number | undefined {
+    return this.getProperty('minProperties')
+  }
+
+  set minProperties (value: number | undefined) {
+    this.setProperty('minProperties', value)
+  }
+
+  get uniqueItems (): boolean | undefined {
+    return this.getProperty('uniqueItems')
+  }
+
+  set uniqueItems (value: boolean | undefined) {
+    this.setProperty('uniqueItems', value)
+  }
+
+  get enum (): any[] | undefined {
+    return this.getProperty('enum')
+  }
+
+  set enum (value: any[] | undefined) {
+    this.setProperty('enum', value)
+  }
+
+  get multipleOf (): number | undefined {
+    return this.getProperty('multipleOf')
+  }
+
+  set multipleOf (value: number | undefined) {
+    this.setProperty('multipleOf', value)
+  }
+
+  get required (): string[] | undefined {
+    return this.getProperty('required')
+  }
+
+  set required (value: string[] | undefined) {
+    this.setProperty('required', value)
+  }
+
+  get type (): string | undefined {
+    return this.getProperty('type')
+  }
+
+  set type (value: string | undefined) {
+    this.setProperty('type', value)
+  }
+
+  get items (): ISchema2 | undefined {
+    return this.getProperty('items')
+  }
+
+  set items (value: ISchema2 | undefined) {
+    this.setProperty('items', value)
+  }
+
+  get allOf (): ISchema2[] | undefined {
+    return this.getProperty('allOf')
+  }
+
+  set allOf (value: ISchema2[] | undefined) {
+    this.setProperty('allOf', value)
+  }
+
+  get properties (): Record<string, ISchema2> | undefined {
+    return this.getProperty('properties')
+  }
+
+  set properties (value: Record<string, ISchema2> | undefined) {
+    this.setProperty('properties', value)
+  }
+
+  get additionalProperties (): ISchema2 | boolean | undefined {
+    return this.getProperty('additionalProperties')
+  }
+
+  set additionalProperties (value: ISchema2 | boolean | undefined) {
+    this.setProperty('additionalProperties', value)
+  }
+
+  get discriminator (): string | undefined {
+    return this.getProperty('discriminator')
+  }
+
+  set discriminator (value: string | undefined) {
+    this.setProperty('discriminator', value)
+  }
+
+  get readOnly (): boolean | undefined {
+    return this.getProperty('readOnly')
+  }
+
+  set readOnly (value: boolean | undefined) {
+    this.setProperty('readOnly', value)
+  }
+
+  get xml (): IXml2 | undefined {
+    return this.getProperty('xml')
+  }
+
+  set xml (value: IXml2 | undefined) {
+    this.setProperty('xml', value)
+  }
+
+  get externalDocs (): IExternalDocumentation2 | undefined {
+    return this.getProperty('externalDocs')
+  }
+
+  set externalDocs (value: IExternalDocumentation2 | undefined) {
+    this.setProperty('externalDocs', value)
+  }
+
+  get example (): any | undefined {
+    return this.getProperty('example')
+  }
+
+  set example (value: any | undefined) {
+    this.setProperty('example', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

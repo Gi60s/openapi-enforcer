@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IOperationSchemaProcessor } from '../IInternalTypes'
 import {
   ExternalDocumentation2,
@@ -36,27 +36,17 @@ import {
 import { after, getMergedParameters } from './common'
 import { getLocation } from '../../Locator/Locator'
 import { findAncestorComponentData } from '../common'
-import { ISchemaProcessor } from '../ISchemaProcessor'
-import { ISwagger2Definition } from '../Swagger'
+import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
+import { ISwagger2Definition, ISwagger2 } from '../Swagger'
 import { ContentType } from '../../ContentType/ContentType'
+import { IResponse2 } from '../Response'
+import { getExistingProcessorData } from '../../ComponentSchemaDefinition/schema-processor'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IOperation2Definition, IOperation2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IOperation2Definition, IOperation2> | null = null
 
-export class Operation extends EnforcerComponent implements IOperation2 {
-  [extension: `x-${string}`]: any
-  tags?: string[]
-  summary?: string
-  description?: string
-  externalDocs?: IExternalDocumentation2
-  operationId?: string
-  consumes?: string[]
-  produces?: string[]
-  parameters?: IParameter2[]
-  responses!: IResponses2
-  schemes?: Array<'http'|'https'|'ws'|'wss'>
-  deprecated?: boolean
-  security?: ISecurityRequirement2[]
+export class Operation extends EnforcerComponent<IOperation2Definition, IOperation2> implements IOperation2 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IOperation2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -70,7 +60,7 @@ export class Operation extends EnforcerComponent implements IOperation2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: IOperationSchemaProcessor): ISchema.IDefinition<IOperation2Definition, IOperation2> {
+  static getSchemaDefinition (_data: IOperationSchemaProcessor): ISchema.ISchemaDefinition<IOperation2Definition, IOperation2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -187,7 +177,7 @@ export class Operation extends EnforcerComponent implements IOperation2 {
       }
     }
 
-    const result: ISchema.IDefinition<IOperation2Definition, IOperation2> = {
+    const result: ISchema.ISchemaDefinition<IOperation2Definition, IOperation2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -208,7 +198,7 @@ export class Operation extends EnforcerComponent implements IOperation2 {
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
     result.after = function (data, mode) {
-      const { chain, definition, exception, id, reference } = data
+      const { definition, exception, id, reference } = data
       after(definition, data, mode)
 
       if (mode === 'validate') {
@@ -246,10 +236,7 @@ export class Operation extends EnforcerComponent implements IOperation2 {
           })
         }
 
-        const swaggerData: ISchemaProcessor<ISwagger2Definition, any, any> | undefined =
-          findAncestorComponentData(chain, 'Swagger') as ISchemaProcessor<ISwagger2Definition, any, any>
-        const consumes = (definition.consumes ?? []).concat(swaggerData?.definition.consumes ?? [])
-        const accepts = consumes.map(c => ContentType.fromString(c))
+        const accepts = getAllConsumes(data)
 
         // check consumes values for form data
         if (forms.length > 0) {
@@ -264,17 +251,24 @@ export class Operation extends EnforcerComponent implements IOperation2 {
               level: 'warn',
               locations: [getLocation(definition)],
               message: 'Input parameters in formData or file should also be accompanied with a consumes property value of either "multipart/form-data" or "application/x-www-form-urlencoded',
-              metadata: { consumes }
+              metadata: {
+                consumes: accepts.map(v => v.toString())
+              }
             })
           }
         }
+      }
 
-        if (bodies.length === 1) {
-          const body = bodies[0]
-          if ((body.schema?.type === 'array' || body.schema?.type === 'object')) {
-            working here
-          }
-        }
+      if (mode === 'build') {
+        data.lastly.add(() => {
+          const swaggerData: ISchemaProcessor<ISwagger2Definition, ISwagger2> | undefined =
+            findAncestorComponentData<ISchemaProcessor<ISwagger2Definition, ISwagger2>>(data.chain, 'Swagger')
+          const operation = data.built
+          operation.watchProperty('consumes', () => operation.clearCache('allConsumes'))
+          operation.watchProperty('produces', () => operation.clearCache('allProduces'))
+          swaggerData?.built.watchProperty('consumes', () => operation.clearCache('allConsumes'))
+          swaggerData?.built.watchProperty('produces', () => operation.clearCache('allProduces'))
+        })
       }
     }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
@@ -287,11 +281,145 @@ export class Operation extends EnforcerComponent implements IOperation2 {
     return super.validate(definition, version, arguments[2])
   }
 
+  get tags (): string[] | undefined {
+    return this.getProperty('tags')
+  }
+
+  set tags (value: string[] | undefined) {
+    this.setProperty('tags', value)
+  }
+
+  get summary (): string | undefined {
+    return this.getProperty('summary')
+  }
+
+  set summary (value: string | undefined) {
+    this.setProperty('summary', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get externalDocs (): IExternalDocumentation2 | undefined {
+    return this.getProperty('externalDocs')
+  }
+
+  set externalDocs (value: IExternalDocumentation2 | undefined) {
+    this.setProperty('externalDocs', value)
+  }
+
+  get operationId (): string | undefined {
+    return this.getProperty('operationId')
+  }
+
+  set operationId (value: string | undefined) {
+    this.setProperty('operationId', value)
+  }
+
+  get consumes (): string[] | undefined {
+    return this.getProperty('consumes')
+  }
+
+  set consumes (value: string[] | undefined) {
+    this.setProperty('consumes', value)
+  }
+
+  get produces (): string[] | undefined {
+    return this.getProperty('produces')
+  }
+
+  set produces (value: string[] | undefined) {
+    this.setProperty('produces', value)
+  }
+
+  get parameters (): IParameter2[] | undefined {
+    return this.getProperty('parameters')
+  }
+
+  set parameters (value: IParameter2[] | undefined) {
+    this.setProperty('parameters', value)
+  }
+
+  get responses (): IResponses2 {
+    return this.getProperty('responses')
+  }
+
+  set responses (value: IResponses2) {
+    this.setProperty('responses', value)
+  }
+
+  get schemes (): Array<'http'|'https'|'ws'|'wss'> | undefined {
+    return this.getProperty('schemes')
+  }
+
+  set schemes (value: Array<'http'|'https'|'ws'|'wss'> | undefined) {
+    this.setProperty('schemes', value)
+  }
+
+  get deprecated (): boolean | undefined {
+    return this.getProperty('deprecated')
+  }
+
+  set deprecated (value: boolean | undefined) {
+    this.setProperty('deprecated', value)
+  }
+
+  get security (): ISecurityRequirement2[] | undefined {
+    return this.getProperty('security')
+  }
+
+  set security (value: ISecurityRequirement2[] | undefined) {
+    this.setProperty('security', value)
+  }
+
   // <!# Custom Content Begin: BODY #!>
-  // Put your code here.
+  getResponsesThatCanProduceContentType (contentType: string | ContentType): Array<{ code: number | 'default', response: IResponse2 }> {
+    const data = getExistingProcessorData<IOperation2Definition, IOperation2>(this)
+    const input = [contentType]
+    const allProducesTypes = this.cached<ContentType[]>('allProduces', getAllProduces, data)
+    const result: Array<{ code: number | 'default', response: IResponse2 }> = []
+    const match = allProducesTypes.find(c => c.findMatches(input).length > 0)
+    if (match !== undefined) {
+      Object.keys(this.responses).forEach(key => {
+        if (key === 'default' || typeof key === 'number') {
+          result.push({ code: key, response: this.responses[key] as IResponse2 })
+        }
+      })
+    }
+
+    return result
+  }
+
+  willAcceptContentType (contentType: string | ContentType): boolean {
+    const data = getExistingProcessorData<IOperation2Definition, IOperation2>(this)
+    const input = [contentType]
+    return cached<ContentType[]>('allConsumes', this, getAllConsumes, data)
+      .find(c => c.findMatches(input).length > 0) !== undefined
+  }
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-// Put your code here.
+function getAllConsumes (data: ISchemaProcessor<IOperation2Definition, IOperation2>): ContentType[] {
+  const { chain, definition } = data
+  const swaggerData: ISchemaProcessor<ISwagger2Definition, any> | undefined =
+    findAncestorComponentData(chain, 'Swagger') as ISchemaProcessor<ISwagger2Definition, any>
+  return (definition.consumes ?? []).concat(swaggerData?.definition.consumes ?? [])
+    .map(ContentType.fromString)
+    .filter(v => v !== undefined) as ContentType[]
+}
+
+function getAllProduces (data: ISchemaProcessor<IOperation2Definition, IOperation2>): ContentType[] {
+  const { chain, definition } = data
+  const swaggerData: ISchemaProcessor<ISwagger2Definition, any> | undefined =
+    findAncestorComponentData(chain, 'Swagger') as ISchemaProcessor<ISwagger2Definition, any>
+  return (definition.produces ?? []).concat(swaggerData?.definition.produces ?? [])
+    .map(ContentType.fromString)
+    .filter(v => v !== undefined) as ContentType[]
+}
 // <!# Custom Content End: FOOTER #!>

@@ -20,6 +20,12 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface ISecuritySchemeComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface ISecurityScheme2Definition {
   [extension: `x-${string}`]: any
   type: 'basic'|'apiKey'|'oauth2'
@@ -32,7 +38,7 @@ export interface ISecurityScheme2Definition {
   scopes?: Record<string, string>
 }
 
-export interface ISecurityScheme2 extends IComponentInstance {
+export interface ISecurityScheme2 extends ISecuritySchemeComponent {
   [extension: `x-${string}`]: any
   type: 'basic'|'apiKey'|'oauth2'
   description?: string
@@ -56,7 +62,7 @@ export interface ISecurityScheme3Definition {
   openIdConnectUrl?: string
 }
 
-export interface ISecurityScheme3 extends IComponentInstance {
+export interface ISecurityScheme3 extends ISecuritySchemeComponent {
   [extension: `x-${string}`]: any
   type?: 'apiKey'|'http'|'oauth2'|'openIdConnect'
   description?: string

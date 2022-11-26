@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ITagSchemaProcessor } from '../IInternalTypes'
 import {
   ExternalDocumentation3,
@@ -27,13 +27,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<ITag3Definition, ITag3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<ITag3Definition, ITag3> | null = null
 
-export class Tag extends EnforcerComponent implements ITag3 {
-  [extension: `x-${string}`]: any
-  name!: string
-  description?: string
-  externalDocs?: IExternalDocumentation3
+export class Tag extends EnforcerComponent<ITag3Definition, ITag3> implements ITag3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: ITag3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -47,7 +44,7 @@ export class Tag extends EnforcerComponent implements ITag3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#tag-object'
   }
 
-  static getSchema (_data: ITagSchemaProcessor): ISchema.IDefinition<ITag3Definition, ITag3> {
+  static getSchemaDefinition (_data: ITagSchemaProcessor): ISchema.ISchemaDefinition<ITag3Definition, ITag3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -76,7 +73,7 @@ export class Tag extends EnforcerComponent implements ITag3 {
       }
     }
 
-    const result: ISchema.IDefinition<ITag3Definition, ITag3> = {
+    const result: ISchema.ISchemaDefinition<ITag3Definition, ITag3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -96,6 +93,30 @@ export class Tag extends EnforcerComponent implements ITag3 {
 
   static validate (definition: ITag3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get name (): string {
+    return this.getProperty('name')
+  }
+
+  set name (value: string) {
+    this.setProperty('name', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get externalDocs (): IExternalDocumentation3 | undefined {
+    return this.getProperty('externalDocs')
+  }
+
+  set externalDocs (value: IExternalDocumentation3 | undefined) {
+    this.setProperty('externalDocs', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

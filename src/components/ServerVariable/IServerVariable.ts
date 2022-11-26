@@ -16,6 +16,12 @@ import { IComponentInstance } from '../IComponent'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IServerVariableComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+// Put your code here.
+// <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IServerVariable3Definition {
   [extension: `x-${string}`]: any
   enum?: string[]
@@ -23,7 +29,7 @@ export interface IServerVariable3Definition {
   description?: string
 }
 
-export interface IServerVariable3 extends IComponentInstance {
+export interface IServerVariable3 extends IServerVariableComponent {
   [extension: `x-${string}`]: any
   enum?: string[]
   default: string

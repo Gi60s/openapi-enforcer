@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ISwaggerSchemaProcessor } from '../IInternalTypes'
 import {
   ExternalDocumentation2,
@@ -51,25 +51,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<ISwagger2Definition, ISwagger2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<ISwagger2Definition, ISwagger2> | null = null
 
-export class Swagger extends EnforcerComponent implements ISwagger2 {
-  [extension: `x-${string}`]: any
-  swagger!: '2.0'
-  info!: IInfo2
-  host?: string
-  basePath?: string
-  schemes?: Array<'http'|'https'|'ws'|'wss'>
-  consumes?: string[]
-  produces?: string[]
-  paths!: IPaths2
-  definitions?: Record<string, ISchema2>
-  parameters?: Record<string, IParameter2>
-  responses?: Record<string, IResponse2>
-  securityDefinitions?: Record<string, ISecurityScheme2>
-  security?: ISecurityRequirement2[]
-  tags?: ITag2[]
-  externalDocs?: IExternalDocumentation2
+export class Swagger extends EnforcerComponent<ISwagger2Definition, ISwagger2> implements ISwagger2 {
+  [extension: `x${string}`]: any
 
   constructor (definition: ISwagger2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -83,7 +68,7 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
     '3.0.3': false
   }
 
-  static getSchema (_data: ISwaggerSchemaProcessor): ISchema.IDefinition<ISwagger2Definition, ISwagger2> {
+  static getSchemaDefinition (_data: ISwaggerSchemaProcessor): ISchema.ISchemaDefinition<ISwagger2Definition, ISwagger2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -243,7 +228,7 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
       }
     }
 
-    const result: ISchema.IDefinition<ISwagger2Definition, ISwagger2> = {
+    const result: ISchema.ISchemaDefinition<ISwagger2Definition, ISwagger2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -275,6 +260,126 @@ export class Swagger extends EnforcerComponent implements ISwagger2 {
 
   static validate (definition: ISwagger2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get swagger (): '2.0' {
+    return this.getProperty('swagger')
+  }
+
+  set swagger (value: '2.0') {
+    this.setProperty('swagger', value)
+  }
+
+  get info (): IInfo2 {
+    return this.getProperty('info')
+  }
+
+  set info (value: IInfo2) {
+    this.setProperty('info', value)
+  }
+
+  get host (): string | undefined {
+    return this.getProperty('host')
+  }
+
+  set host (value: string | undefined) {
+    this.setProperty('host', value)
+  }
+
+  get basePath (): string | undefined {
+    return this.getProperty('basePath')
+  }
+
+  set basePath (value: string | undefined) {
+    this.setProperty('basePath', value)
+  }
+
+  get schemes (): Array<'http'|'https'|'ws'|'wss'> | undefined {
+    return this.getProperty('schemes')
+  }
+
+  set schemes (value: Array<'http'|'https'|'ws'|'wss'> | undefined) {
+    this.setProperty('schemes', value)
+  }
+
+  get consumes (): string[] | undefined {
+    return this.getProperty('consumes')
+  }
+
+  set consumes (value: string[] | undefined) {
+    this.setProperty('consumes', value)
+  }
+
+  get produces (): string[] | undefined {
+    return this.getProperty('produces')
+  }
+
+  set produces (value: string[] | undefined) {
+    this.setProperty('produces', value)
+  }
+
+  get paths (): IPaths2 {
+    return this.getProperty('paths')
+  }
+
+  set paths (value: IPaths2) {
+    this.setProperty('paths', value)
+  }
+
+  get definitions (): Record<string, ISchema2> | undefined {
+    return this.getProperty('definitions')
+  }
+
+  set definitions (value: Record<string, ISchema2> | undefined) {
+    this.setProperty('definitions', value)
+  }
+
+  get parameters (): Record<string, IParameter2> | undefined {
+    return this.getProperty('parameters')
+  }
+
+  set parameters (value: Record<string, IParameter2> | undefined) {
+    this.setProperty('parameters', value)
+  }
+
+  get responses (): Record<string, IResponse2> | undefined {
+    return this.getProperty('responses')
+  }
+
+  set responses (value: Record<string, IResponse2> | undefined) {
+    this.setProperty('responses', value)
+  }
+
+  get securityDefinitions (): Record<string, ISecurityScheme2> | undefined {
+    return this.getProperty('securityDefinitions')
+  }
+
+  set securityDefinitions (value: Record<string, ISecurityScheme2> | undefined) {
+    this.setProperty('securityDefinitions', value)
+  }
+
+  get security (): ISecurityRequirement2[] | undefined {
+    return this.getProperty('security')
+  }
+
+  set security (value: ISecurityRequirement2[] | undefined) {
+    this.setProperty('security', value)
+  }
+
+  get tags (): ITag2[] | undefined {
+    return this.getProperty('tags')
+  }
+
+  set tags (value: ITag2[] | undefined) {
+    this.setProperty('tags', value)
+  }
+
+  get externalDocs (): IExternalDocumentation2 | undefined {
+    return this.getProperty('externalDocs')
+  }
+
+  set externalDocs (value: IExternalDocumentation2 | undefined) {
+    this.setProperty('externalDocs', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

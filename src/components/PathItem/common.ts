@@ -1,5 +1,5 @@
 import { IPathItemMethod } from './IPathItem'
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
 import { getLocation } from '../../Locator/Locator'
 import { parametersAreUnique } from '../validations'
 

@@ -16,11 +16,17 @@ import { IComponentInstance } from '../IComponent'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IExampleComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IExample2Definition {
   [key: string]: any
 }
 
-export interface IExample2 extends IComponentInstance {
+export interface IExample2 extends IExampleComponent {
   [key: string]: any
 }
 
@@ -32,7 +38,7 @@ export interface IExample3Definition {
   externalValue?: string
 }
 
-export interface IExample3 extends IComponentInstance {
+export interface IExample3 extends IExampleComponent {
   [extension: `x-${string}`]: any
   summary?: string
   description?: string

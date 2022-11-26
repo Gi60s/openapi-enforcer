@@ -16,6 +16,12 @@ import { IComponentInstance } from '../IComponent'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IItemsComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+// Put your code here.
+// <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IItems2Definition {
   [extension: `x-${string}`]: any
   type: 'array'|'boolean'|'integer'|'number'|'string'
@@ -37,7 +43,7 @@ export interface IItems2Definition {
   multipleOf?: number
 }
 
-export interface IItems2 extends IComponentInstance {
+export interface IItems2 extends IItemsComponent {
   [extension: `x-${string}`]: any
   type: 'array'|'boolean'|'integer'|'number'|'string'
   format?: string

@@ -20,6 +20,12 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IRequestBodyComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+// Put your code here.
+// <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IRequestBody3Definition {
   [extension: `x-${string}`]: any
   description?: string
@@ -27,7 +33,7 @@ export interface IRequestBody3Definition {
   required?: boolean
 }
 
-export interface IRequestBody3 extends IComponentInstance {
+export interface IRequestBody3 extends IRequestBodyComponent {
   [extension: `x-${string}`]: any
   description?: string
   content?: Record<string, IMediaType3>

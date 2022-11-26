@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IReferenceSchemaProcessor } from '../IInternalTypes'
 import {
   IReference3,
@@ -24,10 +24,9 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IReference3Definition, IReference3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IReference3Definition, IReference3> | null = null
 
-export class Reference extends EnforcerComponent implements IReference3 {
-  $ref!: string
+export class Reference extends EnforcerComponent<IReference3Definition, IReference3> implements IReference3 {
 
   constructor (definition: IReference3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -41,7 +40,7 @@ export class Reference extends EnforcerComponent implements IReference3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#reference-object'
   }
 
-  static getSchema (_data: IReferenceSchemaProcessor): ISchema.IDefinition<IReference3Definition, IReference3> {
+  static getSchemaDefinition (_data: IReferenceSchemaProcessor): ISchema.ISchemaDefinition<IReference3Definition, IReference3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -54,7 +53,7 @@ export class Reference extends EnforcerComponent implements IReference3 {
       }
     }
 
-    const result: ISchema.IDefinition<IReference3Definition, IReference3> = {
+    const result: ISchema.ISchemaDefinition<IReference3Definition, IReference3> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [
@@ -72,6 +71,14 @@ export class Reference extends EnforcerComponent implements IReference3 {
 
   static validate (definition: IReference3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get $ref (): string {
+    return this.getProperty('$ref')
+  }
+
+  set $ref (value: string) {
+    this.setProperty('$ref', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

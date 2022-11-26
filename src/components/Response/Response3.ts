@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IResponseSchemaProcessor } from '../IInternalTypes'
 import {
   Header3,
@@ -33,14 +33,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IResponse3Definition, IResponse3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IResponse3Definition, IResponse3> | null = null
 
-export class Response extends EnforcerComponent implements IResponse3 {
-  [extension: `x-${string}`]: any
-  description!: string
-  headers?: Record<string, IHeader3>
-  content?: Record<string, IMediaType3>
-  links?: Record<string, ILink3>
+export class Response extends EnforcerComponent<IResponse3Definition, IResponse3> implements IResponse3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IResponse3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -54,7 +50,7 @@ export class Response extends EnforcerComponent implements IResponse3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#response-object'
   }
 
-  static getSchema (_data: IResponseSchemaProcessor): ISchema.IDefinition<IResponse3Definition, IResponse3> {
+  static getSchemaDefinition (_data: IResponseSchemaProcessor): ISchema.ISchemaDefinition<IResponse3Definition, IResponse3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -103,7 +99,7 @@ export class Response extends EnforcerComponent implements IResponse3 {
       }
     }
 
-    const result: ISchema.IDefinition<IResponse3Definition, IResponse3> = {
+    const result: ISchema.ISchemaDefinition<IResponse3Definition, IResponse3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -124,6 +120,38 @@ export class Response extends EnforcerComponent implements IResponse3 {
 
   static validate (definition: IResponse3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get description (): string {
+    return this.getProperty('description')
+  }
+
+  set description (value: string) {
+    this.setProperty('description', value)
+  }
+
+  get headers (): Record<string, IHeader3> | undefined {
+    return this.getProperty('headers')
+  }
+
+  set headers (value: Record<string, IHeader3> | undefined) {
+    this.setProperty('headers', value)
+  }
+
+  get content (): Record<string, IMediaType3> | undefined {
+    return this.getProperty('content')
+  }
+
+  set content (value: Record<string, IMediaType3> | undefined) {
+    this.setProperty('content', value)
+  }
+
+  get links (): Record<string, ILink3> | undefined {
+    return this.getProperty('links')
+  }
+
+  set links (value: Record<string, ILink3> | undefined) {
+    this.setProperty('links', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

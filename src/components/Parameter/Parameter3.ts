@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IParameterSchemaProcessor } from '../IInternalTypes'
 import {
   Example3,
@@ -33,23 +33,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IParameter3Definition, IParameter3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IParameter3Definition, IParameter3> | null = null
 
-export class Parameter extends EnforcerComponent implements IParameter3 {
-  [extension: `x-${string}`]: any
-  name!: string
-  in!: 'cookie'|'header'|'path'|'query'
-  description?: string
-  required?: boolean
-  deprecated?: boolean
-  allowEmptyValue?: boolean
-  style?: 'deepObject'|'form'|'label'|'matrix'|'pipeDelimited'|'simple'|'spaceDelimited'
-  explode?: boolean
-  allowReserved?: boolean
-  schema?: ISchema3
-  example?: any
-  examples?: Record<string, IExample3>
-  content?: Record<string, IMediaType3>
+export class Parameter extends EnforcerComponent<IParameter3Definition, IParameter3> implements IParameter3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IParameter3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -63,7 +50,7 @@ export class Parameter extends EnforcerComponent implements IParameter3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#parameter-object'
   }
 
-  static getSchema (_data: IParameterSchemaProcessor): ISchema.IDefinition<IParameter3Definition, IParameter3> {
+  static getSchemaDefinition (_data: IParameterSchemaProcessor): ISchema.ISchemaDefinition<IParameter3Definition, IParameter3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -175,7 +162,7 @@ export class Parameter extends EnforcerComponent implements IParameter3 {
       }
     }
 
-    const result: ISchema.IDefinition<IParameter3Definition, IParameter3> = {
+    const result: ISchema.ISchemaDefinition<IParameter3Definition, IParameter3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -205,6 +192,110 @@ export class Parameter extends EnforcerComponent implements IParameter3 {
 
   static validate (definition: IParameter3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get name (): string {
+    return this.getProperty('name')
+  }
+
+  set name (value: string) {
+    this.setProperty('name', value)
+  }
+
+  get in (): 'cookie'|'header'|'path'|'query' {
+    return this.getProperty('in')
+  }
+
+  set in (value: 'cookie'|'header'|'path'|'query') {
+    this.setProperty('in', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get required (): boolean | undefined {
+    return this.getProperty('required')
+  }
+
+  set required (value: boolean | undefined) {
+    this.setProperty('required', value)
+  }
+
+  get deprecated (): boolean | undefined {
+    return this.getProperty('deprecated')
+  }
+
+  set deprecated (value: boolean | undefined) {
+    this.setProperty('deprecated', value)
+  }
+
+  get allowEmptyValue (): boolean | undefined {
+    return this.getProperty('allowEmptyValue')
+  }
+
+  set allowEmptyValue (value: boolean | undefined) {
+    this.setProperty('allowEmptyValue', value)
+  }
+
+  get style (): 'deepObject'|'form'|'label'|'matrix'|'pipeDelimited'|'simple'|'spaceDelimited' | undefined {
+    return this.getProperty('style')
+  }
+
+  set style (value: 'deepObject'|'form'|'label'|'matrix'|'pipeDelimited'|'simple'|'spaceDelimited' | undefined) {
+    this.setProperty('style', value)
+  }
+
+  get explode (): boolean | undefined {
+    return this.getProperty('explode')
+  }
+
+  set explode (value: boolean | undefined) {
+    this.setProperty('explode', value)
+  }
+
+  get allowReserved (): boolean | undefined {
+    return this.getProperty('allowReserved')
+  }
+
+  set allowReserved (value: boolean | undefined) {
+    this.setProperty('allowReserved', value)
+  }
+
+  get schema (): ISchema3 | undefined {
+    return this.getProperty('schema')
+  }
+
+  set schema (value: ISchema3 | undefined) {
+    this.setProperty('schema', value)
+  }
+
+  get example (): any | undefined {
+    return this.getProperty('example')
+  }
+
+  set example (value: any | undefined) {
+    this.setProperty('example', value)
+  }
+
+  get examples (): Record<string, IExample3> | undefined {
+    return this.getProperty('examples')
+  }
+
+  set examples (value: Record<string, IExample3> | undefined) {
+    this.setProperty('examples', value)
+  }
+
+  get content (): Record<string, IMediaType3> | undefined {
+    return this.getProperty('content')
+  }
+
+  set content (value: Record<string, IMediaType3> | undefined) {
+    this.setProperty('content', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

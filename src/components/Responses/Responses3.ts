@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IResponsesSchemaProcessor } from '../IInternalTypes'
 import {
   IResponse3,
@@ -27,12 +27,11 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IResponses3Definition, IResponses3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IResponses3Definition, IResponses3> | null = null
 
-export class Responses extends EnforcerComponent implements IResponses3 {
-  [extension: `x-${string}`]: any
+export class Responses extends EnforcerComponent<IResponses3Definition, IResponses3> implements IResponses3 {
+  [extension: `x${string}`]: any
   [key: number]: IResponse3
-  default?: IResponse3
 
   constructor (definition: IResponses3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -46,7 +45,7 @@ export class Responses extends EnforcerComponent implements IResponses3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#responses-object'
   }
 
-  static getSchema (_data: IResponsesSchemaProcessor): ISchema.IDefinition<IResponses3Definition, IResponses3> {
+  static getSchemaDefinition (_data: IResponsesSchemaProcessor): ISchema.ISchemaDefinition<IResponses3Definition, IResponses3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -66,7 +65,7 @@ export class Responses extends EnforcerComponent implements IResponses3 {
       }
     }
 
-    const result: ISchema.IDefinition<IResponses3Definition, IResponses3> = {
+    const result: ISchema.ISchemaDefinition<IResponses3Definition, IResponses3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties,
@@ -85,6 +84,14 @@ export class Responses extends EnforcerComponent implements IResponses3 {
 
   static validate (definition: IResponses3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get default (): IResponse3 | undefined {
+    return this.getProperty('default')
+  }
+
+  set default (value: IResponse3 | undefined) {
+    this.setProperty('default', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

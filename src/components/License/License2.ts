@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ILicenseSchemaProcessor } from '../IInternalTypes'
 import {
   ILicense2,
@@ -24,12 +24,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<ILicense2Definition, ILicense2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<ILicense2Definition, ILicense2> | null = null
 
-export class License extends EnforcerComponent implements ILicense2 {
-  [extension: `x-${string}`]: any
-  name!: string
-  url?: string
+export class License extends EnforcerComponent<ILicense2Definition, ILicense2> implements ILicense2 {
+  [extension: `x${string}`]: any
 
   constructor (definition: ILicense2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -43,7 +41,7 @@ export class License extends EnforcerComponent implements ILicense2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: ILicenseSchemaProcessor): ISchema.IDefinition<ILicense2Definition, ILicense2> {
+  static getSchemaDefinition (_data: ILicenseSchemaProcessor): ISchema.ISchemaDefinition<ILicense2Definition, ILicense2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -63,7 +61,7 @@ export class License extends EnforcerComponent implements ILicense2 {
       }
     }
 
-    const result: ISchema.IDefinition<ILicense2Definition, ILicense2> = {
+    const result: ISchema.ISchemaDefinition<ILicense2Definition, ILicense2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -82,6 +80,22 @@ export class License extends EnforcerComponent implements ILicense2 {
 
   static validate (definition: ILicense2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get name (): string {
+    return this.getProperty('name')
+  }
+
+  set name (value: string) {
+    this.setProperty('name', value)
+  }
+
+  get url (): string | undefined {
+    return this.getProperty('url')
+  }
+
+  set url (value: string | undefined) {
+    this.setProperty('url', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

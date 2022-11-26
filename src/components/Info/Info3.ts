@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IInfoSchemaProcessor } from '../IInternalTypes'
 import {
   Contact3,
@@ -30,16 +30,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IInfo3Definition, IInfo3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IInfo3Definition, IInfo3> | null = null
 
-export class Info extends EnforcerComponent implements IInfo3 {
-  [extension: `x-${string}`]: any
-  title!: string
-  description?: string
-  termsOfService?: string
-  contact?: IContact3
-  license?: ILicense3
-  version!: string
+export class Info extends EnforcerComponent<IInfo3Definition, IInfo3> implements IInfo3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IInfo3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -53,7 +47,7 @@ export class Info extends EnforcerComponent implements IInfo3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#info-object'
   }
 
-  static getSchema (_data: IInfoSchemaProcessor): ISchema.IDefinition<IInfo3Definition, IInfo3> {
+  static getSchemaDefinition (_data: IInfoSchemaProcessor): ISchema.ISchemaDefinition<IInfo3Definition, IInfo3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -106,7 +100,7 @@ export class Info extends EnforcerComponent implements IInfo3 {
       }
     }
 
-    const result: ISchema.IDefinition<IInfo3Definition, IInfo3> = {
+    const result: ISchema.ISchemaDefinition<IInfo3Definition, IInfo3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -129,6 +123,54 @@ export class Info extends EnforcerComponent implements IInfo3 {
 
   static validate (definition: IInfo3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get title (): string {
+    return this.getProperty('title')
+  }
+
+  set title (value: string) {
+    this.setProperty('title', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get termsOfService (): string | undefined {
+    return this.getProperty('termsOfService')
+  }
+
+  set termsOfService (value: string | undefined) {
+    this.setProperty('termsOfService', value)
+  }
+
+  get contact (): IContact3 | undefined {
+    return this.getProperty('contact')
+  }
+
+  set contact (value: IContact3 | undefined) {
+    this.setProperty('contact', value)
+  }
+
+  get license (): ILicense3 | undefined {
+    return this.getProperty('license')
+  }
+
+  set license (value: ILicense3 | undefined) {
+    this.setProperty('license', value)
+  }
+
+  get version (): string {
+    return this.getProperty('version')
+  }
+
+  set version (value: string) {
+    this.setProperty('version', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -16,6 +16,12 @@ import { IComponentInstance } from '../IComponent'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IXmlComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IXml2Definition {
   [extension: `x-${string}`]: any
   name?: string
@@ -25,7 +31,7 @@ export interface IXml2Definition {
   wrapped?: boolean
 }
 
-export interface IXml2 extends IComponentInstance {
+export interface IXml2 extends IXmlComponent {
   [extension: `x-${string}`]: any
   name?: string
   namespace?: string
@@ -43,7 +49,7 @@ export interface IXml3Definition {
   wrapped?: boolean
 }
 
-export interface IXml3 extends IComponentInstance {
+export interface IXml3 extends IXmlComponent {
   [extension: `x-${string}`]: any
   name?: string
   namespace?: string

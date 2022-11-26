@@ -20,6 +20,12 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IOAuthFlowsComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+// Put your code here.
+// <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IOAuthFlows3Definition {
   [extension: `x-${string}`]: any
   implicit?: IOAuthFlow3Definition
@@ -28,7 +34,7 @@ export interface IOAuthFlows3Definition {
   authorizationCode?: IOAuthFlow3Definition
 }
 
-export interface IOAuthFlows3 extends IComponentInstance {
+export interface IOAuthFlows3 extends IOAuthFlowsComponent {
   [extension: `x-${string}`]: any
   implicit?: IOAuthFlow3
   password?: IOAuthFlow3

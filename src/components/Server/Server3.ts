@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IServerSchemaProcessor } from '../IInternalTypes'
 import {
   IServer3,
@@ -27,13 +27,10 @@ import {
 import { isUrl } from '../validations'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IServer3Definition, IServer3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IServer3Definition, IServer3> | null = null
 
-export class Server extends EnforcerComponent implements IServer3 {
-  [extension: `x-${string}`]: any
-  url!: string
-  description?: string
-  variables?: Record<string, IServerVariable3>
+export class Server extends EnforcerComponent<IServer3Definition, IServer3> implements IServer3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IServer3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -47,7 +44,7 @@ export class Server extends EnforcerComponent implements IServer3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-object'
   }
 
-  static getSchema (_data: IServerSchemaProcessor): ISchema.IDefinition<IServer3Definition, IServer3> {
+  static getSchemaDefinition (_data: IServerSchemaProcessor): ISchema.ISchemaDefinition<IServer3Definition, IServer3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -79,7 +76,7 @@ export class Server extends EnforcerComponent implements IServer3 {
       }
     }
 
-    const result: ISchema.IDefinition<IServer3Definition, IServer3> = {
+    const result: ISchema.ISchemaDefinition<IServer3Definition, IServer3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -103,6 +100,30 @@ export class Server extends EnforcerComponent implements IServer3 {
 
   static validate (definition: IServer3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get url (): string {
+    return this.getProperty('url')
+  }
+
+  set url (value: string) {
+    this.setProperty('url', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get variables (): Record<string, IServerVariable3> | undefined {
+    return this.getProperty('variables')
+  }
+
+  set variables (value: Record<string, IServerVariable3> | undefined) {
+    this.setProperty('variables', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

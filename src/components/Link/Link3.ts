@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ILinkSchemaProcessor } from '../IInternalTypes'
 import {
   ILink3,
@@ -27,16 +27,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<ILink3Definition, ILink3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<ILink3Definition, ILink3> | null = null
 
-export class Link extends EnforcerComponent implements ILink3 {
-  [extension: `x-${string}`]: any
-  operationRef?: string
-  operationId?: string
-  parameters?: Record<string, any>
-  requestBody?: any
-  description?: string
-  server?: IServer3
+export class Link extends EnforcerComponent<ILink3Definition, ILink3> implements ILink3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: ILink3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -50,7 +44,7 @@ export class Link extends EnforcerComponent implements ILink3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#link-object'
   }
 
-  static getSchema (_data: ILinkSchemaProcessor): ISchema.IDefinition<ILink3Definition, ILink3> {
+  static getSchemaDefinition (_data: ILinkSchemaProcessor): ISchema.ISchemaDefinition<ILink3Definition, ILink3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -102,7 +96,7 @@ export class Link extends EnforcerComponent implements ILink3 {
       }
     }
 
-    const result: ISchema.IDefinition<ILink3Definition, ILink3> = {
+    const result: ISchema.ISchemaDefinition<ILink3Definition, ILink3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -125,6 +119,54 @@ export class Link extends EnforcerComponent implements ILink3 {
 
   static validate (definition: ILink3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get operationRef (): string | undefined {
+    return this.getProperty('operationRef')
+  }
+
+  set operationRef (value: string | undefined) {
+    this.setProperty('operationRef', value)
+  }
+
+  get operationId (): string | undefined {
+    return this.getProperty('operationId')
+  }
+
+  set operationId (value: string | undefined) {
+    this.setProperty('operationId', value)
+  }
+
+  get parameters (): Record<string, any> | undefined {
+    return this.getProperty('parameters')
+  }
+
+  set parameters (value: Record<string, any> | undefined) {
+    this.setProperty('parameters', value)
+  }
+
+  get requestBody (): any | undefined {
+    return this.getProperty('requestBody')
+  }
+
+  set requestBody (value: any | undefined) {
+    this.setProperty('requestBody', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get server (): IServer3 | undefined {
+    return this.getProperty('server')
+  }
+
+  set server (value: IServer3 | undefined) {
+    this.setProperty('server', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

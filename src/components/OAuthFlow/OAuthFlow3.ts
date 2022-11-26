@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IOAuthFlowSchemaProcessor } from '../IInternalTypes'
 import {
   IOAuthFlow3,
@@ -24,14 +24,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IOAuthFlow3Definition, IOAuthFlow3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IOAuthFlow3Definition, IOAuthFlow3> | null = null
 
-export class OAuthFlow extends EnforcerComponent implements IOAuthFlow3 {
-  [extension: `x-${string}`]: any
-  authorizationUrl?: string
-  tokenUrl?: string
-  refreshUrl?: string
-  scopes?: Record<string, string>
+export class OAuthFlow extends EnforcerComponent<IOAuthFlow3Definition, IOAuthFlow3> implements IOAuthFlow3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IOAuthFlow3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -45,7 +41,7 @@ export class OAuthFlow extends EnforcerComponent implements IOAuthFlow3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#oauth-flow-object'
   }
 
-  static getSchema (_data: IOAuthFlowSchemaProcessor): ISchema.IDefinition<IOAuthFlow3Definition, IOAuthFlow3> {
+  static getSchemaDefinition (_data: IOAuthFlowSchemaProcessor): ISchema.ISchemaDefinition<IOAuthFlow3Definition, IOAuthFlow3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -81,7 +77,7 @@ export class OAuthFlow extends EnforcerComponent implements IOAuthFlow3 {
       }
     }
 
-    const result: ISchema.IDefinition<IOAuthFlow3Definition, IOAuthFlow3> = {
+    const result: ISchema.ISchemaDefinition<IOAuthFlow3Definition, IOAuthFlow3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -102,6 +98,38 @@ export class OAuthFlow extends EnforcerComponent implements IOAuthFlow3 {
 
   static validate (definition: IOAuthFlow3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get authorizationUrl (): string | undefined {
+    return this.getProperty('authorizationUrl')
+  }
+
+  set authorizationUrl (value: string | undefined) {
+    this.setProperty('authorizationUrl', value)
+  }
+
+  get tokenUrl (): string | undefined {
+    return this.getProperty('tokenUrl')
+  }
+
+  set tokenUrl (value: string | undefined) {
+    this.setProperty('tokenUrl', value)
+  }
+
+  get refreshUrl (): string | undefined {
+    return this.getProperty('refreshUrl')
+  }
+
+  set refreshUrl (value: string | undefined) {
+    this.setProperty('refreshUrl', value)
+  }
+
+  get scopes (): Record<string, string> | undefined {
+    return this.getProperty('scopes')
+  }
+
+  set scopes (value: Record<string, string> | undefined) {
+    this.setProperty('scopes', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

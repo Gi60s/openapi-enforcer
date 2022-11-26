@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ISecuritySchemeSchemaProcessor } from '../IInternalTypes'
 import {
   ISecurityScheme2,
@@ -24,18 +24,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<ISecurityScheme2Definition, ISecurityScheme2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<ISecurityScheme2Definition, ISecurityScheme2> | null = null
 
-export class SecurityScheme extends EnforcerComponent implements ISecurityScheme2 {
-  [extension: `x-${string}`]: any
-  type!: 'basic'|'apiKey'|'oauth2'
-  description?: string
-  name?: string
-  in?: 'query'|'header'
-  flow?: 'implicit'|'password'|'application'|'accessCode'
-  authorizationUrl?: string
-  tokenUrl?: string
-  scopes?: Record<string, string>
+export class SecurityScheme extends EnforcerComponent<ISecurityScheme2Definition, ISecurityScheme2> implements ISecurityScheme2 {
+  [extension: `x${string}`]: any
 
   constructor (definition: ISecurityScheme2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -49,7 +41,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
     '3.0.3': true
   }
 
-  static getSchema (_data: ISecuritySchemeSchemaProcessor): ISchema.IDefinition<ISecurityScheme2Definition, ISecurityScheme2> {
+  static getSchemaDefinition (_data: ISecuritySchemeSchemaProcessor): ISchema.ISchemaDefinition<ISecurityScheme2Definition, ISecurityScheme2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -117,7 +109,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
       }
     }
 
-    const result: ISchema.IDefinition<ISecurityScheme2Definition, ISecurityScheme2> = {
+    const result: ISchema.ISchemaDefinition<ISecurityScheme2Definition, ISecurityScheme2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -142,6 +134,70 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
 
   static validate (definition: ISecurityScheme2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get type (): 'basic'|'apiKey'|'oauth2' {
+    return this.getProperty('type')
+  }
+
+  set type (value: 'basic'|'apiKey'|'oauth2') {
+    this.setProperty('type', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get name (): string | undefined {
+    return this.getProperty('name')
+  }
+
+  set name (value: string | undefined) {
+    this.setProperty('name', value)
+  }
+
+  get in (): 'query'|'header' | undefined {
+    return this.getProperty('in')
+  }
+
+  set in (value: 'query'|'header' | undefined) {
+    this.setProperty('in', value)
+  }
+
+  get flow (): 'implicit'|'password'|'application'|'accessCode' | undefined {
+    return this.getProperty('flow')
+  }
+
+  set flow (value: 'implicit'|'password'|'application'|'accessCode' | undefined) {
+    this.setProperty('flow', value)
+  }
+
+  get authorizationUrl (): string | undefined {
+    return this.getProperty('authorizationUrl')
+  }
+
+  set authorizationUrl (value: string | undefined) {
+    this.setProperty('authorizationUrl', value)
+  }
+
+  get tokenUrl (): string | undefined {
+    return this.getProperty('tokenUrl')
+  }
+
+  set tokenUrl (value: string | undefined) {
+    this.setProperty('tokenUrl', value)
+  }
+
+  get scopes (): Record<string, string> | undefined {
+    return this.getProperty('scopes')
+  }
+
+  set scopes (value: Record<string, string> | undefined) {
+    this.setProperty('scopes', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

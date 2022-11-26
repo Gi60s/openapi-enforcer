@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IPathItemSchemaProcessor } from '../IInternalTypes'
 import {
   IOperation2,
@@ -30,19 +30,10 @@ import {
 import { after } from './common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IPathItem2Definition, IPathItem2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IPathItem2Definition, IPathItem2> | null = null
 
-export class PathItem extends EnforcerComponent implements IPathItem2 {
-  [extension: `x-${string}`]: any
-  $ref?: string
-  get?: IOperation2
-  put?: IOperation2
-  post?: IOperation2
-  delete?: IOperation2
-  options?: IOperation2
-  head?: IOperation2
-  patch?: IOperation2
-  parameters?: IParameter2[]
+export class PathItem extends EnforcerComponent<IPathItem2Definition, IPathItem2> implements IPathItem2 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IPathItem2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -56,7 +47,7 @@ export class PathItem extends EnforcerComponent implements IPathItem2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: IPathItemSchemaProcessor): ISchema.IDefinition<IPathItem2Definition, IPathItem2> {
+  static getSchemaDefinition (_data: IPathItemSchemaProcessor): ISchema.ISchemaDefinition<IPathItem2Definition, IPathItem2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -143,7 +134,7 @@ export class PathItem extends EnforcerComponent implements IPathItem2 {
       }
     }
 
-    const result: ISchema.IDefinition<IPathItem2Definition, IPathItem2> = {
+    const result: ISchema.ISchemaDefinition<IPathItem2Definition, IPathItem2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -169,6 +160,78 @@ export class PathItem extends EnforcerComponent implements IPathItem2 {
 
   static validate (definition: IPathItem2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get $ref (): string | undefined {
+    return this.getProperty('$ref')
+  }
+
+  set $ref (value: string | undefined) {
+    this.setProperty('$ref', value)
+  }
+
+  get get (): IOperation2 | undefined {
+    return this.getProperty('get')
+  }
+
+  set get (value: IOperation2 | undefined) {
+    this.setProperty('get', value)
+  }
+
+  get put (): IOperation2 | undefined {
+    return this.getProperty('put')
+  }
+
+  set put (value: IOperation2 | undefined) {
+    this.setProperty('put', value)
+  }
+
+  get post (): IOperation2 | undefined {
+    return this.getProperty('post')
+  }
+
+  set post (value: IOperation2 | undefined) {
+    this.setProperty('post', value)
+  }
+
+  get delete (): IOperation2 | undefined {
+    return this.getProperty('delete')
+  }
+
+  set delete (value: IOperation2 | undefined) {
+    this.setProperty('delete', value)
+  }
+
+  get options (): IOperation2 | undefined {
+    return this.getProperty('options')
+  }
+
+  set options (value: IOperation2 | undefined) {
+    this.setProperty('options', value)
+  }
+
+  get head (): IOperation2 | undefined {
+    return this.getProperty('head')
+  }
+
+  set head (value: IOperation2 | undefined) {
+    this.setProperty('head', value)
+  }
+
+  get patch (): IOperation2 | undefined {
+    return this.getProperty('patch')
+  }
+
+  set patch (value: IOperation2 | undefined) {
+    this.setProperty('patch', value)
+  }
+
+  get parameters (): IParameter2[] | undefined {
+    return this.getProperty('parameters')
+  }
+
+  set parameters (value: IParameter2[] | undefined) {
+    this.setProperty('parameters', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

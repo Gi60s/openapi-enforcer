@@ -28,6 +28,12 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface ISchemaComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface ISchema2Definition {
   [extension: `x-${string}`]: any
   format?: string
@@ -61,7 +67,7 @@ export interface ISchema2Definition {
   example?: any
 }
 
-export interface ISchema2 extends IComponentInstance {
+export interface ISchema2 extends ISchemaComponent {
   [extension: `x-${string}`]: any
   format?: string
   title?: string
@@ -133,7 +139,7 @@ export interface ISchema3Definition {
   deprecated?: boolean
 }
 
-export interface ISchema3 extends IComponentInstance {
+export interface ISchema3 extends ISchemaComponent {
   [extension: `x-${string}`]: any
   type?: string
   allOf?: ISchema3[]

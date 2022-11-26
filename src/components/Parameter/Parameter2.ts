@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IParameterSchemaProcessor } from '../IInternalTypes'
 import {
   IItems2,
@@ -30,33 +30,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IParameter2Definition, IParameter2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IParameter2Definition, IParameter2> | null = null
 
-export class Parameter extends EnforcerComponent implements IParameter2 {
-  [extension: `x-${string}`]: any
-  name!: string
-  in!: 'body'|'formData'|'header'|'path'|'query'
-  description?: string
-  required?: boolean
-  schema?: ISchema2
-  type?: 'array'|'boolean'|'file'|'integer'|'number'|'string'
-  format?: string
-  allowEmptyValue?: boolean
-  items?: IItems2
-  collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'|'multi'
-  default?: any
-  maximum?: number
-  exclusiveMaximum?: boolean
-  minimum?: number
-  exclusiveMinimum?: number
-  maxLength?: number
-  minLength?: number
-  pattern?: string
-  maxItems?: number
-  minItems?: number
-  uniqueItems?: boolean
-  enum?: any[]
-  multipleOf?: number
+export class Parameter extends EnforcerComponent<IParameter2Definition, IParameter2> implements IParameter2 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IParameter2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -70,7 +47,7 @@ export class Parameter extends EnforcerComponent implements IParameter2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: IParameterSchemaProcessor): ISchema.IDefinition<IParameter2Definition, IParameter2> {
+  static getSchemaDefinition (_data: IParameterSchemaProcessor): ISchema.ISchemaDefinition<IParameter2Definition, IParameter2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -248,7 +225,7 @@ export class Parameter extends EnforcerComponent implements IParameter2 {
       }
     }
 
-    const result: ISchema.IDefinition<IParameter2Definition, IParameter2> = {
+    const result: ISchema.ISchemaDefinition<IParameter2Definition, IParameter2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -288,6 +265,190 @@ export class Parameter extends EnforcerComponent implements IParameter2 {
 
   static validate (definition: IParameter2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get name (): string {
+    return this.getProperty('name')
+  }
+
+  set name (value: string) {
+    this.setProperty('name', value)
+  }
+
+  get in (): 'body'|'formData'|'header'|'path'|'query' {
+    return this.getProperty('in')
+  }
+
+  set in (value: 'body'|'formData'|'header'|'path'|'query') {
+    this.setProperty('in', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get required (): boolean | undefined {
+    return this.getProperty('required')
+  }
+
+  set required (value: boolean | undefined) {
+    this.setProperty('required', value)
+  }
+
+  get schema (): ISchema2 | undefined {
+    return this.getProperty('schema')
+  }
+
+  set schema (value: ISchema2 | undefined) {
+    this.setProperty('schema', value)
+  }
+
+  get type (): 'array'|'boolean'|'file'|'integer'|'number'|'string' | undefined {
+    return this.getProperty('type')
+  }
+
+  set type (value: 'array'|'boolean'|'file'|'integer'|'number'|'string' | undefined) {
+    this.setProperty('type', value)
+  }
+
+  get format (): string | undefined {
+    return this.getProperty('format')
+  }
+
+  set format (value: string | undefined) {
+    this.setProperty('format', value)
+  }
+
+  get allowEmptyValue (): boolean | undefined {
+    return this.getProperty('allowEmptyValue')
+  }
+
+  set allowEmptyValue (value: boolean | undefined) {
+    this.setProperty('allowEmptyValue', value)
+  }
+
+  get items (): IItems2 | undefined {
+    return this.getProperty('items')
+  }
+
+  set items (value: IItems2 | undefined) {
+    this.setProperty('items', value)
+  }
+
+  get collectionFormat (): 'csv'|'ssv'|'tsv'|'pipes'|'multi' | undefined {
+    return this.getProperty('collectionFormat')
+  }
+
+  set collectionFormat (value: 'csv'|'ssv'|'tsv'|'pipes'|'multi' | undefined) {
+    this.setProperty('collectionFormat', value)
+  }
+
+  get default (): any | undefined {
+    return this.getProperty('default')
+  }
+
+  set default (value: any | undefined) {
+    this.setProperty('default', value)
+  }
+
+  get maximum (): number | undefined {
+    return this.getProperty('maximum')
+  }
+
+  set maximum (value: number | undefined) {
+    this.setProperty('maximum', value)
+  }
+
+  get exclusiveMaximum (): boolean | undefined {
+    return this.getProperty('exclusiveMaximum')
+  }
+
+  set exclusiveMaximum (value: boolean | undefined) {
+    this.setProperty('exclusiveMaximum', value)
+  }
+
+  get minimum (): number | undefined {
+    return this.getProperty('minimum')
+  }
+
+  set minimum (value: number | undefined) {
+    this.setProperty('minimum', value)
+  }
+
+  get exclusiveMinimum (): number | undefined {
+    return this.getProperty('exclusiveMinimum')
+  }
+
+  set exclusiveMinimum (value: number | undefined) {
+    this.setProperty('exclusiveMinimum', value)
+  }
+
+  get maxLength (): number | undefined {
+    return this.getProperty('maxLength')
+  }
+
+  set maxLength (value: number | undefined) {
+    this.setProperty('maxLength', value)
+  }
+
+  get minLength (): number | undefined {
+    return this.getProperty('minLength')
+  }
+
+  set minLength (value: number | undefined) {
+    this.setProperty('minLength', value)
+  }
+
+  get pattern (): string | undefined {
+    return this.getProperty('pattern')
+  }
+
+  set pattern (value: string | undefined) {
+    this.setProperty('pattern', value)
+  }
+
+  get maxItems (): number | undefined {
+    return this.getProperty('maxItems')
+  }
+
+  set maxItems (value: number | undefined) {
+    this.setProperty('maxItems', value)
+  }
+
+  get minItems (): number | undefined {
+    return this.getProperty('minItems')
+  }
+
+  set minItems (value: number | undefined) {
+    this.setProperty('minItems', value)
+  }
+
+  get uniqueItems (): boolean | undefined {
+    return this.getProperty('uniqueItems')
+  }
+
+  set uniqueItems (value: boolean | undefined) {
+    this.setProperty('uniqueItems', value)
+  }
+
+  get enum (): any[] | undefined {
+    return this.getProperty('enum')
+  }
+
+  set enum (value: any[] | undefined) {
+    this.setProperty('enum', value)
+  }
+
+  get multipleOf (): number | undefined {
+    return this.getProperty('multipleOf')
+  }
+
+  set multipleOf (value: number | undefined) {
+    this.setProperty('multipleOf', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IResponsesSchemaProcessor } from '../IInternalTypes'
 import {
   IResponse2,
@@ -27,12 +27,11 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IResponses2Definition, IResponses2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IResponses2Definition, IResponses2> | null = null
 
-export class Responses extends EnforcerComponent implements IResponses2 {
-  [extension: `x-${string}`]: any
+export class Responses extends EnforcerComponent<IResponses2Definition, IResponses2> implements IResponses2 {
+  [extension: `x${string}`]: any
   [key: number]: IResponse2
-  default?: IResponse2
 
   constructor (definition: IResponses2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -46,7 +45,7 @@ export class Responses extends EnforcerComponent implements IResponses2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: IResponsesSchemaProcessor): ISchema.IDefinition<IResponses2Definition, IResponses2> {
+  static getSchemaDefinition (_data: IResponsesSchemaProcessor): ISchema.ISchemaDefinition<IResponses2Definition, IResponses2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -66,7 +65,7 @@ export class Responses extends EnforcerComponent implements IResponses2 {
       }
     }
 
-    const result: ISchema.IDefinition<IResponses2Definition, IResponses2> = {
+    const result: ISchema.ISchemaDefinition<IResponses2Definition, IResponses2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties,
@@ -85,6 +84,14 @@ export class Responses extends EnforcerComponent implements IResponses2 {
 
   static validate (definition: IResponses2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get default (): IResponse2 | undefined {
+    return this.getProperty('default')
+  }
+
+  set default (value: IResponse2 | undefined) {
+    this.setProperty('default', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

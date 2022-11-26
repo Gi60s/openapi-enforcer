@@ -26,6 +26,12 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IInfoComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IInfo2Definition {
   [extension: `x-${string}`]: any
   title: string
@@ -36,7 +42,7 @@ export interface IInfo2Definition {
   version: string
 }
 
-export interface IInfo2 extends IComponentInstance {
+export interface IInfo2 extends IInfoComponent {
   [extension: `x-${string}`]: any
   title: string
   description?: string
@@ -56,7 +62,7 @@ export interface IInfo3Definition {
   version: string
 }
 
-export interface IInfo3 extends IComponentInstance {
+export interface IInfo3 extends IInfoComponent {
   [extension: `x-${string}`]: any
   title: string
   description?: string

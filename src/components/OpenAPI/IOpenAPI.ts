@@ -32,6 +32,12 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IOpenAPIComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+// Put your code here.
+// <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IOpenAPI3Definition {
   [extension: `x-${string}`]: any
   openapi: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
@@ -44,7 +50,7 @@ export interface IOpenAPI3Definition {
   externalDocs?: IExternalDocumentation3Definition
 }
 
-export interface IOpenAPI3 extends IComponentInstance {
+export interface IOpenAPI3 extends IOpenAPIComponent {
   [extension: `x-${string}`]: any
   openapi: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
   info: IInfo3

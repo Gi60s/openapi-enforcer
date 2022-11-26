@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IRequestBodySchemaProcessor } from '../IInternalTypes'
 import {
   IMediaType3,
@@ -27,13 +27,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IRequestBody3Definition, IRequestBody3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IRequestBody3Definition, IRequestBody3> | null = null
 
-export class RequestBody extends EnforcerComponent implements IRequestBody3 {
-  [extension: `x-${string}`]: any
-  description?: string
-  content?: Record<string, IMediaType3>
-  required?: boolean
+export class RequestBody extends EnforcerComponent<IRequestBody3Definition, IRequestBody3> implements IRequestBody3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IRequestBody3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -47,7 +44,7 @@ export class RequestBody extends EnforcerComponent implements IRequestBody3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#request-body-object'
   }
 
-  static getSchema (_data: IRequestBodySchemaProcessor): ISchema.IDefinition<IRequestBody3Definition, IRequestBody3> {
+  static getSchemaDefinition (_data: IRequestBodySchemaProcessor): ISchema.ISchemaDefinition<IRequestBody3Definition, IRequestBody3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -78,7 +75,7 @@ export class RequestBody extends EnforcerComponent implements IRequestBody3 {
       }
     }
 
-    const result: ISchema.IDefinition<IRequestBody3Definition, IRequestBody3> = {
+    const result: ISchema.ISchemaDefinition<IRequestBody3Definition, IRequestBody3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -98,6 +95,30 @@ export class RequestBody extends EnforcerComponent implements IRequestBody3 {
 
   static validate (definition: IRequestBody3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get content (): Record<string, IMediaType3> | undefined {
+    return this.getProperty('content')
+  }
+
+  set content (value: Record<string, IMediaType3> | undefined) {
+    this.setProperty('content', value)
+  }
+
+  get required (): boolean | undefined {
+    return this.getProperty('required')
+  }
+
+  set required (value: boolean | undefined) {
+    this.setProperty('required', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

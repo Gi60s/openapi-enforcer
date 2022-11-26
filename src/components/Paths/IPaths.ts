@@ -22,12 +22,18 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IPathsComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IPaths2Definition {
   [extension: `x-${string}`]: any
   [key: `/${string}`]: IPathItem2Definition
 }
 
-export interface IPaths2 extends IComponentInstance {
+export interface IPaths2 extends IPathsComponent {
   [extension: `x-${string}`]: any
   [key: `/${string}`]: IPathItem2
 }
@@ -37,7 +43,7 @@ export interface IPaths3Definition {
   [key: `/${string}`]: IPathItem3Definition
 }
 
-export interface IPaths3 extends IComponentInstance {
+export interface IPaths3 extends IPathsComponent {
   [extension: `x-${string}`]: any
   [key: `/${string}`]: IPathItem3
 }

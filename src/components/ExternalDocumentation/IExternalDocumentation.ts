@@ -16,13 +16,19 @@ import { IComponentInstance } from '../IComponent'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IExternalDocumentationComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IExternalDocumentation2Definition {
   [extension: `x-${string}`]: any
   description?: string
   url: string
 }
 
-export interface IExternalDocumentation2 extends IComponentInstance {
+export interface IExternalDocumentation2 extends IExternalDocumentationComponent {
   [extension: `x-${string}`]: any
   description?: string
   url: string
@@ -34,7 +40,7 @@ export interface IExternalDocumentation3Definition {
   url: string
 }
 
-export interface IExternalDocumentation3 extends IComponentInstance {
+export interface IExternalDocumentation3 extends IExternalDocumentationComponent {
   [extension: `x-${string}`]: any
   description?: string
   url: string

@@ -16,12 +16,18 @@ import { IComponentInstance } from '../IComponent'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IDiscriminatorComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+// Put your code here.
+// <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IDiscriminator3Definition {
   propertyName: string
   mapping?: Record<string, string>
 }
 
-export interface IDiscriminator3 extends IComponentInstance {
+export interface IDiscriminator3 extends IDiscriminatorComponent {
   propertyName: string
   mapping?: Record<string, string>
 }

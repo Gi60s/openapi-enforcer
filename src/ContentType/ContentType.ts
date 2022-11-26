@@ -53,12 +53,18 @@ export class ContentType {
     let result = this.type + '/'
     if (this.extension.length > 0) result += this.extension + '+'
     result += this.subType
+    return result
+  }
+
+  toStringWithQuality (): string {
+    let result = this.toString()
     if (this.quality !== 1) result += ';q=' + String(this.quality)
     return result
   }
 
-  static fromString (contactType: string): ContentType | undefined {
-    const set = contactType.split(';')
+  static fromString (contentType: string | ContentType): ContentType | undefined {
+    if (typeof contentType !== 'string') return contentType
+    const set = contentType.split(';')
     const match = rx.mediaType.exec(set[0])
     const q = /q=(\d(?:\.\d)?)/.exec(set[1])
     return match === null

@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IOpenAPISchemaProcessor } from '../IInternalTypes'
 import {
   Components3,
@@ -45,18 +45,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IOpenAPI3Definition, IOpenAPI3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IOpenAPI3Definition, IOpenAPI3> | null = null
 
-export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
-  [extension: `x-${string}`]: any
-  openapi!: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
-  info!: IInfo3
-  servers?: IServer3[]
-  paths!: IPaths3
-  components?: IComponents3
-  security?: ISecurityRequirement3[]
-  tags?: ITag3[]
-  externalDocs?: IExternalDocumentation3
+export class OpenAPI extends EnforcerComponent<IOpenAPI3Definition, IOpenAPI3> implements IOpenAPI3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IOpenAPI3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -70,7 +62,7 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#openapi-object'
   }
 
-  static getSchema (_data: IOpenAPISchemaProcessor): ISchema.IDefinition<IOpenAPI3Definition, IOpenAPI3> {
+  static getSchemaDefinition (_data: IOpenAPISchemaProcessor): ISchema.ISchemaDefinition<IOpenAPI3Definition, IOpenAPI3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -158,7 +150,7 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
       }
     }
 
-    const result: ISchema.IDefinition<IOpenAPI3Definition, IOpenAPI3> = {
+    const result: ISchema.ISchemaDefinition<IOpenAPI3Definition, IOpenAPI3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -183,6 +175,70 @@ export class OpenAPI extends EnforcerComponent implements IOpenAPI3 {
 
   static validate (definition: IOpenAPI3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get openapi (): '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3' {
+    return this.getProperty('openapi')
+  }
+
+  set openapi (value: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3') {
+    this.setProperty('openapi', value)
+  }
+
+  get info (): IInfo3 {
+    return this.getProperty('info')
+  }
+
+  set info (value: IInfo3) {
+    this.setProperty('info', value)
+  }
+
+  get servers (): IServer3[] | undefined {
+    return this.getProperty('servers')
+  }
+
+  set servers (value: IServer3[] | undefined) {
+    this.setProperty('servers', value)
+  }
+
+  get paths (): IPaths3 {
+    return this.getProperty('paths')
+  }
+
+  set paths (value: IPaths3) {
+    this.setProperty('paths', value)
+  }
+
+  get components (): IComponents3 | undefined {
+    return this.getProperty('components')
+  }
+
+  set components (value: IComponents3 | undefined) {
+    this.setProperty('components', value)
+  }
+
+  get security (): ISecurityRequirement3[] | undefined {
+    return this.getProperty('security')
+  }
+
+  set security (value: ISecurityRequirement3[] | undefined) {
+    this.setProperty('security', value)
+  }
+
+  get tags (): ITag3[] | undefined {
+    return this.getProperty('tags')
+  }
+
+  set tags (value: ITag3[] | undefined) {
+    this.setProperty('tags', value)
+  }
+
+  get externalDocs (): IExternalDocumentation3 | undefined {
+    return this.getProperty('externalDocs')
+  }
+
+  set externalDocs (value: IExternalDocumentation3 | undefined) {
+    this.setProperty('externalDocs', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

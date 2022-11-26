@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IXmlSchemaProcessor } from '../IInternalTypes'
 import {
   IXml2,
@@ -24,15 +24,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IXml2Definition, IXml2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IXml2Definition, IXml2> | null = null
 
-export class Xml extends EnforcerComponent implements IXml2 {
-  [extension: `x-${string}`]: any
-  name?: string
-  namespace?: string
-  prefix?: string
-  attribute?: boolean
-  wrapped?: boolean
+export class Xml extends EnforcerComponent<IXml2Definition, IXml2> implements IXml2 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IXml2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -46,7 +41,7 @@ export class Xml extends EnforcerComponent implements IXml2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: IXmlSchemaProcessor): ISchema.IDefinition<IXml2Definition, IXml2> {
+  static getSchemaDefinition (_data: IXmlSchemaProcessor): ISchema.ISchemaDefinition<IXml2Definition, IXml2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -86,7 +81,7 @@ export class Xml extends EnforcerComponent implements IXml2 {
       }
     }
 
-    const result: ISchema.IDefinition<IXml2Definition, IXml2> = {
+    const result: ISchema.ISchemaDefinition<IXml2Definition, IXml2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -108,6 +103,46 @@ export class Xml extends EnforcerComponent implements IXml2 {
 
   static validate (definition: IXml2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get name (): string | undefined {
+    return this.getProperty('name')
+  }
+
+  set name (value: string | undefined) {
+    this.setProperty('name', value)
+  }
+
+  get namespace (): string | undefined {
+    return this.getProperty('namespace')
+  }
+
+  set namespace (value: string | undefined) {
+    this.setProperty('namespace', value)
+  }
+
+  get prefix (): string | undefined {
+    return this.getProperty('prefix')
+  }
+
+  set prefix (value: string | undefined) {
+    this.setProperty('prefix', value)
+  }
+
+  get attribute (): boolean | undefined {
+    return this.getProperty('attribute')
+  }
+
+  set attribute (value: boolean | undefined) {
+    this.setProperty('attribute', value)
+  }
+
+  get wrapped (): boolean | undefined {
+    return this.getProperty('wrapped')
+  }
+
+  set wrapped (value: boolean | undefined) {
+    this.setProperty('wrapped', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

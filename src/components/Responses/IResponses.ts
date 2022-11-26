@@ -22,13 +22,19 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IResponsesComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IResponses2Definition {
   [extension: `x-${string}`]: any
   [key: number]: IResponse2Definition
   default?: IResponse2Definition
 }
 
-export interface IResponses2 extends IComponentInstance {
+export interface IResponses2 extends IResponsesComponent {
   [extension: `x-${string}`]: any
   [key: number]: IResponse2
   default?: IResponse2
@@ -40,7 +46,7 @@ export interface IResponses3Definition {
   default?: IResponse3Definition
 }
 
-export interface IResponses3 extends IComponentInstance {
+export interface IResponses3 extends IResponsesComponent {
   [extension: `x-${string}`]: any
   [key: number]: IResponse3
   default?: IResponse3

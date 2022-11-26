@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IExampleSchemaProcessor } from '../IInternalTypes'
 import {
   IExample3,
@@ -24,14 +24,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IExample3Definition, IExample3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IExample3Definition, IExample3> | null = null
 
-export class Example extends EnforcerComponent implements IExample3 {
-  [extension: `x-${string}`]: any
-  summary?: string
-  description?: string
-  value?: any
-  externalValue?: string
+export class Example extends EnforcerComponent<IExample3Definition, IExample3> implements IExample3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IExample3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -45,7 +41,7 @@ export class Example extends EnforcerComponent implements IExample3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#example-object'
   }
 
-  static getSchema (_data: IExampleSchemaProcessor): ISchema.IDefinition<IExample3Definition, IExample3> {
+  static getSchemaDefinition (_data: IExampleSchemaProcessor): ISchema.ISchemaDefinition<IExample3Definition, IExample3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -78,7 +74,7 @@ export class Example extends EnforcerComponent implements IExample3 {
       }
     }
 
-    const result: ISchema.IDefinition<IExample3Definition, IExample3> = {
+    const result: ISchema.ISchemaDefinition<IExample3Definition, IExample3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -99,6 +95,38 @@ export class Example extends EnforcerComponent implements IExample3 {
 
   static validate (definition: IExample3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get summary (): string | undefined {
+    return this.getProperty('summary')
+  }
+
+  set summary (value: string | undefined) {
+    this.setProperty('summary', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get value (): any | undefined {
+    return this.getProperty('value')
+  }
+
+  set value (value: any | undefined) {
+    this.setProperty('value', value)
+  }
+
+  get externalValue (): string | undefined {
+    return this.getProperty('externalValue')
+  }
+
+  set externalValue (value: string | undefined) {
+    this.setProperty('externalValue', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ISecuritySchemeSchemaProcessor } from '../IInternalTypes'
 import {
   IOAuthFlows3,
@@ -27,18 +27,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<ISecurityScheme3Definition, ISecurityScheme3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<ISecurityScheme3Definition, ISecurityScheme3> | null = null
 
-export class SecurityScheme extends EnforcerComponent implements ISecurityScheme3 {
-  [extension: `x-${string}`]: any
-  type?: 'apiKey'|'http'|'oauth2'|'openIdConnect'
-  description?: string
-  name?: string
-  in?: 'query'|'header'|'cookie'
-  scheme?: string
-  bearerFormat?: string
-  flows?: IOAuthFlows3
-  openIdConnectUrl?: string
+export class SecurityScheme extends EnforcerComponent<ISecurityScheme3Definition, ISecurityScheme3> implements ISecurityScheme3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: ISecurityScheme3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -52,7 +44,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-scheme-object'
   }
 
-  static getSchema (_data: ISecuritySchemeSchemaProcessor): ISchema.IDefinition<ISecurityScheme3Definition, ISecurityScheme3> {
+  static getSchemaDefinition (_data: ISecuritySchemeSchemaProcessor): ISchema.ISchemaDefinition<ISecurityScheme3Definition, ISecurityScheme3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -117,7 +109,7 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
       }
     }
 
-    const result: ISchema.IDefinition<ISecurityScheme3Definition, ISecurityScheme3> = {
+    const result: ISchema.ISchemaDefinition<ISecurityScheme3Definition, ISecurityScheme3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -142,6 +134,70 @@ export class SecurityScheme extends EnforcerComponent implements ISecurityScheme
 
   static validate (definition: ISecurityScheme3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get type (): 'apiKey'|'http'|'oauth2'|'openIdConnect' | undefined {
+    return this.getProperty('type')
+  }
+
+  set type (value: 'apiKey'|'http'|'oauth2'|'openIdConnect' | undefined) {
+    this.setProperty('type', value)
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get name (): string | undefined {
+    return this.getProperty('name')
+  }
+
+  set name (value: string | undefined) {
+    this.setProperty('name', value)
+  }
+
+  get in (): 'query'|'header'|'cookie' | undefined {
+    return this.getProperty('in')
+  }
+
+  set in (value: 'query'|'header'|'cookie' | undefined) {
+    this.setProperty('in', value)
+  }
+
+  get scheme (): string | undefined {
+    return this.getProperty('scheme')
+  }
+
+  set scheme (value: string | undefined) {
+    this.setProperty('scheme', value)
+  }
+
+  get bearerFormat (): string | undefined {
+    return this.getProperty('bearerFormat')
+  }
+
+  set bearerFormat (value: string | undefined) {
+    this.setProperty('bearerFormat', value)
+  }
+
+  get flows (): IOAuthFlows3 | undefined {
+    return this.getProperty('flows')
+  }
+
+  set flows (value: IOAuthFlows3 | undefined) {
+    this.setProperty('flows', value)
+  }
+
+  get openIdConnectUrl (): string | undefined {
+    return this.getProperty('openIdConnectUrl')
+  }
+
+  set openIdConnectUrl (value: string | undefined) {
+    this.setProperty('openIdConnectUrl', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

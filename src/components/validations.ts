@@ -1,6 +1,6 @@
 import rx from '../rx'
 import { getLocation } from '../Locator/Locator'
-import { ISchemaProcessor } from './ISchemaProcessor'
+import { ISchemaProcessor } from '../ComponentSchemaDefinition/ISchemaProcessor'
 import { smart } from '../util'
 import {
   IOperation, IOperationDefinition,

@@ -13,7 +13,7 @@
 
 import * as I from './'
 
-import { ISchemaProcessor } from './ISchemaProcessor'
+import { ISchemaProcessor } from '../ComponentSchemaDefinition/ISchemaProcessor'
 export type ICallback = I.ICallback3
 export type ICallbackDefinition = I.ICallback3Definition
 export type ICallbackSchemaProcessor = ISchemaProcessor<ICallbackDefinition, ICallback>

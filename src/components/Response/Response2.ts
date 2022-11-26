@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IResponseSchemaProcessor } from '../IInternalTypes'
 import {
   Example2,
@@ -33,14 +33,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IResponse2Definition, IResponse2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IResponse2Definition, IResponse2> | null = null
 
-export class Response extends EnforcerComponent implements IResponse2 {
-  [extension: `x-${string}`]: any
-  description!: string
-  schema?: ISchema2
-  headers?: Record<string, IHeader2>
-  examples?: IExample2
+export class Response extends EnforcerComponent<IResponse2Definition, IResponse2> implements IResponse2 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IResponse2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -54,7 +50,7 @@ export class Response extends EnforcerComponent implements IResponse2 {
     '3.0.3': true
   }
 
-  static getSchema (_data: IResponseSchemaProcessor): ISchema.IDefinition<IResponse2Definition, IResponse2> {
+  static getSchemaDefinition (_data: IResponseSchemaProcessor): ISchema.ISchemaDefinition<IResponse2Definition, IResponse2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -97,7 +93,7 @@ export class Response extends EnforcerComponent implements IResponse2 {
       }
     }
 
-    const result: ISchema.IDefinition<IResponse2Definition, IResponse2> = {
+    const result: ISchema.ISchemaDefinition<IResponse2Definition, IResponse2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -118,6 +114,38 @@ export class Response extends EnforcerComponent implements IResponse2 {
 
   static validate (definition: IResponse2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get description (): string {
+    return this.getProperty('description')
+  }
+
+  set description (value: string) {
+    this.setProperty('description', value)
+  }
+
+  get schema (): ISchema2 | undefined {
+    return this.getProperty('schema')
+  }
+
+  set schema (value: ISchema2 | undefined) {
+    this.setProperty('schema', value)
+  }
+
+  get headers (): Record<string, IHeader2> | undefined {
+    return this.getProperty('headers')
+  }
+
+  set headers (value: Record<string, IHeader2> | undefined) {
+    this.setProperty('headers', value)
+  }
+
+  get examples (): IExample2 | undefined {
+    return this.getProperty('examples')
+  }
+
+  set examples (value: IExample2 | undefined) {
+    this.setProperty('examples', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

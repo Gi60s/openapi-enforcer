@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IExternalDocumentationSchemaProcessor } from '../IInternalTypes'
 import {
   IExternalDocumentation2,
@@ -24,12 +24,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> | null = null
 
-export class ExternalDocumentation extends EnforcerComponent implements IExternalDocumentation2 {
-  [extension: `x-${string}`]: any
-  description?: string
-  url!: string
+export class ExternalDocumentation extends EnforcerComponent<IExternalDocumentation2Definition, IExternalDocumentation2> implements IExternalDocumentation2 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IExternalDocumentation2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -43,7 +41,7 @@ export class ExternalDocumentation extends EnforcerComponent implements IExterna
     '3.0.3': true
   }
 
-  static getSchema (_data: IExternalDocumentationSchemaProcessor): ISchema.IDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> {
+  static getSchemaDefinition (_data: IExternalDocumentationSchemaProcessor): ISchema.ISchemaDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -63,7 +61,7 @@ export class ExternalDocumentation extends EnforcerComponent implements IExterna
       }
     }
 
-    const result: ISchema.IDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> = {
+    const result: ISchema.ISchemaDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -82,6 +80,22 @@ export class ExternalDocumentation extends EnforcerComponent implements IExterna
 
   static validate (definition: IExternalDocumentation2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get url (): string {
+    return this.getProperty('url')
+  }
+
+  set url (value: string) {
+    this.setProperty('url', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -16,6 +16,12 @@ import { IComponentInstance } from '../IComponent'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IContactComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IContact2Definition {
   [extension: `x-${string}`]: any
   name?: string
@@ -23,7 +29,7 @@ export interface IContact2Definition {
   email?: string
 }
 
-export interface IContact2 extends IComponentInstance {
+export interface IContact2 extends IContactComponent {
   [extension: `x-${string}`]: any
   name?: string
   url?: string
@@ -37,7 +43,7 @@ export interface IContact3Definition {
   email?: string
 }
 
-export interface IContact3 extends IComponentInstance {
+export interface IContact3 extends IContactComponent {
   [extension: `x-${string}`]: any
   name?: string
   url?: string

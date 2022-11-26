@@ -36,6 +36,12 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface ISwaggerComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+// Put your code here.
+// <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface ISwagger2Definition {
   [extension: `x-${string}`]: any
   swagger: '2.0'
@@ -55,7 +61,7 @@ export interface ISwagger2Definition {
   externalDocs?: IExternalDocumentation2Definition
 }
 
-export interface ISwagger2 extends IComponentInstance {
+export interface ISwagger2 extends ISwaggerComponent {
   [extension: `x-${string}`]: any
   swagger: '2.0'
   info: IInfo2

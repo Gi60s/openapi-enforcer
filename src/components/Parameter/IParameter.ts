@@ -28,6 +28,12 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IParameterComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IParameter2Definition {
   [extension: `x-${string}`]: any
   name: string
@@ -55,7 +61,7 @@ export interface IParameter2Definition {
   multipleOf?: number
 }
 
-export interface IParameter2 extends IComponentInstance {
+export interface IParameter2 extends IParameterComponent {
   [extension: `x-${string}`]: any
   name: string
   in: 'body'|'formData'|'header'|'path'|'query'
@@ -99,7 +105,7 @@ export interface IParameter3Definition {
   content?: Record<string, IMediaType3Definition>
 }
 
-export interface IParameter3 extends IComponentInstance {
+export interface IParameter3 extends IParameterComponent {
   [extension: `x-${string}`]: any
   name: string
   in: 'cookie'|'header'|'path'|'query'

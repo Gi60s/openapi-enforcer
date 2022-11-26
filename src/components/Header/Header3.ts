@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IHeaderSchemaProcessor } from '../IInternalTypes'
 import {
   Example3,
@@ -33,21 +33,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IHeader3Definition, IHeader3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IHeader3Definition, IHeader3> | null = null
 
-export class Header extends EnforcerComponent implements IHeader3 {
-  [extension: `x-${string}`]: any
-  description?: string
-  required?: boolean
-  deprecated?: boolean
-  allowEmptyValue?: boolean
-  style?: 'simple'
-  explode?: boolean
-  allowReserved?: boolean
-  schema?: ISchema3
-  example?: any
-  examples?: Record<string, IExample3>
-  content?: Record<string, IMediaType3>
+export class Header extends EnforcerComponent<IHeader3Definition, IHeader3> implements IHeader3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IHeader3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -61,7 +50,7 @@ export class Header extends EnforcerComponent implements IHeader3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#header-object'
   }
 
-  static getSchema (_data: IHeaderSchemaProcessor): ISchema.IDefinition<IHeader3Definition, IHeader3> {
+  static getSchemaDefinition (_data: IHeaderSchemaProcessor): ISchema.ISchemaDefinition<IHeader3Definition, IHeader3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -156,7 +145,7 @@ export class Header extends EnforcerComponent implements IHeader3 {
       }
     }
 
-    const result: ISchema.IDefinition<IHeader3Definition, IHeader3> = {
+    const result: ISchema.ISchemaDefinition<IHeader3Definition, IHeader3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -184,6 +173,94 @@ export class Header extends EnforcerComponent implements IHeader3 {
 
   static validate (definition: IHeader3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get description (): string | undefined {
+    return this.getProperty('description')
+  }
+
+  set description (value: string | undefined) {
+    this.setProperty('description', value)
+  }
+
+  get required (): boolean | undefined {
+    return this.getProperty('required')
+  }
+
+  set required (value: boolean | undefined) {
+    this.setProperty('required', value)
+  }
+
+  get deprecated (): boolean | undefined {
+    return this.getProperty('deprecated')
+  }
+
+  set deprecated (value: boolean | undefined) {
+    this.setProperty('deprecated', value)
+  }
+
+  get allowEmptyValue (): boolean | undefined {
+    return this.getProperty('allowEmptyValue')
+  }
+
+  set allowEmptyValue (value: boolean | undefined) {
+    this.setProperty('allowEmptyValue', value)
+  }
+
+  get style (): 'simple' | undefined {
+    return this.getProperty('style')
+  }
+
+  set style (value: 'simple' | undefined) {
+    this.setProperty('style', value)
+  }
+
+  get explode (): boolean | undefined {
+    return this.getProperty('explode')
+  }
+
+  set explode (value: boolean | undefined) {
+    this.setProperty('explode', value)
+  }
+
+  get allowReserved (): boolean | undefined {
+    return this.getProperty('allowReserved')
+  }
+
+  set allowReserved (value: boolean | undefined) {
+    this.setProperty('allowReserved', value)
+  }
+
+  get schema (): ISchema3 | undefined {
+    return this.getProperty('schema')
+  }
+
+  set schema (value: ISchema3 | undefined) {
+    this.setProperty('schema', value)
+  }
+
+  get example (): any | undefined {
+    return this.getProperty('example')
+  }
+
+  set example (value: any | undefined) {
+    this.setProperty('example', value)
+  }
+
+  get examples (): Record<string, IExample3> | undefined {
+    return this.getProperty('examples')
+  }
+
+  set examples (value: Record<string, IExample3> | undefined) {
+    this.setProperty('examples', value)
+  }
+
+  get content (): Record<string, IMediaType3> | undefined {
+    return this.getProperty('content')
+  }
+
+  set content (value: Record<string, IMediaType3> | undefined) {
+    this.setProperty('content', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

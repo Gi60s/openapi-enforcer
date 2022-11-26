@@ -1,4 +1,4 @@
-import { ISchemaProcessor } from '../ISchemaProcessor'
+import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
 import { parametersAreUnique, parametersNotInPath } from '../validations'
 import {
   IOperation, IOperationDefinition,

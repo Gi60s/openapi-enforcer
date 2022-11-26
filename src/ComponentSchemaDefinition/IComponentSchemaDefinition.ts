@@ -1,4 +1,3 @@
-import { IComponentClass } from './IComponent'
 import { ISchemaProcessor } from './ISchemaProcessor'
 
 export interface IAny extends Base<any> {
@@ -33,11 +32,11 @@ export interface IBoolean extends Base<boolean> {
 export interface IComponent<Definition, Built> extends Base<Definition | Built> {
   type: 'component'
   allowsRef: boolean
-  component: IComponentClass<Definition, Built>
+  component: any // IComponentClass<Definition, Built>
 }
 
 // this interface is used only by component's getSchema() method which returns it
-export interface IDefinition<Definition, Built> extends IObject {
+export interface ISchemaDefinition<Definition, Built> extends IObject {
   allowsSchemaExtensions: boolean
   after?: (data: ISchemaProcessor<Definition, Built>, mode: 'build' | 'validate') => void // runs after build or validate functions
   build?: (data: ISchemaProcessor<Definition, Built>) => void

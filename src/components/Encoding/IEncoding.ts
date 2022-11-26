@@ -20,6 +20,12 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IEncodingComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+// Put your code here.
+// <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IEncoding3Definition {
   [extension: `x-${string}`]: any
   contentType?: string
@@ -29,7 +35,7 @@ export interface IEncoding3Definition {
   allowReserved?: boolean
 }
 
-export interface IEncoding3 extends IComponentInstance {
+export interface IEncoding3 extends IEncodingComponent {
   [extension: `x-${string}`]: any
   contentType?: string
   headers?: Record<string, IHeader3>

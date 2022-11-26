@@ -16,11 +16,17 @@ import { IComponentInstance } from '../IComponent'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IReferenceComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface IReference2Definition {
   $ref: string
 }
 
-export interface IReference2 extends IComponentInstance {
+export interface IReference2 extends IReferenceComponent {
   $ref: string
 }
 
@@ -28,7 +34,7 @@ export interface IReference3Definition {
   $ref: string
 }
 
-export interface IReference3 extends IComponentInstance {
+export interface IReference3 extends IReferenceComponent {
   $ref: string
 }
 

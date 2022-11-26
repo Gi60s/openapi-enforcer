@@ -1,20 +1,23 @@
 import { IExceptionLevel } from '../Exception/IException'
 import { ExceptionStore } from '../Exception/ExceptionStore'
-import { IComponentSchemaObject } from './IComponentSchema'
-import { ISchemaProcessor } from './ISchemaProcessor'
+// import { ISchemaProcessor } from './ISchemaProcessor'
+// import { IDefinition } from './IComponentSchema'
 export { IExceptionLevel } from '../Exception/IException'
 export { ExceptionStore } from '../Exception/ExceptionStore'
-export { IComponentSchemaObject } from './IComponentSchema'
 
-export interface IComponentClass<Definition, ComponentInstance> {
-  new (definition: Definition, version?: IVersion, data?: ISchemaProcessor): ComponentInstance
-  getSchema: (data: ISchemaProcessor) => IComponentSchemaObject
-  spec: IComponentSpec
-  validate: (definition: any, version?: IVersion, data?: ISchemaProcessor) => ExceptionStore
-}
+// export interface IComponentClass<Definition, ComponentInstance> {
+//   new (definition: Definition, version?: IVersion, data?: ISchemaProcessor): ComponentInstance
+//   getSchema: (data: ISchemaProcessor<Definition, ComponentInstance>) => IDefinition<Definition, ComponentInstance>
+//   spec: IComponentSpec
+//   validate: (definition: any, version?: IVersion, data?: ISchemaProcessor<Definition, ComponentInstance>) => ExceptionStore
+// }
 
+// This is the base component interface. All other component interfaces inherit from this.
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IComponentInstance {
-  [extension: `x${string}`]: any
+  cached: <T>(id: string, callback: (...p: any[]) => T, ...params: any[]) => T
+  clearCache: (id: string) => void
+  watchProperty: <T>(key: string, handler: (newValue: T, oldValue: T) => void) => void
 }
 
 // if an openapi extension of x-enforcer is found then the value will have this interface

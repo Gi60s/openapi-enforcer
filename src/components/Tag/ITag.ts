@@ -22,6 +22,12 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface ITagComponent extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
 export interface ITag2Definition {
   [extension: `x-${string}`]: any
   name: string
@@ -29,7 +35,7 @@ export interface ITag2Definition {
   externalDocs?: IExternalDocumentation2Definition
 }
 
-export interface ITag2 extends IComponentInstance {
+export interface ITag2 extends ITagComponent {
   [extension: `x-${string}`]: any
   name: string
   description?: string
@@ -43,7 +49,7 @@ export interface ITag3Definition {
   externalDocs?: IExternalDocumentation3Definition
 }
 
-export interface ITag3 extends IComponentInstance {
+export interface ITag3 extends ITagComponent {
   [extension: `x-${string}`]: any
   name: string
   description?: string

@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../IComponentSchema'
+import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IEncodingSchemaProcessor } from '../IInternalTypes'
 import {
   Header3,
@@ -27,15 +27,10 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.IDefinition<IEncoding3Definition, IEncoding3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<IEncoding3Definition, IEncoding3> | null = null
 
-export class Encoding extends EnforcerComponent implements IEncoding3 {
-  [extension: `x-${string}`]: any
-  contentType?: string
-  headers?: Record<string, IHeader3>
-  style?: string
-  explode?: boolean
-  allowReserved?: boolean
+export class Encoding extends EnforcerComponent<IEncoding3Definition, IEncoding3> implements IEncoding3 {
+  [extension: `x${string}`]: any
 
   constructor (definition: IEncoding3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -49,7 +44,7 @@ export class Encoding extends EnforcerComponent implements IEncoding3 {
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#encoding-object'
   }
 
-  static getSchema (_data: IEncodingSchemaProcessor): ISchema.IDefinition<IEncoding3Definition, IEncoding3> {
+  static getSchemaDefinition (_data: IEncodingSchemaProcessor): ISchema.ISchemaDefinition<IEncoding3Definition, IEncoding3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
@@ -94,7 +89,7 @@ export class Encoding extends EnforcerComponent implements IEncoding3 {
       }
     }
 
-    const result: ISchema.IDefinition<IEncoding3Definition, IEncoding3> = {
+    const result: ISchema.ISchemaDefinition<IEncoding3Definition, IEncoding3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -116,6 +111,46 @@ export class Encoding extends EnforcerComponent implements IEncoding3 {
 
   static validate (definition: IEncoding3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  get contentType (): string | undefined {
+    return this.getProperty('contentType')
+  }
+
+  set contentType (value: string | undefined) {
+    this.setProperty('contentType', value)
+  }
+
+  get headers (): Record<string, IHeader3> | undefined {
+    return this.getProperty('headers')
+  }
+
+  set headers (value: Record<string, IHeader3> | undefined) {
+    this.setProperty('headers', value)
+  }
+
+  get style (): string | undefined {
+    return this.getProperty('style')
+  }
+
+  set style (value: string | undefined) {
+    this.setProperty('style', value)
+  }
+
+  get explode (): boolean | undefined {
+    return this.getProperty('explode')
+  }
+
+  set explode (value: boolean | undefined) {
+    this.setProperty('explode', value)
+  }
+
+  get allowReserved (): boolean | undefined {
+    return this.getProperty('allowReserved')
+  }
+
+  set allowReserved (value: boolean | undefined) {
+    this.setProperty('allowReserved', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
