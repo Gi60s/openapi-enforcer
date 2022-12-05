@@ -4786,6 +4786,20 @@ describe('definition/schema', () => {
 
         });
 
+        describe('not', () => {
+            it('not valid', () => {
+                const [ schema ] = Enforcer.v3_0.Schema({not: {type: 'string' }});
+                const errors = schema.validate('abc');
+                expect(errors).to.match(/Value should not validate against schema/i);
+            });
+
+            it('valid', () => {
+                const [ schema ] = Enforcer.v3_0.Schema({not: {type: 'string' }});
+                const errors = schema.validate(true);
+                expect(errors).to.be.undefined;
+            });
+        });
+
     });
 
     describe('hooks', function () {
