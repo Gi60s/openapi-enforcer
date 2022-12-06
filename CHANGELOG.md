@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.22.2
+
+### Fixed
+
+- **Fix Validation of `not` Sub Schema**
+
+  Any time a schema had the property `not`, it was not validating correctly.
+  This code for this fix, including tests, is thanks to 
+  [gaetano-guerriero](https://github.com/gaetano-guerriero).
+
 ## 1.22.1
 
 ### Fixed
