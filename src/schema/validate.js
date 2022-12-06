@@ -125,7 +125,7 @@ function runValidate(exception, map, schema, originalValue, options) {
 
     } else if (schema.not) {
         const child = Exception('');
-        runValidate(child, map, schema, value, options);
+        runValidate(child, map, schema.not, value, options);
         if (!child.hasException) {
             exception.message('Value should not validate against schema');
         }
