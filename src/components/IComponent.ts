@@ -1,22 +1,24 @@
 import { IExceptionLevel } from '../Exception/IException'
 import { ExceptionStore } from '../Exception/ExceptionStore'
-// import { ISchemaProcessor } from './ISchemaProcessor'
-// import { IDefinition } from './IComponentSchema'
+import { ISchemaProcessor } from '../ComponentSchemaDefinition/ISchemaProcessor'
+import { ISchemaDefinition } from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
 export { IExceptionLevel } from '../Exception/IException'
 export { ExceptionStore } from '../Exception/ExceptionStore'
 
-// export interface IComponentClass<Definition, ComponentInstance> {
-//   new (definition: Definition, version?: IVersion, data?: ISchemaProcessor): ComponentInstance
-//   getSchema: (data: ISchemaProcessor<Definition, ComponentInstance>) => IDefinition<Definition, ComponentInstance>
-//   spec: IComponentSpec
-//   validate: (definition: any, version?: IVersion, data?: ISchemaProcessor<Definition, ComponentInstance>) => ExceptionStore
-// }
+export interface IComponentClass<Definition, Built> {
+  new (definition: Definition, version?: IVersion, data?: ISchemaProcessor): Built
+  getSchemaDefinition: (data: ISchemaProcessor<Definition, Built>) => ISchemaDefinition<Definition, Built>
+  spec: IComponentSpec
+  validate: (definition: any, version?: IVersion, data?: ISchemaProcessor<Definition, Built>) => ExceptionStore
+}
 
 // This is the base component interface. All other component interfaces inherit from this.
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IComponentInstance {
   cached: <T>(id: string, callback: (...p: any[]) => T, ...params: any[]) => T
   clearCache: (id: string) => void
+  hookGetProperty: <T>(key: string, callback: (value: T) => T) => void
+  hookSetProperty: <T>(key: string, callback: (newValue: T, oldValue: T) => T) => void
   watchProperty: <T>(key: string, handler: (newValue: T, oldValue: T) => void) => void
 }
 

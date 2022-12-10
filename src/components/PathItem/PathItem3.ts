@@ -35,12 +35,137 @@ import { after } from './common'
 
 let cachedSchema: ISchema.ISchemaDefinition<IPathItem3Definition, IPathItem3> | null = null
 
+interface IValidatorsMap {
+  $ref: ISchema.IProperty<ISchema.IString>
+  summary: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+  get: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
+  put: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
+  post: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
+  _delete: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
+  options: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
+  head: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
+  patch: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
+  trace: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
+  servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>>
+  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter3Definition, IParameter3>>>
+}
+
+const validators: IValidatorsMap = {
+  $ref: {
+    name: '$ref',
+    schema: {
+      type: 'string'
+    }
+  },
+  summary: {
+    name: 'summary',
+    schema: {
+      type: 'string'
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  get: {
+    name: 'get',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation3
+    }
+  },
+  put: {
+    name: 'put',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation3
+    }
+  },
+  post: {
+    name: 'post',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation3
+    }
+  },
+  _delete: {
+    name: 'delete',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation3
+    }
+  },
+  options: {
+    name: 'options',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation3
+    }
+  },
+  head: {
+    name: 'head',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation3
+    }
+  },
+  patch: {
+    name: 'patch',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation3
+    }
+  },
+  trace: {
+    name: 'trace',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation3
+    }
+  },
+  servers: {
+    name: 'servers',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: false,
+        component: Server3
+      }
+    }
+  },
+  parameters: {
+    name: 'parameters',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: true,
+        component: Parameter3
+      }
+    }
+  }
+}
+
 export class PathItem extends EnforcerComponent<IPathItem3Definition, IPathItem3> implements IPathItem3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IPathItem3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'PATH_ITEM3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -55,140 +180,23 @@ export class PathItem extends EnforcerComponent<IPathItem3Definition, IPathItem3
       return cachedSchema
     }
 
-    const $ref: ISchema.IProperty<ISchema.IString> = {
-      name: '$ref',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const summary: ISchema.IProperty<ISchema.IString> = {
-      name: 'summary',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const get: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>> = {
-      name: 'get',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation3
-      }
-    }
-
-    const put: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>> = {
-      name: 'put',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation3
-      }
-    }
-
-    const post: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>> = {
-      name: 'post',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation3
-      }
-    }
-
-    const _delete: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>> = {
-      name: 'delete',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation3
-      }
-    }
-
-    const options: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>> = {
-      name: 'options',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation3
-      }
-    }
-
-    const head: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>> = {
-      name: 'head',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation3
-      }
-    }
-
-    const patch: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>> = {
-      name: 'patch',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation3
-      }
-    }
-
-    const trace: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>> = {
-      name: 'trace',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation3
-      }
-    }
-
-    const servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>> = {
-      name: 'servers',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: false,
-          component: Server3
-        }
-      }
-    }
-
-    const parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter3Definition, IParameter3>>> = {
-      name: 'parameters',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: true,
-          component: Parameter3
-        }
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IPathItem3Definition, IPathItem3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        $ref,
-        summary,
-        description,
-        get,
-        put,
-        post,
-        _delete,
-        options,
-        head,
-        patch,
-        trace,
-        servers,
-        parameters
+        validators.$ref,
+        validators.summary,
+        validators.description,
+        validators.get,
+        validators.put,
+        validators.post,
+        validators._delete,
+        validators.options,
+        validators.head,
+        validators.patch,
+        validators.trace,
+        validators.servers,
+        validators.parameters
       ]
     }
 

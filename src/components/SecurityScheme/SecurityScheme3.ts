@@ -29,12 +29,80 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<ISecurityScheme3Definition, ISecurityScheme3> | null = null
 
+interface IValidatorsMap {
+  type: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+  name: ISchema.IProperty<ISchema.IString>
+  _in: ISchema.IProperty<ISchema.IString>
+  scheme: ISchema.IProperty<ISchema.IString>
+  bearerFormat: ISchema.IProperty<ISchema.IString>
+  flows: ISchema.IProperty<ISchema.IComponent<IOAuthFlows3Definition, IOAuthFlows3>>
+  openIdConnectUrl: ISchema.IProperty<ISchema.IString>
+}
+
+const validators: IValidatorsMap = {
+  type: {
+    name: 'type',
+    schema: {
+      type: 'string',
+      enum: ['apiKey', 'http', 'oauth2', 'openIdConnect']
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  name: {
+    name: 'name',
+    schema: {
+      type: 'string'
+    }
+  },
+  _in: {
+    name: 'in',
+    schema: {
+      type: 'string',
+      enum: ['query', 'header', 'cookie']
+    }
+  },
+  scheme: {
+    name: 'scheme',
+    schema: {
+      type: 'string'
+    }
+  },
+  bearerFormat: {
+    name: 'bearerFormat',
+    schema: {
+      type: 'string'
+    }
+  },
+  flows: {
+    name: 'flows',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: OAuthFlows3
+    }
+  },
+  openIdConnectUrl: {
+    name: 'openIdConnectUrl',
+    schema: {
+      type: 'string'
+    }
+  }
+}
+
 export class SecurityScheme extends EnforcerComponent<ISecurityScheme3Definition, ISecurityScheme3> implements ISecurityScheme3 {
   [extension: `x${string}`]: any
 
   constructor (definition: ISecurityScheme3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'SECURITY_SCHEME3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -49,78 +117,18 @@ export class SecurityScheme extends EnforcerComponent<ISecurityScheme3Definition
       return cachedSchema
     }
 
-    const type: ISchema.IProperty<ISchema.IString> = {
-      name: 'type',
-      schema: {
-        type: 'string',
-        enum: ['apiKey', 'http', 'oauth2', 'openIdConnect']
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const name: ISchema.IProperty<ISchema.IString> = {
-      name: 'name',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const _in: ISchema.IProperty<ISchema.IString> = {
-      name: 'in',
-      schema: {
-        type: 'string',
-        enum: ['query', 'header', 'cookie']
-      }
-    }
-
-    const scheme: ISchema.IProperty<ISchema.IString> = {
-      name: 'scheme',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const bearerFormat: ISchema.IProperty<ISchema.IString> = {
-      name: 'bearerFormat',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const flows: ISchema.IProperty<ISchema.IComponent<IOAuthFlows3Definition, IOAuthFlows3>> = {
-      name: 'flows',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: OAuthFlows3
-      }
-    }
-
-    const openIdConnectUrl: ISchema.IProperty<ISchema.IString> = {
-      name: 'openIdConnectUrl',
-      schema: {
-        type: 'string'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<ISecurityScheme3Definition, ISecurityScheme3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        type,
-        description,
-        name,
-        _in,
-        scheme,
-        bearerFormat,
-        flows,
-        openIdConnectUrl
+        validators.type,
+        validators.description,
+        validators.name,
+        validators._in,
+        validators.scheme,
+        validators.bearerFormat,
+        validators.flows,
+        validators.openIdConnectUrl
       ]
     }
 

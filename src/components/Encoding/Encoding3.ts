@@ -29,12 +29,60 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IEncoding3Definition, IEncoding3> | null = null
 
+interface IValidatorsMap {
+  contentType: ISchema.IProperty<ISchema.IString>
+  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader3Definition, IHeader3>>>
+  style: ISchema.IProperty<ISchema.IString>
+  explode: ISchema.IProperty<ISchema.IBoolean>
+  allowReserved: ISchema.IProperty<ISchema.IBoolean>
+}
+
+const validators: IValidatorsMap = {
+  contentType: {
+    name: 'contentType',
+    schema: {
+      type: 'string'
+    }
+  },
+  headers: {
+    name: 'headers',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Header3
+      }
+    }
+  },
+  style: {
+    name: 'style',
+    schema: {
+      type: 'string'
+    }
+  },
+  explode: {
+    name: 'explode',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  allowReserved: {
+    name: 'allowReserved',
+    schema: {
+      type: 'boolean'
+    }
+  }
+}
+
 export class Encoding extends EnforcerComponent<IEncoding3Definition, IEncoding3> implements IEncoding3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IEncoding3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'ENCODING3'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -49,55 +97,15 @@ export class Encoding extends EnforcerComponent<IEncoding3Definition, IEncoding3
       return cachedSchema
     }
 
-    const contentType: ISchema.IProperty<ISchema.IString> = {
-      name: 'contentType',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader3Definition, IHeader3>>> = {
-      name: 'headers',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Header3
-        }
-      }
-    }
-
-    const style: ISchema.IProperty<ISchema.IString> = {
-      name: 'style',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const explode: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'explode',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const allowReserved: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'allowReserved',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IEncoding3Definition, IEncoding3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        contentType,
-        headers,
-        style,
-        explode,
-        allowReserved
+        validators.contentType,
+        validators.headers,
+        validators.style,
+        validators.explode,
+        validators.allowReserved
       ]
     }
 

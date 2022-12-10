@@ -53,12 +53,175 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<ISwagger2Definition, ISwagger2> | null = null
 
+interface IValidatorsMap {
+  swagger: ISchema.IProperty<ISchema.IString>
+  info: ISchema.IProperty<ISchema.IComponent<IInfo2Definition, IInfo2>>
+  host: ISchema.IProperty<ISchema.IString>
+  basePath: ISchema.IProperty<ISchema.IString>
+  schemes: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
+  consumes: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
+  produces: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
+  paths: ISchema.IProperty<ISchema.IComponent<IPaths2Definition, IPaths2>>
+  definitions: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISchema2Definition, ISchema2>>>
+  parameters: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IParameter2Definition, IParameter2>>>
+  responses: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IResponse2Definition, IResponse2>>>
+  securityDefinitions: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISecurityScheme2Definition, ISecurityScheme2>>>
+  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement2Definition, ISecurityRequirement2>>>
+  tags: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ITag2Definition, ITag2>>>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation2Definition, IExternalDocumentation2>>
+}
+
+const validators: IValidatorsMap = {
+  swagger: {
+    name: 'swagger',
+    required: true,
+    schema: {
+      type: 'string',
+      enum: ['2.0']
+    }
+  },
+  info: {
+    name: 'info',
+    required: true,
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Info2
+    }
+  },
+  host: {
+    name: 'host',
+    schema: {
+      type: 'string'
+    }
+  },
+  basePath: {
+    name: 'basePath',
+    schema: {
+      type: 'string'
+    }
+  },
+  schemes: {
+    name: 'schemes',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string',
+        enum: ['http', 'https', 'ws', 'wss']
+      }
+    }
+  },
+  consumes: {
+    name: 'consumes',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    }
+  },
+  produces: {
+    name: 'produces',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    }
+  },
+  paths: {
+    name: 'paths',
+    required: true,
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Paths2
+    }
+  },
+  definitions: {
+    name: 'definitions',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: false,
+        component: Schema2
+      }
+    }
+  },
+  parameters: {
+    name: 'parameters',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: false,
+        component: Parameter2
+      }
+    }
+  },
+  responses: {
+    name: 'responses',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: false,
+        component: Response2
+      }
+    }
+  },
+  securityDefinitions: {
+    name: 'securityDefinitions',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: false,
+        component: SecurityScheme2
+      }
+    }
+  },
+  security: {
+    name: 'security',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: false,
+        component: SecurityRequirement2
+      }
+    }
+  },
+  tags: {
+    name: 'tags',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: false,
+        component: Tag2
+      }
+    }
+  },
+  externalDocs: {
+    name: 'externalDocs',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: ExternalDocumentation2
+    }
+  }
+}
+
 export class Swagger extends EnforcerComponent<ISwagger2Definition, ISwagger2> implements ISwagger2 {
   [extension: `x${string}`]: any
 
   constructor (definition: ISwagger2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'SWAGGER2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#swagger-object',
@@ -73,180 +236,25 @@ export class Swagger extends EnforcerComponent<ISwagger2Definition, ISwagger2> i
       return cachedSchema
     }
 
-    const swagger: ISchema.IProperty<ISchema.IString> = {
-      name: 'swagger',
-      required: true,
-      schema: {
-        type: 'string',
-        enum: ['2.0']
-      }
-    }
-
-    const info: ISchema.IProperty<ISchema.IComponent<IInfo2Definition, IInfo2>> = {
-      name: 'info',
-      required: true,
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Info2
-      }
-    }
-
-    const host: ISchema.IProperty<ISchema.IString> = {
-      name: 'host',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const basePath: ISchema.IProperty<ISchema.IString> = {
-      name: 'basePath',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const schemes: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
-      name: 'schemes',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'string',
-          enum: ['http', 'https', 'ws', 'wss']
-        }
-      }
-    }
-
-    const consumes: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
-      name: 'consumes',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'string'
-        }
-      }
-    }
-
-    const produces: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
-      name: 'produces',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'string'
-        }
-      }
-    }
-
-    const paths: ISchema.IProperty<ISchema.IComponent<IPaths2Definition, IPaths2>> = {
-      name: 'paths',
-      required: true,
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Paths2
-      }
-    }
-
-    const definitions: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISchema2Definition, ISchema2>>> = {
-      name: 'definitions',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: Schema2
-        }
-      }
-    }
-
-    const parameters: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IParameter2Definition, IParameter2>>> = {
-      name: 'parameters',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: Parameter2
-        }
-      }
-    }
-
-    const responses: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IResponse2Definition, IResponse2>>> = {
-      name: 'responses',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: Response2
-        }
-      }
-    }
-
-    const securityDefinitions: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISecurityScheme2Definition, ISecurityScheme2>>> = {
-      name: 'securityDefinitions',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: SecurityScheme2
-        }
-      }
-    }
-
-    const security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement2Definition, ISecurityRequirement2>>> = {
-      name: 'security',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: false,
-          component: SecurityRequirement2
-        }
-      }
-    }
-
-    const tags: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ITag2Definition, ITag2>>> = {
-      name: 'tags',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: false,
-          component: Tag2
-        }
-      }
-    }
-
-    const externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation2Definition, IExternalDocumentation2>> = {
-      name: 'externalDocs',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: ExternalDocumentation2
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<ISwagger2Definition, ISwagger2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        swagger,
-        info,
-        host,
-        basePath,
-        schemes,
-        consumes,
-        produces,
-        paths,
-        definitions,
-        parameters,
-        responses,
-        securityDefinitions,
-        security,
-        tags,
-        externalDocs
+        validators.swagger,
+        validators.info,
+        validators.host,
+        validators.basePath,
+        validators.schemes,
+        validators.consumes,
+        validators.produces,
+        validators.paths,
+        validators.definitions,
+        validators.parameters,
+        validators.responses,
+        validators.securityDefinitions,
+        validators.security,
+        validators.tags,
+        validators.externalDocs
       ]
     }
 

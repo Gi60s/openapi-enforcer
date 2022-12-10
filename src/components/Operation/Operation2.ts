@@ -33,17 +33,136 @@ import {
   SecurityRequirement2
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-import { after, getMergedParameters } from './common'
+import { after, getMergedParameters, mergeParameters } from './common'
 import { getLocation } from '../../Locator/Locator'
 import { findAncestorComponentData } from '../common'
 import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
 import { ISwagger2Definition, ISwagger2 } from '../Swagger'
 import { ContentType } from '../../ContentType/ContentType'
-import { IResponse2 } from '../Response'
+import { IPathItem2, IPathItem2Definition } from '../PathItem/IPathItem'
+import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
 import { getExistingProcessorData } from '../../ComponentSchemaDefinition/schema-processor'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.ISchemaDefinition<IOperation2Definition, IOperation2> | null = null
+
+interface IValidatorsMap {
+  tags: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
+  summary: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation2Definition, IExternalDocumentation2>>
+  operationId: ISchema.IProperty<ISchema.IString>
+  consumes: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
+  produces: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
+  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter2Definition, IParameter2>>>
+  responses: ISchema.IProperty<ISchema.IComponent<IResponses2Definition, IResponses2>>
+  schemes: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
+  deprecated: ISchema.IProperty<ISchema.IBoolean>
+  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement2Definition, ISecurityRequirement2>>>
+}
+
+const validators: IValidatorsMap = {
+  tags: {
+    name: 'tags',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    }
+  },
+  summary: {
+    name: 'summary',
+    schema: {
+      type: 'string'
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  externalDocs: {
+    name: 'externalDocs',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: ExternalDocumentation2
+    }
+  },
+  operationId: {
+    name: 'operationId',
+    schema: {
+      type: 'string'
+    }
+  },
+  consumes: {
+    name: 'consumes',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    }
+  },
+  produces: {
+    name: 'produces',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    }
+  },
+  parameters: {
+    name: 'parameters',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: true,
+        component: Parameter2
+      }
+    }
+  },
+  responses: {
+    name: 'responses',
+    required: true,
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Responses2
+    }
+  },
+  schemes: {
+    name: 'schemes',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string',
+        enum: ['http', 'https', 'ws', 'wss']
+      }
+    }
+  },
+  deprecated: {
+    name: 'deprecated',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  security: {
+    name: 'security',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: false,
+        component: SecurityRequirement2
+      }
+    }
+  }
+}
 
 export class Operation extends EnforcerComponent<IOperation2Definition, IOperation2> implements IOperation2 {
   [extension: `x${string}`]: any
@@ -51,6 +170,8 @@ export class Operation extends EnforcerComponent<IOperation2Definition, IOperati
   constructor (definition: IOperation2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'OPERATION2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#operation-object',
@@ -65,138 +186,80 @@ export class Operation extends EnforcerComponent<IOperation2Definition, IOperati
       return cachedSchema
     }
 
-    const tags: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
-      name: 'tags',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'string'
-        }
-      }
-    }
-
-    const summary: ISchema.IProperty<ISchema.IString> = {
-      name: 'summary',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation2Definition, IExternalDocumentation2>> = {
-      name: 'externalDocs',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: ExternalDocumentation2
-      }
-    }
-
-    const operationId: ISchema.IProperty<ISchema.IString> = {
-      name: 'operationId',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const consumes: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
-      name: 'consumes',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'string'
-        }
-      }
-    }
-
-    const produces: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
-      name: 'produces',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'string'
-        }
-      }
-    }
-
-    const parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter2Definition, IParameter2>>> = {
-      name: 'parameters',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: true,
-          component: Parameter2
-        }
-      }
-    }
-
-    const responses: ISchema.IProperty<ISchema.IComponent<IResponses2Definition, IResponses2>> = {
-      name: 'responses',
-      required: true,
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Responses2
-      }
-    }
-
-    const schemes: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
-      name: 'schemes',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'string',
-          enum: ['http', 'https', 'ws', 'wss']
-        }
-      }
-    }
-
-    const deprecated: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'deprecated',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement2Definition, ISecurityRequirement2>>> = {
-      name: 'security',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: false,
-          component: SecurityRequirement2
-        }
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IOperation2Definition, IOperation2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        tags,
-        summary,
-        description,
-        externalDocs,
-        operationId,
-        consumes,
-        produces,
-        parameters,
-        responses,
-        schemes,
-        deprecated,
-        security
+        validators.tags,
+        validators.summary,
+        validators.description,
+        validators.externalDocs,
+        validators.operationId,
+        validators.consumes,
+        validators.produces,
+        validators.parameters,
+        validators.responses,
+        validators.schemes,
+        validators.deprecated,
+        validators.security
       ]
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
+    result.build = function (data) {
+      const { built } = data
+
+      built.hookGetProperty('parameters', (parameters: IParameter2[]) => {
+        const pathItem = findAncestorComponentData<IPathItem2, IPathItem2Definition>(chain, 'PathItem')
+        const pathItemParameters: IParameter2[] = pathItem?.definition.parameters ?? []
+        return mergeParameters(pathItemParameters, parameters) as IParameter2[]
+      })
+
+      built.hookGetProperty('consumes', (value) => {
+
+      })
+
+      built.hookGetProperty('produces', (value) => {
+
+      })
+
+      data.hookSetProperty('parameters', (newValue: any, oldValue: any) => {
+        const parameters = getMergedParameters(data)
+        const bodies: IParameter2Definition[] = []
+        const forms: IParameter2Definition[] = []
+        parameters.forEach(parameter => {
+          if (parameter.in === 'body') {
+            bodies.push(parameter)
+          } else if (parameter.in === 'formData') {
+            forms.push(parameter)
+          }
+        })
+
+        if (bodies.length > 1) {
+          exception.add({
+            id: id + '_BODY_NOT_UNIQUE',
+            level: 'error',
+            locations: bodies.map(parameter => getLocation(parameter)),
+            message: 'Only one body parameter allowed.',
+            metadata: { bodyParameters: parameters },
+            reference
+          })
+        }
+
+        if (bodies.length > 0 && forms.length > 0) {
+          exception.add({
+            id: id + '_BODY_FORM_DATA_CONFLICT',
+            level: 'error',
+            locations: bodies.map(parameter => getLocation(parameter))
+              .concat(forms.map(parameter => getLocation(parameter))),
+            message: 'The body parameter and formData parameter are mutually exclusive.',
+            metadata: { bodyParameters: parameters, formDataParameters: forms },
+            reference
+          })
+        }
+      })
+    }
+
     result.after = function (data, mode) {
       const { definition, exception, id, reference } = data
       after(definition, data, mode)
@@ -378,27 +441,47 @@ export class Operation extends EnforcerComponent<IOperation2Definition, IOperati
   }
 
   // <!# Custom Content Begin: BODY #!>
-  getResponsesThatCanProduceContentType (contentType: string | ContentType): Array<{ code: number | 'default', response: IResponse2 }> {
-    const data = getExistingProcessorData<IOperation2Definition, IOperation2>(this)
-    const input = [contentType]
-    const allProducesTypes = this.cached<ContentType[]>('allProduces', getAllProduces, data)
-    const result: Array<{ code: number | 'default', response: IResponse2 }> = []
-    const match = allProducesTypes.find(c => c.findMatches(input).length > 0)
-    if (match !== undefined) {
-      Object.keys(this.responses).forEach(key => {
-        if (key === 'default' || typeof key === 'number') {
-          result.push({ code: key, response: this.responses[key] as IResponse2 })
-        }
-      })
-    }
+  // getResponsesThatCanProduceContentType (contentType: string | ContentType): Array<{ code: number | 'default', response: IResponse2 }> {
+  //   const data = getExistingProcessorData<IOperation2Definition, IOperation2>(this)
+  //   const input = [contentType]
+  //   const allProducesTypes = this.cached<ContentType[]>('allProduces', getAllProduces, data)
+  //   const result: Array<{ code: number | 'default', response: IResponse2 }> = []
+  //   const match = allProducesTypes.find(c => c.findMatches(input).length > 0)
+  //   if (match !== undefined) {
+  //     Object.keys(this.responses).forEach(key => {
+  //       if (key === 'default' || typeof key === 'number') {
+  //         result.push({ code: key, response: this.responses[key] as IResponse2 })
+  //       }
+  //     })
+  //   }
+  //
+  //   return result
+  // }
 
-    return result
+  parseBody (body: string | object, options?: IOperationParseOptions): any {
+    return null
+  }
+
+  parseHeaders (headers: Record<string, string>, options?: IOperationParseOptions): Record<string, any> {
+    return {}
+  }
+
+  parsePath (path: string, options?: IOperationParseOptions): Record<string, any> {
+    return {}
+  }
+
+  parseQuery (query: string, options?: IOperationParseOptions & { allowOtherQueryParameters?: boolean }): Record<string, any> {
+    return {}
+  }
+
+  parseRequest (request: IOperationParseRequest, options?: IOperationParseOptions & { allowOtherQueryParameters?: boolean }): IOperationParseRequestResponse {
+    return {}
   }
 
   willAcceptContentType (contentType: string | ContentType): boolean {
     const data = getExistingProcessorData<IOperation2Definition, IOperation2>(this)
     const input = [contentType]
-    return cached<ContentType[]>('allConsumes', this, getAllConsumes, data)
+    return this.cached<ContentType[]>('allConsumes', getAllConsumes, data)
       .find(c => c.findMatches(input).length > 0) !== undefined
   }
   // <!# Custom Content End: BODY #!>

@@ -29,6 +29,27 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IResponses2Definition, IResponses2> | null = null
 
+interface IValidatorsMap {
+  _default: ISchema.IProperty<ISchema.IComponent<IResponse2Definition, IResponse2>>
+}
+
+const validators: IValidatorsMap = {
+  _default: {
+    name: 'default',
+    schema: {
+      type: 'component',
+      allowsRef: true,
+      component: Response2
+    }
+  }
+}
+
+const additionalProperties: ISchema.IComponent<IResponse2Definition, IResponse2> = {
+  type: 'component',
+  allowsRef: true,
+  component: Response2
+}
+
 export class Responses extends EnforcerComponent<IResponses2Definition, IResponses2> implements IResponses2 {
   [extension: `x${string}`]: any
   [key: number]: IResponse2
@@ -36,6 +57,8 @@ export class Responses extends EnforcerComponent<IResponses2Definition, IRespons
   constructor (definition: IResponses2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'RESPONSES2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#responses-object',
@@ -50,27 +73,12 @@ export class Responses extends EnforcerComponent<IResponses2Definition, IRespons
       return cachedSchema
     }
 
-    const additionalProperties: ISchema.IComponent<IResponse2Definition, IResponse2> = {
-      type: 'component',
-      allowsRef: true,
-      component: Response2
-    }
-
-    const _default: ISchema.IProperty<ISchema.IComponent<IResponse2Definition, IResponse2>> = {
-      name: 'default',
-      schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Response2
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IResponses2Definition, IResponses2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties,
       properties: [
-        _default
+        validators._default
       ]
     }
 

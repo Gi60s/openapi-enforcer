@@ -29,12 +29,56 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IOAuthFlows3Definition, IOAuthFlows3> | null = null
 
+interface IValidatorsMap {
+  implicit: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>>
+  password: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>>
+  clientCredentials: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>>
+  authorizationCode: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>>
+}
+
+const validators: IValidatorsMap = {
+  implicit: {
+    name: 'implicit',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: OAuthFlow3
+    }
+  },
+  password: {
+    name: 'password',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: OAuthFlow3
+    }
+  },
+  clientCredentials: {
+    name: 'clientCredentials',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: OAuthFlow3
+    }
+  },
+  authorizationCode: {
+    name: 'authorizationCode',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: OAuthFlow3
+    }
+  }
+}
+
 export class OAuthFlows extends EnforcerComponent<IOAuthFlows3Definition, IOAuthFlows3> implements IOAuthFlows3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IOAuthFlows3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'OAUTH_FLOWS3'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -49,50 +93,14 @@ export class OAuthFlows extends EnforcerComponent<IOAuthFlows3Definition, IOAuth
       return cachedSchema
     }
 
-    const implicit: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>> = {
-      name: 'implicit',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: OAuthFlow3
-      }
-    }
-
-    const password: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>> = {
-      name: 'password',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: OAuthFlow3
-      }
-    }
-
-    const clientCredentials: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>> = {
-      name: 'clientCredentials',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: OAuthFlow3
-      }
-    }
-
-    const authorizationCode: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>> = {
-      name: 'authorizationCode',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: OAuthFlow3
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IOAuthFlows3Definition, IOAuthFlows3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        implicit,
-        password,
-        clientCredentials,
-        authorizationCode
+        validators.implicit,
+        validators.password,
+        validators.clientCredentials,
+        validators.authorizationCode
       ]
     }
 

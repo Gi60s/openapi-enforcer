@@ -47,10 +47,132 @@ import { getExistingProcessorData } from '../../ComponentSchemaDefinition/schema
 import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
 import { findAncestorComponentData } from '../common'
 import { IOpenAPI3, IOpenAPI3Definition } from '../OpenAPI'
+import { IResponse3Definition, IResponse3 } from '../Response'
+import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
 import { after } from './common'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.ISchemaDefinition<IOperation3Definition, IOperation3> | null = null
+
+interface IValidatorsMap {
+  tags: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
+  summary: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation3Definition, IExternalDocumentation3>>
+  operationId: ISchema.IProperty<ISchema.IString>
+  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter3Definition, IParameter3>>>
+  requestBody: ISchema.IProperty<ISchema.IComponent<IRequestBody3Definition, IRequestBody3>>
+  responses: ISchema.IProperty<ISchema.IComponent<IResponses3Definition, IResponses3>>
+  callbacks: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ICallback3Definition, ICallback3>>>
+  deprecated: ISchema.IProperty<ISchema.IBoolean>
+  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement3Definition, ISecurityRequirement3>>>
+  servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>>
+}
+
+const validators: IValidatorsMap = {
+  tags: {
+    name: 'tags',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    }
+  },
+  summary: {
+    name: 'summary',
+    schema: {
+      type: 'string'
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  externalDocs: {
+    name: 'externalDocs',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: ExternalDocumentation3
+    }
+  },
+  operationId: {
+    name: 'operationId',
+    schema: {
+      type: 'string'
+    }
+  },
+  parameters: {
+    name: 'parameters',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: true,
+        component: Parameter3
+      }
+    }
+  },
+  requestBody: {
+    name: 'requestBody',
+    schema: {
+      type: 'component',
+      allowsRef: true,
+      component: RequestBody3
+    }
+  },
+  responses: {
+    name: 'responses',
+    required: true,
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Responses3
+    }
+  },
+  callbacks: {
+    name: 'callbacks',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Callback3
+      }
+    }
+  },
+  deprecated: {
+    name: 'deprecated',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  security: {
+    name: 'security',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: false,
+        component: SecurityRequirement3
+      }
+    }
+  },
+  servers: {
+    name: 'servers',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: false,
+        component: Server3
+      }
+    }
+  }
+}
 
 export class Operation extends EnforcerComponent<IOperation3Definition, IOperation3> implements IOperation3 {
   [extension: `x${string}`]: any
@@ -58,6 +180,8 @@ export class Operation extends EnforcerComponent<IOperation3Definition, IOperati
   constructor (definition: IOperation3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'OPERATION3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -72,136 +196,22 @@ export class Operation extends EnforcerComponent<IOperation3Definition, IOperati
       return cachedSchema
     }
 
-    const tags: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
-      name: 'tags',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'string'
-        }
-      }
-    }
-
-    const summary: ISchema.IProperty<ISchema.IString> = {
-      name: 'summary',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation3Definition, IExternalDocumentation3>> = {
-      name: 'externalDocs',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: ExternalDocumentation3
-      }
-    }
-
-    const operationId: ISchema.IProperty<ISchema.IString> = {
-      name: 'operationId',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter3Definition, IParameter3>>> = {
-      name: 'parameters',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: true,
-          component: Parameter3
-        }
-      }
-    }
-
-    const requestBody: ISchema.IProperty<ISchema.IComponent<IRequestBody3Definition, IRequestBody3>> = {
-      name: 'requestBody',
-      schema: {
-        type: 'component',
-        allowsRef: true,
-        component: RequestBody3
-      }
-    }
-
-    const responses: ISchema.IProperty<ISchema.IComponent<IResponses3Definition, IResponses3>> = {
-      name: 'responses',
-      required: true,
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Responses3
-      }
-    }
-
-    const callbacks: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ICallback3Definition, ICallback3>>> = {
-      name: 'callbacks',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Callback3
-        }
-      }
-    }
-
-    const deprecated: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'deprecated',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement3Definition, ISecurityRequirement3>>> = {
-      name: 'security',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: false,
-          component: SecurityRequirement3
-        }
-      }
-    }
-
-    const servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>> = {
-      name: 'servers',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: false,
-          component: Server3
-        }
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IOperation3Definition, IOperation3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        tags,
-        summary,
-        description,
-        externalDocs,
-        operationId,
-        parameters,
-        requestBody,
-        responses,
-        callbacks,
-        deprecated,
-        security,
-        servers
+        validators.tags,
+        validators.summary,
+        validators.description,
+        validators.externalDocs,
+        validators.operationId,
+        validators.parameters,
+        validators.requestBody,
+        validators.responses,
+        validators.callbacks,
+        validators.deprecated,
+        validators.security,
+        validators.servers
       ]
     }
 
@@ -333,28 +343,49 @@ export class Operation extends EnforcerComponent<IOperation3Definition, IOperati
   }
 
   // <!# Custom Content Begin: BODY #!>
-  getResponsesThatCanProduceContentType (contentType: string | ContentType): Array<{ code: number | 'default', response: IResponse3 }> {
-    const data = getExistingProcessorData<IOperation3Definition, IOperation3>(this)
-    const input = [contentType]
-    const allProducesTypes: ContentType[] = cached('allProduces', this, getAllProduces, data)
-    const result: Array<{ code: number | 'default', response: IResponse3 }> = []
+  // getResponsesThatCanProduceContentType (contentType: string | ContentType): Array<{ code: number | 'default', response: IResponse3 }> {
+  //   const data = getExistingProcessorData<IOperation3Definition, IOperation3>(this)
+  //   const input = [contentType]
+  //   const allProducesTypes: ContentType[] = this.cached('allProduces', getAllProduces, data)
+  //   const result: Array<{ code: number | 'default', response: IResponse3 }> = []
+  //
+  //   const match = allProducesTypes.find(c => c.findMatches(input).length > 0)
+  //   if (match !== undefined) {
+  //     Object.keys(this.responses).forEach(key => {
+  //       if (key === 'default' || typeof key === 'number') {
+  //         result.push({ code: key, response: this.responses[key] as IResponse3 })
+  //       }
+  //     })
+  //   }
+  //
+  //   return result
+  // }
 
-    const match = allProducesTypes.find(c => c.findMatches(input).length > 0)
-    if (match !== undefined) {
-      Object.keys(this.responses).forEach(key => {
-        if (key === 'default' || typeof key === 'number') {
-          result.push({ code: key, response: this.responses[key] as IResponse3 })
-        }
-      })
-    }
+  parseBody (body: string | object, options?: IOperationParseOptions): any {
+    return null
+  }
 
-    return result
+  parseHeaders (headers: Record<string, string>, options?: IOperationParseOptions): Record<string, any> {
+    return {}
+  }
+
+  parsePath (path: string, options?: IOperationParseOptions): Record<string, any> {
+    return {}
+  }
+
+  parseQuery (query: string, options?: IOperationParseOptions & { allowOtherQueryParameters?: boolean }): Record<string, any> {
+    return {}
+  }
+
+  parseRequest (request: IOperationParseRequest, options?: IOperationParseOptions & { allowOtherQueryParameters?: boolean }): IOperationParseRequestResponse {
+    return {}
   }
 
   willAcceptContentType (contentType: string | ContentType): boolean {
     const data = getExistingProcessorData<IOperation3Definition, IOperation3>(this)
     const input = [contentType]
-    return getAllConsumes(data)
+    const allConsumes = this.cached('allConsumes', getAllConsumes, data)
+    return allConsumes
       .find(c => c.findMatches(input).length > 0) !== undefined
   }
   // <!# Custom Content End: BODY #!>
@@ -373,5 +404,10 @@ function getAllConsumes (data: ISchemaProcessor<IOperation3Definition, IOperatio
 
 function getAllProduces (data: ISchemaProcessor<IOperation3Definition, IOperation3>): ContentType[] {
   const { definition } = data
+  const results: ContentType[] = []
+  Object.keys(definition.responses ?? {})
+    .forEach(code => {
+      const response =
+    })
 }
 // <!# Custom Content End: FOOTER #!>

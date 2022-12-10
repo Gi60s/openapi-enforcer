@@ -21,10 +21,37 @@ import {
   IContact2Definition
 } from '../'
 // <!# Custom Content Begin: HEADER #!>
-import { after } from './common'
+import { validate } from './common'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.ISchemaDefinition<IContact2Definition, IContact2> | null = null
+
+interface IValidatorsMap {
+  name: ISchema.IProperty<ISchema.IString>
+  url: ISchema.IProperty<ISchema.IString>
+  email: ISchema.IProperty<ISchema.IString>
+}
+
+const validators: IValidatorsMap = {
+  name: {
+    name: 'name',
+    schema: {
+      type: 'string'
+    }
+  },
+  url: {
+    name: 'url',
+    schema: {
+      type: 'string'
+    }
+  },
+  email: {
+    name: 'email',
+    schema: {
+      type: 'string'
+    }
+  }
+}
 
 export class Contact extends EnforcerComponent<IContact2Definition, IContact2> implements IContact2 {
   [extension: `x${string}`]: any
@@ -32,6 +59,8 @@ export class Contact extends EnforcerComponent<IContact2Definition, IContact2> i
   constructor (definition: IContact2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'CONTACT2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#contact-object',
@@ -46,39 +75,20 @@ export class Contact extends EnforcerComponent<IContact2Definition, IContact2> i
       return cachedSchema
     }
 
-    const name: ISchema.IProperty<ISchema.IString> = {
-      name: 'name',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const url: ISchema.IProperty<ISchema.IString> = {
-      name: 'url',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const email: ISchema.IProperty<ISchema.IString> = {
-      name: 'email',
-      schema: {
-        type: 'string'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IContact2Definition, IContact2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        name,
-        url,
-        email
+        validators.name,
+        validators.url,
+        validators.email
       ]
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    result.after = after
+    result.validate = (data) => {
+      validate(data)
+    }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = result

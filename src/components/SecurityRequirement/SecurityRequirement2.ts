@@ -26,12 +26,21 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> | null = null
 
+const additionalProperties: ISchema.IArray<ISchema.IString> = {
+  type: 'array',
+  items: {
+    type: 'string'
+  }
+}
+
 export class SecurityRequirement extends EnforcerComponent<ISecurityRequirement2Definition, ISecurityRequirement2> implements ISecurityRequirement2 {
   [key: string]: string[]
 
   constructor (definition: ISecurityRequirement2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'SECURITY_REQUIREMENT2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#security-requirement-object',
@@ -44,13 +53,6 @@ export class SecurityRequirement extends EnforcerComponent<ISecurityRequirement2
   static getSchemaDefinition (_data: ISecurityRequirementSchemaProcessor): ISchema.ISchemaDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> {
     if (cachedSchema !== null) {
       return cachedSchema
-    }
-
-    const additionalProperties: ISchema.IArray<ISchema.IString> = {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
     }
 
     const result: ISchema.ISchemaDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> = {

@@ -26,12 +26,51 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IOAuthFlow3Definition, IOAuthFlow3> | null = null
 
+interface IValidatorsMap {
+  authorizationUrl: ISchema.IProperty<ISchema.IString>
+  tokenUrl: ISchema.IProperty<ISchema.IString>
+  refreshUrl: ISchema.IProperty<ISchema.IString>
+  scopes: ISchema.IProperty<ISchema.IObject<ISchema.IString>>
+}
+
+const validators: IValidatorsMap = {
+  authorizationUrl: {
+    name: 'authorizationUrl',
+    schema: {
+      type: 'string'
+    }
+  },
+  tokenUrl: {
+    name: 'tokenUrl',
+    schema: {
+      type: 'string'
+    }
+  },
+  refreshUrl: {
+    name: 'refreshUrl',
+    schema: {
+      type: 'string'
+    }
+  },
+  scopes: {
+    name: 'scopes',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'string'
+      }
+    }
+  }
+}
+
 export class OAuthFlow extends EnforcerComponent<IOAuthFlow3Definition, IOAuthFlow3> implements IOAuthFlow3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IOAuthFlow3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'OAUTH_FLOW3'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -46,45 +85,14 @@ export class OAuthFlow extends EnforcerComponent<IOAuthFlow3Definition, IOAuthFl
       return cachedSchema
     }
 
-    const authorizationUrl: ISchema.IProperty<ISchema.IString> = {
-      name: 'authorizationUrl',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const tokenUrl: ISchema.IProperty<ISchema.IString> = {
-      name: 'tokenUrl',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const refreshUrl: ISchema.IProperty<ISchema.IString> = {
-      name: 'refreshUrl',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const scopes: ISchema.IProperty<ISchema.IObject<ISchema.IString>> = {
-      name: 'scopes',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'string'
-        }
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IOAuthFlow3Definition, IOAuthFlow3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        authorizationUrl,
-        tokenUrl,
-        refreshUrl,
-        scopes
+        validators.authorizationUrl,
+        validators.tokenUrl,
+        validators.refreshUrl,
+        validators.scopes
       ]
     }
 

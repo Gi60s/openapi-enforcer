@@ -32,12 +32,102 @@ import { after } from './common'
 
 let cachedSchema: ISchema.ISchemaDefinition<IPathItem2Definition, IPathItem2> | null = null
 
+interface IValidatorsMap {
+  $ref: ISchema.IProperty<ISchema.IString>
+  get: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
+  put: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
+  post: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
+  _delete: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
+  options: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
+  head: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
+  patch: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
+  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter2Definition, IParameter2>>>
+}
+
+const validators: IValidatorsMap = {
+  $ref: {
+    name: '$ref',
+    schema: {
+      type: 'string'
+    }
+  },
+  get: {
+    name: 'get',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation2
+    }
+  },
+  put: {
+    name: 'put',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation2
+    }
+  },
+  post: {
+    name: 'post',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation2
+    }
+  },
+  _delete: {
+    name: 'delete',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation2
+    }
+  },
+  options: {
+    name: 'options',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation2
+    }
+  },
+  head: {
+    name: 'head',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation2
+    }
+  },
+  patch: {
+    name: 'patch',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Operation2
+    }
+  },
+  parameters: {
+    name: 'parameters',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: true,
+        component: Parameter2
+      }
+    }
+  }
+}
+
 export class PathItem extends EnforcerComponent<IPathItem2Definition, IPathItem2> implements IPathItem2 {
   [extension: `x${string}`]: any
 
   constructor (definition: IPathItem2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'PATH_ITEM2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#path-item-object',
@@ -52,101 +142,19 @@ export class PathItem extends EnforcerComponent<IPathItem2Definition, IPathItem2
       return cachedSchema
     }
 
-    const $ref: ISchema.IProperty<ISchema.IString> = {
-      name: '$ref',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const get: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>> = {
-      name: 'get',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation2
-      }
-    }
-
-    const put: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>> = {
-      name: 'put',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation2
-      }
-    }
-
-    const post: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>> = {
-      name: 'post',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation2
-      }
-    }
-
-    const _delete: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>> = {
-      name: 'delete',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation2
-      }
-    }
-
-    const options: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>> = {
-      name: 'options',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation2
-      }
-    }
-
-    const head: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>> = {
-      name: 'head',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation2
-      }
-    }
-
-    const patch: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>> = {
-      name: 'patch',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Operation2
-      }
-    }
-
-    const parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter2Definition, IParameter2>>> = {
-      name: 'parameters',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: true,
-          component: Parameter2
-        }
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IPathItem2Definition, IPathItem2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        $ref,
-        get,
-        put,
-        post,
-        _delete,
-        options,
-        head,
-        patch,
-        parameters
+        validators.$ref,
+        validators.get,
+        validators.put,
+        validators.post,
+        validators._delete,
+        validators.options,
+        validators.head,
+        validators.patch,
+        validators.parameters
       ]
     }
 

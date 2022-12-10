@@ -26,12 +26,83 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<ISecurityScheme2Definition, ISecurityScheme2> | null = null
 
+interface IValidatorsMap {
+  type: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+  name: ISchema.IProperty<ISchema.IString>
+  _in: ISchema.IProperty<ISchema.IString>
+  flow: ISchema.IProperty<ISchema.IString>
+  authorizationUrl: ISchema.IProperty<ISchema.IString>
+  tokenUrl: ISchema.IProperty<ISchema.IString>
+  scopes: ISchema.IProperty<ISchema.IObject<ISchema.IString>>
+}
+
+const validators: IValidatorsMap = {
+  type: {
+    name: 'type',
+    required: true,
+    schema: {
+      type: 'string',
+      enum: ['basic', 'apiKey', 'oauth2']
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  name: {
+    name: 'name',
+    schema: {
+      type: 'string'
+    }
+  },
+  _in: {
+    name: 'in',
+    schema: {
+      type: 'string',
+      enum: ['query', 'header']
+    }
+  },
+  flow: {
+    name: 'flow',
+    schema: {
+      type: 'string',
+      enum: ['implicit', 'password', 'application', 'accessCode']
+    }
+  },
+  authorizationUrl: {
+    name: 'authorizationUrl',
+    schema: {
+      type: 'string'
+    }
+  },
+  tokenUrl: {
+    name: 'tokenUrl',
+    schema: {
+      type: 'string'
+    }
+  },
+  scopes: {
+    name: 'scopes',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'string'
+      }
+    }
+  }
+}
+
 export class SecurityScheme extends EnforcerComponent<ISecurityScheme2Definition, ISecurityScheme2> implements ISecurityScheme2 {
   [extension: `x${string}`]: any
 
   constructor (definition: ISecurityScheme2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'SECURITY_SCHEME2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#security-scheme-object',
@@ -46,81 +117,18 @@ export class SecurityScheme extends EnforcerComponent<ISecurityScheme2Definition
       return cachedSchema
     }
 
-    const type: ISchema.IProperty<ISchema.IString> = {
-      name: 'type',
-      required: true,
-      schema: {
-        type: 'string',
-        enum: ['basic', 'apiKey', 'oauth2']
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const name: ISchema.IProperty<ISchema.IString> = {
-      name: 'name',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const _in: ISchema.IProperty<ISchema.IString> = {
-      name: 'in',
-      schema: {
-        type: 'string',
-        enum: ['query', 'header']
-      }
-    }
-
-    const flow: ISchema.IProperty<ISchema.IString> = {
-      name: 'flow',
-      schema: {
-        type: 'string',
-        enum: ['implicit', 'password', 'application', 'accessCode']
-      }
-    }
-
-    const authorizationUrl: ISchema.IProperty<ISchema.IString> = {
-      name: 'authorizationUrl',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const tokenUrl: ISchema.IProperty<ISchema.IString> = {
-      name: 'tokenUrl',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const scopes: ISchema.IProperty<ISchema.IObject<ISchema.IString>> = {
-      name: 'scopes',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'string'
-        }
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<ISecurityScheme2Definition, ISecurityScheme2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        type,
-        description,
-        name,
-        _in,
-        flow,
-        authorizationUrl,
-        tokenUrl,
-        scopes
+        validators.type,
+        validators.description,
+        validators.name,
+        validators._in,
+        validators.flow,
+        validators.authorizationUrl,
+        validators.tokenUrl,
+        validators.scopes
       ]
     }
 

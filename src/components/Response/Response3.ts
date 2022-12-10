@@ -35,12 +35,64 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IResponse3Definition, IResponse3> | null = null
 
+interface IValidatorsMap {
+  description: ISchema.IProperty<ISchema.IString>
+  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader3Definition, IHeader3>>>
+  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>>
+  links: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ILink3Definition, ILink3>>>
+}
+
+const validators: IValidatorsMap = {
+  description: {
+    name: 'description',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  },
+  headers: {
+    name: 'headers',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Header3
+      }
+    }
+  },
+  content: {
+    name: 'content',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: false,
+        component: MediaType3
+      }
+    }
+  },
+  links: {
+    name: 'links',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Link3
+      }
+    }
+  }
+}
+
 export class Response extends EnforcerComponent<IResponse3Definition, IResponse3> implements IResponse3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IResponse3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'RESPONSE3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -55,58 +107,14 @@ export class Response extends EnforcerComponent<IResponse3Definition, IResponse3
       return cachedSchema
     }
 
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader3Definition, IHeader3>>> = {
-      name: 'headers',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Header3
-        }
-      }
-    }
-
-    const content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>> = {
-      name: 'content',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: MediaType3
-        }
-      }
-    }
-
-    const links: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ILink3Definition, ILink3>>> = {
-      name: 'links',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Link3
-        }
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IResponse3Definition, IResponse3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        description,
-        headers,
-        content,
-        links
+        validators.description,
+        validators.headers,
+        validators.content,
+        validators.links
       ]
     }
 

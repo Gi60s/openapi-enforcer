@@ -29,6 +29,27 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IResponses3Definition, IResponses3> | null = null
 
+interface IValidatorsMap {
+  _default: ISchema.IProperty<ISchema.IComponent<IResponse3Definition, IResponse3>>
+}
+
+const validators: IValidatorsMap = {
+  _default: {
+    name: 'default',
+    schema: {
+      type: 'component',
+      allowsRef: true,
+      component: Response3
+    }
+  }
+}
+
+const additionalProperties: ISchema.IComponent<IResponse3Definition, IResponse3> = {
+  type: 'component',
+  allowsRef: true,
+  component: Response3
+}
+
 export class Responses extends EnforcerComponent<IResponses3Definition, IResponses3> implements IResponses3 {
   [extension: `x${string}`]: any
   [key: number]: IResponse3
@@ -36,6 +57,8 @@ export class Responses extends EnforcerComponent<IResponses3Definition, IRespons
   constructor (definition: IResponses3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'RESPONSES3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -50,27 +73,12 @@ export class Responses extends EnforcerComponent<IResponses3Definition, IRespons
       return cachedSchema
     }
 
-    const additionalProperties: ISchema.IComponent<IResponse3Definition, IResponse3> = {
-      type: 'component',
-      allowsRef: true,
-      component: Response3
-    }
-
-    const _default: ISchema.IProperty<ISchema.IComponent<IResponse3Definition, IResponse3>> = {
-      name: 'default',
-      schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Response3
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IResponses3Definition, IResponses3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties,
       properties: [
-        _default
+        validators._default
       ]
     }
 

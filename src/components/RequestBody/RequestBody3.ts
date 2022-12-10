@@ -29,12 +29,46 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IRequestBody3Definition, IRequestBody3> | null = null
 
+interface IValidatorsMap {
+  description: ISchema.IProperty<ISchema.IString>
+  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>>
+  required: ISchema.IProperty<ISchema.IBoolean>
+}
+
+const validators: IValidatorsMap = {
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  content: {
+    name: 'content',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: false,
+        component: MediaType3
+      }
+    }
+  },
+  required: {
+    name: 'required',
+    schema: {
+      type: 'boolean'
+    }
+  }
+}
+
 export class RequestBody extends EnforcerComponent<IRequestBody3Definition, IRequestBody3> implements IRequestBody3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IRequestBody3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'REQUEST_BODY3'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -49,39 +83,13 @@ export class RequestBody extends EnforcerComponent<IRequestBody3Definition, IReq
       return cachedSchema
     }
 
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>> = {
-      name: 'content',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: MediaType3
-        }
-      }
-    }
-
-    const required: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'required',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IRequestBody3Definition, IRequestBody3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        description,
-        content,
-        required
+        validators.description,
+        validators.content,
+        validators.required
       ]
     }
 

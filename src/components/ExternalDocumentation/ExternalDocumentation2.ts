@@ -26,12 +26,35 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> | null = null
 
+interface IValidatorsMap {
+  description: ISchema.IProperty<ISchema.IString>
+  url: ISchema.IProperty<ISchema.IString>
+}
+
+const validators: IValidatorsMap = {
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  url: {
+    name: 'url',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  }
+}
+
 export class ExternalDocumentation extends EnforcerComponent<IExternalDocumentation2Definition, IExternalDocumentation2> implements IExternalDocumentation2 {
   [extension: `x${string}`]: any
 
   constructor (definition: IExternalDocumentation2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'EXTERNAL_DOCUMENTATION2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#external-documentation-object',
@@ -46,27 +69,12 @@ export class ExternalDocumentation extends EnforcerComponent<IExternalDocumentat
       return cachedSchema
     }
 
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const url: ISchema.IProperty<ISchema.IString> = {
-      name: 'url',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IExternalDocumentation2Definition, IExternalDocumentation2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        description,
-        url
+        validators.description,
+        validators.url
       ]
     }
 

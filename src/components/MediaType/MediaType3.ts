@@ -35,12 +35,60 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IMediaType3Definition, IMediaType3> | null = null
 
+interface IValidatorsMap {
+  schema: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>>
+  example: ISchema.IProperty<any>
+  examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IExample3Definition, IExample3>>>
+  encoding: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IEncoding3Definition, IEncoding3>>>
+}
+
+const validators: IValidatorsMap = {
+  schema: {
+    name: 'schema',
+    schema: {
+      type: 'component',
+      allowsRef: true,
+      component: Schema3
+    }
+  },
+  example: {
+    name: 'example',
+    schema: {
+      type: 'any'
+    }
+  },
+  examples: {
+    name: 'examples',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Example3
+      }
+    }
+  },
+  encoding: {
+    name: 'encoding',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: false,
+        component: Encoding3
+      }
+    }
+  }
+}
+
 export class MediaType extends EnforcerComponent<IMediaType3Definition, IMediaType3> implements IMediaType3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IMediaType3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'MEDIA_TYPE3'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -55,54 +103,14 @@ export class MediaType extends EnforcerComponent<IMediaType3Definition, IMediaTy
       return cachedSchema
     }
 
-    const schema: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>> = {
-      name: 'schema',
-      schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Schema3
-      }
-    }
-
-    const example: ISchema.IProperty<any> = {
-      name: 'example',
-      schema: {
-        type: 'any'
-      }
-    }
-
-    const examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IExample3Definition, IExample3>>> = {
-      name: 'examples',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Example3
-        }
-      }
-    }
-
-    const encoding: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IEncoding3Definition, IEncoding3>>> = {
-      name: 'encoding',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: Encoding3
-        }
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IMediaType3Definition, IMediaType3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        schema,
-        example,
-        examples,
-        encoding
+        validators.schema,
+        validators.example,
+        validators.examples,
+        validators.encoding
       ]
     }
 

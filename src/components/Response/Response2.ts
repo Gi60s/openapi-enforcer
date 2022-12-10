@@ -35,12 +35,58 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IResponse2Definition, IResponse2> | null = null
 
+interface IValidatorsMap {
+  description: ISchema.IProperty<ISchema.IString>
+  schema: ISchema.IProperty<ISchema.IComponent<ISchema2Definition, ISchema2>>
+  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader2Definition, IHeader2>>>
+  examples: ISchema.IProperty<ISchema.IComponent<IExample2Definition, IExample2>>
+}
+
+const validators: IValidatorsMap = {
+  description: {
+    name: 'description',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  },
+  schema: {
+    name: 'schema',
+    schema: {
+      type: 'component',
+      allowsRef: true,
+      component: Schema2
+    }
+  },
+  headers: {
+    name: 'headers',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: false,
+        component: Header2
+      }
+    }
+  },
+  examples: {
+    name: 'examples',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Example2
+    }
+  }
+}
+
 export class Response extends EnforcerComponent<IResponse2Definition, IResponse2> implements IResponse2 {
   [extension: `x${string}`]: any
 
   constructor (definition: IResponse2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'RESPONSE2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#response-object',
@@ -55,52 +101,14 @@ export class Response extends EnforcerComponent<IResponse2Definition, IResponse2
       return cachedSchema
     }
 
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const schema: ISchema.IProperty<ISchema.IComponent<ISchema2Definition, ISchema2>> = {
-      name: 'schema',
-      schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Schema2
-      }
-    }
-
-    const headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader2Definition, IHeader2>>> = {
-      name: 'headers',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: Header2
-        }
-      }
-    }
-
-    const examples: ISchema.IProperty<ISchema.IComponent<IExample2Definition, IExample2>> = {
-      name: 'examples',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Example2
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IResponse2Definition, IResponse2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        description,
-        schema,
-        headers,
-        examples
+        validators.description,
+        validators.schema,
+        validators.headers,
+        validators.examples
       ]
     }
 

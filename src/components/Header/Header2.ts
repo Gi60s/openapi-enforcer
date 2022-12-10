@@ -29,12 +29,154 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IHeader2Definition, IHeader2> | null = null
 
+interface IValidatorsMap {
+  description: ISchema.IProperty<ISchema.IString>
+  type: ISchema.IProperty<ISchema.IString>
+  format: ISchema.IProperty<ISchema.IString>
+  items: ISchema.IProperty<ISchema.IComponent<IItems2Definition, IItems2>>
+  collectionFormat: ISchema.IProperty<ISchema.IString>
+  _default: ISchema.IProperty<any>
+  maximum: ISchema.IProperty<ISchema.INumber>
+  exclusiveMaximum: ISchema.IProperty<ISchema.INumber>
+  minimum: ISchema.IProperty<ISchema.INumber>
+  exclusiveMinimum: ISchema.IProperty<ISchema.INumber>
+  maxLength: ISchema.IProperty<ISchema.INumber>
+  minLength: ISchema.IProperty<ISchema.INumber>
+  pattern: ISchema.IProperty<ISchema.IString>
+  maxItems: ISchema.IProperty<ISchema.INumber>
+  minItems: ISchema.IProperty<ISchema.INumber>
+  uniqueItems: ISchema.IProperty<ISchema.IBoolean>
+  _enum: ISchema.IProperty<ISchema.IArray<any>>
+  multipleOf: ISchema.IProperty<ISchema.INumber>
+}
+
+const validators: IValidatorsMap = {
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  type: {
+    name: 'type',
+    required: true,
+    schema: {
+      type: 'string',
+      enum: ['array', 'boolean', 'integer', 'number', 'string']
+    }
+  },
+  format: {
+    name: 'format',
+    schema: {
+      type: 'string'
+    }
+  },
+  items: {
+    name: 'items',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Items2
+    }
+  },
+  collectionFormat: {
+    name: 'collectionFormat',
+    schema: {
+      type: 'string',
+      enum: ['csv', 'ssv', 'tsv', 'pipes']
+    }
+  },
+  _default: {
+    name: 'default',
+    schema: {
+      type: 'any'
+    }
+  },
+  maximum: {
+    name: 'maximum',
+    schema: {
+      type: 'number'
+    }
+  },
+  exclusiveMaximum: {
+    name: 'exclusiveMaximum',
+    schema: {
+      type: 'number'
+    }
+  },
+  minimum: {
+    name: 'minimum',
+    schema: {
+      type: 'number'
+    }
+  },
+  exclusiveMinimum: {
+    name: 'exclusiveMinimum',
+    schema: {
+      type: 'number'
+    }
+  },
+  maxLength: {
+    name: 'maxLength',
+    schema: {
+      type: 'number'
+    }
+  },
+  minLength: {
+    name: 'minLength',
+    schema: {
+      type: 'number'
+    }
+  },
+  pattern: {
+    name: 'pattern',
+    schema: {
+      type: 'string'
+    }
+  },
+  maxItems: {
+    name: 'maxItems',
+    schema: {
+      type: 'number'
+    }
+  },
+  minItems: {
+    name: 'minItems',
+    schema: {
+      type: 'number'
+    }
+  },
+  uniqueItems: {
+    name: 'uniqueItems',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  _enum: {
+    name: 'enum',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'any'
+      }
+    }
+  },
+  multipleOf: {
+    name: 'multipleOf',
+    schema: {
+      type: 'number'
+    }
+  }
+}
+
 export class Header extends EnforcerComponent<IHeader2Definition, IHeader2> implements IHeader2 {
   [extension: `x${string}`]: any
 
   constructor (definition: IHeader2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'HEADER2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#header-object',
@@ -49,162 +191,28 @@ export class Header extends EnforcerComponent<IHeader2Definition, IHeader2> impl
       return cachedSchema
     }
 
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const type: ISchema.IProperty<ISchema.IString> = {
-      name: 'type',
-      required: true,
-      schema: {
-        type: 'string',
-        enum: ['array', 'boolean', 'integer', 'number', 'string']
-      }
-    }
-
-    const format: ISchema.IProperty<ISchema.IString> = {
-      name: 'format',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const items: ISchema.IProperty<ISchema.IComponent<IItems2Definition, IItems2>> = {
-      name: 'items',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Items2
-      }
-    }
-
-    const collectionFormat: ISchema.IProperty<ISchema.IString> = {
-      name: 'collectionFormat',
-      schema: {
-        type: 'string',
-        enum: ['csv', 'ssv', 'tsv', 'pipes']
-      }
-    }
-
-    const _default: ISchema.IProperty<any> = {
-      name: 'default',
-      schema: {
-        type: 'any'
-      }
-    }
-
-    const maximum: ISchema.IProperty<ISchema.INumber> = {
-      name: 'maximum',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const exclusiveMaximum: ISchema.IProperty<ISchema.INumber> = {
-      name: 'exclusiveMaximum',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const minimum: ISchema.IProperty<ISchema.INumber> = {
-      name: 'minimum',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const exclusiveMinimum: ISchema.IProperty<ISchema.INumber> = {
-      name: 'exclusiveMinimum',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const maxLength: ISchema.IProperty<ISchema.INumber> = {
-      name: 'maxLength',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const minLength: ISchema.IProperty<ISchema.INumber> = {
-      name: 'minLength',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const pattern: ISchema.IProperty<ISchema.IString> = {
-      name: 'pattern',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const maxItems: ISchema.IProperty<ISchema.INumber> = {
-      name: 'maxItems',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const minItems: ISchema.IProperty<ISchema.INumber> = {
-      name: 'minItems',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const uniqueItems: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'uniqueItems',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const _enum: ISchema.IProperty<ISchema.IArray<any>> = {
-      name: 'enum',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'any'
-        }
-      }
-    }
-
-    const multipleOf: ISchema.IProperty<ISchema.INumber> = {
-      name: 'multipleOf',
-      schema: {
-        type: 'number'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IHeader2Definition, IHeader2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        description,
-        type,
-        format,
-        items,
-        collectionFormat,
-        _default,
-        maximum,
-        exclusiveMaximum,
-        minimum,
-        exclusiveMinimum,
-        maxLength,
-        minLength,
-        pattern,
-        maxItems,
-        minItems,
-        uniqueItems,
-        _enum,
-        multipleOf
+        validators.description,
+        validators.type,
+        validators.format,
+        validators.items,
+        validators.collectionFormat,
+        validators._default,
+        validators.maximum,
+        validators.exclusiveMaximum,
+        validators.minimum,
+        validators.exclusiveMinimum,
+        validators.maxLength,
+        validators.minLength,
+        validators.pattern,
+        validators.maxItems,
+        validators.minItems,
+        validators.uniqueItems,
+        validators._enum,
+        validators.multipleOf
       ]
     }
 

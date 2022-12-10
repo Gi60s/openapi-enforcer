@@ -26,11 +26,27 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IReference3Definition, IReference3> | null = null
 
+interface IValidatorsMap {
+  $ref: ISchema.IProperty<ISchema.IString>
+}
+
+const validators: IValidatorsMap = {
+  $ref: {
+    name: '$ref',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  }
+}
+
 export class Reference extends EnforcerComponent<IReference3Definition, IReference3> implements IReference3 {
 
   constructor (definition: IReference3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'REFERENCE3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -45,19 +61,11 @@ export class Reference extends EnforcerComponent<IReference3Definition, IReferen
       return cachedSchema
     }
 
-    const $ref: ISchema.IProperty<ISchema.IString> = {
-      name: '$ref',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IReference3Definition, IReference3> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [
-        $ref
+        validators.$ref
       ]
     }
 

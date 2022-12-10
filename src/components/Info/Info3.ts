@@ -32,12 +32,68 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IInfo3Definition, IInfo3> | null = null
 
+interface IValidatorsMap {
+  title: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+  termsOfService: ISchema.IProperty<ISchema.IString>
+  contact: ISchema.IProperty<ISchema.IComponent<IContact3Definition, IContact3>>
+  license: ISchema.IProperty<ISchema.IComponent<ILicense3Definition, ILicense3>>
+  version: ISchema.IProperty<ISchema.IString>
+}
+
+const validators: IValidatorsMap = {
+  title: {
+    name: 'title',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  termsOfService: {
+    name: 'termsOfService',
+    schema: {
+      type: 'string'
+    }
+  },
+  contact: {
+    name: 'contact',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Contact3
+    }
+  },
+  license: {
+    name: 'license',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: License3
+    }
+  },
+  version: {
+    name: 'version',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  }
+}
+
 export class Info extends EnforcerComponent<IInfo3Definition, IInfo3> implements IInfo3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IInfo3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'INFO3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -52,64 +108,16 @@ export class Info extends EnforcerComponent<IInfo3Definition, IInfo3> implements
       return cachedSchema
     }
 
-    const title: ISchema.IProperty<ISchema.IString> = {
-      name: 'title',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const termsOfService: ISchema.IProperty<ISchema.IString> = {
-      name: 'termsOfService',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const contact: ISchema.IProperty<ISchema.IComponent<IContact3Definition, IContact3>> = {
-      name: 'contact',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Contact3
-      }
-    }
-
-    const license: ISchema.IProperty<ISchema.IComponent<ILicense3Definition, ILicense3>> = {
-      name: 'license',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: License3
-      }
-    }
-
-    const version: ISchema.IProperty<ISchema.IString> = {
-      name: 'version',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IInfo3Definition, IInfo3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        title,
-        description,
-        termsOfService,
-        contact,
-        license,
-        version
+        validators.title,
+        validators.description,
+        validators.termsOfService,
+        validators.contact,
+        validators.license,
+        validators.version
       ]
     }
 

@@ -29,12 +29,67 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<ILink3Definition, ILink3> | null = null
 
+interface IValidatorsMap {
+  operationRef: ISchema.IProperty<ISchema.IString>
+  operationId: ISchema.IProperty<ISchema.IString>
+  parameters: ISchema.IProperty<ISchema.IObject<any>>
+  requestBody: ISchema.IProperty<any>
+  description: ISchema.IProperty<ISchema.IString>
+  server: ISchema.IProperty<ISchema.IComponent<IServer3Definition, IServer3>>
+}
+
+const validators: IValidatorsMap = {
+  operationRef: {
+    name: 'operationRef',
+    schema: {
+      type: 'string'
+    }
+  },
+  operationId: {
+    name: 'operationId',
+    schema: {
+      type: 'string'
+    }
+  },
+  parameters: {
+    name: 'parameters',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'any'
+      }
+    }
+  },
+  requestBody: {
+    name: 'requestBody',
+    schema: {
+      type: 'any'
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  server: {
+    name: 'server',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Server3
+    }
+  }
+}
+
 export class Link extends EnforcerComponent<ILink3Definition, ILink3> implements ILink3 {
   [extension: `x${string}`]: any
 
   constructor (definition: ILink3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'LINK3'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -49,63 +104,16 @@ export class Link extends EnforcerComponent<ILink3Definition, ILink3> implements
       return cachedSchema
     }
 
-    const operationRef: ISchema.IProperty<ISchema.IString> = {
-      name: 'operationRef',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const operationId: ISchema.IProperty<ISchema.IString> = {
-      name: 'operationId',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const parameters: ISchema.IProperty<ISchema.IObject<any>> = {
-      name: 'parameters',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'any'
-        }
-      }
-    }
-
-    const requestBody: ISchema.IProperty<any> = {
-      name: 'requestBody',
-      schema: {
-        type: 'any'
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const server: ISchema.IProperty<ISchema.IComponent<IServer3Definition, IServer3>> = {
-      name: 'server',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Server3
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<ILink3Definition, ILink3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        operationRef,
-        operationId,
-        parameters,
-        requestBody,
-        description,
-        server
+        validators.operationRef,
+        validators.operationId,
+        validators.parameters,
+        validators.requestBody,
+        validators.description,
+        validators.server
       ]
     }
 

@@ -34,12 +34,318 @@ import {
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
+interface IValidatorsMap {
+  type: ISchema.IProperty<ISchema.IString>
+  allOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema3Definition, ISchema3>>>
+  oneOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema3Definition, ISchema3>>>
+  anyOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema3Definition, ISchema3>>>
+  not: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>>
+  title: ISchema.IProperty<ISchema.IString>
+  maximum: ISchema.IProperty<ISchema.INumber>
+  exclusiveMaximum: ISchema.IProperty<ISchema.INumber>
+  minimum: ISchema.IProperty<ISchema.INumber>
+  exclusiveMinimum: ISchema.IProperty<ISchema.INumber>
+  maxLength: ISchema.IProperty<ISchema.INumber>
+  minLength: ISchema.IProperty<ISchema.INumber>
+  pattern: ISchema.IProperty<ISchema.IString>
+  maxItems: ISchema.IProperty<ISchema.INumber>
+  minItems: ISchema.IProperty<ISchema.INumber>
+  maxProperties: ISchema.IProperty<ISchema.INumber>
+  minProperties: ISchema.IProperty<ISchema.INumber>
+  uniqueItems: ISchema.IProperty<ISchema.IBoolean>
+  _enum: ISchema.IProperty<ISchema.IArray<any>>
+  multipleOf: ISchema.IProperty<ISchema.INumber>
+  required: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
+  items: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>>
+  properties: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISchema3Definition, ISchema3>>>
+  additionalProperties: ISchema.IProperty<ISchema.IOneOf>
+  description: ISchema.IProperty<ISchema.IString>
+  format: ISchema.IProperty<ISchema.IString>
+  _default: ISchema.IProperty<any>
+  nullable: ISchema.IProperty<ISchema.IBoolean>
+  discriminator: ISchema.IProperty<ISchema.IComponent<IDiscriminator3Definition, IDiscriminator3>>
+  readOnly: ISchema.IProperty<ISchema.IBoolean>
+  writeOnly: ISchema.IProperty<ISchema.IBoolean>
+  xml: ISchema.IProperty<ISchema.IComponent<IXml3Definition, IXml3>>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation3Definition, IExternalDocumentation3>>
+  example: ISchema.IProperty<any>
+  deprecated: ISchema.IProperty<ISchema.IBoolean>
+}
+
+const validators: IValidatorsMap = {
+  type: {
+    name: 'type',
+    schema: {
+      type: 'string'
+    }
+  },
+  allOf: {
+    name: 'allOf',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: true,
+        component: Schema3
+      }
+    }
+  },
+  oneOf: {
+    name: 'oneOf',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: true,
+        component: Schema3
+      }
+    }
+  },
+  anyOf: {
+    name: 'anyOf',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'component',
+        allowsRef: true,
+        component: Schema3
+      }
+    }
+  },
+  not: {
+    name: 'not',
+    schema: {
+      type: 'component',
+      allowsRef: true,
+      component: Schema3
+    }
+  },
+  title: {
+    name: 'title',
+    schema: {
+      type: 'string'
+    }
+  },
+  maximum: {
+    name: 'maximum',
+    schema: {
+      type: 'number'
+    }
+  },
+  exclusiveMaximum: {
+    name: 'exclusiveMaximum',
+    schema: {
+      type: 'number'
+    }
+  },
+  minimum: {
+    name: 'minimum',
+    schema: {
+      type: 'number'
+    }
+  },
+  exclusiveMinimum: {
+    name: 'exclusiveMinimum',
+    schema: {
+      type: 'number'
+    }
+  },
+  maxLength: {
+    name: 'maxLength',
+    schema: {
+      type: 'number'
+    }
+  },
+  minLength: {
+    name: 'minLength',
+    schema: {
+      type: 'number'
+    }
+  },
+  pattern: {
+    name: 'pattern',
+    schema: {
+      type: 'string'
+    }
+  },
+  maxItems: {
+    name: 'maxItems',
+    schema: {
+      type: 'number'
+    }
+  },
+  minItems: {
+    name: 'minItems',
+    schema: {
+      type: 'number'
+    }
+  },
+  maxProperties: {
+    name: 'maxProperties',
+    schema: {
+      type: 'number'
+    }
+  },
+  minProperties: {
+    name: 'minProperties',
+    schema: {
+      type: 'number'
+    }
+  },
+  uniqueItems: {
+    name: 'uniqueItems',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  _enum: {
+    name: 'enum',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'any'
+      }
+    }
+  },
+  multipleOf: {
+    name: 'multipleOf',
+    schema: {
+      type: 'number'
+    }
+  },
+  required: {
+    name: 'required',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    }
+  },
+  items: {
+    name: 'items',
+    schema: {
+      type: 'component',
+      allowsRef: true,
+      component: Schema3
+    }
+  },
+  properties: {
+    name: 'properties',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Schema3
+      }
+    }
+  },
+  additionalProperties: {
+    name: 'additionalProperties',
+    schema: {
+      type: 'oneOf',
+      oneOf: [
+        {
+          condition: () => true,
+          schema: {
+            type: 'component',
+            allowsRef: true,
+            component: Schema3
+          }
+        },
+        {
+          condition: () => false,
+          schema: {
+            type: 'boolean'
+          }
+        }
+      ],
+      error: () => {}
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  format: {
+    name: 'format',
+    schema: {
+      type: 'string'
+    }
+  },
+  _default: {
+    name: 'default',
+    schema: {
+      type: 'any'
+    }
+  },
+  nullable: {
+    name: 'nullable',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  discriminator: {
+    name: 'discriminator',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Discriminator3
+    }
+  },
+  readOnly: {
+    name: 'readOnly',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  writeOnly: {
+    name: 'writeOnly',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  xml: {
+    name: 'xml',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Xml3
+    }
+  },
+  externalDocs: {
+    name: 'externalDocs',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: ExternalDocumentation3
+    }
+  },
+  example: {
+    name: 'example',
+    schema: {
+      type: 'any'
+    }
+  },
+  deprecated: {
+    name: 'deprecated',
+    schema: {
+      type: 'boolean'
+    }
+  }
+}
+
 export class Schema extends EnforcerComponent<ISchema3Definition, ISchema3> implements ISchema3 {
   [extension: `x${string}`]: any
 
   constructor (definition: ISchema3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'SCHEMA3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -50,348 +356,51 @@ export class Schema extends EnforcerComponent<ISchema3Definition, ISchema3> impl
   }
 
   static getSchemaDefinition (_data: ISchemaSchemaProcessor): ISchema.ISchemaDefinition<ISchema3Definition, ISchema3> {
-    const type: ISchema.IProperty<ISchema.IString> = {
-      name: 'type',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const allOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema3Definition, ISchema3>>> = {
-      name: 'allOf',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: true,
-          component: Schema3
-        }
-      }
-    }
-
-    const oneOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema3Definition, ISchema3>>> = {
-      name: 'oneOf',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: true,
-          component: Schema3
-        }
-      }
-    }
-
-    const anyOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema3Definition, ISchema3>>> = {
-      name: 'anyOf',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'component',
-          allowsRef: true,
-          component: Schema3
-        }
-      }
-    }
-
-    const not: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>> = {
-      name: 'not',
-      schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Schema3
-      }
-    }
-
-    const title: ISchema.IProperty<ISchema.IString> = {
-      name: 'title',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const maximum: ISchema.IProperty<ISchema.INumber> = {
-      name: 'maximum',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const exclusiveMaximum: ISchema.IProperty<ISchema.INumber> = {
-      name: 'exclusiveMaximum',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const minimum: ISchema.IProperty<ISchema.INumber> = {
-      name: 'minimum',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const exclusiveMinimum: ISchema.IProperty<ISchema.INumber> = {
-      name: 'exclusiveMinimum',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const maxLength: ISchema.IProperty<ISchema.INumber> = {
-      name: 'maxLength',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const minLength: ISchema.IProperty<ISchema.INumber> = {
-      name: 'minLength',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const pattern: ISchema.IProperty<ISchema.IString> = {
-      name: 'pattern',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const maxItems: ISchema.IProperty<ISchema.INumber> = {
-      name: 'maxItems',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const minItems: ISchema.IProperty<ISchema.INumber> = {
-      name: 'minItems',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const maxProperties: ISchema.IProperty<ISchema.INumber> = {
-      name: 'maxProperties',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const minProperties: ISchema.IProperty<ISchema.INumber> = {
-      name: 'minProperties',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const uniqueItems: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'uniqueItems',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const _enum: ISchema.IProperty<ISchema.IArray<any>> = {
-      name: 'enum',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'any'
-        }
-      }
-    }
-
-    const multipleOf: ISchema.IProperty<ISchema.INumber> = {
-      name: 'multipleOf',
-      schema: {
-        type: 'number'
-      }
-    }
-
-    const required: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
-      name: 'required',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'string'
-        }
-      }
-    }
-
-    const items: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>> = {
-      name: 'items',
-      schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Schema3
-      }
-    }
-
-    const properties: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISchema3Definition, ISchema3>>> = {
-      name: 'properties',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Schema3
-        }
-      }
-    }
-
-    const additionalProperties: ISchema.IProperty<ISchema.IOneOf> = {
-      name: 'additionalProperties',
-      schema: {
-        type: 'oneOf',
-        oneOf: [
-          {
-            condition: () => true,
-            schema: {
-              type: 'component',
-              allowsRef: true,
-              component: Schema3
-            }
-          },
-          {
-            condition: () => false,
-            schema: {
-              type: 'boolean'
-            }
-          }
-        ],
-        error: () => {}
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const format: ISchema.IProperty<ISchema.IString> = {
-      name: 'format',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const _default: ISchema.IProperty<any> = {
-      name: 'default',
-      schema: {
-        type: 'any'
-      }
-    }
-
-    const nullable: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'nullable',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const discriminator: ISchema.IProperty<ISchema.IComponent<IDiscriminator3Definition, IDiscriminator3>> = {
-      name: 'discriminator',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Discriminator3
-      }
-    }
-
-    const readOnly: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'readOnly',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const writeOnly: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'writeOnly',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const xml: ISchema.IProperty<ISchema.IComponent<IXml3Definition, IXml3>> = {
-      name: 'xml',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Xml3
-      }
-    }
-
-    const externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation3Definition, IExternalDocumentation3>> = {
-      name: 'externalDocs',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: ExternalDocumentation3
-      }
-    }
-
-    const example: ISchema.IProperty<any> = {
-      name: 'example',
-      schema: {
-        type: 'any'
-      }
-    }
-
-    const deprecated: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'deprecated',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<ISchema3Definition, ISchema3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        type,
-        allOf,
-        oneOf,
-        anyOf,
-        not,
-        title,
-        maximum,
-        exclusiveMaximum,
-        minimum,
-        exclusiveMinimum,
-        maxLength,
-        minLength,
-        pattern,
-        maxItems,
-        minItems,
-        maxProperties,
-        minProperties,
-        uniqueItems,
-        _enum,
-        multipleOf,
-        required,
-        items,
-        properties,
-        additionalProperties,
-        description,
-        format,
-        _default,
-        nullable,
-        discriminator,
-        readOnly,
-        writeOnly,
-        xml,
-        externalDocs,
-        example,
-        deprecated
+        validators.type,
+        validators.allOf,
+        validators.oneOf,
+        validators.anyOf,
+        validators.not,
+        validators.title,
+        validators.maximum,
+        validators.exclusiveMaximum,
+        validators.minimum,
+        validators.exclusiveMinimum,
+        validators.maxLength,
+        validators.minLength,
+        validators.pattern,
+        validators.maxItems,
+        validators.minItems,
+        validators.maxProperties,
+        validators.minProperties,
+        validators.uniqueItems,
+        validators._enum,
+        validators.multipleOf,
+        validators.required,
+        validators.items,
+        validators.properties,
+        validators.additionalProperties,
+        validators.description,
+        validators.format,
+        validators._default,
+        validators.nullable,
+        validators.discriminator,
+        validators.readOnly,
+        validators.writeOnly,
+        validators.xml,
+        validators.externalDocs,
+        validators.example,
+        validators.deprecated
       ]
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
     // Put your code here.
+    // TODO: The discriminator attribute is legal only when using one of the composite keywords oneOf, anyOf, allOf.
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     return result

@@ -35,12 +35,127 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IParameter3Definition, IParameter3> | null = null
 
+interface IValidatorsMap {
+  name: ISchema.IProperty<ISchema.IString>
+  _in: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+  required: ISchema.IProperty<ISchema.IBoolean>
+  deprecated: ISchema.IProperty<ISchema.IBoolean>
+  allowEmptyValue: ISchema.IProperty<ISchema.IBoolean>
+  style: ISchema.IProperty<ISchema.IString>
+  explode: ISchema.IProperty<ISchema.IBoolean>
+  allowReserved: ISchema.IProperty<ISchema.IBoolean>
+  schema: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>>
+  example: ISchema.IProperty<any>
+  examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IExample3Definition, IExample3>>>
+  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>>
+}
+
+const validators: IValidatorsMap = {
+  name: {
+    name: 'name',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  },
+  _in: {
+    name: 'in',
+    required: true,
+    schema: {
+      type: 'string',
+      enum: ['cookie', 'header', 'path', 'query']
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  required: {
+    name: 'required',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  deprecated: {
+    name: 'deprecated',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  allowEmptyValue: {
+    name: 'allowEmptyValue',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  style: {
+    name: 'style',
+    schema: {
+      type: 'string',
+      enum: ['deepObject', 'form', 'label', 'matrix', 'pipeDelimited', 'simple', 'spaceDelimited']
+    }
+  },
+  explode: {
+    name: 'explode',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  allowReserved: {
+    name: 'allowReserved',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  schema: {
+    name: 'schema',
+    schema: {
+      type: 'component',
+      allowsRef: true,
+      component: Schema3
+    }
+  },
+  example: {
+    name: 'example',
+    schema: {
+      type: 'any'
+    }
+  },
+  examples: {
+    name: 'examples',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Example3
+      }
+    }
+  },
+  content: {
+    name: 'content',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: false,
+        component: MediaType3
+      }
+    }
+  }
+}
+
 export class Parameter extends EnforcerComponent<IParameter3Definition, IParameter3> implements IParameter3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IParameter3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'PARAMETER3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -55,130 +170,23 @@ export class Parameter extends EnforcerComponent<IParameter3Definition, IParamet
       return cachedSchema
     }
 
-    const name: ISchema.IProperty<ISchema.IString> = {
-      name: 'name',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const _in: ISchema.IProperty<ISchema.IString> = {
-      name: 'in',
-      required: true,
-      schema: {
-        type: 'string',
-        enum: ['cookie', 'header', 'path', 'query']
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const required: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'required',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const deprecated: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'deprecated',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const allowEmptyValue: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'allowEmptyValue',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const style: ISchema.IProperty<ISchema.IString> = {
-      name: 'style',
-      schema: {
-        type: 'string',
-        enum: ['deepObject', 'form', 'label', 'matrix', 'pipeDelimited', 'simple', 'spaceDelimited']
-      }
-    }
-
-    const explode: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'explode',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const allowReserved: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'allowReserved',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const schema: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>> = {
-      name: 'schema',
-      schema: {
-        type: 'component',
-        allowsRef: true,
-        component: Schema3
-      }
-    }
-
-    const example: ISchema.IProperty<any> = {
-      name: 'example',
-      schema: {
-        type: 'any'
-      }
-    }
-
-    const examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IExample3Definition, IExample3>>> = {
-      name: 'examples',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Example3
-        }
-      }
-    }
-
-    const content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>> = {
-      name: 'content',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: MediaType3
-        }
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IParameter3Definition, IParameter3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        name,
-        _in,
-        description,
-        required,
-        deprecated,
-        allowEmptyValue,
-        style,
-        explode,
-        allowReserved,
-        schema,
-        example,
-        examples,
-        content
+        validators.name,
+        validators._in,
+        validators.description,
+        validators.required,
+        validators.deprecated,
+        validators.allowEmptyValue,
+        validators.style,
+        validators.explode,
+        validators.allowReserved,
+        validators.schema,
+        validators.example,
+        validators.examples,
+        validators.content
       ]
     }
 

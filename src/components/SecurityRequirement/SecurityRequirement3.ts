@@ -26,12 +26,21 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> | null = null
 
+const additionalProperties: ISchema.IArray<ISchema.IString> = {
+  type: 'array',
+  items: {
+    type: 'string'
+  }
+}
+
 export class SecurityRequirement extends EnforcerComponent<ISecurityRequirement3Definition, ISecurityRequirement3> implements ISecurityRequirement3 {
   [key: string]: string[]
 
   constructor (definition: ISecurityRequirement3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'SECURITY_REQUIREMENT3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -44,13 +53,6 @@ export class SecurityRequirement extends EnforcerComponent<ISecurityRequirement3
   static getSchemaDefinition (_data: ISecurityRequirementSchemaProcessor): ISchema.ISchemaDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> {
     if (cachedSchema !== null) {
       return cachedSchema
-    }
-
-    const additionalProperties: ISchema.IArray<ISchema.IString> = {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
     }
 
     const result: ISchema.ISchemaDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> = {

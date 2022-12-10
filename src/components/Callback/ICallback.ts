@@ -28,12 +28,14 @@ interface ICallbackComponent extends IComponentInstance {
 
 export interface ICallback3Definition {
   [extension: `x-${string}`]: any
-  [key: string]: IPathItem3Definition
+  [key: `http${string}`]: IPathItem3Definition
+  [key: `{$${string}`]: IPathItem3Definition
 }
 
 export interface ICallback3 extends ICallbackComponent {
   [extension: `x-${string}`]: any
-  [key: string]: IPathItem3
+  [key: `http${string}`]: IPathItem3
+  [key: `{$${string}`]: IPathItem3
 }
 
 // <!# Custom Content Begin: FOOTER #!>

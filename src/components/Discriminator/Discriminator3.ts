@@ -26,11 +26,37 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IDiscriminator3Definition, IDiscriminator3> | null = null
 
+interface IValidatorsMap {
+  propertyName: ISchema.IProperty<ISchema.IString>
+  mapping: ISchema.IProperty<ISchema.IObject<ISchema.IString>>
+}
+
+const validators: IValidatorsMap = {
+  propertyName: {
+    name: 'propertyName',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  },
+  mapping: {
+    name: 'mapping',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'string'
+      }
+    }
+  }
+}
+
 export class Discriminator extends EnforcerComponent<IDiscriminator3Definition, IDiscriminator3> implements IDiscriminator3 {
 
   constructor (definition: IDiscriminator3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'DISCRIMINATOR3'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -45,35 +71,18 @@ export class Discriminator extends EnforcerComponent<IDiscriminator3Definition, 
       return cachedSchema
     }
 
-    const propertyName: ISchema.IProperty<ISchema.IString> = {
-      name: 'propertyName',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const mapping: ISchema.IProperty<ISchema.IObject<ISchema.IString>> = {
-      name: 'mapping',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'string'
-        }
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IDiscriminator3Definition, IDiscriminator3> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [
-        propertyName,
-        mapping
+        validators.propertyName,
+        validators.mapping
       ]
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
     // Put your code here.
+    // TODO: validate the the mapping paths have been loaded2389
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = result

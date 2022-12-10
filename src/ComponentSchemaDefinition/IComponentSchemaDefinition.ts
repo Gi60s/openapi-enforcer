@@ -12,6 +12,9 @@ export interface IArray<T> extends Base<T[]> {
 }
 
 interface Base<T> {
+  // Is the property allowed? Based on sibling properties it may not be.
+  allowed?: boolean
+
   // Set the default.
   default?: T
 
@@ -38,7 +41,7 @@ export interface IComponent<Definition, Built> extends Base<Definition | Built> 
 // this interface is used only by component's getSchema() method which returns it
 export interface ISchemaDefinition<Definition, Built> extends IObject {
   allowsSchemaExtensions: boolean
-  after?: (data: ISchemaProcessor<Definition, Built>, mode: 'build' | 'validate') => void // runs after build or validate functions
+  after?: (data: ISchemaProcessor<Definition, Built>, mode: 'build' | 'validate') => void // runs after all build and validate functions throughout the entire tree
   build?: (data: ISchemaProcessor<Definition, Built>) => void
   validate?: (data: ISchemaProcessor<Definition, Built>) => void
 }

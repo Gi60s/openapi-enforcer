@@ -26,12 +26,45 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IServerVariable3Definition, IServerVariable3> | null = null
 
+interface IValidatorsMap {
+  _enum: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
+  _default: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+}
+
+const validators: IValidatorsMap = {
+  _enum: {
+    name: 'enum',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    }
+  },
+  _default: {
+    name: 'default',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  }
+}
+
 export class ServerVariable extends EnforcerComponent<IServerVariable3Definition, IServerVariable3> implements IServerVariable3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IServerVariable3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'SERVER_VARIABLE3'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -46,38 +79,13 @@ export class ServerVariable extends EnforcerComponent<IServerVariable3Definition
       return cachedSchema
     }
 
-    const _enum: ISchema.IProperty<ISchema.IArray<ISchema.IString>> = {
-      name: 'enum',
-      schema: {
-        type: 'array',
-        items: {
-          type: 'string'
-        }
-      }
-    }
-
-    const _default: ISchema.IProperty<ISchema.IString> = {
-      name: 'default',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IServerVariable3Definition, IServerVariable3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        _enum,
-        _default,
-        description
+        validators._enum,
+        validators._default,
+        validators.description
       ]
     }
 

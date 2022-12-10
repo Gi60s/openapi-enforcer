@@ -32,12 +32,68 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IInfo2Definition, IInfo2> | null = null
 
+interface IValidatorsMap {
+  title: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+  termsOfService: ISchema.IProperty<ISchema.IString>
+  contact: ISchema.IProperty<ISchema.IComponent<IContact2Definition, IContact2>>
+  license: ISchema.IProperty<ISchema.IComponent<ILicense2Definition, ILicense2>>
+  version: ISchema.IProperty<ISchema.IString>
+}
+
+const validators: IValidatorsMap = {
+  title: {
+    name: 'title',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  termsOfService: {
+    name: 'termsOfService',
+    schema: {
+      type: 'string'
+    }
+  },
+  contact: {
+    name: 'contact',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: Contact2
+    }
+  },
+  license: {
+    name: 'license',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: License2
+    }
+  },
+  version: {
+    name: 'version',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  }
+}
+
 export class Info extends EnforcerComponent<IInfo2Definition, IInfo2> implements IInfo2 {
   [extension: `x${string}`]: any
 
   constructor (definition: IInfo2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'INFO2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#info-object',
@@ -52,64 +108,16 @@ export class Info extends EnforcerComponent<IInfo2Definition, IInfo2> implements
       return cachedSchema
     }
 
-    const title: ISchema.IProperty<ISchema.IString> = {
-      name: 'title',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const termsOfService: ISchema.IProperty<ISchema.IString> = {
-      name: 'termsOfService',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const contact: ISchema.IProperty<ISchema.IComponent<IContact2Definition, IContact2>> = {
-      name: 'contact',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Contact2
-      }
-    }
-
-    const license: ISchema.IProperty<ISchema.IComponent<ILicense2Definition, ILicense2>> = {
-      name: 'license',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: License2
-      }
-    }
-
-    const version: ISchema.IProperty<ISchema.IString> = {
-      name: 'version',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IInfo2Definition, IInfo2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        title,
-        description,
-        termsOfService,
-        contact,
-        license,
-        version
+        validators.title,
+        validators.description,
+        validators.termsOfService,
+        validators.contact,
+        validators.license,
+        validators.version
       ]
     }
 

@@ -100,15 +100,23 @@ export function getMergedParameters (data: ISchemaProcessorData): IFromParameter
     const pathItem = findAncestorComponentData<IPathItem, IPathItemDefinition>(chain, 'PathItem')
     const pathItemParameters: IFromParameterArray = pathItem?.definition.parameters ?? []
     const operationParameters: IFromParameterArray = definition.parameters ?? []
-    const mergedParameters = pathItemParameters === undefined
-      ? operationParameters
-      : operationParameters.concat(pathItemParameters.filter(pip => {
-        const match = operationParameters.find(op => op.name === pip.name && op.in === pip.in)
-        return match === undefined
-      }))
-    mergedParametersMap.set(data.definition, mergedParameters)
-    results = mergedParameters
+    results = mergeParameters(pathItemParameters, operationParameters)
   }
+  return results
+}
+
+export function mergeParameters (...sets: Array<IFromParameterArray | undefined>): IFromParameterArray {
+  const results: IFromParameterArray = []
+  sets.forEach(set => {
+    set?.forEach(parameter => {
+      const index = results.findIndex(p => p.name === parameter.name && p.in === parameter.in)
+      if (index !== -1) {
+        results.splice(index, 1, parameter)
+      } else {
+        results.push(parameter)
+      }
+    })
+  })
   return results
 }
 

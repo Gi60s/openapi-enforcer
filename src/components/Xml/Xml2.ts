@@ -26,12 +26,55 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IXml2Definition, IXml2> | null = null
 
+interface IValidatorsMap {
+  name: ISchema.IProperty<ISchema.IString>
+  namespace: ISchema.IProperty<ISchema.IString>
+  prefix: ISchema.IProperty<ISchema.IString>
+  attribute: ISchema.IProperty<ISchema.IBoolean>
+  wrapped: ISchema.IProperty<ISchema.IBoolean>
+}
+
+const validators: IValidatorsMap = {
+  name: {
+    name: 'name',
+    schema: {
+      type: 'string'
+    }
+  },
+  namespace: {
+    name: 'namespace',
+    schema: {
+      type: 'string'
+    }
+  },
+  prefix: {
+    name: 'prefix',
+    schema: {
+      type: 'string'
+    }
+  },
+  attribute: {
+    name: 'attribute',
+    schema: {
+      type: 'boolean'
+    }
+  },
+  wrapped: {
+    name: 'wrapped',
+    schema: {
+      type: 'boolean'
+    }
+  }
+}
+
 export class Xml extends EnforcerComponent<IXml2Definition, IXml2> implements IXml2 {
   [extension: `x${string}`]: any
 
   constructor (definition: IXml2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'XML2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#xml-object',
@@ -46,50 +89,15 @@ export class Xml extends EnforcerComponent<IXml2Definition, IXml2> implements IX
       return cachedSchema
     }
 
-    const name: ISchema.IProperty<ISchema.IString> = {
-      name: 'name',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const namespace: ISchema.IProperty<ISchema.IString> = {
-      name: 'namespace',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const prefix: ISchema.IProperty<ISchema.IString> = {
-      name: 'prefix',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const attribute: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'attribute',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
-    const wrapped: ISchema.IProperty<ISchema.IBoolean> = {
-      name: 'wrapped',
-      schema: {
-        type: 'boolean'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IXml2Definition, IXml2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        name,
-        namespace,
-        prefix,
-        attribute,
-        wrapped
+        validators.name,
+        validators.namespace,
+        validators.prefix,
+        validators.attribute,
+        validators.wrapped
       ]
     }
 

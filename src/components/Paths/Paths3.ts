@@ -30,6 +30,12 @@ import * as config from '../../global-config'
 
 let cachedSchema: ISchema.ISchemaDefinition<IPaths3Definition, IPaths3> | null = null
 
+const additionalProperties: ISchema.IComponent<IPathItem3Definition, IPathItem3> = {
+  type: 'component',
+  allowsRef: false,
+  component: PathItem3
+}
+
 export class Paths extends EnforcerComponent<IPaths3Definition, IPaths3> implements IPaths3 {
   [extension: `x${string}`]: any
   [key: `/${string}`]: IPathItem3
@@ -37,6 +43,8 @@ export class Paths extends EnforcerComponent<IPaths3Definition, IPaths3> impleme
   constructor (definition: IPaths3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'PATHS3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -49,12 +57,6 @@ export class Paths extends EnforcerComponent<IPaths3Definition, IPaths3> impleme
   static getSchemaDefinition (_data: IPathsSchemaProcessor): ISchema.ISchemaDefinition<IPaths3Definition, IPaths3> {
     if (cachedSchema !== null) {
       return cachedSchema
-    }
-
-    const additionalProperties: ISchema.IComponent<IPathItem3Definition, IPathItem3> = {
-      type: 'component',
-      allowsRef: false,
-      component: PathItem3
     }
 
     const result: ISchema.ISchemaDefinition<IPaths3Definition, IPaths3> = {

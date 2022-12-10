@@ -29,12 +29,47 @@ import { isUrl } from '../validations'
 
 let cachedSchema: ISchema.ISchemaDefinition<IServer3Definition, IServer3> | null = null
 
+interface IValidatorsMap {
+  url: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+  variables: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IServerVariable3Definition, IServerVariable3>>>
+}
+
+const validators: IValidatorsMap = {
+  url: {
+    name: 'url',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  variables: {
+    name: 'variables',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: false,
+        component: ServerVariable3
+      }
+    }
+  }
+}
+
 export class Server extends EnforcerComponent<IServer3Definition, IServer3> implements IServer3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IServer3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'SERVER3'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -49,40 +84,13 @@ export class Server extends EnforcerComponent<IServer3Definition, IServer3> impl
       return cachedSchema
     }
 
-    const url: ISchema.IProperty<ISchema.IString> = {
-      name: 'url',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const variables: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IServerVariable3Definition, IServerVariable3>>> = {
-      name: 'variables',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: ServerVariable3
-        }
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IServer3Definition, IServer3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        url,
-        description,
-        variables
+        validators.url,
+        validators.description,
+        validators.variables
       ]
     }
 

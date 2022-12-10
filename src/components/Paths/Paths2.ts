@@ -30,6 +30,12 @@ import * as config from '../../global-config'
 
 let cachedSchema: ISchema.ISchemaDefinition<IPaths2Definition, IPaths2> | null = null
 
+const additionalProperties: ISchema.IComponent<IPathItem2Definition, IPathItem2> = {
+  type: 'component',
+  allowsRef: false,
+  component: PathItem2
+}
+
 export class Paths extends EnforcerComponent<IPaths2Definition, IPaths2> implements IPaths2 {
   [extension: `x${string}`]: any
   [key: `/${string}`]: IPathItem2
@@ -37,6 +43,8 @@ export class Paths extends EnforcerComponent<IPaths2Definition, IPaths2> impleme
   constructor (definition: IPaths2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'PATHS2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#paths-object',
@@ -49,12 +57,6 @@ export class Paths extends EnforcerComponent<IPaths2Definition, IPaths2> impleme
   static getSchemaDefinition (_data: IPathsSchemaProcessor): ISchema.ISchemaDefinition<IPaths2Definition, IPaths2> {
     if (cachedSchema !== null) {
       return cachedSchema
-    }
-
-    const additionalProperties: ISchema.IComponent<IPathItem2Definition, IPathItem2> = {
-      type: 'component',
-      allowsRef: false,
-      component: PathItem2
     }
 
     const result: ISchema.ISchemaDefinition<IPaths2Definition, IPaths2> = {

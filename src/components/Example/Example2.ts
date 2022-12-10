@@ -26,12 +26,18 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IExample2Definition, IExample2> | null = null
 
+const additionalProperties: any = {
+  type: 'any'
+}
+
 export class Example extends EnforcerComponent<IExample2Definition, IExample2> implements IExample2 {
   [key: string]: any
 
   constructor (definition: IExample2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'EXAMPLE2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#example-object',
@@ -44,10 +50,6 @@ export class Example extends EnforcerComponent<IExample2Definition, IExample2> i
   static getSchemaDefinition (_data: IExampleSchemaProcessor): ISchema.ISchemaDefinition<IExample2Definition, IExample2> {
     if (cachedSchema !== null) {
       return cachedSchema
-    }
-
-    const additionalProperties: any = {
-      type: 'any'
     }
 
     const result: ISchema.ISchemaDefinition<IExample2Definition, IExample2> = {

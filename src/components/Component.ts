@@ -1,11 +1,13 @@
-import { IComponentClass, IComponentInstance, IComponentSpec, IVersion } from './IComponent'
-import { ISchemaProcessor, ISchemaProcessorComponentData } from '../ComponentSchemaDefinition/ISchemaProcessor'
+import { IComponentSpec, IVersion } from './IComponent'
+import { ISchemaProcessor } from '../ComponentSchemaDefinition/ISchemaProcessor'
 import { ISchemaDefinition } from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ExceptionStore } from '../Exception/ExceptionStore'
-import { initializeProcessorData } from '../ComponentSchemaDefinition/schema-processor'
+import { generateChildProcessorData, initializeProcessorData } from '../ComponentSchemaDefinition/schema-processor'
 
 type IHookStoreItem = Record<string, Array<(newValue: any, oldValue: any) => void>>
-type SchemaGenerator = (data: ISchemaProcessor, componentData: ISchemaProcessorComponentData) => ISchemaDefinition<any, any>
+
+type SchemaGenerator = (data: ISchemaProcessor) => ISchemaDefinition<any, any>
+
 interface IComponentMapData {
   cached: Record<string, any>
   defaultValues: Record<string, any>
@@ -14,26 +16,32 @@ interface IComponentMapData {
   watches: IHookStoreItem
 }
 
+interface IParentData {
+  parent: ISchemaProcessor<any, any>
+  key: string
+}
+
+type ISchemaDefinitionMap<Definition extends object, Built extends EnforcerComponent<Definition, any>> =
+  WeakMap<Definition, WeakMap<Built, ISchemaDefinition<any, any>>>
+
 const componentMap = new WeakMap<any, IComponentMapData>()
-const definitionSchemaMap = new WeakMap<any, WeakMap<any, ISchemaDefinition<any, any>>>()
+const definitionSchemaMap: ISchemaDefinitionMap<any, any> = new WeakMap()
+
+export interface EnforcerComponent<Definition, Built> {
+  new (definition: Definition, version?: IVersion, data?: IParentData): Built
+  getSchemaDefinition: (data: ISchemaProcessor<Definition, Built>) => ISchemaDefinition<Definition, Built>
+  id: string
+  spec: IComponentSpec
+  validate: (definition: any, version?: IVersion, data?: ISchemaProcessor<Definition, Built>) => ExceptionStore
+}
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class EnforcerComponent<Definition, Built> {
-  constructor (definition: Definition, version?: IVersion, data?: ISchemaProcessor<Definition, Built>) {
-    const ctor = this.constructor
-    const spec: IComponentSpec = 'spec' in ctor
-      ? (ctor as unknown as { spec: IComponentSpec }).spec
-      : {
-          '2.0': false,
-          '3.0.0': false,
-          '3.0.1': false,
-          '3.0.2': false,
-          '3.0.3': false
-        }
-    const determinedVersion = version === undefined
-      ? getHighestVersion(Object.keys(spec) as IVersion[])
-      : version
-    const processorData = data ?? initializeProcessorData(definition, determinedVersion)
+  constructor (definition: Definition, version?: IVersion, data?: IParentData) {
+    const ctor = this.constructor as EnforcerComponent<Definition, Built>
+    const processorData = data !== undefined
+      ? generateChildProcessorData(data.parent, data.key, ctor)
+      : initializeProcessorData(definition, ctor, version)
     componentMap.set(this, {
       cached: {},
       defaultValues: {},
@@ -41,7 +49,7 @@ export class EnforcerComponent<Definition, Built> {
       processorData,
       watches: {}
     })
-    buildComponentFromDefinition<Definition, Built>(this.constructor, processorData)
+    buildComponentFromDefinition<Definition, Built>(processorData)
   }
 
   // cache values
@@ -62,11 +70,22 @@ export class EnforcerComponent<Definition, Built> {
     if (cache[id] !== undefined) cache[id] = undefined
   }
 
-  public watchProperty<T> (key: string, handler: (newValue: T, oldValue: T) => void): void {
+  public hookGetProperty<T> (key: string, callback: (value: T) => T): void {
+
+  }
+
+  public hookSetProperty<T> (key: string, callback: (newValue: T, oldValue: T) => T): void {
+
+  }
+
+  public watchProperty<T> (key: string | string[], handler: (newValue: T, oldValue: T) => void): void {
     const data = componentMap.get(this) as IComponentMapData
     const record = data.watches
-    if (record[key] === undefined) record[key] = []
-    record[key].push(handler)
+    const keys = Array.isArray(key) ? key : [key]
+    keys.forEach(k => {
+      if (record[k] === undefined) record[k] = []
+      record[k].push(handler)
+    })
   }
 
   protected getProperty<T> (key: string): T {
@@ -96,45 +115,65 @@ export class EnforcerComponent<Definition, Built> {
     throw new Error('Function "getSchema" not implemented')
   }
 
-  static validate (definition: any, version?: IVersion, data?: ISchemaProcessor): ExceptionStore {
-    return validateComponentDefinition(this, definition, version, data)
+  static validate<Definition, Built> (definition: any, version?: IVersion, data?: IParentData): ExceptionStore {
+    const ctor = this as unknown as EnforcerComponent<Definition, Built>
+    const processorData = data !== undefined
+      ? generateChildProcessorData<Definition, Built>(data.parent, data.key, ctor)
+      : initializeProcessorData<Definition, Built>(definition, ctor, version)
+    return validateComponentDefinition<Definition, Built>(processorData)
   }
 }
 
-function buildComponentFromDefinition<Definition, Built> (componentClass: IComponentClass<Definition, Built>, data: ISchemaProcessor): void {
-  const schema = componentClass.getSchema(data)
-  const spec = componentClass.spec
+function buildComponentFromDefinition<Definition, Built> (data: ISchemaProcessor<Definition, Built>): void {
+  const ctor = data.constructor
+  const schema = ctor.getSchemaDefinition(data)
+  const spec = ctor.spec
+  // TODO: build out this function
 }
 
-export function validateComponentDefinition<Definition, Built> (
-  componentClass: any, // IComponentClass<Definition, Built>,
-  definition: Definition,
-  version?: IVersion,
-  data?: ISchemaProcessor): ExceptionStore {
-
-  const spec = componentClass.spec
-  const exceptions = new ExceptionStore()
-  const determinedVersion = version === undefined
-    ? getHighestVersion(Object.keys(spec) as IVersion[])
-    : version
-
-  if (determinedVersion in spec) {
-    if (data === undefined) data = generateProcessorData(definition, determinedVersion)
-    const schema = generateSchema(componentClass, componentClass.getSchema, data)
-    // TODO: validate definition against schema
-  } else {
-    exceptions.add({
-      id: componentClass.name.toUpperCase() + '_VERSION_NOT_SUPPORTED',
+function validateComponentDefinition<Definition, Built> (data: ISchemaProcessor<Definition, Built>): ExceptionStore {
+  const { constructor: ctor, definition, exception, id, name, version } = data
+  const spec = data.constructor.spec
+  if (spec[version] === undefined) {
+    exception.add({
+      id: id + '_VERSION_NOT_SUPPORTED',
       level: 'error',
       locations: [],
-      message: 'The OpenAPI component class "' + componentClass.name + '" does not support OpenAPI specification version ' + determinedVersion,
+      message: `The OpenAPIEnforcer does not support OpenAPI specification version ${version}.`,
       metadata: {
-        supportedVersions: Object.keys(spec),
-        version: determinedVersion
+        supportedVersions: Object.keys(spec).filter(k => typeof spec[k as IVersion] === 'string'),
+        version
       }
     })
+  } else if (spec[version] === false) {
+    exception.add({
+      id: id + '_VERSION_MISMATCH',
+      level: 'error',
+      locations: [],
+      message: `The OpenAPIEnforcer supports OpenAPI specification version ${version}, but the ${name} object does not support this version.`,
+      metadata: {
+        supportedVersions: Object.keys(spec).filter(k => typeof spec[k as IVersion] === 'string'),
+        version: version
+      }
+    })
+  } else {
+    // check that this definition and schema have not already been evaluated
+    const previousConstructors = definitionSchemaMap.get(definition)
+    const existingSchemaDefinition = previousConstructors?.get(ctor)
+    if (existingSchemaDefinition !== undefined) return exception
+
+    // store new schema validation
+    // TODO: this wont work because as we run recursively deeper this may not be defined early enough
+    const schema = ctor.getSchemaDefinition(data)
+    if (previousConstructors === undefined) {
+      const ctorMap = new WeakMap()
+      ctorMap.set(ctor, schema)
+      definitionSchemaMap.set(definition, ctorMap)
+    } else {
+      previousConstructors.set(ctor, schema)
+    }
   }
-  return exceptions
+  return exception
 }
 
 function generateSchema (componentClass: IComponentClass<any, any>, generator: SchemaGenerator, data?: ISchemaProcessor): IComponentSchemaObject {
@@ -156,65 +195,4 @@ function generateSchema (componentClass: IComponentClass<any, any>, generator: S
   const schema = generator(processorData)
   componentSchemaMap.set(processorData.definition, schema)
   return schema
-}
-
-// function generateVersion (spec: IComponentSpec, version?: IVersion): IVersion {
-//   const result = version === undefined
-//     ? getHighestVersion(Object.keys(spec) as IVersion[])
-//     : version
-//   if (result in spec) return result
-//
-//
-//   if (version === undefined) {
-//     const keys = Object.keys(spec)
-//     let highMajor: number | undefined
-//     let highMinor: number | undefined
-//     let highPatch: number | undefined
-//     keys.forEach(key => {
-//       const [major, minor, patch] = key.split('.').map(v => parseInt(v))
-//       if (highMajor === undefined || major > highMajor) {
-//         highMajor = major
-//         highMinor = minor
-//         highPatch = patch
-//       } else if (major === highMajor) {
-//         if (minor === undefined || (highMinor !== undefined && minor > highMinor)) {
-//           highMinor = minor
-//           highPatch = patch
-//         } else if (minor === highMinor && (patch === undefined || (highPatch !== undefined && patch > highPatch))) {
-//           highPatch = patch
-//         }
-//       }
-//     })
-//     result = [highMajor, highMinor, highPatch]
-//       .filter(v => typeof v === 'number')
-//       .join('.') as IVersion
-//   } else {
-//     result = version
-//   }
-//
-//   if (result in spec) return
-// }
-
-function getHighestVersion (versions: IVersion[]): IVersion {
-  let highMajor: number | undefined
-  let highMinor: number | undefined
-  let highPatch: number | undefined
-  versions.forEach(key => {
-    const [major, minor, patch] = key.split('.').map(v => parseInt(v))
-    if (highMajor === undefined || major > highMajor) {
-      highMajor = major
-      highMinor = minor
-      highPatch = patch
-    } else if (major === highMajor) {
-      if (minor === undefined || (highMinor !== undefined && minor > highMinor)) {
-        highMinor = minor
-        highPatch = patch
-      } else if (minor === highMinor && (patch === undefined || (highPatch !== undefined && patch > highPatch))) {
-        highPatch = patch
-      }
-    }
-  })
-  return [highMajor, highMinor, highPatch]
-    .filter(v => typeof v === 'number')
-    .join('.') as IVersion
 }

@@ -43,7 +43,12 @@ import { ContentType } from '../../ContentType/ContentType'
 
 interface IOperationComponent extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
-  getResponsesThatCanProduceContentType: (contentType: string | ContentType) => Array<{ code: number | 'default', response: IResponse2 }>
+  // getResponsesThatCanProduceContentType: (contentType: string | ContentType) => Array<{ code: number | 'default', response: IResponse2 }>
+  parseBody: (body: string | object, options?: IOperationParseOptions) => any
+  parseHeaders: (headers: Record<string, string>, options?: IOperationParseOptions) => Record<string, any>
+  parsePath: (path: string, options?: IOperationParseOptions) => Record<string, any>
+  parseQuery: (query: string, options?: IOperationParseOptions & { allowOtherQueryParameters?: boolean }) => Record<string, string | string[] | undefined>
+  parseRequest: (request: IOperationParseRequest, options?: IOperationParseOptions & { allowOtherQueryParameters?: boolean }) => IOperationParseRequestResponse
   willAcceptContentType: (contentType: string | ContentType) => boolean
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
@@ -113,5 +118,23 @@ export interface IOperation3 extends IOperationComponent {
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-// Put your code here.
+export interface IOperationParseRequest {
+  body?: string | object
+  cookies?: Record<string, string>
+  headers?: Record<string, string>
+  path?: Record<string, string>
+  query?: Record<string, string | string[] | undefined>
+}
+
+export interface IOperationParseRequestResponse {
+  body?: any
+  cookies?: Record<string, any>
+  headers?: Record<string, any>
+  path?: Record<string, any>
+  query?: Record<string, any>
+}
+
+export interface IOperationParseOptions {
+  validate?: boolean
+}
 // <!# Custom Content End: FOOTER #!>

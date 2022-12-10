@@ -56,12 +56,128 @@ const rxPropertyName = /^[a-zA-Z0-9._-]+$/
 
 let cachedSchema: ISchema.ISchemaDefinition<IComponents3Definition, IComponents3> | null = null
 
+interface IValidatorsMap {
+  schemas: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISchema3Definition, ISchema3>>>
+  responses: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IResponse3Definition, IResponse3>>>
+  parameters: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IParameter3Definition, IParameter3>>>
+  examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IExample3Definition, IExample3>>>
+  requestBodies: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IRequestBody3Definition, IRequestBody3>>>
+  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader3Definition, IHeader3>>>
+  securitySchemes: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISecurityScheme3Definition, ISecurityScheme3>>>
+  links: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ILink3Definition, ILink3>>>
+  callbacks: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ICallback3Definition, ICallback3>>>
+}
+
+const validators: IValidatorsMap = {
+  schemas: {
+    name: 'schemas',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Schema3
+      }
+    }
+  },
+  responses: {
+    name: 'responses',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Response3
+      }
+    }
+  },
+  parameters: {
+    name: 'parameters',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Parameter3
+      }
+    }
+  },
+  examples: {
+    name: 'examples',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Example3
+      }
+    }
+  },
+  requestBodies: {
+    name: 'requestBodies',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: RequestBody3
+      }
+    }
+  },
+  headers: {
+    name: 'headers',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Header3
+      }
+    }
+  },
+  securitySchemes: {
+    name: 'securitySchemes',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: SecurityScheme3
+      }
+    }
+  },
+  links: {
+    name: 'links',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Link3
+      }
+    }
+  },
+  callbacks: {
+    name: 'callbacks',
+    schema: {
+      type: 'object',
+      additionalProperties: {
+        type: 'component',
+        allowsRef: true,
+        component: Callback3
+      }
+    }
+  }
+}
+
 export class Components extends EnforcerComponent<IComponents3Definition, IComponents3> implements IComponents3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IComponents3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'COMPONENTS3'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -76,156 +192,46 @@ export class Components extends EnforcerComponent<IComponents3Definition, ICompo
       return cachedSchema
     }
 
-    const schemas: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISchema3Definition, ISchema3>>> = {
-      name: 'schemas',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Schema3
-        }
-      }
-    }
-
-    const responses: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IResponse3Definition, IResponse3>>> = {
-      name: 'responses',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Response3
-        }
-      }
-    }
-
-    const parameters: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IParameter3Definition, IParameter3>>> = {
-      name: 'parameters',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Parameter3
-        }
-      }
-    }
-
-    const examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IExample3Definition, IExample3>>> = {
-      name: 'examples',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Example3
-        }
-      }
-    }
-
-    const requestBodies: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IRequestBody3Definition, IRequestBody3>>> = {
-      name: 'requestBodies',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: RequestBody3
-        }
-      }
-    }
-
-    const headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader3Definition, IHeader3>>> = {
-      name: 'headers',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Header3
-        }
-      }
-    }
-
-    const securitySchemes: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISecurityScheme3Definition, ISecurityScheme3>>> = {
-      name: 'securitySchemes',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: SecurityScheme3
-        }
-      }
-    }
-
-    const links: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ILink3Definition, ILink3>>> = {
-      name: 'links',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Link3
-        }
-      }
-    }
-
-    const callbacks: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ICallback3Definition, ICallback3>>> = {
-      name: 'callbacks',
-      schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: Callback3
-        }
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IComponents3Definition, IComponents3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        schemas,
-        responses,
-        parameters,
-        examples,
-        requestBodies,
-        headers,
-        securitySchemes,
-        links,
-        callbacks
+        validators.schemas,
+        validators.responses,
+        validators.parameters,
+        validators.examples,
+        validators.requestBodies,
+        validators.headers,
+        validators.securitySchemes,
+        validators.links,
+        validators.callbacks
       ]
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    result.after = (data, mode) => {
-      if (mode === 'validate') {
-        const { definition, exception, reference, id } = data
-        const properties: Array<keyof IComponents3Definition> = ['schemas', 'responses',
-          'parameters', 'examples', 'requestBodies', 'headers', 'securitySchemes', 'links', 'callbacks']
-        properties.forEach(key => {
-          if (definition[key] !== undefined) {
-            Object.keys(definition[key]).forEach(name => {
-              if (!rxPropertyName.test(name)) {
-                exception.add({
-                  id: id + '_FIELD_MAPPED_NAME_INVALID',
-                  level: 'error',
-                  locations: [getLocation(definition[key], name, 'key')],
-                  message: 'The property name ' + smart(name) + ' can only contain letters, numbers, dots, dashes, and underscores.',
-                  metadata: {
-                    field: key,
-                    name
-                  },
-                  reference
-                })
-              }
-            })
-          }
-        })
-      }
+    result.validate = (data) => {
+      const { definition, exception, reference, id } = data
+      const properties: Array<keyof IComponents3Definition> = ['schemas', 'responses',
+        'parameters', 'examples', 'requestBodies', 'headers', 'securitySchemes', 'links', 'callbacks']
+      properties.forEach(key => {
+        if (definition[key] !== undefined) {
+          Object.keys(definition[key]).forEach(name => {
+            if (!rxPropertyName.test(name)) {
+              exception.add({
+                id: id + '_FIELD_MAPPED_NAME_INVALID',
+                level: 'error',
+                locations: [getLocation(definition[key], name, 'key')],
+                message: 'The property name ' + smart(name) + ' can only contain letters, numbers, dots, dashes, and underscores.',
+                metadata: {
+                  field: key,
+                  name
+                },
+                reference
+              })
+            }
+          })
+        }
+      })
     }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 

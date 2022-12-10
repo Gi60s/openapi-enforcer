@@ -26,11 +26,27 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IReference2Definition, IReference2> | null = null
 
+interface IValidatorsMap {
+  $ref: ISchema.IProperty<ISchema.IString>
+}
+
+const validators: IValidatorsMap = {
+  $ref: {
+    name: '$ref',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  }
+}
+
 export class Reference extends EnforcerComponent<IReference2Definition, IReference2> implements IReference2 {
 
   constructor (definition: IReference2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'REFERENCE2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#reference-object',
@@ -45,19 +61,11 @@ export class Reference extends EnforcerComponent<IReference2Definition, IReferen
       return cachedSchema
     }
 
-    const $ref: ISchema.IProperty<ISchema.IString> = {
-      name: '$ref',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IReference2Definition, IReference2> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [
-        $ref
+        validators.$ref
       ]
     }
 

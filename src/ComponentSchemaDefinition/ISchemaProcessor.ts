@@ -1,9 +1,10 @@
 import { ExceptionStore } from '../Exception/ExceptionStore'
 import { ILastly } from '../Lastly/ILastly'
 import { Chain } from '../Chain/Chain'
-import { IComponentClass, IVersion } from '../components/IComponent'
+import { IVersion } from '../components/IComponent'
 import { ISecurityScheme2, ISecurityScheme2Definition, ISecurityScheme3, ISecurityScheme3Definition } from '../components/SecurityScheme'
 import { IDefinition, IComponent, IOperation, IOperationDefinition } from '../components/IInternalTypes'
+import { EnforcerComponent } from '../components/Component'
 
 type ISecurityScheme = ISecurityScheme2 | ISecurityScheme3
 type ISecuritySchemeDefinition = ISecurityScheme2Definition | ISecurityScheme3Definition
@@ -14,7 +15,7 @@ export interface ISchemaProcessor<Definition=IDefinition, Built=IComponent> {
   built: Built
   chain: ISchemaProcessorChain
   children: { [p: string]: ISchemaProcessor }
-  constructor: IComponentClass<Definition, Built>
+  constructor: EnforcerComponent<Definition, Built>
   definition: Definition
   exception: ExceptionStore
   id: string // all uppercase with underscores to separate words - used for error IDs

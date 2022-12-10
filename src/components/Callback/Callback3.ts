@@ -29,13 +29,22 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<ICallback3Definition, ICallback3> | null = null
 
+const additionalProperties: ISchema.IComponent<IPathItem3Definition, IPathItem3> = {
+  type: 'component',
+  allowsRef: false,
+  component: PathItem3
+}
+
 export class Callback extends EnforcerComponent<ICallback3Definition, ICallback3> implements ICallback3 {
   [extension: `x${string}`]: any
-  [key: string]: IPathItem3 | any
+  [key: `http${string}`]: IPathItem3
+  [key: `{$${string}`]: IPathItem3
 
   constructor (definition: ICallback3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'CALLBACK3'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -48,12 +57,6 @@ export class Callback extends EnforcerComponent<ICallback3Definition, ICallback3
   static getSchemaDefinition (_data: ICallbackSchemaProcessor): ISchema.ISchemaDefinition<ICallback3Definition, ICallback3> {
     if (cachedSchema !== null) {
       return cachedSchema
-    }
-
-    const additionalProperties: ISchema.IComponent<IPathItem3Definition, IPathItem3> = {
-      type: 'component',
-      allowsRef: false,
-      component: PathItem3
     }
 
     const result: ISchema.ISchemaDefinition<ICallback3Definition, ICallback3> = {

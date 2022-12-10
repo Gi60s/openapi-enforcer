@@ -29,12 +29,44 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<ITag2Definition, ITag2> | null = null
 
+interface IValidatorsMap {
+  name: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation2Definition, IExternalDocumentation2>>
+}
+
+const validators: IValidatorsMap = {
+  name: {
+    name: 'name',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  externalDocs: {
+    name: 'externalDocs',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: ExternalDocumentation2
+    }
+  }
+}
+
 export class Tag extends EnforcerComponent<ITag2Definition, ITag2> implements ITag2 {
   [extension: `x${string}`]: any
 
   constructor (definition: ITag2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'TAG2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#tag-object',
@@ -49,37 +81,13 @@ export class Tag extends EnforcerComponent<ITag2Definition, ITag2> implements IT
       return cachedSchema
     }
 
-    const name: ISchema.IProperty<ISchema.IString> = {
-      name: 'name',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation2Definition, IExternalDocumentation2>> = {
-      name: 'externalDocs',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: ExternalDocumentation2
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<ITag2Definition, ITag2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        name,
-        description,
-        externalDocs
+        validators.name,
+        validators.description,
+        validators.externalDocs
       ]
     }
 

@@ -29,12 +29,44 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<ITag3Definition, ITag3> | null = null
 
+interface IValidatorsMap {
+  name: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation3Definition, IExternalDocumentation3>>
+}
+
+const validators: IValidatorsMap = {
+  name: {
+    name: 'name',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  externalDocs: {
+    name: 'externalDocs',
+    schema: {
+      type: 'component',
+      allowsRef: false,
+      component: ExternalDocumentation3
+    }
+  }
+}
+
 export class Tag extends EnforcerComponent<ITag3Definition, ITag3> implements ITag3 {
   [extension: `x${string}`]: any
 
   constructor (definition: ITag3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'TAG3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -49,37 +81,13 @@ export class Tag extends EnforcerComponent<ITag3Definition, ITag3> implements IT
       return cachedSchema
     }
 
-    const name: ISchema.IProperty<ISchema.IString> = {
-      name: 'name',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation3Definition, IExternalDocumentation3>> = {
-      name: 'externalDocs',
-      schema: {
-        type: 'component',
-        allowsRef: false,
-        component: ExternalDocumentation3
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<ITag3Definition, ITag3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        name,
-        description,
-        externalDocs
+        validators.name,
+        validators.description,
+        validators.externalDocs
       ]
     }
 

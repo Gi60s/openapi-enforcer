@@ -26,12 +26,48 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<IExample3Definition, IExample3> | null = null
 
+interface IValidatorsMap {
+  summary: ISchema.IProperty<ISchema.IString>
+  description: ISchema.IProperty<ISchema.IString>
+  value: ISchema.IProperty<any>
+  externalValue: ISchema.IProperty<ISchema.IString>
+}
+
+const validators: IValidatorsMap = {
+  summary: {
+    name: 'summary',
+    schema: {
+      type: 'string'
+    }
+  },
+  description: {
+    name: 'description',
+    schema: {
+      type: 'string'
+    }
+  },
+  value: {
+    name: 'value',
+    schema: {
+      type: 'any'
+    }
+  },
+  externalValue: {
+    name: 'externalValue',
+    schema: {
+      type: 'string'
+    }
+  }
+}
+
 export class Example extends EnforcerComponent<IExample3Definition, IExample3> implements IExample3 {
   [extension: `x${string}`]: any
 
   constructor (definition: IExample3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'EXAMPLE3'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -46,42 +82,14 @@ export class Example extends EnforcerComponent<IExample3Definition, IExample3> i
       return cachedSchema
     }
 
-    const summary: ISchema.IProperty<ISchema.IString> = {
-      name: 'summary',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const description: ISchema.IProperty<ISchema.IString> = {
-      name: 'description',
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const value: ISchema.IProperty<any> = {
-      name: 'value',
-      schema: {
-        type: 'any'
-      }
-    }
-
-    const externalValue: ISchema.IProperty<ISchema.IString> = {
-      name: 'externalValue',
-      schema: {
-        type: 'string'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<IExample3Definition, IExample3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        summary,
-        description,
-        value,
-        externalValue
+        validators.summary,
+        validators.description,
+        validators.value,
+        validators.externalValue
       ]
     }
 

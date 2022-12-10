@@ -26,12 +26,35 @@ import {
 
 let cachedSchema: ISchema.ISchemaDefinition<ILicense2Definition, ILicense2> | null = null
 
+interface IValidatorsMap {
+  name: ISchema.IProperty<ISchema.IString>
+  url: ISchema.IProperty<ISchema.IString>
+}
+
+const validators: IValidatorsMap = {
+  name: {
+    name: 'name',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  },
+  url: {
+    name: 'url',
+    schema: {
+      type: 'string'
+    }
+  }
+}
+
 export class License extends EnforcerComponent<ILicense2Definition, ILicense2> implements ILicense2 {
   [extension: `x${string}`]: any
 
   constructor (definition: ILicense2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
+
+  static id: string = 'LICENSE2'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#license-object',
@@ -46,27 +69,12 @@ export class License extends EnforcerComponent<ILicense2Definition, ILicense2> i
       return cachedSchema
     }
 
-    const name: ISchema.IProperty<ISchema.IString> = {
-      name: 'name',
-      required: true,
-      schema: {
-        type: 'string'
-      }
-    }
-
-    const url: ISchema.IProperty<ISchema.IString> = {
-      name: 'url',
-      schema: {
-        type: 'string'
-      }
-    }
-
     const result: ISchema.ISchemaDefinition<ILicense2Definition, ILicense2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
-        name,
-        url
+        validators.name,
+        validators.url
       ]
     }
 
