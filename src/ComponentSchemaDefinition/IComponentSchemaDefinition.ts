@@ -1,4 +1,5 @@
 import { ISchemaProcessor } from './ISchemaProcessor'
+import { EnforcerComponent } from '../components/Component'
 
 export interface IAny extends Base<any> {
   type: 'any'
@@ -7,8 +8,8 @@ export interface IAny extends Base<any> {
 export interface IArray<T> extends Base<T[]> {
   type: 'array'
   items: ISchema
-  maxItems?: number
-  minItems?: number
+  // maxItems?: number
+  // minItems?: number
 }
 
 interface Base<T> {
@@ -22,7 +23,7 @@ interface Base<T> {
   enum?: T[]
 
   // Determine if validation should be skipped.
-  ignored?: false | string
+  ignored?: boolean
 
   // Determine if value can be null
   nullable?: boolean
@@ -35,13 +36,14 @@ export interface IBoolean extends Base<boolean> {
 export interface IComponent<Definition, Built> extends Base<Definition | Built> {
   type: 'component'
   allowsRef: boolean
-  component: any // IComponentClass<Definition, Built>
+  component: EnforcerComponent<Definition, Built>
 }
 
 // this interface is used only by component's getSchema() method which returns it
 export interface ISchemaDefinition<Definition, Built> extends IObject {
+  additionalProperties?: ISchema
   allowsSchemaExtensions: boolean
-  after?: (data: ISchemaProcessor<Definition, Built>, mode: 'build' | 'validate') => void // runs after all build and validate functions throughout the entire tree
+  // after?: (data: ISchemaProcessor<Definition, Built>, mode: 'build' | 'validate') => void // runs after all build and validate functions throughout the entire tree
   build?: (data: ISchemaProcessor<Definition, Built>) => void
   validate?: (data: ISchemaProcessor<Definition, Built>) => void
 }
@@ -77,8 +79,8 @@ export interface IProperty<SchemaType=ISchema> {
 
 export interface IString extends Base<string> {
   type: 'string'
-  maxLength?: number
-  minLength?: number
+  // maxLength?: number
+  // minLength?: number
 }
 
 export type ISchema = IAny | IArray<any> | IBoolean | IComponent<any, any> | INumber | IOneOf | IString | IObject

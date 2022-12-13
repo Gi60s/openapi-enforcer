@@ -1,12 +1,12 @@
 import { IComponentSpec, IVersion } from './IComponent'
 import { ISchemaProcessor } from '../ComponentSchemaDefinition/ISchemaProcessor'
-import { ISchemaDefinition } from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISchema, ISchemaDefinition } from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ExceptionStore } from '../Exception/ExceptionStore'
 import { generateChildProcessorData, initializeProcessorData } from '../ComponentSchemaDefinition/schema-processor'
+import { getLocation } from '../Locator/Locator'
+import { smart } from '../util'
 
 type IHookStoreItem = Record<string, Array<(newValue: any, oldValue: any) => void>>
-
-type SchemaGenerator = (data: ISchemaProcessor) => ISchemaDefinition<any, any>
 
 interface IComponentMapData {
   cached: Record<string, any>
@@ -49,7 +49,7 @@ export class EnforcerComponent<Definition, Built> {
       processorData,
       watches: {}
     })
-    buildComponentFromDefinition<Definition, Built>(processorData)
+    // buildComponentFromDefinition<Definition, Built>(processorData)
   }
 
   // cache values
@@ -124,12 +124,11 @@ export class EnforcerComponent<Definition, Built> {
   }
 }
 
-function buildComponentFromDefinition<Definition, Built> (data: ISchemaProcessor<Definition, Built>): void {
-  const ctor = data.constructor
-  const schema = ctor.getSchemaDefinition(data)
-  const spec = ctor.spec
-  // TODO: build out this function
-}
+// function buildComponentFromDefinition<Definition, Built> (data: ISchemaProcessor<Definition, Built>): void {
+//   const ctor = data.constructor
+//   const schema = ctor.getSchemaDefinition(data)
+//   const spec = ctor.spec
+// }
 
 function validateComponentDefinition<Definition, Built> (data: ISchemaProcessor<Definition, Built>): ExceptionStore {
   const { constructor: ctor, definition, exception, id, name, version } = data
@@ -163,7 +162,6 @@ function validateComponentDefinition<Definition, Built> (data: ISchemaProcessor<
     if (existingSchemaDefinition !== undefined) return exception
 
     // store new schema validation
-    // TODO: this wont work because as we run recursively deeper this may not be defined early enough
     const schema = ctor.getSchemaDefinition(data)
     if (previousConstructors === undefined) {
       const ctorMap = new WeakMap()
@@ -172,27 +170,133 @@ function validateComponentDefinition<Definition, Built> (data: ISchemaProcessor<
     } else {
       previousConstructors.set(ctor, schema)
     }
+
+    // process schema
+    const d = { definition }
+    validateDefinition(data, d, 'definition', schema)
   }
   return exception
 }
 
-function generateSchema (componentClass: IComponentClass<any, any>, generator: SchemaGenerator, data?: ISchemaProcessor): IComponentSchemaObject {
-  const processorData = data !== undefined
-    ? data
-    : {} as ISchemaProcessor
+function validateDefinition (data: ISchemaProcessor<any, any>, definition: any, key: string, schema: ISchema): void {
+  const { exception, id, reference } = data
+  const { type: expectedType, nullable } = schema
+  const value = definition[key]
+  const actualType = Array.isArray(value) ? 'array' : typeof value
 
-  const componentMapInitialized = definitionSchemaMap.has(componentClass)
-  const componentSchemaMap = componentMapInitialized
-    ? definitionSchemaMap.get(componentClass) as WeakMap<any, IComponentSchemaObject>
-    : new WeakMap<any, IComponentSchemaObject>()
-  if (!componentMapInitialized) {
-    definitionSchemaMap.set(componentClass, componentSchemaMap)
+  if (expectedType === 'any') return
+  if (definition === null && nullable === true) return
+  if (schema.ignored === true) return
+  if (actualType !== (expectedType === 'component' ? 'object' : expectedType)) {
+    exception.add({
+      id: id + '_TYPE_INVALID',
+      level: 'error',
+      locations: [getLocation(definition, key, 'value')],
+      message: 'The definition value ' + smart(value) + ' did not match the expected data type: ' +
+        smart(expectedType === 'component' ? 'object' : expectedType),
+      reference
+    })
   }
 
-  const existingSchema = componentSchemaMap.get(processorData.definition)
-  if (existingSchema !== undefined) return existingSchema
-
-  const schema = generator(processorData)
-  componentSchemaMap.set(processorData.definition, schema)
-  return schema
+  if (expectedType === 'array') {
+    (value as any[]).forEach(v => {
+      validateDefinition(data, value, v, schema.items)
+    })
+  } else if (expectedType === 'boolean') {
+    // nothing more to validate
+  } else if (expectedType === 'component') {
+    // TODO: add a check to see if the value was a $ref
+    schema.component.validate(value, data.version, data)
+  } else if (expectedType === 'number') {
+    const v = value as number
+    if (schema.integer === true && String(v) !== String(Math.round(v))) {
+      exception.add({
+        id: id + '_TYPE_INVALID',
+        level: 'error',
+        locations: [getLocation(definition, key, 'value')],
+        message: 'The definition value ' + smart(value) + ' did not match the expected data type: "integer"',
+        reference
+      })
+    }
+    if (schema.minimum !== undefined && v < schema.minimum) {
+      exception.add({
+        id: id + '_VALUE_OUT_OF_RANGE_MIN',
+        level: 'error',
+        locations: [getLocation(definition, key, 'value')],
+        message: 'The definition value ' + smart(value) + ' must be greater than or equal to ' + String(schema.minimum),
+        reference
+      })
+    }
+    if (schema.maximum !== undefined && v > schema.maximum) {
+      exception.add({
+        id: id + '_VALUE_OUT_OF_RANGE_MAX',
+        level: 'error',
+        locations: [getLocation(definition, key, 'value')],
+        message: 'The definition value ' + smart(value) + ' must be less than or equal to ' + String(schema.maximum),
+        reference
+      })
+    }
+  } else if (expectedType === 'oneOf') {
+    const length = schema.oneOf.length
+    let found = false
+    for (let i = 0; i < length; i++) {
+      const item = schema.oneOf[i]
+      if (item.condition(data)) {
+        found = true
+        validateDefinition(data, definition, key, item.schema)
+      }
+    }
+    if (!found) {
+      exception.add({
+        id: id + '_CONDITION_NOT_MET',
+        level: 'error',
+        locations: [getLocation(definition, key, 'value')],
+        message: 'The definition value ' + smart(value) + ' does not match any of the potential schemas.',
+        reference
+      })
+    }
+  } else if (expectedType === 'object') {
+    schema.properties?.forEach(({ name, notAllowed, required }) => {
+      if (value[name] === undefined && required === true && notAllowed === undefined) {
+        exception.add({
+          id: id + '_MISSING_REQUIRED_PROPERTY',
+          level: 'error',
+          locations: [getLocation(definition, key, 'value')],
+          message: 'Required property ' + smart(name) + ' is missing.',
+          reference
+        })
+      }
+    })
+    Object.keys(value).forEach(key => {
+      const v = value[key]
+      if (v !== undefined) {
+        const property = schema.properties?.find(p => p.name === key)
+        if (property === undefined) {
+          if (schema.additionalProperties !== undefined) {
+            validateDefinition(data, value, key, schema.additionalProperties)
+          } else {
+            exception.add({
+              id: id + '_UNKNOWN_PROPERTY',
+              level: 'error',
+              locations: [getLocation(value, key, 'key')],
+              message: 'The property ' + smart(key) + ' is not allowed because it is not part of the spec.',
+              reference
+            })
+          }
+        } else if (property.notAllowed !== undefined) {
+          exception.add({
+            id: id + '_PROPERTY_NOT_ALLOWED',
+            level: 'error',
+            locations: [getLocation(value, key, 'key')],
+            message: 'The property ' + smart(key) + ' is not allowed. ' + property.notAllowed,
+            reference
+          })
+        } else {
+          validateDefinition(data, value, key, property.schema)
+        }
+      }
+    })
+  } else if (expectedType === 'string') {
+    // nothing more to validate
+  }
 }
