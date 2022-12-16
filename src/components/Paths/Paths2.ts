@@ -15,32 +15,25 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IPathsSchemaProcessor } from '../IInternalTypes'
-import {
-  IPathItem2,
-  IPathItem2Definition,
-  IPaths2,
-  IPaths2Definition,
-  PathItem2
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 import { after, findPathMatches } from './common'
 import * as config from '../../global-config'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IPaths2Definition, IPaths2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IPaths2Definition, I.IPaths2> | null = null
 
-const additionalProperties: ISchema.IComponent<IPathItem2Definition, IPathItem2> = {
+const additionalProperties: ISchema.IComponent<I.IPathItem2Definition, I.IPathItem2> = {
   type: 'component',
   allowsRef: false,
-  component: PathItem2
+  component: I.PathItem2
 }
 
-export class Paths extends EnforcerComponent<IPaths2Definition, IPaths2> implements IPaths2 {
+export class Paths extends EnforcerComponent<I.IPaths2Definition> implements I.IPaths2 {
   [extension: `x${string}`]: any
-  [key: `/${string}`]: IPathItem2
+  [key: `/${string}`]: I.IPathItem2
 
-  constructor (definition: IPaths2Definition, version?: IVersion) {
+  constructor (definition: I.IPaths2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -54,12 +47,12 @@ export class Paths extends EnforcerComponent<IPaths2Definition, IPaths2> impleme
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: IPathsSchemaProcessor): ISchema.ISchemaDefinition<IPaths2Definition, IPaths2> {
+  static getSchemaDefinition (_data: I.IPathsSchemaProcessor): ISchema.ISchemaDefinition<I.IPaths2Definition, I.IPaths2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IPaths2Definition, IPaths2> = {
+    const result: ISchema.ISchemaDefinition<I.IPaths2Definition, I.IPaths2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties
@@ -73,7 +66,7 @@ export class Paths extends EnforcerComponent<IPaths2Definition, IPaths2> impleme
     return result
   }
 
-  static validate (definition: IPaths2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IPaths2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

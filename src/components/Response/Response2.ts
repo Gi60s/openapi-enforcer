@@ -15,31 +15,18 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IResponseSchemaProcessor } from '../IInternalTypes'
-import {
-  Example2,
-  Header2,
-  IExample2,
-  IExample2Definition,
-  IHeader2,
-  IHeader2Definition,
-  IResponse2,
-  IResponse2Definition,
-  ISchema2,
-  ISchema2Definition,
-  Schema2
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IResponse2Definition, IResponse2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> | null = null
 
 interface IValidatorsMap {
   description: ISchema.IProperty<ISchema.IString>
-  schema: ISchema.IProperty<ISchema.IComponent<ISchema2Definition, ISchema2>>
-  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader2Definition, IHeader2>>>
-  examples: ISchema.IProperty<ISchema.IComponent<IExample2Definition, IExample2>>
+  schema: ISchema.IProperty<ISchema.IComponent<I.ISchema2Definition, I.ISchema2>>
+  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IHeader2Definition, I.IHeader2>>>
+  examples: ISchema.IProperty<ISchema.IComponent<I.IExample2Definition, I.IExample2>>
 }
 
 const validators: IValidatorsMap = {
@@ -55,7 +42,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: true,
-      component: Schema2
+      component: I.Schema2
     }
   },
   headers: {
@@ -65,7 +52,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: false,
-        component: Header2
+        component: I.Header2
       }
     }
   },
@@ -74,15 +61,15 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Example2
+      component: I.Example2
     }
   }
 }
 
-export class Response extends EnforcerComponent<IResponse2Definition, IResponse2> implements IResponse2 {
+export class Response extends EnforcerComponent<I.IResponse2Definition> implements I.IResponse2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IResponse2Definition, version?: IVersion) {
+  constructor (definition: I.IResponse2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -96,12 +83,12 @@ export class Response extends EnforcerComponent<IResponse2Definition, IResponse2
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: IResponseSchemaProcessor): ISchema.ISchemaDefinition<IResponse2Definition, IResponse2> {
+  static getSchemaDefinition (_data: I.IResponseSchemaProcessor): ISchema.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IResponse2Definition, IResponse2> = {
+    const result: ISchema.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -120,7 +107,7 @@ export class Response extends EnforcerComponent<IResponse2Definition, IResponse2
     return result
   }
 
-  static validate (definition: IResponse2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IResponse2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -132,27 +119,27 @@ export class Response extends EnforcerComponent<IResponse2Definition, IResponse2
     this.setProperty('description', value)
   }
 
-  get schema (): ISchema2 | undefined {
+  get schema (): I.ISchema2 | undefined {
     return this.getProperty('schema')
   }
 
-  set schema (value: ISchema2 | undefined) {
+  set schema (value: I.ISchema2 | undefined) {
     this.setProperty('schema', value)
   }
 
-  get headers (): Record<string, IHeader2> | undefined {
+  get headers (): Record<string, I.IHeader2> | undefined {
     return this.getProperty('headers')
   }
 
-  set headers (value: Record<string, IHeader2> | undefined) {
+  set headers (value: Record<string, I.IHeader2> | undefined) {
     this.setProperty('headers', value)
   }
 
-  get examples (): IExample2 | undefined {
+  get examples (): I.IExample2 | undefined {
     return this.getProperty('examples')
   }
 
-  set examples (value: IExample2 | undefined) {
+  set examples (value: I.IExample2 | undefined) {
     this.setProperty('examples', value)
   }
 

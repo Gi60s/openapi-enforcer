@@ -15,33 +15,23 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IParameterSchemaProcessor } from '../IInternalTypes'
-import {
-  IItems2,
-  IItems2Definition,
-  IParameter2,
-  IParameter2Definition,
-  ISchema2,
-  ISchema2Definition,
-  Items2,
-  Schema2
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IParameter2Definition, IParameter2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IParameter2Definition, I.IParameter2> | null = null
 
 interface IValidatorsMap {
   name: ISchema.IProperty<ISchema.IString>
   _in: ISchema.IProperty<ISchema.IString>
   description: ISchema.IProperty<ISchema.IString>
   required: ISchema.IProperty<ISchema.IBoolean>
-  schema: ISchema.IProperty<ISchema.IComponent<ISchema2Definition, ISchema2>>
+  schema: ISchema.IProperty<ISchema.IComponent<I.ISchema2Definition, I.ISchema2>>
   type: ISchema.IProperty<ISchema.IString>
   format: ISchema.IProperty<ISchema.IString>
   allowEmptyValue: ISchema.IProperty<ISchema.IBoolean>
-  items: ISchema.IProperty<ISchema.IComponent<IItems2Definition, IItems2>>
+  items: ISchema.IProperty<ISchema.IComponent<I.IItems2Definition, I.IItems2>>
   collectionFormat: ISchema.IProperty<ISchema.IString>
   _default: ISchema.IProperty<any>
   maximum: ISchema.IProperty<ISchema.INumber>
@@ -91,7 +81,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Schema2
+      component: I.Schema2
     }
   },
   type: {
@@ -118,7 +108,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Items2
+      component: I.Items2
     }
   },
   collectionFormat: {
@@ -211,10 +201,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Parameter extends EnforcerComponent<IParameter2Definition, IParameter2> implements IParameter2 {
+export class Parameter extends EnforcerComponent<I.IParameter2Definition> implements I.IParameter2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IParameter2Definition, version?: IVersion) {
+  constructor (definition: I.IParameter2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -228,12 +218,12 @@ export class Parameter extends EnforcerComponent<IParameter2Definition, IParamet
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: IParameterSchemaProcessor): ISchema.ISchemaDefinition<IParameter2Definition, IParameter2> {
+  static getSchemaDefinition (_data: I.IParameterSchemaProcessor): ISchema.ISchemaDefinition<I.IParameter2Definition, I.IParameter2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IParameter2Definition, IParameter2> = {
+    const result: ISchema.ISchemaDefinition<I.IParameter2Definition, I.IParameter2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -271,7 +261,7 @@ export class Parameter extends EnforcerComponent<IParameter2Definition, IParamet
     return result
   }
 
-  static validate (definition: IParameter2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IParameter2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -307,11 +297,11 @@ export class Parameter extends EnforcerComponent<IParameter2Definition, IParamet
     this.setProperty('required', value)
   }
 
-  get schema (): ISchema2 | undefined {
+  get schema (): I.ISchema2 | undefined {
     return this.getProperty('schema')
   }
 
-  set schema (value: ISchema2 | undefined) {
+  set schema (value: I.ISchema2 | undefined) {
     this.setProperty('schema', value)
   }
 
@@ -339,11 +329,11 @@ export class Parameter extends EnforcerComponent<IParameter2Definition, IParamet
     this.setProperty('allowEmptyValue', value)
   }
 
-  get items (): IItems2 | undefined {
+  get items (): I.IItems2 | undefined {
     return this.getProperty('items')
   }
 
-  set items (value: IItems2 | undefined) {
+  set items (value: I.IItems2 | undefined) {
     this.setProperty('items', value)
   }
 

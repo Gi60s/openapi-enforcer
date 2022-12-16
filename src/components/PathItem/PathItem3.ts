@@ -15,40 +15,27 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IPathItemSchemaProcessor } from '../IInternalTypes'
-import {
-  IOperation3,
-  IOperation3Definition,
-  IParameter3,
-  IParameter3Definition,
-  IPathItem3,
-  IPathItem3Definition,
-  IServer3,
-  IServer3Definition,
-  Operation3,
-  Parameter3,
-  Server3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 import { after } from './common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IPathItem3Definition, IPathItem3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IPathItem3Definition, I.IPathItem3> | null = null
 
 interface IValidatorsMap {
   $ref: ISchema.IProperty<ISchema.IString>
   summary: ISchema.IProperty<ISchema.IString>
   description: ISchema.IProperty<ISchema.IString>
-  get: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
-  put: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
-  post: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
-  _delete: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
-  options: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
-  head: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
-  patch: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
-  trace: ISchema.IProperty<ISchema.IComponent<IOperation3Definition, IOperation3>>
-  servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>>
-  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter3Definition, IParameter3>>>
+  get: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
+  put: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
+  post: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
+  _delete: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
+  options: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
+  head: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
+  patch: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
+  trace: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
+  servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IServer3Definition, I.IServer3>>>
+  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IParameter3Definition, I.IParameter3>>>
 }
 
 const validators: IValidatorsMap = {
@@ -75,7 +62,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation3
+      component: I.Operation3
     }
   },
   put: {
@@ -83,7 +70,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation3
+      component: I.Operation3
     }
   },
   post: {
@@ -91,7 +78,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation3
+      component: I.Operation3
     }
   },
   _delete: {
@@ -99,7 +86,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation3
+      component: I.Operation3
     }
   },
   options: {
@@ -107,7 +94,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation3
+      component: I.Operation3
     }
   },
   head: {
@@ -115,7 +102,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation3
+      component: I.Operation3
     }
   },
   patch: {
@@ -123,7 +110,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation3
+      component: I.Operation3
     }
   },
   trace: {
@@ -131,7 +118,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation3
+      component: I.Operation3
     }
   },
   servers: {
@@ -141,7 +128,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: false,
-        component: Server3
+        component: I.Server3
       }
     }
   },
@@ -152,16 +139,16 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: true,
-        component: Parameter3
+        component: I.Parameter3
       }
     }
   }
 }
 
-export class PathItem extends EnforcerComponent<IPathItem3Definition, IPathItem3> implements IPathItem3 {
+export class PathItem extends EnforcerComponent<I.IPathItem3Definition> implements I.IPathItem3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IPathItem3Definition, version?: IVersion) {
+  constructor (definition: I.IPathItem3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -175,12 +162,12 @@ export class PathItem extends EnforcerComponent<IPathItem3Definition, IPathItem3
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#path-item-object'
   }
 
-  static getSchemaDefinition (_data: IPathItemSchemaProcessor): ISchema.ISchemaDefinition<IPathItem3Definition, IPathItem3> {
+  static getSchemaDefinition (_data: I.IPathItemSchemaProcessor): ISchema.ISchemaDefinition<I.IPathItem3Definition, I.IPathItem3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IPathItem3Definition, IPathItem3> = {
+    const result: ISchema.ISchemaDefinition<I.IPathItem3Definition, I.IPathItem3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -208,7 +195,7 @@ export class PathItem extends EnforcerComponent<IPathItem3Definition, IPathItem3
     return result
   }
 
-  static validate (definition: IPathItem3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IPathItem3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -236,83 +223,83 @@ export class PathItem extends EnforcerComponent<IPathItem3Definition, IPathItem3
     this.setProperty('description', value)
   }
 
-  get get (): IOperation3 | undefined {
+  get get (): I.IOperation3 | undefined {
     return this.getProperty('get')
   }
 
-  set get (value: IOperation3 | undefined) {
+  set get (value: I.IOperation3 | undefined) {
     this.setProperty('get', value)
   }
 
-  get put (): IOperation3 | undefined {
+  get put (): I.IOperation3 | undefined {
     return this.getProperty('put')
   }
 
-  set put (value: IOperation3 | undefined) {
+  set put (value: I.IOperation3 | undefined) {
     this.setProperty('put', value)
   }
 
-  get post (): IOperation3 | undefined {
+  get post (): I.IOperation3 | undefined {
     return this.getProperty('post')
   }
 
-  set post (value: IOperation3 | undefined) {
+  set post (value: I.IOperation3 | undefined) {
     this.setProperty('post', value)
   }
 
-  get delete (): IOperation3 | undefined {
+  get delete (): I.IOperation3 | undefined {
     return this.getProperty('delete')
   }
 
-  set delete (value: IOperation3 | undefined) {
+  set delete (value: I.IOperation3 | undefined) {
     this.setProperty('delete', value)
   }
 
-  get options (): IOperation3 | undefined {
+  get options (): I.IOperation3 | undefined {
     return this.getProperty('options')
   }
 
-  set options (value: IOperation3 | undefined) {
+  set options (value: I.IOperation3 | undefined) {
     this.setProperty('options', value)
   }
 
-  get head (): IOperation3 | undefined {
+  get head (): I.IOperation3 | undefined {
     return this.getProperty('head')
   }
 
-  set head (value: IOperation3 | undefined) {
+  set head (value: I.IOperation3 | undefined) {
     this.setProperty('head', value)
   }
 
-  get patch (): IOperation3 | undefined {
+  get patch (): I.IOperation3 | undefined {
     return this.getProperty('patch')
   }
 
-  set patch (value: IOperation3 | undefined) {
+  set patch (value: I.IOperation3 | undefined) {
     this.setProperty('patch', value)
   }
 
-  get trace (): IOperation3 | undefined {
+  get trace (): I.IOperation3 | undefined {
     return this.getProperty('trace')
   }
 
-  set trace (value: IOperation3 | undefined) {
+  set trace (value: I.IOperation3 | undefined) {
     this.setProperty('trace', value)
   }
 
-  get servers (): IServer3[] | undefined {
+  get servers (): I.IServer3[] | undefined {
     return this.getProperty('servers')
   }
 
-  set servers (value: IServer3[] | undefined) {
+  set servers (value: I.IServer3[] | undefined) {
     this.setProperty('servers', value)
   }
 
-  get parameters (): IParameter3[] | undefined {
+  get parameters (): I.IParameter3[] | undefined {
     return this.getProperty('parameters')
   }
 
-  set parameters (value: IParameter3[] | undefined) {
+  set parameters (value: I.IParameter3[] | undefined) {
     this.setProperty('parameters', value)
   }
 

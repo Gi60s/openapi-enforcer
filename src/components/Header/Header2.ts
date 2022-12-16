@@ -15,25 +15,18 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IHeaderSchemaProcessor } from '../IInternalTypes'
-import {
-  IHeader2,
-  IHeader2Definition,
-  IItems2,
-  IItems2Definition,
-  Items2
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IHeader2Definition, IHeader2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IHeader2Definition, I.IHeader2> | null = null
 
 interface IValidatorsMap {
   description: ISchema.IProperty<ISchema.IString>
   type: ISchema.IProperty<ISchema.IString>
   format: ISchema.IProperty<ISchema.IString>
-  items: ISchema.IProperty<ISchema.IComponent<IItems2Definition, IItems2>>
+  items: ISchema.IProperty<ISchema.IComponent<I.IItems2Definition, I.IItems2>>
   collectionFormat: ISchema.IProperty<ISchema.IString>
   _default: ISchema.IProperty<any>
   maximum: ISchema.IProperty<ISchema.INumber>
@@ -76,7 +69,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Items2
+      component: I.Items2
     }
   },
   collectionFormat: {
@@ -169,10 +162,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Header extends EnforcerComponent<IHeader2Definition, IHeader2> implements IHeader2 {
+export class Header extends EnforcerComponent<I.IHeader2Definition> implements I.IHeader2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IHeader2Definition, version?: IVersion) {
+  constructor (definition: I.IHeader2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -186,12 +179,12 @@ export class Header extends EnforcerComponent<IHeader2Definition, IHeader2> impl
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: IHeaderSchemaProcessor): ISchema.ISchemaDefinition<IHeader2Definition, IHeader2> {
+  static getSchemaDefinition (_data: I.IHeaderSchemaProcessor): ISchema.ISchemaDefinition<I.IHeader2Definition, I.IHeader2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IHeader2Definition, IHeader2> = {
+    const result: ISchema.ISchemaDefinition<I.IHeader2Definition, I.IHeader2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -224,7 +217,7 @@ export class Header extends EnforcerComponent<IHeader2Definition, IHeader2> impl
     return result
   }
 
-  static validate (definition: IHeader2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IHeader2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -252,11 +245,11 @@ export class Header extends EnforcerComponent<IHeader2Definition, IHeader2> impl
     this.setProperty('format', value)
   }
 
-  get items (): IItems2 | undefined {
+  get items (): I.IItems2 | undefined {
     return this.getProperty('items')
   }
 
-  set items (value: IItems2 | undefined) {
+  set items (value: I.IItems2 | undefined) {
     this.setProperty('items', value)
   }
 

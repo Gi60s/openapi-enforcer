@@ -12,12 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IPathItem2,
-  IPathItem2Definition,
-  IPathItem3,
-  IPathItem3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -30,22 +25,22 @@ interface IPathsComponent extends IComponentInstance {
 
 export interface IPaths2Definition {
   [extension: `x-${string}`]: any
-  [key: `/${string}`]: IPathItem2Definition
+  [key: `/${string}`]: I.IPathItem2Definition
 }
 
 export interface IPaths2 extends IPathsComponent {
   [extension: `x-${string}`]: any
-  [key: `/${string}`]: IPathItem2
+  [key: `/${string}`]: I.IPathItem2
 }
 
 export interface IPaths3Definition {
   [extension: `x-${string}`]: any
-  [key: `/${string}`]: IPathItem3Definition
+  [key: `/${string}`]: I.IPathItem3Definition
 }
 
 export interface IPaths3 extends IPathsComponent {
   [extension: `x-${string}`]: any
-  [key: `/${string}`]: IPathItem3
+  [key: `/${string}`]: I.IPathItem3
 }
 
 // <!# Custom Content Begin: FOOTER #!>

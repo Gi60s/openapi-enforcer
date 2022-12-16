@@ -15,60 +15,29 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { ISwaggerSchemaProcessor } from '../IInternalTypes'
-import {
-  ExternalDocumentation2,
-  IExternalDocumentation2,
-  IExternalDocumentation2Definition,
-  IInfo2,
-  IInfo2Definition,
-  IParameter2,
-  IParameter2Definition,
-  IPaths2,
-  IPaths2Definition,
-  IResponse2,
-  IResponse2Definition,
-  ISchema2,
-  ISchema2Definition,
-  ISecurityRequirement2,
-  ISecurityRequirement2Definition,
-  ISecurityScheme2,
-  ISecurityScheme2Definition,
-  ISwagger2,
-  ISwagger2Definition,
-  ITag2,
-  ITag2Definition,
-  Info2,
-  Parameter2,
-  Paths2,
-  Response2,
-  Schema2,
-  SecurityRequirement2,
-  SecurityScheme2,
-  Tag2
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<ISwagger2Definition, ISwagger2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> | null = null
 
 interface IValidatorsMap {
   swagger: ISchema.IProperty<ISchema.IString>
-  info: ISchema.IProperty<ISchema.IComponent<IInfo2Definition, IInfo2>>
+  info: ISchema.IProperty<ISchema.IComponent<I.IInfo2Definition, I.IInfo2>>
   host: ISchema.IProperty<ISchema.IString>
   basePath: ISchema.IProperty<ISchema.IString>
   schemes: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
   consumes: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
   produces: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  paths: ISchema.IProperty<ISchema.IComponent<IPaths2Definition, IPaths2>>
-  definitions: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISchema2Definition, ISchema2>>>
-  parameters: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IParameter2Definition, IParameter2>>>
-  responses: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IResponse2Definition, IResponse2>>>
-  securityDefinitions: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISecurityScheme2Definition, ISecurityScheme2>>>
-  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement2Definition, ISecurityRequirement2>>>
-  tags: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ITag2Definition, ITag2>>>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation2Definition, IExternalDocumentation2>>
+  paths: ISchema.IProperty<ISchema.IComponent<I.IPaths2Definition, I.IPaths2>>
+  definitions: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ISchema2Definition, I.ISchema2>>>
+  parameters: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IParameter2Definition, I.IParameter2>>>
+  responses: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IResponse2Definition, I.IResponse2>>>
+  securityDefinitions: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ISecurityScheme2Definition, I.ISecurityScheme2>>>
+  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISecurityRequirement2Definition, I.ISecurityRequirement2>>>
+  tags: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ITag2Definition, I.ITag2>>>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
 }
 
 const validators: IValidatorsMap = {
@@ -86,7 +55,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Info2
+      component: I.Info2
     }
   },
   host: {
@@ -135,7 +104,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Paths2
+      component: I.Paths2
     }
   },
   definitions: {
@@ -145,7 +114,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: false,
-        component: Schema2
+        component: I.Schema2
       }
     }
   },
@@ -156,7 +125,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: false,
-        component: Parameter2
+        component: I.Parameter2
       }
     }
   },
@@ -167,7 +136,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: false,
-        component: Response2
+        component: I.Response2
       }
     }
   },
@@ -178,7 +147,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: false,
-        component: SecurityScheme2
+        component: I.SecurityScheme2
       }
     }
   },
@@ -189,7 +158,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: false,
-        component: SecurityRequirement2
+        component: I.SecurityRequirement2
       }
     }
   },
@@ -200,7 +169,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: false,
-        component: Tag2
+        component: I.Tag2
       }
     }
   },
@@ -209,15 +178,15 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: ExternalDocumentation2
+      component: I.ExternalDocumentation2
     }
   }
 }
 
-export class Swagger extends EnforcerComponent<ISwagger2Definition, ISwagger2> implements ISwagger2 {
+export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements I.ISwagger2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: ISwagger2Definition, version?: IVersion) {
+  constructor (definition: I.ISwagger2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -231,12 +200,12 @@ export class Swagger extends EnforcerComponent<ISwagger2Definition, ISwagger2> i
     '3.0.3': false
   }
 
-  static getSchemaDefinition (_data: ISwaggerSchemaProcessor): ISchema.ISchemaDefinition<ISwagger2Definition, ISwagger2> {
+  static getSchemaDefinition (_data: I.ISwaggerSchemaProcessor): ISchema.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<ISwagger2Definition, ISwagger2> = {
+    const result: ISchema.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -266,7 +235,7 @@ export class Swagger extends EnforcerComponent<ISwagger2Definition, ISwagger2> i
     return result
   }
 
-  static validate (definition: ISwagger2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.ISwagger2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -278,11 +247,11 @@ export class Swagger extends EnforcerComponent<ISwagger2Definition, ISwagger2> i
     this.setProperty('swagger', value)
   }
 
-  get info (): IInfo2 {
+  get info (): I.IInfo2 {
     return this.getProperty('info')
   }
 
-  set info (value: IInfo2) {
+  set info (value: I.IInfo2) {
     this.setProperty('info', value)
   }
 
@@ -326,67 +295,67 @@ export class Swagger extends EnforcerComponent<ISwagger2Definition, ISwagger2> i
     this.setProperty('produces', value)
   }
 
-  get paths (): IPaths2 {
+  get paths (): I.IPaths2 {
     return this.getProperty('paths')
   }
 
-  set paths (value: IPaths2) {
+  set paths (value: I.IPaths2) {
     this.setProperty('paths', value)
   }
 
-  get definitions (): Record<string, ISchema2> | undefined {
+  get definitions (): Record<string, I.ISchema2> | undefined {
     return this.getProperty('definitions')
   }
 
-  set definitions (value: Record<string, ISchema2> | undefined) {
+  set definitions (value: Record<string, I.ISchema2> | undefined) {
     this.setProperty('definitions', value)
   }
 
-  get parameters (): Record<string, IParameter2> | undefined {
+  get parameters (): Record<string, I.IParameter2> | undefined {
     return this.getProperty('parameters')
   }
 
-  set parameters (value: Record<string, IParameter2> | undefined) {
+  set parameters (value: Record<string, I.IParameter2> | undefined) {
     this.setProperty('parameters', value)
   }
 
-  get responses (): Record<string, IResponse2> | undefined {
+  get responses (): Record<string, I.IResponse2> | undefined {
     return this.getProperty('responses')
   }
 
-  set responses (value: Record<string, IResponse2> | undefined) {
+  set responses (value: Record<string, I.IResponse2> | undefined) {
     this.setProperty('responses', value)
   }
 
-  get securityDefinitions (): Record<string, ISecurityScheme2> | undefined {
+  get securityDefinitions (): Record<string, I.ISecurityScheme2> | undefined {
     return this.getProperty('securityDefinitions')
   }
 
-  set securityDefinitions (value: Record<string, ISecurityScheme2> | undefined) {
+  set securityDefinitions (value: Record<string, I.ISecurityScheme2> | undefined) {
     this.setProperty('securityDefinitions', value)
   }
 
-  get security (): ISecurityRequirement2[] | undefined {
+  get security (): I.ISecurityRequirement2[] | undefined {
     return this.getProperty('security')
   }
 
-  set security (value: ISecurityRequirement2[] | undefined) {
+  set security (value: I.ISecurityRequirement2[] | undefined) {
     this.setProperty('security', value)
   }
 
-  get tags (): ITag2[] | undefined {
+  get tags (): I.ITag2[] | undefined {
     return this.getProperty('tags')
   }
 
-  set tags (value: ITag2[] | undefined) {
+  set tags (value: I.ITag2[] | undefined) {
     this.setProperty('tags', value)
   }
 
-  get externalDocs (): IExternalDocumentation2 | undefined {
+  get externalDocs (): I.IExternalDocumentation2 | undefined {
     return this.getProperty('externalDocs')
   }
 
-  set externalDocs (value: IExternalDocumentation2 | undefined) {
+  set externalDocs (value: I.IExternalDocumentation2 | undefined) {
     this.setProperty('externalDocs', value)
   }
 

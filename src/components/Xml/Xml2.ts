@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IXmlSchemaProcessor } from '../IInternalTypes'
-import {
-  IXml2,
-  IXml2Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IXml2Definition, IXml2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IXml2Definition, I.IXml2> | null = null
 
 interface IValidatorsMap {
   name: ISchema.IProperty<ISchema.IString>
@@ -67,10 +63,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Xml extends EnforcerComponent<IXml2Definition, IXml2> implements IXml2 {
+export class Xml extends EnforcerComponent<I.IXml2Definition> implements I.IXml2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IXml2Definition, version?: IVersion) {
+  constructor (definition: I.IXml2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -84,12 +80,12 @@ export class Xml extends EnforcerComponent<IXml2Definition, IXml2> implements IX
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: IXmlSchemaProcessor): ISchema.ISchemaDefinition<IXml2Definition, IXml2> {
+  static getSchemaDefinition (_data: I.IXmlSchemaProcessor): ISchema.ISchemaDefinition<I.IXml2Definition, I.IXml2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IXml2Definition, IXml2> = {
+    const result: ISchema.ISchemaDefinition<I.IXml2Definition, I.IXml2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -109,7 +105,7 @@ export class Xml extends EnforcerComponent<IXml2Definition, IXml2> implements IX
     return result
   }
 
-  static validate (definition: IXml2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IXml2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

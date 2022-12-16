@@ -3,11 +3,10 @@ import { parametersAreUnique, parametersNotInPath } from '../validations'
 import {
   IOperation, IOperationDefinition,
   IParameter, IParameterDefinition,
-  IPathItem, IPathItemDefinition,
-  IPaths, IPathsDefinition
+  IPathItemSchemaProcessor,
+  IPathsSchemaProcessor
 } from '../IInternalTypes'
 import { IOperation2, IOperation2Definition, IOperation3, IOperation3Definition } from '../'
-import { findAncestorComponentData } from '../common'
 import { getPathParameterNames } from '../Paths/common'
 import { Result } from '../../Result'
 import { getLocation } from '../../Locator/Locator'
@@ -28,7 +27,7 @@ export function after (context: IOperationDefinition, data: ISchemaProcessorData
 
     // check that parameters in path and parameters (as array) for path parameters are in agreement
     const mergedPathParameters = mergedParameters.filter(v => v.in === 'path')
-    const pathsComponentData = findAncestorComponentData<IPaths, IPathsDefinition>(chain, 'Paths')
+    const pathsComponentData = findAncestorComponentData<IPathsSchemaProcessor>(chain, 'Paths')
     const paramNamesInPathNotInParameters: string[] = []
     const pathParameterNames: string[] = pathsComponentData !== undefined
       ? getPathParameterNames(pathsComponentData.definition, path)
@@ -97,7 +96,7 @@ export function getMergedParameters (data: ISchemaProcessorData): IFromParameter
   let results = mergedParametersMap.get(data.definition)
   if (results === undefined) {
     const { chain, definition } = data
-    const pathItem = findAncestorComponentData<IPathItem, IPathItemDefinition>(chain, 'PathItem')
+    const pathItem = findAncestorComponentData<IPathItemSchemaProcessor>(chain, 'PathItem')
     const pathItemParameters: IFromParameterArray = pathItem?.definition.parameters ?? []
     const operationParameters: IFromParameterArray = definition.parameters ?? []
     results = mergeParameters(pathItemParameters, operationParameters)

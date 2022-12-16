@@ -12,10 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IOAuthFlows3,
-  IOAuthFlows3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -58,7 +55,7 @@ export interface ISecurityScheme3Definition {
   in?: 'query'|'header'|'cookie'
   scheme?: string
   bearerFormat?: string
-  flows?: IOAuthFlows3Definition
+  flows?: I.IOAuthFlows3Definition
   openIdConnectUrl?: string
 }
 
@@ -70,7 +67,7 @@ export interface ISecurityScheme3 extends ISecuritySchemeComponent {
   in?: 'query'|'header'|'cookie'
   scheme?: string
   bearerFormat?: string
-  flows?: IOAuthFlows3
+  flows?: I.IOAuthFlows3
   openIdConnectUrl?: string
 }
 

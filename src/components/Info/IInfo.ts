@@ -12,16 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IContact2,
-  IContact2Definition,
-  IContact3,
-  IContact3Definition,
-  ILicense2,
-  ILicense2Definition,
-  ILicense3,
-  ILicense3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -37,8 +28,8 @@ export interface IInfo2Definition {
   title: string
   description?: string
   termsOfService?: string
-  contact?: IContact2Definition
-  license?: ILicense2Definition
+  contact?: I.IContact2Definition
+  license?: I.ILicense2Definition
   version: string
 }
 
@@ -47,8 +38,8 @@ export interface IInfo2 extends IInfoComponent {
   title: string
   description?: string
   termsOfService?: string
-  contact?: IContact2
-  license?: ILicense2
+  contact?: I.IContact2
+  license?: I.ILicense2
   version: string
 }
 
@@ -57,8 +48,8 @@ export interface IInfo3Definition {
   title: string
   description?: string
   termsOfService?: string
-  contact?: IContact3Definition
-  license?: ILicense3Definition
+  contact?: I.IContact3Definition
+  license?: I.ILicense3Definition
   version: string
 }
 
@@ -67,8 +58,8 @@ export interface IInfo3 extends IInfoComponent {
   title: string
   description?: string
   termsOfService?: string
-  contact?: IContact3
-  license?: ILicense3
+  contact?: I.IContact3
+  license?: I.ILicense3
   version: string
 }
 

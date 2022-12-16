@@ -15,31 +15,18 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IResponseSchemaProcessor } from '../IInternalTypes'
-import {
-  Header3,
-  IHeader3,
-  IHeader3Definition,
-  ILink3,
-  ILink3Definition,
-  IMediaType3,
-  IMediaType3Definition,
-  IResponse3,
-  IResponse3Definition,
-  Link3,
-  MediaType3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IResponse3Definition, IResponse3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> | null = null
 
 interface IValidatorsMap {
   description: ISchema.IProperty<ISchema.IString>
-  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader3Definition, IHeader3>>>
-  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>>
-  links: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ILink3Definition, ILink3>>>
+  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IHeader3Definition, I.IHeader3>>>
+  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IMediaType3Definition, I.IMediaType3>>>
+  links: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ILink3Definition, I.ILink3>>>
 }
 
 const validators: IValidatorsMap = {
@@ -57,7 +44,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: true,
-        component: Header3
+        component: I.Header3
       }
     }
   },
@@ -68,7 +55,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: false,
-        component: MediaType3
+        component: I.MediaType3
       }
     }
   },
@@ -79,16 +66,16 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: true,
-        component: Link3
+        component: I.Link3
       }
     }
   }
 }
 
-export class Response extends EnforcerComponent<IResponse3Definition, IResponse3> implements IResponse3 {
+export class Response extends EnforcerComponent<I.IResponse3Definition> implements I.IResponse3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IResponse3Definition, version?: IVersion) {
+  constructor (definition: I.IResponse3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -102,12 +89,12 @@ export class Response extends EnforcerComponent<IResponse3Definition, IResponse3
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#response-object'
   }
 
-  static getSchemaDefinition (_data: IResponseSchemaProcessor): ISchema.ISchemaDefinition<IResponse3Definition, IResponse3> {
+  static getSchemaDefinition (_data: I.IResponseSchemaProcessor): ISchema.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IResponse3Definition, IResponse3> = {
+    const result: ISchema.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -126,7 +113,7 @@ export class Response extends EnforcerComponent<IResponse3Definition, IResponse3
     return result
   }
 
-  static validate (definition: IResponse3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IResponse3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -138,27 +125,27 @@ export class Response extends EnforcerComponent<IResponse3Definition, IResponse3
     this.setProperty('description', value)
   }
 
-  get headers (): Record<string, IHeader3> | undefined {
+  get headers (): Record<string, I.IHeader3> | undefined {
     return this.getProperty('headers')
   }
 
-  set headers (value: Record<string, IHeader3> | undefined) {
+  set headers (value: Record<string, I.IHeader3> | undefined) {
     this.setProperty('headers', value)
   }
 
-  get content (): Record<string, IMediaType3> | undefined {
+  get content (): Record<string, I.IMediaType3> | undefined {
     return this.getProperty('content')
   }
 
-  set content (value: Record<string, IMediaType3> | undefined) {
+  set content (value: Record<string, I.IMediaType3> | undefined) {
     this.setProperty('content', value)
   }
 
-  get links (): Record<string, ILink3> | undefined {
+  get links (): Record<string, I.ILink3> | undefined {
     return this.getProperty('links')
   }
 
-  set links (value: Record<string, ILink3> | undefined) {
+  set links (value: Record<string, I.ILink3> | undefined) {
     this.setProperty('links', value)
   }
 

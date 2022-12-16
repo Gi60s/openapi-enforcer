@@ -12,10 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IServerVariable3,
-  IServerVariable3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -30,14 +27,14 @@ export interface IServer3Definition {
   [extension: `x-${string}`]: any
   url: string
   description?: string
-  variables?: Record<string, IServerVariable3Definition>
+  variables?: Record<string, I.IServerVariable3Definition>
 }
 
 export interface IServer3 extends IServerComponent {
   [extension: `x-${string}`]: any
   url: string
   description?: string
-  variables?: Record<string, IServerVariable3>
+  variables?: Record<string, I.IServerVariable3>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

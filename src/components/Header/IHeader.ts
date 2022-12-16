@@ -12,16 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IExample3,
-  IExample3Definition,
-  IItems2,
-  IItems2Definition,
-  IMediaType3,
-  IMediaType3Definition,
-  ISchema3,
-  ISchema3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -37,7 +28,7 @@ export interface IHeader2Definition {
   description?: string
   type: 'array'|'boolean'|'integer'|'number'|'string'
   format?: string
-  items?: IItems2Definition
+  items?: I.IItems2Definition
   collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'
   default?: any
   maximum?: number
@@ -59,7 +50,7 @@ export interface IHeader2 extends IHeaderComponent {
   description?: string
   type: 'array'|'boolean'|'integer'|'number'|'string'
   format?: string
-  items?: IItems2
+  items?: I.IItems2
   collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'
   default?: any
   maximum?: number
@@ -85,10 +76,10 @@ export interface IHeader3Definition {
   style?: 'simple'
   explode?: boolean
   allowReserved?: boolean
-  schema?: ISchema3Definition
+  schema?: I.ISchema3Definition
   example?: any
-  examples?: Record<string, IExample3Definition>
-  content?: Record<string, IMediaType3Definition>
+  examples?: Record<string, I.IExample3Definition>
+  content?: Record<string, I.IMediaType3Definition>
 }
 
 export interface IHeader3 extends IHeaderComponent {
@@ -100,10 +91,10 @@ export interface IHeader3 extends IHeaderComponent {
   style?: 'simple'
   explode?: boolean
   allowReserved?: boolean
-  schema?: ISchema3
+  schema?: I.ISchema3
   example?: any
-  examples?: Record<string, IExample3>
-  content?: Record<string, IMediaType3>
+  examples?: Record<string, I.IExample3>
+  content?: Record<string, I.IMediaType3>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

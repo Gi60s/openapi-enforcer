@@ -15,33 +15,23 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IPathItemSchemaProcessor } from '../IInternalTypes'
-import {
-  IOperation2,
-  IOperation2Definition,
-  IParameter2,
-  IParameter2Definition,
-  IPathItem2,
-  IPathItem2Definition,
-  Operation2,
-  Parameter2
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 import { after } from './common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IPathItem2Definition, IPathItem2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> | null = null
 
 interface IValidatorsMap {
   $ref: ISchema.IProperty<ISchema.IString>
-  get: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
-  put: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
-  post: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
-  _delete: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
-  options: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
-  head: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
-  patch: ISchema.IProperty<ISchema.IComponent<IOperation2Definition, IOperation2>>
-  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter2Definition, IParameter2>>>
+  get: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
+  put: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
+  post: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
+  _delete: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
+  options: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
+  head: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
+  patch: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
+  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IParameter2Definition, I.IParameter2>>>
 }
 
 const validators: IValidatorsMap = {
@@ -56,7 +46,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation2
+      component: I.Operation2
     }
   },
   put: {
@@ -64,7 +54,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation2
+      component: I.Operation2
     }
   },
   post: {
@@ -72,7 +62,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation2
+      component: I.Operation2
     }
   },
   _delete: {
@@ -80,7 +70,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation2
+      component: I.Operation2
     }
   },
   options: {
@@ -88,7 +78,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation2
+      component: I.Operation2
     }
   },
   head: {
@@ -96,7 +86,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation2
+      component: I.Operation2
     }
   },
   patch: {
@@ -104,7 +94,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Operation2
+      component: I.Operation2
     }
   },
   parameters: {
@@ -114,16 +104,16 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: true,
-        component: Parameter2
+        component: I.Parameter2
       }
     }
   }
 }
 
-export class PathItem extends EnforcerComponent<IPathItem2Definition, IPathItem2> implements IPathItem2 {
+export class PathItem extends EnforcerComponent<I.IPathItem2Definition> implements I.IPathItem2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IPathItem2Definition, version?: IVersion) {
+  constructor (definition: I.IPathItem2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -137,12 +127,12 @@ export class PathItem extends EnforcerComponent<IPathItem2Definition, IPathItem2
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: IPathItemSchemaProcessor): ISchema.ISchemaDefinition<IPathItem2Definition, IPathItem2> {
+  static getSchemaDefinition (_data: I.IPathItemSchemaProcessor): ISchema.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IPathItem2Definition, IPathItem2> = {
+    const result: ISchema.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -166,7 +156,7 @@ export class PathItem extends EnforcerComponent<IPathItem2Definition, IPathItem2
     return result
   }
 
-  static validate (definition: IPathItem2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IPathItem2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -178,67 +168,67 @@ export class PathItem extends EnforcerComponent<IPathItem2Definition, IPathItem2
     this.setProperty('$ref', value)
   }
 
-  get get (): IOperation2 | undefined {
+  get get (): I.IOperation2 | undefined {
     return this.getProperty('get')
   }
 
-  set get (value: IOperation2 | undefined) {
+  set get (value: I.IOperation2 | undefined) {
     this.setProperty('get', value)
   }
 
-  get put (): IOperation2 | undefined {
+  get put (): I.IOperation2 | undefined {
     return this.getProperty('put')
   }
 
-  set put (value: IOperation2 | undefined) {
+  set put (value: I.IOperation2 | undefined) {
     this.setProperty('put', value)
   }
 
-  get post (): IOperation2 | undefined {
+  get post (): I.IOperation2 | undefined {
     return this.getProperty('post')
   }
 
-  set post (value: IOperation2 | undefined) {
+  set post (value: I.IOperation2 | undefined) {
     this.setProperty('post', value)
   }
 
-  get delete (): IOperation2 | undefined {
+  get delete (): I.IOperation2 | undefined {
     return this.getProperty('delete')
   }
 
-  set delete (value: IOperation2 | undefined) {
+  set delete (value: I.IOperation2 | undefined) {
     this.setProperty('delete', value)
   }
 
-  get options (): IOperation2 | undefined {
+  get options (): I.IOperation2 | undefined {
     return this.getProperty('options')
   }
 
-  set options (value: IOperation2 | undefined) {
+  set options (value: I.IOperation2 | undefined) {
     this.setProperty('options', value)
   }
 
-  get head (): IOperation2 | undefined {
+  get head (): I.IOperation2 | undefined {
     return this.getProperty('head')
   }
 
-  set head (value: IOperation2 | undefined) {
+  set head (value: I.IOperation2 | undefined) {
     this.setProperty('head', value)
   }
 
-  get patch (): IOperation2 | undefined {
+  get patch (): I.IOperation2 | undefined {
     return this.getProperty('patch')
   }
 
-  set patch (value: IOperation2 | undefined) {
+  set patch (value: I.IOperation2 | undefined) {
     this.setProperty('patch', value)
   }
 
-  get parameters (): IParameter2[] | undefined {
+  get parameters (): I.IParameter2[] | undefined {
     return this.getProperty('parameters')
   }
 
-  set parameters (value: IParameter2[] | undefined) {
+  set parameters (value: I.IParameter2[] | undefined) {
     this.setProperty('parameters', value)
   }
 

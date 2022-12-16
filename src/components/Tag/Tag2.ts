@@ -15,24 +15,17 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { ITagSchemaProcessor } from '../IInternalTypes'
-import {
-  ExternalDocumentation2,
-  IExternalDocumentation2,
-  IExternalDocumentation2Definition,
-  ITag2,
-  ITag2Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<ITag2Definition, ITag2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.ITag2Definition, I.ITag2> | null = null
 
 interface IValidatorsMap {
   name: ISchema.IProperty<ISchema.IString>
   description: ISchema.IProperty<ISchema.IString>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation2Definition, IExternalDocumentation2>>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
 }
 
 const validators: IValidatorsMap = {
@@ -54,15 +47,15 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: ExternalDocumentation2
+      component: I.ExternalDocumentation2
     }
   }
 }
 
-export class Tag extends EnforcerComponent<ITag2Definition, ITag2> implements ITag2 {
+export class Tag extends EnforcerComponent<I.ITag2Definition> implements I.ITag2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: ITag2Definition, version?: IVersion) {
+  constructor (definition: I.ITag2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -76,12 +69,12 @@ export class Tag extends EnforcerComponent<ITag2Definition, ITag2> implements IT
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: ITagSchemaProcessor): ISchema.ISchemaDefinition<ITag2Definition, ITag2> {
+  static getSchemaDefinition (_data: I.ITagSchemaProcessor): ISchema.ISchemaDefinition<I.ITag2Definition, I.ITag2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<ITag2Definition, ITag2> = {
+    const result: ISchema.ISchemaDefinition<I.ITag2Definition, I.ITag2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -99,7 +92,7 @@ export class Tag extends EnforcerComponent<ITag2Definition, ITag2> implements IT
     return result
   }
 
-  static validate (definition: ITag2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.ITag2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -119,11 +112,11 @@ export class Tag extends EnforcerComponent<ITag2Definition, ITag2> implements IT
     this.setProperty('description', value)
   }
 
-  get externalDocs (): IExternalDocumentation2 | undefined {
+  get externalDocs (): I.IExternalDocumentation2 | undefined {
     return this.getProperty('externalDocs')
   }
 
-  set externalDocs (value: IExternalDocumentation2 | undefined) {
+  set externalDocs (value: I.IExternalDocumentation2 | undefined) {
     this.setProperty('externalDocs', value)
   }
 

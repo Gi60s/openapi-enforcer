@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IDiscriminatorSchemaProcessor } from '../IInternalTypes'
-import {
-  IDiscriminator3,
-  IDiscriminator3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IDiscriminator3Definition, IDiscriminator3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> | null = null
 
 interface IValidatorsMap {
   propertyName: ISchema.IProperty<ISchema.IString>
@@ -50,9 +46,9 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Discriminator extends EnforcerComponent<IDiscriminator3Definition, IDiscriminator3> implements IDiscriminator3 {
+export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition> implements I.IDiscriminator3 {
 
-  constructor (definition: IDiscriminator3Definition, version?: IVersion) {
+  constructor (definition: I.IDiscriminator3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -66,12 +62,12 @@ export class Discriminator extends EnforcerComponent<IDiscriminator3Definition, 
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#discriminator-object'
   }
 
-  static getSchemaDefinition (_data: IDiscriminatorSchemaProcessor): ISchema.ISchemaDefinition<IDiscriminator3Definition, IDiscriminator3> {
+  static getSchemaDefinition (_data: I.IDiscriminatorSchemaProcessor): ISchema.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IDiscriminator3Definition, IDiscriminator3> = {
+    const result: ISchema.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [
@@ -89,7 +85,7 @@ export class Discriminator extends EnforcerComponent<IDiscriminator3Definition, 
     return result
   }
 
-  static validate (definition: IDiscriminator3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IDiscriminator3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

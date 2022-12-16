@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IExternalDocumentationSchemaProcessor } from '../IInternalTypes'
-import {
-  IExternalDocumentation3,
-  IExternalDocumentation3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IExternalDocumentation3Definition, IExternalDocumentation3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IExternalDocumentation3Definition, I.IExternalDocumentation3> | null = null
 
 interface IValidatorsMap {
   description: ISchema.IProperty<ISchema.IString>
@@ -47,10 +43,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class ExternalDocumentation extends EnforcerComponent<IExternalDocumentation3Definition, IExternalDocumentation3> implements IExternalDocumentation3 {
+export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocumentation3Definition> implements I.IExternalDocumentation3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IExternalDocumentation3Definition, version?: IVersion) {
+  constructor (definition: I.IExternalDocumentation3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -64,12 +60,12 @@ export class ExternalDocumentation extends EnforcerComponent<IExternalDocumentat
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#external-documentation-object'
   }
 
-  static getSchemaDefinition (_data: IExternalDocumentationSchemaProcessor): ISchema.ISchemaDefinition<IExternalDocumentation3Definition, IExternalDocumentation3> {
+  static getSchemaDefinition (_data: I.IExternalDocumentationSchemaProcessor): ISchema.ISchemaDefinition<I.IExternalDocumentation3Definition, I.IExternalDocumentation3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IExternalDocumentation3Definition, IExternalDocumentation3> = {
+    const result: ISchema.ISchemaDefinition<I.IExternalDocumentation3Definition, I.IExternalDocumentation3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -86,7 +82,7 @@ export class ExternalDocumentation extends EnforcerComponent<IExternalDocumentat
     return result
   }
 
-  static validate (definition: IExternalDocumentation3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IExternalDocumentation3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

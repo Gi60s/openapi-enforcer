@@ -15,31 +15,17 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { ISchemaSchemaProcessor } from '../IInternalTypes'
-import {
-  Discriminator3,
-  ExternalDocumentation3,
-  IDiscriminator3,
-  IDiscriminator3Definition,
-  IExternalDocumentation3,
-  IExternalDocumentation3Definition,
-  ISchema3,
-  ISchema3Definition,
-  IXml3,
-  IXml3Definition,
-  Schema3,
-  Xml3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 interface IValidatorsMap {
   type: ISchema.IProperty<ISchema.IString>
-  allOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema3Definition, ISchema3>>>
-  oneOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema3Definition, ISchema3>>>
-  anyOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema3Definition, ISchema3>>>
-  not: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>>
+  allOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>>
+  oneOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>>
+  anyOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>>
+  not: ISchema.IProperty<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>
   title: ISchema.IProperty<ISchema.IString>
   maximum: ISchema.IProperty<ISchema.INumber>
   exclusiveMaximum: ISchema.IProperty<ISchema.INumber>
@@ -56,18 +42,18 @@ interface IValidatorsMap {
   _enum: ISchema.IProperty<ISchema.IArray<any>>
   multipleOf: ISchema.IProperty<ISchema.INumber>
   required: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  items: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>>
-  properties: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISchema3Definition, ISchema3>>>
+  items: ISchema.IProperty<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>
+  properties: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>>
   additionalProperties: ISchema.IProperty<ISchema.IOneOf>
   description: ISchema.IProperty<ISchema.IString>
   format: ISchema.IProperty<ISchema.IString>
   _default: ISchema.IProperty<any>
   nullable: ISchema.IProperty<ISchema.IBoolean>
-  discriminator: ISchema.IProperty<ISchema.IComponent<IDiscriminator3Definition, IDiscriminator3>>
+  discriminator: ISchema.IProperty<ISchema.IComponent<I.IDiscriminator3Definition, I.IDiscriminator3>>
   readOnly: ISchema.IProperty<ISchema.IBoolean>
   writeOnly: ISchema.IProperty<ISchema.IBoolean>
-  xml: ISchema.IProperty<ISchema.IComponent<IXml3Definition, IXml3>>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation3Definition, IExternalDocumentation3>>
+  xml: ISchema.IProperty<ISchema.IComponent<I.IXml3Definition, I.IXml3>>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
   example: ISchema.IProperty<any>
   deprecated: ISchema.IProperty<ISchema.IBoolean>
 }
@@ -86,7 +72,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: true,
-        component: Schema3
+        component: I.Schema3
       }
     }
   },
@@ -97,7 +83,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: true,
-        component: Schema3
+        component: I.Schema3
       }
     }
   },
@@ -108,7 +94,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: true,
-        component: Schema3
+        component: I.Schema3
       }
     }
   },
@@ -117,7 +103,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: true,
-      component: Schema3
+      component: I.Schema3
     }
   },
   title: {
@@ -227,7 +213,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: true,
-      component: Schema3
+      component: I.Schema3
     }
   },
   properties: {
@@ -237,7 +223,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: true,
-        component: Schema3
+        component: I.Schema3
       }
     }
   },
@@ -251,7 +237,7 @@ const validators: IValidatorsMap = {
           schema: {
             type: 'component',
             allowsRef: true,
-            component: Schema3
+            component: I.Schema3
           }
         },
         {
@@ -293,7 +279,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Discriminator3
+      component: I.Discriminator3
     }
   },
   readOnly: {
@@ -313,7 +299,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Xml3
+      component: I.Xml3
     }
   },
   externalDocs: {
@@ -321,7 +307,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: ExternalDocumentation3
+      component: I.ExternalDocumentation3
     }
   },
   example: {
@@ -338,10 +324,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Schema extends EnforcerComponent<ISchema3Definition, ISchema3> implements ISchema3 {
+export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I.ISchema3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: ISchema3Definition, version?: IVersion) {
+  constructor (definition: I.ISchema3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -355,8 +341,8 @@ export class Schema extends EnforcerComponent<ISchema3Definition, ISchema3> impl
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#schema-object'
   }
 
-  static getSchemaDefinition (_data: ISchemaSchemaProcessor): ISchema.ISchemaDefinition<ISchema3Definition, ISchema3> {
-    const result: ISchema.ISchemaDefinition<ISchema3Definition, ISchema3> = {
+  static getSchemaDefinition (_data: I.ISchemaSchemaProcessor): ISchema.ISchemaDefinition<I.ISchema3Definition, I.ISchema3> {
+    const result: ISchema.ISchemaDefinition<I.ISchema3Definition, I.ISchema3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -406,7 +392,7 @@ export class Schema extends EnforcerComponent<ISchema3Definition, ISchema3> impl
     return result
   }
 
-  static validate (definition: ISchema3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.ISchema3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -418,35 +404,35 @@ export class Schema extends EnforcerComponent<ISchema3Definition, ISchema3> impl
     this.setProperty('type', value)
   }
 
-  get allOf (): ISchema3[] | undefined {
+  get allOf (): I.ISchema3[] | undefined {
     return this.getProperty('allOf')
   }
 
-  set allOf (value: ISchema3[] | undefined) {
+  set allOf (value: I.ISchema3[] | undefined) {
     this.setProperty('allOf', value)
   }
 
-  get oneOf (): ISchema3[] | undefined {
+  get oneOf (): I.ISchema3[] | undefined {
     return this.getProperty('oneOf')
   }
 
-  set oneOf (value: ISchema3[] | undefined) {
+  set oneOf (value: I.ISchema3[] | undefined) {
     this.setProperty('oneOf', value)
   }
 
-  get anyOf (): ISchema3[] | undefined {
+  get anyOf (): I.ISchema3[] | undefined {
     return this.getProperty('anyOf')
   }
 
-  set anyOf (value: ISchema3[] | undefined) {
+  set anyOf (value: I.ISchema3[] | undefined) {
     this.setProperty('anyOf', value)
   }
 
-  get not (): ISchema3 | undefined {
+  get not (): I.ISchema3 | undefined {
     return this.getProperty('not')
   }
 
-  set not (value: ISchema3 | undefined) {
+  set not (value: I.ISchema3 | undefined) {
     this.setProperty('not', value)
   }
 
@@ -578,27 +564,27 @@ export class Schema extends EnforcerComponent<ISchema3Definition, ISchema3> impl
     this.setProperty('required', value)
   }
 
-  get items (): ISchema3 | undefined {
+  get items (): I.ISchema3 | undefined {
     return this.getProperty('items')
   }
 
-  set items (value: ISchema3 | undefined) {
+  set items (value: I.ISchema3 | undefined) {
     this.setProperty('items', value)
   }
 
-  get properties (): Record<string, ISchema3> | undefined {
+  get properties (): Record<string, I.ISchema3> | undefined {
     return this.getProperty('properties')
   }
 
-  set properties (value: Record<string, ISchema3> | undefined) {
+  set properties (value: Record<string, I.ISchema3> | undefined) {
     this.setProperty('properties', value)
   }
 
-  get additionalProperties (): ISchema3 | boolean | undefined {
+  get additionalProperties (): I.ISchema3 | boolean | undefined {
     return this.getProperty('additionalProperties')
   }
 
-  set additionalProperties (value: ISchema3 | boolean | undefined) {
+  set additionalProperties (value: I.ISchema3 | boolean | undefined) {
     this.setProperty('additionalProperties', value)
   }
 
@@ -634,11 +620,11 @@ export class Schema extends EnforcerComponent<ISchema3Definition, ISchema3> impl
     this.setProperty('nullable', value)
   }
 
-  get discriminator (): IDiscriminator3 | undefined {
+  get discriminator (): I.IDiscriminator3 | undefined {
     return this.getProperty('discriminator')
   }
 
-  set discriminator (value: IDiscriminator3 | undefined) {
+  set discriminator (value: I.IDiscriminator3 | undefined) {
     this.setProperty('discriminator', value)
   }
 
@@ -658,19 +644,19 @@ export class Schema extends EnforcerComponent<ISchema3Definition, ISchema3> impl
     this.setProperty('writeOnly', value)
   }
 
-  get xml (): IXml3 | undefined {
+  get xml (): I.IXml3 | undefined {
     return this.getProperty('xml')
   }
 
-  set xml (value: IXml3 | undefined) {
+  set xml (value: I.IXml3 | undefined) {
     this.setProperty('xml', value)
   }
 
-  get externalDocs (): IExternalDocumentation3 | undefined {
+  get externalDocs (): I.IExternalDocumentation3 | undefined {
     return this.getProperty('externalDocs')
   }
 
-  set externalDocs (value: IExternalDocumentation3 | undefined) {
+  set externalDocs (value: I.IExternalDocumentation3 | undefined) {
     this.setProperty('externalDocs', value)
   }
 

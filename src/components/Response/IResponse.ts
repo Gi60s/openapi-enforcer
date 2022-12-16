@@ -12,20 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IExample2,
-  IExample2Definition,
-  IHeader2,
-  IHeader2Definition,
-  IHeader3,
-  IHeader3Definition,
-  ILink3,
-  ILink3Definition,
-  IMediaType3,
-  IMediaType3Definition,
-  ISchema2,
-  ISchema2Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 import { IContentType } from '../../ContentType/IContentType'
 // <!# Custom Content End: HEADER #!>
@@ -39,33 +26,33 @@ interface IResponseComponent extends IComponentInstance {
 export interface IResponse2Definition {
   [extension: `x-${string}`]: any
   description: string
-  schema?: ISchema2Definition
-  headers?: Record<string, IHeader2Definition>
-  examples?: IExample2Definition
+  schema?: I.ISchema2Definition
+  headers?: Record<string, I.IHeader2Definition>
+  examples?: I.IExample2Definition
 }
 
 export interface IResponse2 extends IResponseComponent {
   [extension: `x-${string}`]: any
   description: string
-  schema?: ISchema2
-  headers?: Record<string, IHeader2>
-  examples?: IExample2
+  schema?: I.ISchema2
+  headers?: Record<string, I.IHeader2>
+  examples?: I.IExample2
 }
 
 export interface IResponse3Definition {
   [extension: `x-${string}`]: any
   description: string
-  headers?: Record<string, IHeader3Definition>
-  content?: Record<string, IMediaType3Definition>
-  links?: Record<string, ILink3Definition>
+  headers?: Record<string, I.IHeader3Definition>
+  content?: Record<string, I.IMediaType3Definition>
+  links?: Record<string, I.ILink3Definition>
 }
 
 export interface IResponse3 extends IResponseComponent {
   [extension: `x-${string}`]: any
   description: string
-  headers?: Record<string, IHeader3>
-  content?: Record<string, IMediaType3>
-  links?: Record<string, ILink3>
+  headers?: Record<string, I.IHeader3>
+  content?: Record<string, I.IMediaType3>
+  links?: Record<string, I.ILink3>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

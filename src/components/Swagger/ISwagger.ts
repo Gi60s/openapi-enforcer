@@ -12,26 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IExternalDocumentation2,
-  IExternalDocumentation2Definition,
-  IInfo2,
-  IInfo2Definition,
-  IParameter2,
-  IParameter2Definition,
-  IPaths2,
-  IPaths2Definition,
-  IResponse2,
-  IResponse2Definition,
-  ISchema2,
-  ISchema2Definition,
-  ISecurityRequirement2,
-  ISecurityRequirement2Definition,
-  ISecurityScheme2,
-  ISecurityScheme2Definition,
-  ITag2,
-  ITag2Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -45,39 +26,39 @@ interface ISwaggerComponent extends IComponentInstance {
 export interface ISwagger2Definition {
   [extension: `x-${string}`]: any
   swagger: '2.0'
-  info: IInfo2Definition
+  info: I.IInfo2Definition
   host?: string
   basePath?: string
   schemes?: Array<'http'|'https'|'ws'|'wss'>
   consumes?: string[]
   produces?: string[]
-  paths: IPaths2Definition
-  definitions?: Record<string, ISchema2Definition>
-  parameters?: Record<string, IParameter2Definition>
-  responses?: Record<string, IResponse2Definition>
-  securityDefinitions?: Record<string, ISecurityScheme2Definition>
-  security?: ISecurityRequirement2Definition[]
-  tags?: ITag2Definition[]
-  externalDocs?: IExternalDocumentation2Definition
+  paths: I.IPaths2Definition
+  definitions?: Record<string, I.ISchema2Definition>
+  parameters?: Record<string, I.IParameter2Definition>
+  responses?: Record<string, I.IResponse2Definition>
+  securityDefinitions?: Record<string, I.ISecurityScheme2Definition>
+  security?: I.ISecurityRequirement2Definition[]
+  tags?: I.ITag2Definition[]
+  externalDocs?: I.IExternalDocumentation2Definition
 }
 
 export interface ISwagger2 extends ISwaggerComponent {
   [extension: `x-${string}`]: any
   swagger: '2.0'
-  info: IInfo2
+  info: I.IInfo2
   host?: string
   basePath?: string
   schemes?: Array<'http'|'https'|'ws'|'wss'>
   consumes?: string[]
   produces?: string[]
-  paths: IPaths2
-  definitions?: Record<string, ISchema2>
-  parameters?: Record<string, IParameter2>
-  responses?: Record<string, IResponse2>
-  securityDefinitions?: Record<string, ISecurityScheme2>
-  security?: ISecurityRequirement2[]
-  tags?: ITag2[]
-  externalDocs?: IExternalDocumentation2
+  paths: I.IPaths2
+  definitions?: Record<string, I.ISchema2>
+  parameters?: Record<string, I.IParameter2>
+  responses?: Record<string, I.IResponse2>
+  securityDefinitions?: Record<string, I.ISecurityScheme2>
+  security?: I.ISecurityRequirement2[]
+  tags?: I.ITag2[]
+  externalDocs?: I.IExternalDocumentation2
 }
 
 // <!# Custom Content Begin: FOOTER #!>

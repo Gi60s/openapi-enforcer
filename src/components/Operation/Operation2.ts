@@ -15,50 +15,32 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IOperationSchemaProcessor } from '../IInternalTypes'
-import {
-  ExternalDocumentation2,
-  IExternalDocumentation2,
-  IExternalDocumentation2Definition,
-  IOperation2,
-  IOperation2Definition,
-  IParameter2,
-  IParameter2Definition,
-  IResponses2,
-  IResponses2Definition,
-  ISecurityRequirement2,
-  ISecurityRequirement2Definition,
-  Parameter2,
-  Responses2,
-  SecurityRequirement2
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
-import { after, getMergedParameters, mergeParameters } from './common'
+import { getMergedParameters, mergeParameters } from './common'
 import { getLocation } from '../../Locator/Locator'
-import { findAncestorComponentData } from '../common'
 import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
-import { ISwagger2Definition, ISwagger2 } from '../Swagger'
 import { ContentType } from '../../ContentType/ContentType'
-import { IPathItem2, IPathItem2Definition } from '../PathItem/IPathItem'
 import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
-import { getExistingProcessorData } from '../../ComponentSchemaDefinition/schema-processor'
+import { IOperation2 } from '../IInternalTypes'
+import { smart } from '../../util'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IOperation2Definition, IOperation2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IOperation2Definition, I.IOperation2> | null = null
 
 interface IValidatorsMap {
   tags: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
   summary: ISchema.IProperty<ISchema.IString>
   description: ISchema.IProperty<ISchema.IString>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation2Definition, IExternalDocumentation2>>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
   operationId: ISchema.IProperty<ISchema.IString>
   consumes: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
   produces: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter2Definition, IParameter2>>>
-  responses: ISchema.IProperty<ISchema.IComponent<IResponses2Definition, IResponses2>>
+  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IParameter2Definition, I.IParameter2>>>
+  responses: ISchema.IProperty<ISchema.IComponent<I.IResponses2Definition, I.IResponses2>>
   schemes: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
   deprecated: ISchema.IProperty<ISchema.IBoolean>
-  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement2Definition, ISecurityRequirement2>>>
+  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISecurityRequirement2Definition, I.ISecurityRequirement2>>>
 }
 
 const validators: IValidatorsMap = {
@@ -88,7 +70,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: ExternalDocumentation2
+      component: I.ExternalDocumentation2
     }
   },
   operationId: {
@@ -122,7 +104,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: true,
-        component: Parameter2
+        component: I.Parameter2
       }
     }
   },
@@ -132,7 +114,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Responses2
+      component: I.Responses2
     }
   },
   schemes: {
@@ -158,16 +140,16 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: false,
-        component: SecurityRequirement2
+        component: I.SecurityRequirement2
       }
     }
   }
 }
 
-export class Operation extends EnforcerComponent<IOperation2Definition, IOperation2> implements IOperation2 {
+export class Operation extends EnforcerComponent<I.IOperation2Definition> implements I.IOperation2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IOperation2Definition, version?: IVersion) {
+  constructor (definition: I.IOperation2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -181,12 +163,12 @@ export class Operation extends EnforcerComponent<IOperation2Definition, IOperati
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: IOperationSchemaProcessor): ISchema.ISchemaDefinition<IOperation2Definition, IOperation2> {
+  static getSchemaDefinition (_data: I.IOperationSchemaProcessor): ISchema.ISchemaDefinition<I.IOperation2Definition, I.IOperation2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IOperation2Definition, IOperation2> = {
+    const result: ISchema.ISchemaDefinition<I.IOperation2Definition, I.IOperation2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -209,129 +191,81 @@ export class Operation extends EnforcerComponent<IOperation2Definition, IOperati
     result.build = function (data) {
       const { built } = data
 
-      built.hookGetProperty('parameters', (parameters: IParameter2[]) => {
-        const pathItem = findAncestorComponentData<IPathItem2, IPathItem2Definition>(chain, 'PathItem')
-        const pathItemParameters: IParameter2[] = pathItem?.definition.parameters ?? []
-        return mergeParameters(pathItemParameters, parameters) as IParameter2[]
+      built.hookGetProperty('parameters', (parameters: I.IParameter2[] | undefined) => {
+        const pathItem: ISchemaProcessor<I.IPathItem2Definition, I.IPathItem2> | undefined = data.chain
+          .getAncestor(ancestor => ancestor.name === 'PathItem')
+        const pathItemParameters: I.IParameter2[] = pathItem?.built.parameters ?? []
+        return mergeParameters(pathItemParameters, parameters) as I.IParameter2[]
       })
 
-      built.hookGetProperty('consumes', (value) => {
-
+      built.hookGetProperty('consumes', (consumes: string[] | undefined) => {
+        return getAllContentTypeStrings(data, 'consumes', consumes)
       })
 
-      built.hookGetProperty('produces', (value) => {
-
-      })
-
-      data.hookSetProperty('parameters', (newValue: any, oldValue: any) => {
-        const parameters = getMergedParameters(data)
-        const bodies: IParameter2Definition[] = []
-        const forms: IParameter2Definition[] = []
-        parameters.forEach(parameter => {
-          if (parameter.in === 'body') {
-            bodies.push(parameter)
-          } else if (parameter.in === 'formData') {
-            forms.push(parameter)
-          }
-        })
-
-        if (bodies.length > 1) {
-          exception.add({
-            id: id + '_BODY_NOT_UNIQUE',
-            level: 'error',
-            locations: bodies.map(parameter => getLocation(parameter)),
-            message: 'Only one body parameter allowed.',
-            metadata: { bodyParameters: parameters },
-            reference
-          })
-        }
-
-        if (bodies.length > 0 && forms.length > 0) {
-          exception.add({
-            id: id + '_BODY_FORM_DATA_CONFLICT',
-            level: 'error',
-            locations: bodies.map(parameter => getLocation(parameter))
-              .concat(forms.map(parameter => getLocation(parameter))),
-            message: 'The body parameter and formData parameter are mutually exclusive.',
-            metadata: { bodyParameters: parameters, formDataParameters: forms },
-            reference
-          })
-        }
+      built.hookGetProperty('produces', (produces: string[] | undefined) => {
+        return getAllContentTypeStrings(data, 'produces', produces)
       })
     }
 
-    result.after = function (data, mode) {
+    result.validate = function (data) {
       const { definition, exception, id, reference } = data
-      after(definition, data, mode)
 
-      if (mode === 'validate') {
-        const parameters = getMergedParameters(data)
-        const bodies: IParameter2Definition[] = []
-        const forms: IParameter2Definition[] = []
-        parameters.forEach(parameter => {
-          if (parameter.in === 'body') {
-            bodies.push(parameter)
-          } else if (parameter.in === 'formData') {
-            forms.push(parameter)
-          }
+      const parameters = getMergedParameters(data)
+      const bodies: I.IParameter2Definition[] = []
+      const forms: I.IParameter2Definition[] = []
+      parameters.forEach(parameter => {
+        if (parameter.in === 'body') {
+          bodies.push(parameter)
+        } else if (parameter.in === 'formData') {
+          forms.push(parameter)
+        }
+      })
+
+      if (bodies.length > 1) {
+        exception.add({
+          id: id + '_BODY_NOT_UNIQUE',
+          level: 'error',
+          locations: bodies.map(parameter => getLocation(parameter)),
+          message: 'Only one body parameter allowed.',
+          metadata: { bodyParameters: parameters },
+          reference
         })
-
-        if (bodies.length > 1) {
-          exception.add({
-            id: id + '_BODY_NOT_UNIQUE',
-            level: 'error',
-            locations: bodies.map(parameter => getLocation(parameter)),
-            message: 'Only one body parameter allowed.',
-            metadata: { bodyParameters: parameters },
-            reference
-          })
-        }
-
-        if (bodies.length > 0 && forms.length > 0) {
-          exception.add({
-            id: id + '_BODY_FORM_DATA_CONFLICT',
-            level: 'error',
-            locations: bodies.map(parameter => getLocation(parameter))
-              .concat(forms.map(parameter => getLocation(parameter))),
-            message: 'The body parameter and formData parameter are mutually exclusive.',
-            metadata: { bodyParameters: parameters, formDataParameters: forms },
-            reference
-          })
-        }
-
-        const accepts = getAllConsumes(data)
-
-        // check consumes values for form data
-        if (forms.length > 0) {
-          const matchTypes = [
-            ContentType.fromString('multipart/form-data'),
-            ContentType.fromString('application/x-www-form-urlencoded')
-          ]
-          const consumesFormData = accepts.find(v => v?.findMatches(matchTypes) !== undefined)
-          if (consumesFormData === undefined) {
-            exception.add({
-              id: id + '_FORM_DATA_CONSUMES',
-              level: 'warn',
-              locations: [getLocation(definition)],
-              message: 'Input parameters in formData or file should also be accompanied with a consumes property value of either "multipart/form-data" or "application/x-www-form-urlencoded',
-              metadata: {
-                consumes: accepts.map(v => v.toString())
-              }
-            })
-          }
-        }
       }
 
-      if (mode === 'build') {
-        data.lastly.add(() => {
-          const swaggerData: ISchemaProcessor<ISwagger2Definition, ISwagger2> | undefined =
-            findAncestorComponentData<ISchemaProcessor<ISwagger2Definition, ISwagger2>>(data.chain, 'Swagger')
-          const operation = data.built
-          operation.watchProperty('consumes', () => operation.clearCache('allConsumes'))
-          operation.watchProperty('produces', () => operation.clearCache('allProduces'))
-          swaggerData?.built.watchProperty('consumes', () => operation.clearCache('allConsumes'))
-          swaggerData?.built.watchProperty('produces', () => operation.clearCache('allProduces'))
+      if (bodies.length > 0 && forms.length > 0) {
+        exception.add({
+          id: id + '_BODY_FORM_DATA_CONFLICT',
+          level: 'error',
+          locations: bodies.map(parameter => getLocation(parameter))
+            .concat(forms.map(parameter => getLocation(parameter))),
+          message: 'The body parameter and formData parameter are mutually exclusive.',
+          metadata: { bodyParameters: parameters, formDataParameters: forms },
+          reference
         })
+      }
+
+      validateContentTypes(definition.consumes ?? [], 'consumes', data)
+      validateContentTypes(definition.produces ?? [], 'produces', data)
+
+      // check consumes values for form data
+      const consumes = getAllContentTypeStrings(data, 'consumes', definition.consumes).map(ContentType.fromString)
+      if (forms.length > 0) {
+        const matchTypes = [
+          ContentType.fromString('multipart/form-data'),
+          ContentType.fromString('application/x-www-form-urlencoded')
+        ]
+        const consumesFormData = consumes.find(v => v?.findMatches(matchTypes) !== undefined)
+        if (consumesFormData === undefined) {
+          exception.add({
+            id: id + '_FORM_DATA_CONSUMES',
+            level: 'warn',
+            locations: [getLocation(definition)],
+            message: 'Input parameters in formData or file should also be accompanied with a consumes property value of either "multipart/form-data" or "application/x-www-form-urlencoded',
+            metadata: {
+              consumes: consumes.filter(v => v !== undefined).map(v => (v as ContentType).toString())
+            }
+          })
+        }
       }
     }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
@@ -340,7 +274,7 @@ export class Operation extends EnforcerComponent<IOperation2Definition, IOperati
     return result
   }
 
-  static validate (definition: IOperation2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IOperation2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -368,11 +302,11 @@ export class Operation extends EnforcerComponent<IOperation2Definition, IOperati
     this.setProperty('description', value)
   }
 
-  get externalDocs (): IExternalDocumentation2 | undefined {
+  get externalDocs (): I.IExternalDocumentation2 | undefined {
     return this.getProperty('externalDocs')
   }
 
-  set externalDocs (value: IExternalDocumentation2 | undefined) {
+  set externalDocs (value: I.IExternalDocumentation2 | undefined) {
     this.setProperty('externalDocs', value)
   }
 
@@ -400,19 +334,19 @@ export class Operation extends EnforcerComponent<IOperation2Definition, IOperati
     this.setProperty('produces', value)
   }
 
-  get parameters (): IParameter2[] | undefined {
+  get parameters (): I.IParameter2[] | undefined {
     return this.getProperty('parameters')
   }
 
-  set parameters (value: IParameter2[] | undefined) {
+  set parameters (value: I.IParameter2[] | undefined) {
     this.setProperty('parameters', value)
   }
 
-  get responses (): IResponses2 {
+  get responses (): I.IResponses2 {
     return this.getProperty('responses')
   }
 
-  set responses (value: IResponses2) {
+  set responses (value: I.IResponses2) {
     this.setProperty('responses', value)
   }
 
@@ -432,15 +366,20 @@ export class Operation extends EnforcerComponent<IOperation2Definition, IOperati
     this.setProperty('deprecated', value)
   }
 
-  get security (): ISecurityRequirement2[] | undefined {
+  get security (): I.ISecurityRequirement2[] | undefined {
     return this.getProperty('security')
   }
 
-  set security (value: ISecurityRequirement2[] | undefined) {
+  set security (value: I.ISecurityRequirement2[] | undefined) {
     this.setProperty('security', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
+  getAcceptedResponseTypes (statusCode: number | 'default', accepts: string): ContentType[] {
+    const acceptedTypes = ContentType.fromStringMultiple(accepts)
+    const produces = this.produces?.map(ContentType.fromString).filter(v => v !== undefined) as ContentType[] ?? []
+    return ContentType.findIntersections(acceptedTypes, produces)
+  }
   // getResponsesThatCanProduceContentType (contentType: string | ContentType): Array<{ code: number | 'default', response: IResponse2 }> {
   //   const data = getExistingProcessorData<IOperation2Definition, IOperation2>(this)
   //   const input = [contentType]
@@ -479,30 +418,41 @@ export class Operation extends EnforcerComponent<IOperation2Definition, IOperati
   }
 
   willAcceptContentType (contentType: string | ContentType): boolean {
-    const data = getExistingProcessorData<IOperation2Definition, IOperation2>(this)
-    const input = [contentType]
-    return this.cached<ContentType[]>('allConsumes', getAllConsumes, data)
-      .find(c => c.findMatches(input).length > 0) !== undefined
+    const consumes: string[] = this.consumes ?? []
+    const length = consumes.length
+    for (let i = 0; i < length; i++) {
+      const type = ContentType.fromString(consumes[i])
+      const matches = type?.findMatches([contentType]) ?? []
+      if (matches.length > 0) return true
+    }
+    return false
   }
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-function getAllConsumes (data: ISchemaProcessor<IOperation2Definition, IOperation2>): ContentType[] {
-  const { chain, definition } = data
-  const swaggerData: ISchemaProcessor<ISwagger2Definition, any> | undefined =
-    findAncestorComponentData(chain, 'Swagger') as ISchemaProcessor<ISwagger2Definition, any>
-  return (definition.consumes ?? []).concat(swaggerData?.definition.consumes ?? [])
-    .map(ContentType.fromString)
-    .filter(v => v !== undefined) as ContentType[]
+function getAllContentTypeStrings (data: ISchemaProcessor<I.IOperation2Definition, IOperation2>, key: 'consumes' | 'produces', types: string[] | undefined): string[] {
+  const swagger: ISchemaProcessor<I.ISwagger2Definition, I.ISwagger2> | undefined = data.chain
+    .getAncestor(ancestor => ancestor.name === 'Swagger')
+  const result = new Set<string>((swagger?.built[key] ?? []).concat(types ?? []))
+  return Array.from(result)
 }
 
-function getAllProduces (data: ISchemaProcessor<IOperation2Definition, IOperation2>): ContentType[] {
-  const { chain, definition } = data
-  const swaggerData: ISchemaProcessor<ISwagger2Definition, any> | undefined =
-    findAncestorComponentData(chain, 'Swagger') as ISchemaProcessor<ISwagger2Definition, any>
-  return (definition.produces ?? []).concat(swaggerData?.definition.produces ?? [])
-    .map(ContentType.fromString)
-    .filter(v => v !== undefined) as ContentType[]
+function validateContentTypes (contentTypes: string[] | undefined, key: 'consumes' | 'produces', data: ISchemaProcessor<I.IOperation2Definition, IOperation2>): void {
+  contentTypes?.forEach((contentType, index) => {
+    if (!ContentType.isContentTypeString(contentType)) {
+      const { definition, exception, id, reference } = data
+      exception.add({
+        id: id + '_CONTENT_TYPE_INVALID',
+        level: 'warn',
+        locations: [getLocation(definition[key] as string[], index, 'value')],
+        message: 'Value for ' + smart(key) + ' appears to be invalid: ' + smart(contentType),
+        metadata: {
+          contentType
+        },
+        reference
+      })
+    }
+  })
 }
 // <!# Custom Content End: FOOTER #!>

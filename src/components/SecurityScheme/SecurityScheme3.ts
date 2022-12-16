@@ -15,19 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { ISecuritySchemeSchemaProcessor } from '../IInternalTypes'
-import {
-  IOAuthFlows3,
-  IOAuthFlows3Definition,
-  ISecurityScheme3,
-  ISecurityScheme3Definition,
-  OAuthFlows3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<ISecurityScheme3Definition, ISecurityScheme3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> | null = null
 
 interface IValidatorsMap {
   type: ISchema.IProperty<ISchema.IString>
@@ -36,7 +29,7 @@ interface IValidatorsMap {
   _in: ISchema.IProperty<ISchema.IString>
   scheme: ISchema.IProperty<ISchema.IString>
   bearerFormat: ISchema.IProperty<ISchema.IString>
-  flows: ISchema.IProperty<ISchema.IComponent<IOAuthFlows3Definition, IOAuthFlows3>>
+  flows: ISchema.IProperty<ISchema.IComponent<I.IOAuthFlows3Definition, I.IOAuthFlows3>>
   openIdConnectUrl: ISchema.IProperty<ISchema.IString>
 }
 
@@ -84,7 +77,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: OAuthFlows3
+      component: I.OAuthFlows3
     }
   },
   openIdConnectUrl: {
@@ -95,10 +88,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class SecurityScheme extends EnforcerComponent<ISecurityScheme3Definition, ISecurityScheme3> implements ISecurityScheme3 {
+export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definition> implements I.ISecurityScheme3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: ISecurityScheme3Definition, version?: IVersion) {
+  constructor (definition: I.ISecurityScheme3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -112,12 +105,12 @@ export class SecurityScheme extends EnforcerComponent<ISecurityScheme3Definition
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-scheme-object'
   }
 
-  static getSchemaDefinition (_data: ISecuritySchemeSchemaProcessor): ISchema.ISchemaDefinition<ISecurityScheme3Definition, ISecurityScheme3> {
+  static getSchemaDefinition (_data: I.ISecuritySchemeSchemaProcessor): ISchema.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<ISecurityScheme3Definition, ISecurityScheme3> = {
+    const result: ISchema.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -140,7 +133,7 @@ export class SecurityScheme extends EnforcerComponent<ISecurityScheme3Definition
     return result
   }
 
-  static validate (definition: ISecurityScheme3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.ISecurityScheme3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -192,11 +185,11 @@ export class SecurityScheme extends EnforcerComponent<ISecurityScheme3Definition
     this.setProperty('bearerFormat', value)
   }
 
-  get flows (): IOAuthFlows3 | undefined {
+  get flows (): I.IOAuthFlows3 | undefined {
     return this.getProperty('flows')
   }
 
-  set flows (value: IOAuthFlows3 | undefined) {
+  set flows (value: I.IOAuthFlows3 | undefined) {
     this.setProperty('flows', value)
   }
 

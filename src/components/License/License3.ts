@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { ILicenseSchemaProcessor } from '../IInternalTypes'
-import {
-  ILicense3,
-  ILicense3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<ILicense3Definition, ILicense3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.ILicense3Definition, I.ILicense3> | null = null
 
 interface IValidatorsMap {
   name: ISchema.IProperty<ISchema.IString>
@@ -47,10 +43,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class License extends EnforcerComponent<ILicense3Definition, ILicense3> implements ILicense3 {
+export class License extends EnforcerComponent<I.ILicense3Definition> implements I.ILicense3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: ILicense3Definition, version?: IVersion) {
+  constructor (definition: I.ILicense3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -64,12 +60,12 @@ export class License extends EnforcerComponent<ILicense3Definition, ILicense3> i
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#license-object'
   }
 
-  static getSchemaDefinition (_data: ILicenseSchemaProcessor): ISchema.ISchemaDefinition<ILicense3Definition, ILicense3> {
+  static getSchemaDefinition (_data: I.ILicenseSchemaProcessor): ISchema.ISchemaDefinition<I.ILicense3Definition, I.ILicense3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<ILicense3Definition, ILicense3> = {
+    const result: ISchema.ISchemaDefinition<I.ILicense3Definition, I.ILicense3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -86,7 +82,7 @@ export class License extends EnforcerComponent<ILicense3Definition, ILicense3> i
     return result
   }
 
-  static validate (definition: ILicense3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.ILicense3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

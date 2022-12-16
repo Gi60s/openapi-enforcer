@@ -15,25 +15,21 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IExampleSchemaProcessor } from '../IInternalTypes'
-import {
-  IExample2,
-  IExample2Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IExample2Definition, IExample2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IExample2Definition, I.IExample2> | null = null
 
 const additionalProperties: any = {
   type: 'any'
 }
 
-export class Example extends EnforcerComponent<IExample2Definition, IExample2> implements IExample2 {
+export class Example extends EnforcerComponent<I.IExample2Definition> implements I.IExample2 {
   [key: string]: any
 
-  constructor (definition: IExample2Definition, version?: IVersion) {
+  constructor (definition: I.IExample2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -47,12 +43,12 @@ export class Example extends EnforcerComponent<IExample2Definition, IExample2> i
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: IExampleSchemaProcessor): ISchema.ISchemaDefinition<IExample2Definition, IExample2> {
+  static getSchemaDefinition (_data: I.IExampleSchemaProcessor): ISchema.ISchemaDefinition<I.IExample2Definition, I.IExample2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IExample2Definition, IExample2> = {
+    const result: ISchema.ISchemaDefinition<I.IExample2Definition, I.IExample2> = {
       type: 'object',
       allowsSchemaExtensions: false,
       additionalProperties
@@ -66,7 +62,7 @@ export class Example extends EnforcerComponent<IExample2Definition, IExample2> i
     return result
   }
 
-  static validate (definition: IExample2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IExample2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

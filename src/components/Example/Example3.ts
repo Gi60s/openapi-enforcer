@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IExampleSchemaProcessor } from '../IInternalTypes'
-import {
-  IExample3,
-  IExample3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IExample3Definition, IExample3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IExample3Definition, I.IExample3> | null = null
 
 interface IValidatorsMap {
   summary: ISchema.IProperty<ISchema.IString>
@@ -60,10 +56,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Example extends EnforcerComponent<IExample3Definition, IExample3> implements IExample3 {
+export class Example extends EnforcerComponent<I.IExample3Definition> implements I.IExample3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IExample3Definition, version?: IVersion) {
+  constructor (definition: I.IExample3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -77,12 +73,12 @@ export class Example extends EnforcerComponent<IExample3Definition, IExample3> i
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#example-object'
   }
 
-  static getSchemaDefinition (_data: IExampleSchemaProcessor): ISchema.ISchemaDefinition<IExample3Definition, IExample3> {
+  static getSchemaDefinition (_data: I.IExampleSchemaProcessor): ISchema.ISchemaDefinition<I.IExample3Definition, I.IExample3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IExample3Definition, IExample3> = {
+    const result: ISchema.ISchemaDefinition<I.IExample3Definition, I.IExample3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -101,7 +97,7 @@ export class Example extends EnforcerComponent<IExample3Definition, IExample3> i
     return result
   }
 
-  static validate (definition: IExample3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IExample3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

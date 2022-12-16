@@ -12,12 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IResponse2,
-  IResponse2Definition,
-  IResponse3,
-  IResponse3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -30,26 +25,26 @@ interface IResponsesComponent extends IComponentInstance {
 
 export interface IResponses2Definition {
   [extension: `x-${string}`]: any
-  [key: number]: IResponse2Definition
-  default?: IResponse2Definition
+  [key: number]: I.IResponse2Definition
+  default?: I.IResponse2Definition
 }
 
 export interface IResponses2 extends IResponsesComponent {
   [extension: `x-${string}`]: any
-  [key: number]: IResponse2
-  default?: IResponse2
+  [key: number]: I.IResponse2
+  default?: I.IResponse2
 }
 
 export interface IResponses3Definition {
   [extension: `x-${string}`]: any
-  [key: number]: IResponse3Definition
-  default?: IResponse3Definition
+  [key: number]: I.IResponse3Definition
+  default?: I.IResponse3Definition
 }
 
 export interface IResponses3 extends IResponsesComponent {
   [extension: `x-${string}`]: any
-  [key: number]: IResponse3
-  default?: IResponse3
+  [key: number]: I.IResponse3
+  default?: I.IResponse3
 }
 
 // <!# Custom Content Begin: FOOTER #!>

@@ -15,25 +15,18 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IOAuthFlowsSchemaProcessor } from '../IInternalTypes'
-import {
-  IOAuthFlow3,
-  IOAuthFlow3Definition,
-  IOAuthFlows3,
-  IOAuthFlows3Definition,
-  OAuthFlow3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IOAuthFlows3Definition, IOAuthFlows3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IOAuthFlows3Definition, I.IOAuthFlows3> | null = null
 
 interface IValidatorsMap {
-  implicit: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>>
-  password: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>>
-  clientCredentials: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>>
-  authorizationCode: ISchema.IProperty<ISchema.IComponent<IOAuthFlow3Definition, IOAuthFlow3>>
+  implicit: ISchema.IProperty<ISchema.IComponent<I.IOAuthFlow3Definition, I.IOAuthFlow3>>
+  password: ISchema.IProperty<ISchema.IComponent<I.IOAuthFlow3Definition, I.IOAuthFlow3>>
+  clientCredentials: ISchema.IProperty<ISchema.IComponent<I.IOAuthFlow3Definition, I.IOAuthFlow3>>
+  authorizationCode: ISchema.IProperty<ISchema.IComponent<I.IOAuthFlow3Definition, I.IOAuthFlow3>>
 }
 
 const validators: IValidatorsMap = {
@@ -42,7 +35,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: OAuthFlow3
+      component: I.OAuthFlow3
     }
   },
   password: {
@@ -50,7 +43,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: OAuthFlow3
+      component: I.OAuthFlow3
     }
   },
   clientCredentials: {
@@ -58,7 +51,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: OAuthFlow3
+      component: I.OAuthFlow3
     }
   },
   authorizationCode: {
@@ -66,15 +59,15 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: OAuthFlow3
+      component: I.OAuthFlow3
     }
   }
 }
 
-export class OAuthFlows extends EnforcerComponent<IOAuthFlows3Definition, IOAuthFlows3> implements IOAuthFlows3 {
+export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> implements I.IOAuthFlows3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IOAuthFlows3Definition, version?: IVersion) {
+  constructor (definition: I.IOAuthFlows3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -88,12 +81,12 @@ export class OAuthFlows extends EnforcerComponent<IOAuthFlows3Definition, IOAuth
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#oauth-flows-object'
   }
 
-  static getSchemaDefinition (_data: IOAuthFlowsSchemaProcessor): ISchema.ISchemaDefinition<IOAuthFlows3Definition, IOAuthFlows3> {
+  static getSchemaDefinition (_data: I.IOAuthFlowsSchemaProcessor): ISchema.ISchemaDefinition<I.IOAuthFlows3Definition, I.IOAuthFlows3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IOAuthFlows3Definition, IOAuthFlows3> = {
+    const result: ISchema.ISchemaDefinition<I.IOAuthFlows3Definition, I.IOAuthFlows3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -112,39 +105,39 @@ export class OAuthFlows extends EnforcerComponent<IOAuthFlows3Definition, IOAuth
     return result
   }
 
-  static validate (definition: IOAuthFlows3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IOAuthFlows3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  get implicit (): IOAuthFlow3 | undefined {
+  get implicit (): I.IOAuthFlow3 | undefined {
     return this.getProperty('implicit')
   }
 
-  set implicit (value: IOAuthFlow3 | undefined) {
+  set implicit (value: I.IOAuthFlow3 | undefined) {
     this.setProperty('implicit', value)
   }
 
-  get password (): IOAuthFlow3 | undefined {
+  get password (): I.IOAuthFlow3 | undefined {
     return this.getProperty('password')
   }
 
-  set password (value: IOAuthFlow3 | undefined) {
+  set password (value: I.IOAuthFlow3 | undefined) {
     this.setProperty('password', value)
   }
 
-  get clientCredentials (): IOAuthFlow3 | undefined {
+  get clientCredentials (): I.IOAuthFlow3 | undefined {
     return this.getProperty('clientCredentials')
   }
 
-  set clientCredentials (value: IOAuthFlow3 | undefined) {
+  set clientCredentials (value: I.IOAuthFlow3 | undefined) {
     this.setProperty('clientCredentials', value)
   }
 
-  get authorizationCode (): IOAuthFlow3 | undefined {
+  get authorizationCode (): I.IOAuthFlow3 | undefined {
     return this.getProperty('authorizationCode')
   }
 
-  set authorizationCode (value: IOAuthFlow3 | undefined) {
+  set authorizationCode (value: I.IOAuthFlow3 | undefined) {
     this.setProperty('authorizationCode', value)
   }
 

@@ -12,18 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IDiscriminator3,
-  IDiscriminator3Definition,
-  IExternalDocumentation2,
-  IExternalDocumentation2Definition,
-  IExternalDocumentation3,
-  IExternalDocumentation3Definition,
-  IXml2,
-  IXml2Definition,
-  IXml3,
-  IXml3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -56,14 +45,14 @@ export interface ISchema2Definition {
   multipleOf?: number
   required?: string[]
   type?: string
-  items?: ISchema2Definition
-  allOf?: ISchema2Definition[]
-  properties?: Record<string, ISchema2Definition>
-  additionalProperties?: ISchema2Definition | boolean
+  items?: I.ISchema2Definition
+  allOf?: I.ISchema2Definition[]
+  properties?: Record<string, I.ISchema2Definition>
+  additionalProperties?: I.ISchema2Definition | boolean
   discriminator?: string
   readOnly?: boolean
-  xml?: IXml2Definition
-  externalDocs?: IExternalDocumentation2Definition
+  xml?: I.IXml2Definition
+  externalDocs?: I.IExternalDocumentation2Definition
   example?: any
 }
 
@@ -89,24 +78,24 @@ export interface ISchema2 extends ISchemaComponent {
   multipleOf?: number
   required?: string[]
   type?: string
-  items?: ISchema2
-  allOf?: ISchema2[]
-  properties?: Record<string, ISchema2>
-  additionalProperties?: ISchema2 | boolean
+  items?: I.ISchema2
+  allOf?: I.ISchema2[]
+  properties?: Record<string, I.ISchema2>
+  additionalProperties?: I.ISchema2 | boolean
   discriminator?: string
   readOnly?: boolean
-  xml?: IXml2
-  externalDocs?: IExternalDocumentation2
+  xml?: I.IXml2
+  externalDocs?: I.IExternalDocumentation2
   example?: any
 }
 
 export interface ISchema3Definition {
   [extension: `x-${string}`]: any
   type?: string
-  allOf?: ISchema3Definition[]
-  oneOf?: ISchema3Definition[]
-  anyOf?: ISchema3Definition[]
-  not?: ISchema3Definition
+  allOf?: I.ISchema3Definition[]
+  oneOf?: I.ISchema3Definition[]
+  anyOf?: I.ISchema3Definition[]
+  not?: I.ISchema3Definition
   title?: string
   maximum?: number
   exclusiveMaximum?: number
@@ -123,18 +112,18 @@ export interface ISchema3Definition {
   enum?: any[]
   multipleOf?: number
   required?: string[]
-  items?: ISchema3Definition
-  properties?: Record<string, ISchema3Definition>
-  additionalProperties?: ISchema3Definition | boolean
+  items?: I.ISchema3Definition
+  properties?: Record<string, I.ISchema3Definition>
+  additionalProperties?: I.ISchema3Definition | boolean
   description?: string
   format?: string
   default?: any
   nullable?: boolean
-  discriminator?: IDiscriminator3Definition
+  discriminator?: I.IDiscriminator3Definition
   readOnly?: boolean
   writeOnly?: boolean
-  xml?: IXml3Definition
-  externalDocs?: IExternalDocumentation3Definition
+  xml?: I.IXml3Definition
+  externalDocs?: I.IExternalDocumentation3Definition
   example?: any
   deprecated?: boolean
 }
@@ -142,10 +131,10 @@ export interface ISchema3Definition {
 export interface ISchema3 extends ISchemaComponent {
   [extension: `x-${string}`]: any
   type?: string
-  allOf?: ISchema3[]
-  oneOf?: ISchema3[]
-  anyOf?: ISchema3[]
-  not?: ISchema3
+  allOf?: I.ISchema3[]
+  oneOf?: I.ISchema3[]
+  anyOf?: I.ISchema3[]
+  not?: I.ISchema3
   title?: string
   maximum?: number
   exclusiveMaximum?: number
@@ -162,18 +151,18 @@ export interface ISchema3 extends ISchemaComponent {
   enum?: any[]
   multipleOf?: number
   required?: string[]
-  items?: ISchema3
-  properties?: Record<string, ISchema3>
-  additionalProperties?: ISchema3 | boolean
+  items?: I.ISchema3
+  properties?: Record<string, I.ISchema3>
+  additionalProperties?: I.ISchema3 | boolean
   description?: string
   format?: string
   default?: any
   nullable?: boolean
-  discriminator?: IDiscriminator3
+  discriminator?: I.IDiscriminator3
   readOnly?: boolean
   writeOnly?: boolean
-  xml?: IXml3
-  externalDocs?: IExternalDocumentation3
+  xml?: I.IXml3
+  externalDocs?: I.IExternalDocumentation3
   example?: any
   deprecated?: boolean
 }

@@ -15,25 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IParameterSchemaProcessor } from '../IInternalTypes'
-import {
-  Example3,
-  IExample3,
-  IExample3Definition,
-  IMediaType3,
-  IMediaType3Definition,
-  IParameter3,
-  IParameter3Definition,
-  ISchema3,
-  ISchema3Definition,
-  MediaType3,
-  Schema3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IParameter3Definition, IParameter3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IParameter3Definition, I.IParameter3> | null = null
 
 interface IValidatorsMap {
   name: ISchema.IProperty<ISchema.IString>
@@ -45,10 +32,10 @@ interface IValidatorsMap {
   style: ISchema.IProperty<ISchema.IString>
   explode: ISchema.IProperty<ISchema.IBoolean>
   allowReserved: ISchema.IProperty<ISchema.IBoolean>
-  schema: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>>
+  schema: ISchema.IProperty<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>
   example: ISchema.IProperty<any>
-  examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IExample3Definition, IExample3>>>
-  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>>
+  examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IExample3Definition, I.IExample3>>>
+  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IMediaType3Definition, I.IMediaType3>>>
 }
 
 const validators: IValidatorsMap = {
@@ -115,7 +102,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: true,
-      component: Schema3
+      component: I.Schema3
     }
   },
   example: {
@@ -131,7 +118,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: true,
-        component: Example3
+        component: I.Example3
       }
     }
   },
@@ -142,16 +129,16 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: false,
-        component: MediaType3
+        component: I.MediaType3
       }
     }
   }
 }
 
-export class Parameter extends EnforcerComponent<IParameter3Definition, IParameter3> implements IParameter3 {
+export class Parameter extends EnforcerComponent<I.IParameter3Definition> implements I.IParameter3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IParameter3Definition, version?: IVersion) {
+  constructor (definition: I.IParameter3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -165,12 +152,12 @@ export class Parameter extends EnforcerComponent<IParameter3Definition, IParamet
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#parameter-object'
   }
 
-  static getSchemaDefinition (_data: IParameterSchemaProcessor): ISchema.ISchemaDefinition<IParameter3Definition, IParameter3> {
+  static getSchemaDefinition (_data: I.IParameterSchemaProcessor): ISchema.ISchemaDefinition<I.IParameter3Definition, I.IParameter3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IParameter3Definition, IParameter3> = {
+    const result: ISchema.ISchemaDefinition<I.IParameter3Definition, I.IParameter3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -198,7 +185,7 @@ export class Parameter extends EnforcerComponent<IParameter3Definition, IParamet
     return result
   }
 
-  static validate (definition: IParameter3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IParameter3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -274,11 +261,11 @@ export class Parameter extends EnforcerComponent<IParameter3Definition, IParamet
     this.setProperty('allowReserved', value)
   }
 
-  get schema (): ISchema3 | undefined {
+  get schema (): I.ISchema3 | undefined {
     return this.getProperty('schema')
   }
 
-  set schema (value: ISchema3 | undefined) {
+  set schema (value: I.ISchema3 | undefined) {
     this.setProperty('schema', value)
   }
 
@@ -290,19 +277,19 @@ export class Parameter extends EnforcerComponent<IParameter3Definition, IParamet
     this.setProperty('example', value)
   }
 
-  get examples (): Record<string, IExample3> | undefined {
+  get examples (): Record<string, I.IExample3> | undefined {
     return this.getProperty('examples')
   }
 
-  set examples (value: Record<string, IExample3> | undefined) {
+  set examples (value: Record<string, I.IExample3> | undefined) {
     this.setProperty('examples', value)
   }
 
-  get content (): Record<string, IMediaType3> | undefined {
+  get content (): Record<string, I.IMediaType3> | undefined {
     return this.getProperty('content')
   }
 
-  set content (value: Record<string, IMediaType3> | undefined) {
+  set content (value: Record<string, I.IMediaType3> | undefined) {
     this.setProperty('content', value)
   }
 

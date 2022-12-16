@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { ISecuritySchemeSchemaProcessor } from '../IInternalTypes'
-import {
-  ISecurityScheme2,
-  ISecurityScheme2Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<ISecurityScheme2Definition, ISecurityScheme2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.ISecurityScheme2Definition, I.ISecurityScheme2> | null = null
 
 interface IValidatorsMap {
   type: ISchema.IProperty<ISchema.IString>
@@ -95,10 +91,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class SecurityScheme extends EnforcerComponent<ISecurityScheme2Definition, ISecurityScheme2> implements ISecurityScheme2 {
+export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definition> implements I.ISecurityScheme2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: ISecurityScheme2Definition, version?: IVersion) {
+  constructor (definition: I.ISecurityScheme2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -112,12 +108,12 @@ export class SecurityScheme extends EnforcerComponent<ISecurityScheme2Definition
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: ISecuritySchemeSchemaProcessor): ISchema.ISchemaDefinition<ISecurityScheme2Definition, ISecurityScheme2> {
+  static getSchemaDefinition (_data: I.ISecuritySchemeSchemaProcessor): ISchema.ISchemaDefinition<I.ISecurityScheme2Definition, I.ISecurityScheme2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<ISecurityScheme2Definition, ISecurityScheme2> = {
+    const result: ISchema.ISchemaDefinition<I.ISecurityScheme2Definition, I.ISecurityScheme2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -140,7 +136,7 @@ export class SecurityScheme extends EnforcerComponent<ISecurityScheme2Definition
     return result
   }
 
-  static validate (definition: ISecurityScheme2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.ISecurityScheme2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

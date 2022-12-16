@@ -2,7 +2,6 @@ import { smart } from '../util'
 import { ILocation } from '../Locator/ILocator'
 import { IExceptionData } from './IException'
 import { getLocation } from '../Locator/Locator'
-import { ISchemaProcessor, ISchemaProcessorComponentData } from "../components-old/ISchemaProcessor";
 
 type ILocations = Array<ILocation | undefined>
 
@@ -13,9 +12,9 @@ interface Data {
   reference: string
 }
 
-export function emailInvalid (cmp: ISchemaProcessorComponentData, email: string, locations: ILocations): IExceptionData {
+export function emailInvalid (cmp: Data, email: string, locations: ILocations): IExceptionData {
   return {
-    id: cmp.id + '_INVALID_EMAIL',
+    id: cmp.componentId + '_INVALID_EMAIL',
     level: 'warn',
     locations,
     message: 'Email appears to be invalid: ' + smart(email)

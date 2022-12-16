@@ -15,22 +15,17 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IItemsSchemaProcessor } from '../IInternalTypes'
-import {
-  IItems2,
-  IItems2Definition,
-  Items2
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IItems2Definition, IItems2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IItems2Definition, I.IItems2> | null = null
 
 interface IValidatorsMap {
   type: ISchema.IProperty<ISchema.IString>
   format: ISchema.IProperty<ISchema.IString>
-  items: ISchema.IProperty<ISchema.IComponent<IItems2Definition, IItems2>>
+  items: ISchema.IProperty<ISchema.IComponent<I.IItems2Definition, I.IItems2>>
   collectionFormat: ISchema.IProperty<ISchema.IString>
   _default: ISchema.IProperty<any>
   maximum: ISchema.IProperty<ISchema.INumber>
@@ -67,7 +62,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Items2
+      component: I.Items2
     }
   },
   collectionFormat: {
@@ -160,10 +155,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Items extends EnforcerComponent<IItems2Definition, IItems2> implements IItems2 {
+export class Items extends EnforcerComponent<I.IItems2Definition> implements I.IItems2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IItems2Definition, version?: IVersion) {
+  constructor (definition: I.IItems2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -177,12 +172,12 @@ export class Items extends EnforcerComponent<IItems2Definition, IItems2> impleme
     '3.0.3': false
   }
 
-  static getSchemaDefinition (_data: IItemsSchemaProcessor): ISchema.ISchemaDefinition<IItems2Definition, IItems2> {
+  static getSchemaDefinition (_data: I.IItemsSchemaProcessor): ISchema.ISchemaDefinition<I.IItems2Definition, I.IItems2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IItems2Definition, IItems2> = {
+    const result: ISchema.ISchemaDefinition<I.IItems2Definition, I.IItems2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -214,7 +209,7 @@ export class Items extends EnforcerComponent<IItems2Definition, IItems2> impleme
     return result
   }
 
-  static validate (definition: IItems2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IItems2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -234,11 +229,11 @@ export class Items extends EnforcerComponent<IItems2Definition, IItems2> impleme
     this.setProperty('format', value)
   }
 
-  get items (): IItems2 | undefined {
+  get items (): I.IItems2 | undefined {
     return this.getProperty('items')
   }
 
-  set items (value: IItems2 | undefined) {
+  set items (value: I.IItems2 | undefined) {
     this.setProperty('items', value)
   }
 

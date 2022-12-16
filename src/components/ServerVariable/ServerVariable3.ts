@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IServerVariableSchemaProcessor } from '../IInternalTypes'
-import {
-  IServerVariable3,
-  IServerVariable3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IServerVariable3Definition, IServerVariable3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IServerVariable3Definition, I.IServerVariable3> | null = null
 
 interface IValidatorsMap {
   _enum: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
@@ -57,10 +53,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class ServerVariable extends EnforcerComponent<IServerVariable3Definition, IServerVariable3> implements IServerVariable3 {
+export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definition> implements I.IServerVariable3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IServerVariable3Definition, version?: IVersion) {
+  constructor (definition: I.IServerVariable3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -74,12 +70,12 @@ export class ServerVariable extends EnforcerComponent<IServerVariable3Definition
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-variable-object'
   }
 
-  static getSchemaDefinition (_data: IServerVariableSchemaProcessor): ISchema.ISchemaDefinition<IServerVariable3Definition, IServerVariable3> {
+  static getSchemaDefinition (_data: I.IServerVariableSchemaProcessor): ISchema.ISchemaDefinition<I.IServerVariable3Definition, I.IServerVariable3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IServerVariable3Definition, IServerVariable3> = {
+    const result: ISchema.ISchemaDefinition<I.IServerVariable3Definition, I.IServerVariable3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -97,7 +93,7 @@ export class ServerVariable extends EnforcerComponent<IServerVariable3Definition
     return result
   }
 
-  static validate (definition: IServerVariable3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IServerVariable3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

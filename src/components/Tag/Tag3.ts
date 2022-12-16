@@ -15,24 +15,17 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { ITagSchemaProcessor } from '../IInternalTypes'
-import {
-  ExternalDocumentation3,
-  IExternalDocumentation3,
-  IExternalDocumentation3Definition,
-  ITag3,
-  ITag3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<ITag3Definition, ITag3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.ITag3Definition, I.ITag3> | null = null
 
 interface IValidatorsMap {
   name: ISchema.IProperty<ISchema.IString>
   description: ISchema.IProperty<ISchema.IString>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation3Definition, IExternalDocumentation3>>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
 }
 
 const validators: IValidatorsMap = {
@@ -54,15 +47,15 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: ExternalDocumentation3
+      component: I.ExternalDocumentation3
     }
   }
 }
 
-export class Tag extends EnforcerComponent<ITag3Definition, ITag3> implements ITag3 {
+export class Tag extends EnforcerComponent<I.ITag3Definition> implements I.ITag3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: ITag3Definition, version?: IVersion) {
+  constructor (definition: I.ITag3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -76,12 +69,12 @@ export class Tag extends EnforcerComponent<ITag3Definition, ITag3> implements IT
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#tag-object'
   }
 
-  static getSchemaDefinition (_data: ITagSchemaProcessor): ISchema.ISchemaDefinition<ITag3Definition, ITag3> {
+  static getSchemaDefinition (_data: I.ITagSchemaProcessor): ISchema.ISchemaDefinition<I.ITag3Definition, I.ITag3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<ITag3Definition, ITag3> = {
+    const result: ISchema.ISchemaDefinition<I.ITag3Definition, I.ITag3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -99,7 +92,7 @@ export class Tag extends EnforcerComponent<ITag3Definition, ITag3> implements IT
     return result
   }
 
-  static validate (definition: ITag3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.ITag3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -119,11 +112,11 @@ export class Tag extends EnforcerComponent<ITag3Definition, ITag3> implements IT
     this.setProperty('description', value)
   }
 
-  get externalDocs (): IExternalDocumentation3 | undefined {
+  get externalDocs (): I.IExternalDocumentation3 | undefined {
     return this.getProperty('externalDocs')
   }
 
-  set externalDocs (value: IExternalDocumentation3 | undefined) {
+  set externalDocs (value: I.IExternalDocumentation3 | undefined) {
     this.setProperty('externalDocs', value)
   }
 

@@ -12,10 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IServer3,
-  IServer3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -33,7 +30,7 @@ export interface ILink3Definition {
   parameters?: Record<string, any>
   requestBody?: any
   description?: string
-  server?: IServer3Definition
+  server?: I.IServer3Definition
 }
 
 export interface ILink3 extends ILinkComponent {
@@ -43,7 +40,7 @@ export interface ILink3 extends ILinkComponent {
   parameters?: Record<string, any>
   requestBody?: any
   description?: string
-  server?: IServer3
+  server?: I.IServer3
 }
 
 // <!# Custom Content Begin: FOOTER #!>

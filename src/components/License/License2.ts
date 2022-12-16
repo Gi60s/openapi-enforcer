@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { ILicenseSchemaProcessor } from '../IInternalTypes'
-import {
-  ILicense2,
-  ILicense2Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<ILicense2Definition, ILicense2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.ILicense2Definition, I.ILicense2> | null = null
 
 interface IValidatorsMap {
   name: ISchema.IProperty<ISchema.IString>
@@ -47,10 +43,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class License extends EnforcerComponent<ILicense2Definition, ILicense2> implements ILicense2 {
+export class License extends EnforcerComponent<I.ILicense2Definition> implements I.ILicense2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: ILicense2Definition, version?: IVersion) {
+  constructor (definition: I.ILicense2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -64,12 +60,12 @@ export class License extends EnforcerComponent<ILicense2Definition, ILicense2> i
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: ILicenseSchemaProcessor): ISchema.ISchemaDefinition<ILicense2Definition, ILicense2> {
+  static getSchemaDefinition (_data: I.ILicenseSchemaProcessor): ISchema.ISchemaDefinition<I.ILicense2Definition, I.ILicense2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<ILicense2Definition, ILicense2> = {
+    const result: ISchema.ISchemaDefinition<I.ILicense2Definition, I.ILicense2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -86,7 +82,7 @@ export class License extends EnforcerComponent<ILicense2Definition, ILicense2> i
     return result
   }
 
-  static validate (definition: ILicense2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.ILicense2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

@@ -15,31 +15,18 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IMediaTypeSchemaProcessor } from '../IInternalTypes'
-import {
-  Encoding3,
-  Example3,
-  IEncoding3,
-  IEncoding3Definition,
-  IExample3,
-  IExample3Definition,
-  IMediaType3,
-  IMediaType3Definition,
-  ISchema3,
-  ISchema3Definition,
-  Schema3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IMediaType3Definition, IMediaType3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> | null = null
 
 interface IValidatorsMap {
-  schema: ISchema.IProperty<ISchema.IComponent<ISchema3Definition, ISchema3>>
+  schema: ISchema.IProperty<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>
   example: ISchema.IProperty<any>
-  examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IExample3Definition, IExample3>>>
-  encoding: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IEncoding3Definition, IEncoding3>>>
+  examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IExample3Definition, I.IExample3>>>
+  encoding: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IEncoding3Definition, I.IEncoding3>>>
 }
 
 const validators: IValidatorsMap = {
@@ -48,7 +35,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: true,
-      component: Schema3
+      component: I.Schema3
     }
   },
   example: {
@@ -64,7 +51,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: true,
-        component: Example3
+        component: I.Example3
       }
     }
   },
@@ -75,16 +62,16 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: false,
-        component: Encoding3
+        component: I.Encoding3
       }
     }
   }
 }
 
-export class MediaType extends EnforcerComponent<IMediaType3Definition, IMediaType3> implements IMediaType3 {
+export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implements I.IMediaType3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IMediaType3Definition, version?: IVersion) {
+  constructor (definition: I.IMediaType3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -98,12 +85,12 @@ export class MediaType extends EnforcerComponent<IMediaType3Definition, IMediaTy
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#media-type-object'
   }
 
-  static getSchemaDefinition (_data: IMediaTypeSchemaProcessor): ISchema.ISchemaDefinition<IMediaType3Definition, IMediaType3> {
+  static getSchemaDefinition (_data: I.IMediaTypeSchemaProcessor): ISchema.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IMediaType3Definition, IMediaType3> = {
+    const result: ISchema.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -122,15 +109,15 @@ export class MediaType extends EnforcerComponent<IMediaType3Definition, IMediaTy
     return result
   }
 
-  static validate (definition: IMediaType3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IMediaType3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  get schema (): ISchema3 | undefined {
+  get schema (): I.ISchema3 | undefined {
     return this.getProperty('schema')
   }
 
-  set schema (value: ISchema3 | undefined) {
+  set schema (value: I.ISchema3 | undefined) {
     this.setProperty('schema', value)
   }
 
@@ -142,19 +129,19 @@ export class MediaType extends EnforcerComponent<IMediaType3Definition, IMediaTy
     this.setProperty('example', value)
   }
 
-  get examples (): Record<string, IExample3> | undefined {
+  get examples (): Record<string, I.IExample3> | undefined {
     return this.getProperty('examples')
   }
 
-  set examples (value: Record<string, IExample3> | undefined) {
+  set examples (value: Record<string, I.IExample3> | undefined) {
     this.setProperty('examples', value)
   }
 
-  get encoding (): Record<string, IEncoding3> | undefined {
+  get encoding (): Record<string, I.IEncoding3> | undefined {
     return this.getProperty('encoding')
   }
 
-  set encoding (value: Record<string, IEncoding3> | undefined) {
+  set encoding (value: Record<string, I.IEncoding3> | undefined) {
     this.setProperty('encoding', value)
   }
 

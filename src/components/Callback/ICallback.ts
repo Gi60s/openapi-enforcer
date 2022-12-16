@@ -12,10 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IPathItem3,
-  IPathItem3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -28,14 +25,14 @@ interface ICallbackComponent extends IComponentInstance {
 
 export interface ICallback3Definition {
   [extension: `x-${string}`]: any
-  [key: `http${string}`]: IPathItem3Definition
-  [key: `{$${string}`]: IPathItem3Definition
+  [key: `http${string}`]: I.IPathItem3Definition
+  [key: `{$${string}`]: I.IPathItem3Definition
 }
 
 export interface ICallback3 extends ICallbackComponent {
   [extension: `x-${string}`]: any
-  [key: `http${string}`]: IPathItem3
-  [key: `{$${string}`]: IPathItem3
+  [key: `http${string}`]: I.IPathItem3
+  [key: `{$${string}`]: I.IPathItem3
 }
 
 // <!# Custom Content Begin: FOOTER #!>

@@ -12,34 +12,31 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IOAuthFlow3,
-  IOAuthFlow3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
 interface IOAuthFlowsComponent extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
-// Put your code here.
-// <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IOAuthFlows3Definition {
   [extension: `x-${string}`]: any
-  implicit?: IOAuthFlow3Definition
-  password?: IOAuthFlow3Definition
-  clientCredentials?: IOAuthFlow3Definition
-  authorizationCode?: IOAuthFlow3Definition
+  implicit?: I.IOAuthFlow3Definition
+  password?: I.IOAuthFlow3Definition
+  clientCredentials?: I.IOAuthFlow3Definition
+  authorizationCode?: I.IOAuthFlow3Definition
 }
 
 export interface IOAuthFlows3 extends IOAuthFlowsComponent {
   [extension: `x-${string}`]: any
-  implicit?: IOAuthFlow3
-  password?: IOAuthFlow3
-  clientCredentials?: IOAuthFlow3
-  authorizationCode?: IOAuthFlow3
+  implicit?: I.IOAuthFlow3
+  password?: I.IOAuthFlow3
+  clientCredentials?: I.IOAuthFlow3
+  authorizationCode?: I.IOAuthFlow3
 }
 
 // <!# Custom Content Begin: FOOTER #!>

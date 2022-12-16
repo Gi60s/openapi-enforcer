@@ -15,29 +15,19 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IInfoSchemaProcessor } from '../IInternalTypes'
-import {
-  Contact2,
-  IContact2,
-  IContact2Definition,
-  IInfo2,
-  IInfo2Definition,
-  ILicense2,
-  ILicense2Definition,
-  License2
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IInfo2Definition, IInfo2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IInfo2Definition, I.IInfo2> | null = null
 
 interface IValidatorsMap {
   title: ISchema.IProperty<ISchema.IString>
   description: ISchema.IProperty<ISchema.IString>
   termsOfService: ISchema.IProperty<ISchema.IString>
-  contact: ISchema.IProperty<ISchema.IComponent<IContact2Definition, IContact2>>
-  license: ISchema.IProperty<ISchema.IComponent<ILicense2Definition, ILicense2>>
+  contact: ISchema.IProperty<ISchema.IComponent<I.IContact2Definition, I.IContact2>>
+  license: ISchema.IProperty<ISchema.IComponent<I.ILicense2Definition, I.ILicense2>>
   version: ISchema.IProperty<ISchema.IString>
 }
 
@@ -66,7 +56,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Contact2
+      component: I.Contact2
     }
   },
   license: {
@@ -74,7 +64,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: License2
+      component: I.License2
     }
   },
   version: {
@@ -86,10 +76,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Info extends EnforcerComponent<IInfo2Definition, IInfo2> implements IInfo2 {
+export class Info extends EnforcerComponent<I.IInfo2Definition> implements I.IInfo2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IInfo2Definition, version?: IVersion) {
+  constructor (definition: I.IInfo2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -103,12 +93,12 @@ export class Info extends EnforcerComponent<IInfo2Definition, IInfo2> implements
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: IInfoSchemaProcessor): ISchema.ISchemaDefinition<IInfo2Definition, IInfo2> {
+  static getSchemaDefinition (_data: I.IInfoSchemaProcessor): ISchema.ISchemaDefinition<I.IInfo2Definition, I.IInfo2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IInfo2Definition, IInfo2> = {
+    const result: ISchema.ISchemaDefinition<I.IInfo2Definition, I.IInfo2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -129,7 +119,7 @@ export class Info extends EnforcerComponent<IInfo2Definition, IInfo2> implements
     return result
   }
 
-  static validate (definition: IInfo2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IInfo2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -157,19 +147,19 @@ export class Info extends EnforcerComponent<IInfo2Definition, IInfo2> implements
     this.setProperty('termsOfService', value)
   }
 
-  get contact (): IContact2 | undefined {
+  get contact (): I.IContact2 | undefined {
     return this.getProperty('contact')
   }
 
-  set contact (value: IContact2 | undefined) {
+  set contact (value: I.IContact2 | undefined) {
     this.setProperty('contact', value)
   }
 
-  get license (): ILicense2 | undefined {
+  get license (): I.ILicense2 | undefined {
     return this.getProperty('license')
   }
 
-  set license (value: ILicense2 | undefined) {
+  set license (value: I.ILicense2 | undefined) {
     this.setProperty('license', value)
   }
 

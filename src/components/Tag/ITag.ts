@@ -12,12 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IExternalDocumentation2,
-  IExternalDocumentation2Definition,
-  IExternalDocumentation3,
-  IExternalDocumentation3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -32,28 +27,28 @@ export interface ITag2Definition {
   [extension: `x-${string}`]: any
   name: string
   description?: string
-  externalDocs?: IExternalDocumentation2Definition
+  externalDocs?: I.IExternalDocumentation2Definition
 }
 
 export interface ITag2 extends ITagComponent {
   [extension: `x-${string}`]: any
   name: string
   description?: string
-  externalDocs?: IExternalDocumentation2
+  externalDocs?: I.IExternalDocumentation2
 }
 
 export interface ITag3Definition {
   [extension: `x-${string}`]: any
   name: string
   description?: string
-  externalDocs?: IExternalDocumentation3Definition
+  externalDocs?: I.IExternalDocumentation3Definition
 }
 
 export interface ITag3 extends ITagComponent {
   [extension: `x-${string}`]: any
   name: string
   description?: string
-  externalDocs?: IExternalDocumentation3
+  externalDocs?: I.IExternalDocumentation3
 }
 
 // <!# Custom Content Begin: FOOTER #!>

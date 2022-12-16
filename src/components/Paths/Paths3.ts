@@ -15,32 +15,25 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IPathsSchemaProcessor } from '../IInternalTypes'
-import {
-  IPathItem3,
-  IPathItem3Definition,
-  IPaths3,
-  IPaths3Definition,
-  PathItem3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 import { after, findPathMatches } from './common'
 import * as config from '../../global-config'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IPaths3Definition, IPaths3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IPaths3Definition, I.IPaths3> | null = null
 
-const additionalProperties: ISchema.IComponent<IPathItem3Definition, IPathItem3> = {
+const additionalProperties: ISchema.IComponent<I.IPathItem3Definition, I.IPathItem3> = {
   type: 'component',
   allowsRef: false,
-  component: PathItem3
+  component: I.PathItem3
 }
 
-export class Paths extends EnforcerComponent<IPaths3Definition, IPaths3> implements IPaths3 {
+export class Paths extends EnforcerComponent<I.IPaths3Definition> implements I.IPaths3 {
   [extension: `x${string}`]: any
-  [key: `/${string}`]: IPathItem3
+  [key: `/${string}`]: I.IPathItem3
 
-  constructor (definition: IPaths3Definition, version?: IVersion) {
+  constructor (definition: I.IPaths3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -54,12 +47,12 @@ export class Paths extends EnforcerComponent<IPaths3Definition, IPaths3> impleme
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#paths-object'
   }
 
-  static getSchemaDefinition (_data: IPathsSchemaProcessor): ISchema.ISchemaDefinition<IPaths3Definition, IPaths3> {
+  static getSchemaDefinition (_data: I.IPathsSchemaProcessor): ISchema.ISchemaDefinition<I.IPaths3Definition, I.IPaths3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IPaths3Definition, IPaths3> = {
+    const result: ISchema.ISchemaDefinition<I.IPaths3Definition, I.IPaths3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties
@@ -73,7 +66,7 @@ export class Paths extends EnforcerComponent<IPaths3Definition, IPaths3> impleme
     return result
   }
 
-  static validate (definition: IPaths3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IPaths3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

@@ -12,18 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IOperation2,
-  IOperation2Definition,
-  IOperation3,
-  IOperation3Definition,
-  IParameter2,
-  IParameter2Definition,
-  IParameter3,
-  IParameter3Definition,
-  IServer3,
-  IServer3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -37,27 +26,27 @@ interface IPathItemComponent extends IComponentInstance {
 export interface IPathItem2Definition {
   [extension: `x-${string}`]: any
   $ref?: string
-  get?: IOperation2Definition
-  put?: IOperation2Definition
-  post?: IOperation2Definition
-  delete?: IOperation2Definition
-  options?: IOperation2Definition
-  head?: IOperation2Definition
-  patch?: IOperation2Definition
-  parameters?: IParameter2Definition[]
+  get?: I.IOperation2Definition
+  put?: I.IOperation2Definition
+  post?: I.IOperation2Definition
+  delete?: I.IOperation2Definition
+  options?: I.IOperation2Definition
+  head?: I.IOperation2Definition
+  patch?: I.IOperation2Definition
+  parameters?: I.IParameter2Definition[]
 }
 
 export interface IPathItem2 extends IPathItemComponent {
   [extension: `x-${string}`]: any
   $ref?: string
-  get?: IOperation2
-  put?: IOperation2
-  post?: IOperation2
-  delete?: IOperation2
-  options?: IOperation2
-  head?: IOperation2
-  patch?: IOperation2
-  parameters?: IParameter2[]
+  get?: I.IOperation2
+  put?: I.IOperation2
+  post?: I.IOperation2
+  delete?: I.IOperation2
+  options?: I.IOperation2
+  head?: I.IOperation2
+  patch?: I.IOperation2
+  parameters?: I.IParameter2[]
 }
 
 export interface IPathItem3Definition {
@@ -65,16 +54,16 @@ export interface IPathItem3Definition {
   $ref?: string
   summary?: string
   description?: string
-  get?: IOperation3Definition
-  put?: IOperation3Definition
-  post?: IOperation3Definition
-  delete?: IOperation3Definition
-  options?: IOperation3Definition
-  head?: IOperation3Definition
-  patch?: IOperation3Definition
-  trace?: IOperation3Definition
-  servers?: IServer3Definition[]
-  parameters?: IParameter3Definition[]
+  get?: I.IOperation3Definition
+  put?: I.IOperation3Definition
+  post?: I.IOperation3Definition
+  delete?: I.IOperation3Definition
+  options?: I.IOperation3Definition
+  head?: I.IOperation3Definition
+  patch?: I.IOperation3Definition
+  trace?: I.IOperation3Definition
+  servers?: I.IServer3Definition[]
+  parameters?: I.IParameter3Definition[]
 }
 
 export interface IPathItem3 extends IPathItemComponent {
@@ -82,16 +71,16 @@ export interface IPathItem3 extends IPathItemComponent {
   $ref?: string
   summary?: string
   description?: string
-  get?: IOperation3
-  put?: IOperation3
-  post?: IOperation3
-  delete?: IOperation3
-  options?: IOperation3
-  head?: IOperation3
-  patch?: IOperation3
-  trace?: IOperation3
-  servers?: IServer3[]
-  parameters?: IParameter3[]
+  get?: I.IOperation3
+  put?: I.IOperation3
+  post?: I.IOperation3
+  delete?: I.IOperation3
+  options?: I.IOperation3
+  head?: I.IOperation3
+  patch?: I.IOperation3
+  trace?: I.IOperation3
+  servers?: I.IServer3[]
+  parameters?: I.IParameter3[]
 }
 
 // <!# Custom Content Begin: FOOTER #!>

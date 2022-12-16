@@ -15,23 +15,16 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IRequestBodySchemaProcessor } from '../IInternalTypes'
-import {
-  IMediaType3,
-  IMediaType3Definition,
-  IRequestBody3,
-  IRequestBody3Definition,
-  MediaType3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IRequestBody3Definition, IRequestBody3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> | null = null
 
 interface IValidatorsMap {
   description: ISchema.IProperty<ISchema.IString>
-  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IMediaType3Definition, IMediaType3>>>
+  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IMediaType3Definition, I.IMediaType3>>>
   required: ISchema.IProperty<ISchema.IBoolean>
 }
 
@@ -49,7 +42,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: false,
-        component: MediaType3
+        component: I.MediaType3
       }
     }
   },
@@ -61,10 +54,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class RequestBody extends EnforcerComponent<IRequestBody3Definition, IRequestBody3> implements IRequestBody3 {
+export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> implements I.IRequestBody3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IRequestBody3Definition, version?: IVersion) {
+  constructor (definition: I.IRequestBody3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -78,12 +71,12 @@ export class RequestBody extends EnforcerComponent<IRequestBody3Definition, IReq
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#request-body-object'
   }
 
-  static getSchemaDefinition (_data: IRequestBodySchemaProcessor): ISchema.ISchemaDefinition<IRequestBody3Definition, IRequestBody3> {
+  static getSchemaDefinition (_data: I.IRequestBodySchemaProcessor): ISchema.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IRequestBody3Definition, IRequestBody3> = {
+    const result: ISchema.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -101,7 +94,7 @@ export class RequestBody extends EnforcerComponent<IRequestBody3Definition, IReq
     return result
   }
 
-  static validate (definition: IRequestBody3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IRequestBody3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -113,11 +106,11 @@ export class RequestBody extends EnforcerComponent<IRequestBody3Definition, IReq
     this.setProperty('description', value)
   }
 
-  get content (): Record<string, IMediaType3> | undefined {
+  get content (): Record<string, I.IMediaType3> | undefined {
     return this.getProperty('content')
   }
 
-  set content (value: Record<string, IMediaType3> | undefined) {
+  set content (value: Record<string, I.IMediaType3> | undefined) {
     this.setProperty('content', value)
   }
 

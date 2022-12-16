@@ -12,22 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IComponents3,
-  IComponents3Definition,
-  IExternalDocumentation3,
-  IExternalDocumentation3Definition,
-  IInfo3,
-  IInfo3Definition,
-  IPaths3,
-  IPaths3Definition,
-  ISecurityRequirement3,
-  ISecurityRequirement3Definition,
-  IServer3,
-  IServer3Definition,
-  ITag3,
-  ITag3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -41,25 +26,25 @@ interface IOpenAPIComponent extends IComponentInstance {
 export interface IOpenAPI3Definition {
   [extension: `x-${string}`]: any
   openapi: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
-  info: IInfo3Definition
-  servers?: IServer3Definition[]
-  paths: IPaths3Definition
-  components?: IComponents3Definition
-  security?: ISecurityRequirement3Definition[]
-  tags?: ITag3Definition[]
-  externalDocs?: IExternalDocumentation3Definition
+  info: I.IInfo3Definition
+  servers?: I.IServer3Definition[]
+  paths: I.IPaths3Definition
+  components?: I.IComponents3Definition
+  security?: I.ISecurityRequirement3Definition[]
+  tags?: I.ITag3Definition[]
+  externalDocs?: I.IExternalDocumentation3Definition
 }
 
 export interface IOpenAPI3 extends IOpenAPIComponent {
   [extension: `x-${string}`]: any
   openapi: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
-  info: IInfo3
-  servers?: IServer3[]
-  paths: IPaths3
-  components?: IComponents3
-  security?: ISecurityRequirement3[]
-  tags?: ITag3[]
-  externalDocs?: IExternalDocumentation3
+  info: I.IInfo3
+  servers?: I.IServer3[]
+  paths: I.IPaths3
+  components?: I.IComponents3
+  security?: I.ISecurityRequirement3[]
+  tags?: I.ITag3[]
+  externalDocs?: I.IExternalDocumentation3
 }
 
 // <!# Custom Content Begin: FOOTER #!>

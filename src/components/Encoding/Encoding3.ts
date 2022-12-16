@@ -15,23 +15,16 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IEncodingSchemaProcessor } from '../IInternalTypes'
-import {
-  Header3,
-  IEncoding3,
-  IEncoding3Definition,
-  IHeader3,
-  IHeader3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IEncoding3Definition, IEncoding3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> | null = null
 
 interface IValidatorsMap {
   contentType: ISchema.IProperty<ISchema.IString>
-  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IHeader3Definition, IHeader3>>>
+  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IHeader3Definition, I.IHeader3>>>
   style: ISchema.IProperty<ISchema.IString>
   explode: ISchema.IProperty<ISchema.IBoolean>
   allowReserved: ISchema.IProperty<ISchema.IBoolean>
@@ -51,7 +44,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: true,
-        component: Header3
+        component: I.Header3
       }
     }
   },
@@ -75,10 +68,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Encoding extends EnforcerComponent<IEncoding3Definition, IEncoding3> implements IEncoding3 {
+export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implements I.IEncoding3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IEncoding3Definition, version?: IVersion) {
+  constructor (definition: I.IEncoding3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -92,12 +85,12 @@ export class Encoding extends EnforcerComponent<IEncoding3Definition, IEncoding3
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#encoding-object'
   }
 
-  static getSchemaDefinition (_data: IEncodingSchemaProcessor): ISchema.ISchemaDefinition<IEncoding3Definition, IEncoding3> {
+  static getSchemaDefinition (_data: I.IEncodingSchemaProcessor): ISchema.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IEncoding3Definition, IEncoding3> = {
+    const result: ISchema.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -117,7 +110,7 @@ export class Encoding extends EnforcerComponent<IEncoding3Definition, IEncoding3
     return result
   }
 
-  static validate (definition: IEncoding3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IEncoding3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -129,11 +122,11 @@ export class Encoding extends EnforcerComponent<IEncoding3Definition, IEncoding3
     this.setProperty('contentType', value)
   }
 
-  get headers (): Record<string, IHeader3> | undefined {
+  get headers (): Record<string, I.IHeader3> | undefined {
     return this.getProperty('headers')
   }
 
-  set headers (value: Record<string, IHeader3> | undefined) {
+  set headers (value: Record<string, I.IHeader3> | undefined) {
     this.setProperty('headers', value)
   }
 

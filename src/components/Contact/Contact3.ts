@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IContactSchemaProcessor } from '../IInternalTypes'
-import {
-  IContact3,
-  IContact3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 import { validate } from './common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IContact3Definition, IContact3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IContact3Definition, I.IContact3> | null = null
 
 interface IValidatorsMap {
   name: ISchema.IProperty<ISchema.IString>
@@ -53,10 +49,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Contact extends EnforcerComponent<IContact3Definition, IContact3> implements IContact3 {
+export class Contact extends EnforcerComponent<I.IContact3Definition> implements I.IContact3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IContact3Definition, version?: IVersion) {
+  constructor (definition: I.IContact3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -70,12 +66,12 @@ export class Contact extends EnforcerComponent<IContact3Definition, IContact3> i
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#contact-object'
   }
 
-  static getSchemaDefinition (_data: IContactSchemaProcessor): ISchema.ISchemaDefinition<IContact3Definition, IContact3> {
+  static getSchemaDefinition (_data: I.IContactSchemaProcessor): ISchema.ISchemaDefinition<I.IContact3Definition, I.IContact3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IContact3Definition, IContact3> = {
+    const result: ISchema.ISchemaDefinition<I.IContact3Definition, I.IContact3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -95,7 +91,7 @@ export class Contact extends EnforcerComponent<IContact3Definition, IContact3> i
     return result
   }
 
-  static validate (definition: IContact3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IContact3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

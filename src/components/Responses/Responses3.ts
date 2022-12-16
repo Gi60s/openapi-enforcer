@@ -15,22 +15,15 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IResponsesSchemaProcessor } from '../IInternalTypes'
-import {
-  IResponse3,
-  IResponse3Definition,
-  IResponses3,
-  IResponses3Definition,
-  Response3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IResponses3Definition, IResponses3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IResponses3Definition, I.IResponses3> | null = null
 
 interface IValidatorsMap {
-  _default: ISchema.IProperty<ISchema.IComponent<IResponse3Definition, IResponse3>>
+  _default: ISchema.IProperty<ISchema.IComponent<I.IResponse3Definition, I.IResponse3>>
 }
 
 const validators: IValidatorsMap = {
@@ -39,22 +32,22 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: true,
-      component: Response3
+      component: I.Response3
     }
   }
 }
 
-const additionalProperties: ISchema.IComponent<IResponse3Definition, IResponse3> = {
+const additionalProperties: ISchema.IComponent<I.IResponse3Definition, I.IResponse3> = {
   type: 'component',
   allowsRef: true,
-  component: Response3
+  component: I.Response3
 }
 
-export class Responses extends EnforcerComponent<IResponses3Definition, IResponses3> implements IResponses3 {
+export class Responses extends EnforcerComponent<I.IResponses3Definition> implements I.IResponses3 {
   [extension: `x${string}`]: any
-  [key: number]: IResponse3
+  [key: number]: I.IResponse3
 
-  constructor (definition: IResponses3Definition, version?: IVersion) {
+  constructor (definition: I.IResponses3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -68,12 +61,12 @@ export class Responses extends EnforcerComponent<IResponses3Definition, IRespons
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#responses-object'
   }
 
-  static getSchemaDefinition (_data: IResponsesSchemaProcessor): ISchema.ISchemaDefinition<IResponses3Definition, IResponses3> {
+  static getSchemaDefinition (_data: I.IResponsesSchemaProcessor): ISchema.ISchemaDefinition<I.IResponses3Definition, I.IResponses3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IResponses3Definition, IResponses3> = {
+    const result: ISchema.ISchemaDefinition<I.IResponses3Definition, I.IResponses3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties,
@@ -90,15 +83,15 @@ export class Responses extends EnforcerComponent<IResponses3Definition, IRespons
     return result
   }
 
-  static validate (definition: IResponses3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IResponses3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  get default (): IResponse3 | undefined {
+  get default (): I.IResponse3 | undefined {
     return this.getProperty('default')
   }
 
-  set default (value: IResponse3 | undefined) {
+  set default (value: I.IResponse3 | undefined) {
     this.setProperty('default', value)
   }
 

@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IReferenceSchemaProcessor } from '../IInternalTypes'
-import {
-  IReference3,
-  IReference3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IReference3Definition, IReference3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IReference3Definition, I.IReference3> | null = null
 
 interface IValidatorsMap {
   $ref: ISchema.IProperty<ISchema.IString>
@@ -40,9 +36,9 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Reference extends EnforcerComponent<IReference3Definition, IReference3> implements IReference3 {
+export class Reference extends EnforcerComponent<I.IReference3Definition> implements I.IReference3 {
 
-  constructor (definition: IReference3Definition, version?: IVersion) {
+  constructor (definition: I.IReference3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -56,12 +52,12 @@ export class Reference extends EnforcerComponent<IReference3Definition, IReferen
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#reference-object'
   }
 
-  static getSchemaDefinition (_data: IReferenceSchemaProcessor): ISchema.ISchemaDefinition<IReference3Definition, IReference3> {
+  static getSchemaDefinition (_data: I.IReferenceSchemaProcessor): ISchema.ISchemaDefinition<I.IReference3Definition, I.IReference3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IReference3Definition, IReference3> = {
+    const result: ISchema.ISchemaDefinition<I.IReference3Definition, I.IReference3> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [
@@ -77,7 +73,7 @@ export class Reference extends EnforcerComponent<IReference3Definition, IReferen
     return result
   }
 
-  static validate (definition: IReference3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IReference3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

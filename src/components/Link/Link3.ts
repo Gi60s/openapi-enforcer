@@ -15,19 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { ILinkSchemaProcessor } from '../IInternalTypes'
-import {
-  ILink3,
-  ILink3Definition,
-  IServer3,
-  IServer3Definition,
-  Server3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<ILink3Definition, ILink3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.ILink3Definition, I.ILink3> | null = null
 
 interface IValidatorsMap {
   operationRef: ISchema.IProperty<ISchema.IString>
@@ -35,7 +28,7 @@ interface IValidatorsMap {
   parameters: ISchema.IProperty<ISchema.IObject<any>>
   requestBody: ISchema.IProperty<any>
   description: ISchema.IProperty<ISchema.IString>
-  server: ISchema.IProperty<ISchema.IComponent<IServer3Definition, IServer3>>
+  server: ISchema.IProperty<ISchema.IComponent<I.IServer3Definition, I.IServer3>>
 }
 
 const validators: IValidatorsMap = {
@@ -77,15 +70,15 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Server3
+      component: I.Server3
     }
   }
 }
 
-export class Link extends EnforcerComponent<ILink3Definition, ILink3> implements ILink3 {
+export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILink3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: ILink3Definition, version?: IVersion) {
+  constructor (definition: I.ILink3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -99,12 +92,12 @@ export class Link extends EnforcerComponent<ILink3Definition, ILink3> implements
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#link-object'
   }
 
-  static getSchemaDefinition (_data: ILinkSchemaProcessor): ISchema.ISchemaDefinition<ILink3Definition, ILink3> {
+  static getSchemaDefinition (_data: I.ILinkSchemaProcessor): ISchema.ISchemaDefinition<I.ILink3Definition, I.ILink3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<ILink3Definition, ILink3> = {
+    const result: ISchema.ISchemaDefinition<I.ILink3Definition, I.ILink3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -125,7 +118,7 @@ export class Link extends EnforcerComponent<ILink3Definition, ILink3> implements
     return result
   }
 
-  static validate (definition: ILink3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.ILink3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -169,11 +162,11 @@ export class Link extends EnforcerComponent<ILink3Definition, ILink3> implements
     this.setProperty('description', value)
   }
 
-  get server (): IServer3 | undefined {
+  get server (): I.IServer3 | undefined {
     return this.getProperty('server')
   }
 
-  set server (value: IServer3 | undefined) {
+  set server (value: I.IServer3 | undefined) {
     this.setProperty('server', value)
   }
 

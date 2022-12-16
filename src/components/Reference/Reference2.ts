@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IReferenceSchemaProcessor } from '../IInternalTypes'
-import {
-  IReference2,
-  IReference2Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IReference2Definition, IReference2> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IReference2Definition, I.IReference2> | null = null
 
 interface IValidatorsMap {
   $ref: ISchema.IProperty<ISchema.IString>
@@ -40,9 +36,9 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Reference extends EnforcerComponent<IReference2Definition, IReference2> implements IReference2 {
+export class Reference extends EnforcerComponent<I.IReference2Definition> implements I.IReference2 {
 
-  constructor (definition: IReference2Definition, version?: IVersion) {
+  constructor (definition: I.IReference2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -56,12 +52,12 @@ export class Reference extends EnforcerComponent<IReference2Definition, IReferen
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: IReferenceSchemaProcessor): ISchema.ISchemaDefinition<IReference2Definition, IReference2> {
+  static getSchemaDefinition (_data: I.IReferenceSchemaProcessor): ISchema.ISchemaDefinition<I.IReference2Definition, I.IReference2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IReference2Definition, IReference2> = {
+    const result: ISchema.ISchemaDefinition<I.IReference2Definition, I.IReference2> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [
@@ -77,7 +73,7 @@ export class Reference extends EnforcerComponent<IReference2Definition, IReferen
     return result
   }
 
-  static validate (definition: IReference2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IReference2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

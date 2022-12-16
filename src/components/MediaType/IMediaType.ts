@@ -12,14 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  IEncoding3,
-  IEncoding3Definition,
-  IExample3,
-  IExample3Definition,
-  ISchema3,
-  ISchema3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -32,18 +25,18 @@ interface IMediaTypeComponent extends IComponentInstance {
 
 export interface IMediaType3Definition {
   [extension: `x-${string}`]: any
-  schema?: ISchema3Definition
+  schema?: I.ISchema3Definition
   example?: any
-  examples?: Record<string, IExample3Definition>
-  encoding?: Record<string, IEncoding3Definition>
+  examples?: Record<string, I.IExample3Definition>
+  encoding?: Record<string, I.IEncoding3Definition>
 }
 
 export interface IMediaType3 extends IMediaTypeComponent {
   [extension: `x-${string}`]: any
-  schema?: ISchema3
+  schema?: I.ISchema3
   example?: any
-  examples?: Record<string, IExample3>
-  encoding?: Record<string, IEncoding3>
+  examples?: Record<string, I.IExample3>
+  encoding?: Record<string, I.IEncoding3>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

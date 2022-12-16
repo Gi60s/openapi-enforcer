@@ -15,47 +15,22 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IOpenAPISchemaProcessor } from '../IInternalTypes'
-import {
-  Components3,
-  ExternalDocumentation3,
-  IComponents3,
-  IComponents3Definition,
-  IExternalDocumentation3,
-  IExternalDocumentation3Definition,
-  IInfo3,
-  IInfo3Definition,
-  IOpenAPI3,
-  IOpenAPI3Definition,
-  IPaths3,
-  IPaths3Definition,
-  ISecurityRequirement3,
-  ISecurityRequirement3Definition,
-  IServer3,
-  IServer3Definition,
-  ITag3,
-  ITag3Definition,
-  Info3,
-  Paths3,
-  SecurityRequirement3,
-  Server3,
-  Tag3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IOpenAPI3Definition, IOpenAPI3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> | null = null
 
 interface IValidatorsMap {
   openapi: ISchema.IProperty<ISchema.IString>
-  info: ISchema.IProperty<ISchema.IComponent<IInfo3Definition, IInfo3>>
-  servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>>
-  paths: ISchema.IProperty<ISchema.IComponent<IPaths3Definition, IPaths3>>
-  components: ISchema.IProperty<ISchema.IComponent<IComponents3Definition, IComponents3>>
-  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement3Definition, ISecurityRequirement3>>>
-  tags: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ITag3Definition, ITag3>>>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation3Definition, IExternalDocumentation3>>
+  info: ISchema.IProperty<ISchema.IComponent<I.IInfo3Definition, I.IInfo3>>
+  servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IServer3Definition, I.IServer3>>>
+  paths: ISchema.IProperty<ISchema.IComponent<I.IPaths3Definition, I.IPaths3>>
+  components: ISchema.IProperty<ISchema.IComponent<I.IComponents3Definition, I.IComponents3>>
+  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISecurityRequirement3Definition, I.ISecurityRequirement3>>>
+  tags: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ITag3Definition, I.ITag3>>>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
 }
 
 const validators: IValidatorsMap = {
@@ -73,7 +48,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Info3
+      component: I.Info3
     }
   },
   servers: {
@@ -83,7 +58,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: false,
-        component: Server3
+        component: I.Server3
       }
     }
   },
@@ -93,7 +68,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Paths3
+      component: I.Paths3
     }
   },
   components: {
@@ -101,7 +76,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Components3
+      component: I.Components3
     }
   },
   security: {
@@ -111,7 +86,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: false,
-        component: SecurityRequirement3
+        component: I.SecurityRequirement3
       }
     }
   },
@@ -122,7 +97,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: false,
-        component: Tag3
+        component: I.Tag3
       }
     }
   },
@@ -131,15 +106,15 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: ExternalDocumentation3
+      component: I.ExternalDocumentation3
     }
   }
 }
 
-export class OpenAPI extends EnforcerComponent<IOpenAPI3Definition, IOpenAPI3> implements IOpenAPI3 {
+export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements I.IOpenAPI3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IOpenAPI3Definition, version?: IVersion) {
+  constructor (definition: I.IOpenAPI3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -153,12 +128,12 @@ export class OpenAPI extends EnforcerComponent<IOpenAPI3Definition, IOpenAPI3> i
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#openapi-object'
   }
 
-  static getSchemaDefinition (_data: IOpenAPISchemaProcessor): ISchema.ISchemaDefinition<IOpenAPI3Definition, IOpenAPI3> {
+  static getSchemaDefinition (_data: I.IOpenAPISchemaProcessor): ISchema.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IOpenAPI3Definition, IOpenAPI3> = {
+    const result: ISchema.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -181,7 +156,7 @@ export class OpenAPI extends EnforcerComponent<IOpenAPI3Definition, IOpenAPI3> i
     return result
   }
 
-  static validate (definition: IOpenAPI3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IOpenAPI3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -193,59 +168,59 @@ export class OpenAPI extends EnforcerComponent<IOpenAPI3Definition, IOpenAPI3> i
     this.setProperty('openapi', value)
   }
 
-  get info (): IInfo3 {
+  get info (): I.IInfo3 {
     return this.getProperty('info')
   }
 
-  set info (value: IInfo3) {
+  set info (value: I.IInfo3) {
     this.setProperty('info', value)
   }
 
-  get servers (): IServer3[] | undefined {
+  get servers (): I.IServer3[] | undefined {
     return this.getProperty('servers')
   }
 
-  set servers (value: IServer3[] | undefined) {
+  set servers (value: I.IServer3[] | undefined) {
     this.setProperty('servers', value)
   }
 
-  get paths (): IPaths3 {
+  get paths (): I.IPaths3 {
     return this.getProperty('paths')
   }
 
-  set paths (value: IPaths3) {
+  set paths (value: I.IPaths3) {
     this.setProperty('paths', value)
   }
 
-  get components (): IComponents3 | undefined {
+  get components (): I.IComponents3 | undefined {
     return this.getProperty('components')
   }
 
-  set components (value: IComponents3 | undefined) {
+  set components (value: I.IComponents3 | undefined) {
     this.setProperty('components', value)
   }
 
-  get security (): ISecurityRequirement3[] | undefined {
+  get security (): I.ISecurityRequirement3[] | undefined {
     return this.getProperty('security')
   }
 
-  set security (value: ISecurityRequirement3[] | undefined) {
+  set security (value: I.ISecurityRequirement3[] | undefined) {
     this.setProperty('security', value)
   }
 
-  get tags (): ITag3[] | undefined {
+  get tags (): I.ITag3[] | undefined {
     return this.getProperty('tags')
   }
 
-  set tags (value: ITag3[] | undefined) {
+  set tags (value: I.ITag3[] | undefined) {
     this.setProperty('tags', value)
   }
 
-  get externalDocs (): IExternalDocumentation3 | undefined {
+  get externalDocs (): I.IExternalDocumentation3 | undefined {
     return this.getProperty('externalDocs')
   }
 
-  set externalDocs (value: IExternalDocumentation3 | undefined) {
+  set externalDocs (value: I.IExternalDocumentation3 | undefined) {
     this.setProperty('externalDocs', value)
   }
 

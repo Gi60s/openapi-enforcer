@@ -15,32 +15,25 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { ICallbackSchemaProcessor } from '../IInternalTypes'
-import {
-  ICallback3,
-  ICallback3Definition,
-  IPathItem3,
-  IPathItem3Definition,
-  PathItem3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<ICallback3Definition, ICallback3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.ICallback3Definition, I.ICallback3> | null = null
 
-const additionalProperties: ISchema.IComponent<IPathItem3Definition, IPathItem3> = {
+const additionalProperties: ISchema.IComponent<I.IPathItem3Definition, I.IPathItem3> = {
   type: 'component',
   allowsRef: false,
-  component: PathItem3
+  component: I.PathItem3
 }
 
-export class Callback extends EnforcerComponent<ICallback3Definition, ICallback3> implements ICallback3 {
+export class Callback extends EnforcerComponent<I.ICallback3Definition> implements I.ICallback3 {
   [extension: `x${string}`]: any
-  [key: `http${string}`]: IPathItem3
-  [key: `{$${string}`]: IPathItem3
+  [key: `http${string}`]: I.IPathItem3
+  [key: `{$${string}`]: I.IPathItem3
 
-  constructor (definition: ICallback3Definition, version?: IVersion) {
+  constructor (definition: I.ICallback3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -54,12 +47,12 @@ export class Callback extends EnforcerComponent<ICallback3Definition, ICallback3
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#callback-object'
   }
 
-  static getSchemaDefinition (_data: ICallbackSchemaProcessor): ISchema.ISchemaDefinition<ICallback3Definition, ICallback3> {
+  static getSchemaDefinition (_data: I.ICallbackSchemaProcessor): ISchema.ISchemaDefinition<I.ICallback3Definition, I.ICallback3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<ICallback3Definition, ICallback3> = {
+    const result: ISchema.ISchemaDefinition<I.ICallback3Definition, I.ICallback3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties
@@ -73,7 +66,7 @@ export class Callback extends EnforcerComponent<ICallback3Definition, ICallback3
     return result
   }
 
-  static validate (definition: ICallback3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.ICallback3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

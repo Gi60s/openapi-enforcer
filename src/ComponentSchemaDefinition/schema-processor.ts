@@ -1,8 +1,11 @@
 import { ISchemaProcessor } from './ISchemaProcessor'
-import { ExceptionStore, IVersion } from '../components/IComponent'
+import { IVersion } from '../components/IComponent'
+import { ExceptionStore } from '../Exception/ExceptionStore'
 import { Chain } from '../Chain/Chain'
 import { Lastly } from '../Lastly/Lastly'
 import { EnforcerComponent } from '../components/Component'
+
+type EnforcerComponentClass = typeof EnforcerComponent<any>
 
 const store = new WeakMap<any, ISchemaProcessor<any, any>>()
 
@@ -10,20 +13,20 @@ export function findAncestor<T> (data: ISchemaProcessor, componentName: string):
   return undefined
 }
 
-export function generateChildProcessorData<Definition, Built> (data: ISchemaProcessor, key: string, ctor: any): ISchemaProcessor<Definition, Built> {
+export function generateChildProcessorData<Definition, Built extends EnforcerComponentClass> (data: ISchemaProcessor, key: string, ctor: EnforcerComponentClass): ISchemaProcessor<Definition, Built> {
   const built: any = {}
   const child: ISchemaProcessor<Definition, Built> = {
     built,
     chain: data.chain.add(data),
     children: {},
-    constructor: ctor as EnforcerComponent<any, any>,
+    constructor: ctor,
     definition: (data.definition as Record<string, any>)[key] as Definition,
     exception: data.exception,
-    id: ctor.id as string,
+    id: ctor.id,
     key,
     lastly: data.lastly,
     name: ctor.name,
-    reference: ctor.spec[data.version],
+    reference: ctor.spec[data.version] as string,
     store: data.store,
     version: data.version
   }
@@ -34,7 +37,7 @@ export function getExistingProcessorData<Definition=any, Built=any> (definition:
   return store.get(definition) as ISchemaProcessor<Definition, Built>
 }
 
-export function initializeProcessorData<Definition, Built> (definition: Definition, ctor: any, version?: IVersion): ISchemaProcessor<Definition, Built> {
+export function initializeProcessorData<Definition, Built> (definition: Definition, ctor: EnforcerComponentClass, version?: IVersion): ISchemaProcessor<Definition, Built> {
   const determinedVersion = version === undefined
     ? getHighestVersion(Object.keys(ctor.spec) as IVersion[])
     : version
@@ -43,14 +46,14 @@ export function initializeProcessorData<Definition, Built> (definition: Definiti
     built,
     chain: new Chain<ISchemaProcessor>(),
     children: {},
-    constructor: ctor as EnforcerComponent<Definition, Built>,
+    constructor: ctor,
     definition,
     exception: new ExceptionStore(),
     id: ctor.id,
     key: '',
     lastly: new Lastly(),
     name: ctor.name,
-    reference: ctor.spec[determinedVersion],
+    reference: ctor.spec[determinedVersion] as string,
     store: {
       operations: [],
       securitySchemes: {}

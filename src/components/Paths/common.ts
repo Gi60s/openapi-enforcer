@@ -3,6 +3,7 @@ import { getLocation } from '../../Locator/Locator'
 import { methods } from '../PathItem/common'
 import { IPaths2, IPaths3 } from './IPaths'
 import { IPathItemMethod, IFindPathMatchesOptions, IFindPathMatchesResult } from '../PathItem'
+import { IPathsDefinition } from '../IInternalTypes'
 
 interface IPathLink {
   type: 'static' | 'param'
@@ -23,10 +24,10 @@ interface IPathRegExp {
 }
 
 const rxPathVariable = /^({.+?})$/
-const pathLookupMap: WeakMap<IPaths2 | IPaths3, IPathRegExp[]> = new WeakMap<IPaths2 | IPaths3, IPathRegExp[]>()
+const pathLookupMap: WeakMap<IPathsDefinition, IPathRegExp[]> = new WeakMap<IPaths2 | IPaths3, IPathRegExp[]>()
 
 export const after = function (this: IPaths2 | IPaths3, data: ISchemaProcessor<any, any>, mode: 'build' | 'validate'): void {
-  const { definition, id, reference } = data.cmp
+  const { definition, id, reference } = data
   const paths = Object.keys(definition)
 
   if (mode === 'build') {
@@ -60,7 +61,7 @@ export const after = function (this: IPaths2 | IPaths3, data: ISchemaProcessor<a
       })
     })
   } else if (mode === 'validate') {
-    const { exception } = data.root
+    const { exception } = data
     if (paths.length === 0) {
       // according to the spec, it is allowed to have an empty paths object, but the user may want to know, so we
       // register it as an "ignore" and if the user wants then they can change the level
@@ -210,7 +211,7 @@ export function findPathMatches (context: IPaths2 | IPaths3, searchPath: string,
   return results
 }
 
-export function getPathParameterNames (context: IPaths2 | IPaths3, path: string): string[] {
+export function getPathParameterNames (context: IPathsDefinition, path: string): string[] {
   const lookups = pathLookupMap.get(context)
   const match = lookups?.find(lookup => lookup.path === path)
   if (match === undefined) {

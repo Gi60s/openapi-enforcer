@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IOAuthFlowSchemaProcessor } from '../IInternalTypes'
-import {
-  IOAuthFlow3,
-  IOAuthFlow3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IOAuthFlow3Definition, IOAuthFlow3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IOAuthFlow3Definition, I.IOAuthFlow3> | null = null
 
 interface IValidatorsMap {
   authorizationUrl: ISchema.IProperty<ISchema.IString>
@@ -63,10 +59,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class OAuthFlow extends EnforcerComponent<IOAuthFlow3Definition, IOAuthFlow3> implements IOAuthFlow3 {
+export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implements I.IOAuthFlow3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IOAuthFlow3Definition, version?: IVersion) {
+  constructor (definition: I.IOAuthFlow3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -80,12 +76,12 @@ export class OAuthFlow extends EnforcerComponent<IOAuthFlow3Definition, IOAuthFl
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#oauth-flow-object'
   }
 
-  static getSchemaDefinition (_data: IOAuthFlowSchemaProcessor): ISchema.ISchemaDefinition<IOAuthFlow3Definition, IOAuthFlow3> {
+  static getSchemaDefinition (_data: I.IOAuthFlowSchemaProcessor): ISchema.ISchemaDefinition<I.IOAuthFlow3Definition, I.IOAuthFlow3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IOAuthFlow3Definition, IOAuthFlow3> = {
+    const result: ISchema.ISchemaDefinition<I.IOAuthFlow3Definition, I.IOAuthFlow3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -104,7 +100,7 @@ export class OAuthFlow extends EnforcerComponent<IOAuthFlow3Definition, IOAuthFl
     return result
   }
 
-  static validate (definition: IOAuthFlow3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IOAuthFlow3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

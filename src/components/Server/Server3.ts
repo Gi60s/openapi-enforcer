@@ -15,24 +15,17 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IServerSchemaProcessor } from '../IInternalTypes'
-import {
-  IServer3,
-  IServer3Definition,
-  IServerVariable3,
-  IServerVariable3Definition,
-  ServerVariable3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 import { isUrl } from '../validations'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IServer3Definition, IServer3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IServer3Definition, I.IServer3> | null = null
 
 interface IValidatorsMap {
   url: ISchema.IProperty<ISchema.IString>
   description: ISchema.IProperty<ISchema.IString>
-  variables: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<IServerVariable3Definition, IServerVariable3>>>
+  variables: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IServerVariable3Definition, I.IServerVariable3>>>
 }
 
 const validators: IValidatorsMap = {
@@ -56,16 +49,16 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: false,
-        component: ServerVariable3
+        component: I.ServerVariable3
       }
     }
   }
 }
 
-export class Server extends EnforcerComponent<IServer3Definition, IServer3> implements IServer3 {
+export class Server extends EnforcerComponent<I.IServer3Definition> implements I.IServer3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IServer3Definition, version?: IVersion) {
+  constructor (definition: I.IServer3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -79,12 +72,12 @@ export class Server extends EnforcerComponent<IServer3Definition, IServer3> impl
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-object'
   }
 
-  static getSchemaDefinition (_data: IServerSchemaProcessor): ISchema.ISchemaDefinition<IServer3Definition, IServer3> {
+  static getSchemaDefinition (_data: I.IServerSchemaProcessor): ISchema.ISchemaDefinition<I.IServer3Definition, I.IServer3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IServer3Definition, IServer3> = {
+    const result: ISchema.ISchemaDefinition<I.IServer3Definition, I.IServer3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -106,7 +99,7 @@ export class Server extends EnforcerComponent<IServer3Definition, IServer3> impl
     return result
   }
 
-  static validate (definition: IServer3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IServer3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -126,11 +119,11 @@ export class Server extends EnforcerComponent<IServer3Definition, IServer3> impl
     this.setProperty('description', value)
   }
 
-  get variables (): Record<string, IServerVariable3> | undefined {
+  get variables (): Record<string, I.IServerVariable3> | undefined {
     return this.getProperty('variables')
   }
 
-  set variables (value: Record<string, IServerVariable3> | undefined) {
+  set variables (value: Record<string, I.IServerVariable3> | undefined) {
     this.setProperty('variables', value)
   }
 

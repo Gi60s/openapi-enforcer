@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -26,7 +27,7 @@ export interface IItems2Definition {
   [extension: `x-${string}`]: any
   type: 'array'|'boolean'|'integer'|'number'|'string'
   format?: string
-  items?: IItems2Definition
+  items?: I.IItems2Definition
   collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'
   default?: any
   maximum?: number
@@ -47,7 +48,7 @@ export interface IItems2 extends IItemsComponent {
   [extension: `x-${string}`]: any
   type: 'array'|'boolean'|'integer'|'number'|'string'
   format?: string
-  items?: IItems2
+  items?: I.IItems2
   collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'
   default?: any
   maximum?: number

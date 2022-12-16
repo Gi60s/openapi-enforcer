@@ -12,38 +12,15 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import {
-  ICallback3,
-  ICallback3Definition,
-  IExternalDocumentation2,
-  IExternalDocumentation2Definition,
-  IExternalDocumentation3,
-  IExternalDocumentation3Definition,
-  IParameter2,
-  IParameter2Definition,
-  IParameter3,
-  IParameter3Definition,
-  IRequestBody3,
-  IRequestBody3Definition,
-  IResponses2,
-  IResponses2Definition,
-  IResponses3,
-  IResponses3Definition,
-  ISecurityRequirement2,
-  ISecurityRequirement2Definition,
-  ISecurityRequirement3,
-  ISecurityRequirement3Definition,
-  IServer3,
-  IServer3Definition
-} from '../'
-// <!# Custom Content Begin: HEADER #!>
 import * as I from '../IInternalTypes'
+// <!# Custom Content Begin: HEADER #!>
 import { ContentType } from '../../ContentType/ContentType'
 // <!# Custom Content End: HEADER #!>
 
 interface IOperationComponent extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // getResponsesThatCanProduceContentType: (contentType: string | ContentType) => Array<{ code: number | 'default', response: IResponse2 }>
+  getAcceptedResponseTypes: (statusCode: number | 'default', accepted: string) => ContentType[]
   parseBody: (body: string | object, options?: IOperationParseOptions) => any
   parseHeaders: (headers: Record<string, string>, options?: IOperationParseOptions) => Record<string, any>
   parsePath: (path: string, options?: IOperationParseOptions) => Record<string, any>
@@ -58,15 +35,15 @@ export interface IOperation2Definition {
   tags?: string[]
   summary?: string
   description?: string
-  externalDocs?: IExternalDocumentation2Definition
+  externalDocs?: I.IExternalDocumentation2Definition
   operationId?: string
   consumes?: string[]
   produces?: string[]
-  parameters?: IParameter2Definition[]
-  responses: IResponses2Definition
+  parameters?: I.IParameter2Definition[]
+  responses: I.IResponses2Definition
   schemes?: Array<'http'|'https'|'ws'|'wss'>
   deprecated?: boolean
-  security?: ISecurityRequirement2Definition[]
+  security?: I.ISecurityRequirement2Definition[]
 }
 
 export interface IOperation2 extends IOperationComponent {
@@ -74,15 +51,15 @@ export interface IOperation2 extends IOperationComponent {
   tags?: string[]
   summary?: string
   description?: string
-  externalDocs?: IExternalDocumentation2
+  externalDocs?: I.IExternalDocumentation2
   operationId?: string
   consumes?: string[]
   produces?: string[]
-  parameters?: IParameter2[]
-  responses: IResponses2
+  parameters?: I.IParameter2[]
+  responses: I.IResponses2
   schemes?: Array<'http'|'https'|'ws'|'wss'>
   deprecated?: boolean
-  security?: ISecurityRequirement2[]
+  security?: I.ISecurityRequirement2[]
 }
 
 export interface IOperation3Definition {
@@ -90,15 +67,15 @@ export interface IOperation3Definition {
   tags?: string[]
   summary?: string
   description?: string
-  externalDocs?: IExternalDocumentation3Definition
+  externalDocs?: I.IExternalDocumentation3Definition
   operationId?: string
-  parameters?: IParameter3Definition[]
-  requestBody?: IRequestBody3Definition
-  responses: IResponses3Definition
-  callbacks?: Record<string, ICallback3Definition>
+  parameters?: I.IParameter3Definition[]
+  requestBody?: I.IRequestBody3Definition
+  responses: I.IResponses3Definition
+  callbacks?: Record<string, I.ICallback3Definition>
   deprecated?: boolean
-  security?: ISecurityRequirement3Definition[]
-  servers?: IServer3Definition[]
+  security?: I.ISecurityRequirement3Definition[]
+  servers?: I.IServer3Definition[]
 }
 
 export interface IOperation3 extends IOperationComponent {
@@ -106,15 +83,15 @@ export interface IOperation3 extends IOperationComponent {
   tags?: string[]
   summary?: string
   description?: string
-  externalDocs?: IExternalDocumentation3
+  externalDocs?: I.IExternalDocumentation3
   operationId?: string
-  parameters?: IParameter3[]
-  requestBody?: IRequestBody3
-  responses: IResponses3
-  callbacks?: Record<string, ICallback3>
+  parameters?: I.IParameter3[]
+  requestBody?: I.IRequestBody3
+  responses: I.IResponses3
+  callbacks?: Record<string, I.ICallback3>
   deprecated?: boolean
-  security?: ISecurityRequirement3[]
-  servers?: IServer3[]
+  security?: I.ISecurityRequirement3[]
+  servers?: I.IServer3[]
 }
 
 // <!# Custom Content Begin: FOOTER #!>

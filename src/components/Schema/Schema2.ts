@@ -15,18 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { ISchemaSchemaProcessor } from '../IInternalTypes'
-import {
-  ExternalDocumentation2,
-  IExternalDocumentation2,
-  IExternalDocumentation2Definition,
-  ISchema2,
-  ISchema2Definition,
-  IXml2,
-  IXml2Definition,
-  Schema2,
-  Xml2
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -52,14 +41,14 @@ interface IValidatorsMap {
   multipleOf: ISchema.IProperty<ISchema.INumber>
   required: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
   type: ISchema.IProperty<ISchema.IString>
-  items: ISchema.IProperty<ISchema.IComponent<ISchema2Definition, ISchema2>>
-  allOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISchema2Definition, ISchema2>>>
-  properties: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ISchema2Definition, ISchema2>>>
+  items: ISchema.IProperty<ISchema.IComponent<I.ISchema2Definition, I.ISchema2>>
+  allOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISchema2Definition, I.ISchema2>>>
+  properties: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ISchema2Definition, I.ISchema2>>>
   additionalProperties: ISchema.IProperty<ISchema.IOneOf>
   discriminator: ISchema.IProperty<ISchema.IString>
   readOnly: ISchema.IProperty<ISchema.IBoolean>
-  xml: ISchema.IProperty<ISchema.IComponent<IXml2Definition, IXml2>>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation2Definition, IExternalDocumentation2>>
+  xml: ISchema.IProperty<ISchema.IComponent<I.IXml2Definition, I.IXml2>>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
   example: ISchema.IProperty<any>
 }
 
@@ -195,7 +184,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Schema2
+      component: I.Schema2
     }
   },
   allOf: {
@@ -205,7 +194,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: true,
-        component: Schema2
+        component: I.Schema2
       }
     }
   },
@@ -216,7 +205,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: true,
-        component: Schema2
+        component: I.Schema2
       }
     }
   },
@@ -230,7 +219,7 @@ const validators: IValidatorsMap = {
           schema: {
             type: 'component',
             allowsRef: true,
-            component: Schema2
+            component: I.Schema2
           }
         },
         {
@@ -260,7 +249,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Xml2
+      component: I.Xml2
     }
   },
   externalDocs: {
@@ -268,7 +257,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: ExternalDocumentation2
+      component: I.ExternalDocumentation2
     }
   },
   example: {
@@ -279,10 +268,10 @@ const validators: IValidatorsMap = {
   }
 }
 
-export class Schema extends EnforcerComponent<ISchema2Definition, ISchema2> implements ISchema2 {
+export class Schema extends EnforcerComponent<I.ISchema2Definition> implements I.ISchema2 {
   [extension: `x${string}`]: any
 
-  constructor (definition: ISchema2Definition, version?: IVersion) {
+  constructor (definition: I.ISchema2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -296,8 +285,8 @@ export class Schema extends EnforcerComponent<ISchema2Definition, ISchema2> impl
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: ISchemaSchemaProcessor): ISchema.ISchemaDefinition<ISchema2Definition, ISchema2> {
-    const result: ISchema.ISchemaDefinition<ISchema2Definition, ISchema2> = {
+  static getSchemaDefinition (_data: I.ISchemaSchemaProcessor): ISchema.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> {
+    const result: ISchema.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -340,7 +329,7 @@ export class Schema extends EnforcerComponent<ISchema2Definition, ISchema2> impl
     return result
   }
 
-  static validate (definition: ISchema2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.ISchema2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -504,35 +493,35 @@ export class Schema extends EnforcerComponent<ISchema2Definition, ISchema2> impl
     this.setProperty('type', value)
   }
 
-  get items (): ISchema2 | undefined {
+  get items (): I.ISchema2 | undefined {
     return this.getProperty('items')
   }
 
-  set items (value: ISchema2 | undefined) {
+  set items (value: I.ISchema2 | undefined) {
     this.setProperty('items', value)
   }
 
-  get allOf (): ISchema2[] | undefined {
+  get allOf (): I.ISchema2[] | undefined {
     return this.getProperty('allOf')
   }
 
-  set allOf (value: ISchema2[] | undefined) {
+  set allOf (value: I.ISchema2[] | undefined) {
     this.setProperty('allOf', value)
   }
 
-  get properties (): Record<string, ISchema2> | undefined {
+  get properties (): Record<string, I.ISchema2> | undefined {
     return this.getProperty('properties')
   }
 
-  set properties (value: Record<string, ISchema2> | undefined) {
+  set properties (value: Record<string, I.ISchema2> | undefined) {
     this.setProperty('properties', value)
   }
 
-  get additionalProperties (): ISchema2 | boolean | undefined {
+  get additionalProperties (): I.ISchema2 | boolean | undefined {
     return this.getProperty('additionalProperties')
   }
 
-  set additionalProperties (value: ISchema2 | boolean | undefined) {
+  set additionalProperties (value: I.ISchema2 | boolean | undefined) {
     this.setProperty('additionalProperties', value)
   }
 
@@ -552,19 +541,19 @@ export class Schema extends EnforcerComponent<ISchema2Definition, ISchema2> impl
     this.setProperty('readOnly', value)
   }
 
-  get xml (): IXml2 | undefined {
+  get xml (): I.IXml2 | undefined {
     return this.getProperty('xml')
   }
 
-  set xml (value: IXml2 | undefined) {
+  set xml (value: I.IXml2 | undefined) {
     this.setProperty('xml', value)
   }
 
-  get externalDocs (): IExternalDocumentation2 | undefined {
+  get externalDocs (): I.IExternalDocumentation2 | undefined {
     return this.getProperty('externalDocs')
   }
 
-  set externalDocs (value: IExternalDocumentation2 | undefined) {
+  set externalDocs (value: I.IExternalDocumentation2 | undefined) {
     this.setProperty('externalDocs', value)
   }
 

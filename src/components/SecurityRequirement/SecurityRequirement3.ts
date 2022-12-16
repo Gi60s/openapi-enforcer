@@ -15,16 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { ISecurityRequirementSchemaProcessor } from '../IInternalTypes'
-import {
-  ISecurityRequirement3,
-  ISecurityRequirement3Definition
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.ISecurityRequirement3Definition, I.ISecurityRequirement3> | null = null
 
 const additionalProperties: ISchema.IArray<ISchema.IString> = {
   type: 'array',
@@ -33,10 +29,10 @@ const additionalProperties: ISchema.IArray<ISchema.IString> = {
   }
 }
 
-export class SecurityRequirement extends EnforcerComponent<ISecurityRequirement3Definition, ISecurityRequirement3> implements ISecurityRequirement3 {
+export class SecurityRequirement extends EnforcerComponent<I.ISecurityRequirement3Definition> implements I.ISecurityRequirement3 {
   [key: string]: string[]
 
-  constructor (definition: ISecurityRequirement3Definition, version?: IVersion) {
+  constructor (definition: I.ISecurityRequirement3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -50,12 +46,12 @@ export class SecurityRequirement extends EnforcerComponent<ISecurityRequirement3
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-requirement-object'
   }
 
-  static getSchemaDefinition (_data: ISecurityRequirementSchemaProcessor): ISchema.ISchemaDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> {
+  static getSchemaDefinition (_data: I.ISecurityRequirementSchemaProcessor): ISchema.ISchemaDefinition<I.ISecurityRequirement3Definition, I.ISecurityRequirement3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> = {
+    const result: ISchema.ISchemaDefinition<I.ISecurityRequirement3Definition, I.ISecurityRequirement3> = {
       type: 'object',
       allowsSchemaExtensions: false,
       additionalProperties
@@ -69,7 +65,7 @@ export class SecurityRequirement extends EnforcerComponent<ISecurityRequirement3
     return result
   }
 
-  static validate (definition: ISecurityRequirement3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.ISecurityRequirement3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 

@@ -21,24 +21,15 @@ interface IParentData {
   key: string
 }
 
-type ISchemaDefinitionMap<Definition extends object, Built extends EnforcerComponent<Definition, any>> =
+type ISchemaDefinitionMap<Definition extends object, Built extends EnforcerComponent<Definition>> =
   WeakMap<Definition, WeakMap<Built, ISchemaDefinition<any, any>>>
 
 const componentMap = new WeakMap<any, IComponentMapData>()
 const definitionSchemaMap: ISchemaDefinitionMap<any, any> = new WeakMap()
 
-export interface EnforcerComponent<Definition, Built> {
-  new (definition: Definition, version?: IVersion, data?: IParentData): Built
-  getSchemaDefinition: (data: ISchemaProcessor<Definition, Built>) => ISchemaDefinition<Definition, Built>
-  id: string
-  spec: IComponentSpec
-  validate: (definition: any, version?: IVersion, data?: ISchemaProcessor<Definition, Built>) => ExceptionStore
-}
-
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class EnforcerComponent<Definition, Built> {
+export class EnforcerComponent<Definition> {
   constructor (definition: Definition, version?: IVersion, data?: IParentData) {
-    const ctor = this.constructor as EnforcerComponent<Definition, Built>
+    const ctor = this.constructor as typeof EnforcerComponent
     const processorData = data !== undefined
       ? generateChildProcessorData(data.parent, data.key, ctor)
       : initializeProcessorData(definition, ctor, version)
@@ -107,6 +98,10 @@ export class EnforcerComponent<Definition, Built> {
     }
   }
 
+  static get id (): string {
+    throw new Error('Property "id" not implemented')
+  }
+
   static get spec (): IComponentSpec {
     throw new Error('Property "spec" not implemented')
   }
@@ -115,11 +110,10 @@ export class EnforcerComponent<Definition, Built> {
     throw new Error('Function "getSchema" not implemented')
   }
 
-  static validate<Definition, Built> (definition: any, version?: IVersion, data?: IParentData): ExceptionStore {
-    const ctor = this as unknown as EnforcerComponent<Definition, Built>
+  static validate<Definition, Built extends typeof EnforcerComponent<Definition>> (definition: any, version?: IVersion, data?: IParentData): ExceptionStore {
     const processorData = data !== undefined
-      ? generateChildProcessorData<Definition, Built>(data.parent, data.key, ctor)
-      : initializeProcessorData<Definition, Built>(definition, ctor, version)
+      ? generateChildProcessorData<Definition, Built>(data.parent, data.key, this)
+      : initializeProcessorData<Definition, Built>(definition, this, version)
     return validateComponentDefinition<Definition, Built>(processorData)
   }
 }
@@ -206,7 +200,7 @@ function validateDefinition (data: ISchemaProcessor<any, any>, definition: any, 
     // nothing more to validate
   } else if (expectedType === 'component') {
     // TODO: add a check to see if the value was a $ref
-    schema.component.validate(value, data.version, data)
+    schema.component.validate(value, data.version, { key, parent: data })
   } else if (expectedType === 'number') {
     const v = value as number
     if (schema.integer === true && String(v) !== String(Math.round(v))) {

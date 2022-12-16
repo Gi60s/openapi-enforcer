@@ -15,58 +15,31 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IOperationSchemaProcessor } from '../IInternalTypes'
-import {
-  Callback3,
-  ExternalDocumentation3,
-  ICallback3,
-  ICallback3Definition,
-  IExternalDocumentation3,
-  IExternalDocumentation3Definition,
-  IOperation3,
-  IOperation3Definition,
-  IParameter3,
-  IParameter3Definition,
-  IRequestBody3,
-  IRequestBody3Definition,
-  IResponses3,
-  IResponses3Definition,
-  ISecurityRequirement3,
-  ISecurityRequirement3Definition,
-  IServer3,
-  IServer3Definition,
-  Parameter3,
-  RequestBody3,
-  Responses3,
-  SecurityRequirement3,
-  Server3
-} from '../'
+import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 import { ContentType } from '../../ContentType/ContentType'
 import { getExistingProcessorData } from '../../ComponentSchemaDefinition/schema-processor'
 import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
-import { findAncestorComponentData } from '../common'
 import { IOpenAPI3, IOpenAPI3Definition } from '../OpenAPI'
-import { IResponse3Definition, IResponse3 } from '../Response'
 import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
 import { after } from './common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<IOperation3Definition, IOperation3> | null = null
+let cachedSchema: ISchema.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> | null = null
 
 interface IValidatorsMap {
   tags: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
   summary: ISchema.IProperty<ISchema.IString>
   description: ISchema.IProperty<ISchema.IString>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<IExternalDocumentation3Definition, IExternalDocumentation3>>
+  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
   operationId: ISchema.IProperty<ISchema.IString>
-  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IParameter3Definition, IParameter3>>>
-  requestBody: ISchema.IProperty<ISchema.IComponent<IRequestBody3Definition, IRequestBody3>>
-  responses: ISchema.IProperty<ISchema.IComponent<IResponses3Definition, IResponses3>>
-  callbacks: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<ICallback3Definition, ICallback3>>>
+  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IParameter3Definition, I.IParameter3>>>
+  requestBody: ISchema.IProperty<ISchema.IComponent<I.IRequestBody3Definition, I.IRequestBody3>>
+  responses: ISchema.IProperty<ISchema.IComponent<I.IResponses3Definition, I.IResponses3>>
+  callbacks: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ICallback3Definition, I.ICallback3>>>
   deprecated: ISchema.IProperty<ISchema.IBoolean>
-  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<ISecurityRequirement3Definition, ISecurityRequirement3>>>
-  servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<IServer3Definition, IServer3>>>
+  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISecurityRequirement3Definition, I.ISecurityRequirement3>>>
+  servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IServer3Definition, I.IServer3>>>
 }
 
 const validators: IValidatorsMap = {
@@ -96,7 +69,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: ExternalDocumentation3
+      component: I.ExternalDocumentation3
     }
   },
   operationId: {
@@ -112,7 +85,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: true,
-        component: Parameter3
+        component: I.Parameter3
       }
     }
   },
@@ -121,7 +94,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: true,
-      component: RequestBody3
+      component: I.RequestBody3
     }
   },
   responses: {
@@ -130,7 +103,7 @@ const validators: IValidatorsMap = {
     schema: {
       type: 'component',
       allowsRef: false,
-      component: Responses3
+      component: I.Responses3
     }
   },
   callbacks: {
@@ -140,7 +113,7 @@ const validators: IValidatorsMap = {
       additionalProperties: {
         type: 'component',
         allowsRef: true,
-        component: Callback3
+        component: I.Callback3
       }
     }
   },
@@ -157,7 +130,7 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: false,
-        component: SecurityRequirement3
+        component: I.SecurityRequirement3
       }
     }
   },
@@ -168,16 +141,16 @@ const validators: IValidatorsMap = {
       items: {
         type: 'component',
         allowsRef: false,
-        component: Server3
+        component: I.Server3
       }
     }
   }
 }
 
-export class Operation extends EnforcerComponent<IOperation3Definition, IOperation3> implements IOperation3 {
+export class Operation extends EnforcerComponent<I.IOperation3Definition> implements I.IOperation3 {
   [extension: `x${string}`]: any
 
-  constructor (definition: IOperation3Definition, version?: IVersion) {
+  constructor (definition: I.IOperation3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
 
@@ -191,12 +164,12 @@ export class Operation extends EnforcerComponent<IOperation3Definition, IOperati
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#operation-object'
   }
 
-  static getSchemaDefinition (_data: IOperationSchemaProcessor): ISchema.ISchemaDefinition<IOperation3Definition, IOperation3> {
+  static getSchemaDefinition (_data: I.IOperationSchemaProcessor): ISchema.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<IOperation3Definition, IOperation3> = {
+    const result: ISchema.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -242,7 +215,7 @@ export class Operation extends EnforcerComponent<IOperation3Definition, IOperati
     return result
   }
 
-  static validate (definition: IOperation3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: I.IOperation3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
@@ -270,11 +243,11 @@ export class Operation extends EnforcerComponent<IOperation3Definition, IOperati
     this.setProperty('description', value)
   }
 
-  get externalDocs (): IExternalDocumentation3 | undefined {
+  get externalDocs (): I.IExternalDocumentation3 | undefined {
     return this.getProperty('externalDocs')
   }
 
-  set externalDocs (value: IExternalDocumentation3 | undefined) {
+  set externalDocs (value: I.IExternalDocumentation3 | undefined) {
     this.setProperty('externalDocs', value)
   }
 
@@ -286,35 +259,35 @@ export class Operation extends EnforcerComponent<IOperation3Definition, IOperati
     this.setProperty('operationId', value)
   }
 
-  get parameters (): IParameter3[] | undefined {
+  get parameters (): I.IParameter3[] | undefined {
     return this.getProperty('parameters')
   }
 
-  set parameters (value: IParameter3[] | undefined) {
+  set parameters (value: I.IParameter3[] | undefined) {
     this.setProperty('parameters', value)
   }
 
-  get requestBody (): IRequestBody3 | undefined {
+  get requestBody (): I.IRequestBody3 | undefined {
     return this.getProperty('requestBody')
   }
 
-  set requestBody (value: IRequestBody3 | undefined) {
+  set requestBody (value: I.IRequestBody3 | undefined) {
     this.setProperty('requestBody', value)
   }
 
-  get responses (): IResponses3 {
+  get responses (): I.IResponses3 {
     return this.getProperty('responses')
   }
 
-  set responses (value: IResponses3) {
+  set responses (value: I.IResponses3) {
     this.setProperty('responses', value)
   }
 
-  get callbacks (): Record<string, ICallback3> | undefined {
+  get callbacks (): Record<string, I.ICallback3> | undefined {
     return this.getProperty('callbacks')
   }
 
-  set callbacks (value: Record<string, ICallback3> | undefined) {
+  set callbacks (value: Record<string, I.ICallback3> | undefined) {
     this.setProperty('callbacks', value)
   }
 
@@ -326,19 +299,19 @@ export class Operation extends EnforcerComponent<IOperation3Definition, IOperati
     this.setProperty('deprecated', value)
   }
 
-  get security (): ISecurityRequirement3[] | undefined {
+  get security (): I.ISecurityRequirement3[] | undefined {
     return this.getProperty('security')
   }
 
-  set security (value: ISecurityRequirement3[] | undefined) {
+  set security (value: I.ISecurityRequirement3[] | undefined) {
     this.setProperty('security', value)
   }
 
-  get servers (): IServer3[] | undefined {
+  get servers (): I.IServer3[] | undefined {
     return this.getProperty('servers')
   }
 
-  set servers (value: IServer3[] | undefined) {
+  set servers (value: I.IServer3[] | undefined) {
     this.setProperty('servers', value)
   }
 
