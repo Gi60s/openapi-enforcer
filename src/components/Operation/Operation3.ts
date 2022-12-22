@@ -12,17 +12,16 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { ContentType } from '../../ContentType/ContentType'
-import { getExistingProcessorData } from '../../ComponentSchemaDefinition/schema-processor'
 import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
-import { IOpenAPI3, IOpenAPI3Definition } from '../OpenAPI'
 import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
-import { after } from './common'
+import { validate, getMergedParameters, mergeParameters, operationWillAcceptContentType } from './common'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> | null = null
@@ -148,7 +147,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Operation extends EnforcerComponent<I.IOperation3Definition> implements I.IOperation3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IOperation3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -189,25 +188,20 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    result.after = function (data, mode) {
-      const { definition } = data
-      after(definition, data, mode)
+    result.build = function (data) {
+      const { built } = data
 
-      if (mode === 'validate') {
-        // TODO: add validations
-      }
+      built[HookGetProperty]('parameters', (parameters: I.IParameter3[] | undefined) => {
+        const pathItem: ISchemaProcessor<I.IPathItem3Definition, I.IPathItem3> | undefined = data.chain
+          .getAncestor('PathItem')
+        const pathItemParameters: I.IParameter3[] = pathItem?.built.parameters ?? []
+        return mergeParameters(pathItemParameters, parameters) as I.IParameter3[]
+      })
+    }
 
-      if (mode === 'build') {
-        data.lastly.add(() => {
-          const openapiData: ISchemaProcessor<IOpenAPI3Definition, IOpenAPI3> | undefined =
-            findAncestorComponentData<ISchemaProcessor<IOpenAPI3Definition, IOpenAPI3>>(data.chain, 'OpenAPI')
-          const operation = data.built
-          operation.watchProperty('consumes', () => operation.clearCache('allConsumes'))
-          operation.watchProperty('produces', () => operation.clearCache('allProduces'))
-          openapiData?.built.watchProperty('consumes', () => operation.clearCache('allConsumes'))
-          openapiData?.built.watchProperty('produces', () => operation.clearCache('allProduces'))
-        })
-      }
+    result.validate = function (data) {
+      const parameters = getMergedParameters(data)
+      validate(data, parameters)
     }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
@@ -220,119 +214,112 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
   }
 
   get tags (): string[] | undefined {
-    return this.getProperty('tags')
+    return this[GetProperty]('tags')
   }
 
   set tags (value: string[] | undefined) {
-    this.setProperty('tags', value)
+    this[SetProperty]('tags', value)
   }
 
   get summary (): string | undefined {
-    return this.getProperty('summary')
+    return this[GetProperty]('summary')
   }
 
   set summary (value: string | undefined) {
-    this.setProperty('summary', value)
+    this[SetProperty]('summary', value)
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get externalDocs (): I.IExternalDocumentation3 | undefined {
-    return this.getProperty('externalDocs')
+    return this[GetProperty]('externalDocs')
   }
 
   set externalDocs (value: I.IExternalDocumentation3 | undefined) {
-    this.setProperty('externalDocs', value)
+    this[SetProperty]('externalDocs', value)
   }
 
   get operationId (): string | undefined {
-    return this.getProperty('operationId')
+    return this[GetProperty]('operationId')
   }
 
   set operationId (value: string | undefined) {
-    this.setProperty('operationId', value)
+    this[SetProperty]('operationId', value)
   }
 
   get parameters (): I.IParameter3[] | undefined {
-    return this.getProperty('parameters')
+    return this[GetProperty]('parameters')
   }
 
   set parameters (value: I.IParameter3[] | undefined) {
-    this.setProperty('parameters', value)
+    this[SetProperty]('parameters', value)
   }
 
   get requestBody (): I.IRequestBody3 | undefined {
-    return this.getProperty('requestBody')
+    return this[GetProperty]('requestBody')
   }
 
   set requestBody (value: I.IRequestBody3 | undefined) {
-    this.setProperty('requestBody', value)
+    this[SetProperty]('requestBody', value)
   }
 
   get responses (): I.IResponses3 {
-    return this.getProperty('responses')
+    return this[GetProperty]('responses')
   }
 
   set responses (value: I.IResponses3) {
-    this.setProperty('responses', value)
+    this[SetProperty]('responses', value)
   }
 
   get callbacks (): Record<string, I.ICallback3> | undefined {
-    return this.getProperty('callbacks')
+    return this[GetProperty]('callbacks')
   }
 
   set callbacks (value: Record<string, I.ICallback3> | undefined) {
-    this.setProperty('callbacks', value)
+    this[SetProperty]('callbacks', value)
   }
 
   get deprecated (): boolean | undefined {
-    return this.getProperty('deprecated')
+    return this[GetProperty]('deprecated')
   }
 
   set deprecated (value: boolean | undefined) {
-    this.setProperty('deprecated', value)
+    this[SetProperty]('deprecated', value)
   }
 
   get security (): I.ISecurityRequirement3[] | undefined {
-    return this.getProperty('security')
+    return this[GetProperty]('security')
   }
 
   set security (value: I.ISecurityRequirement3[] | undefined) {
-    this.setProperty('security', value)
+    this[SetProperty]('security', value)
   }
 
   get servers (): I.IServer3[] | undefined {
-    return this.getProperty('servers')
+    return this[GetProperty]('servers')
   }
 
   set servers (value: I.IServer3[] | undefined) {
-    this.setProperty('servers', value)
+    this[SetProperty]('servers', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
-  // getResponsesThatCanProduceContentType (contentType: string | ContentType): Array<{ code: number | 'default', response: IResponse3 }> {
-  //   const data = getExistingProcessorData<IOperation3Definition, IOperation3>(this)
-  //   const input = [contentType]
-  //   const allProducesTypes: ContentType[] = this.cached('allProduces', getAllProduces, data)
-  //   const result: Array<{ code: number | 'default', response: IResponse3 }> = []
-  //
-  //   const match = allProducesTypes.find(c => c.findMatches(input).length > 0)
-  //   if (match !== undefined) {
-  //     Object.keys(this.responses).forEach(key => {
-  //       if (key === 'default' || typeof key === 'number') {
-  //         result.push({ code: key, response: this.responses[key] as IResponse3 })
-  //       }
-  //     })
-  //   }
-  //
-  //   return result
-  // }
+  getAcceptedResponseTypes (statusCode: number | 'default', accepts: string): ContentType[] {
+    const response = this.responses[statusCode]
+    if (response === undefined) return []
+
+    const produces = Object.keys(response.content ?? {})
+      .map(ContentType.fromString)
+      .filter(c => c !== undefined) as ContentType[]
+
+    return ContentType.filterProducedTypesByAccepted(accepts, produces)
+  }
 
   parseBody (body: string | object, options?: IOperationParseOptions): any {
     return null
@@ -355,32 +342,12 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
   }
 
   willAcceptContentType (contentType: string | ContentType): boolean {
-    const data = getExistingProcessorData<IOperation3Definition, IOperation3>(this)
-    const input = [contentType]
-    const allConsumes = this.cached('allConsumes', getAllConsumes, data)
-    return allConsumes
-      .find(c => c.findMatches(input).length > 0) !== undefined
+    const consumes = Object.keys(this.requestBody?.content ?? {})
+    return operationWillAcceptContentType(contentType, consumes)
   }
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-function getAllConsumes (data: ISchemaProcessor<IOperation3Definition, IOperation3>): ContentType[] {
-  const { definition } = data
-  const content = definition.requestBody?.content
-  if (content === undefined) return []
 
-  return Object.keys(content)
-    .map(ContentType.fromString)
-    .filter(type => type !== undefined) as ContentType[]
-}
-
-function getAllProduces (data: ISchemaProcessor<IOperation3Definition, IOperation3>): ContentType[] {
-  const { definition } = data
-  const results: ContentType[] = []
-  Object.keys(definition.responses ?? {})
-    .forEach(code => {
-      const response =
-    })
-}
 // <!# Custom Content End: FOOTER #!>

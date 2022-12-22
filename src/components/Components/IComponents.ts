@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +25,7 @@ interface IComponentsComponent extends IComponentInstance {
 }
 
 export interface IComponents3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   schemas?: Record<string, I.ISchema3Definition>
   responses?: Record<string, I.IResponse3Definition>
   parameters?: Record<string, I.IParameter3Definition>
@@ -37,7 +38,7 @@ export interface IComponents3Definition {
 }
 
 export interface IComponents3 extends IComponentsComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   schemas?: Record<string, I.ISchema3>
   responses?: Record<string, I.IResponse3>
   parameters?: Record<string, I.IParameter3>

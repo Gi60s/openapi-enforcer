@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -73,7 +74,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Response extends EnforcerComponent<I.IResponse3Definition> implements I.IResponse3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IResponse3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -118,35 +119,35 @@ export class Response extends EnforcerComponent<I.IResponse3Definition> implemen
   }
 
   get description (): string {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get headers (): Record<string, I.IHeader3> | undefined {
-    return this.getProperty('headers')
+    return this[GetProperty]('headers')
   }
 
   set headers (value: Record<string, I.IHeader3> | undefined) {
-    this.setProperty('headers', value)
+    this[SetProperty]('headers', value)
   }
 
   get content (): Record<string, I.IMediaType3> | undefined {
-    return this.getProperty('content')
+    return this[GetProperty]('content')
   }
 
   set content (value: Record<string, I.IMediaType3> | undefined) {
-    this.setProperty('content', value)
+    this[SetProperty]('content', value)
   }
 
   get links (): Record<string, I.ILink3> | undefined {
-    return this.getProperty('links')
+    return this[GetProperty]('links')
   }
 
   set links (value: Record<string, I.ILink3> | undefined) {
-    this.setProperty('links', value)
+    this[SetProperty]('links', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

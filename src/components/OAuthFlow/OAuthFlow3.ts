@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -60,7 +61,7 @@ const validators: IValidatorsMap = {
 }
 
 export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implements I.IOAuthFlow3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IOAuthFlow3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -105,35 +106,35 @@ export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implem
   }
 
   get authorizationUrl (): string | undefined {
-    return this.getProperty('authorizationUrl')
+    return this[GetProperty]('authorizationUrl')
   }
 
   set authorizationUrl (value: string | undefined) {
-    this.setProperty('authorizationUrl', value)
+    this[SetProperty]('authorizationUrl', value)
   }
 
   get tokenUrl (): string | undefined {
-    return this.getProperty('tokenUrl')
+    return this[GetProperty]('tokenUrl')
   }
 
   set tokenUrl (value: string | undefined) {
-    this.setProperty('tokenUrl', value)
+    this[SetProperty]('tokenUrl', value)
   }
 
   get refreshUrl (): string | undefined {
-    return this.getProperty('refreshUrl')
+    return this[GetProperty]('refreshUrl')
   }
 
   set refreshUrl (value: string | undefined) {
-    this.setProperty('refreshUrl', value)
+    this[SetProperty]('refreshUrl', value)
   }
 
   get scopes (): Record<string, string> | undefined {
-    return this.getProperty('scopes')
+    return this[GetProperty]('scopes')
   }
 
   set scopes (value: Record<string, string> | undefined) {
-    this.setProperty('scopes', value)
+    this[SetProperty]('scopes', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

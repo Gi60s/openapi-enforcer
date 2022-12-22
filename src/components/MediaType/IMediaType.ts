@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +25,7 @@ interface IMediaTypeComponent extends IComponentInstance {
 }
 
 export interface IMediaType3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   schema?: I.ISchema3Definition
   example?: any
   examples?: Record<string, I.IExample3Definition>
@@ -32,7 +33,7 @@ export interface IMediaType3Definition {
 }
 
 export interface IMediaType3 extends IMediaTypeComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   schema?: I.ISchema3
   example?: any
   examples?: Record<string, I.IExample3>

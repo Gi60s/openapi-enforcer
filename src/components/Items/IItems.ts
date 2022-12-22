@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +25,7 @@ interface IItemsComponent extends IComponentInstance {
 }
 
 export interface IItems2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   type: 'array'|'boolean'|'integer'|'number'|'string'
   format?: string
   items?: I.IItems2Definition
@@ -45,7 +46,7 @@ export interface IItems2Definition {
 }
 
 export interface IItems2 extends IItemsComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   type: 'array'|'boolean'|'integer'|'number'|'string'
   format?: string
   items?: I.IItems2

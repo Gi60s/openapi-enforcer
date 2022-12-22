@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,25 +25,25 @@ interface IResponsesComponent extends IComponentInstance {
 }
 
 export interface IResponses2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   [key: number]: I.IResponse2Definition
   default?: I.IResponse2Definition
 }
 
 export interface IResponses2 extends IResponsesComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   [key: number]: I.IResponse2
   default?: I.IResponse2
 }
 
 export interface IResponses3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   [key: number]: I.IResponse3Definition
   default?: I.IResponse3Definition
 }
 
 export interface IResponses3 extends IResponsesComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   [key: number]: I.IResponse3
   default?: I.IResponse3
 }

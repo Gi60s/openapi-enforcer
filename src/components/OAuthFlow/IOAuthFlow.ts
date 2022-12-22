@@ -12,7 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +24,7 @@ interface IOAuthFlowComponent extends IComponentInstance {
 }
 
 export interface IOAuthFlow3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   authorizationUrl?: string
   tokenUrl?: string
   refreshUrl?: string
@@ -32,7 +32,7 @@ export interface IOAuthFlow3Definition {
 }
 
 export interface IOAuthFlow3 extends IOAuthFlowComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   authorizationUrl?: string
   tokenUrl?: string
   refreshUrl?: string

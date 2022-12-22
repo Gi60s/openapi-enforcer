@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +25,7 @@ interface IEncodingComponent extends IComponentInstance {
 }
 
 export interface IEncoding3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   contentType?: string
   headers?: Record<string, I.IHeader3Definition>
   style?: string
@@ -33,7 +34,7 @@ export interface IEncoding3Definition {
 }
 
 export interface IEncoding3 extends IEncodingComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   contentType?: string
   headers?: Record<string, I.IHeader3>
   style?: string

@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -136,7 +137,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Parameter extends EnforcerComponent<I.IParameter3Definition> implements I.IParameter3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IParameter3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -190,107 +191,107 @@ export class Parameter extends EnforcerComponent<I.IParameter3Definition> implem
   }
 
   get name (): string {
-    return this.getProperty('name')
+    return this[GetProperty]('name')
   }
 
   set name (value: string) {
-    this.setProperty('name', value)
+    this[SetProperty]('name', value)
   }
 
   get in (): 'cookie'|'header'|'path'|'query' {
-    return this.getProperty('in')
+    return this[GetProperty]('in')
   }
 
   set in (value: 'cookie'|'header'|'path'|'query') {
-    this.setProperty('in', value)
+    this[SetProperty]('in', value)
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get required (): boolean | undefined {
-    return this.getProperty('required')
+    return this[GetProperty]('required')
   }
 
   set required (value: boolean | undefined) {
-    this.setProperty('required', value)
+    this[SetProperty]('required', value)
   }
 
   get deprecated (): boolean | undefined {
-    return this.getProperty('deprecated')
+    return this[GetProperty]('deprecated')
   }
 
   set deprecated (value: boolean | undefined) {
-    this.setProperty('deprecated', value)
+    this[SetProperty]('deprecated', value)
   }
 
   get allowEmptyValue (): boolean | undefined {
-    return this.getProperty('allowEmptyValue')
+    return this[GetProperty]('allowEmptyValue')
   }
 
   set allowEmptyValue (value: boolean | undefined) {
-    this.setProperty('allowEmptyValue', value)
+    this[SetProperty]('allowEmptyValue', value)
   }
 
   get style (): 'deepObject'|'form'|'label'|'matrix'|'pipeDelimited'|'simple'|'spaceDelimited' | undefined {
-    return this.getProperty('style')
+    return this[GetProperty]('style')
   }
 
   set style (value: 'deepObject'|'form'|'label'|'matrix'|'pipeDelimited'|'simple'|'spaceDelimited' | undefined) {
-    this.setProperty('style', value)
+    this[SetProperty]('style', value)
   }
 
   get explode (): boolean | undefined {
-    return this.getProperty('explode')
+    return this[GetProperty]('explode')
   }
 
   set explode (value: boolean | undefined) {
-    this.setProperty('explode', value)
+    this[SetProperty]('explode', value)
   }
 
   get allowReserved (): boolean | undefined {
-    return this.getProperty('allowReserved')
+    return this[GetProperty]('allowReserved')
   }
 
   set allowReserved (value: boolean | undefined) {
-    this.setProperty('allowReserved', value)
+    this[SetProperty]('allowReserved', value)
   }
 
   get schema (): I.ISchema3 | undefined {
-    return this.getProperty('schema')
+    return this[GetProperty]('schema')
   }
 
   set schema (value: I.ISchema3 | undefined) {
-    this.setProperty('schema', value)
+    this[SetProperty]('schema', value)
   }
 
   get example (): any | undefined {
-    return this.getProperty('example')
+    return this[GetProperty]('example')
   }
 
   set example (value: any | undefined) {
-    this.setProperty('example', value)
+    this[SetProperty]('example', value)
   }
 
   get examples (): Record<string, I.IExample3> | undefined {
-    return this.getProperty('examples')
+    return this[GetProperty]('examples')
   }
 
   set examples (value: Record<string, I.IExample3> | undefined) {
-    this.setProperty('examples', value)
+    this[SetProperty]('examples', value)
   }
 
   get content (): Record<string, I.IMediaType3> | undefined {
-    return this.getProperty('content')
+    return this[GetProperty]('content')
   }
 
   set content (value: Record<string, I.IMediaType3> | undefined) {
-    this.setProperty('content', value)
+    this[SetProperty]('content', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

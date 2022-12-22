@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -156,7 +157,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Items extends EnforcerComponent<I.IItems2Definition> implements I.IItems2 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IItems2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -214,139 +215,139 @@ export class Items extends EnforcerComponent<I.IItems2Definition> implements I.I
   }
 
   get type (): 'array'|'boolean'|'integer'|'number'|'string' {
-    return this.getProperty('type')
+    return this[GetProperty]('type')
   }
 
   set type (value: 'array'|'boolean'|'integer'|'number'|'string') {
-    this.setProperty('type', value)
+    this[SetProperty]('type', value)
   }
 
   get format (): string | undefined {
-    return this.getProperty('format')
+    return this[GetProperty]('format')
   }
 
   set format (value: string | undefined) {
-    this.setProperty('format', value)
+    this[SetProperty]('format', value)
   }
 
   get items (): I.IItems2 | undefined {
-    return this.getProperty('items')
+    return this[GetProperty]('items')
   }
 
   set items (value: I.IItems2 | undefined) {
-    this.setProperty('items', value)
+    this[SetProperty]('items', value)
   }
 
   get collectionFormat (): 'csv'|'ssv'|'tsv'|'pipes' | undefined {
-    return this.getProperty('collectionFormat')
+    return this[GetProperty]('collectionFormat')
   }
 
   set collectionFormat (value: 'csv'|'ssv'|'tsv'|'pipes' | undefined) {
-    this.setProperty('collectionFormat', value)
+    this[SetProperty]('collectionFormat', value)
   }
 
   get default (): any | undefined {
-    return this.getProperty('default')
+    return this[GetProperty]('default')
   }
 
   set default (value: any | undefined) {
-    this.setProperty('default', value)
+    this[SetProperty]('default', value)
   }
 
   get maximum (): number | undefined {
-    return this.getProperty('maximum')
+    return this[GetProperty]('maximum')
   }
 
   set maximum (value: number | undefined) {
-    this.setProperty('maximum', value)
+    this[SetProperty]('maximum', value)
   }
 
   get exclusiveMaximum (): boolean | undefined {
-    return this.getProperty('exclusiveMaximum')
+    return this[GetProperty]('exclusiveMaximum')
   }
 
   set exclusiveMaximum (value: boolean | undefined) {
-    this.setProperty('exclusiveMaximum', value)
+    this[SetProperty]('exclusiveMaximum', value)
   }
 
   get minimum (): number | undefined {
-    return this.getProperty('minimum')
+    return this[GetProperty]('minimum')
   }
 
   set minimum (value: number | undefined) {
-    this.setProperty('minimum', value)
+    this[SetProperty]('minimum', value)
   }
 
   get exclusiveMinimum (): number | undefined {
-    return this.getProperty('exclusiveMinimum')
+    return this[GetProperty]('exclusiveMinimum')
   }
 
   set exclusiveMinimum (value: number | undefined) {
-    this.setProperty('exclusiveMinimum', value)
+    this[SetProperty]('exclusiveMinimum', value)
   }
 
   get maxLength (): number | undefined {
-    return this.getProperty('maxLength')
+    return this[GetProperty]('maxLength')
   }
 
   set maxLength (value: number | undefined) {
-    this.setProperty('maxLength', value)
+    this[SetProperty]('maxLength', value)
   }
 
   get minLength (): number | undefined {
-    return this.getProperty('minLength')
+    return this[GetProperty]('minLength')
   }
 
   set minLength (value: number | undefined) {
-    this.setProperty('minLength', value)
+    this[SetProperty]('minLength', value)
   }
 
   get pattern (): string | undefined {
-    return this.getProperty('pattern')
+    return this[GetProperty]('pattern')
   }
 
   set pattern (value: string | undefined) {
-    this.setProperty('pattern', value)
+    this[SetProperty]('pattern', value)
   }
 
   get maxItems (): number | undefined {
-    return this.getProperty('maxItems')
+    return this[GetProperty]('maxItems')
   }
 
   set maxItems (value: number | undefined) {
-    this.setProperty('maxItems', value)
+    this[SetProperty]('maxItems', value)
   }
 
   get minItems (): number | undefined {
-    return this.getProperty('minItems')
+    return this[GetProperty]('minItems')
   }
 
   set minItems (value: number | undefined) {
-    this.setProperty('minItems', value)
+    this[SetProperty]('minItems', value)
   }
 
   get uniqueItems (): boolean | undefined {
-    return this.getProperty('uniqueItems')
+    return this[GetProperty]('uniqueItems')
   }
 
   set uniqueItems (value: boolean | undefined) {
-    this.setProperty('uniqueItems', value)
+    this[SetProperty]('uniqueItems', value)
   }
 
   get enum (): any[] | undefined {
-    return this.getProperty('enum')
+    return this[GetProperty]('enum')
   }
 
   set enum (value: any[] | undefined) {
-    this.setProperty('enum', value)
+    this[SetProperty]('enum', value)
   }
 
   get multipleOf (): number | undefined {
-    return this.getProperty('multipleOf')
+    return this[GetProperty]('multipleOf')
   }
 
   set multipleOf (value: number | undefined) {
-    this.setProperty('multipleOf', value)
+    this[SetProperty]('multipleOf', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

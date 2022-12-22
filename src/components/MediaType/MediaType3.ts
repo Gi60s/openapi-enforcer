@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -69,7 +70,7 @@ const validators: IValidatorsMap = {
 }
 
 export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implements I.IMediaType3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IMediaType3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -114,35 +115,35 @@ export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implem
   }
 
   get schema (): I.ISchema3 | undefined {
-    return this.getProperty('schema')
+    return this[GetProperty]('schema')
   }
 
   set schema (value: I.ISchema3 | undefined) {
-    this.setProperty('schema', value)
+    this[SetProperty]('schema', value)
   }
 
   get example (): any | undefined {
-    return this.getProperty('example')
+    return this[GetProperty]('example')
   }
 
   set example (value: any | undefined) {
-    this.setProperty('example', value)
+    this[SetProperty]('example', value)
   }
 
   get examples (): Record<string, I.IExample3> | undefined {
-    return this.getProperty('examples')
+    return this[GetProperty]('examples')
   }
 
   set examples (value: Record<string, I.IExample3> | undefined) {
-    this.setProperty('examples', value)
+    this[SetProperty]('examples', value)
   }
 
   get encoding (): Record<string, I.IEncoding3> | undefined {
-    return this.getProperty('encoding')
+    return this[GetProperty]('encoding')
   }
 
   set encoding (value: Record<string, I.IEncoding3> | undefined) {
-    this.setProperty('encoding', value)
+    this[SetProperty]('encoding', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

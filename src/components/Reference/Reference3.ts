@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
@@ -37,7 +37,6 @@ const validators: IValidatorsMap = {
 }
 
 export class Reference extends EnforcerComponent<I.IReference3Definition> implements I.IReference3 {
-
   constructor (definition: I.IReference3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
@@ -78,11 +77,11 @@ export class Reference extends EnforcerComponent<I.IReference3Definition> implem
   }
 
   get $ref (): string {
-    return this.getProperty('$ref')
+    return this[GetProperty]('$ref')
   }
 
   set $ref (value: string) {
-    this.setProperty('$ref', value)
+    this[SetProperty]('$ref', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -5,7 +5,7 @@ export interface IContentType {
   subType: string
   type: string
 
-  findMatches: (items: Array<string | IContentType | undefined>) => IContentType[]
+  isMatch: (contentType: string | IContentType | undefined) => boolean
   toString: () => string
   toStringWithQuality: () => string
 }

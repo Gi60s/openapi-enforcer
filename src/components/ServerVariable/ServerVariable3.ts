@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -54,7 +55,7 @@ const validators: IValidatorsMap = {
 }
 
 export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definition> implements I.IServerVariable3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IServerVariable3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -98,27 +99,27 @@ export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definiti
   }
 
   get enum (): string[] | undefined {
-    return this.getProperty('enum')
+    return this[GetProperty]('enum')
   }
 
   set enum (value: string[] | undefined) {
-    this.setProperty('enum', value)
+    this[SetProperty]('enum', value)
   }
 
   get default (): string {
-    return this.getProperty('default')
+    return this[GetProperty]('default')
   }
 
   set default (value: string) {
-    this.setProperty('default', value)
+    this[SetProperty]('default', value)
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

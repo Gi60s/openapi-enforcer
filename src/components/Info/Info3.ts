@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -77,7 +78,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Info extends EnforcerComponent<I.IInfo3Definition> implements I.IInfo3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IInfo3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -124,51 +125,51 @@ export class Info extends EnforcerComponent<I.IInfo3Definition> implements I.IIn
   }
 
   get title (): string {
-    return this.getProperty('title')
+    return this[GetProperty]('title')
   }
 
   set title (value: string) {
-    this.setProperty('title', value)
+    this[SetProperty]('title', value)
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get termsOfService (): string | undefined {
-    return this.getProperty('termsOfService')
+    return this[GetProperty]('termsOfService')
   }
 
   set termsOfService (value: string | undefined) {
-    this.setProperty('termsOfService', value)
+    this[SetProperty]('termsOfService', value)
   }
 
   get contact (): I.IContact3 | undefined {
-    return this.getProperty('contact')
+    return this[GetProperty]('contact')
   }
 
   set contact (value: I.IContact3 | undefined) {
-    this.setProperty('contact', value)
+    this[SetProperty]('contact', value)
   }
 
   get license (): I.ILicense3 | undefined {
-    return this.getProperty('license')
+    return this[GetProperty]('license')
   }
 
   set license (value: I.ILicense3 | undefined) {
-    this.setProperty('license', value)
+    this[SetProperty]('license', value)
   }
 
   get version (): string {
-    return this.getProperty('version')
+    return this[GetProperty]('version')
   }
 
   set version (value: string) {
-    this.setProperty('version', value)
+    this[SetProperty]('version', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

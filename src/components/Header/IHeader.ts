@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +25,7 @@ interface IHeaderComponent extends IComponentInstance {
 }
 
 export interface IHeader2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   description?: string
   type: 'array'|'boolean'|'integer'|'number'|'string'
   format?: string
@@ -46,7 +47,7 @@ export interface IHeader2Definition {
 }
 
 export interface IHeader2 extends IHeaderComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   description?: string
   type: 'array'|'boolean'|'integer'|'number'|'string'
   format?: string
@@ -68,7 +69,7 @@ export interface IHeader2 extends IHeaderComponent {
 }
 
 export interface IHeader3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   description?: string
   required?: boolean
   deprecated?: boolean
@@ -83,7 +84,7 @@ export interface IHeader3Definition {
 }
 
 export interface IHeader3 extends IHeaderComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   description?: string
   required?: boolean
   deprecated?: boolean

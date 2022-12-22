@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { isUrl } from '../validations'
 // <!# Custom Content End: HEADER #!>
@@ -56,7 +57,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Server extends EnforcerComponent<I.IServer3Definition> implements I.IServer3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IServer3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -88,10 +89,8 @@ export class Server extends EnforcerComponent<I.IServer3Definition> implements I
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    result.after = function (data: ISchemaProcessor<any, any>, mode: 'build' | 'validate'): void {
-      if (mode === 'validate') {
-        isUrl('url', data)
-      }
+    result.validate = function (data): void {
+      isUrl('url', data)
     }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
@@ -104,27 +103,27 @@ export class Server extends EnforcerComponent<I.IServer3Definition> implements I
   }
 
   get url (): string {
-    return this.getProperty('url')
+    return this[GetProperty]('url')
   }
 
   set url (value: string) {
-    this.setProperty('url', value)
+    this[SetProperty]('url', value)
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get variables (): Record<string, I.IServerVariable3> | undefined {
-    return this.getProperty('variables')
+    return this[GetProperty]('variables')
   }
 
   set variables (value: Record<string, I.IServerVariable3> | undefined) {
-    this.setProperty('variables', value)
+    this[SetProperty]('variables', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

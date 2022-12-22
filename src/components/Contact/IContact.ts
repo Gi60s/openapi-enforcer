@@ -12,7 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,28 +24,28 @@ interface IContactComponent extends IComponentInstance {
 }
 
 export interface IContact2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name?: string
   url?: string
   email?: string
 }
 
 export interface IContact2 extends IContactComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name?: string
   url?: string
   email?: string
 }
 
 export interface IContact3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name?: string
   url?: string
   email?: string
 }
 
 export interface IContact3 extends IContactComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name?: string
   url?: string
   email?: string

@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -65,7 +66,7 @@ const validators: IValidatorsMap = {
 }
 
 export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> implements I.IOAuthFlows3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IOAuthFlows3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -110,35 +111,35 @@ export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> impl
   }
 
   get implicit (): I.IOAuthFlow3 | undefined {
-    return this.getProperty('implicit')
+    return this[GetProperty]('implicit')
   }
 
   set implicit (value: I.IOAuthFlow3 | undefined) {
-    this.setProperty('implicit', value)
+    this[SetProperty]('implicit', value)
   }
 
   get password (): I.IOAuthFlow3 | undefined {
-    return this.getProperty('password')
+    return this[GetProperty]('password')
   }
 
   set password (value: I.IOAuthFlow3 | undefined) {
-    this.setProperty('password', value)
+    this[SetProperty]('password', value)
   }
 
   get clientCredentials (): I.IOAuthFlow3 | undefined {
-    return this.getProperty('clientCredentials')
+    return this[GetProperty]('clientCredentials')
   }
 
   set clientCredentials (value: I.IOAuthFlow3 | undefined) {
-    this.setProperty('clientCredentials', value)
+    this[SetProperty]('clientCredentials', value)
   }
 
   get authorizationCode (): I.IOAuthFlow3 | undefined {
-    return this.getProperty('authorizationCode')
+    return this[GetProperty]('authorizationCode')
   }
 
   set authorizationCode (value: I.IOAuthFlow3 | undefined) {
-    this.setProperty('authorizationCode', value)
+    this[SetProperty]('authorizationCode', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

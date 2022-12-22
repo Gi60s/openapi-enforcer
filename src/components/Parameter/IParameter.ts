@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +25,7 @@ interface IParameterComponent extends IComponentInstance {
 }
 
 export interface IParameter2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name: string
   in: 'body'|'formData'|'header'|'path'|'query'
   description?: string
@@ -51,7 +52,7 @@ export interface IParameter2Definition {
 }
 
 export interface IParameter2 extends IParameterComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name: string
   in: 'body'|'formData'|'header'|'path'|'query'
   description?: string
@@ -78,7 +79,7 @@ export interface IParameter2 extends IParameterComponent {
 }
 
 export interface IParameter3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name: string
   in: 'cookie'|'header'|'path'|'query'
   description?: string
@@ -95,7 +96,7 @@ export interface IParameter3Definition {
 }
 
 export interface IParameter3 extends IParameterComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name: string
   in: 'cookie'|'header'|'path'|'query'
   description?: string

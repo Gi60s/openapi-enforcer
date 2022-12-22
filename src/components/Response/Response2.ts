@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -67,7 +68,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Response extends EnforcerComponent<I.IResponse2Definition> implements I.IResponse2 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IResponse2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -112,35 +113,35 @@ export class Response extends EnforcerComponent<I.IResponse2Definition> implemen
   }
 
   get description (): string {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get schema (): I.ISchema2 | undefined {
-    return this.getProperty('schema')
+    return this[GetProperty]('schema')
   }
 
   set schema (value: I.ISchema2 | undefined) {
-    this.setProperty('schema', value)
+    this[SetProperty]('schema', value)
   }
 
   get headers (): Record<string, I.IHeader2> | undefined {
-    return this.getProperty('headers')
+    return this[GetProperty]('headers')
   }
 
   set headers (value: Record<string, I.IHeader2> | undefined) {
-    this.setProperty('headers', value)
+    this[SetProperty]('headers', value)
   }
 
   get examples (): I.IExample2 | undefined {
-    return this.getProperty('examples')
+    return this[GetProperty]('examples')
   }
 
   set examples (value: I.IExample2 | undefined) {
-    this.setProperty('examples', value)
+    this[SetProperty]('examples', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

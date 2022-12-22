@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -53,7 +54,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Tag extends EnforcerComponent<I.ITag3Definition> implements I.ITag3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.ITag3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -97,27 +98,27 @@ export class Tag extends EnforcerComponent<I.ITag3Definition> implements I.ITag3
   }
 
   get name (): string {
-    return this.getProperty('name')
+    return this[GetProperty]('name')
   }
 
   set name (value: string) {
-    this.setProperty('name', value)
+    this[SetProperty]('name', value)
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get externalDocs (): I.IExternalDocumentation3 | undefined {
-    return this.getProperty('externalDocs')
+    return this[GetProperty]('externalDocs')
   }
 
   set externalDocs (value: I.IExternalDocumentation3 | undefined) {
-    this.setProperty('externalDocs', value)
+    this[SetProperty]('externalDocs', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

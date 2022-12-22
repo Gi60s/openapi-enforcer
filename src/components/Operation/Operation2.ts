@@ -12,18 +12,21 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
-import { getMergedParameters, mergeParameters } from './common'
+import { getMergedParameters, mergeParameters, operationWillAcceptContentType, validate } from './common'
 import { getLocation } from '../../Locator/Locator'
 import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
 import { ContentType } from '../../ContentType/ContentType'
 import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
-import { IOperation2 } from '../IInternalTypes'
 import { smart } from '../../util'
+
+const multipartContentType = ContentType.fromString('multipart/form-data')
+const formUrlEncodedContentType = ContentType.fromString('application/x-www-form-urlencoded')
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.ISchemaDefinition<I.IOperation2Definition, I.IOperation2> | null = null
@@ -147,7 +150,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Operation extends EnforcerComponent<I.IOperation2Definition> implements I.IOperation2 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IOperation2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -191,26 +194,27 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
     result.build = function (data) {
       const { built } = data
 
-      built.hookGetProperty('parameters', (parameters: I.IParameter2[] | undefined) => {
+      built[HookGetProperty]('parameters', (parameters: I.IParameter2[] | undefined) => {
         const pathItem: ISchemaProcessor<I.IPathItem2Definition, I.IPathItem2> | undefined = data.chain
-          .getAncestor(ancestor => ancestor.name === 'PathItem')
+          .getAncestor('PathItem')
         const pathItemParameters: I.IParameter2[] = pathItem?.built.parameters ?? []
         return mergeParameters(pathItemParameters, parameters) as I.IParameter2[]
       })
 
-      built.hookGetProperty('consumes', (consumes: string[] | undefined) => {
+      built[HookGetProperty]('consumes', (consumes: string[] | undefined) => {
         return getAllContentTypeStrings(data, 'consumes', consumes)
       })
 
-      built.hookGetProperty('produces', (produces: string[] | undefined) => {
+      built[HookGetProperty]('produces', (produces: string[] | undefined) => {
         return getAllContentTypeStrings(data, 'produces', produces)
       })
     }
 
     result.validate = function (data) {
       const { definition, exception, id, reference } = data
-
       const parameters = getMergedParameters(data)
+      validate(data, parameters)
+
       const bodies: I.IParameter2Definition[] = []
       const forms: I.IParameter2Definition[] = []
       parameters.forEach(parameter => {
@@ -248,13 +252,11 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
       validateContentTypes(definition.produces ?? [], 'produces', data)
 
       // check consumes values for form data
-      const consumes = getAllContentTypeStrings(data, 'consumes', definition.consumes).map(ContentType.fromString)
+      const consumes = getAllContentTypeStrings(data, 'consumes', definition.consumes)
+        .map(ContentType.fromString)
+        .filter(c => c !== undefined) as ContentType[]
       if (forms.length > 0) {
-        const matchTypes = [
-          ContentType.fromString('multipart/form-data'),
-          ContentType.fromString('application/x-www-form-urlencoded')
-        ]
-        const consumesFormData = consumes.find(v => v?.findMatches(matchTypes) !== undefined)
+        const consumesFormData = consumes.find(c => c.isMatch(multipartContentType) || c.isMatch(formUrlEncodedContentType))
         if (consumesFormData === undefined) {
           exception.add({
             id: id + '_FORM_DATA_CONSUMES',
@@ -262,7 +264,7 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
             locations: [getLocation(definition)],
             message: 'Input parameters in formData or file should also be accompanied with a consumes property value of either "multipart/form-data" or "application/x-www-form-urlencoded',
             metadata: {
-              consumes: consumes.filter(v => v !== undefined).map(v => (v as ContentType).toString())
+              consumes: consumes.filter(v => v !== undefined).map(v => v.toString())
             }
           })
         }
@@ -279,123 +281,105 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
   }
 
   get tags (): string[] | undefined {
-    return this.getProperty('tags')
+    return this[GetProperty]('tags')
   }
 
   set tags (value: string[] | undefined) {
-    this.setProperty('tags', value)
+    this[SetProperty]('tags', value)
   }
 
   get summary (): string | undefined {
-    return this.getProperty('summary')
+    return this[GetProperty]('summary')
   }
 
   set summary (value: string | undefined) {
-    this.setProperty('summary', value)
+    this[SetProperty]('summary', value)
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get externalDocs (): I.IExternalDocumentation2 | undefined {
-    return this.getProperty('externalDocs')
+    return this[GetProperty]('externalDocs')
   }
 
   set externalDocs (value: I.IExternalDocumentation2 | undefined) {
-    this.setProperty('externalDocs', value)
+    this[SetProperty]('externalDocs', value)
   }
 
   get operationId (): string | undefined {
-    return this.getProperty('operationId')
+    return this[GetProperty]('operationId')
   }
 
   set operationId (value: string | undefined) {
-    this.setProperty('operationId', value)
+    this[SetProperty]('operationId', value)
   }
 
   get consumes (): string[] | undefined {
-    return this.getProperty('consumes')
+    return this[GetProperty]('consumes')
   }
 
   set consumes (value: string[] | undefined) {
-    this.setProperty('consumes', value)
+    this[SetProperty]('consumes', value)
   }
 
   get produces (): string[] | undefined {
-    return this.getProperty('produces')
+    return this[GetProperty]('produces')
   }
 
   set produces (value: string[] | undefined) {
-    this.setProperty('produces', value)
+    this[SetProperty]('produces', value)
   }
 
   get parameters (): I.IParameter2[] | undefined {
-    return this.getProperty('parameters')
+    return this[GetProperty]('parameters')
   }
 
   set parameters (value: I.IParameter2[] | undefined) {
-    this.setProperty('parameters', value)
+    this[SetProperty]('parameters', value)
   }
 
   get responses (): I.IResponses2 {
-    return this.getProperty('responses')
+    return this[GetProperty]('responses')
   }
 
   set responses (value: I.IResponses2) {
-    this.setProperty('responses', value)
+    this[SetProperty]('responses', value)
   }
 
   get schemes (): Array<'http'|'https'|'ws'|'wss'> | undefined {
-    return this.getProperty('schemes')
+    return this[GetProperty]('schemes')
   }
 
   set schemes (value: Array<'http'|'https'|'ws'|'wss'> | undefined) {
-    this.setProperty('schemes', value)
+    this[SetProperty]('schemes', value)
   }
 
   get deprecated (): boolean | undefined {
-    return this.getProperty('deprecated')
+    return this[GetProperty]('deprecated')
   }
 
   set deprecated (value: boolean | undefined) {
-    this.setProperty('deprecated', value)
+    this[SetProperty]('deprecated', value)
   }
 
   get security (): I.ISecurityRequirement2[] | undefined {
-    return this.getProperty('security')
+    return this[GetProperty]('security')
   }
 
   set security (value: I.ISecurityRequirement2[] | undefined) {
-    this.setProperty('security', value)
+    this[SetProperty]('security', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   getAcceptedResponseTypes (statusCode: number | 'default', accepts: string): ContentType[] {
-    const acceptedTypes = ContentType.fromStringMultiple(accepts)
-    const produces = this.produces?.map(ContentType.fromString).filter(v => v !== undefined) as ContentType[] ?? []
-    return ContentType.findIntersections(acceptedTypes, produces)
+    return ContentType.filterProducedTypesByAccepted(accepts, this.produces ?? [])
   }
-  // getResponsesThatCanProduceContentType (contentType: string | ContentType): Array<{ code: number | 'default', response: IResponse2 }> {
-  //   const data = getExistingProcessorData<IOperation2Definition, IOperation2>(this)
-  //   const input = [contentType]
-  //   const allProducesTypes = this.cached<ContentType[]>('allProduces', getAllProduces, data)
-  //   const result: Array<{ code: number | 'default', response: IResponse2 }> = []
-  //   const match = allProducesTypes.find(c => c.findMatches(input).length > 0)
-  //   if (match !== undefined) {
-  //     Object.keys(this.responses).forEach(key => {
-  //       if (key === 'default' || typeof key === 'number') {
-  //         result.push({ code: key, response: this.responses[key] as IResponse2 })
-  //       }
-  //     })
-  //   }
-  //
-  //   return result
-  // }
 
   parseBody (body: string | object, options?: IOperationParseOptions): any {
     return null
@@ -419,26 +403,20 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
 
   willAcceptContentType (contentType: string | ContentType): boolean {
     const consumes: string[] = this.consumes ?? []
-    const length = consumes.length
-    for (let i = 0; i < length; i++) {
-      const type = ContentType.fromString(consumes[i])
-      const matches = type?.findMatches([contentType]) ?? []
-      if (matches.length > 0) return true
-    }
-    return false
+    return operationWillAcceptContentType(contentType, consumes)
   }
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-function getAllContentTypeStrings (data: ISchemaProcessor<I.IOperation2Definition, IOperation2>, key: 'consumes' | 'produces', types: string[] | undefined): string[] {
+function getAllContentTypeStrings (data: ISchemaProcessor<I.IOperation2Definition, I.IOperation2>, key: 'consumes' | 'produces', types: string[] | undefined): string[] {
   const swagger: ISchemaProcessor<I.ISwagger2Definition, I.ISwagger2> | undefined = data.chain
-    .getAncestor(ancestor => ancestor.name === 'Swagger')
+    .getAncestor('Swagger')
   const result = new Set<string>((swagger?.built[key] ?? []).concat(types ?? []))
   return Array.from(result)
 }
 
-function validateContentTypes (contentTypes: string[] | undefined, key: 'consumes' | 'produces', data: ISchemaProcessor<I.IOperation2Definition, IOperation2>): void {
+function validateContentTypes (contentTypes: string[] | undefined, key: 'consumes' | 'produces', data: ISchemaProcessor<I.IOperation2Definition, I.IOperation2>): void {
   contentTypes?.forEach((contentType, index) => {
     if (!ContentType.isContentTypeString(contentType)) {
       const { definition, exception, id, reference } = data

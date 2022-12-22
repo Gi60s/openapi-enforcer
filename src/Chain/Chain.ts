@@ -13,11 +13,14 @@ export class Chain<D=any> implements IChain<D> {
     return new Chain(items)
   }
 
-  getAncestor (find: (item: D, index: number) => boolean): D | undefined {
+  getAncestor (find: string | ((item: D, index: number) => boolean)): D | undefined {
     const items = this.items
     const length = items.length
+    const fnFind = typeof find === 'string'
+      ? (ancestor: any) => ancestor.name === find
+      : find
     for (let i = 0; i < length; i++) {
-      if (find(items[i], i)) return items[i]
+      if (fnFind(items[i], i)) return items[i]
     }
   }
 

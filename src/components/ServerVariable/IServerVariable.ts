@@ -12,7 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,14 +24,14 @@ interface IServerVariableComponent extends IComponentInstance {
 }
 
 export interface IServerVariable3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   enum?: string[]
   default: string
   description?: string
 }
 
 export interface IServerVariable3 extends IServerVariableComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   enum?: string[]
   default: string
   description?: string

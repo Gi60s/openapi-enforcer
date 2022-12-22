@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -92,7 +93,7 @@ const validators: IValidatorsMap = {
 }
 
 export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definition> implements I.ISecurityScheme2 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.ISecurityScheme2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -141,67 +142,67 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definiti
   }
 
   get type (): 'basic'|'apiKey'|'oauth2' {
-    return this.getProperty('type')
+    return this[GetProperty]('type')
   }
 
   set type (value: 'basic'|'apiKey'|'oauth2') {
-    this.setProperty('type', value)
+    this[SetProperty]('type', value)
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get name (): string | undefined {
-    return this.getProperty('name')
+    return this[GetProperty]('name')
   }
 
   set name (value: string | undefined) {
-    this.setProperty('name', value)
+    this[SetProperty]('name', value)
   }
 
   get in (): 'query'|'header' | undefined {
-    return this.getProperty('in')
+    return this[GetProperty]('in')
   }
 
   set in (value: 'query'|'header' | undefined) {
-    this.setProperty('in', value)
+    this[SetProperty]('in', value)
   }
 
   get flow (): 'implicit'|'password'|'application'|'accessCode' | undefined {
-    return this.getProperty('flow')
+    return this[GetProperty]('flow')
   }
 
   set flow (value: 'implicit'|'password'|'application'|'accessCode' | undefined) {
-    this.setProperty('flow', value)
+    this[SetProperty]('flow', value)
   }
 
   get authorizationUrl (): string | undefined {
-    return this.getProperty('authorizationUrl')
+    return this[GetProperty]('authorizationUrl')
   }
 
   set authorizationUrl (value: string | undefined) {
-    this.setProperty('authorizationUrl', value)
+    this[SetProperty]('authorizationUrl', value)
   }
 
   get tokenUrl (): string | undefined {
-    return this.getProperty('tokenUrl')
+    return this[GetProperty]('tokenUrl')
   }
 
   set tokenUrl (value: string | undefined) {
-    this.setProperty('tokenUrl', value)
+    this[SetProperty]('tokenUrl', value)
   }
 
   get scopes (): Record<string, string> | undefined {
-    return this.getProperty('scopes')
+    return this[GetProperty]('scopes')
   }
 
   set scopes (value: Record<string, string> | undefined) {
-    this.setProperty('scopes', value)
+    this[SetProperty]('scopes', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

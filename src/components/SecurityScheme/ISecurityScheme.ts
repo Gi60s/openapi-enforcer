@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +25,7 @@ interface ISecuritySchemeComponent extends IComponentInstance {
 }
 
 export interface ISecurityScheme2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   type: 'basic'|'apiKey'|'oauth2'
   description?: string
   name?: string
@@ -36,7 +37,7 @@ export interface ISecurityScheme2Definition {
 }
 
 export interface ISecurityScheme2 extends ISecuritySchemeComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   type: 'basic'|'apiKey'|'oauth2'
   description?: string
   name?: string
@@ -48,7 +49,7 @@ export interface ISecurityScheme2 extends ISecuritySchemeComponent {
 }
 
 export interface ISecurityScheme3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   type?: 'apiKey'|'http'|'oauth2'|'openIdConnect'
   description?: string
   name?: string
@@ -60,7 +61,7 @@ export interface ISecurityScheme3Definition {
 }
 
 export interface ISecurityScheme3 extends ISecuritySchemeComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   type?: 'apiKey'|'http'|'oauth2'|'openIdConnect'
   description?: string
   name?: string

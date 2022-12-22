@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -89,7 +90,7 @@ const validators: IValidatorsMap = {
 }
 
 export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definition> implements I.ISecurityScheme3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.ISecurityScheme3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -138,67 +139,67 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definiti
   }
 
   get type (): 'apiKey'|'http'|'oauth2'|'openIdConnect' | undefined {
-    return this.getProperty('type')
+    return this[GetProperty]('type')
   }
 
   set type (value: 'apiKey'|'http'|'oauth2'|'openIdConnect' | undefined) {
-    this.setProperty('type', value)
+    this[SetProperty]('type', value)
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get name (): string | undefined {
-    return this.getProperty('name')
+    return this[GetProperty]('name')
   }
 
   set name (value: string | undefined) {
-    this.setProperty('name', value)
+    this[SetProperty]('name', value)
   }
 
   get in (): 'query'|'header'|'cookie' | undefined {
-    return this.getProperty('in')
+    return this[GetProperty]('in')
   }
 
   set in (value: 'query'|'header'|'cookie' | undefined) {
-    this.setProperty('in', value)
+    this[SetProperty]('in', value)
   }
 
   get scheme (): string | undefined {
-    return this.getProperty('scheme')
+    return this[GetProperty]('scheme')
   }
 
   set scheme (value: string | undefined) {
-    this.setProperty('scheme', value)
+    this[SetProperty]('scheme', value)
   }
 
   get bearerFormat (): string | undefined {
-    return this.getProperty('bearerFormat')
+    return this[GetProperty]('bearerFormat')
   }
 
   set bearerFormat (value: string | undefined) {
-    this.setProperty('bearerFormat', value)
+    this[SetProperty]('bearerFormat', value)
   }
 
   get flows (): I.IOAuthFlows3 | undefined {
-    return this.getProperty('flows')
+    return this[GetProperty]('flows')
   }
 
   set flows (value: I.IOAuthFlows3 | undefined) {
-    this.setProperty('flows', value)
+    this[SetProperty]('flows', value)
   }
 
   get openIdConnectUrl (): string | undefined {
-    return this.getProperty('openIdConnectUrl')
+    return this[GetProperty]('openIdConnectUrl')
   }
 
   set openIdConnectUrl (value: string | undefined) {
-    this.setProperty('openIdConnectUrl', value)
+    this[SetProperty]('openIdConnectUrl', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

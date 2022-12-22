@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -57,7 +58,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Example extends EnforcerComponent<I.IExample3Definition> implements I.IExample3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IExample3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -102,35 +103,35 @@ export class Example extends EnforcerComponent<I.IExample3Definition> implements
   }
 
   get summary (): string | undefined {
-    return this.getProperty('summary')
+    return this[GetProperty]('summary')
   }
 
   set summary (value: string | undefined) {
-    this.setProperty('summary', value)
+    this[SetProperty]('summary', value)
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get value (): any | undefined {
-    return this.getProperty('value')
+    return this[GetProperty]('value')
   }
 
   set value (value: any | undefined) {
-    this.setProperty('value', value)
+    this[SetProperty]('value', value)
   }
 
   get externalValue (): string | undefined {
-    return this.getProperty('externalValue')
+    return this[GetProperty]('externalValue')
   }
 
   set externalValue (value: string | undefined) {
-    this.setProperty('externalValue', value)
+    this[SetProperty]('externalValue', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

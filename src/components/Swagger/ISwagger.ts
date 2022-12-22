@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +25,7 @@ interface ISwaggerComponent extends IComponentInstance {
 }
 
 export interface ISwagger2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   swagger: '2.0'
   info: I.IInfo2Definition
   host?: string
@@ -43,7 +44,7 @@ export interface ISwagger2Definition {
 }
 
 export interface ISwagger2 extends ISwaggerComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   swagger: '2.0'
   info: I.IInfo2
   host?: string

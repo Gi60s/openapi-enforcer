@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,22 +25,22 @@ interface IPathsComponent extends IComponentInstance {
 }
 
 export interface IPaths2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   [key: `/${string}`]: I.IPathItem2Definition
 }
 
 export interface IPaths2 extends IPathsComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   [key: `/${string}`]: I.IPathItem2
 }
 
 export interface IPaths3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   [key: `/${string}`]: I.IPathItem3Definition
 }
 
 export interface IPaths3 extends IPathsComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   [key: `/${string}`]: I.IPathItem3
 }
 

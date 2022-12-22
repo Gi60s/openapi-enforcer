@@ -12,7 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,25 +24,25 @@ interface ILicenseComponent extends IComponentInstance {
 }
 
 export interface ILicense2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name: string
   url?: string
 }
 
 export interface ILicense2 extends ILicenseComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name: string
   url?: string
 }
 
 export interface ILicense3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name: string
   url?: string
 }
 
 export interface ILicense3 extends ILicenseComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name: string
   url?: string
 }

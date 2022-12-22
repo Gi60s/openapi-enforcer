@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -44,7 +45,7 @@ const validators: IValidatorsMap = {
 }
 
 export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocumentation3Definition> implements I.IExternalDocumentation3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IExternalDocumentation3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -87,19 +88,19 @@ export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocument
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get url (): string {
-    return this.getProperty('url')
+    return this[GetProperty]('url')
   }
 
   set url (value: string) {
-    this.setProperty('url', value)
+    this[SetProperty]('url', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

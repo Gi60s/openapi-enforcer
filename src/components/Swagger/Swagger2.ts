@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -184,7 +185,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements I.ISwagger2 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.ISwagger2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -240,123 +241,123 @@ export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements
   }
 
   get swagger (): '2.0' {
-    return this.getProperty('swagger')
+    return this[GetProperty]('swagger')
   }
 
   set swagger (value: '2.0') {
-    this.setProperty('swagger', value)
+    this[SetProperty]('swagger', value)
   }
 
   get info (): I.IInfo2 {
-    return this.getProperty('info')
+    return this[GetProperty]('info')
   }
 
   set info (value: I.IInfo2) {
-    this.setProperty('info', value)
+    this[SetProperty]('info', value)
   }
 
   get host (): string | undefined {
-    return this.getProperty('host')
+    return this[GetProperty]('host')
   }
 
   set host (value: string | undefined) {
-    this.setProperty('host', value)
+    this[SetProperty]('host', value)
   }
 
   get basePath (): string | undefined {
-    return this.getProperty('basePath')
+    return this[GetProperty]('basePath')
   }
 
   set basePath (value: string | undefined) {
-    this.setProperty('basePath', value)
+    this[SetProperty]('basePath', value)
   }
 
   get schemes (): Array<'http'|'https'|'ws'|'wss'> | undefined {
-    return this.getProperty('schemes')
+    return this[GetProperty]('schemes')
   }
 
   set schemes (value: Array<'http'|'https'|'ws'|'wss'> | undefined) {
-    this.setProperty('schemes', value)
+    this[SetProperty]('schemes', value)
   }
 
   get consumes (): string[] | undefined {
-    return this.getProperty('consumes')
+    return this[GetProperty]('consumes')
   }
 
   set consumes (value: string[] | undefined) {
-    this.setProperty('consumes', value)
+    this[SetProperty]('consumes', value)
   }
 
   get produces (): string[] | undefined {
-    return this.getProperty('produces')
+    return this[GetProperty]('produces')
   }
 
   set produces (value: string[] | undefined) {
-    this.setProperty('produces', value)
+    this[SetProperty]('produces', value)
   }
 
   get paths (): I.IPaths2 {
-    return this.getProperty('paths')
+    return this[GetProperty]('paths')
   }
 
   set paths (value: I.IPaths2) {
-    this.setProperty('paths', value)
+    this[SetProperty]('paths', value)
   }
 
   get definitions (): Record<string, I.ISchema2> | undefined {
-    return this.getProperty('definitions')
+    return this[GetProperty]('definitions')
   }
 
   set definitions (value: Record<string, I.ISchema2> | undefined) {
-    this.setProperty('definitions', value)
+    this[SetProperty]('definitions', value)
   }
 
   get parameters (): Record<string, I.IParameter2> | undefined {
-    return this.getProperty('parameters')
+    return this[GetProperty]('parameters')
   }
 
   set parameters (value: Record<string, I.IParameter2> | undefined) {
-    this.setProperty('parameters', value)
+    this[SetProperty]('parameters', value)
   }
 
   get responses (): Record<string, I.IResponse2> | undefined {
-    return this.getProperty('responses')
+    return this[GetProperty]('responses')
   }
 
   set responses (value: Record<string, I.IResponse2> | undefined) {
-    this.setProperty('responses', value)
+    this[SetProperty]('responses', value)
   }
 
   get securityDefinitions (): Record<string, I.ISecurityScheme2> | undefined {
-    return this.getProperty('securityDefinitions')
+    return this[GetProperty]('securityDefinitions')
   }
 
   set securityDefinitions (value: Record<string, I.ISecurityScheme2> | undefined) {
-    this.setProperty('securityDefinitions', value)
+    this[SetProperty]('securityDefinitions', value)
   }
 
   get security (): I.ISecurityRequirement2[] | undefined {
-    return this.getProperty('security')
+    return this[GetProperty]('security')
   }
 
   set security (value: I.ISecurityRequirement2[] | undefined) {
-    this.setProperty('security', value)
+    this[SetProperty]('security', value)
   }
 
   get tags (): I.ITag2[] | undefined {
-    return this.getProperty('tags')
+    return this[GetProperty]('tags')
   }
 
   set tags (value: I.ITag2[] | undefined) {
-    this.setProperty('tags', value)
+    this[SetProperty]('tags', value)
   }
 
   get externalDocs (): I.IExternalDocumentation2 | undefined {
-    return this.getProperty('externalDocs')
+    return this[GetProperty]('externalDocs')
   }
 
   set externalDocs (value: I.IExternalDocumentation2 | undefined) {
-    this.setProperty('externalDocs', value)
+    this[SetProperty]('externalDocs', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

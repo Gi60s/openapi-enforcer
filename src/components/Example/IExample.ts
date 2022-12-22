@@ -12,7 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -32,7 +32,7 @@ export interface IExample2 extends IExampleComponent {
 }
 
 export interface IExample3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   summary?: string
   description?: string
   value?: any
@@ -40,7 +40,7 @@ export interface IExample3Definition {
 }
 
 export interface IExample3 extends IExampleComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   summary?: string
   description?: string
   value?: any

@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,28 +25,28 @@ interface ITagComponent extends IComponentInstance {
 }
 
 export interface ITag2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name: string
   description?: string
   externalDocs?: I.IExternalDocumentation2Definition
 }
 
 export interface ITag2 extends ITagComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name: string
   description?: string
   externalDocs?: I.IExternalDocumentation2
 }
 
 export interface ITag3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name: string
   description?: string
   externalDocs?: I.IExternalDocumentation3Definition
 }
 
 export interface ITag3 extends ITagComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name: string
   description?: string
   externalDocs?: I.IExternalDocumentation3

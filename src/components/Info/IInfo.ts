@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +25,7 @@ interface IInfoComponent extends IComponentInstance {
 }
 
 export interface IInfo2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   title: string
   description?: string
   termsOfService?: string
@@ -34,7 +35,7 @@ export interface IInfo2Definition {
 }
 
 export interface IInfo2 extends IInfoComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   title: string
   description?: string
   termsOfService?: string
@@ -44,7 +45,7 @@ export interface IInfo2 extends IInfoComponent {
 }
 
 export interface IInfo3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   title: string
   description?: string
   termsOfService?: string
@@ -54,7 +55,7 @@ export interface IInfo3Definition {
 }
 
 export interface IInfo3 extends IInfoComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   title: string
   description?: string
   termsOfService?: string

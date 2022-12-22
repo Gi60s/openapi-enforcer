@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +25,7 @@ interface ILinkComponent extends IComponentInstance {
 }
 
 export interface ILink3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   operationRef?: string
   operationId?: string
   parameters?: Record<string, any>
@@ -34,7 +35,7 @@ export interface ILink3Definition {
 }
 
 export interface ILink3 extends ILinkComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   operationRef?: string
   operationId?: string
   parameters?: Record<string, any>

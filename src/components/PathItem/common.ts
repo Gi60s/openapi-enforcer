@@ -3,22 +3,20 @@ import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcess
 import { getLocation } from '../../Locator/Locator'
 import { parametersAreUnique } from '../validations'
 
-export const after = function (data: ISchemaProcessor<any, any>, mode: 'build' | 'validate'): void {
-  if (mode === 'validate') {
-    const { definition, exception, id } = data
+export const validate = function (data: ISchemaProcessor<any, any>): void {
+  const { definition, exception, id } = data
 
-    if ('$ref' in definition && Object.keys(definition).length > 1) {
-      exception.add({
-        id: id + '_FIELD_NOT_SUPPORTED',
-        level: 'warn',
-        locations: [getLocation(definition, '$ref', 'key')],
-        message: 'The $ref is not supported when other fields also exist. See issue https://github.com/OAI/OpenAPI-Specification/issues/2635',
-        reference: 'https://github.com/OAI/OpenAPI-Specification/issues/2635'
-      })
-    }
-
-    parametersAreUnique(data)
+  if ('$ref' in definition && Object.keys(definition).length > 1) {
+    exception.add({
+      id: id + '_FIELD_NOT_SUPPORTED',
+      level: 'warn',
+      locations: [getLocation(definition, '$ref', 'key')],
+      message: 'The $ref is not supported when other fields also exist. See issue https://github.com/OAI/OpenAPI-Specification/issues/2635',
+      reference: 'https://github.com/OAI/OpenAPI-Specification/issues/2635'
+    })
   }
+
+  parametersAreUnique(data)
 }
 
 export const methods: IPathItemMethod[] = ['get', 'post', 'put', 'delete', 'options', 'head', 'patch', 'trace']

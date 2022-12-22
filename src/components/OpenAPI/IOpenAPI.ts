@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +25,7 @@ interface IOpenAPIComponent extends IComponentInstance {
 }
 
 export interface IOpenAPI3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   openapi: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
   info: I.IInfo3Definition
   servers?: I.IServer3Definition[]
@@ -36,7 +37,7 @@ export interface IOpenAPI3Definition {
 }
 
 export interface IOpenAPI3 extends IOpenAPIComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   openapi: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
   info: I.IInfo3
   servers?: I.IServer3[]

@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { validate } from './common'
 // <!# Custom Content End: HEADER #!>
@@ -50,7 +51,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Contact extends EnforcerComponent<I.IContact2Definition> implements I.IContact2 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IContact2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -96,27 +97,27 @@ export class Contact extends EnforcerComponent<I.IContact2Definition> implements
   }
 
   get name (): string | undefined {
-    return this.getProperty('name')
+    return this[GetProperty]('name')
   }
 
   set name (value: string | undefined) {
-    this.setProperty('name', value)
+    this[SetProperty]('name', value)
   }
 
   get url (): string | undefined {
-    return this.getProperty('url')
+    return this[GetProperty]('url')
   }
 
   set url (value: string | undefined) {
-    this.setProperty('url', value)
+    this[SetProperty]('url', value)
   }
 
   get email (): string | undefined {
-    return this.getProperty('email')
+    return this[GetProperty]('email')
   }
 
   set email (value: string | undefined) {
-    this.setProperty('email', value)
+    this[SetProperty]('email', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

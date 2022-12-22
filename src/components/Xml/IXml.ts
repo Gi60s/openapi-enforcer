@@ -12,7 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +24,7 @@ interface IXmlComponent extends IComponentInstance {
 }
 
 export interface IXml2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name?: string
   namespace?: string
   prefix?: string
@@ -33,7 +33,7 @@ export interface IXml2Definition {
 }
 
 export interface IXml2 extends IXmlComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name?: string
   namespace?: string
   prefix?: string
@@ -42,7 +42,7 @@ export interface IXml2 extends IXmlComponent {
 }
 
 export interface IXml3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name?: string
   namespace?: string
   prefix?: string
@@ -51,7 +51,7 @@ export interface IXml3Definition {
 }
 
 export interface IXml3 extends IXmlComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   name?: string
   namespace?: string
   prefix?: string

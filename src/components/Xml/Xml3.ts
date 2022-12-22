@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -64,7 +65,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Xml extends EnforcerComponent<I.IXml3Definition> implements I.IXml3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IXml3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -110,43 +111,43 @@ export class Xml extends EnforcerComponent<I.IXml3Definition> implements I.IXml3
   }
 
   get name (): string | undefined {
-    return this.getProperty('name')
+    return this[GetProperty]('name')
   }
 
   set name (value: string | undefined) {
-    this.setProperty('name', value)
+    this[SetProperty]('name', value)
   }
 
   get namespace (): string | undefined {
-    return this.getProperty('namespace')
+    return this[GetProperty]('namespace')
   }
 
   set namespace (value: string | undefined) {
-    this.setProperty('namespace', value)
+    this[SetProperty]('namespace', value)
   }
 
   get prefix (): string | undefined {
-    return this.getProperty('prefix')
+    return this[GetProperty]('prefix')
   }
 
   set prefix (value: string | undefined) {
-    this.setProperty('prefix', value)
+    this[SetProperty]('prefix', value)
   }
 
   get attribute (): boolean | undefined {
-    return this.getProperty('attribute')
+    return this[GetProperty]('attribute')
   }
 
   set attribute (value: boolean | undefined) {
-    this.setProperty('attribute', value)
+    this[SetProperty]('attribute', value)
   }
 
   get wrapped (): boolean | undefined {
-    return this.getProperty('wrapped')
+    return this[GetProperty]('wrapped')
   }
 
   set wrapped (value: boolean | undefined) {
-    this.setProperty('wrapped', value)
+    this[SetProperty]('wrapped', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

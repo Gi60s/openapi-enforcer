@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
@@ -47,7 +47,6 @@ const validators: IValidatorsMap = {
 }
 
 export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition> implements I.IDiscriminator3 {
-
   constructor (definition: I.IDiscriminator3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
   }
@@ -90,19 +89,19 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
   }
 
   get propertyName (): string {
-    return this.getProperty('propertyName')
+    return this[GetProperty]('propertyName')
   }
 
   set propertyName (value: string) {
-    this.setProperty('propertyName', value)
+    this[SetProperty]('propertyName', value)
   }
 
   get mapping (): Record<string, string> | undefined {
-    return this.getProperty('mapping')
+    return this[GetProperty]('mapping')
   }
 
   set mapping (value: Record<string, string> | undefined) {
-    this.setProperty('mapping', value)
+    this[SetProperty]('mapping', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

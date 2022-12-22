@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -55,7 +56,7 @@ const validators: IValidatorsMap = {
 }
 
 export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> implements I.IRequestBody3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IRequestBody3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -99,27 +100,27 @@ export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> im
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get content (): Record<string, I.IMediaType3> | undefined {
-    return this.getProperty('content')
+    return this[GetProperty]('content')
   }
 
   set content (value: Record<string, I.IMediaType3> | undefined) {
-    this.setProperty('content', value)
+    this[SetProperty]('content', value)
   }
 
   get required (): boolean | undefined {
-    return this.getProperty('required')
+    return this[GetProperty]('required')
   }
 
   set required (value: boolean | undefined) {
-    this.setProperty('required', value)
+    this[SetProperty]('required', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { ContentType } from '../../ContentType/ContentType'
 // <!# Custom Content End: HEADER #!>
@@ -31,7 +32,7 @@ interface IOperationComponent extends IComponentInstance {
 }
 
 export interface IOperation2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   tags?: string[]
   summary?: string
   description?: string
@@ -47,7 +48,7 @@ export interface IOperation2Definition {
 }
 
 export interface IOperation2 extends IOperationComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   tags?: string[]
   summary?: string
   description?: string
@@ -63,7 +64,7 @@ export interface IOperation2 extends IOperationComponent {
 }
 
 export interface IOperation3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   tags?: string[]
   summary?: string
   description?: string
@@ -79,7 +80,7 @@ export interface IOperation3Definition {
 }
 
 export interface IOperation3 extends IOperationComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   tags?: string[]
   summary?: string
   description?: string

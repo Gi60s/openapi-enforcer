@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -69,7 +70,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implements I.IEncoding3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IEncoding3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -115,43 +116,43 @@ export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implemen
   }
 
   get contentType (): string | undefined {
-    return this.getProperty('contentType')
+    return this[GetProperty]('contentType')
   }
 
   set contentType (value: string | undefined) {
-    this.setProperty('contentType', value)
+    this[SetProperty]('contentType', value)
   }
 
   get headers (): Record<string, I.IHeader3> | undefined {
-    return this.getProperty('headers')
+    return this[GetProperty]('headers')
   }
 
   set headers (value: Record<string, I.IHeader3> | undefined) {
-    this.setProperty('headers', value)
+    this[SetProperty]('headers', value)
   }
 
   get style (): string | undefined {
-    return this.getProperty('style')
+    return this[GetProperty]('style')
   }
 
   set style (value: string | undefined) {
-    this.setProperty('style', value)
+    this[SetProperty]('style', value)
   }
 
   get explode (): boolean | undefined {
-    return this.getProperty('explode')
+    return this[GetProperty]('explode')
   }
 
   set explode (value: boolean | undefined) {
-    this.setProperty('explode', value)
+    this[SetProperty]('explode', value)
   }
 
   get allowReserved (): boolean | undefined {
-    return this.getProperty('allowReserved')
+    return this[GetProperty]('allowReserved')
   }
 
   set allowReserved (value: boolean | undefined) {
-    this.setProperty('allowReserved', value)
+    this[SetProperty]('allowReserved', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

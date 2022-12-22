@@ -12,12 +12,14 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
-import { after, findPathMatches } from './common'
+import { build, validate, findPathMatches } from './common'
+import { IFindPathMatchesOptions, IFindPathMatchesResult } from '../PathItem'
 import * as config from '../../global-config'
 // <!# Custom Content End: HEADER #!>
 
@@ -30,11 +32,23 @@ const additionalProperties: ISchema.IComponent<I.IPathItem3Definition, I.IPathIt
 }
 
 export class Paths extends EnforcerComponent<I.IPaths3Definition> implements I.IPaths3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {};
   [key: `/${string}`]: I.IPathItem3
 
   constructor (definition: I.IPaths3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
+    Object.keys(definition).forEach(key => {
+      Object.defineProperty(this, key, {
+        configurable: true,
+        enumerable: true,
+        get () {
+          return this[GetProperty](key)
+        },
+        set (value) {
+          this[SetProperty](key, value)
+        }
+      })
+    })
   }
 
   static id: string = 'PATHS3'
@@ -59,7 +73,8 @@ export class Paths extends EnforcerComponent<I.IPaths3Definition> implements I.I
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    result.after = after
+    result.build = build
+    result.validate = validate
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = result

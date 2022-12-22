@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,7 +25,7 @@ interface ISchemaComponent extends IComponentInstance {
 }
 
 export interface ISchema2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   format?: string
   title?: string
   description?: string
@@ -57,7 +58,7 @@ export interface ISchema2Definition {
 }
 
 export interface ISchema2 extends ISchemaComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   format?: string
   title?: string
   description?: string
@@ -90,7 +91,7 @@ export interface ISchema2 extends ISchemaComponent {
 }
 
 export interface ISchema3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   type?: string
   allOf?: I.ISchema3Definition[]
   oneOf?: I.ISchema3Definition[]
@@ -129,7 +130,7 @@ export interface ISchema3Definition {
 }
 
 export interface ISchema3 extends ISchemaComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   type?: string
   allOf?: I.ISchema3[]
   oneOf?: I.ISchema3[]

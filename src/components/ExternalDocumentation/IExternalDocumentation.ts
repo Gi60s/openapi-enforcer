@@ -12,7 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,25 +24,25 @@ interface IExternalDocumentationComponent extends IComponentInstance {
 }
 
 export interface IExternalDocumentation2Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   description?: string
   url: string
 }
 
 export interface IExternalDocumentation2 extends IExternalDocumentationComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   description?: string
   url: string
 }
 
 export interface IExternalDocumentation3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   description?: string
   url: string
 }
 
 export interface IExternalDocumentation3 extends IExternalDocumentationComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   description?: string
   url: string
 }

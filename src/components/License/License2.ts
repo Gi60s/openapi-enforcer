@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -44,7 +45,7 @@ const validators: IValidatorsMap = {
 }
 
 export class License extends EnforcerComponent<I.ILicense2Definition> implements I.ILicense2 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.ILicense2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -87,19 +88,19 @@ export class License extends EnforcerComponent<I.ILicense2Definition> implements
   }
 
   get name (): string {
-    return this.getProperty('name')
+    return this[GetProperty]('name')
   }
 
   set name (value: string) {
-    this.setProperty('name', value)
+    this[SetProperty]('name', value)
   }
 
   get url (): string | undefined {
-    return this.getProperty('url')
+    return this[GetProperty]('url')
   }
 
   set url (value: string | undefined) {
-    this.setProperty('url', value)
+    this[SetProperty]('url', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

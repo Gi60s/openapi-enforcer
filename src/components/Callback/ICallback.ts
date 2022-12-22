@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -24,13 +25,13 @@ interface ICallbackComponent extends IComponentInstance {
 }
 
 export interface ICallback3Definition {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   [key: `http${string}`]: I.IPathItem3Definition
   [key: `{$${string}`]: I.IPathItem3Definition
 }
 
 export interface ICallback3 extends ICallbackComponent {
-  [extension: `x-${string}`]: any
+  [Extensions]: Record<string, any>
   [key: `http${string}`]: I.IPathItem3
   [key: `{$${string}`]: I.IPathItem3
 }

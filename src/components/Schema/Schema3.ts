@@ -12,10 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -325,7 +326,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I.ISchema3 {
-  [extension: `x${string}`]: any
+  [Extensions]: Record<string, any> = {}
 
   constructor (definition: I.ISchema3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -397,283 +398,283 @@ export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I
   }
 
   get type (): string | undefined {
-    return this.getProperty('type')
+    return this[GetProperty]('type')
   }
 
   set type (value: string | undefined) {
-    this.setProperty('type', value)
+    this[SetProperty]('type', value)
   }
 
   get allOf (): I.ISchema3[] | undefined {
-    return this.getProperty('allOf')
+    return this[GetProperty]('allOf')
   }
 
   set allOf (value: I.ISchema3[] | undefined) {
-    this.setProperty('allOf', value)
+    this[SetProperty]('allOf', value)
   }
 
   get oneOf (): I.ISchema3[] | undefined {
-    return this.getProperty('oneOf')
+    return this[GetProperty]('oneOf')
   }
 
   set oneOf (value: I.ISchema3[] | undefined) {
-    this.setProperty('oneOf', value)
+    this[SetProperty]('oneOf', value)
   }
 
   get anyOf (): I.ISchema3[] | undefined {
-    return this.getProperty('anyOf')
+    return this[GetProperty]('anyOf')
   }
 
   set anyOf (value: I.ISchema3[] | undefined) {
-    this.setProperty('anyOf', value)
+    this[SetProperty]('anyOf', value)
   }
 
   get not (): I.ISchema3 | undefined {
-    return this.getProperty('not')
+    return this[GetProperty]('not')
   }
 
   set not (value: I.ISchema3 | undefined) {
-    this.setProperty('not', value)
+    this[SetProperty]('not', value)
   }
 
   get title (): string | undefined {
-    return this.getProperty('title')
+    return this[GetProperty]('title')
   }
 
   set title (value: string | undefined) {
-    this.setProperty('title', value)
+    this[SetProperty]('title', value)
   }
 
   get maximum (): number | undefined {
-    return this.getProperty('maximum')
+    return this[GetProperty]('maximum')
   }
 
   set maximum (value: number | undefined) {
-    this.setProperty('maximum', value)
+    this[SetProperty]('maximum', value)
   }
 
   get exclusiveMaximum (): number | undefined {
-    return this.getProperty('exclusiveMaximum')
+    return this[GetProperty]('exclusiveMaximum')
   }
 
   set exclusiveMaximum (value: number | undefined) {
-    this.setProperty('exclusiveMaximum', value)
+    this[SetProperty]('exclusiveMaximum', value)
   }
 
   get minimum (): number | undefined {
-    return this.getProperty('minimum')
+    return this[GetProperty]('minimum')
   }
 
   set minimum (value: number | undefined) {
-    this.setProperty('minimum', value)
+    this[SetProperty]('minimum', value)
   }
 
   get exclusiveMinimum (): number | undefined {
-    return this.getProperty('exclusiveMinimum')
+    return this[GetProperty]('exclusiveMinimum')
   }
 
   set exclusiveMinimum (value: number | undefined) {
-    this.setProperty('exclusiveMinimum', value)
+    this[SetProperty]('exclusiveMinimum', value)
   }
 
   get maxLength (): number | undefined {
-    return this.getProperty('maxLength')
+    return this[GetProperty]('maxLength')
   }
 
   set maxLength (value: number | undefined) {
-    this.setProperty('maxLength', value)
+    this[SetProperty]('maxLength', value)
   }
 
   get minLength (): number | undefined {
-    return this.getProperty('minLength')
+    return this[GetProperty]('minLength')
   }
 
   set minLength (value: number | undefined) {
-    this.setProperty('minLength', value)
+    this[SetProperty]('minLength', value)
   }
 
   get pattern (): string | undefined {
-    return this.getProperty('pattern')
+    return this[GetProperty]('pattern')
   }
 
   set pattern (value: string | undefined) {
-    this.setProperty('pattern', value)
+    this[SetProperty]('pattern', value)
   }
 
   get maxItems (): number | undefined {
-    return this.getProperty('maxItems')
+    return this[GetProperty]('maxItems')
   }
 
   set maxItems (value: number | undefined) {
-    this.setProperty('maxItems', value)
+    this[SetProperty]('maxItems', value)
   }
 
   get minItems (): number | undefined {
-    return this.getProperty('minItems')
+    return this[GetProperty]('minItems')
   }
 
   set minItems (value: number | undefined) {
-    this.setProperty('minItems', value)
+    this[SetProperty]('minItems', value)
   }
 
   get maxProperties (): number | undefined {
-    return this.getProperty('maxProperties')
+    return this[GetProperty]('maxProperties')
   }
 
   set maxProperties (value: number | undefined) {
-    this.setProperty('maxProperties', value)
+    this[SetProperty]('maxProperties', value)
   }
 
   get minProperties (): number | undefined {
-    return this.getProperty('minProperties')
+    return this[GetProperty]('minProperties')
   }
 
   set minProperties (value: number | undefined) {
-    this.setProperty('minProperties', value)
+    this[SetProperty]('minProperties', value)
   }
 
   get uniqueItems (): boolean | undefined {
-    return this.getProperty('uniqueItems')
+    return this[GetProperty]('uniqueItems')
   }
 
   set uniqueItems (value: boolean | undefined) {
-    this.setProperty('uniqueItems', value)
+    this[SetProperty]('uniqueItems', value)
   }
 
   get enum (): any[] | undefined {
-    return this.getProperty('enum')
+    return this[GetProperty]('enum')
   }
 
   set enum (value: any[] | undefined) {
-    this.setProperty('enum', value)
+    this[SetProperty]('enum', value)
   }
 
   get multipleOf (): number | undefined {
-    return this.getProperty('multipleOf')
+    return this[GetProperty]('multipleOf')
   }
 
   set multipleOf (value: number | undefined) {
-    this.setProperty('multipleOf', value)
+    this[SetProperty]('multipleOf', value)
   }
 
   get required (): string[] | undefined {
-    return this.getProperty('required')
+    return this[GetProperty]('required')
   }
 
   set required (value: string[] | undefined) {
-    this.setProperty('required', value)
+    this[SetProperty]('required', value)
   }
 
   get items (): I.ISchema3 | undefined {
-    return this.getProperty('items')
+    return this[GetProperty]('items')
   }
 
   set items (value: I.ISchema3 | undefined) {
-    this.setProperty('items', value)
+    this[SetProperty]('items', value)
   }
 
   get properties (): Record<string, I.ISchema3> | undefined {
-    return this.getProperty('properties')
+    return this[GetProperty]('properties')
   }
 
   set properties (value: Record<string, I.ISchema3> | undefined) {
-    this.setProperty('properties', value)
+    this[SetProperty]('properties', value)
   }
 
   get additionalProperties (): I.ISchema3 | boolean | undefined {
-    return this.getProperty('additionalProperties')
+    return this[GetProperty]('additionalProperties')
   }
 
   set additionalProperties (value: I.ISchema3 | boolean | undefined) {
-    this.setProperty('additionalProperties', value)
+    this[SetProperty]('additionalProperties', value)
   }
 
   get description (): string | undefined {
-    return this.getProperty('description')
+    return this[GetProperty]('description')
   }
 
   set description (value: string | undefined) {
-    this.setProperty('description', value)
+    this[SetProperty]('description', value)
   }
 
   get format (): string | undefined {
-    return this.getProperty('format')
+    return this[GetProperty]('format')
   }
 
   set format (value: string | undefined) {
-    this.setProperty('format', value)
+    this[SetProperty]('format', value)
   }
 
   get default (): any | undefined {
-    return this.getProperty('default')
+    return this[GetProperty]('default')
   }
 
   set default (value: any | undefined) {
-    this.setProperty('default', value)
+    this[SetProperty]('default', value)
   }
 
   get nullable (): boolean | undefined {
-    return this.getProperty('nullable')
+    return this[GetProperty]('nullable')
   }
 
   set nullable (value: boolean | undefined) {
-    this.setProperty('nullable', value)
+    this[SetProperty]('nullable', value)
   }
 
   get discriminator (): I.IDiscriminator3 | undefined {
-    return this.getProperty('discriminator')
+    return this[GetProperty]('discriminator')
   }
 
   set discriminator (value: I.IDiscriminator3 | undefined) {
-    this.setProperty('discriminator', value)
+    this[SetProperty]('discriminator', value)
   }
 
   get readOnly (): boolean | undefined {
-    return this.getProperty('readOnly')
+    return this[GetProperty]('readOnly')
   }
 
   set readOnly (value: boolean | undefined) {
-    this.setProperty('readOnly', value)
+    this[SetProperty]('readOnly', value)
   }
 
   get writeOnly (): boolean | undefined {
-    return this.getProperty('writeOnly')
+    return this[GetProperty]('writeOnly')
   }
 
   set writeOnly (value: boolean | undefined) {
-    this.setProperty('writeOnly', value)
+    this[SetProperty]('writeOnly', value)
   }
 
   get xml (): I.IXml3 | undefined {
-    return this.getProperty('xml')
+    return this[GetProperty]('xml')
   }
 
   set xml (value: I.IXml3 | undefined) {
-    this.setProperty('xml', value)
+    this[SetProperty]('xml', value)
   }
 
   get externalDocs (): I.IExternalDocumentation3 | undefined {
-    return this.getProperty('externalDocs')
+    return this[GetProperty]('externalDocs')
   }
 
   set externalDocs (value: I.IExternalDocumentation3 | undefined) {
-    this.setProperty('externalDocs', value)
+    this[SetProperty]('externalDocs', value)
   }
 
   get example (): any | undefined {
-    return this.getProperty('example')
+    return this[GetProperty]('example')
   }
 
   set example (value: any | undefined) {
-    this.setProperty('example', value)
+    this[SetProperty]('example', value)
   }
 
   get deprecated (): boolean | undefined {
-    return this.getProperty('deprecated')
+    return this[GetProperty]('deprecated')
   }
 
   set deprecated (value: boolean | undefined) {
-    this.setProperty('deprecated', value)
+    this[SetProperty]('deprecated', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
