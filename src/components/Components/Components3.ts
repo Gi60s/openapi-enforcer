@@ -16,7 +16,7 @@ import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { getLocation } from '../../Locator/Locator'
 import { smart } from '../../util'
@@ -141,7 +141,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Components extends EnforcerComponent<I.IComponents3Definition> implements I.IComponents3 {
-  [Extensions]: Record<string, any> = {}
+  [S.Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IComponents3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -184,17 +184,18 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
       const properties: Array<keyof I.IComponents3Definition> = ['schemas', 'responses',
         'parameters', 'examples', 'requestBodies', 'headers', 'securitySchemes', 'links', 'callbacks']
       properties.forEach(key => {
-        if (definition[key] !== undefined) {
-          Object.keys(definition[key]).forEach(name => {
+        const definitionSet = definition[key]
+        if (definitionSet !== undefined) {
+          Object.keys(definitionSet).forEach(name => {
             if (!rxPropertyName.test(name)) {
               exception.add({
-                id: id + '_FIELD_MAPPED_NAME_INVALID',
+                id,
+                code: 'COMPONENT_NAME_INVALID',
                 level: 'error',
-                locations: [getLocation(definition[key], name, 'key')],
-                message: 'The property name ' + smart(name) + ' can only contain letters, numbers, dots, dashes, and underscores.',
+                locations: [getLocation(definitionSet, name, 'key')],
                 metadata: {
-                  field: key,
-                  name
+                  componentsNamespace: key,
+                  propertyName: name
                 },
                 reference
               })

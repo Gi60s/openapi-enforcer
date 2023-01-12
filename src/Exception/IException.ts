@@ -1,20 +1,21 @@
 import { ILocation } from '../Locator/ILocator'
+import { II18nMessageCode } from '../i18n/i18n'
 
 export interface IException {
   id: string
+  code: II18nMessageCode
   level: IExceptionLevel
   locations?: Array<Partial<ILocation>>
-  message: string
   metadata: Record<string, any>
   reference: string
 }
 
 export interface IExceptionData {
   id: string
+  code: II18nMessageCode
   level: IExceptionLevel
   levelOverwritten?: boolean
   locations: Array<ILocation | undefined>
-  message: string
   metadata?: Record<string, any>
   reference?: string
 }

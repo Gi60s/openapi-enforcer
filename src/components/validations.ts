@@ -1,7 +1,6 @@
 import rx from '../rx'
 import { getLocation } from '../Locator/Locator'
 import { ISchemaProcessor } from '../ComponentSchemaDefinition/ISchemaProcessor'
-import { smart } from '../util'
 import {
   IOperation, IOperationDefinition,
   IParameterDefinition,
@@ -13,10 +12,10 @@ export function isUrl (key: string, data: ISchemaProcessor): void {
   const url = (definition as any)[key]
   if (url !== undefined && !rx.url.test(url)) {
     exception.add({
-      id: id + '_URL_INVALID',
+      id,
+      code: 'URL_INVALID',
       level: 'warn',
       locations: [getLocation(definition, key, 'value')],
-      message: 'URL appears to be invalid: ' + smart(url),
       metadata: {
         url: url
       },
@@ -28,7 +27,7 @@ export function isUrl (key: string, data: ISchemaProcessor): void {
 export function parametersAreUnique (data: ISchemaProcessor<IPathItemDefinition, IPathItem> | ISchemaProcessor<IOperationDefinition, IOperation>): void {
   const { definition, exception, id, reference } = data
   const existing: Record<string, Record<string, IParameterDefinition[]>> = {}
-  definition.parameters?.forEach((parameter, index) => {
+  definition.parameters?.forEach((parameter) => {
     const name = parameter.name
     const at = parameter.in
     if (existing[name] === undefined) {
@@ -45,14 +44,14 @@ export function parametersAreUnique (data: ISchemaProcessor<IPathItemDefinition,
       const parameters = existing[name][at]
       if (parameters.length > 0) {
         exception.add({
-          id: id + '_PARAMETERS_CONFLICT',
+          id,
+          code: 'PARAMETER_NAMESPACE_CONFLICT',
           level: 'error',
           locations: parameters.map(parameter => {
             // @ts-expect-error
             const index = definition.parameters?.indexOf(parameter)
             return getLocation(parameters, index, 'value')
           }),
-          message: 'Found on or more parameter conflicts. Parameters cannot share the same "name" and "in" values.',
           metadata: { parameters },
           reference
         })
@@ -67,10 +66,10 @@ export function parametersNotInPath (data: ISchemaProcessor<IOperationDefinition
   parameters.forEach((p) => {
     if (p.in === 'path' && !pathParameterNames.includes(p.name)) {
       exception.add({
-        id: id + '_DEFINED_PATH_PARAMETER_NOT_IN_PATH',
+        id,
+        code: 'PARAMETER_NOT_IN_PATH',
         level: 'error',
         locations: [getLocation(p)],
-        message: 'A path parameter was defined in the parameters array that is not found in the path: ' + smart(p.name),
         metadata: { parameterName: p.name },
         reference
       })
@@ -89,11 +88,13 @@ export function mutuallyExclusiveProperties (properties: string[], data: ISchema
 
   if (propertiesFound.length > 1) {
     exception.add({
-      id: id + '_PROPERTY_CONFLICT',
+      id,
+      code: 'PROPERTIES_MUTUALLY_EXCLUSIVE',
       level: 'error',
       locations: propertiesFound.map(p => getLocation(definition, p, 'key')),
-      message: 'These properties are mutually exclusive: ' + smart(propertiesFound),
-      metadata: { properties: propertiesFound },
+      metadata: {
+        propertyNames: propertiesFound
+      },
       reference
     })
   }

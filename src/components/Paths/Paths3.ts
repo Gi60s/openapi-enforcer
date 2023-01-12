@@ -16,7 +16,7 @@ import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { build, validate, findPathMatches } from './common'
 import { IFindPathMatchesOptions, IFindPathMatchesResult } from '../PathItem'
@@ -32,7 +32,7 @@ const additionalProperties: ISchema.IComponent<I.IPathItem3Definition, I.IPathIt
 }
 
 export class Paths extends EnforcerComponent<I.IPaths3Definition> implements I.IPaths3 {
-  [Extensions]: Record<string, any> = {};
+  [S.Extensions]: Record<string, any> = {};
   [key: `/${string}`]: I.IPathItem3
 
   constructor (definition: I.IPaths3Definition, version?: IVersion) {

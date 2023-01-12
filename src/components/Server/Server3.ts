@@ -16,7 +16,7 @@ import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { isUrl } from '../validations'
 // <!# Custom Content End: HEADER #!>
@@ -57,7 +57,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Server extends EnforcerComponent<I.IServer3Definition> implements I.IServer3 {
-  [Extensions]: Record<string, any> = {}
+  [S.Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IServer3Definition, version?: IVersion) {
     super(definition, version, arguments[2])

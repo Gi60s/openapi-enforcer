@@ -16,7 +16,7 @@ import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { validate } from './common'
 // <!# Custom Content End: HEADER #!>
@@ -51,7 +51,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Contact extends EnforcerComponent<I.IContact2Definition> implements I.IContact2 {
-  [Extensions]: Record<string, any> = {}
+  [S.Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IContact2Definition, version?: IVersion) {
     super(definition, version, arguments[2])

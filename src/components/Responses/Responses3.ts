@@ -16,7 +16,7 @@ import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -45,7 +45,7 @@ const additionalProperties: ISchema.IComponent<I.IResponse3Definition, I.IRespon
 }
 
 export class Responses extends EnforcerComponent<I.IResponses3Definition> implements I.IResponses3 {
-  [Extensions]: Record<string, any> = {};
+  [S.Extensions]: Record<string, any> = {};
   [key: number]: I.IResponse3
 
   constructor (definition: I.IResponses3Definition, version?: IVersion) {

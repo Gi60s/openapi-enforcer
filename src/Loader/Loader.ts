@@ -74,6 +74,7 @@ export async function load (path: string, options?: ILoaderOptions, data?: ILoad
     const dirPath = Adapter.path.dirname(path)
     for (let i = 0; i < length; i++) {
       const { ref, parent, key } = references[i]
+      let absoluteChildPath: string | undefined
       let n: any // = await dereference(node, ref, data.exception, path)
 
       // local reference
@@ -84,6 +85,7 @@ export async function load (path: string, options?: ILoaderOptions, data?: ILoad
       } else {
         let [childPath, subRef] = ref.split('#/')
         childPath = Adapter.path.resolve(dirPath, childPath)
+        absoluteChildPath = childPath
         const [node] = await load(childPath, options, data)
         if (subRef === undefined) {
           n = node
@@ -93,8 +95,15 @@ export async function load (path: string, options?: ILoaderOptions, data?: ILoad
       }
 
       if (n === undefined) {
-        // @ts-expect-error - we send in a partial data object
-        data.exception.add.refNotResolved({ component: { definition: node } }, { node: parent, key, type: 'value' }, ref, path)
+        data.exceptionStore.add({
+          id: 'LOADER',
+          code: 'REF_NOT_RESOLVED',
+          level: 'error',
+          locations: [],
+          metadata: {
+            reference: absoluteChildPath ?? ref
+          }
+        })
       } else if (parent === null) {
         // no parent means that the root node had the $ref
         return n
@@ -286,11 +295,11 @@ async function runLoaders (path: string, data: ILoaderMetadata): Promise<any> {
     }
   }
 
-  // @ts-expect-error // todo fix this
-  data.exceptionStore.add({
-    id: 'loader.run.notfound',
+  data.exceptionStore?.add({
+    id: 'LOADER',
+    code: 'LOADER_NOT_FOUND',
     level: 'error',
-    message: 'Unable to find a loader to load the provided resource: "' + path + '"',
+    locations: [],
     metadata: {
       caller: data.callerPath,
       resource: path

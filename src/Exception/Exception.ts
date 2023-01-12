@@ -1,21 +1,22 @@
 import { IException, IExceptionData, IExceptionLevel } from './IException'
 import { ILocation } from '../Locator/ILocator'
+import { II18nMessageCode } from '../i18n/i18n'
 
 export class Exception implements IException {
   public readonly id: string
+  public readonly code: II18nMessageCode
   public readonly level: IExceptionLevel
   public readonly levelOverwritten: boolean
   public readonly locations!: ILocation[]
-  public readonly message: string
   public readonly metadata: Record<string, any>
   public readonly reference: string
 
   constructor (data: IExceptionData) {
-    this.id = data.id
+    this.id = data.id + '_' + data.code
+    this.code = data.code
     this.level = data.level
     this.levelOverwritten = data.levelOverwritten ?? false
     this.locations = data.locations.filter(location => location !== undefined) as ILocation[]
-    this.message = data.message
     this.metadata = data.metadata ?? {}
     this.reference = data.reference ?? ''
   }

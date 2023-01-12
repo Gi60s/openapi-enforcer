@@ -113,10 +113,10 @@ function validateComponentDefinition<Definition, Built> (data: ISchemaProcessor<
   const spec = data.constructor.spec
   if (spec[version] === undefined) {
     exception.add({
-      id: id + '_VERSION_NOT_SUPPORTED',
+      id,
+      code: 'SPEC_VERSION_NOT_SUPPORTED',
       level: 'error',
       locations: [],
-      message: `The OpenAPIEnforcer does not support OpenAPI specification version ${version}.`,
       metadata: {
         supportedVersions: Object.keys(spec).filter(k => typeof spec[k as IVersion] === 'string'),
         version
@@ -124,11 +124,12 @@ function validateComponentDefinition<Definition, Built> (data: ISchemaProcessor<
     })
   } else if (spec[version] === false) {
     exception.add({
-      id: id + '_VERSION_MISMATCH',
+      id,
+      code: 'COMPONENT_VERSION_MISMATCH',
       level: 'error',
       locations: [],
-      message: `The OpenAPIEnforcer supports OpenAPI specification version ${version}, but the ${name} object does not support this version.`,
       metadata: {
+        componentName: ctor.name,
         supportedVersions: Object.keys(spec).filter(k => typeof spec[k as IVersion] === 'string'),
         version: version
       }
@@ -167,11 +168,14 @@ function validateDefinition (data: ISchemaProcessor<any, any>, definition: any, 
   if (schema.ignored === true) return
   if (actualType !== (expectedType === 'component' ? 'object' : expectedType)) {
     exception.add({
-      id: id + '_TYPE_INVALID',
+      id,
+      code: 'VALUE_TYPE_INVALID',
       level: 'error',
       locations: [getLocation(definition, key, 'value')],
-      message: 'The definition value ' + smart(value) + ' did not match the expected data type: ' +
-        smart(expectedType === 'component' ? 'object' : expectedType),
+      metadata: {
+        expectedType,
+        value
+      },
       reference
     })
   }
@@ -189,28 +193,40 @@ function validateDefinition (data: ISchemaProcessor<any, any>, definition: any, 
     const v = value as number
     if (schema.integer === true && String(v) !== String(Math.round(v))) {
       exception.add({
-        id: id + '_TYPE_INVALID',
+        id,
+        code: 'VALUE_TYPE_INVALID',
         level: 'error',
         locations: [getLocation(definition, key, 'value')],
-        message: 'The definition value ' + smart(value) + ' did not match the expected data type: "integer"',
+        metadata: {
+          expectedType,
+          value
+        },
         reference
       })
     }
     if (schema.minimum !== undefined && v < schema.minimum) {
       exception.add({
-        id: id + '_VALUE_OUT_OF_RANGE_MIN',
+        id,
+        code: 'VALUE_OUT_OF_RANGE_MIN',
         level: 'error',
         locations: [getLocation(definition, key, 'value')],
-        message: 'The definition value ' + smart(value) + ' must be greater than or equal to ' + String(schema.minimum),
+        metadata: {
+          minimum: schema.minimum,
+          value
+        },
         reference
       })
     }
     if (schema.maximum !== undefined && v > schema.maximum) {
       exception.add({
-        id: id + '_VALUE_OUT_OF_RANGE_MAX',
+        id,
+        code: 'VALUE_OUT_OF_RANGE_MAX',
         level: 'error',
         locations: [getLocation(definition, key, 'value')],
-        message: 'The definition value ' + smart(value) + ' must be less than or equal to ' + String(schema.maximum),
+        metadata: {
+          maximum: schema.maximum,
+          value
+        },
         reference
       })
     }
@@ -226,10 +242,13 @@ function validateDefinition (data: ISchemaProcessor<any, any>, definition: any, 
     }
     if (!found) {
       exception.add({
-        id: id + '_CONDITION_NOT_MET',
+        id,
+        code: 'SCHEMA_NOT_MET',
         level: 'error',
         locations: [getLocation(definition, key, 'value')],
-        message: 'The definition value ' + smart(value) + ' does not match any of the potential schemas.',
+        metadata: {
+          value
+        },
         reference
       })
     }
@@ -237,10 +256,13 @@ function validateDefinition (data: ISchemaProcessor<any, any>, definition: any, 
     schema.properties?.forEach(({ name, notAllowed, required }) => {
       if (value[name] === undefined && required === true && notAllowed === undefined) {
         exception.add({
-          id: id + '_MISSING_REQUIRED_PROPERTY',
+          id,
+          code: 'PROPERTY_MISSING',
           level: 'error',
           locations: [getLocation(definition, key, 'value')],
-          message: 'Required property ' + smart(name) + ' is missing.',
+          metadata: {
+            propertyName: name
+          },
           reference
         })
       }
@@ -254,19 +276,26 @@ function validateDefinition (data: ISchemaProcessor<any, any>, definition: any, 
             validateDefinition(data, value, key, schema.additionalProperties)
           } else {
             exception.add({
-              id: id + '_UNKNOWN_PROPERTY',
+              id,
+              code: 'PROPERTY_UNKNOWN',
               level: 'error',
               locations: [getLocation(value, key, 'key')],
-              message: 'The property ' + smart(key) + ' is not allowed because it is not part of the spec.',
+              metadata: {
+                propertyName: key
+              },
               reference
             })
           }
         } else if (property.notAllowed !== undefined) {
           exception.add({
-            id: id + '_PROPERTY_NOT_ALLOWED',
+            id,
+            code: 'PROPERTY_NOT_ALLOWED',
             level: 'error',
             locations: [getLocation(value, key, 'key')],
-            message: 'The property ' + smart(key) + ' is not allowed. ' + property.notAllowed,
+            metadata: {
+              propertyName: key,
+              reason: property.notAllowed
+            },
             reference
           })
         } else {

@@ -16,7 +16,7 @@ import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { getMergedParameters, mergeParameters, operationWillAcceptContentType, validate } from './common'
 import { getLocation } from '../../Locator/Locator'
@@ -150,7 +150,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Operation extends EnforcerComponent<I.IOperation2Definition> implements I.IOperation2 {
-  [Extensions]: Record<string, any> = {}
+  [S.Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IOperation2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -194,18 +194,18 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
     result.build = function (data) {
       const { built } = data
 
-      built[HookGetProperty]('parameters', (parameters: I.IParameter2[] | undefined) => {
+      built[S.HookGetProperty]('parameters', (parameters: I.IParameter2[] | undefined) => {
         const pathItem: ISchemaProcessor<I.IPathItem2Definition, I.IPathItem2> | undefined = data.chain
           .getAncestor('PathItem')
         const pathItemParameters: I.IParameter2[] = pathItem?.built.parameters ?? []
         return mergeParameters(pathItemParameters, parameters) as I.IParameter2[]
       })
 
-      built[HookGetProperty]('consumes', (consumes: string[] | undefined) => {
+      built[S.HookGetProperty]('consumes', (consumes: string[] | undefined) => {
         return getAllContentTypeStrings(data, 'consumes', consumes)
       })
 
-      built[HookGetProperty]('produces', (produces: string[] | undefined) => {
+      built[S.HookGetProperty]('produces', (produces: string[] | undefined) => {
         return getAllContentTypeStrings(data, 'produces', produces)
       })
     }
@@ -227,10 +227,10 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
 
       if (bodies.length > 1) {
         exception.add({
-          id: id + '_BODY_NOT_UNIQUE',
+          id,
+          code: 'OPERATION_BODY_NOT_UNIQUE',
           level: 'error',
           locations: bodies.map(parameter => getLocation(parameter)),
-          message: 'Only one body parameter allowed.',
           metadata: { bodyParameters: parameters },
           reference
         })
@@ -238,11 +238,11 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
 
       if (bodies.length > 0 && forms.length > 0) {
         exception.add({
-          id: id + '_BODY_FORM_DATA_CONFLICT',
+          id,
+          code: 'OPERATION_BODY_FORM_CONFLICT',
           level: 'error',
           locations: bodies.map(parameter => getLocation(parameter))
             .concat(forms.map(parameter => getLocation(parameter))),
-          message: 'The body parameter and formData parameter are mutually exclusive.',
           metadata: { bodyParameters: parameters, formDataParameters: forms },
           reference
         })
@@ -259,10 +259,10 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
         const consumesFormData = consumes.find(c => c.isMatch(multipartContentType) || c.isMatch(formUrlEncodedContentType))
         if (consumesFormData === undefined) {
           exception.add({
-            id: id + '_FORM_DATA_CONSUMES',
+            id,
+            code: 'OPERATION_CONSUMES_FORM_DATA',
             level: 'warn',
             locations: [getLocation(definition)],
-            message: 'Input parameters in formData or file should also be accompanied with a consumes property value of either "multipart/form-data" or "application/x-www-form-urlencoded',
             metadata: {
               consumes: consumes.filter(v => v !== undefined).map(v => v.toString())
             }
@@ -421,10 +421,10 @@ function validateContentTypes (contentTypes: string[] | undefined, key: 'consume
     if (!ContentType.isContentTypeString(contentType)) {
       const { definition, exception, id, reference } = data
       exception.add({
-        id: id + '_CONTENT_TYPE_INVALID',
+        id,
+        code: 'CONTENT_TYPE_INVALID',
         level: 'warn',
         locations: [getLocation(definition[key] as string[], index, 'value')],
-        message: 'Value for ' + smart(key) + ' appears to be invalid: ' + smart(contentType),
         metadata: {
           contentType
         },

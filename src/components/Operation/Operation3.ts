@@ -16,7 +16,7 @@ import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { ContentType } from '../../ContentType/ContentType'
 import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
@@ -147,7 +147,7 @@ const validators: IValidatorsMap = {
 }
 
 export class Operation extends EnforcerComponent<I.IOperation3Definition> implements I.IOperation3 {
-  [Extensions]: Record<string, any> = {}
+  [S.Extensions]: Record<string, any> = {}
 
   constructor (definition: I.IOperation3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -191,7 +191,7 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
     result.build = function (data) {
       const { built } = data
 
-      built[HookGetProperty]('parameters', (parameters: I.IParameter3[] | undefined) => {
+      built[S.HookGetProperty]('parameters', (parameters: I.IParameter3[] | undefined) => {
         const pathItem: ISchemaProcessor<I.IPathItem3Definition, I.IPathItem3> | undefined = data.chain
           .getAncestor('PathItem')
         const pathItemParameters: I.IParameter3[] = pathItem?.built.parameters ?? []

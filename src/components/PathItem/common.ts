@@ -8,10 +8,10 @@ export const validate = function (data: ISchemaProcessor<any, any>): void {
 
   if ('$ref' in definition && Object.keys(definition).length > 1) {
     exception.add({
-      id: id + '_FIELD_NOT_SUPPORTED',
+      id,
+      code: 'REF_CONFLICT',
       level: 'warn',
       locations: [getLocation(definition, '$ref', 'key')],
-      message: 'The $ref is not supported when other fields also exist. See issue https://github.com/OAI/OpenAPI-Specification/issues/2635',
       reference: 'https://github.com/OAI/OpenAPI-Specification/issues/2635'
     })
   }

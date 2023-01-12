@@ -70,10 +70,10 @@ export const validate = function (this: IPaths2 | IPaths3, data: ISchemaProcesso
     // according to the spec, it is allowed to have an empty paths object, but the user may want to know, so we
     // register it as an "ignore" and if the user wants then they can change the level
     exception.add({
-      id: id + '_PATHS_EMPTY',
+      id,
+      code: 'PATHS_EMPTY',
       level: 'ignore',
       locations: [getLocation(definition)],
-      message: 'No paths were provided.',
       reference
     })
   } else {
@@ -85,10 +85,10 @@ export const validate = function (this: IPaths2 | IPaths3, data: ISchemaProcesso
       // look for paths that do not start with a slash
       if (path[0] !== '/') {
         exception.add({
-          id: id + '_PATH_MISSING_LEADING_SLASH',
+          id,
+          code: 'PATH_MISSING_LEADING_SLASH',
           level: 'error',
           locations: [getLocation(definition, path, 'key')],
-          message: 'The path should start with a forward slash.',
           metadata: { path },
           reference
         })
@@ -146,20 +146,19 @@ export const validate = function (this: IPaths2 | IPaths3, data: ISchemaProcesso
       const item = store[key]
       if (item.conflict === 'partial') {
         exception.add({
-          id: id + '_PATH_CONFLICT',
+          id,
+          code: 'PATH_SPEC_CONFLICT',
           level: 'warn',
           locations: item.paths.map(path => getLocation(definition, path, 'key')),
-          message: 'One or more paths are considered invalid by the standards of the OpenAPI specification due to ' +
-            'path collision, but because they have different methods they are distinguishable.',
           metadata: { paths: item.paths },
           reference
         })
       } else if (item.conflict === 'full') {
         exception.add({
-          id: id + '_PATH_OPERATION_CONFLICT',
+          id,
+          code: 'PATH_OPERATION_CONFLICT',
           level: 'error',
           locations: item.paths.map(path => getLocation(definition, path, 'key')),
-          message: 'One or more paths are indistinguishable due to duplicate paths and methods.',
           metadata: { paths: item.paths },
           reference
         })
@@ -168,10 +167,10 @@ export const validate = function (this: IPaths2 | IPaths3, data: ISchemaProcesso
 
     if (pathsEndingWithSlash.length > 0 && pathsEndingWithoutSlash.length > 0) {
       exception.add({
-        id: id + '_PATH_ENDINGS_INCONSISTENT',
+        id,
+        code: 'PATH_ENDINGS_INCONSISTENT',
         level: 'ignore',
         locations: paths.map(path => getLocation(definition, path, 'key')),
-        message: 'Some paths end with a slash and some do not. This inconsistency may confuse the users of your API.',
         metadata: { pathsEndingWithSlash, pathsEndingWithoutSlash }
       })
     }

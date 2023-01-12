@@ -36,10 +36,10 @@ export function validate (data: ISchemaProcessorData, mergedParameters: IFromPar
   })
   if (paramNamesInPathNotInParameters.length > 0) {
     exception.add({
-      id: id + '_PATH_PARAMETERS_NOT_DEFINED',
+      id,
+      code: 'PARAMETER_PATH_NOT_DEFINED',
       level: 'error',
       locations: [getLocation(definition, 'parameters')],
-      message: 'One or more parameters in the path are not defined as path parameters in the Parameters array.',
       metadata: {
         parameterNames: paramNamesInPathNotInParameters
       },
@@ -50,10 +50,10 @@ export function validate (data: ISchemaProcessorData, mergedParameters: IFromPar
 
   if (definition.summary !== undefined && definition.summary.length >= 120) {
     exception.add({
-      id: id + '_SUMMERY_EXCEEDS_RECOMMENDED_LENGTH',
+      id,
+      code: 'SUMMERY_EXCEEDS_RECOMMENDED_LENGTH',
       level: 'warn',
       locations: [getLocation(definition, 'summary', 'value')],
-      message: 'The summary should be less than 120 characters in length.',
       metadata: { summary: definition.summary },
       reference
     })
@@ -72,14 +72,17 @@ export function validate (data: ISchemaProcessorData, mergedParameters: IFromPar
         operationIdMap[id].push(operation)
       }
     })
-    Object.keys(operationIdMap).forEach(id => {
-      const operations = operationIdMap[id]
+    Object.keys(operationIdMap).forEach(operationId => {
+      const operations = operationIdMap[operationId]
       if (operations.length > 1) {
         exception.add({
-          id: id + '_OPERATION_ID_NOT_UNIQUE',
+          id,
+          code: 'OPERATION_ID_NOT_UNIQUE',
           level: 'error',
           locations: operations.map(def => getLocation(def, 'operationId', 'value')),
-          message: 'Each operationId must be unique, but multiple operations have the same operationId: ' + smart(id),
+          metadata: {
+            operationId
+          },
           reference
         })
       }
