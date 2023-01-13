@@ -1,5 +1,6 @@
 import { IException, IExceptionReportItem } from './IException'
 import { once } from '../Events/Events'
+import { getMessage } from '../i18n/i18n'
 
 export class ExceptionReportLevel {
   public exceptions: IException[]
@@ -39,7 +40,7 @@ once('adapter-ready', adapter => {
       }
 
       item.exceptions.forEach(exception => {
-        result += exceptionIndent + '[' + exception.id + '] ' + exception.message
+        result += exceptionIndent + '[' + exception.id + '] ' + getMessage(exception.code, exception.metadata)
         if (exception.reference !== '') result += ' (' + exception.reference + ')'
         result += eol
       })
