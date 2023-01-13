@@ -7,7 +7,6 @@ import {
 import { IOperation2, IOperation2Definition, IOperation3, IOperation3Definition } from '../'
 import { getPathParameterNames } from '../Paths/common'
 import { getLocation } from '../../Locator/Locator'
-import { smart } from '../../util'
 import { ContentType } from '../../ContentType/ContentType'
 
 type IFromParameterArray = Array<IParameter | IParameterDefinition>

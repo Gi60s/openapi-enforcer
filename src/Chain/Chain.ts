@@ -1,4 +1,5 @@
 import { IChain } from './IChain'
+import { getMessage } from '../i18n/i18n'
 
 export class Chain<D=any> implements IChain<D> {
   private readonly items: D[]
@@ -38,7 +39,7 @@ export class Chain<D=any> implements IChain<D> {
   }
 
   [Symbol.iterator] (): Iterator<any> {
-    throw Error('Method not implemented')
+    throw Error(getMessage('NOT_IMPLEMENTED'))
   }
 }
 

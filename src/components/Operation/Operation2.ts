@@ -23,7 +23,6 @@ import { getLocation } from '../../Locator/Locator'
 import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
 import { ContentType } from '../../ContentType/ContentType'
 import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
-import { smart } from '../../util'
 
 const multipartContentType = ContentType.fromString('multipart/form-data')
 const formUrlEncodedContentType = ContentType.fromString('application/x-www-form-urlencoded')

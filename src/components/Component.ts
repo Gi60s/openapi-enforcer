@@ -5,7 +5,7 @@ import { ISchema, ISchemaDefinition } from '../ComponentSchemaDefinition/ICompon
 import { ExceptionStore } from '../Exception/ExceptionStore'
 import { generateChildProcessorData, initializeProcessorData } from '../ComponentSchemaDefinition/schema-processor'
 import { getLocation } from '../Locator/Locator'
-import { smart } from '../util'
+import { getMessage } from '../i18n/i18n'
 
 export const GetProperty = Symbol('GetProperty')
 export const SetProperty = Symbol('GetProperty')
@@ -83,15 +83,15 @@ export class EnforcerComponent<Definition> {
   }
 
   static get id (): string {
-    throw new Error('Property "id" not implemented')
+    throw new Error(getMessage('NOT_IMPLEMENTED'))
   }
 
   static get spec (): IComponentSpec {
-    throw new Error('Property "spec" not implemented')
+    throw new Error(getMessage('NOT_IMPLEMENTED'))
   }
 
   static getSchemaDefinition (data: ISchemaProcessor<any, any>): ISchemaDefinition<any, any> {
-    throw new Error('Function "getSchema" not implemented')
+    throw new Error(getMessage('NOT_IMPLEMENTED'))
   }
 
   static validate<Definition, Built extends typeof EnforcerComponent<Definition>> (definition: any, version?: IVersion, data?: IParentData): ExceptionStore {
@@ -109,7 +109,7 @@ export class EnforcerComponent<Definition> {
 // }
 
 function validateComponentDefinition<Definition, Built> (data: ISchemaProcessor<Definition, Built>): ExceptionStore {
-  const { constructor: ctor, definition, exception, id, name, version } = data
+  const { constructor: ctor, definition, exception, id, version } = data
   const spec = data.constructor.spec
   if (spec[version] === undefined) {
     exception.add({

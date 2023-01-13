@@ -11,6 +11,7 @@ import {
   InfoReport,
   WarningReport
 } from './ExceptionReport'
+import { getMessage } from '../i18n/i18n'
 
 interface ICache {
   report: IExceptionReport | null
@@ -99,7 +100,7 @@ export class ExceptionStore {
   }
 
   [Symbol.iterator] (): Iterator<any> {
-    throw Error('Method not implemented')
+    throw Error(getMessage('NOT_IMPLEMENTED'))
   }
 
   private createReport (): IExceptionReport {

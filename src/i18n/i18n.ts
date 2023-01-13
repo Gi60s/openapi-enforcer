@@ -7,11 +7,18 @@ export interface II18nMessagesMap {
   COMPONENT_NAME_INVALID: string
   COMPONENT_VERSION_MISMATCH: string
   CONTENT_TYPE_INVALID: string
+  I18N_LANGUAGE_NOT_DEFINED: string
+  I18N_MISSING_MESSAGES: string
   LOADER_NOT_FOUND: string
+  LOADER_YAML_PARSE_ERROR: string
+  LOADER_YAML_SUPPORT_ERROR: string
+  LOCATOR_INVALID_REFERENCE: string
+  NOT_IMPLEMENTED: string
   OPERATION_BODY_FORM_CONFLICT: string
   OPERATION_BODY_NOT_UNIQUE: string
   OPERATION_CONSUMES_FORM_DATA: string
   OPERATION_ID_NOT_UNIQUE: string
+  OPTIONS_INVALID: string
   PARAMETER_NAMESPACE_CONFLICT: string
   PARAMETER_PATH_NOT_DEFINED: string
   PARAMETER_NOT_IN_PATH: string
@@ -19,6 +26,7 @@ export interface II18nMessagesMap {
   PATH_MISSING_LEADING_SLASH: string
   PATH_OPERATION_CONFLICT: string
   PATH_SPEC_CONFLICT: string
+  PATH_NOT_FOUND: string
   PATHS_EMPTY: string
   PROPERTIES_MUTUALLY_EXCLUSIVE: string
   PROPERTY_NOT_ALLOWED: string
@@ -52,7 +60,7 @@ export function addLanguage (languageCode: string, i18nMessageMap: II18nMessages
   })
 
   if (missingMessageCodes.length > 0) {
-    throw Error('Cannot add language "' + languageCode + '" because the following message codes are not defined within the messages map: ' + smart(missingMessageCodes))
+    throw Error(getMessage('I18N_MISSING_MESSAGES', { languageCode, missingMessageCodes }))
   }
 
   languageStore[languageCode] = i18nMessageMap
@@ -63,19 +71,19 @@ export function setLanguage (languageCode: string): void {
   currentLanguageMap = languageStore[languageCode]
 }
 
-export function getMessage (messageCode: II18nMessageCode, data: Record<string, any>): string {
+export function getMessage (messageCode: II18nMessageCode, data?: Record<string, any>): string {
   const message = currentLanguageMap[messageCode]
   return message === undefined ? '' : injectMessageData(message, data)
 }
 
-export function getLanguageMessage (languageCode: string, messageCode: II18nMessageCode, data: Record<string, any>): string {
+export function getLanguageMessage (languageCode: string, messageCode: II18nMessageCode, data?: Record<string, any>): string {
   verifyLanguage(languageCode)
   const languageMap = languageStore[languageCode]
   const message = languageMap[messageCode]
   return message === undefined ? '' : injectMessageData(message, data)
 }
 
-function injectMessageData (message: string, data: Record<string, any>): string {
+function injectMessageData (message: string, data: Record<string, any> = {}): string {
   const rx = /{{([a-z]+)}}/ig
   let result = ''
   let match = rx.exec(message)
@@ -95,6 +103,6 @@ function injectMessageData (message: string, data: Record<string, any>): string 
 
 function verifyLanguage (languageCode: string): void {
   if (languageStore[languageCode] === undefined) {
-    throw Error('Language cannot be set to "' + languageCode + '" because that language has not yet been added.')
+    throw Error(getMessage('I18N_LANGUAGE_NOT_DEFINED', { languageCode }))
   }
 }

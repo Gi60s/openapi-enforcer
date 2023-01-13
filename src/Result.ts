@@ -1,5 +1,6 @@
 import { ErrorReport, IgnoredReport, InfoReport, WarningReport } from './Exception/ExceptionReport'
 import { ExceptionStore } from './Exception/ExceptionStore'
+import { getMessage } from './i18n/i18n'
 
 /**
  * **An object** that consists of a value, an error report, a warning report, an info report, and an ignored report.
@@ -96,7 +97,7 @@ export class Result<T=any> {
   }
 
   [Symbol.iterator] (): Iterator<any> {
-    throw Error('Method not implemented')
+    throw Error(getMessage('NOT_IMPLEMENTED'))
   }
 }
 

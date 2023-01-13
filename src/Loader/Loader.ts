@@ -19,6 +19,7 @@ import {
 import { ExceptionStore } from '../Exception/ExceptionStore'
 import { ILocation, ILookupLocationArray, ILookupLocationObject, IPosition } from '../Locator/ILocator'
 import { getLocation, saveLocation } from '../Locator/Locator'
+import { getMessage } from '../i18n/i18n'
 
 const loaders: ILoader[] = []
 const rxJson = /\.json$/
@@ -55,7 +56,7 @@ export function getReferenceNode (loadMap: Record<string, any>, rootNodePath: st
  */
 export async function load (path: string, options?: ILoaderOptions, data?: ILoaderMetadata): Promise<Result> {
   if (options === undefined || options === null) options = {}
-  if (typeof options !== 'object') throw Error('Invalid load options specified.')
+  if (typeof options !== 'object') throw Error(getMessage('OPTIONS_INVALID', { details: '' }))
   if (options.dereference === undefined) options.dereference = true
 
   if (data === undefined || data === null) data = {}
@@ -287,7 +288,7 @@ async function runLoaders (path: string, data: ILoaderMetadata): Promise<any> {
           linePos = match.index + match[0].length
         }
         const ast = loadYaml(result.content)
-        if (ast.errors.length > 0) throw Error('Unable to parse YAML for one or more reasons:\r  ' + ast.errors.join('\r  '))
+        if (ast.errors.length > 0) throw Error(getMessage('LOADER_YAML_PARSE_ERROR', { reasons: ast.errors.join('\r  ') }))
         const built = yamlAstToObject(ast)
         yamlAstToLocations(ast, built, path, lineEndings, '')
         return built
@@ -388,7 +389,7 @@ function yamlAstToObject (data: YamlNode): any {
     })
     return built
   } else {
-    throw Error('YAML anchors and aliases are not currently supported.')
+    throw Error(getMessage('LOADER_YAML_SUPPORT_ERROR'))
   }
 }
 
@@ -443,7 +444,7 @@ function yamlAstToLocations (data: YamlNode, built: any, source: string, lineEnd
       yamlAstToLocations(o, value, source, lineEndings, breadcrumbs)
     })
   } else if (data.kind !== YamlKind.SCALAR) {
-    throw Error('YAML anchors and aliases are not currently supported.')
+    throw Error(getMessage('LOADER_YAML_SUPPORT_ERROR'))
   }
 }
 

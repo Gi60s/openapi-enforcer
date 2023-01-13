@@ -19,7 +19,6 @@ import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { getLocation } from '../../Locator/Locator'
-import { smart } from '../../util'
 
 const rxPropertyName = /^[a-zA-Z0-9._-]+$/
 // <!# Custom Content End: HEADER #!>

@@ -4,6 +4,7 @@ import { methods } from '../PathItem/common'
 import { IPaths2, IPaths3 } from './IPaths'
 import { IPathItemMethod, IFindPathMatchesOptions, IFindPathMatchesResult } from '../PathItem'
 import { IPathsDefinition } from '../IInternalTypes'
+import { getMessage } from '../../i18n/i18n'
 
 interface IPathLink {
   type: 'static' | 'param'
@@ -217,7 +218,7 @@ export function getPathParameterNames (context: IPathsDefinition, path: string):
   const lookups = pathLookupMap.get(context)
   const match = lookups?.find(lookup => lookup.path === path)
   if (match === undefined) {
-    throw new Error('Specified path not found in paths: ' + path)
+    throw new Error(getMessage('PATH_NOT_FOUND', { path }))
   }
   return match.paramNames.slice(0)
 }

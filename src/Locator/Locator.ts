@@ -1,4 +1,5 @@
 import { ILocation, ILookupLocation } from './ILocator'
+import { getMessage } from '../i18n/i18n'
 
 const map = new WeakMap<Record<string, any> | any[], ILookupLocation>()
 
@@ -20,7 +21,7 @@ export function saveLocation (ref: Record<string, any> | any[], location: ILocat
     map.set(ref, lookup)
     return lookup
   } else {
-    throw Error('Invalid reference. It must be a non-null object or an array.')
+    throw Error(getMessage('LOCATOR_INVALID_REFERENCE'))
   }
 }
 

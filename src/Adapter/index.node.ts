@@ -8,6 +8,7 @@ import os from 'os'
 import Path from 'path'
 import rx from '../rx'
 import Util from 'util'
+import { getMessage } from '../i18n/i18n'
 
 // initialize the adapter for NodeJS
 setEnvironment({
@@ -34,7 +35,7 @@ setEnvironment({
     }
   },
   async request (url: string) {
-    if (!rx.http.test(url)) throw Error('Invalid URL: ' + url)
+    if (!rx.http.test(url)) throw Error(getMessage('URL_INVALID'))
     return await new Promise((resolve, reject) => {
       const mode = url.startsWith('https') ? Https : Http
       const req = mode.request(url, {}, (res: IncomingMessage) => {
