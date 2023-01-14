@@ -52,10 +52,9 @@ setLanguage('en')
 
 export function addLanguage (languageCode: string, i18nMessageMap: II18nMessagesMap): void {
   const missingMessageCodes: II18nMessageCode[] = []
-  Object.keys(messageCodes).forEach((messageCode: string) => {
-    const code = messageCode as II18nMessageCode
-    if (typeof i18nMessageMap[code] !== 'string') {
-      missingMessageCodes.push(code)
+  messageCodes.forEach(messageCode => {
+    if (typeof i18nMessageMap[messageCode] !== 'string') {
+      missingMessageCodes.push(messageCode)
     }
   })
 
@@ -93,7 +92,7 @@ function injectMessageData (message: string, data: Record<string, any> = {}): st
     if (data[key] !== undefined) {
       result += message.substring(offset, match.index)
       result += smart(data[key])
-      offset = match.index + match.length
+      offset = match.index + match[0].length
     }
     match = rx.exec(message)
   }

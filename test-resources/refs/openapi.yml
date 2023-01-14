@@ -13,7 +13,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components-old/schemas/Employee'
+                  $ref: '#/components/schemas/Employee'
   /students:
     get:
       responses:

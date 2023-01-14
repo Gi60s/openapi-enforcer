@@ -52,7 +52,8 @@ export class ExceptionStore {
   }
 
   get error (): ErrorReport | undefined {
-    return this.createReport().error
+    const result = this.createReport().error
+    return result.exceptions.length === 0 ? undefined : result
   }
 
   get '1' (): WarningReport | undefined {
@@ -60,7 +61,8 @@ export class ExceptionStore {
   }
 
   get warning (): WarningReport | undefined {
-    return this.createReport().warn
+    const result = this.createReport().warn
+    return result.exceptions.length === 0 ? undefined : result
   }
 
   get '2' (): InfoReport | undefined {
@@ -68,7 +70,8 @@ export class ExceptionStore {
   }
 
   get info (): InfoReport | undefined {
-    return this.createReport().info
+    const result = this.createReport().info
+    return result.exceptions.length === 0 ? undefined : result
   }
 
   get '3' (): IgnoredReport | undefined {
@@ -76,7 +79,8 @@ export class ExceptionStore {
   }
 
   get ignored (): IgnoredReport | undefined {
-    return this.createReport().ignore
+    const result = this.createReport().ignore
+    return result.exceptions.length === 0 ? undefined : result
   }
 
   get hasError (): boolean {
