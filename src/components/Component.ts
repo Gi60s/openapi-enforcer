@@ -1,5 +1,5 @@
 import { IComponentSpec, IVersion } from './IComponent'
-import { HookGetProperty, HookSetProperty, WatchProperty } from './Symbols'
+import { HookGetProperty, HookSetProperty } from './Symbols'
 import { ISchemaProcessor } from '../ComponentSchemaDefinition/ISchemaProcessor'
 import { ISchema, ISchemaDefinition } from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ExceptionStore } from '../Exception/ExceptionStore'
@@ -10,13 +10,12 @@ import { getMessage } from '../i18n/i18n'
 export const GetProperty = Symbol('GetProperty')
 export const SetProperty = Symbol('GetProperty')
 
-type IHookStoreItem = Record<string, Array<(newValue: any, oldValue: any) => void>>
-
 interface IComponentMapData {
   defaultValues: Record<string, any>
+  getHooks: Record<string, Array<(currValue: any, originalValue: any) => any>>
   propertyValues: Record<string, any>
   processorData: ISchemaProcessor<any, any>
-  watches: IHookStoreItem
+  setHooks: Record<string, Array<(currValue: any, originalValue: any) => any>>
 }
 
 interface IParentData {
@@ -38,48 +37,49 @@ export class EnforcerComponent<Definition> {
       : initializeProcessorData(definition, ctor, version)
     componentMap.set(this, {
       defaultValues: {},
+      getHooks: {},
       propertyValues: {},
       processorData,
-      watches: {}
+      setHooks: {}
     })
     // buildComponentFromDefinition<Definition, Built>(processorData)
   }
 
   public [HookGetProperty]<T> (key: string, callback: (value: T) => T): void {
-
-  }
-
-  public [HookSetProperty]<T> (key: string, callback: (newValue: T, oldValue: T) => T): void {
-
-  }
-
-  public [WatchProperty]<T> (key: string | string[], handler: (newValue: T, oldValue: T) => void): void {
     const data = componentMap.get(this) as IComponentMapData
-    const record = data.watches
-    const keys = Array.isArray(key) ? key : [key]
-    keys.forEach(k => {
-      if (record[k] === undefined) record[k] = []
-      record[k].push(handler)
-    })
+    const hooks = data.getHooks
+    if (hooks[key] === undefined) hooks[key] = []
+    hooks[key].push(callback)
+  }
+
+  public [HookSetProperty]<T> (key: string, callback: (currValue: T, originalValue: T) => T): void {
+    const data = componentMap.get(this) as IComponentMapData
+    const hooks = data.setHooks
+    if (hooks[key] === undefined) hooks[key] = []
+    hooks[key].push(callback)
   }
 
   protected [GetProperty]<T> (key: string): T {
     const data = componentMap.get(this) as IComponentMapData
-    return data.propertyValues[key] ?? data.defaultValues as T
+    const hooks = data.getHooks[key]
+    const originalValue = data.propertyValues[key] ?? data.defaultValues as T
+    let value = originalValue
+    hooks?.forEach(hook => {
+      value = hook(value, originalValue)
+    })
+    return value
   }
 
   protected [SetProperty] (key: string, value: any): void {
     const data = componentMap.get(this) as IComponentMapData
+    const hooks = data.setHooks[key]
     const record = data.propertyValues
-    const oldValue = record?.[key]
-    if (oldValue !== value) {
-      record[key] = value
-      const watches = data.watches[key]
-      const length = watches?.length ?? 0
-      for (let i = 0; i < length; i++) {
-        watches[i](value, oldValue)
-      }
-    }
+    const originalValue = value
+    let currValue = value
+    hooks?.forEach(hook => {
+      currValue = hook(currValue, originalValue)
+    })
+    record[key] = currValue
   }
 
   static get id (): string {
