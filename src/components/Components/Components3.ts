@@ -209,6 +209,10 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
     return result
   }
 
+  static create (definition?: Partial<I.IComponents3Definition> | Components | undefined): Components {
+    return new Components(Object.assign({}, definition) as I.IComponents3Definition)
+  }
+
   static validate (definition: I.IComponents3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

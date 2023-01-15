@@ -108,6 +108,16 @@ export class Response extends EnforcerComponent<I.IResponse2Definition> implemen
     return result
   }
 
+  static create (definition?: Partial<I.IResponse2Definition> | Response | undefined): Response {
+    if (definition instanceof Response) {
+      return new Response(Object.assign({}, definition))
+    } else {
+      return new Response(Object.assign({
+        description: ""
+      }, definition) as I.IResponse2Definition)
+    }
+  }
+
   static validate (definition: I.IResponse2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

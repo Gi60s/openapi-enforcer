@@ -106,6 +106,10 @@ export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> impl
     return result
   }
 
+  static create (definition?: Partial<I.IOAuthFlows3Definition> | OAuthFlows | undefined): OAuthFlows {
+    return new OAuthFlows(Object.assign({}, definition) as I.IOAuthFlows3Definition)
+  }
+
   static validate (definition: I.IOAuthFlows3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

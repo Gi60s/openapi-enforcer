@@ -72,6 +72,16 @@ export class Reference extends EnforcerComponent<I.IReference3Definition> implem
     return result
   }
 
+  static create (definition?: Partial<I.IReference3Definition> | Reference | undefined): Reference {
+    if (definition instanceof Reference) {
+      return new Reference(Object.assign({}, definition))
+    } else {
+      return new Reference(Object.assign({
+        $ref: ""
+      }, definition) as I.IReference3Definition)
+    }
+  }
+
   static validate (definition: I.IReference3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

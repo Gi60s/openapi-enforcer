@@ -81,6 +81,10 @@ export class Paths extends EnforcerComponent<I.IPaths3Definition> implements I.I
     return result
   }
 
+  static create (definition?: Partial<I.IPaths3Definition> | Paths | undefined): Paths {
+    return new Paths(Object.assign({}, definition) as I.IPaths3Definition)
+  }
+
   static validate (definition: I.IPaths3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

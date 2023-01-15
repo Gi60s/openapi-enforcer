@@ -94,6 +94,16 @@ export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definiti
     return result
   }
 
+  static create (definition?: Partial<I.IServerVariable3Definition> | ServerVariable | undefined): ServerVariable {
+    if (definition instanceof ServerVariable) {
+      return new ServerVariable(Object.assign({}, definition))
+    } else {
+      return new ServerVariable(Object.assign({
+        default: ""
+      }, definition) as I.IServerVariable3Definition)
+    }
+  }
+
   static validate (definition: I.IServerVariable3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

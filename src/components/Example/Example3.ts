@@ -98,6 +98,10 @@ export class Example extends EnforcerComponent<I.IExample3Definition> implements
     return result
   }
 
+  static create (definition?: Partial<I.IExample3Definition> | Example | undefined): Example {
+    return new Example(Object.assign({}, definition) as I.IExample3Definition)
+  }
+
   static validate (definition: I.IExample3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

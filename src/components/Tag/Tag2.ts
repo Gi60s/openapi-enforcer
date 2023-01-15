@@ -93,6 +93,16 @@ export class Tag extends EnforcerComponent<I.ITag2Definition> implements I.ITag2
     return result
   }
 
+  static create (definition?: Partial<I.ITag2Definition> | Tag | undefined): Tag {
+    if (definition instanceof Tag) {
+      return new Tag(Object.assign({}, definition))
+    } else {
+      return new Tag(Object.assign({
+        name: ""
+      }, definition) as I.ITag2Definition)
+    }
+  }
+
   static validate (definition: I.ITag2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

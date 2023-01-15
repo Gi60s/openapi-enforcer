@@ -110,6 +110,10 @@ export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implem
     return result
   }
 
+  static create (definition?: Partial<I.IMediaType3Definition> | MediaType | undefined): MediaType {
+    return new MediaType(Object.assign({}, definition) as I.IMediaType3Definition)
+  }
+
   static validate (definition: I.IMediaType3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

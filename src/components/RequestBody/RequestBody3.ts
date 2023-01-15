@@ -95,6 +95,10 @@ export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> im
     return result
   }
 
+  static create (definition?: Partial<I.IRequestBody3Definition> | RequestBody | undefined): RequestBody {
+    return new RequestBody(Object.assign({}, definition) as I.IRequestBody3Definition)
+  }
+
   static validate (definition: I.IRequestBody3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

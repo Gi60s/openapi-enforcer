@@ -98,6 +98,16 @@ export class Server extends EnforcerComponent<I.IServer3Definition> implements I
     return result
   }
 
+  static create (definition?: Partial<I.IServer3Definition> | Server | undefined): Server {
+    if (definition instanceof Server) {
+      return new Server(Object.assign({}, definition))
+    } else {
+      return new Server(Object.assign({
+        url: ""
+      }, definition) as I.IServer3Definition)
+    }
+  }
+
   static validate (definition: I.IServer3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

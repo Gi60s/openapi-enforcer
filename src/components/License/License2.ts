@@ -83,6 +83,16 @@ export class License extends EnforcerComponent<I.ILicense2Definition> implements
     return result
   }
 
+  static create (definition?: Partial<I.ILicense2Definition> | License | undefined): License {
+    if (definition instanceof License) {
+      return new License(Object.assign({}, definition))
+    } else {
+      return new License(Object.assign({
+        name: ""
+      }, definition) as I.ILicense2Definition)
+    }
+  }
+
   static validate (definition: I.ILicense2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

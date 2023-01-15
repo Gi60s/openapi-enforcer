@@ -218,6 +218,16 @@ export class Header extends EnforcerComponent<I.IHeader2Definition> implements I
     return result
   }
 
+  static create (definition?: Partial<I.IHeader2Definition> | Header | undefined): Header {
+    if (definition instanceof Header) {
+      return new Header(Object.assign({}, definition))
+    } else {
+      return new Header(Object.assign({
+        type: "array"
+      }, definition) as I.IHeader2Definition)
+    }
+  }
+
   static validate (definition: I.IHeader2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

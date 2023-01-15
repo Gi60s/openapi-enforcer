@@ -134,6 +134,10 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definiti
     return result
   }
 
+  static create (definition?: Partial<I.ISecurityScheme3Definition> | SecurityScheme | undefined): SecurityScheme {
+    return new SecurityScheme(Object.assign({}, definition) as I.ISecurityScheme3Definition)
+  }
+
   static validate (definition: I.ISecurityScheme3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

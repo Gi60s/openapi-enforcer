@@ -83,6 +83,16 @@ export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocument
     return result
   }
 
+  static create (definition?: Partial<I.IExternalDocumentation3Definition> | ExternalDocumentation | undefined): ExternalDocumentation {
+    if (definition instanceof ExternalDocumentation) {
+      return new ExternalDocumentation(Object.assign({}, definition))
+    } else {
+      return new ExternalDocumentation(Object.assign({
+        url: ""
+      }, definition) as I.IExternalDocumentation3Definition)
+    }
+  }
+
   static validate (definition: I.IExternalDocumentation3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

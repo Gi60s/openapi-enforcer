@@ -120,6 +120,17 @@ export class Info extends EnforcerComponent<I.IInfo3Definition> implements I.IIn
     return result
   }
 
+  static create (definition?: Partial<I.IInfo3Definition> | Info | undefined): Info {
+    if (definition instanceof Info) {
+      return new Info(Object.assign({}, definition))
+    } else {
+      return new Info(Object.assign({
+        title: "",
+        version: ""
+      }, definition) as I.IInfo3Definition)
+    }
+  }
+
   static validate (definition: I.IInfo3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

@@ -157,6 +157,18 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
     return result
   }
 
+  static create (definition?: Partial<I.IOpenAPI3Definition> | OpenAPI | undefined): OpenAPI {
+    if (definition instanceof OpenAPI) {
+      return new OpenAPI(Object.assign({}, definition))
+    } else {
+      return new OpenAPI(Object.assign({
+        openapi: "3.0.0",
+        info: I.Info3.create(),
+        paths: I.Paths3.create()
+      }, definition) as I.IOpenAPI3Definition)
+    }
+  }
+
   static validate (definition: I.IOpenAPI3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

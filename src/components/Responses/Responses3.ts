@@ -96,6 +96,10 @@ export class Responses extends EnforcerComponent<I.IResponses3Definition> implem
     return result
   }
 
+  static create (definition?: Partial<I.IResponses3Definition> | Responses | undefined): Responses {
+    return new Responses(Object.assign({}, definition) as I.IResponses3Definition)
+  }
+
   static validate (definition: I.IResponses3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
