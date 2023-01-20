@@ -38,6 +38,7 @@ export const language: II18nMessagesMap = {
   PROPERTY_NOT_ALLOWED: 'The property {{propertyName}} is not allowed. {{reason}}.',
   PROPERTY_MISSING: 'Required property {{propertyName}} is missing.',
   PROPERTY_UNKNOWN: 'The property {{propertyName}} is not allowed because it is not part of the spec.',
+  REF_NOT_ALLOWED: 'According to the OpenAPI specification, the $ref is not allowed here.',
   REF_CONFLICT: 'The $ref property is not supported when other fields also exist. See issue ' +
     'https://github.com/OAI/OpenAPI-Specification/issues/2635',
   REF_NOT_RESOLVED: 'The reference could not be resolved: {{reference}}.',

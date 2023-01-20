@@ -96,6 +96,10 @@ export class Contact extends EnforcerComponent<I.IContact2Definition> implements
     return new Contact(Object.assign({}, definition) as I.IContact2Definition)
   }
 
+  static createDefinition (definition?: Partial<I.IContact2Definition> | undefined): I.IContact2Definition {
+    return Object.assign({}, definition) as I.IContact2Definition
+  }
+
   static validate (definition: I.IContact2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

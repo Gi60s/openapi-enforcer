@@ -47,6 +47,38 @@ export class ExceptionStore {
     return this
   }
 
+  hasErrorByCode (code: string): boolean {
+    return this.error?.exceptions?.find(e => e.code === code) !== undefined
+  }
+
+  hasErrorById (id: string): boolean {
+    return this.error?.exceptions?.find(e => e.id === id) !== undefined
+  }
+
+  hasWarningByCode (code: string): boolean {
+    return this.warning?.exceptions?.find(e => e.code === code) !== undefined
+  }
+
+  hasWarningById (id: string): boolean {
+    return this.warning?.exceptions?.find(e => e.id === id) !== undefined
+  }
+
+  hasInfoByCode (code: string): boolean {
+    return this.info?.exceptions?.find(e => e.code === code) !== undefined
+  }
+
+  hasInfoById (id: string): boolean {
+    return this.info?.exceptions?.find(e => e.id === id) !== undefined
+  }
+
+  hasIgnoredByCode (code: string): boolean {
+    return this.ignored?.exceptions?.find(e => e.code === code) !== undefined
+  }
+
+  hasIgnoredById (id: string): boolean {
+    return this.ignored?.exceptions?.find(e => e.id === id) !== undefined
+  }
+
   get '0' (): ErrorReport | undefined {
     return this.error
   }

@@ -33,6 +33,7 @@ export interface II18nMessagesMap {
   PROPERTY_MISSING: string
   PROPERTY_UNKNOWN: string
   REF_CONFLICT: string
+  REF_NOT_ALLOWED: string
   REF_NOT_RESOLVED: string
   SCHEMA_NOT_MET: string
   SPEC_VERSION_NOT_SUPPORTED: string

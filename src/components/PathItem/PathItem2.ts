@@ -161,6 +161,10 @@ export class PathItem extends EnforcerComponent<I.IPathItem2Definition> implemen
     return new PathItem(Object.assign({}, definition) as I.IPathItem2Definition)
   }
 
+  static createDefinition (definition?: Partial<I.IPathItem2Definition> | undefined): I.IPathItem2Definition {
+    return Object.assign({}, definition) as I.IPathItem2Definition
+  }
+
   static validate (definition: I.IPathItem2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

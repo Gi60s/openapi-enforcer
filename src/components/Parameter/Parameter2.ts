@@ -273,6 +273,13 @@ export class Parameter extends EnforcerComponent<I.IParameter2Definition> implem
     }
   }
 
+  static createDefinition (definition?: Partial<I.IParameter2Definition> | undefined): I.IParameter2Definition {
+    return Object.assign({
+        name: "",
+        in: "body"
+      }, definition) as I.IParameter2Definition
+  }
+
   static validate (definition: I.IParameter2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

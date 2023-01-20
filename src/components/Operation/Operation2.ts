@@ -285,6 +285,12 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
     }
   }
 
+  static createDefinition (definition?: Partial<I.IOperation2Definition> | undefined): I.IOperation2Definition {
+    return Object.assign({
+        responses: I.Responses2.create()
+      }, definition) as I.IOperation2Definition
+  }
+
   static validate (definition: I.IOperation2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

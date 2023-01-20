@@ -115,6 +115,10 @@ export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implemen
     return new Encoding(Object.assign({}, definition) as I.IEncoding3Definition)
   }
 
+  static createDefinition (definition?: Partial<I.IEncoding3Definition> | undefined): I.IEncoding3Definition {
+    return Object.assign({}, definition) as I.IEncoding3Definition
+  }
+
   static validate (definition: I.IEncoding3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

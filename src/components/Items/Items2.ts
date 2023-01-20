@@ -220,6 +220,12 @@ export class Items extends EnforcerComponent<I.IItems2Definition> implements I.I
     }
   }
 
+  static createDefinition (definition?: Partial<I.IItems2Definition> | undefined): I.IItems2Definition {
+    return Object.assign({
+        type: "array"
+      }, definition) as I.IItems2Definition
+  }
+
   static validate (definition: I.IItems2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

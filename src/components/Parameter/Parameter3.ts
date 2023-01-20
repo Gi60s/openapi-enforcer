@@ -197,6 +197,13 @@ export class Parameter extends EnforcerComponent<I.IParameter3Definition> implem
     }
   }
 
+  static createDefinition (definition?: Partial<I.IParameter3Definition> | undefined): I.IParameter3Definition {
+    return Object.assign({
+        name: "",
+        in: "cookie"
+      }, definition) as I.IParameter3Definition
+  }
+
   static validate (definition: I.IParameter3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

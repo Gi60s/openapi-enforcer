@@ -124,6 +124,12 @@ export class Response extends EnforcerComponent<I.IResponse3Definition> implemen
     }
   }
 
+  static createDefinition (definition?: Partial<I.IResponse3Definition> | undefined): I.IResponse3Definition {
+    return Object.assign({
+        description: ""
+      }, definition) as I.IResponse3Definition
+  }
+
   static validate (definition: I.IResponse3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

@@ -110,6 +110,10 @@ export class Xml extends EnforcerComponent<I.IXml3Definition> implements I.IXml3
     return new Xml(Object.assign({}, definition) as I.IXml3Definition)
   }
 
+  static createDefinition (definition?: Partial<I.IXml3Definition> | undefined): I.IXml3Definition {
+    return Object.assign({}, definition) as I.IXml3Definition
+  }
+
   static validate (definition: I.IXml3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }

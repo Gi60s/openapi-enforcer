@@ -46,6 +46,10 @@ describe('exceptions', () => {
     expect(lines[1]).to.equal('  at: foo')
     expect(lines[2]).to.equal('    [X_VALUE_TYPE_INVALID] The value "foo" did not match the expected data type: "boolean".')
     expect(lines.length).to.equal(3)
+
+    expect(store.hasError).to.equal(true)
+    expect(store.hasErrorById('X_VALUE_TYPE_INVALID')).to.equal(true)
+    expect(store.hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(true)
   })
 
   it('will group two exceptions at one location', () => {
