@@ -95,7 +95,8 @@ export function getMergedParameters (data: ISchemaProcessorData): IFromParameter
     const { chain, definition } = data
     const pathItem = chain.getAncestor('PathItem')
     const pathItemParameters: IFromParameterArray = pathItem?.definition.parameters ?? []
-    const operationParameters: IFromParameterArray = definition.parameters ?? []
+    const operationParameters: IFromParameterArray = ((definition.parameters ?? []) as IParameterDefinition[])
+      .filter((p: any) => !('$ref' in p))
     results = mergeParameters(pathItemParameters, operationParameters)
   }
   return results

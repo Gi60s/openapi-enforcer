@@ -47,9 +47,9 @@ export interface ISchema2Definition {
   required?: string[]
   type?: string
   items?: I.ISchema2Definition
-  allOf?: I.ISchema2Definition[]
-  properties?: Record<string, I.ISchema2Definition>
-  additionalProperties?: I.ISchema2Definition | boolean
+  allOf?: Array<I.ISchema2Definition | I.IReference2Definition>
+  properties?: Record<string, I.ISchema2Definition | I.IReference2Definition>
+  additionalProperties?: I.ISchema2Definition | boolean | I.IReference2Definition
   discriminator?: string
   readOnly?: boolean
   xml?: I.IXml2Definition
@@ -93,10 +93,10 @@ export interface ISchema2 extends ISchemaComponent {
 export interface ISchema3Definition {
   [Extensions]: Record<string, any>
   type?: string
-  allOf?: I.ISchema3Definition[]
-  oneOf?: I.ISchema3Definition[]
-  anyOf?: I.ISchema3Definition[]
-  not?: I.ISchema3Definition
+  allOf?: Array<I.ISchema3Definition | I.IReference3Definition>
+  oneOf?: Array<I.ISchema3Definition | I.IReference3Definition>
+  anyOf?: Array<I.ISchema3Definition | I.IReference3Definition>
+  not?: I.ISchema3Definition | I.IReference3Definition
   title?: string
   maximum?: number
   exclusiveMaximum?: number
@@ -113,9 +113,9 @@ export interface ISchema3Definition {
   enum?: any[]
   multipleOf?: number
   required?: string[]
-  items?: I.ISchema3Definition
-  properties?: Record<string, I.ISchema3Definition>
-  additionalProperties?: I.ISchema3Definition | boolean
+  items?: I.ISchema3Definition | I.IReference3Definition
+  properties?: Record<string, I.ISchema3Definition | I.IReference3Definition>
+  additionalProperties?: I.ISchema3Definition | boolean | I.IReference3Definition
   description?: string
   format?: string
   default?: any

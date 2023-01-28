@@ -28,15 +28,17 @@ export function parametersAreUnique (data: ISchemaProcessor<IPathItemDefinition,
   const { definition, exception, id, reference } = data
   const existing: Record<string, Record<string, IParameterDefinition[]>> = {}
   definition.parameters?.forEach((parameter) => {
-    const name = parameter.name
-    const at = parameter.in
-    if (existing[name] === undefined) {
-      existing[name] = {}
+    if (!('$ref' in parameter)) {
+      const name = parameter.name
+      const at = parameter.in
+      if (existing[name] === undefined) {
+        existing[name] = {}
+      }
+      if (existing[name][at] === undefined) {
+        existing[name][at] = []
+      }
+      existing[name][at].push(parameter)
     }
-    if (existing[name][at] === undefined) {
-      existing[name][at] = []
-    }
-    existing[name][at].push(parameter)
   })
 
   Object.keys(existing).forEach(name => {

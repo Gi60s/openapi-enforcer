@@ -26,15 +26,15 @@ interface IComponentsComponent extends IComponentInstance {
 
 export interface IComponents3Definition {
   [Extensions]: Record<string, any>
-  schemas?: Record<string, I.ISchema3Definition>
-  responses?: Record<string, I.IResponse3Definition>
-  parameters?: Record<string, I.IParameter3Definition>
-  examples?: Record<string, I.IExample3Definition>
-  requestBodies?: Record<string, I.IRequestBody3Definition>
-  headers?: Record<string, I.IHeader3Definition>
-  securitySchemes?: Record<string, I.ISecurityScheme3Definition>
-  links?: Record<string, I.ILink3Definition>
-  callbacks?: Record<string, I.ICallback3Definition>
+  schemas?: Record<string, I.ISchema3Definition | I.IReference3Definition>
+  responses?: Record<string, I.IResponse3Definition | I.IReference3Definition>
+  parameters?: Record<string, I.IParameter3Definition | I.IReference3Definition>
+  examples?: Record<string, I.IExample3Definition | I.IReference3Definition>
+  requestBodies?: Record<string, I.IRequestBody3Definition | I.IReference3Definition>
+  headers?: Record<string, I.IHeader3Definition | I.IReference3Definition>
+  securitySchemes?: Record<string, I.ISecurityScheme3Definition | I.IReference3Definition>
+  links?: Record<string, I.ILink3Definition | I.IReference3Definition>
+  callbacks?: Record<string, I.ICallback3Definition | I.IReference3Definition>
 }
 
 export interface IComponents3 extends IComponentsComponent {

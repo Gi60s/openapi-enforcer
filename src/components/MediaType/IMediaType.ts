@@ -26,9 +26,9 @@ interface IMediaTypeComponent extends IComponentInstance {
 
 export interface IMediaType3Definition {
   [Extensions]: Record<string, any>
-  schema?: I.ISchema3Definition
+  schema?: I.ISchema3Definition | I.IReference3Definition
   example?: any
-  examples?: Record<string, I.IExample3Definition>
+  examples?: Record<string, I.IExample3Definition | I.IReference3Definition>
   encoding?: Record<string, I.IEncoding3Definition>
 }
 

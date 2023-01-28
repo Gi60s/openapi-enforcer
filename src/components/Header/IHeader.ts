@@ -77,9 +77,9 @@ export interface IHeader3Definition {
   style?: 'simple'
   explode?: boolean
   allowReserved?: boolean
-  schema?: I.ISchema3Definition
+  schema?: I.ISchema3Definition | I.IReference3Definition
   example?: any
-  examples?: Record<string, I.IExample3Definition>
+  examples?: Record<string, I.IExample3Definition | I.IReference3Definition>
   content?: Record<string, I.IMediaType3Definition>
 }
 

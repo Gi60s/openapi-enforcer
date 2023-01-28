@@ -34,7 +34,7 @@ export interface IPathItem2Definition {
   options?: I.IOperation2Definition
   head?: I.IOperation2Definition
   patch?: I.IOperation2Definition
-  parameters?: I.IParameter2Definition[]
+  parameters?: Array<I.IParameter2Definition | I.IReference2Definition>
 }
 
 export interface IPathItem2 extends IPathItemComponent {
@@ -64,7 +64,7 @@ export interface IPathItem3Definition {
   patch?: I.IOperation3Definition
   trace?: I.IOperation3Definition
   servers?: I.IServer3Definition[]
-  parameters?: I.IParameter3Definition[]
+  parameters?: Array<I.IParameter3Definition | I.IReference3Definition>
 }
 
 export interface IPathItem3 extends IPathItemComponent {

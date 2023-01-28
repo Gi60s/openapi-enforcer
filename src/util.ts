@@ -1,4 +1,3 @@
-
 /**
  * If a function has been deprecated, use this function to provide a console message once every 10 minutes when
  * called.
@@ -6,6 +5,8 @@
  * @param newName The name of the new function
  * @param fn The deprecated function
  */
+import * as I from './components/IInternalTypes'
+
 export function deprecated<F extends Function> (oldName: string, newName: string, fn: F): F {
   let lastRun = 0
   return function (...args: any[]) {

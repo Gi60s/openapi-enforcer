@@ -40,7 +40,7 @@ export interface IOperation2Definition {
   operationId?: string
   consumes?: string[]
   produces?: string[]
-  parameters?: I.IParameter2Definition[]
+  parameters?: Array<I.IParameter2Definition | I.IReference2Definition>
   responses: I.IResponses2Definition
   schemes?: Array<'http'|'https'|'ws'|'wss'>
   deprecated?: boolean
@@ -70,10 +70,10 @@ export interface IOperation3Definition {
   description?: string
   externalDocs?: I.IExternalDocumentation3Definition
   operationId?: string
-  parameters?: I.IParameter3Definition[]
-  requestBody?: I.IRequestBody3Definition
+  parameters?: Array<I.IParameter3Definition | I.IReference3Definition>
+  requestBody?: I.IRequestBody3Definition | I.IReference3Definition
   responses: I.IResponses3Definition
-  callbacks?: Record<string, I.ICallback3Definition>
+  callbacks?: Record<string, I.ICallback3Definition | I.IReference3Definition>
   deprecated?: boolean
   security?: I.ISecurityRequirement3Definition[]
   servers?: I.IServer3Definition[]

@@ -25,7 +25,7 @@ interface IResponseComponent extends IComponentInstance {
 export interface IResponse2Definition {
   [Extensions]: Record<string, any>
   description: string
-  schema?: I.ISchema2Definition
+  schema?: I.ISchema2Definition | I.IReference2Definition
   headers?: Record<string, I.IHeader2Definition>
   examples?: I.IExample2Definition
 }
@@ -41,9 +41,9 @@ export interface IResponse2 extends IResponseComponent {
 export interface IResponse3Definition {
   [Extensions]: Record<string, any>
   description: string
-  headers?: Record<string, I.IHeader3Definition>
+  headers?: Record<string, I.IHeader3Definition | I.IReference3Definition>
   content?: Record<string, I.IMediaType3Definition>
-  links?: Record<string, I.ILink3Definition>
+  links?: Record<string, I.ILink3Definition | I.IReference3Definition>
 }
 
 export interface IResponse3 extends IResponseComponent {
