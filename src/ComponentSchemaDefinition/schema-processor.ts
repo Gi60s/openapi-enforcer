@@ -13,14 +13,14 @@ export function findAncestor<T> (data: ISchemaProcessor, componentName: string):
   return undefined
 }
 
-export function generateChildProcessorData<Definition, Built extends EnforcerComponentClass> (data: ISchemaProcessor, key: string, ctor: EnforcerComponentClass): ISchemaProcessor<Definition, Built> {
+export function generateChildProcessorData<Definition, Built extends EnforcerComponentClass> (data: ISchemaProcessor, key: string, definition: Definition, ctor: EnforcerComponentClass): ISchemaProcessor<Definition, Built> {
   const built: any = {}
   const child: ISchemaProcessor<Definition, Built> = {
     built,
     chain: data.chain.add(data),
     children: {},
     constructor: ctor,
-    definition: (data.definition as Record<string, any>)[key] as Definition,
+    definition,
     exception: data.exception,
     id: ctor.id,
     key,
@@ -39,7 +39,7 @@ export function getExistingProcessorData<Definition=any, Built=any> (definition:
 
 export function initializeProcessorData<Definition, Built> (definition: Definition, ctor: EnforcerComponentClass, version?: IVersion): ISchemaProcessor<Definition, Built> {
   const determinedVersion = version === undefined
-    ? getHighestVersion(Object.keys(ctor.spec) as IVersion[])
+    ? getHighestVersion(Object.keys(ctor.spec).filter(v => typeof (ctor.spec as any)[v] === 'string') as IVersion[])
     : version
   const built: any = {}
   const result: ISchemaProcessor<Definition, Built> = {

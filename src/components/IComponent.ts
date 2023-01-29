@@ -13,8 +13,9 @@ export interface IEnforcerExtensionDefinition {
   nullable?: boolean
 }
 
-// string is reference to spec, true means it's supported but not by this version of the component
-// false means that the component is not supported for this version
+// string (a is reference to spec) - this version is supported and you've matched the right version to the right component class
+// true - this version is supported, but you're using the wrong component class
+// false - this version is not supported for this component according to the spec
 export type IComponentSpec = Record<IVersion, string | boolean>
 
 export type IVersion = '2.0' | '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3'

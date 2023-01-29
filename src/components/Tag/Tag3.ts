@@ -29,30 +29,6 @@ interface IValidatorsMap {
   externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
 }
 
-const validators: IValidatorsMap = {
-  name: {
-    name: 'name',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  externalDocs: {
-    name: 'externalDocs',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.ExternalDocumentation3
-    }
-  }
-}
-
 export class Tag extends EnforcerComponent<I.ITag3Definition> implements I.ITag3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -75,6 +51,7 @@ export class Tag extends EnforcerComponent<I.ITag3Definition> implements I.ITag3
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.ITag3Definition, I.ITag3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -140,6 +117,32 @@ export class Tag extends EnforcerComponent<I.ITag3Definition> implements I.ITag3
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    name: {
+      name: 'name',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    externalDocs: {
+      name: 'externalDocs',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.ExternalDocumentation3
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

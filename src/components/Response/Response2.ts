@@ -30,43 +30,6 @@ interface IValidatorsMap {
   examples: ISchema.IProperty<ISchema.IComponent<I.IExample2Definition, I.IExample2>>
 }
 
-const validators: IValidatorsMap = {
-  description: {
-    name: 'description',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  },
-  schema: {
-    name: 'schema',
-    schema: {
-      type: 'component',
-      allowsRef: true,
-      component: I.Schema2
-    }
-  },
-  headers: {
-    name: 'headers',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: false,
-        component: I.Header2
-      }
-    }
-  },
-  examples: {
-    name: 'examples',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Example2
-    }
-  }
-}
-
 export class Response extends EnforcerComponent<I.IResponse2Definition> implements I.IResponse2 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -89,6 +52,7 @@ export class Response extends EnforcerComponent<I.IResponse2Definition> implemen
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -163,6 +127,45 @@ export class Response extends EnforcerComponent<I.IResponse2Definition> implemen
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    description: {
+      name: 'description',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    },
+    schema: {
+      name: 'schema',
+      schema: {
+        type: 'component',
+        allowsRef: true,
+        component: I.Schema2
+      }
+    },
+    headers: {
+      name: 'headers',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: I.Header2
+        }
+      }
+    },
+    examples: {
+      name: 'examples',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Example2
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

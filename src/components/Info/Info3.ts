@@ -32,51 +32,6 @@ interface IValidatorsMap {
   version: ISchema.IProperty<ISchema.IString>
 }
 
-const validators: IValidatorsMap = {
-  title: {
-    name: 'title',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  termsOfService: {
-    name: 'termsOfService',
-    schema: {
-      type: 'string'
-    }
-  },
-  contact: {
-    name: 'contact',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Contact3
-    }
-  },
-  license: {
-    name: 'license',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.License3
-    }
-  },
-  version: {
-    name: 'version',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  }
-}
-
 export class Info extends EnforcerComponent<I.IInfo3Definition> implements I.IInfo3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -99,6 +54,7 @@ export class Info extends EnforcerComponent<I.IInfo3Definition> implements I.IIn
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IInfo3Definition, I.IInfo3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -193,6 +149,53 @@ export class Info extends EnforcerComponent<I.IInfo3Definition> implements I.IIn
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    title: {
+      name: 'title',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    termsOfService: {
+      name: 'termsOfService',
+      schema: {
+        type: 'string'
+      }
+    },
+    contact: {
+      name: 'contact',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Contact3
+      }
+    },
+    license: {
+      name: 'license',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.License3
+      }
+    },
+    version: {
+      name: 'version',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

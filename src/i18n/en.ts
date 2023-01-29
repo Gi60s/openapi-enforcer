@@ -3,8 +3,6 @@ import { II18nMessagesMap } from './i18n'
 export const language: II18nMessagesMap = {
   COMPONENT_NAME_INVALID: 'Component {{componentsNamespace}} property names can only contain letters, numbers, dots, ' +
     'dashes, and underscores. The property {{propertyName}} is not valid.',
-  COMPONENT_VERSION_MISMATCH: 'The OpenAPIEnforcer supports OpenAPI specification version {{version}}, but the ' +
-    '{{componentName}} object does not support this version.',
   CONTENT_TYPE_INVALID: 'Content-type appears to be invalid: {{contentType}}.',
   I18N_LANGUAGE_NOT_DEFINED: 'Language cannot be set to {{languageCode}} because that language has not yet been added.',
   I18N_MISSING_MESSAGES: 'Cannot add language {{languageCode}} because the following message codes are not defined ' +
@@ -43,11 +41,13 @@ export const language: II18nMessagesMap = {
     'https://github.com/OAI/OpenAPI-Specification/issues/2635',
   REF_NOT_RESOLVED: 'The reference could not be resolved: {{reference}}.',
   SCHEMA_NOT_MET: 'The value {{value}} does not match any of the potential values.',
-  SPEC_VERSION_NOT_SUPPORTED: 'The OpenAPIEnforcer does not support OpenAPI specification version {{version}}. ' +
-    'These versions are supported: {{supportedVersions}}.',
   SUMMERY_EXCEEDS_RECOMMENDED_LENGTH: 'The summary should be less than 120 characters in length.',
   URL_INVALID: 'URL appears to be invalid: {{url}}.',
   VALUE_OUT_OF_RANGE_MAX: 'The value {{value}} must be less than or equal to {{maximum}}.',
   VALUE_OUT_OF_RANGE_MIN: 'The value {{value}} must be greater than or equal to {{minimum}}.',
-  VALUE_TYPE_INVALID: 'The value {{value}} did not match the expected data type: {{expectedType}}.'
+  VALUE_TYPE_INVALID: 'The value {{value}} did not match the expected data type: {{expectedType}}.',
+  VERSION_MISMATCH: 'The OpenAPI Enforcer and the OpenAPI specification both support a {{componentName}} object, although ' +
+    'you\'re using the wrong version of the class in the OpenAPI enforcer for this object.',
+  VERSION_NOT_IMPLEMENTED: 'The OpenAPI Enforcer does not currently support OpenAPI specification version {{version}}.',
+  VERSION_NOT_SUPPORTED: 'The {{componentName}} object does not exist in OpenAPI specification {{version}}.'
 }

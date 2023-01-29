@@ -29,27 +29,6 @@ interface IValidatorsMap {
   email: ISchema.IProperty<ISchema.IString>
 }
 
-const validators: IValidatorsMap = {
-  name: {
-    name: 'name',
-    schema: {
-      type: 'string'
-    }
-  },
-  url: {
-    name: 'url',
-    schema: {
-      type: 'string'
-    }
-  },
-  email: {
-    name: 'email',
-    schema: {
-      type: 'string'
-    }
-  }
-}
-
 export class Contact extends EnforcerComponent<I.IContact3Definition> implements I.IContact3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -72,6 +51,7 @@ export class Contact extends EnforcerComponent<I.IContact3Definition> implements
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IContact3Definition, I.IContact3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -131,6 +111,29 @@ export class Contact extends EnforcerComponent<I.IContact3Definition> implements
   // <!# Custom Content Begin: BODY #!>
 
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    name: {
+      name: 'name',
+      schema: {
+        type: 'string'
+      }
+    },
+    url: {
+      name: 'url',
+      schema: {
+        type: 'string'
+      }
+    },
+    email: {
+      name: 'email',
+      schema: {
+        type: 'string'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

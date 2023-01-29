@@ -29,31 +29,6 @@ interface IValidatorsMap {
   description: ISchema.IProperty<ISchema.IString>
 }
 
-const validators: IValidatorsMap = {
-  _enum: {
-    name: 'enum',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
-    }
-  },
-  _default: {
-    name: 'default',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  }
-}
-
 export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definition> implements I.IServerVariable3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -76,6 +51,7 @@ export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definiti
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IServerVariable3Definition, I.IServerVariable3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -141,6 +117,33 @@ export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definiti
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    _enum: {
+      name: 'enum',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'string'
+        }
+      }
+    },
+    _default: {
+      name: 'default',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

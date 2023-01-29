@@ -30,36 +30,6 @@ interface IValidatorsMap {
   scopes: ISchema.IProperty<ISchema.IObject<ISchema.IString>>
 }
 
-const validators: IValidatorsMap = {
-  authorizationUrl: {
-    name: 'authorizationUrl',
-    schema: {
-      type: 'string'
-    }
-  },
-  tokenUrl: {
-    name: 'tokenUrl',
-    schema: {
-      type: 'string'
-    }
-  },
-  refreshUrl: {
-    name: 'refreshUrl',
-    schema: {
-      type: 'string'
-    }
-  },
-  scopes: {
-    name: 'scopes',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'string'
-      }
-    }
-  }
-}
-
 export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implements I.IOAuthFlow3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -82,6 +52,7 @@ export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implem
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IOAuthFlow3Definition, I.IOAuthFlow3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -148,6 +119,38 @@ export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implem
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    authorizationUrl: {
+      name: 'authorizationUrl',
+      schema: {
+        type: 'string'
+      }
+    },
+    tokenUrl: {
+      name: 'tokenUrl',
+      schema: {
+        type: 'string'
+      }
+    },
+    refreshUrl: {
+      name: 'refreshUrl',
+      schema: {
+        type: 'string'
+      }
+    },
+    scopes: {
+      name: 'scopes',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'string'
+        }
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

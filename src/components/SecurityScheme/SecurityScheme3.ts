@@ -34,61 +34,6 @@ interface IValidatorsMap {
   openIdConnectUrl: ISchema.IProperty<ISchema.IString>
 }
 
-const validators: IValidatorsMap = {
-  type: {
-    name: 'type',
-    schema: {
-      type: 'string',
-      enum: ['apiKey', 'http', 'oauth2', 'openIdConnect']
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  name: {
-    name: 'name',
-    schema: {
-      type: 'string'
-    }
-  },
-  _in: {
-    name: 'in',
-    schema: {
-      type: 'string',
-      enum: ['query', 'header', 'cookie']
-    }
-  },
-  scheme: {
-    name: 'scheme',
-    schema: {
-      type: 'string'
-    }
-  },
-  bearerFormat: {
-    name: 'bearerFormat',
-    schema: {
-      type: 'string'
-    }
-  },
-  flows: {
-    name: 'flows',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.OAuthFlows3
-    }
-  },
-  openIdConnectUrl: {
-    name: 'openIdConnectUrl',
-    schema: {
-      type: 'string'
-    }
-  }
-}
-
 export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definition> implements I.ISecurityScheme3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -111,6 +56,7 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definiti
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -213,6 +159,63 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definiti
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    type: {
+      name: 'type',
+      schema: {
+        type: 'string',
+        enum: ['apiKey', 'http', 'oauth2', 'openIdConnect']
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    name: {
+      name: 'name',
+      schema: {
+        type: 'string'
+      }
+    },
+    _in: {
+      name: 'in',
+      schema: {
+        type: 'string',
+        enum: ['query', 'header', 'cookie']
+      }
+    },
+    scheme: {
+      name: 'scheme',
+      schema: {
+        type: 'string'
+      }
+    },
+    bearerFormat: {
+      name: 'bearerFormat',
+      schema: {
+        type: 'string'
+      }
+    },
+    flows: {
+      name: 'flows',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.OAuthFlows3
+      }
+    },
+    openIdConnectUrl: {
+      name: 'openIdConnectUrl',
+      schema: {
+        type: 'string'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

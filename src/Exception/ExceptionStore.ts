@@ -164,12 +164,20 @@ export class ExceptionStore {
     }
     this.exceptions.forEach(exception => {
       const id = exception.id
-      exception.locations.forEach(location => {
-        const level: IExceptionLevel = exception.levelOverwritten
-          ? exception.level
-          : overwrite[id] ?? exception.level
-        levelGroups[level].push(exception)
-      })
+      if (exception.locations.length > 0) {
+        const usedLevels = new Set<IExceptionLevel>()
+        exception.locations.forEach(location => {
+          const level: IExceptionLevel = exception.levelOverwritten
+            ? exception.level
+            : overwrite[id] ?? exception.level
+          usedLevels.add(level)
+        })
+        Array.from(usedLevels).forEach(level => {
+          levelGroups[level].push(exception)
+        })
+      } else {
+        levelGroups[exception.level].push(exception)
+      }
     })
 
     // generate report groups

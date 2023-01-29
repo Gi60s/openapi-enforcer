@@ -26,16 +26,6 @@ interface IValidatorsMap {
   $ref: ISchema.IProperty<ISchema.IString>
 }
 
-const validators: IValidatorsMap = {
-  $ref: {
-    name: '$ref',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  }
-}
-
 export class Reference extends EnforcerComponent<I.IReference3Definition> implements I.IReference3 {
   constructor (definition: I.IReference3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -56,6 +46,7 @@ export class Reference extends EnforcerComponent<I.IReference3Definition> implem
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IReference3Definition, I.IReference3> = {
       type: 'object',
       allowsSchemaExtensions: false,
@@ -103,6 +94,18 @@ export class Reference extends EnforcerComponent<I.IReference3Definition> implem
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    $ref: {
+      name: '$ref',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

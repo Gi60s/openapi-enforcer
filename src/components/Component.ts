@@ -33,7 +33,7 @@ export class EnforcerComponent<Definition> {
   constructor (definition: Definition, version?: IVersion, data?: IParentData) {
     const ctor = this.constructor as typeof EnforcerComponent
     const processorData = data !== undefined
-      ? generateChildProcessorData(data.parent, data.key, ctor)
+      ? generateChildProcessorData(data.parent, data.key, definition, ctor)
       : initializeProcessorData(definition, ctor, version)
     componentMap.set(this, {
       defaultValues: {},
@@ -82,12 +82,14 @@ export class EnforcerComponent<Definition> {
     record[key] = currValue
   }
 
-  static get id (): string {
-    throw new Error(getMessage('NOT_IMPLEMENTED'))
-  }
+  static id: string = 'BASE_COMPONENT'
 
-  static get spec (): IComponentSpec {
-    throw new Error(getMessage('NOT_IMPLEMENTED'))
+  static spec: IComponentSpec = {
+    '2.0': false,
+    '3.0.0': false,
+    '3.0.1': false,
+    '3.0.2': false,
+    '3.0.3': false
   }
 
   static getSchemaDefinition (data: ISchemaProcessor<any, any>): ISchemaDefinition<any, any> {
@@ -96,7 +98,7 @@ export class EnforcerComponent<Definition> {
 
   static validate<Definition, Built extends typeof EnforcerComponent<Definition>> (definition: any, version?: IVersion, data?: IParentData): ExceptionStore {
     const processorData = data !== undefined
-      ? generateChildProcessorData<Definition, Built>(data.parent, data.key, this)
+      ? generateChildProcessorData<Definition, Built>(data.parent, data.key, definition, this)
       : initializeProcessorData<Definition, Built>(definition, this, version)
     return validateComponentDefinition<Definition, Built>(processorData)
   }
@@ -114,7 +116,7 @@ function validateComponentDefinition<Definition, Built> (data: ISchemaProcessor<
   if (spec[version] === undefined) {
     exception.add({
       id,
-      code: 'SPEC_VERSION_NOT_SUPPORTED',
+      code: 'VERSION_NOT_IMPLEMENTED',
       level: 'error',
       locations: [],
       metadata: {
@@ -125,7 +127,7 @@ function validateComponentDefinition<Definition, Built> (data: ISchemaProcessor<
   } else if (spec[version] === false) {
     exception.add({
       id,
-      code: 'COMPONENT_VERSION_MISMATCH',
+      code: 'VERSION_NOT_SUPPORTED',
       level: 'error',
       locations: [],
       metadata: {
@@ -133,6 +135,30 @@ function validateComponentDefinition<Definition, Built> (data: ISchemaProcessor<
         supportedVersions: Object.keys(spec).filter(k => typeof spec[k as IVersion] === 'string'),
         version: version
       }
+    })
+  } else if (spec[version] === true) {
+    exception.add({
+      id,
+      code: 'VERSION_MISMATCH',
+      level: 'error',
+      locations: [],
+      metadata: {
+        componentName: ctor.name,
+        supportedVersions: Object.keys(spec).filter(k => typeof spec[k as IVersion] === 'string'),
+        version: version
+      }
+    })
+  } else if (typeof definition !== 'object' || definition === null) {
+    exception.add({
+      id,
+      code: 'VALUE_TYPE_INVALID',
+      level: 'error',
+      locations: [getLocation(definition)],
+      metadata: {
+        expectedType: data.constructor.name,
+        value: definition
+      },
+      reference: data.reference
     })
   } else {
     // check that this definition and schema have not already been evaluated
@@ -163,8 +189,14 @@ function validateDefinition (data: ISchemaProcessor<any, any>, definition: any, 
   const value = definition[key]
   const actualType = Array.isArray(value) ? 'array' : typeof value
 
+  // TODO: add logic for determining if ref is allowed
+  // if ('$ref' in value) {
+  //   const isValidatingComponentDefinition = data.definition === value
+  //   if (!isValidatingComponentDefinition || schema.)
+  // }
+
   if (expectedType === 'any') return
-  if (definition === null && nullable === true) return
+  if (value === null && nullable === true) return
   if (schema.ignored === true) return
   if (actualType !== (expectedType === 'component' ? 'object' : expectedType)) {
     exception.add({
@@ -181,9 +213,23 @@ function validateDefinition (data: ISchemaProcessor<any, any>, definition: any, 
   }
 
   if (expectedType === 'array') {
-    (value as any[]).forEach(v => {
-      validateDefinition(data, value, v, schema.items)
-    })
+    if (!Array.isArray(value)) {
+      exception.add({
+        id,
+        code: 'VALUE_TYPE_INVALID',
+        level: 'error',
+        locations: [getLocation(definition, key, 'value')],
+        metadata: {
+          expectedType,
+          value
+        },
+        reference
+      })
+    } else {
+      value.forEach(v => {
+        validateDefinition(data, value, v, schema.items)
+      })
+    }
   } else if (expectedType === 'boolean') {
     // nothing more to validate
   } else if (expectedType === 'component') {

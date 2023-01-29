@@ -37,108 +37,6 @@ interface IValidatorsMap {
   callbacks: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ICallback3Definition, I.ICallback3>>>
 }
 
-const validators: IValidatorsMap = {
-  schemas: {
-    name: 'schemas',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Schema3
-      }
-    }
-  },
-  responses: {
-    name: 'responses',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Response3
-      }
-    }
-  },
-  parameters: {
-    name: 'parameters',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Parameter3
-      }
-    }
-  },
-  examples: {
-    name: 'examples',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Example3
-      }
-    }
-  },
-  requestBodies: {
-    name: 'requestBodies',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.RequestBody3
-      }
-    }
-  },
-  headers: {
-    name: 'headers',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Header3
-      }
-    }
-  },
-  securitySchemes: {
-    name: 'securitySchemes',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.SecurityScheme3
-      }
-    }
-  },
-  links: {
-    name: 'links',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Link3
-      }
-    }
-  },
-  callbacks: {
-    name: 'callbacks',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Callback3
-      }
-    }
-  }
-}
-
 export class Components extends EnforcerComponent<I.IComponents3Definition> implements I.IComponents3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -161,6 +59,7 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IComponents3Definition, I.IComponents3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -296,6 +195,110 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    schemas: {
+      name: 'schemas',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Schema3
+        }
+      }
+    },
+    responses: {
+      name: 'responses',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Response3
+        }
+      }
+    },
+    parameters: {
+      name: 'parameters',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Parameter3
+        }
+      }
+    },
+    examples: {
+      name: 'examples',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Example3
+        }
+      }
+    },
+    requestBodies: {
+      name: 'requestBodies',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.RequestBody3
+        }
+      }
+    },
+    headers: {
+      name: 'headers',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Header3
+        }
+      }
+    },
+    securitySchemes: {
+      name: 'securitySchemes',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.SecurityScheme3
+        }
+      }
+    },
+    links: {
+      name: 'links',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Link3
+        }
+      }
+    },
+    callbacks: {
+      name: 'callbacks',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Callback3
+        }
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

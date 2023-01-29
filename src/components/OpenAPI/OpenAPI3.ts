@@ -34,84 +34,6 @@ interface IValidatorsMap {
   externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
 }
 
-const validators: IValidatorsMap = {
-  openapi: {
-    name: 'openapi',
-    required: true,
-    schema: {
-      type: 'string',
-      enum: ['3.0.0', '3.0.1', '3.0.2', '3.0.3']
-    }
-  },
-  info: {
-    name: 'info',
-    required: true,
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Info3
-    }
-  },
-  servers: {
-    name: 'servers',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: false,
-        component: I.Server3
-      }
-    }
-  },
-  paths: {
-    name: 'paths',
-    required: true,
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Paths3
-    }
-  },
-  components: {
-    name: 'components',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Components3
-    }
-  },
-  security: {
-    name: 'security',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: false,
-        component: I.SecurityRequirement3
-      }
-    }
-  },
-  tags: {
-    name: 'tags',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: false,
-        component: I.Tag3
-      }
-    }
-  },
-  externalDocs: {
-    name: 'externalDocs',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.ExternalDocumentation3
-    }
-  }
-}
-
 export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements I.IOpenAPI3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -134,6 +56,7 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -248,6 +171,86 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
   // <!# Custom Content Begin: BODY #!>
 
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    openapi: {
+      name: 'openapi',
+      required: true,
+      schema: {
+        type: 'string',
+        enum: ['3.0.0', '3.0.1', '3.0.2', '3.0.3']
+      }
+    },
+    info: {
+      name: 'info',
+      required: true,
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Info3
+      }
+    },
+    servers: {
+      name: 'servers',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: I.Server3
+        }
+      }
+    },
+    paths: {
+      name: 'paths',
+      required: true,
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Paths3
+      }
+    },
+    components: {
+      name: 'components',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Components3
+      }
+    },
+    security: {
+      name: 'security',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: I.SecurityRequirement3
+        }
+      }
+    },
+    tags: {
+      name: 'tags',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: I.Tag3
+        }
+      }
+    },
+    externalDocs: {
+      name: 'externalDocs',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.ExternalDocumentation3
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

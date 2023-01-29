@@ -31,44 +31,6 @@ interface IValidatorsMap {
   allowReserved: ISchema.IProperty<ISchema.IBoolean>
 }
 
-const validators: IValidatorsMap = {
-  contentType: {
-    name: 'contentType',
-    schema: {
-      type: 'string'
-    }
-  },
-  headers: {
-    name: 'headers',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Header3
-      }
-    }
-  },
-  style: {
-    name: 'style',
-    schema: {
-      type: 'string'
-    }
-  },
-  explode: {
-    name: 'explode',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  allowReserved: {
-    name: 'allowReserved',
-    schema: {
-      type: 'boolean'
-    }
-  }
-}
-
 export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implements I.IEncoding3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -91,6 +53,7 @@ export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implemen
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -166,6 +129,46 @@ export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implemen
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    contentType: {
+      name: 'contentType',
+      schema: {
+        type: 'string'
+      }
+    },
+    headers: {
+      name: 'headers',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Header3
+        }
+      }
+    },
+    style: {
+      name: 'style',
+      schema: {
+        type: 'string'
+      }
+    },
+    explode: {
+      name: 'explode',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    allowReserved: {
+      name: 'allowReserved',
+      schema: {
+        type: 'boolean'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

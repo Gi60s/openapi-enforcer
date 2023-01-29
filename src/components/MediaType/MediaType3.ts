@@ -30,45 +30,6 @@ interface IValidatorsMap {
   encoding: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IEncoding3Definition, I.IEncoding3>>>
 }
 
-const validators: IValidatorsMap = {
-  schema: {
-    name: 'schema',
-    schema: {
-      type: 'component',
-      allowsRef: true,
-      component: I.Schema3
-    }
-  },
-  example: {
-    name: 'example',
-    schema: {
-      type: 'any'
-    }
-  },
-  examples: {
-    name: 'examples',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Example3
-      }
-    }
-  },
-  encoding: {
-    name: 'encoding',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: false,
-        component: I.Encoding3
-      }
-    }
-  }
-}
-
 export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implements I.IMediaType3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -91,6 +52,7 @@ export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implem
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -157,6 +119,47 @@ export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implem
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    schema: {
+      name: 'schema',
+      schema: {
+        type: 'component',
+        allowsRef: true,
+        component: I.Schema3
+      }
+    },
+    example: {
+      name: 'example',
+      schema: {
+        type: 'any'
+      }
+    },
+    examples: {
+      name: 'examples',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Example3
+        }
+      }
+    },
+    encoding: {
+      name: 'encoding',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: I.Encoding3
+        }
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

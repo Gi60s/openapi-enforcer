@@ -27,17 +27,6 @@ interface IValidatorsMap {
   _default: ISchema.IProperty<ISchema.IComponent<I.IResponse3Definition, I.IResponse3>>
 }
 
-const validators: IValidatorsMap = {
-  _default: {
-    name: 'default',
-    schema: {
-      type: 'component',
-      allowsRef: true,
-      component: I.Response3
-    }
-  }
-}
-
 const additionalProperties: ISchema.IComponent<I.IResponse3Definition, I.IResponse3> = {
   type: 'component',
   allowsRef: true,
@@ -79,6 +68,7 @@ export class Responses extends EnforcerComponent<I.IResponses3Definition> implem
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IResponses3Definition, I.IResponses3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -119,6 +109,19 @@ export class Responses extends EnforcerComponent<I.IResponses3Definition> implem
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    _default: {
+      name: 'default',
+      schema: {
+        type: 'component',
+        allowsRef: true,
+        component: I.Response3
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

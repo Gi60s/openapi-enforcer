@@ -53,222 +53,6 @@ interface IValidatorsMap {
   example: ISchema.IProperty<any>
 }
 
-const validators: IValidatorsMap = {
-  format: {
-    name: 'format',
-    schema: {
-      type: 'string'
-    }
-  },
-  title: {
-    name: 'title',
-    schema: {
-      type: 'string'
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  _default: {
-    name: 'default',
-    schema: {
-      type: 'any'
-    }
-  },
-  maximum: {
-    name: 'maximum',
-    schema: {
-      type: 'number'
-    }
-  },
-  exclusiveMaximum: {
-    name: 'exclusiveMaximum',
-    schema: {
-      type: 'number'
-    }
-  },
-  minimum: {
-    name: 'minimum',
-    schema: {
-      type: 'number'
-    }
-  },
-  exclusiveMinimum: {
-    name: 'exclusiveMinimum',
-    schema: {
-      type: 'number'
-    }
-  },
-  maxLength: {
-    name: 'maxLength',
-    schema: {
-      type: 'number'
-    }
-  },
-  minLength: {
-    name: 'minLength',
-    schema: {
-      type: 'number'
-    }
-  },
-  pattern: {
-    name: 'pattern',
-    schema: {
-      type: 'string'
-    }
-  },
-  maxItems: {
-    name: 'maxItems',
-    schema: {
-      type: 'number'
-    }
-  },
-  minItems: {
-    name: 'minItems',
-    schema: {
-      type: 'number'
-    }
-  },
-  maxProperties: {
-    name: 'maxProperties',
-    schema: {
-      type: 'number'
-    }
-  },
-  minProperties: {
-    name: 'minProperties',
-    schema: {
-      type: 'number'
-    }
-  },
-  uniqueItems: {
-    name: 'uniqueItems',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  _enum: {
-    name: 'enum',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'any'
-      }
-    }
-  },
-  multipleOf: {
-    name: 'multipleOf',
-    schema: {
-      type: 'number'
-    }
-  },
-  required: {
-    name: 'required',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
-    }
-  },
-  type: {
-    name: 'type',
-    schema: {
-      type: 'string'
-    }
-  },
-  items: {
-    name: 'items',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Schema2
-    }
-  },
-  allOf: {
-    name: 'allOf',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Schema2
-      }
-    }
-  },
-  properties: {
-    name: 'properties',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Schema2
-      }
-    }
-  },
-  additionalProperties: {
-    name: 'additionalProperties',
-    schema: {
-      type: 'oneOf',
-      oneOf: [
-        {
-          condition: () => true,
-          schema: {
-            type: 'component',
-            allowsRef: true,
-            component: I.Schema2
-          }
-        },
-        {
-          condition: () => false,
-          schema: {
-            type: 'boolean'
-          }
-        }
-      ],
-      error: () => {}
-    }
-  },
-  discriminator: {
-    name: 'discriminator',
-    schema: {
-      type: 'string'
-    }
-  },
-  readOnly: {
-    name: 'readOnly',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  xml: {
-    name: 'xml',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Xml2
-    }
-  },
-  externalDocs: {
-    name: 'externalDocs',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.ExternalDocumentation2
-    }
-  },
-  example: {
-    name: 'example',
-    schema: {
-      type: 'any'
-    }
-  }
-}
-
 export class Schema extends EnforcerComponent<I.ISchema2Definition> implements I.ISchema2 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -287,6 +71,7 @@ export class Schema extends EnforcerComponent<I.ISchema2Definition> implements I
   }
 
   static getSchemaDefinition (_data: I.ISchemaSchemaProcessor): ISchema.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> {
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -577,6 +362,224 @@ export class Schema extends EnforcerComponent<I.ISchema2Definition> implements I
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    format: {
+      name: 'format',
+      schema: {
+        type: 'string'
+      }
+    },
+    title: {
+      name: 'title',
+      schema: {
+        type: 'string'
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    _default: {
+      name: 'default',
+      schema: {
+        type: 'any'
+      }
+    },
+    maximum: {
+      name: 'maximum',
+      schema: {
+        type: 'number'
+      }
+    },
+    exclusiveMaximum: {
+      name: 'exclusiveMaximum',
+      schema: {
+        type: 'number'
+      }
+    },
+    minimum: {
+      name: 'minimum',
+      schema: {
+        type: 'number'
+      }
+    },
+    exclusiveMinimum: {
+      name: 'exclusiveMinimum',
+      schema: {
+        type: 'number'
+      }
+    },
+    maxLength: {
+      name: 'maxLength',
+      schema: {
+        type: 'number'
+      }
+    },
+    minLength: {
+      name: 'minLength',
+      schema: {
+        type: 'number'
+      }
+    },
+    pattern: {
+      name: 'pattern',
+      schema: {
+        type: 'string'
+      }
+    },
+    maxItems: {
+      name: 'maxItems',
+      schema: {
+        type: 'number'
+      }
+    },
+    minItems: {
+      name: 'minItems',
+      schema: {
+        type: 'number'
+      }
+    },
+    maxProperties: {
+      name: 'maxProperties',
+      schema: {
+        type: 'number'
+      }
+    },
+    minProperties: {
+      name: 'minProperties',
+      schema: {
+        type: 'number'
+      }
+    },
+    uniqueItems: {
+      name: 'uniqueItems',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    _enum: {
+      name: 'enum',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'any'
+        }
+      }
+    },
+    multipleOf: {
+      name: 'multipleOf',
+      schema: {
+        type: 'number'
+      }
+    },
+    required: {
+      name: 'required',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'string'
+        }
+      }
+    },
+    type: {
+      name: 'type',
+      schema: {
+        type: 'string'
+      }
+    },
+    items: {
+      name: 'items',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Schema2
+      }
+    },
+    allOf: {
+      name: 'allOf',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Schema2
+        }
+      }
+    },
+    properties: {
+      name: 'properties',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Schema2
+        }
+      }
+    },
+    additionalProperties: {
+      name: 'additionalProperties',
+      schema: {
+        type: 'oneOf',
+        oneOf: [
+          {
+            condition: () => true,
+            schema: {
+              type: 'component',
+              allowsRef: true,
+              component: I.Schema2
+            }
+          },
+          {
+            condition: () => false,
+            schema: {
+              type: 'boolean'
+            }
+          }
+        ],
+        error: () => {}
+      }
+    },
+    discriminator: {
+      name: 'discriminator',
+      schema: {
+        type: 'string'
+      }
+    },
+    readOnly: {
+      name: 'readOnly',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    xml: {
+      name: 'xml',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Xml2
+      }
+    },
+    externalDocs: {
+      name: 'externalDocs',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.ExternalDocumentation2
+      }
+    },
+    example: {
+      name: 'example',
+      schema: {
+        type: 'any'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

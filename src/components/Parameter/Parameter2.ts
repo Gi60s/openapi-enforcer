@@ -49,159 +49,6 @@ interface IValidatorsMap {
   multipleOf: ISchema.IProperty<ISchema.INumber>
 }
 
-const validators: IValidatorsMap = {
-  name: {
-    name: 'name',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  },
-  _in: {
-    name: 'in',
-    required: true,
-    schema: {
-      type: 'string',
-      enum: ['body', 'formData', 'header', 'path', 'query']
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  required: {
-    name: 'required',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  schema: {
-    name: 'schema',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Schema2
-    }
-  },
-  type: {
-    name: 'type',
-    schema: {
-      type: 'string',
-      enum: ['array', 'boolean', 'file', 'integer', 'number', 'string']
-    }
-  },
-  format: {
-    name: 'format',
-    schema: {
-      type: 'string'
-    }
-  },
-  allowEmptyValue: {
-    name: 'allowEmptyValue',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  items: {
-    name: 'items',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Items2
-    }
-  },
-  collectionFormat: {
-    name: 'collectionFormat',
-    schema: {
-      type: 'string',
-      enum: ['csv', 'ssv', 'tsv', 'pipes', 'multi']
-    }
-  },
-  _default: {
-    name: 'default',
-    schema: {
-      type: 'any'
-    }
-  },
-  maximum: {
-    name: 'maximum',
-    schema: {
-      type: 'number'
-    }
-  },
-  exclusiveMaximum: {
-    name: 'exclusiveMaximum',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  minimum: {
-    name: 'minimum',
-    schema: {
-      type: 'number'
-    }
-  },
-  exclusiveMinimum: {
-    name: 'exclusiveMinimum',
-    schema: {
-      type: 'number'
-    }
-  },
-  maxLength: {
-    name: 'maxLength',
-    schema: {
-      type: 'number'
-    }
-  },
-  minLength: {
-    name: 'minLength',
-    schema: {
-      type: 'number'
-    }
-  },
-  pattern: {
-    name: 'pattern',
-    schema: {
-      type: 'string'
-    }
-  },
-  maxItems: {
-    name: 'maxItems',
-    schema: {
-      type: 'number'
-    }
-  },
-  minItems: {
-    name: 'minItems',
-    schema: {
-      type: 'number'
-    }
-  },
-  uniqueItems: {
-    name: 'uniqueItems',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  _enum: {
-    name: 'enum',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'any'
-      }
-    }
-  },
-  multipleOf: {
-    name: 'multipleOf',
-    schema: {
-      type: 'number'
-    }
-  }
-}
-
 export class Parameter extends EnforcerComponent<I.IParameter2Definition> implements I.IParameter2 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -224,6 +71,7 @@ export class Parameter extends EnforcerComponent<I.IParameter2Definition> implem
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IParameter2Definition, I.IParameter2> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -471,6 +319,161 @@ export class Parameter extends EnforcerComponent<I.IParameter2Definition> implem
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    name: {
+      name: 'name',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    },
+    _in: {
+      name: 'in',
+      required: true,
+      schema: {
+        type: 'string',
+        enum: ['body', 'formData', 'header', 'path', 'query']
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    required: {
+      name: 'required',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    schema: {
+      name: 'schema',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Schema2
+      }
+    },
+    type: {
+      name: 'type',
+      schema: {
+        type: 'string',
+        enum: ['array', 'boolean', 'file', 'integer', 'number', 'string']
+      }
+    },
+    format: {
+      name: 'format',
+      schema: {
+        type: 'string'
+      }
+    },
+    allowEmptyValue: {
+      name: 'allowEmptyValue',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    items: {
+      name: 'items',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Items2
+      }
+    },
+    collectionFormat: {
+      name: 'collectionFormat',
+      schema: {
+        type: 'string',
+        enum: ['csv', 'ssv', 'tsv', 'pipes', 'multi']
+      }
+    },
+    _default: {
+      name: 'default',
+      schema: {
+        type: 'any'
+      }
+    },
+    maximum: {
+      name: 'maximum',
+      schema: {
+        type: 'number'
+      }
+    },
+    exclusiveMaximum: {
+      name: 'exclusiveMaximum',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    minimum: {
+      name: 'minimum',
+      schema: {
+        type: 'number'
+      }
+    },
+    exclusiveMinimum: {
+      name: 'exclusiveMinimum',
+      schema: {
+        type: 'number'
+      }
+    },
+    maxLength: {
+      name: 'maxLength',
+      schema: {
+        type: 'number'
+      }
+    },
+    minLength: {
+      name: 'minLength',
+      schema: {
+        type: 'number'
+      }
+    },
+    pattern: {
+      name: 'pattern',
+      schema: {
+        type: 'string'
+      }
+    },
+    maxItems: {
+      name: 'maxItems',
+      schema: {
+        type: 'number'
+      }
+    },
+    minItems: {
+      name: 'minItems',
+      schema: {
+        type: 'number'
+      }
+    },
+    uniqueItems: {
+      name: 'uniqueItems',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    _enum: {
+      name: 'enum',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'any'
+        }
+      }
+    },
+    multipleOf: {
+      name: 'multipleOf',
+      schema: {
+        type: 'number'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

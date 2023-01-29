@@ -29,32 +29,6 @@ interface IValidatorsMap {
   required: ISchema.IProperty<ISchema.IBoolean>
 }
 
-const validators: IValidatorsMap = {
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  content: {
-    name: 'content',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: false,
-        component: I.MediaType3
-      }
-    }
-  },
-  required: {
-    name: 'required',
-    schema: {
-      type: 'boolean'
-    }
-  }
-}
-
 export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> implements I.IRequestBody3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -77,6 +51,7 @@ export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> im
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -134,6 +109,34 @@ export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> im
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    content: {
+      name: 'content',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: I.MediaType3
+        }
+      }
+    },
+    required: {
+      name: 'required',
+      schema: {
+        type: 'boolean'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

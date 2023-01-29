@@ -28,22 +28,6 @@ interface IValidatorsMap {
   url: ISchema.IProperty<ISchema.IString>
 }
 
-const validators: IValidatorsMap = {
-  name: {
-    name: 'name',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  },
-  url: {
-    name: 'url',
-    schema: {
-      type: 'string'
-    }
-  }
-}
-
 export class License extends EnforcerComponent<I.ILicense3Definition> implements I.ILicense3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -66,6 +50,7 @@ export class License extends EnforcerComponent<I.ILicense3Definition> implements
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.ILicense3Definition, I.ILicense3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -122,6 +107,24 @@ export class License extends EnforcerComponent<I.ILicense3Definition> implements
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    name: {
+      name: 'name',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    },
+    url: {
+      name: 'url',
+      schema: {
+        type: 'string'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

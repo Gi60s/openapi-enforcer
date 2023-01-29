@@ -30,49 +30,6 @@ interface IValidatorsMap {
   links: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ILink3Definition, I.ILink3>>>
 }
 
-const validators: IValidatorsMap = {
-  description: {
-    name: 'description',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  },
-  headers: {
-    name: 'headers',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Header3
-      }
-    }
-  },
-  content: {
-    name: 'content',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: false,
-        component: I.MediaType3
-      }
-    }
-  },
-  links: {
-    name: 'links',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Link3
-      }
-    }
-  }
-}
-
 export class Response extends EnforcerComponent<I.IResponse3Definition> implements I.IResponse3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -95,6 +52,7 @@ export class Response extends EnforcerComponent<I.IResponse3Definition> implemen
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -169,6 +127,51 @@ export class Response extends EnforcerComponent<I.IResponse3Definition> implemen
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    description: {
+      name: 'description',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    },
+    headers: {
+      name: 'headers',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Header3
+        }
+      }
+    },
+    content: {
+      name: 'content',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: I.MediaType3
+        }
+      }
+    },
+    links: {
+      name: 'links',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Link3
+        }
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

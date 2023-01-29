@@ -29,33 +29,6 @@ interface IValidatorsMap {
   variables: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IServerVariable3Definition, I.IServerVariable3>>>
 }
 
-const validators: IValidatorsMap = {
-  url: {
-    name: 'url',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  variables: {
-    name: 'variables',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: false,
-        component: I.ServerVariable3
-      }
-    }
-  }
-}
-
 export class Server extends EnforcerComponent<I.IServer3Definition> implements I.IServer3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -78,6 +51,7 @@ export class Server extends EnforcerComponent<I.IServer3Definition> implements I
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IServer3Definition, I.IServer3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -145,6 +119,35 @@ export class Server extends EnforcerComponent<I.IServer3Definition> implements I
   // <!# Custom Content Begin: BODY #!>
 
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    url: {
+      name: 'url',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    variables: {
+      name: 'variables',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: I.ServerVariable3
+        }
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

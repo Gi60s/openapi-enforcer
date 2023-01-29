@@ -41,111 +41,6 @@ interface IValidatorsMap {
   servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IServer3Definition, I.IServer3>>>
 }
 
-const validators: IValidatorsMap = {
-  tags: {
-    name: 'tags',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
-    }
-  },
-  summary: {
-    name: 'summary',
-    schema: {
-      type: 'string'
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  externalDocs: {
-    name: 'externalDocs',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.ExternalDocumentation3
-    }
-  },
-  operationId: {
-    name: 'operationId',
-    schema: {
-      type: 'string'
-    }
-  },
-  parameters: {
-    name: 'parameters',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Parameter3
-      }
-    }
-  },
-  requestBody: {
-    name: 'requestBody',
-    schema: {
-      type: 'component',
-      allowsRef: true,
-      component: I.RequestBody3
-    }
-  },
-  responses: {
-    name: 'responses',
-    required: true,
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Responses3
-    }
-  },
-  callbacks: {
-    name: 'callbacks',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Callback3
-      }
-    }
-  },
-  deprecated: {
-    name: 'deprecated',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  security: {
-    name: 'security',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: false,
-        component: I.SecurityRequirement3
-      }
-    }
-  },
-  servers: {
-    name: 'servers',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: false,
-        component: I.Server3
-      }
-    }
-  }
-}
-
 export class Operation extends EnforcerComponent<I.IOperation3Definition> implements I.IOperation3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -168,6 +63,7 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -362,6 +258,113 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
     return operationWillAcceptContentType(contentType, consumes)
   }
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    tags: {
+      name: 'tags',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'string'
+        }
+      }
+    },
+    summary: {
+      name: 'summary',
+      schema: {
+        type: 'string'
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    externalDocs: {
+      name: 'externalDocs',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.ExternalDocumentation3
+      }
+    },
+    operationId: {
+      name: 'operationId',
+      schema: {
+        type: 'string'
+      }
+    },
+    parameters: {
+      name: 'parameters',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Parameter3
+        }
+      }
+    },
+    requestBody: {
+      name: 'requestBody',
+      schema: {
+        type: 'component',
+        allowsRef: true,
+        component: I.RequestBody3
+      }
+    },
+    responses: {
+      name: 'responses',
+      required: true,
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Responses3
+      }
+    },
+    callbacks: {
+      name: 'callbacks',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Callback3
+        }
+      }
+    },
+    deprecated: {
+      name: 'deprecated',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    security: {
+      name: 'security',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: I.SecurityRequirement3
+        }
+      }
+    },
+    servers: {
+      name: 'servers',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: I.Server3
+        }
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

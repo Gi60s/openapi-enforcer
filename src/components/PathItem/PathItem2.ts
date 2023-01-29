@@ -35,82 +35,6 @@ interface IValidatorsMap {
   parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IParameter2Definition, I.IParameter2>>>
 }
 
-const validators: IValidatorsMap = {
-  $ref: {
-    name: '$ref',
-    schema: {
-      type: 'string'
-    }
-  },
-  get: {
-    name: 'get',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation2
-    }
-  },
-  put: {
-    name: 'put',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation2
-    }
-  },
-  post: {
-    name: 'post',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation2
-    }
-  },
-  _delete: {
-    name: 'delete',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation2
-    }
-  },
-  options: {
-    name: 'options',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation2
-    }
-  },
-  head: {
-    name: 'head',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation2
-    }
-  },
-  patch: {
-    name: 'patch',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation2
-    }
-  },
-  parameters: {
-    name: 'parameters',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Parameter2
-      }
-    }
-  }
-}
-
 export class PathItem extends EnforcerComponent<I.IPathItem2Definition> implements I.IPathItem2 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -133,6 +57,7 @@ export class PathItem extends EnforcerComponent<I.IPathItem2Definition> implemen
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -244,6 +169,84 @@ export class PathItem extends EnforcerComponent<I.IPathItem2Definition> implemen
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    $ref: {
+      name: '$ref',
+      schema: {
+        type: 'string'
+      }
+    },
+    get: {
+      name: 'get',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation2
+      }
+    },
+    put: {
+      name: 'put',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation2
+      }
+    },
+    post: {
+      name: 'post',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation2
+      }
+    },
+    _delete: {
+      name: 'delete',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation2
+      }
+    },
+    options: {
+      name: 'options',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation2
+      }
+    },
+    head: {
+      name: 'head',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation2
+      }
+    },
+    patch: {
+      name: 'patch',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation2
+      }
+    },
+    parameters: {
+      name: 'parameters',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Parameter2
+        }
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

@@ -28,22 +28,6 @@ interface IValidatorsMap {
   url: ISchema.IProperty<ISchema.IString>
 }
 
-const validators: IValidatorsMap = {
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  url: {
-    name: 'url',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  }
-}
-
 export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocumentation3Definition> implements I.IExternalDocumentation3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -66,6 +50,7 @@ export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocument
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IExternalDocumentation3Definition, I.IExternalDocumentation3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -122,6 +107,24 @@ export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocument
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    url: {
+      name: 'url',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

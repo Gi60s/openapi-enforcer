@@ -5,7 +5,6 @@ export type II18nMessageCode = keyof II18nMessagesMap
 
 export interface II18nMessagesMap {
   COMPONENT_NAME_INVALID: string
-  COMPONENT_VERSION_MISMATCH: string
   CONTENT_TYPE_INVALID: string
   I18N_LANGUAGE_NOT_DEFINED: string
   I18N_MISSING_MESSAGES: string
@@ -36,12 +35,14 @@ export interface II18nMessagesMap {
   REF_NOT_ALLOWED: string
   REF_NOT_RESOLVED: string
   SCHEMA_NOT_MET: string
-  SPEC_VERSION_NOT_SUPPORTED: string
   SUMMERY_EXCEEDS_RECOMMENDED_LENGTH: string
   URL_INVALID: string
   VALUE_OUT_OF_RANGE_MAX: string
   VALUE_OUT_OF_RANGE_MIN: string
   VALUE_TYPE_INVALID: string
+  VERSION_MISMATCH: string // True
+  VERSION_NOT_IMPLEMENTED: string // Undefined
+  VERSION_NOT_SUPPORTED: string // FALSE
 }
 
 const languageStore: Record<string, II18nMessagesMap> = {}

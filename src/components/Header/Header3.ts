@@ -37,88 +37,6 @@ interface IValidatorsMap {
   content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IMediaType3Definition, I.IMediaType3>>>
 }
 
-const validators: IValidatorsMap = {
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  required: {
-    name: 'required',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  deprecated: {
-    name: 'deprecated',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  allowEmptyValue: {
-    name: 'allowEmptyValue',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  style: {
-    name: 'style',
-    schema: {
-      type: 'string',
-      enum: ['simple']
-    }
-  },
-  explode: {
-    name: 'explode',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  allowReserved: {
-    name: 'allowReserved',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  schema: {
-    name: 'schema',
-    schema: {
-      type: 'component',
-      allowsRef: true,
-      component: I.Schema3
-    }
-  },
-  example: {
-    name: 'example',
-    schema: {
-      type: 'any'
-    }
-  },
-  examples: {
-    name: 'examples',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Example3
-      }
-    }
-  },
-  content: {
-    name: 'content',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: false,
-        component: I.MediaType3
-      }
-    }
-  }
-}
-
 export class Header extends EnforcerComponent<I.IHeader3Definition> implements I.IHeader3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -141,6 +59,7 @@ export class Header extends EnforcerComponent<I.IHeader3Definition> implements I
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IHeader3Definition, I.IHeader3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -270,6 +189,90 @@ export class Header extends EnforcerComponent<I.IHeader3Definition> implements I
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    required: {
+      name: 'required',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    deprecated: {
+      name: 'deprecated',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    allowEmptyValue: {
+      name: 'allowEmptyValue',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    style: {
+      name: 'style',
+      schema: {
+        type: 'string',
+        enum: ['simple']
+      }
+    },
+    explode: {
+      name: 'explode',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    allowReserved: {
+      name: 'allowReserved',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    schema: {
+      name: 'schema',
+      schema: {
+        type: 'component',
+        allowsRef: true,
+        component: I.Schema3
+      }
+    },
+    example: {
+      name: 'example',
+      schema: {
+        type: 'any'
+      }
+    },
+    examples: {
+      name: 'examples',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Example3
+        }
+      }
+    },
+    content: {
+      name: 'content',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: I.MediaType3
+        }
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

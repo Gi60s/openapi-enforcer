@@ -31,39 +31,6 @@ interface IValidatorsMap {
   wrapped: ISchema.IProperty<ISchema.IBoolean>
 }
 
-const validators: IValidatorsMap = {
-  name: {
-    name: 'name',
-    schema: {
-      type: 'string'
-    }
-  },
-  namespace: {
-    name: 'namespace',
-    schema: {
-      type: 'string'
-    }
-  },
-  prefix: {
-    name: 'prefix',
-    schema: {
-      type: 'string'
-    }
-  },
-  attribute: {
-    name: 'attribute',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  wrapped: {
-    name: 'wrapped',
-    schema: {
-      type: 'boolean'
-    }
-  }
-}
-
 export class Xml extends EnforcerComponent<I.IXml2Definition> implements I.IXml2 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -86,6 +53,7 @@ export class Xml extends EnforcerComponent<I.IXml2Definition> implements I.IXml2
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IXml2Definition, I.IXml2> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -161,6 +129,41 @@ export class Xml extends EnforcerComponent<I.IXml2Definition> implements I.IXml2
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    name: {
+      name: 'name',
+      schema: {
+        type: 'string'
+      }
+    },
+    namespace: {
+      name: 'namespace',
+      schema: {
+        type: 'string'
+      }
+    },
+    prefix: {
+      name: 'prefix',
+      schema: {
+        type: 'string'
+      }
+    },
+    attribute: {
+      name: 'attribute',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    wrapped: {
+      name: 'wrapped',
+      schema: {
+        type: 'boolean'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

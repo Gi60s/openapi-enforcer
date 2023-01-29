@@ -30,41 +30,6 @@ interface IValidatorsMap {
   authorizationCode: ISchema.IProperty<ISchema.IComponent<I.IOAuthFlow3Definition, I.IOAuthFlow3>>
 }
 
-const validators: IValidatorsMap = {
-  implicit: {
-    name: 'implicit',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.OAuthFlow3
-    }
-  },
-  password: {
-    name: 'password',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.OAuthFlow3
-    }
-  },
-  clientCredentials: {
-    name: 'clientCredentials',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.OAuthFlow3
-    }
-  },
-  authorizationCode: {
-    name: 'authorizationCode',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.OAuthFlow3
-    }
-  }
-}
-
 export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> implements I.IOAuthFlows3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -87,6 +52,7 @@ export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> impl
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IOAuthFlows3Definition, I.IOAuthFlows3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -153,6 +119,43 @@ export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> impl
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    implicit: {
+      name: 'implicit',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.OAuthFlow3
+      }
+    },
+    password: {
+      name: 'password',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.OAuthFlow3
+      }
+    },
+    clientCredentials: {
+      name: 'clientCredentials',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.OAuthFlow3
+      }
+    },
+    authorizationCode: {
+      name: 'authorizationCode',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.OAuthFlow3
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

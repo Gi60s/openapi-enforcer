@@ -43,119 +43,6 @@ interface IValidatorsMap {
   multipleOf: ISchema.IProperty<ISchema.INumber>
 }
 
-const validators: IValidatorsMap = {
-  type: {
-    name: 'type',
-    required: true,
-    schema: {
-      type: 'string',
-      enum: ['array', 'boolean', 'integer', 'number', 'string']
-    }
-  },
-  format: {
-    name: 'format',
-    schema: {
-      type: 'string'
-    }
-  },
-  items: {
-    name: 'items',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Items2
-    }
-  },
-  collectionFormat: {
-    name: 'collectionFormat',
-    schema: {
-      type: 'string',
-      enum: ['csv', 'ssv', 'tsv', 'pipes']
-    }
-  },
-  _default: {
-    name: 'default',
-    schema: {
-      type: 'any'
-    }
-  },
-  maximum: {
-    name: 'maximum',
-    schema: {
-      type: 'number'
-    }
-  },
-  exclusiveMaximum: {
-    name: 'exclusiveMaximum',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  minimum: {
-    name: 'minimum',
-    schema: {
-      type: 'number'
-    }
-  },
-  exclusiveMinimum: {
-    name: 'exclusiveMinimum',
-    schema: {
-      type: 'number'
-    }
-  },
-  maxLength: {
-    name: 'maxLength',
-    schema: {
-      type: 'number'
-    }
-  },
-  minLength: {
-    name: 'minLength',
-    schema: {
-      type: 'number'
-    }
-  },
-  pattern: {
-    name: 'pattern',
-    schema: {
-      type: 'string'
-    }
-  },
-  maxItems: {
-    name: 'maxItems',
-    schema: {
-      type: 'number'
-    }
-  },
-  minItems: {
-    name: 'minItems',
-    schema: {
-      type: 'number'
-    }
-  },
-  uniqueItems: {
-    name: 'uniqueItems',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  _enum: {
-    name: 'enum',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'any'
-      }
-    }
-  },
-  multipleOf: {
-    name: 'multipleOf',
-    schema: {
-      type: 'number'
-    }
-  }
-}
-
 export class Items extends EnforcerComponent<I.IItems2Definition> implements I.IItems2 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -178,6 +65,7 @@ export class Items extends EnforcerComponent<I.IItems2Definition> implements I.I
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IItems2Definition, I.IItems2> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -369,6 +257,121 @@ export class Items extends EnforcerComponent<I.IItems2Definition> implements I.I
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    type: {
+      name: 'type',
+      required: true,
+      schema: {
+        type: 'string',
+        enum: ['array', 'boolean', 'integer', 'number', 'string']
+      }
+    },
+    format: {
+      name: 'format',
+      schema: {
+        type: 'string'
+      }
+    },
+    items: {
+      name: 'items',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Items2
+      }
+    },
+    collectionFormat: {
+      name: 'collectionFormat',
+      schema: {
+        type: 'string',
+        enum: ['csv', 'ssv', 'tsv', 'pipes']
+      }
+    },
+    _default: {
+      name: 'default',
+      schema: {
+        type: 'any'
+      }
+    },
+    maximum: {
+      name: 'maximum',
+      schema: {
+        type: 'number'
+      }
+    },
+    exclusiveMaximum: {
+      name: 'exclusiveMaximum',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    minimum: {
+      name: 'minimum',
+      schema: {
+        type: 'number'
+      }
+    },
+    exclusiveMinimum: {
+      name: 'exclusiveMinimum',
+      schema: {
+        type: 'number'
+      }
+    },
+    maxLength: {
+      name: 'maxLength',
+      schema: {
+        type: 'number'
+      }
+    },
+    minLength: {
+      name: 'minLength',
+      schema: {
+        type: 'number'
+      }
+    },
+    pattern: {
+      name: 'pattern',
+      schema: {
+        type: 'string'
+      }
+    },
+    maxItems: {
+      name: 'maxItems',
+      schema: {
+        type: 'number'
+      }
+    },
+    minItems: {
+      name: 'minItems',
+      schema: {
+        type: 'number'
+      }
+    },
+    uniqueItems: {
+      name: 'uniqueItems',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    _enum: {
+      name: 'enum',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'any'
+        }
+      }
+    },
+    multipleOf: {
+      name: 'multipleOf',
+      schema: {
+        type: 'number'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

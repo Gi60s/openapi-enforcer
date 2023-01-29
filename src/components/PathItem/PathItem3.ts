@@ -39,113 +39,6 @@ interface IValidatorsMap {
   parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IParameter3Definition, I.IParameter3>>>
 }
 
-const validators: IValidatorsMap = {
-  $ref: {
-    name: '$ref',
-    schema: {
-      type: 'string'
-    }
-  },
-  summary: {
-    name: 'summary',
-    schema: {
-      type: 'string'
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  get: {
-    name: 'get',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation3
-    }
-  },
-  put: {
-    name: 'put',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation3
-    }
-  },
-  post: {
-    name: 'post',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation3
-    }
-  },
-  _delete: {
-    name: 'delete',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation3
-    }
-  },
-  options: {
-    name: 'options',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation3
-    }
-  },
-  head: {
-    name: 'head',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation3
-    }
-  },
-  patch: {
-    name: 'patch',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation3
-    }
-  },
-  trace: {
-    name: 'trace',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Operation3
-    }
-  },
-  servers: {
-    name: 'servers',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: false,
-        component: I.Server3
-      }
-    }
-  },
-  parameters: {
-    name: 'parameters',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Parameter3
-      }
-    }
-  }
-}
-
 export class PathItem extends EnforcerComponent<I.IPathItem3Definition> implements I.IPathItem3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -168,6 +61,7 @@ export class PathItem extends EnforcerComponent<I.IPathItem3Definition> implemen
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IPathItem3Definition, I.IPathItem3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -315,6 +209,115 @@ export class PathItem extends EnforcerComponent<I.IPathItem3Definition> implemen
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    $ref: {
+      name: '$ref',
+      schema: {
+        type: 'string'
+      }
+    },
+    summary: {
+      name: 'summary',
+      schema: {
+        type: 'string'
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    get: {
+      name: 'get',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation3
+      }
+    },
+    put: {
+      name: 'put',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation3
+      }
+    },
+    post: {
+      name: 'post',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation3
+      }
+    },
+    _delete: {
+      name: 'delete',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation3
+      }
+    },
+    options: {
+      name: 'options',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation3
+      }
+    },
+    head: {
+      name: 'head',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation3
+      }
+    },
+    patch: {
+      name: 'patch',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation3
+      }
+    },
+    trace: {
+      name: 'trace',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Operation3
+      }
+    },
+    servers: {
+      name: 'servers',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: I.Server3
+        }
+      }
+    },
+    parameters: {
+      name: 'parameters',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Parameter3
+        }
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

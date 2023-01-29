@@ -32,50 +32,6 @@ interface IValidatorsMap {
   server: ISchema.IProperty<ISchema.IComponent<I.IServer3Definition, I.IServer3>>
 }
 
-const validators: IValidatorsMap = {
-  operationRef: {
-    name: 'operationRef',
-    schema: {
-      type: 'string'
-    }
-  },
-  operationId: {
-    name: 'operationId',
-    schema: {
-      type: 'string'
-    }
-  },
-  parameters: {
-    name: 'parameters',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'any'
-      }
-    }
-  },
-  requestBody: {
-    name: 'requestBody',
-    schema: {
-      type: 'any'
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  server: {
-    name: 'server',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Server3
-    }
-  }
-}
-
 export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILink3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -98,6 +54,7 @@ export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILi
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.ILink3Definition, I.ILink3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -182,6 +139,52 @@ export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILi
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    operationRef: {
+      name: 'operationRef',
+      schema: {
+        type: 'string'
+      }
+    },
+    operationId: {
+      name: 'operationId',
+      schema: {
+        type: 'string'
+      }
+    },
+    parameters: {
+      name: 'parameters',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'any'
+        }
+      }
+    },
+    requestBody: {
+      name: 'requestBody',
+      schema: {
+        type: 'any'
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    server: {
+      name: 'server',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Server3
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

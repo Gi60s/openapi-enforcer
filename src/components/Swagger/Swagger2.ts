@@ -41,149 +41,6 @@ interface IValidatorsMap {
   externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
 }
 
-const validators: IValidatorsMap = {
-  swagger: {
-    name: 'swagger',
-    required: true,
-    schema: {
-      type: 'string',
-      enum: ['2.0']
-    }
-  },
-  info: {
-    name: 'info',
-    required: true,
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Info2
-    }
-  },
-  host: {
-    name: 'host',
-    schema: {
-      type: 'string'
-    }
-  },
-  basePath: {
-    name: 'basePath',
-    schema: {
-      type: 'string'
-    }
-  },
-  schemes: {
-    name: 'schemes',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'string',
-        enum: ['http', 'https', 'ws', 'wss']
-      }
-    }
-  },
-  consumes: {
-    name: 'consumes',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
-    }
-  },
-  produces: {
-    name: 'produces',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
-    }
-  },
-  paths: {
-    name: 'paths',
-    required: true,
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Paths2
-    }
-  },
-  definitions: {
-    name: 'definitions',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: false,
-        component: I.Schema2
-      }
-    }
-  },
-  parameters: {
-    name: 'parameters',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: false,
-        component: I.Parameter2
-      }
-    }
-  },
-  responses: {
-    name: 'responses',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: false,
-        component: I.Response2
-      }
-    }
-  },
-  securityDefinitions: {
-    name: 'securityDefinitions',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'component',
-        allowsRef: false,
-        component: I.SecurityScheme2
-      }
-    }
-  },
-  security: {
-    name: 'security',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: false,
-        component: I.SecurityRequirement2
-      }
-    }
-  },
-  tags: {
-    name: 'tags',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: false,
-        component: I.Tag2
-      }
-    }
-  },
-  externalDocs: {
-    name: 'externalDocs',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.ExternalDocumentation2
-    }
-  }
-}
-
 export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements I.ISwagger2 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -206,6 +63,7 @@ export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -383,6 +241,151 @@ export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    swagger: {
+      name: 'swagger',
+      required: true,
+      schema: {
+        type: 'string',
+        enum: ['2.0']
+      }
+    },
+    info: {
+      name: 'info',
+      required: true,
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Info2
+      }
+    },
+    host: {
+      name: 'host',
+      schema: {
+        type: 'string'
+      }
+    },
+    basePath: {
+      name: 'basePath',
+      schema: {
+        type: 'string'
+      }
+    },
+    schemes: {
+      name: 'schemes',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: ['http', 'https', 'ws', 'wss']
+        }
+      }
+    },
+    consumes: {
+      name: 'consumes',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'string'
+        }
+      }
+    },
+    produces: {
+      name: 'produces',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'string'
+        }
+      }
+    },
+    paths: {
+      name: 'paths',
+      required: true,
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Paths2
+      }
+    },
+    definitions: {
+      name: 'definitions',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: I.Schema2
+        }
+      }
+    },
+    parameters: {
+      name: 'parameters',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: I.Parameter2
+        }
+      }
+    },
+    responses: {
+      name: 'responses',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: I.Response2
+        }
+      }
+    },
+    securityDefinitions: {
+      name: 'securityDefinitions',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: I.SecurityScheme2
+        }
+      }
+    },
+    security: {
+      name: 'security',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: I.SecurityRequirement2
+        }
+      }
+    },
+    tags: {
+      name: 'tags',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: I.Tag2
+        }
+      }
+    },
+    externalDocs: {
+      name: 'externalDocs',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.ExternalDocumentation2
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

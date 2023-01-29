@@ -27,25 +27,6 @@ interface IValidatorsMap {
   mapping: ISchema.IProperty<ISchema.IObject<ISchema.IString>>
 }
 
-const validators: IValidatorsMap = {
-  propertyName: {
-    name: 'propertyName',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  },
-  mapping: {
-    name: 'mapping',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'string'
-      }
-    }
-  }
-}
-
 export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition> implements I.IDiscriminator3 {
   constructor (definition: I.IDiscriminator3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -66,6 +47,7 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> = {
       type: 'object',
       allowsSchemaExtensions: false,
@@ -123,6 +105,27 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    propertyName: {
+      name: 'propertyName',
+      required: true,
+      schema: {
+        type: 'string'
+      }
+    },
+    mapping: {
+      name: 'mapping',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'string'
+        }
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

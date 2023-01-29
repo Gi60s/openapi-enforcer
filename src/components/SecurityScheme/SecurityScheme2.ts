@@ -34,64 +34,6 @@ interface IValidatorsMap {
   scopes: ISchema.IProperty<ISchema.IObject<ISchema.IString>>
 }
 
-const validators: IValidatorsMap = {
-  type: {
-    name: 'type',
-    required: true,
-    schema: {
-      type: 'string',
-      enum: ['basic', 'apiKey', 'oauth2']
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  name: {
-    name: 'name',
-    schema: {
-      type: 'string'
-    }
-  },
-  _in: {
-    name: 'in',
-    schema: {
-      type: 'string',
-      enum: ['query', 'header']
-    }
-  },
-  flow: {
-    name: 'flow',
-    schema: {
-      type: 'string',
-      enum: ['implicit', 'password', 'application', 'accessCode']
-    }
-  },
-  authorizationUrl: {
-    name: 'authorizationUrl',
-    schema: {
-      type: 'string'
-    }
-  },
-  tokenUrl: {
-    name: 'tokenUrl',
-    schema: {
-      type: 'string'
-    }
-  },
-  scopes: {
-    name: 'scopes',
-    schema: {
-      type: 'object',
-      additionalProperties: {
-        type: 'string'
-      }
-    }
-  }
-}
-
 export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definition> implements I.ISecurityScheme2 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -114,6 +56,7 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definiti
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.ISecurityScheme2Definition, I.ISecurityScheme2> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -224,6 +167,66 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definiti
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    type: {
+      name: 'type',
+      required: true,
+      schema: {
+        type: 'string',
+        enum: ['basic', 'apiKey', 'oauth2']
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    name: {
+      name: 'name',
+      schema: {
+        type: 'string'
+      }
+    },
+    _in: {
+      name: 'in',
+      schema: {
+        type: 'string',
+        enum: ['query', 'header']
+      }
+    },
+    flow: {
+      name: 'flow',
+      schema: {
+        type: 'string',
+        enum: ['implicit', 'password', 'application', 'accessCode']
+      }
+    },
+    authorizationUrl: {
+      name: 'authorizationUrl',
+      schema: {
+        type: 'string'
+      }
+    },
+    tokenUrl: {
+      name: 'tokenUrl',
+      schema: {
+        type: 'string'
+      }
+    },
+    scopes: {
+      name: 'scopes',
+      schema: {
+        type: 'object',
+        additionalProperties: {
+          type: 'string'
+        }
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

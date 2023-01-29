@@ -45,109 +45,6 @@ interface IValidatorsMap {
   security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISecurityRequirement2Definition, I.ISecurityRequirement2>>>
 }
 
-const validators: IValidatorsMap = {
-  tags: {
-    name: 'tags',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
-    }
-  },
-  summary: {
-    name: 'summary',
-    schema: {
-      type: 'string'
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  externalDocs: {
-    name: 'externalDocs',
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.ExternalDocumentation2
-    }
-  },
-  operationId: {
-    name: 'operationId',
-    schema: {
-      type: 'string'
-    }
-  },
-  consumes: {
-    name: 'consumes',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
-    }
-  },
-  produces: {
-    name: 'produces',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
-    }
-  },
-  parameters: {
-    name: 'parameters',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: true,
-        component: I.Parameter2
-      }
-    }
-  },
-  responses: {
-    name: 'responses',
-    required: true,
-    schema: {
-      type: 'component',
-      allowsRef: false,
-      component: I.Responses2
-    }
-  },
-  schemes: {
-    name: 'schemes',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'string',
-        enum: ['http', 'https', 'ws', 'wss']
-      }
-    }
-  },
-  deprecated: {
-    name: 'deprecated',
-    schema: {
-      type: 'boolean'
-    }
-  },
-  security: {
-    name: 'security',
-    schema: {
-      type: 'array',
-      items: {
-        type: 'component',
-        allowsRef: false,
-        component: I.SecurityRequirement2
-      }
-    }
-  }
-}
-
 export class Operation extends EnforcerComponent<I.IOperation2Definition> implements I.IOperation2 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -170,6 +67,7 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IOperation2Definition, I.IOperation2> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -421,6 +319,111 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
     return operationWillAcceptContentType(contentType, consumes)
   }
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    tags: {
+      name: 'tags',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'string'
+        }
+      }
+    },
+    summary: {
+      name: 'summary',
+      schema: {
+        type: 'string'
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    externalDocs: {
+      name: 'externalDocs',
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.ExternalDocumentation2
+      }
+    },
+    operationId: {
+      name: 'operationId',
+      schema: {
+        type: 'string'
+      }
+    },
+    consumes: {
+      name: 'consumes',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'string'
+        }
+      }
+    },
+    produces: {
+      name: 'produces',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'string'
+        }
+      }
+    },
+    parameters: {
+      name: 'parameters',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: true,
+          component: I.Parameter2
+        }
+      }
+    },
+    responses: {
+      name: 'responses',
+      required: true,
+      schema: {
+        type: 'component',
+        allowsRef: false,
+        component: I.Responses2
+      }
+    },
+    schemes: {
+      name: 'schemes',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: ['http', 'https', 'ws', 'wss']
+        }
+      }
+    },
+    deprecated: {
+      name: 'deprecated',
+      schema: {
+        type: 'boolean'
+      }
+    },
+    security: {
+      name: 'security',
+      schema: {
+        type: 'array',
+        items: {
+          type: 'component',
+          allowsRef: false,
+          component: I.SecurityRequirement2
+        }
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>

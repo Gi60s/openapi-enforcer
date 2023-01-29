@@ -30,33 +30,6 @@ interface IValidatorsMap {
   externalValue: ISchema.IProperty<ISchema.IString>
 }
 
-const validators: IValidatorsMap = {
-  summary: {
-    name: 'summary',
-    schema: {
-      type: 'string'
-    }
-  },
-  description: {
-    name: 'description',
-    schema: {
-      type: 'string'
-    }
-  },
-  value: {
-    name: 'value',
-    schema: {
-      type: 'any'
-    }
-  },
-  externalValue: {
-    name: 'externalValue',
-    schema: {
-      type: 'string'
-    }
-  }
-}
-
 export class Example extends EnforcerComponent<I.IExample3Definition> implements I.IExample3 {
   [S.Extensions]: Record<string, any> = {}
 
@@ -79,6 +52,7 @@ export class Example extends EnforcerComponent<I.IExample3Definition> implements
       return cachedSchema
     }
 
+    const validators = getValidatorsMap()
     const result: ISchema.ISchemaDefinition<I.IExample3Definition, I.IExample3> = {
       type: 'object',
       allowsSchemaExtensions: true,
@@ -145,6 +119,35 @@ export class Example extends EnforcerComponent<I.IExample3Definition> implements
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
+}
+
+function getValidatorsMap (): IValidatorsMap {
+  return {
+    summary: {
+      name: 'summary',
+      schema: {
+        type: 'string'
+      }
+    },
+    description: {
+      name: 'description',
+      schema: {
+        type: 'string'
+      }
+    },
+    value: {
+      name: 'value',
+      schema: {
+        type: 'any'
+      }
+    },
+    externalValue: {
+      name: 'externalValue',
+      schema: {
+        type: 'string'
+      }
+    }
+  }
 }
 
 // <!# Custom Content Begin: FOOTER #!>
