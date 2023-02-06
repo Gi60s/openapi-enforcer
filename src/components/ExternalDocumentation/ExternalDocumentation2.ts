@@ -80,8 +80,8 @@ export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocument
 
   static createDefinition (definition?: Partial<I.IExternalDocumentation2Definition> | undefined): I.IExternalDocumentation2Definition {
     return Object.assign({
-        url: ""
-      }, definition) as I.IExternalDocumentation2Definition
+      url: ""
+    }, definition) as I.IExternalDocumentation2Definition
   }
 
   static validate (definition: I.IExternalDocumentation2Definition, version?: IVersion): ExceptionStore {

@@ -80,8 +80,8 @@ export class License extends EnforcerComponent<I.ILicense2Definition> implements
 
   static createDefinition (definition?: Partial<I.ILicense2Definition> | undefined): I.ILicense2Definition {
     return Object.assign({
-        name: ""
-      }, definition) as I.ILicense2Definition
+      name: ""
+    }, definition) as I.ILicense2Definition
   }
 
   static validate (definition: I.ILicense2Definition, version?: IVersion): ExceptionStore {

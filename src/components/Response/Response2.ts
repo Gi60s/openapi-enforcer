@@ -84,8 +84,8 @@ export class Response extends EnforcerComponent<I.IResponse2Definition> implemen
 
   static createDefinition (definition?: Partial<I.IResponse2Definition> | undefined): I.IResponse2Definition {
     return Object.assign({
-        description: ""
-      }, definition) as I.IResponse2Definition
+      description: ""
+    }, definition) as I.IResponse2Definition
   }
 
   static validate (definition: I.IResponse2Definition, version?: IVersion): ExceptionStore {

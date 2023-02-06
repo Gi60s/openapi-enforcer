@@ -1,10 +1,11 @@
 import { IPathItemMethod } from './IPathItem'
-import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { getLocation } from '../../Locator/Locator'
 import { parametersAreUnique } from '../validations'
 
-export const validate = function (data: ISchemaProcessor<any, any>): void {
-  const { definition, exception, id } = data
+export const validate = function (data: SchemaProcessor<any, any>): void {
+  const { definition, exception } = data
+  const { id } = data.component
 
   if ('$ref' in definition && Object.keys(definition).length > 1) {
     exception.add({

@@ -103,15 +103,15 @@ export class Items extends EnforcerComponent<I.IItems2Definition> implements I.I
       return new Items(Object.assign({}, definition))
     } else {
       return new Items(Object.assign({
-        type: "array"
+        type: 'array'
       }, definition) as I.IItems2Definition)
     }
   }
 
   static createDefinition (definition?: Partial<I.IItems2Definition> | undefined): I.IItems2Definition {
     return Object.assign({
-        type: "array"
-      }, definition) as I.IItems2Definition
+      type: 'array'
+    }, definition) as I.IItems2Definition
   }
 
   static validate (definition: I.IItems2Definition, version?: IVersion): ExceptionStore {

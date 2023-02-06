@@ -78,7 +78,8 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
     result.validate = (data) => {
-      const { definition, exception, reference, id } = data
+      const { definition, exception } = data
+      const { reference, id } = data.component
       const properties: Array<keyof I.IComponents3Definition> = ['schemas', 'responses',
         'parameters', 'examples', 'requestBodies', 'headers', 'securitySchemes', 'links', 'callbacks']
       properties.forEach(key => {

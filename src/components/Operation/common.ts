@@ -1,8 +1,9 @@
-import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { parametersAreUnique, parametersNotInPath } from '../validations'
 import {
   IOperationDefinition,
-  IParameter, IParameterDefinition
+  IParameter, IParameterDefinition, IPathsDefinition,
+  IPathItemDefinition
 } from '../IInternalTypes'
 import { IOperation2, IOperation2Definition, IOperation3, IOperation3Definition } from '../'
 import { getPathParameterNames } from '../Paths/common'
@@ -10,22 +11,23 @@ import { getLocation } from '../../Locator/Locator'
 import { ContentType } from '../../ContentType/ContentType'
 
 type IFromParameterArray = Array<IParameter | IParameterDefinition>
-type ISchemaProcessorData = ISchemaProcessor<IOperation2Definition, IOperation2> | ISchemaProcessor<IOperation3Definition, IOperation3>
+type ISchemaProcessorData = SchemaProcessor<IOperation2Definition, IOperation2> | SchemaProcessor<IOperation3Definition, IOperation3>
 
 const mergedParametersMap = new WeakMap<IOperationDefinition, IFromParameterArray>()
 
 export function validate (data: ISchemaProcessorData, mergedParameters: IFromParameterArray): void {
-  const { chain, definition, exception, id, key: path, lastly, reference, store } = data
+  const { definition, exception, key: path, lastly, store } = data
+  const { reference, id } = data.component
 
   // TODO: make sure we're getting the path item when there is one
   parametersAreUnique(data)
 
   // check that parameters in path and parameters (as array) for path parameters are in agreement
   const mergedPathParameters = mergedParameters.filter(v => v.in === 'path')
-  const pathsComponentData = chain.getAncestor('Paths')
+  const pathsComponentData = data.upTo('Paths')
   const paramNamesInPathNotInParameters: string[] = []
   const pathParameterNames: string[] = pathsComponentData !== undefined
-    ? getPathParameterNames(pathsComponentData.definition, path)
+    ? getPathParameterNames(pathsComponentData.definition as IPathsDefinition, path)
     : []
   pathParameterNames.forEach(name => {
     const found = mergedPathParameters.find(p => p.name === name)
@@ -63,7 +65,7 @@ export function validate (data: ISchemaProcessorData, mergedParameters: IFromPar
     // look for duplicate operation ids
     const operationIdMap: Record<string, IOperationDefinition[]> = {}
     store.operations.forEach(operationData => {
-      const id = operationData.id
+      const id = operationData.component.id
       const operation = operationData.definition
       if (operationIdMap[id] === undefined) {
         operationIdMap[id] = [operation]
@@ -92,9 +94,9 @@ export function validate (data: ISchemaProcessorData, mergedParameters: IFromPar
 export function getMergedParameters (data: ISchemaProcessorData): IFromParameterArray {
   let results = mergedParametersMap.get(data.definition)
   if (results === undefined) {
-    const { chain, definition } = data
-    const pathItem = chain.getAncestor('PathItem')
-    const pathItemParameters: IFromParameterArray = pathItem?.definition.parameters ?? []
+    const { definition } = data
+    const pathItem = data.upTo('PathItem')
+    const pathItemParameters: IFromParameterArray = ((pathItem?.definition as IPathItemDefinition).parameters ?? []) as IParameterDefinition[]
     const operationParameters: IFromParameterArray = ((definition.parameters ?? []) as IParameterDefinition[])
       .filter((p: any) => !('$ref' in p))
     results = mergeParameters(pathItemParameters, operationParameters)

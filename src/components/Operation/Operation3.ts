@@ -19,7 +19,6 @@ import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { ContentType } from '../../ContentType/ContentType'
-import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
 import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
 import { validate, getMergedParameters, mergeParameters, operationWillAcceptContentType } from './common'
 // <!# Custom Content End: HEADER #!>
@@ -88,8 +87,7 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
       const { built } = data
 
       built[S.HookGetProperty]('parameters', (parameters: I.IParameter3[] | undefined) => {
-        const pathItem: ISchemaProcessor<I.IPathItem3Definition, I.IPathItem3> | undefined = data.chain
-          .getAncestor('PathItem')
+        const pathItem = data.upTo<I.IPathItem3Definition, I.IPathItem3>('PathItem')
         const pathItemParameters: I.IParameter3[] = pathItem?.built.parameters ?? []
         return mergeParameters(pathItemParameters, parameters) as I.IParameter3[]
       })
@@ -117,8 +115,8 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
 
   static createDefinition (definition?: Partial<I.IOperation3Definition> | undefined): I.IOperation3Definition {
     return Object.assign({
-        responses: I.Responses3.create()
-      }, definition) as I.IOperation3Definition
+      responses: I.Responses3.create()
+    }, definition) as I.IOperation3Definition
   }
 
   static validate (definition: I.IOperation3Definition, version?: IVersion): ExceptionStore {

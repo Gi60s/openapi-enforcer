@@ -182,7 +182,7 @@ describe('Header - Auto Generated Tests', () => {
     })
 
     describe('property: items', () => {
-      it.only('should not be a $ref', () => {
+      it('should not be a $ref', () => {
         const def = Header.createDefinition({
           // @ts-expect-error
           items: { $ref: '#/' }

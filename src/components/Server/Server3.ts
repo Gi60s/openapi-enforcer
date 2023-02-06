@@ -84,8 +84,8 @@ export class Server extends EnforcerComponent<I.IServer3Definition> implements I
 
   static createDefinition (definition?: Partial<I.IServer3Definition> | undefined): I.IServer3Definition {
     return Object.assign({
-        url: ""
-      }, definition) as I.IServer3Definition
+      url: ""
+    }, definition) as I.IServer3Definition
   }
 
   static validate (definition: I.IServer3Definition, version?: IVersion): ExceptionStore {

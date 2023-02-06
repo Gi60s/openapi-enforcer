@@ -20,7 +20,7 @@ import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { getMergedParameters, mergeParameters, operationWillAcceptContentType, validate } from './common'
 import { getLocation } from '../../Locator/Locator'
-import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ContentType } from '../../ContentType/ContentType'
 import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
 
@@ -92,8 +92,7 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
       const { built } = data
 
       built[S.HookGetProperty]('parameters', (parameters: I.IParameter2[] | undefined) => {
-        const pathItem: ISchemaProcessor<I.IPathItem2Definition, I.IPathItem2> | undefined = data.chain
-          .getAncestor('PathItem')
+        const pathItem: SchemaProcessor<I.IPathItem2Definition, I.IPathItem2> | undefined = data.upTo('PathItem')
         const pathItemParameters: I.IParameter2[] = pathItem?.built.parameters ?? []
         return mergeParameters(pathItemParameters, parameters) as I.IParameter2[]
       })
@@ -108,7 +107,8 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
     }
 
     result.validate = function (data) {
-      const { definition, exception, id, reference } = data
+      const { definition, exception } = data
+      const { reference, id } = data.component
       const parameters = getMergedParameters(data)
       validate(data, parameters)
 
@@ -185,8 +185,8 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
 
   static createDefinition (definition?: Partial<I.IOperation2Definition> | undefined): I.IOperation2Definition {
     return Object.assign({
-        responses: I.Responses2.create()
-      }, definition) as I.IOperation2Definition
+      responses: I.Responses2.create()
+    }, definition) as I.IOperation2Definition
   }
 
   static validate (definition: I.IOperation2Definition, version?: IVersion): ExceptionStore {
@@ -427,17 +427,17 @@ function getValidatorsMap (): IValidatorsMap {
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-function getAllContentTypeStrings (data: ISchemaProcessor<I.IOperation2Definition, I.IOperation2>, key: 'consumes' | 'produces', types: string[] | undefined): string[] {
-  const swagger: ISchemaProcessor<I.ISwagger2Definition, I.ISwagger2> | undefined = data.chain
-    .getAncestor('Swagger')
+function getAllContentTypeStrings (data: SchemaProcessor<I.IOperation2Definition, I.IOperation2>, key: 'consumes' | 'produces', types: string[] | undefined): string[] {
+  const swagger = data.upTo<I.ISwagger2Definition, I.ISwagger2>('Swagger')
   const result = new Set<string>((swagger?.built[key] ?? []).concat(types ?? []))
   return Array.from(result)
 }
 
-function validateContentTypes (contentTypes: string[] | undefined, key: 'consumes' | 'produces', data: ISchemaProcessor<I.IOperation2Definition, I.IOperation2>): void {
+function validateContentTypes (contentTypes: string[] | undefined, key: 'consumes' | 'produces', data: SchemaProcessor<I.IOperation2Definition, I.IOperation2>): void {
   contentTypes?.forEach((contentType, index) => {
     if (!ContentType.isContentTypeString(contentType)) {
-      const { definition, exception, id, reference } = data
+      const { definition, exception } = data
+      const { reference, id } = data.component
       exception.add({
         id,
         code: 'CONTENT_TYPE_INVALID',

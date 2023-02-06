@@ -1,9 +1,9 @@
-import { ISchemaProcessor } from '../../ComponentSchemaDefinition/ISchemaProcessor'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { getLocation } from '../../Locator/Locator'
 import { methods } from '../PathItem/common'
 import { IPaths2, IPaths3 } from './IPaths'
 import { IPathItemMethod, IFindPathMatchesOptions, IFindPathMatchesResult } from '../PathItem'
-import { IPathsDefinition } from '../IInternalTypes'
+import { IPathsDefinition, IPaths } from '../IInternalTypes'
 import { getMessage } from '../../i18n/i18n'
 
 interface IPathLink {
@@ -27,7 +27,7 @@ interface IPathRegExp {
 const rxPathVariable = /^({.+?})$/
 const pathLookupMap: WeakMap<IPathsDefinition, IPathRegExp[]> = new WeakMap<IPaths2 | IPaths3, IPathRegExp[]>()
 
-export const build = function (this: IPaths2 | IPaths3, data: ISchemaProcessor<any, any>): void {
+export const build = function (this: IPaths2 | IPaths3, data: SchemaProcessor): void {
   const { definition } = data
   const paths = Object.keys(definition)
 
@@ -62,8 +62,9 @@ export const build = function (this: IPaths2 | IPaths3, data: ISchemaProcessor<a
   })
 }
 
-export const validate = function (this: IPaths2 | IPaths3, data: ISchemaProcessor<any, any>): void {
-  const { definition, id, reference } = data
+export const validate = function (this: IPaths2 | IPaths3, data: SchemaProcessor<IPathsDefinition, IPaths>): void {
+  const { definition } = data
+  const { reference, id } = data.component
   const paths = Object.keys(definition)
 
   const { exception } = data
@@ -108,7 +109,7 @@ export const validate = function (this: IPaths2 | IPaths3, data: ISchemaProcesso
       // an "error" exception will be issued if paths conflict and methods conflict
       const parsed = parsePath(path)
       const parsedKey = parsed.map(item => item.type === 'param' ? '{}' : item.value).join('/')
-      const currMethods = methods.filter(method => method in definition[path])
+      const currMethods = methods.filter(method => method in (definition as any)[path])
       if (store[parsedKey] === undefined) {
         store[parsedKey] = {
           paths: [path],

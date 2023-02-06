@@ -1,5 +1,6 @@
-import { ISchemaProcessor } from './ISchemaProcessor'
+import { SchemaProcessor } from './SchemaProcessor'
 import { EnforcerComponent } from '../components/Component'
+import * as I from '../components/IInternalTypes'
 
 export interface IAny extends Base<any> {
   type: 'any'
@@ -14,7 +15,7 @@ export interface IArray<T> extends Base<T[]> {
 
 interface Base<T> {
   // Is the property allowed? Based on sibling properties it may not be.
-  allowed?: boolean
+  notAllowed?: string // the string is the message
 
   // Set the default.
   default?: T
@@ -40,12 +41,12 @@ export interface IComponent<Definition, Built> extends Base<Definition | Built> 
 }
 
 // this interface is used only by component's getSchema() method which returns it
-export interface ISchemaDefinition<Definition, Built> extends IObject {
+export interface ISchemaDefinition<Definition, Built extends I.IComponent> extends IObject {
   additionalProperties?: ISchema
   allowsSchemaExtensions: boolean
   // after?: (data: ISchemaProcessor<Definition, Built>, mode: 'build' | 'validate') => void // runs after all build and validate functions throughout the entire tree
-  build?: (data: ISchemaProcessor<Definition, Built>) => void
-  validate?: (data: ISchemaProcessor<Definition, Built>) => void
+  build?: (data: SchemaProcessor<Definition, Built>) => void
+  validate?: (data: SchemaProcessor<Definition, Built>) => void
 }
 
 export interface INumber extends Base<number> {
@@ -58,10 +59,10 @@ export interface INumber extends Base<number> {
 export interface IOneOf extends Base<any> {
   type: 'oneOf'
   oneOf: Array<{
-    condition: (data: ISchemaProcessor) => boolean
+    condition: (data: SchemaProcessor) => boolean
     schema: ISchema
   }>
-  error: (data: ISchemaProcessor) => void // only called by validator, not builder
+  error: (data: SchemaProcessor) => void // only called by validator, not builder
 }
 
 export interface IObject<T=ISchema> extends Base<Record<string, any>> {

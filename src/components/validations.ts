@@ -1,14 +1,15 @@
 import rx from '../rx'
 import { getLocation } from '../Locator/Locator'
-import { ISchemaProcessor } from '../ComponentSchemaDefinition/ISchemaProcessor'
+import { SchemaProcessor } from '../ComponentSchemaDefinition/SchemaProcessor'
 import {
   IOperation, IOperationDefinition,
   IParameterDefinition,
   IPathItem, IPathItemDefinition
 } from './IInternalTypes'
 
-export function isUrl (key: string, data: ISchemaProcessor): void {
-  const { definition, exception, id, reference } = data
+export function isUrl (key: string, data: SchemaProcessor): void {
+  const { definition, exception } = data
+  const { reference, id } = data.component
   const url = (definition as any)[key]
   if (url !== undefined && !rx.url.test(url)) {
     exception.add({
@@ -24,8 +25,9 @@ export function isUrl (key: string, data: ISchemaProcessor): void {
   }
 }
 
-export function parametersAreUnique (data: ISchemaProcessor<IPathItemDefinition, IPathItem> | ISchemaProcessor<IOperationDefinition, IOperation>): void {
-  const { definition, exception, id, reference } = data
+export function parametersAreUnique (data: SchemaProcessor<IPathItemDefinition, IPathItem> | SchemaProcessor<IOperationDefinition, IOperation>): void {
+  const { definition, exception } = data
+  const { reference, id } = data.component
   const existing: Record<string, Record<string, IParameterDefinition[]>> = {}
   definition.parameters?.forEach((parameter) => {
     if (!('$ref' in parameter)) {
@@ -62,8 +64,9 @@ export function parametersAreUnique (data: ISchemaProcessor<IPathItemDefinition,
   })
 }
 
-export function parametersNotInPath (data: ISchemaProcessor<IOperationDefinition, IOperation> | ISchemaProcessor<IPathItemDefinition, IPathItem>, pathParameterNames: string[]): void {
-  const { definition, exception, id, reference } = data
+export function parametersNotInPath (data: SchemaProcessor<IOperationDefinition, IOperation> | SchemaProcessor<IPathItemDefinition, IPathItem>, pathParameterNames: string[]): void {
+  const { definition, exception } = data
+  const { reference, id } = data.component
   const parameters = (definition.parameters ?? []) as IParameterDefinition[]
   parameters.forEach((p) => {
     if (p.in === 'path' && !pathParameterNames.includes(p.name)) {
@@ -79,8 +82,9 @@ export function parametersNotInPath (data: ISchemaProcessor<IOperationDefinition
   })
 }
 
-export function mutuallyExclusiveProperties (properties: string[], data: ISchemaProcessor): void {
-  const { definition, exception, id, reference } = data
+export function mutuallyExclusiveProperties (properties: string[], data: SchemaProcessor): void {
+  const { definition, exception } = data
+  const { reference, id } = data.component
   const propertiesFound: string[] = []
   properties.forEach(property => {
     if ((definition as any)[property] !== undefined) {

@@ -78,8 +78,8 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
 
   static createDefinition (definition?: Partial<I.IDiscriminator3Definition> | undefined): I.IDiscriminator3Definition {
     return Object.assign({
-        propertyName: ""
-      }, definition) as I.IDiscriminator3Definition
+      propertyName: ""
+    }, definition) as I.IDiscriminator3Definition
   }
 
   static validate (definition: I.IDiscriminator3Definition, version?: IVersion): ExceptionStore {

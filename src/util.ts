@@ -1,3 +1,30 @@
+
+export function copy<T> (value: T, map: Map<any, any> = new Map()): T {
+  if (value instanceof Date) {
+    return new Date(+value) as unknown as T
+  } else if (value instanceof Buffer) {
+    return value.slice(0) as unknown as T
+  } else if (Array.isArray(value)) {
+    let result = map.get(value)
+    if (result !== undefined) return result
+    result = []
+    map.set(value, result)
+    value.forEach(v => result.push(copy(map, v)))
+    return result
+  } else if (value !== null && typeof value === 'object') {
+    let result = map.get(value)
+    if (result !== undefined) return result
+    result = {}
+    map.set(value, result)
+    Object.keys(value).forEach(key => {
+      result[key] = copy(map, (value as any)[key])
+    })
+    return result
+  } else {
+    return value
+  }
+}
+
 /**
  * If a function has been deprecated, use this function to provide a console message once every 10 minutes when
  * called.
@@ -5,8 +32,6 @@
  * @param newName The name of the new function
  * @param fn The deprecated function
  */
-import * as I from './components/IInternalTypes'
-
 export function deprecated<F extends Function> (oldName: string, newName: string, fn: F): F {
   let lastRun = 0
   return function (...args: any[]) {

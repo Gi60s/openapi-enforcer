@@ -85,15 +85,15 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definiti
       return new SecurityScheme(Object.assign({}, definition))
     } else {
       return new SecurityScheme(Object.assign({
-        type: "basic"
+        type: 'basic'
       }, definition) as I.ISecurityScheme2Definition)
     }
   }
 
   static createDefinition (definition?: Partial<I.ISecurityScheme2Definition> | undefined): I.ISecurityScheme2Definition {
     return Object.assign({
-        type: "basic"
-      }, definition) as I.ISecurityScheme2Definition
+      type: 'basic'
+    }, definition) as I.ISecurityScheme2Definition
   }
 
   static validate (definition: I.ISecurityScheme2Definition, version?: IVersion): ExceptionStore {
