@@ -74,7 +74,7 @@ describe.only('component validator', () => {
   })
 
   describe('common validations', () => {
-    const schema: ISchemaDefinition<any, any> = {
+    let schema: ISchemaDefinition<any, any> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -87,13 +87,18 @@ describe.only('component validator', () => {
     let x: IProperty = schema.properties?.[0] as IProperty
 
     beforeEach(() => {
-      if (schema.properties !== undefined) {
-        schema.properties[0] = {
-          name: 'x',
-          schema: { type: 'any' }
-        }
+      schema = {
+        type: 'object',
+        allowsSchemaExtensions: true,
+        properties: [
+          {
+            name: 'x',
+            schema: { type: 'any' }
+          }
+        ]
       }
       x = schema.properties?.[0] as IProperty
+      Foo.customValidator = () => schema
     })
 
     it('will produce an error if the property is not allowed', () => {
@@ -104,13 +109,13 @@ describe.only('component validator', () => {
 
     it('will produce an error if the property is allowed but not specified with no additional properties', () => {
       const es = Foo.validate({ y: true })
-      expect(es.hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(true)
+      expect(es.hasErrorByCode('PROPERTY_UNKNOWN')).to.equal(true)
     })
 
-    it('will produce an error if the property is not allowed but allows additional properties', () => {
+    it('will produce an error if the property is not allowed but allowed via additional properties', () => {
       schema.additionalProperties = { type: 'any' }
       x.schema.notAllowed = 'Not allowed because I said so'
-      const es = Foo.validate({ y: true })
+      const es = Foo.validate({ x: true })
       expect(es.hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(true)
     })
 

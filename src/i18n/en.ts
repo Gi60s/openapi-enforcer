@@ -33,7 +33,7 @@ export const language: II18nMessagesMap = {
   PATH_NOT_FOUND: 'No matching path found for path: {{path}}',
   PATHS_EMPTY: 'No paths were provided.',
   PROPERTIES_MUTUALLY_EXCLUSIVE: 'These properties are mutually exclusive: {{propertyNames}}.',
-  PROPERTY_NOT_ALLOWED: 'The property {{propertyName}} is not allowed. {{reason}}.',
+  PROPERTY_NOT_ALLOWED: 'The property {{propertyName}} is not allowed. {reason}',
   PROPERTY_MISSING: 'Required property {{propertyName}} is missing.',
   PROPERTY_UNKNOWN: 'The property {{propertyName}} is not allowed because it is not part of the spec.',
   REF_NOT_ALLOWED: 'According to the OpenAPI specification, the $ref is not allowed here.',

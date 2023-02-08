@@ -85,15 +85,16 @@ export function getLanguageMessage (languageCode: string, messageCode: II18nMess
 }
 
 function injectMessageData (message: string, data: Record<string, any> = {}): string {
-  const rx = /{{([a-z]+)}}/ig
+  const rx = /(?:{([a-z]+)})|(?:{{([a-z]+)}})/ig
   let result = ''
   let match = rx.exec(message)
   let offset = 0
   while (match !== null) {
-    const key = match[1]
+    const addQuotationMarksToStrings = match[1] === undefined
+    const key = match[1] ?? match[2]
     if (data[key] !== undefined) {
       result += message.substring(offset, match.index)
-      result += smart(data[key])
+      result += smart(data[key], { addQuotationMarksToStrings })
       offset = match.index + match[0].length
     }
     match = rx.exec(message)

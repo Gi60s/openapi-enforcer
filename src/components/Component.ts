@@ -186,6 +186,21 @@ function validateDefinition (processor: SchemaProcessor): void {
   const expectedType = type === 'component' ? 'object' : type
   const actualType = Array.isArray(definition) ? 'array' : typeof definition
 
+  if (schema.notAllowed !== undefined) {
+    exception.add({
+      id,
+      code: 'PROPERTY_NOT_ALLOWED',
+      level: 'error',
+      locations: [processor.getLocation('key')],
+      metadata: {
+        propertyName: processor.key,
+        reason: schema.notAllowed
+      },
+      reference
+    })
+    return
+  }
+
   if (definition === null && nullable === true) return
 
   if (actualType === 'object' && '$ref' in definition) {
@@ -214,7 +229,7 @@ function validateDefinition (processor: SchemaProcessor): void {
       id,
       code: 'VALUE_TYPE_INVALID',
       level: 'error',
-      locations: [...processor.getLocation('value')],
+      locations: [processor.getLocation('value')],
       metadata: {
         actualType,
         expectedType,
@@ -238,7 +253,7 @@ function validateDefinition (processor: SchemaProcessor): void {
           id,
           code: 'PROPERTY_MISSING',
           level: 'error',
-          locations: [...processor.getLocation('value')],
+          locations: [processor.getLocation('value')],
           metadata: {
             propertyName: name
           },
@@ -289,7 +304,7 @@ function validateDefinition (processor: SchemaProcessor): void {
         id,
         code: 'VALUE_TYPE_INVALID',
         level: 'error',
-        locations: [...processor.getLocation('value')],
+        locations: [processor.getLocation('value')],
         metadata: {
           expectedType,
           value: definition
@@ -302,7 +317,7 @@ function validateDefinition (processor: SchemaProcessor): void {
         id,
         code: 'VALUE_OUT_OF_RANGE_MIN',
         level: 'error',
-        locations: [...processor.getLocation('value')],
+        locations: [processor.getLocation('value')],
         metadata: {
           minimum: schema.minimum,
           value: definition
@@ -315,7 +330,7 @@ function validateDefinition (processor: SchemaProcessor): void {
         id,
         code: 'VALUE_OUT_OF_RANGE_MAX',
         level: 'error',
-        locations: [...processor.getLocation('value')],
+        locations: [processor.getLocation('value')],
         metadata: {
           maximum: schema.maximum,
           value: definition
@@ -339,7 +354,7 @@ function validateDefinition (processor: SchemaProcessor): void {
         id,
         code: 'SCHEMA_NOT_MET',
         level: 'error',
-        locations: [...processor.getLocation('value')],
+        locations: [processor.getLocation('value')],
         metadata: {
           value: definition
         },

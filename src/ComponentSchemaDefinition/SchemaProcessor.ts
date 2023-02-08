@@ -12,6 +12,8 @@ import {
 } from '../components/IInternalTypes'
 import { ILastly } from '../Lastly/ILastly'
 import { ISchema, ISchemaDefinition } from './IComponentSchemaDefinition'
+import { getLocation } from '../Locator/Locator'
+import { ILocation } from '../Locator/ILocator'
 
 type EnforcerComponentClass = typeof EnforcerComponent<any>
 
@@ -112,10 +114,10 @@ export class SchemaProcessor<Definition extends IDefinition = IDefinition, Built
     }
   }
 
-  getLocation (position: 'key' | 'value' | 'both' = 'both'): any[] {
+  getLocation (position: 'key' | 'value' | 'both' = 'both'): ILocation | undefined {
     return this.parent === null
-      ? [this.definition]
-      : [this.parent.definition, this.key, position]
+      ? getLocation(this.definition)
+      : getLocation(this.parent.definition, this.key, position)
   }
 
   /**
