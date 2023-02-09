@@ -4,6 +4,7 @@ export const language: II18nMessagesMap = {
   COMPONENT_NAME_INVALID: 'Component {{componentsNamespace}} property names can only contain letters, numbers, dots, ' +
     'dashes, and underscores. The property {{propertyName}} is not valid.',
   CONTENT_TYPE_INVALID: 'Content-type appears to be invalid: {{contentType}}.',
+  ENUM_NOT_MET: 'Expected one of {{enum}}. Received: {{value}}.',
   I18N_LANGUAGE_NOT_DEFINED: 'Language cannot be set to {{languageCode}} because that language has not yet been added.',
   I18N_MISSING_MESSAGES: 'Cannot add language {{languageCode}} because the following message codes are not defined ' +
     'within the messages map: {{missingMessageCodes}}',
@@ -12,6 +13,7 @@ export const language: II18nMessagesMap = {
   LOADER_YAML_SUPPORT_ERROR: 'YAML anchors and aliases are not currently supported.',
   LOCATOR_INVALID_REFERENCE: 'Invalid reference. It must be a non-null object or an array.',
   NOT_IMPLEMENTED: 'Function not implemented',
+  NULL_INVALID: 'Value cannot be null.',
   OPERATION_BODY_FORM_CONFLICT: 'Parameters can include a body parameter or one or more formData parameters, but not ' +
     'both. The body parameter and formData parameter are mutually exclusive.',
   OPERATION_BODY_NOT_UNIQUE: 'Only one body parameter is allowed, but multiple were found.',

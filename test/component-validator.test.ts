@@ -32,6 +32,33 @@ class Foo extends EnforcerComponent<any> {
 }
 
 describe.only('component validator', () => {
+  let schema: ISchemaDefinition<any, any> = {
+    type: 'object',
+    allowsSchemaExtensions: true,
+    properties: [
+      {
+        name: 'x',
+        schema: { type: 'any' }
+      }
+    ]
+  }
+  let x: IProperty = schema.properties?.[0] as IProperty
+
+  beforeEach(() => {
+    schema = {
+      type: 'object',
+      allowsSchemaExtensions: true,
+      properties: [
+        {
+          name: 'x',
+          schema: { type: 'any' }
+        }
+      ]
+    }
+    x = schema.properties?.[0] as IProperty
+    Foo.customValidator = () => schema
+  })
+
   describe('spec version support', () => {
     it('supports version 2.0', () => {
       const def = {}
@@ -74,55 +101,158 @@ describe.only('component validator', () => {
   })
 
   describe('common validations', () => {
-    let schema: ISchemaDefinition<any, any> = {
-      type: 'object',
-      allowsSchemaExtensions: true,
-      properties: [
-        {
-          name: 'x',
-          schema: { type: 'any' }
-        }
-      ]
-    }
-    let x: IProperty = schema.properties?.[0] as IProperty
 
-    beforeEach(() => {
-      schema = {
-        type: 'object',
-        allowsSchemaExtensions: true,
-        properties: [
-          {
-            name: 'x',
-            schema: { type: 'any' }
-          }
-        ]
-      }
-      x = schema.properties?.[0] as IProperty
-      Foo.customValidator = () => schema
+    describe('allowed', () => {
+      it('will produce an error if the property is not allowed', () => {
+        x.schema.notAllowed = 'Not allowed because I said so.'
+        const es = Foo.validate({ x: true })
+        expect(es.hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(true)
+      })
+
+      it('will produce an error if the property is allowed but not specified with no additional properties', () => {
+        const es = Foo.validate({ y: true })
+        expect(es.hasErrorByCode('PROPERTY_UNKNOWN')).to.equal(true)
+      })
+
+      it('will produce an error if the property is not allowed but allowed via additional properties', () => {
+        schema.additionalProperties = { type: 'any' }
+        x.schema.notAllowed = 'Not allowed because I said so'
+        const es = Foo.validate({ x: true })
+        expect(es.hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(true)
+      })
+
+      it('will not produce an error if the property is not specified but allows additional properties', () => {
+        schema.additionalProperties = { type: 'any' }
+        const es = Foo.validate({ y: true })
+        expect(es.hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(false)
+      })
     })
 
-    it('will produce an error if the property is not allowed', () => {
-      x.schema.notAllowed = 'Not allowed because I said so.'
-      const es = Foo.validate({ x: true })
-      expect(es.hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(true)
+    describe('enum', () => {
+      it('is valid if enum value is met', () => {
+        schema.additionalProperties = { type: 'string', enum: ['a', 'b'] }
+        const es = Foo.validate({ y: 'a' })
+        expect(es.hasErrorByCode('ENUM_NOT_MET')).to.equal(false)
+      })
+
+      it('is not valid if enum value is not met', () => {
+        schema.additionalProperties = { type: 'string', enum: ['a', 'b'] }
+        const es = Foo.validate({ y: 'c' })
+        expect(es.hasErrorByCode('ENUM_NOT_MET')).to.equal(true)
+      })
     })
 
-    it('will produce an error if the property is allowed but not specified with no additional properties', () => {
+    describe('ignored', () => {
+      it('can be valid if ignored', () => {
+        schema.additionalProperties = { type: 'string', ignored: true }
+        const es = Foo.validate({ y: 'a' })
+        expect(es.hasError).to.equal(false)
+      })
+
+      it('can be invalid if ignored', () => {
+        schema.additionalProperties = { type: 'string', ignored: true }
+        const es = Foo.validate({ y: true })
+        expect(es.hasError).to.equal(false)
+      })
+    })
+
+    describe('nullable', () => {
+      it('can be null if nullable', () => {
+        schema.additionalProperties = { type: 'string', nullable: true }
+        const es = Foo.validate({ y: null })
+        expect(es.hasErrorByCode('ENUM_NOT_MET')).to.equal(false)
+      })
+
+      it('cannot be null if not nullable', () => {
+        schema.additionalProperties = { type: 'string', nullable: false }
+        const es = Foo.validate({ y: null })
+        expect(es.hasErrorByCode('NULL_INVALID')).to.equal(true)
+      })
+    })
+  })
+
+  describe('boolean', () => {
+    it('can be true', () => {
+      schema.additionalProperties = { type: 'boolean' }
       const es = Foo.validate({ y: true })
-      expect(es.hasErrorByCode('PROPERTY_UNKNOWN')).to.equal(true)
+      expect(es.hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(false)
     })
 
-    it('will produce an error if the property is not allowed but allowed via additional properties', () => {
-      schema.additionalProperties = { type: 'any' }
-      x.schema.notAllowed = 'Not allowed because I said so'
+    it('can be false', () => {
+      schema.additionalProperties = { type: 'boolean' }
+      const es = Foo.validate({ y: false })
+      expect(es.hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(false)
+    })
+
+    it('cannot be a string', () => {
+      schema.additionalProperties = { type: 'boolean' }
+      const es = Foo.validate({ y: 'foo' })
+      expect(es.hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(true)
+    })
+
+    it('cannot be ref', () => {
+      schema.additionalProperties = { type: 'boolean' }
+      const es = Foo.validate({ y: { $ref: '#' } })
+      expect(es.hasWarningByCode('REF_NOT_ALLOWED')).to.equal(true)
+    })
+  })
+
+  describe('component', () => {
+    it('can be ref when allowed', () => {
+      schema.additionalProperties = { type: 'component', allowsRef: true, component: Foo }
+      const es = Foo.validate({ y: { $ref: '#' } })
+      expect(es.hasWarningByCode('REF_NOT_ALLOWED')).to.equal(false)
+    })
+
+    it('cannot be ref when not allowed', () => {
+      schema.additionalProperties = { type: 'component', allowsRef: false, component: Foo }
+      const es = Foo.validate({ y: { $ref: '#' } })
+      expect(es.hasWarningByCode('REF_NOT_ALLOWED')).to.equal(true)
+    })
+
+    it('can have valid definition', () => {
+      schema.additionalProperties = { type: 'component', allowsRef: true, component: Foo }
+      const es = Foo.validate({ y: { x: true } })
+      expect(es.hasError).to.equal(false)
+    })
+
+    it('cannot have invalid definition', () => {
+      x.schema = { type: 'string' }
+      schema.additionalProperties = { type: 'component', allowsRef: true, component: Foo }
+      const es = Foo.validate({ y: { x: true } })
+      expect(es.hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(true)
+    })
+  })
+
+  describe('number', () => {
+    it('can be a number', () => {
+      x.schema = { type: 'number' }
+      const es = Foo.validate({ x: 1.5 })
+      expect(es.hasError).to.equal(false)
+    })
+
+    it('cannot be a boolean', () => {
+      x.schema = { type: 'number' }
       const es = Foo.validate({ x: true })
-      expect(es.hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(true)
+      expect(es.hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(true)
     })
 
-    it('will not produce an error if the property is not specified but allows additional properties', () => {
-      schema.additionalProperties = { type: 'any' }
-      const es = Foo.validate({ y: true })
-      expect(es.hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(false)
+    it('can be constrained by minimum', () => {
+      x.schema = { type: 'number', minimum: 10 }
+      const es = Foo.validate({ x: 1 })
+      expect(es.hasErrorByCode('VALUE_OUT_OF_RANGE_MIN')).to.equal(true)
+    })
+
+    it('can be constrained by maximum', () => {
+      x.schema = { type: 'number', maximum: 10 }
+      const es = Foo.validate({ x: 11 })
+      expect(es.hasErrorByCode('VALUE_OUT_OF_RANGE_MAX')).to.equal(true)
+    })
+
+    it('can be constrained to integer', () => {
+      x.schema = { type: 'number', integer: true }
+      const es = Foo.validate({ x: 1.5 })
+      expect(es.hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(true)
     })
   })
 

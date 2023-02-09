@@ -201,13 +201,26 @@ function validateDefinition (processor: SchemaProcessor): void {
     return
   }
 
-  if (definition === null && nullable === true) return
+  if (definition === null) {
+    if (nullable === true) {
+      return
+    } else {
+      exception.add({
+        id,
+        code: 'NULL_INVALID',
+        level: 'error',
+        locations: [processor.getLocation('value')],
+        metadata: {},
+        reference
+      })
+    }
+  }
 
-  if (actualType === 'object' && '$ref' in definition) {
+  if (actualType === 'object' && definition !== null && '$ref' in definition) {
     const key = processor.key
     const parentSchema = processor.parent?.schema as S.IObject
     const subSchema = parentSchema.properties?.find(s => s.name === key)?.schema ?? parentSchema.additionalProperties
-    if (subSchema !== undefined && 'allowsRef' in subSchema && !subSchema.allowsRef) {
+    if (subSchema !== undefined && (!('allowsRef' in subSchema) || !subSchema.allowsRef)) {
       exception.add({
         id,
         code: 'REF_NOT_ALLOWED',
@@ -221,10 +234,9 @@ function validateDefinition (processor: SchemaProcessor): void {
     }
   }
 
-  if (expectedType === 'any') return
   if (schema.ignored === true) return
 
-  if (expectedType !== actualType) {
+  if (expectedType !== actualType && expectedType !== 'any') {
     exception.add({
       id,
       code: 'VALUE_TYPE_INVALID',
@@ -239,6 +251,21 @@ function validateDefinition (processor: SchemaProcessor): void {
     })
   }
 
+  if ('enum' in schema && schema.enum !== undefined && !schema.enum.includes(definition as never)) {
+    exception.add({
+      id,
+      code: 'ENUM_NOT_MET',
+      level: 'error',
+      locations: [processor.getLocation('value')],
+      metadata: {
+        enum: schema.enum,
+        value: definition
+      },
+      reference
+    })
+  }
+
+  if (expectedType === 'any') return
   if (type === 'array') {
     const value = definition as any[]
     value.forEach((def, index) => {
@@ -306,7 +333,7 @@ function validateDefinition (processor: SchemaProcessor): void {
         level: 'error',
         locations: [processor.getLocation('value')],
         metadata: {
-          expectedType,
+          expectedType: 'integer',
           value: definition
         },
         reference

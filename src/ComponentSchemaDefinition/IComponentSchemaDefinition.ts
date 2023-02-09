@@ -20,9 +20,6 @@ interface Base<T> {
   // Set the default.
   default?: T
 
-  // Get array of possible values.
-  enum?: T[]
-
   // Determine if validation should be skipped.
   ignored?: boolean
 
@@ -32,6 +29,7 @@ interface Base<T> {
 
 export interface IBoolean extends Base<boolean> {
   type: 'boolean'
+  enum?: boolean[]
 }
 
 export interface IComponent<Definition, Built> extends Base<Definition | Built> {
@@ -54,6 +52,7 @@ export interface INumber extends Base<number> {
   integer?: boolean
   maximum?: number
   minimum?: number
+  enum?: number[]
 }
 
 export interface IOneOf extends Base<any> {
@@ -80,6 +79,7 @@ export interface IProperty<SchemaType=ISchema> {
 
 export interface IString extends Base<string> {
   type: 'string'
+  enum?: string[]
   // maxLength?: number
   // minLength?: number
 }

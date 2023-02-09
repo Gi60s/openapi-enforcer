@@ -6,6 +6,7 @@ export type II18nMessageCode = keyof II18nMessagesMap
 export interface II18nMessagesMap {
   COMPONENT_NAME_INVALID: string
   CONTENT_TYPE_INVALID: string
+  ENUM_NOT_MET: string
   I18N_LANGUAGE_NOT_DEFINED: string
   I18N_MISSING_MESSAGES: string
   LOADER_NOT_FOUND: string
@@ -13,6 +14,7 @@ export interface II18nMessagesMap {
   LOADER_YAML_SUPPORT_ERROR: string
   LOCATOR_INVALID_REFERENCE: string
   NOT_IMPLEMENTED: string
+  NULL_INVALID: string
   OPERATION_BODY_FORM_CONFLICT: string
   OPERATION_BODY_NOT_UNIQUE: string
   OPERATION_CONSUMES_FORM_DATA: string
