@@ -614,8 +614,7 @@ function getValidatorsMap (): IValidatorsMap {
               type: 'boolean'
             }
           }
-        ],
-        error: () => {}
+        ]
       }
     },
     description: {

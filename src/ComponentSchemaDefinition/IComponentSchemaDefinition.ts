@@ -61,7 +61,7 @@ export interface IOneOf extends Base<any> {
     condition: (data: SchemaProcessor) => boolean
     schema: ISchema
   }>
-  error: (data: SchemaProcessor) => void // only called by validator, not builder
+  // error: (data: SchemaProcessor) => void // only called by validator, not builder
 }
 
 export interface IObject<T=ISchema> extends Base<Record<string, any>> {

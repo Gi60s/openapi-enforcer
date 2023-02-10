@@ -180,11 +180,49 @@ function validateChild (processor: SchemaProcessor, key: string, definition: any
 }
 
 function validateDefinition (processor: SchemaProcessor): void {
-  const { definition, exception, schema } = processor
+  const { definition, exception } = processor
   const { id, reference } = processor.component
+  const schema = processor.schema.type === 'oneOf'
+    ? findOneOfSchema(processor, processor.schema)
+    : processor.schema
+
+  if (schema === undefined) {
+    exception.add({
+      id,
+      code: 'SCHEMA_NOT_MET',
+      level: 'error',
+      locations: [processor.getLocation('value')],
+      metadata: {
+        value: definition
+      },
+      reference
+    })
+    return
+  }
+
   const { type, nullable } = schema
   const expectedType = type === 'component' ? 'object' : type
   const actualType = Array.isArray(definition) ? 'array' : typeof definition
+
+  // if (schema.type === 'oneOf') {
+  //   const found = findOneOfSchema(processor, schema)
+  //   if (found !== undefined) {
+  //     schema = found
+  //     // validateChild(processor, processor.key, definition, found)
+  //   } else {
+  //     exception.add({
+  //       id,
+  //       code: 'SCHEMA_NOT_MET',
+  //       level: 'error',
+  //       locations: [processor.getLocation('value')],
+  //       metadata: {
+  //         value: definition
+  //       },
+  //       reference
+  //     })
+  //     return
+  //   }
+  // }
 
   if (schema.notAllowed !== undefined) {
     exception.add({
@@ -219,7 +257,9 @@ function validateDefinition (processor: SchemaProcessor): void {
   if (actualType === 'object' && definition !== null && '$ref' in definition) {
     const key = processor.key
     const parentSchema = processor.parent?.schema as S.IObject
-    const subSchema = parentSchema.properties?.find(s => s.name === key)?.schema ?? parentSchema.additionalProperties
+    const subSchema = processor.schema.type === 'oneOf'
+      ? schema
+      : parentSchema.properties?.find(s => s.name === key)?.schema ?? parentSchema.additionalProperties
     if (subSchema !== undefined && (!('allowsRef' in subSchema) || !subSchema.allowsRef)) {
       exception.add({
         id,
@@ -236,7 +276,7 @@ function validateDefinition (processor: SchemaProcessor): void {
 
   if (schema.ignored === true) return
 
-  if (expectedType !== actualType && expectedType !== 'any') {
+  if (expectedType !== actualType && expectedType !== 'any' && expectedType !== 'oneOf') {
     exception.add({
       id,
       code: 'VALUE_TYPE_INVALID',
@@ -289,6 +329,8 @@ function validateDefinition (processor: SchemaProcessor): void {
       }
     })
     Object.keys(value).forEach(key => {
+      if (key === '$ref') return
+
       const v = value[key]
       if (v !== undefined) {
         const property = s.properties?.find(p => p.name === key)
@@ -366,28 +408,29 @@ function validateDefinition (processor: SchemaProcessor): void {
       })
     }
   } else if (type === 'oneOf') {
-    const length = schema.oneOf.length
-    let found = false
-    for (let i = 0; i < length; i++) {
-      const item = schema.oneOf[i]
-      if (item.condition(processor)) {
-        found = true
-        validateChild(processor, processor.key, definition, item.schema)
-        break
-      }
-    }
-    if (!found) {
-      exception.add({
-        id,
-        code: 'SCHEMA_NOT_MET',
-        level: 'error',
-        locations: [processor.getLocation('value')],
-        metadata: {
-          value: definition
-        },
-        reference
-      })
-    }
+    // const found = findOneOfSchema(processor, schema)
+    // if (found !== undefined) {
+    //   validateChild(processor, processor.key, definition, found)
+    // } else {
+    //   exception.add({
+    //     id,
+    //     code: 'SCHEMA_NOT_MET',
+    //     level: 'error',
+    //     locations: [processor.getLocation('value')],
+    //     metadata: {
+    //       value: definition
+    //     },
+    //     reference
+    //   })
+    // }
+  }
+}
+
+function findOneOfSchema (processor: SchemaProcessor, schema: S.IOneOf): S.ISchema | undefined {
+  const length = schema.oneOf.length
+  for (let i = 0; i < length; i++) {
+    const item = schema.oneOf[i]
+    if (item.condition(processor)) return item.schema
   }
 }
 

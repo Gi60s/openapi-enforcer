@@ -3,6 +3,7 @@ import { EnforcerComponent } from '../src/components/Component'
 import { IComponentSpec, IVersion } from '../src/components/IComponent'
 import { ISchemaDefinition, IProperty } from '../src/ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { SchemaProcessor } from '../src/ComponentSchemaDefinition/SchemaProcessor'
+import exp from 'constants'
 
 class Foo extends EnforcerComponent<any> {
   constructor (definition: any, version?: IVersion) {
@@ -256,12 +257,75 @@ describe.only('component validator', () => {
     })
   })
 
-  describe('named properties', () => {
+  describe('oneOf', () => {
+    it('can distinguish correct schema', () => {
+      x.schema = {
+        type: 'oneOf',
+        oneOf: [
+          {
+            condition: d => typeof d.definition === 'string',
+            schema: { type: 'string' }
+          },
+          {
+            condition: d => typeof d.definition === 'number',
+            schema: { type: 'number' }
+          }
+        ]
+      }
+      expect(Foo.validate({ x: 'foo' }).hasError).to.equal(false)
+      expect(Foo.validate({ x: 1 }).hasError).to.equal(false)
+      expect(Foo.validate({ x: false }).hasErrorByCode('SCHEMA_NOT_MET')).to.equal(true)
+    })
 
+    it('can determine correct $ref allow state', () => {
+      schema.properties?.push({
+        name: 'y',
+        schema: {
+          type: 'oneOf',
+          oneOf: [
+            {
+              condition: d => true,
+              schema: { type: 'component', allowsRef: true, component: Foo }
+            }
+          ]
+        }
+      })
+
+      schema.properties?.push({
+        name: 'z',
+        schema: {
+          type: 'oneOf',
+          oneOf: [
+            {
+              condition: d => true,
+              schema: { type: 'component', allowsRef: false, component: Foo }
+            }
+          ]
+        }
+      })
+
+      const xResult = Foo.validate({ x: { $ref: '#' } })
+      expect(xResult.hasError).to.equal(false)
+      expect(xResult.hasWarningByCode('REF_NOT_ALLOWED')).to.equal(true)
+
+      const yResult = Foo.validate({ y: { $ref: '#' } })
+      expect(yResult.hasError).to.equal(false)
+      expect(yResult.hasError).to.equal(false)
+
+      const zResult = Foo.validate({ z: { $ref: '#' } })
+      expect(zResult.hasError).to.equal(false)
+      expect(zResult.hasWarningByCode('REF_NOT_ALLOWED')).to.equal(true)
+    })
   })
 
-  describe('additional properties', () => {
+  describe('object', () => {
+    describe('named properties', () => {
 
+    })
+
+    describe('additional properties', () => {
+
+    })
   })
 
   describe('one time validation per definition schema', () => {
