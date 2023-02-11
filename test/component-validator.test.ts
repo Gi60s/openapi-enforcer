@@ -101,7 +101,6 @@ describe.only('component validator', () => {
   })
 
   describe('common validations', () => {
-
     describe('allowed', () => {
       it('will produce an error if the property is not allowed', () => {
         x.schema.notAllowed = 'Not allowed because I said so.'
@@ -167,6 +166,66 @@ describe.only('component validator', () => {
         schema.additionalProperties = { type: 'string', nullable: false }
         const es = Foo.validate({ y: null })
         expect(es.hasErrorByCode('NULL_INVALID')).to.equal(true)
+      })
+    })
+
+    describe('default', () => {
+      it('will use default value if definition is undefined', () => {
+        schema.properties?.push({
+          name: 'y',
+          schema: {
+            type: 'number',
+            default: 5
+          }
+        }, {
+          name: 'z',
+          schema: {
+            type: 'oneOf',
+            oneOf: [
+              {
+                condition: p => {
+                  return p.getSiblingValue('y') === 5
+                },
+                schema: { type: 'boolean' }
+              }
+            ]
+          }
+        })
+
+        const es = Foo.validate({ z: true })
+        expect(es.hasError).to.equal(false)
+      })
+
+      it('will not use default value if definition is defined', () => {
+        schema.properties?.push({
+          name: 'y',
+          schema: {
+            type: 'number',
+            default: 5
+          }
+        }, {
+          name: 'z',
+          schema: {
+            type: 'oneOf',
+            oneOf: [
+              {
+                condition: p => {
+                  return p.getSiblingValue('y') === 5
+                },
+                schema: { type: 'boolean' }
+              },
+              {
+                condition: p => {
+                  return p.getSiblingValue('y') === 1
+                },
+                schema: { type: 'string' }
+              }
+            ]
+          }
+        })
+
+        const es = Foo.validate({ y: 1, z: 'foo' })
+        expect(es.hasError).to.equal(false)
       })
     })
   })
@@ -370,35 +429,6 @@ describe.only('component validator', () => {
       const def: any = { x: null }
       def.x = def
       expect(Foo.validate(def).hasError).to.equal(false)
-    })
-
-    it.only('will properly place built data', () => {
-      x.schema = {
-        type: 'object',
-        properties: [
-          {
-            name: 'a',
-            schema: { type: 'string' }
-          },
-          {
-            name: 'x',
-            schema: { type: 'any' }
-          }
-        ]
-      }
-      ;(x.schema.properties?.[1] as IProperty).schema = schema
-      const def: any = {
-        x: {
-          a: 'foo'
-        }
-      }
-      def.x.x = def
-
-      const built: any = {}
-      const processor = new SchemaProcessor(def, built, Foo, '2.0')
-      Foo.validate(def, '2.0', processor)
-      expect(built.x.a).to.equal('foo')
-      expect(built.x.x).to.equal(built)
     })
   })
 })

@@ -165,12 +165,25 @@ function validateChild (processor: SchemaProcessor, key: string, definition: any
 }
 
 function validateDefinition (processor: SchemaProcessor): void {
-  const { definition, exception } = processor
+  const { definition, exception, schema } = processor
   const { id, reference } = processor.component
+
+  if (schema === undefined) {
+    exception.add({
+      id,
+      code: 'SCHEMA_NOT_MET',
+      level: 'error',
+      locations: [processor.getLocation('value')],
+      metadata: {
+        value: definition
+      },
+      reference
+    })
+    return
+  }
 
   // check that this definition and schema have not already been evaluated together - recursion break
   if (typeof definition === 'object' && definition !== null) {
-    const schema = processor.schema
     const previousSchemas = definitionSchemaMap.get(definition)
     const existingSchemaDefinition = previousSchemas?.get(schema)
     if (existingSchemaDefinition !== undefined) {
@@ -185,24 +198,6 @@ function validateDefinition (processor: SchemaProcessor): void {
     } else {
       previousSchemas.set(schema, processor.built)
     }
-  }
-
-  const schema = processor.schema.type === 'oneOf'
-    ? findOneOfSchema(processor, processor.schema)
-    : processor.schema
-
-  if (schema === undefined) {
-    exception.add({
-      id,
-      code: 'SCHEMA_NOT_MET',
-      level: 'error',
-      locations: [processor.getLocation('value')],
-      metadata: {
-        value: definition
-      },
-      reference
-    })
-    return
   }
 
   const { type, nullable } = schema
@@ -242,7 +237,7 @@ function validateDefinition (processor: SchemaProcessor): void {
   if (actualType === 'object' && definition !== null && '$ref' in definition) {
     const key = processor.key
     const parentSchema = processor.parent?.schema as S.IObject
-    const subSchema = processor.schema.type === 'oneOf'
+    const subSchema = processor._schema.type === 'oneOf'
       ? schema
       : parentSchema.properties?.find(s => s.name === key)?.schema ?? parentSchema.additionalProperties
     if (subSchema !== undefined && (!('allowsRef' in subSchema) || !subSchema.allowsRef)) {
@@ -392,30 +387,6 @@ function validateDefinition (processor: SchemaProcessor): void {
         reference
       })
     }
-  } else if (type === 'oneOf') {
-    // const found = findOneOfSchema(processor, schema)
-    // if (found !== undefined) {
-    //   validateChild(processor, processor.key, definition, found)
-    // } else {
-    //   exception.add({
-    //     id,
-    //     code: 'SCHEMA_NOT_MET',
-    //     level: 'error',
-    //     locations: [processor.getLocation('value')],
-    //     metadata: {
-    //       value: definition
-    //     },
-    //     reference
-    //   })
-    // }
-  }
-}
-
-function findOneOfSchema (processor: SchemaProcessor, schema: S.IOneOf): S.ISchema | undefined {
-  const length = schema.oneOf.length
-  for (let i = 0; i < length; i++) {
-    const item = schema.oneOf[i]
-    if (item.condition(processor)) return item.schema
   }
 }
 

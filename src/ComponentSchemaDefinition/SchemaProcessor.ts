@@ -14,11 +14,13 @@ import { ILastly } from '../Lastly/ILastly'
 import { ISchema, ISchemaDefinition } from './IComponentSchemaDefinition'
 import { getLocation } from '../Locator/Locator'
 import { ILocation } from '../Locator/ILocator'
+import * as S from './IComponentSchemaDefinition'
 
 type EnforcerComponentClass = typeof EnforcerComponent<any>
 
-export class SchemaProcessor<Definition extends IDefinition = IDefinition, Built=any> {
+export class SchemaProcessor<Definition=any, Built=any> {
   public built: Built
+  public children: Record<string, SchemaProcessor>
   public component: {
     constructor: EnforcerComponentClass
     id: string
@@ -27,11 +29,11 @@ export class SchemaProcessor<Definition extends IDefinition = IDefinition, Built
     schema: ISchema
   }
 
-  public definition: Definition
+  public _definition: Definition
   public exception: ExceptionStore
   public key: string
   public lastly: ILastly
-  public schema: ISchema
+  public _schema: ISchema
   public store: {
     operations: Array<SchemaProcessor<IOperationDefinition, IOperation>>
     securitySchemes: Record<string, SchemaProcessor<ISecuritySchemeDefinition, ISecurityScheme>>
@@ -45,11 +47,12 @@ export class SchemaProcessor<Definition extends IDefinition = IDefinition, Built
   constructor (definition: Definition, built: any, ctor: null, version: IVersion, parent: SchemaProcessor)
   constructor (definition: Definition, built: any, ctor: EnforcerComponentClass | null, version?: IVersion, parent?: SchemaProcessor) {
     this.built = built
-    this.definition = definition
+    this.children = {}
+    this._definition = definition
     this.exception = parent?.exception ?? new ExceptionStore()
     this.key = ''
     this.lastly = parent?.lastly ?? new Lastly()
-    this.schema = { type: 'any' }
+    this._schema = { type: 'any' }
     this.store = parent?.store ?? {
       operations: [],
       securitySchemes: {}
@@ -101,15 +104,17 @@ export class SchemaProcessor<Definition extends IDefinition = IDefinition, Built
     }
   }
 
-  createChild (key: string, definition: IDefinition, built: any, component: EnforcerComponentClass | null, schema?: ISchema): SchemaProcessor {
+  createChild (key: string, definition: any, built: any, component: EnforcerComponentClass | null, schema?: ISchema): SchemaProcessor {
     if (component !== null) {
       const child = new SchemaProcessor<any, any>(definition, null, component, this.version, this)
       child.key = key
+      this.children[key] = child
       return child
     } else {
       const child = new SchemaProcessor<any, any>(definition, built, null, this.version, this)
       child.key = key
-      child.schema = schema as ISchema
+      child._schema = schema as ISchema
+      this.children[key] = child
       return child
     }
   }
@@ -118,6 +123,18 @@ export class SchemaProcessor<Definition extends IDefinition = IDefinition, Built
     return this.parent === null
       ? getLocation(this.definition)
       : getLocation(this.parent.definition, this.key, position)
+  }
+
+  getSiblingValue (key: string): any | undefined {
+    const parent = this.parent
+    if (parent === undefined) return
+    if (parent?.children[key] !== undefined) return parent?.children[key]?.definition
+
+    const schema = parent?.schema
+    if (schema?.type === 'object') {
+      const propertySchema = schema.properties?.find(p => p.name === key)?.schema ?? schema.additionalProperties
+      return propertySchema?.default
+    }
   }
 
   /**
@@ -147,6 +164,28 @@ export class SchemaProcessor<Definition extends IDefinition = IDefinition, Built
       if (p.component.schema === p.schema && p.component.name === componentName) return p as SchemaProcessor<Definition, Built>
       p = p.parent
     }
+  }
+
+  get definition (): Definition {
+    if (this._definition !== undefined) return this._definition
+    const schema = this._schema.type === 'oneOf' ? findOneOfSchema(this) : this._schema
+    return schema?.default
+  }
+
+  get schema (): S.ISchema | undefined {
+    const schema = this._schema
+    return schema.type === 'oneOf'
+      ? findOneOfSchema(this)
+      : this._schema
+  }
+}
+
+function findOneOfSchema (processor: SchemaProcessor): S.ISchema | undefined {
+  const schema = processor._schema as S.IOneOf
+  const length = schema.oneOf.length
+  for (let i = 0; i < length; i++) {
+    const item = schema.oneOf[i]
+    if (item.condition(processor)) return item.schema
   }
 }
 
