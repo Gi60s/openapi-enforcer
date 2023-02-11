@@ -147,21 +147,6 @@ export class EnforcerComponent<Definition extends IDefinition> {
         reference
       })
     } else {
-      // check that this definition and schema have not already been evaluated
-      const previousConstructors = definitionSchemaMap.get(definition)
-      const existingSchemaDefinition = previousConstructors?.get(ctor)
-      if (existingSchemaDefinition !== undefined) return exception
-
-      // store new schema validation
-      const schema = processor.schema as S.ISchemaDefinition<any, any>
-      if (previousConstructors === undefined) {
-        const ctorMap = new WeakMap()
-        ctorMap.set(ctor, schema)
-        definitionSchemaMap.set(definition, ctorMap)
-      } else {
-        previousConstructors.set(ctor, schema)
-      }
-
       validateDefinition(processor)
     }
 
@@ -182,6 +167,26 @@ function validateChild (processor: SchemaProcessor, key: string, definition: any
 function validateDefinition (processor: SchemaProcessor): void {
   const { definition, exception } = processor
   const { id, reference } = processor.component
+
+  // check that this definition and schema have not already been evaluated together - recursion break
+  if (typeof definition === 'object' && definition !== null) {
+    const schema = processor.schema
+    const previousSchemas = definitionSchemaMap.get(definition)
+    const existingSchemaDefinition = previousSchemas?.get(schema)
+    if (existingSchemaDefinition !== undefined) {
+      processor.built = existingSchemaDefinition
+      return
+    }
+
+    if (previousSchemas === undefined) {
+      const definitionsMap = new WeakMap()
+      definitionsMap.set(schema, processor.built)
+      definitionSchemaMap.set(definition, definitionsMap)
+    } else {
+      previousSchemas.set(schema, processor.built)
+    }
+  }
+
   const schema = processor.schema.type === 'oneOf'
     ? findOneOfSchema(processor, processor.schema)
     : processor.schema
@@ -203,26 +208,6 @@ function validateDefinition (processor: SchemaProcessor): void {
   const { type, nullable } = schema
   const expectedType = type === 'component' ? 'object' : type
   const actualType = Array.isArray(definition) ? 'array' : typeof definition
-
-  // if (schema.type === 'oneOf') {
-  //   const found = findOneOfSchema(processor, schema)
-  //   if (found !== undefined) {
-  //     schema = found
-  //     // validateChild(processor, processor.key, definition, found)
-  //   } else {
-  //     exception.add({
-  //       id,
-  //       code: 'SCHEMA_NOT_MET',
-  //       level: 'error',
-  //       locations: [processor.getLocation('value')],
-  //       metadata: {
-  //         value: definition
-  //       },
-  //       reference
-  //     })
-  //     return
-  //   }
-  // }
 
   if (schema.notAllowed !== undefined) {
     exception.add({

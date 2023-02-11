@@ -3,7 +3,6 @@ import { EnforcerComponent } from '../src/components/Component'
 import { IComponentSpec, IVersion } from '../src/components/IComponent'
 import { ISchemaDefinition, IProperty } from '../src/ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { SchemaProcessor } from '../src/ComponentSchemaDefinition/SchemaProcessor'
-import exp from 'constants'
 
 class Foo extends EnforcerComponent<any> {
   constructor (definition: any, version?: IVersion) {
@@ -320,15 +319,86 @@ describe.only('component validator', () => {
 
   describe('object', () => {
     describe('named properties', () => {
+      it('can match the property type', () => {
+        x.schema.type = 'boolean'
+        expect(Foo.validate({ x: true }).hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(false)
+      })
 
+      it('must match the property type', () => {
+        x.schema.type = 'boolean'
+        expect(Foo.validate({ x: 'foo' }).hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(true)
+      })
+
+      it('can define required properties', () => {
+        x.required = true
+        expect(Foo.validate({}).hasErrorByCode('PROPERTY_MISSING')).to.equal(true)
+      })
+
+      it('can define not allowed properties', () => {
+        x.notAllowed = 'Not allowed'
+        expect(Foo.validate({ x: true }).hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(true)
+      })
     })
 
     describe('additional properties', () => {
+      it('can allow additional properties', () => {
+        schema.additionalProperties = { type: 'string' }
+        expect(Foo.validate({ abc: 'foo' }).hasErrorByCode('PROPERTY_UNKNOWN')).to.equal(false)
+      })
 
+      it('must allow additional properties', () => {
+        expect(Foo.validate({ abc: 'foo' }).hasErrorByCode('PROPERTY_UNKNOWN')).to.equal(true)
+      })
+    })
+  })
+
+  describe('string', () => {
+    it('can be a string', () => {
+      x.schema.type = 'string'
+      expect(Foo.validate({ x: 'foo' }).hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(false)
+    })
+
+    it('must be a string', () => {
+      x.schema.type = 'string'
+      expect(Foo.validate({ x: 5 }).hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(true)
     })
   })
 
   describe('one time validation per definition schema', () => {
+    it('will catch simple recursion', () => {
+      x.schema = schema
+      const def: any = { x: null }
+      def.x = def
+      expect(Foo.validate(def).hasError).to.equal(false)
+    })
 
+    it.only('will properly place built data', () => {
+      x.schema = {
+        type: 'object',
+        properties: [
+          {
+            name: 'a',
+            schema: { type: 'string' }
+          },
+          {
+            name: 'x',
+            schema: { type: 'any' }
+          }
+        ]
+      }
+      ;(x.schema.properties?.[1] as IProperty).schema = schema
+      const def: any = {
+        x: {
+          a: 'foo'
+        }
+      }
+      def.x.x = def
+
+      const built: any = {}
+      const processor = new SchemaProcessor(def, built, Foo, '2.0')
+      Foo.validate(def, '2.0', processor)
+      expect(built.x.a).to.equal('foo')
+      expect(built.x.x).to.equal(built)
+    })
   })
 })
