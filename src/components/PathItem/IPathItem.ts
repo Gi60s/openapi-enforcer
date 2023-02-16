@@ -25,7 +25,6 @@ interface IPathItemComponent extends IComponentInstance {
 }
 
 export interface IPathItem2Definition {
-  [Extensions]: Record<string, any>
   $ref?: string
   get?: I.IOperation2Definition
   put?: I.IOperation2Definition
@@ -51,7 +50,6 @@ export interface IPathItem2 extends IPathItemComponent {
 }
 
 export interface IPathItem3Definition {
-  [Extensions]: Record<string, any>
   $ref?: string
   summary?: string
   description?: string

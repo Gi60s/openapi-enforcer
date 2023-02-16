@@ -78,8 +78,8 @@ export class Xml extends EnforcerComponent<I.IXml2Definition> implements I.IXml2
     return new Xml(Object.assign({}, definition) as I.IXml2Definition)
   }
 
-  static createDefinition (definition?: Partial<I.IXml2Definition> | undefined): I.IXml2Definition {
-    return Object.assign({}, definition) as I.IXml2Definition
+  static createDefinition<T extends Partial<I.IXml2Definition>> (definition?: T | undefined): I.IXml2Definition & T {
+    return Object.assign({}, definition) as I.IXml2Definition & T
   }
 
   static validate (definition: I.IXml2Definition, version?: IVersion): ExceptionStore {

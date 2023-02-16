@@ -32,7 +32,6 @@ export interface IExample2 extends IExampleComponent {
 }
 
 export interface IExample3Definition {
-  [Extensions]: Record<string, any>
   summary?: string
   description?: string
   value?: any

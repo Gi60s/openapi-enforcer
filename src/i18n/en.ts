@@ -4,6 +4,9 @@ export const language: II18nMessagesMap = {
   COMPONENT_NAME_INVALID: 'Component {{componentsNamespace}} property names can only contain letters, numbers, dots, ' +
     'dashes, and underscores. The property {{propertyName}} is not valid.',
   CONTENT_TYPE_INVALID: 'Content-type appears to be invalid: {{contentType}}.',
+  DISCRIMINATOR_ILLEGAL: 'The discriminator can only used in conjunction with allOf, oneOf, or anyOf.',
+  DISCRIMINATOR_MAPPING_INVALID: 'The mapping value {{value}} was not found in the list of potential oneOf values.',
+  DISCRIMINATOR_REQUIRED_PROPERTY: 'The discriminator property {{propertyName}} is required by schemas associated with the discriminator.',
   ENUM_NOT_MET: 'Expected one of {{enum}}. Received: {{value}}.',
   I18N_LANGUAGE_NOT_DEFINED: 'Language cannot be set to {{languageCode}} because that language has not yet been added.',
   I18N_MISSING_MESSAGES: 'Cannot add language {{languageCode}} because the following message codes are not defined ' +

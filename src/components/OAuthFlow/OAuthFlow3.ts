@@ -76,8 +76,8 @@ export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implem
     return new OAuthFlow(Object.assign({}, definition) as I.IOAuthFlow3Definition)
   }
 
-  static createDefinition (definition?: Partial<I.IOAuthFlow3Definition> | undefined): I.IOAuthFlow3Definition {
-    return Object.assign({}, definition) as I.IOAuthFlow3Definition
+  static createDefinition<T extends Partial<I.IOAuthFlow3Definition>> (definition?: T | undefined): I.IOAuthFlow3Definition & T {
+    return Object.assign({}, definition) as I.IOAuthFlow3Definition & T
   }
 
   static validate (definition: I.IOAuthFlow3Definition, version?: IVersion): ExceptionStore {

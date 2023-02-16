@@ -31,7 +31,7 @@ class Foo extends EnforcerComponent<any> {
   }
 }
 
-describe.only('component validator', () => {
+describe('component validator', () => {
   let schema: ISchemaDefinition<any, any> = {
     type: 'object',
     allowsSchemaExtensions: true,

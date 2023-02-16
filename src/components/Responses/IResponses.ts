@@ -25,7 +25,6 @@ interface IResponsesComponent extends IComponentInstance {
 }
 
 export interface IResponses2Definition {
-  [Extensions]: Record<string, any>
   [key: number]: I.IResponse2Definition | I.IReference2Definition
   default?: I.IResponse2Definition | I.IReference2Definition
 }
@@ -37,7 +36,6 @@ export interface IResponses2 extends IResponsesComponent {
 }
 
 export interface IResponses3Definition {
-  [Extensions]: Record<string, any>
   [key: number]: I.IResponse3Definition | I.IReference3Definition
   default?: I.IResponse3Definition | I.IReference3Definition
 }

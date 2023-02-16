@@ -75,15 +75,15 @@ export class Tag extends EnforcerComponent<I.ITag2Definition> implements I.ITag2
       return new Tag(Object.assign({}, definition))
     } else {
       return new Tag(Object.assign({
-        name: ""
+        name: ''
       }, definition) as I.ITag2Definition)
     }
   }
 
-  static createDefinition (definition?: Partial<I.ITag2Definition> | undefined): I.ITag2Definition {
+  static createDefinition<T extends Partial<I.ITag2Definition>> (definition?: T | undefined): I.ITag2Definition & T {
     return Object.assign({
-      name: ""
-    }, definition) as I.ITag2Definition
+      name: ''
+    }, definition) as I.ITag2Definition & T
   }
 
   static validate (definition: I.ITag2Definition, version?: IVersion): ExceptionStore {

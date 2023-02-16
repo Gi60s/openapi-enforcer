@@ -24,7 +24,6 @@ interface IServerVariableComponent extends IComponentInstance {
 }
 
 export interface IServerVariable3Definition {
-  [Extensions]: Record<string, any>
   enum?: string[]
   default: string
   description?: string

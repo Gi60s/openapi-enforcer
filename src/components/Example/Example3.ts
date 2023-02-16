@@ -76,8 +76,8 @@ export class Example extends EnforcerComponent<I.IExample3Definition> implements
     return new Example(Object.assign({}, definition) as I.IExample3Definition)
   }
 
-  static createDefinition (definition?: Partial<I.IExample3Definition> | undefined): I.IExample3Definition {
-    return Object.assign({}, definition) as I.IExample3Definition
+  static createDefinition<T extends Partial<I.IExample3Definition>> (definition?: T | undefined): I.IExample3Definition & T {
+    return Object.assign({}, definition) as I.IExample3Definition & T
   }
 
   static validate (definition: I.IExample3Definition, version?: IVersion): ExceptionStore {

@@ -77,15 +77,15 @@ export class Response extends EnforcerComponent<I.IResponse2Definition> implemen
       return new Response(Object.assign({}, definition))
     } else {
       return new Response(Object.assign({
-        description: ""
+        description: ''
       }, definition) as I.IResponse2Definition)
     }
   }
 
-  static createDefinition (definition?: Partial<I.IResponse2Definition> | undefined): I.IResponse2Definition {
+  static createDefinition<T extends Partial<I.IResponse2Definition>> (definition?: T | undefined): I.IResponse2Definition & T {
     return Object.assign({
-      description: ""
-    }, definition) as I.IResponse2Definition
+      description: ''
+    }, definition) as I.IResponse2Definition & T
   }
 
   static validate (definition: I.IResponse2Definition, version?: IVersion): ExceptionStore {

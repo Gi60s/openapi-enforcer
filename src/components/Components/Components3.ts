@@ -113,8 +113,8 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
     return new Components(Object.assign({}, definition) as I.IComponents3Definition)
   }
 
-  static createDefinition (definition?: Partial<I.IComponents3Definition> | undefined): I.IComponents3Definition {
-    return Object.assign({}, definition) as I.IComponents3Definition
+  static createDefinition<T extends Partial<I.IComponents3Definition>> (definition?: T | undefined): I.IComponents3Definition & T {
+    return Object.assign({}, definition) as I.IComponents3Definition & T
   }
 
   static validate (definition: I.IComponents3Definition, version?: IVersion): ExceptionStore {

@@ -95,17 +95,17 @@ export class Parameter extends EnforcerComponent<I.IParameter3Definition> implem
       return new Parameter(Object.assign({}, definition))
     } else {
       return new Parameter(Object.assign({
-        name: "",
+        name: '',
         in: 'cookie'
       }, definition) as I.IParameter3Definition)
     }
   }
 
-  static createDefinition (definition?: Partial<I.IParameter3Definition> | undefined): I.IParameter3Definition {
+  static createDefinition<T extends Partial<I.IParameter3Definition>> (definition?: T | undefined): I.IParameter3Definition & T {
     return Object.assign({
-      name: "",
+      name: '',
       in: 'cookie'
-    }, definition) as I.IParameter3Definition
+    }, definition) as I.IParameter3Definition & T
   }
 
   static validate (definition: I.IParameter3Definition, version?: IVersion): ExceptionStore {

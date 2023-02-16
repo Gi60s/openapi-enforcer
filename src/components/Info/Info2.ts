@@ -81,17 +81,17 @@ export class Info extends EnforcerComponent<I.IInfo2Definition> implements I.IIn
       return new Info(Object.assign({}, definition))
     } else {
       return new Info(Object.assign({
-        title: "",
-        version: ""
+        title: '',
+        version: ''
       }, definition) as I.IInfo2Definition)
     }
   }
 
-  static createDefinition (definition?: Partial<I.IInfo2Definition> | undefined): I.IInfo2Definition {
+  static createDefinition<T extends Partial<I.IInfo2Definition>> (definition?: T | undefined): I.IInfo2Definition & T {
     return Object.assign({
-      title: "",
-      version: ""
-    }, definition) as I.IInfo2Definition
+      title: '',
+      version: ''
+    }, definition) as I.IInfo2Definition & T
   }
 
   static validate (definition: I.IInfo2Definition, version?: IVersion): ExceptionStore {

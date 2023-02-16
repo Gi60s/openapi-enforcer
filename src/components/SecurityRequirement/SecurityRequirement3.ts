@@ -81,8 +81,8 @@ export class SecurityRequirement extends EnforcerComponent<I.ISecurityRequiremen
     return new SecurityRequirement(Object.assign({}, definition) as I.ISecurityRequirement3Definition)
   }
 
-  static createDefinition (definition?: Partial<I.ISecurityRequirement3Definition> | undefined): I.ISecurityRequirement3Definition {
-    return Object.assign({}, definition) as I.ISecurityRequirement3Definition
+  static createDefinition<T extends Partial<I.ISecurityRequirement3Definition>> (definition?: T | undefined): I.ISecurityRequirement3Definition & T {
+    return Object.assign({}, definition) as I.ISecurityRequirement3Definition & T
   }
 
   static validate (definition: I.ISecurityRequirement3Definition, version?: IVersion): ExceptionStore {

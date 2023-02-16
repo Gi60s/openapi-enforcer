@@ -73,15 +73,15 @@ export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocument
       return new ExternalDocumentation(Object.assign({}, definition))
     } else {
       return new ExternalDocumentation(Object.assign({
-        url: ""
+        url: ''
       }, definition) as I.IExternalDocumentation2Definition)
     }
   }
 
-  static createDefinition (definition?: Partial<I.IExternalDocumentation2Definition> | undefined): I.IExternalDocumentation2Definition {
+  static createDefinition<T extends Partial<I.IExternalDocumentation2Definition>> (definition?: T | undefined): I.IExternalDocumentation2Definition & T {
     return Object.assign({
-      url: ""
-    }, definition) as I.IExternalDocumentation2Definition
+      url: ''
+    }, definition) as I.IExternalDocumentation2Definition & T
   }
 
   static validate (definition: I.IExternalDocumentation2Definition, version?: IVersion): ExceptionStore {

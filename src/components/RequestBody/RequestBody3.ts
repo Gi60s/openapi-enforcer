@@ -74,8 +74,8 @@ export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> im
     return new RequestBody(Object.assign({}, definition) as I.IRequestBody3Definition)
   }
 
-  static createDefinition (definition?: Partial<I.IRequestBody3Definition> | undefined): I.IRequestBody3Definition {
-    return Object.assign({}, definition) as I.IRequestBody3Definition
+  static createDefinition<T extends Partial<I.IRequestBody3Definition>> (definition?: T | undefined): I.IRequestBody3Definition & T {
+    return Object.assign({}, definition) as I.IRequestBody3Definition & T
   }
 
   static validate (definition: I.IRequestBody3Definition, version?: IVersion): ExceptionStore {

@@ -4,7 +4,7 @@ import { Lastly } from '../Lastly/Lastly'
 import { EnforcerComponent } from '../components/Component'
 import {
   IComponent,
-  IDefinition,
+  IDefinition, IDiscriminatorDefinition,
   IOperation,
   IOperationDefinition,
   ISecurityScheme,
@@ -35,6 +35,11 @@ export class SchemaProcessor<Definition=any, Built=any> {
   public lastly: ILastly
   public _schema: ISchema
   public store: {
+    discriminatorSchemas: Array<{
+      definition: IDiscriminatorDefinition
+      processor: SchemaProcessor<ISchemaDefinition<any, any>, ISchema>
+      used: boolean
+    }>
     operations: Array<SchemaProcessor<IOperationDefinition, IOperation>>
     securitySchemes: Record<string, SchemaProcessor<ISecuritySchemeDefinition, ISecurityScheme>>
   }
@@ -54,6 +59,7 @@ export class SchemaProcessor<Definition=any, Built=any> {
     this.lastly = parent?.lastly ?? new Lastly()
     this._schema = { type: 'any' }
     this.store = parent?.store ?? {
+      discriminatorSchemas: [],
       operations: [],
       securitySchemes: {}
     }
@@ -121,8 +127,8 @@ export class SchemaProcessor<Definition=any, Built=any> {
 
   getLocation (position: 'key' | 'value' | 'both' = 'both'): ILocation | undefined {
     return this.parent === null
-      ? getLocation(this.definition)
-      : getLocation(this.parent.definition, this.key, position)
+      ? getLocation(this._definition)
+      : getLocation(this.parent._definition, this.key, position)
   }
 
   getSiblingValue (key: string): any | undefined {

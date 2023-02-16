@@ -80,8 +80,8 @@ export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILi
     return new Link(Object.assign({}, definition) as I.ILink3Definition)
   }
 
-  static createDefinition (definition?: Partial<I.ILink3Definition> | undefined): I.ILink3Definition {
-    return Object.assign({}, definition) as I.ILink3Definition
+  static createDefinition<T extends Partial<I.ILink3Definition>> (definition?: T | undefined): I.ILink3Definition & T {
+    return Object.assign({}, definition) as I.ILink3Definition & T
   }
 
   static validate (definition: I.ILink3Definition, version?: IVersion): ExceptionStore {

@@ -110,10 +110,10 @@ export class Header extends EnforcerComponent<I.IHeader2Definition> implements I
     }
   }
 
-  static createDefinition (definition?: Partial<I.IHeader2Definition> | undefined): I.IHeader2Definition {
+  static createDefinition<T extends Partial<I.IHeader2Definition>> (definition?: T | undefined): I.IHeader2Definition & T {
     return Object.assign({
       type: 'array'
-    }, definition) as I.IHeader2Definition
+    }, definition) as I.IHeader2Definition & T
   }
 
   static validate (definition: I.IHeader2Definition, version?: IVersion): ExceptionStore {

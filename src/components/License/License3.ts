@@ -73,15 +73,15 @@ export class License extends EnforcerComponent<I.ILicense3Definition> implements
       return new License(Object.assign({}, definition))
     } else {
       return new License(Object.assign({
-        name: ""
+        name: ''
       }, definition) as I.ILicense3Definition)
     }
   }
 
-  static createDefinition (definition?: Partial<I.ILicense3Definition> | undefined): I.ILicense3Definition {
+  static createDefinition<T extends Partial<I.ILicense3Definition>> (definition?: T | undefined): I.ILicense3Definition & T {
     return Object.assign({
-      name: ""
-    }, definition) as I.ILicense3Definition
+      name: ''
+    }, definition) as I.ILicense3Definition & T
   }
 
   static validate (definition: I.ILicense3Definition, version?: IVersion): ExceptionStore {

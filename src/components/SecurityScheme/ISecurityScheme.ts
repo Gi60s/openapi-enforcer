@@ -25,7 +25,6 @@ interface ISecuritySchemeComponent extends IComponentInstance {
 }
 
 export interface ISecurityScheme2Definition {
-  [Extensions]: Record<string, any>
   type: 'basic'|'apiKey'|'oauth2'
   description?: string
   name?: string
@@ -49,7 +48,6 @@ export interface ISecurityScheme2 extends ISecuritySchemeComponent {
 }
 
 export interface ISecurityScheme3Definition {
-  [Extensions]: Record<string, any>
   type?: 'apiKey'|'http'|'oauth2'|'openIdConnect'
   description?: string
   name?: string

@@ -90,8 +90,8 @@ export class Header extends EnforcerComponent<I.IHeader3Definition> implements I
     return new Header(Object.assign({}, definition) as I.IHeader3Definition)
   }
 
-  static createDefinition (definition?: Partial<I.IHeader3Definition> | undefined): I.IHeader3Definition {
-    return Object.assign({}, definition) as I.IHeader3Definition
+  static createDefinition<T extends Partial<I.IHeader3Definition>> (definition?: T | undefined): I.IHeader3Definition & T {
+    return Object.assign({}, definition) as I.IHeader3Definition & T
   }
 
   static validate (definition: I.IHeader3Definition, version?: IVersion): ExceptionStore {

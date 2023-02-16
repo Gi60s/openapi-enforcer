@@ -75,15 +75,15 @@ export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definiti
       return new ServerVariable(Object.assign({}, definition))
     } else {
       return new ServerVariable(Object.assign({
-        default: ""
+        default: ''
       }, definition) as I.IServerVariable3Definition)
     }
   }
 
-  static createDefinition (definition?: Partial<I.IServerVariable3Definition> | undefined): I.IServerVariable3Definition {
+  static createDefinition<T extends Partial<I.IServerVariable3Definition>> (definition?: T | undefined): I.IServerVariable3Definition & T {
     return Object.assign({
-      default: ""
-    }, definition) as I.IServerVariable3Definition
+      default: ''
+    }, definition) as I.IServerVariable3Definition & T
   }
 
   static validate (definition: I.IServerVariable3Definition, version?: IVersion): ExceptionStore {

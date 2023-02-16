@@ -25,7 +25,6 @@ interface ILinkComponent extends IComponentInstance {
 }
 
 export interface ILink3Definition {
-  [Extensions]: Record<string, any>
   operationRef?: string
   operationId?: string
   parameters?: Record<string, any>

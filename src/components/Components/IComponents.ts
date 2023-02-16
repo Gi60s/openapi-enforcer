@@ -25,7 +25,6 @@ interface IComponentsComponent extends IComponentInstance {
 }
 
 export interface IComponents3Definition {
-  [Extensions]: Record<string, any>
   schemas?: Record<string, I.ISchema3Definition | I.IReference3Definition>
   responses?: Record<string, I.IResponse3Definition | I.IReference3Definition>
   parameters?: Record<string, I.IParameter3Definition | I.IReference3Definition>

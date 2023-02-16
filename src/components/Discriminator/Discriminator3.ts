@@ -58,8 +58,60 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
+    result.validate = function (processor) {
+      const { definition, exception } = processor
+      const { id, reference } = processor.component
+
+      const l = processor.getLocation()
+      console.log(l)
+
+      // if (processor.parent !== null) {
+      //   processor.store.discriminators.push(processor.parent)
+      // }
+      //
+      // processor.lastly.addSingleton(Discriminator.id, () => {
+      //   processor.store.discriminatorSchemas.forEach(({ processor, used }) => {
+      //     // if there is no OpenAPI document then we can't make a fair assessment for the validity, so we skip
+      //     const openapi = processor.upTo('OpenAPI')
+      //     if (openapi === undefined) return
+      //
+      //
+      //   })
+      // })
+      //
+      //
+      //
+      //
+      //
+      // const openapi = processor.upTo('OpenAPI')
+      // if (openapi === undefined) return
+      //
+      // const oneOfRefs = (processor.getSiblingValue('oneOf') ?? []) as string[]
+      //
+      // Object.keys(definition.mapping ?? {})
+      //   .forEach(key => {
+      //     const ref = definition.mapping?.[key] as string
+      //
+      //     if (!oneOfRefs.includes(ref)) {
+      //       exception.add({
+      //         id,
+      //         code: 'DISCRIMINATOR_MAPPING_INVALID',
+      //         level: 'error',
+      //         locations: [getLocation(definition)],
+      //         metadata: {
+      //           expectedType: processor.component.name,
+      //           value: definition
+      //         },
+      //         reference
+      //       })
+      //     }
+      //
+      //     // TODO: validate the the mapping paths have been loaded
+      //   })
+    }
+
     // Put your code here.
-    // TODO: validate the the mapping paths have been loaded2389
+
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = result
@@ -71,15 +123,15 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
       return new Discriminator(Object.assign({}, definition))
     } else {
       return new Discriminator(Object.assign({
-        propertyName: ""
+        propertyName: ''
       }, definition) as I.IDiscriminator3Definition)
     }
   }
 
-  static createDefinition (definition?: Partial<I.IDiscriminator3Definition> | undefined): I.IDiscriminator3Definition {
+  static createDefinition<T extends Partial<I.IDiscriminator3Definition>> (definition?: T | undefined): I.IDiscriminator3Definition & T {
     return Object.assign({
-      propertyName: ""
-    }, definition) as I.IDiscriminator3Definition
+      propertyName: ''
+    }, definition) as I.IDiscriminator3Definition & T
   }
 
   static validate (definition: I.IDiscriminator3Definition, version?: IVersion): ExceptionStore {

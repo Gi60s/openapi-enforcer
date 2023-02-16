@@ -18,7 +18,7 @@ export interface ILookupLocationObject {
 export interface ILocation {
   breadcrumbs: string
   end?: IPosition
-  source?: string
+  source?: string // file path
   start?: IPosition
 }
 

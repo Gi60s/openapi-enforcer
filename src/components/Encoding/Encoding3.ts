@@ -78,8 +78,8 @@ export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implemen
     return new Encoding(Object.assign({}, definition) as I.IEncoding3Definition)
   }
 
-  static createDefinition (definition?: Partial<I.IEncoding3Definition> | undefined): I.IEncoding3Definition {
-    return Object.assign({}, definition) as I.IEncoding3Definition
+  static createDefinition<T extends Partial<I.IEncoding3Definition>> (definition?: T | undefined): I.IEncoding3Definition & T {
+    return Object.assign({}, definition) as I.IEncoding3Definition & T
   }
 
   static validate (definition: I.IEncoding3Definition, version?: IVersion): ExceptionStore {

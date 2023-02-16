@@ -24,7 +24,6 @@ interface IXmlComponent extends IComponentInstance {
 }
 
 export interface IXml2Definition {
-  [Extensions]: Record<string, any>
   name?: string
   namespace?: string
   prefix?: string
@@ -42,7 +41,6 @@ export interface IXml2 extends IXmlComponent {
 }
 
 export interface IXml3Definition {
-  [Extensions]: Record<string, any>
   name?: string
   namespace?: string
   prefix?: string

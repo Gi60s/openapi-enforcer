@@ -85,8 +85,8 @@ export class Paths extends EnforcerComponent<I.IPaths2Definition> implements I.I
     return new Paths(Object.assign({}, definition) as I.IPaths2Definition)
   }
 
-  static createDefinition (definition?: Partial<I.IPaths2Definition> | undefined): I.IPaths2Definition {
-    return Object.assign({}, definition) as I.IPaths2Definition
+  static createDefinition<T extends Partial<I.IPaths2Definition>> (definition?: T | undefined): I.IPaths2Definition & T {
+    return Object.assign({}, definition) as I.IPaths2Definition & T
   }
 
   static validate (definition: I.IPaths2Definition, version?: IVersion): ExceptionStore {

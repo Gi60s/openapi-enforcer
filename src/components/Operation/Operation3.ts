@@ -113,10 +113,10 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
     }
   }
 
-  static createDefinition (definition?: Partial<I.IOperation3Definition> | undefined): I.IOperation3Definition {
+  static createDefinition<T extends Partial<I.IOperation3Definition>> (definition?: T | undefined): I.IOperation3Definition & T {
     return Object.assign({
       responses: I.Responses3.create()
-    }, definition) as I.IOperation3Definition
+    }, definition) as I.IOperation3Definition & T
   }
 
   static validate (definition: I.IOperation3Definition, version?: IVersion): ExceptionStore {

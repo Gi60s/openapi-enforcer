@@ -119,8 +119,8 @@ export class Schema extends EnforcerComponent<I.ISchema2Definition> implements I
     return new Schema(Object.assign({}, definition) as I.ISchema2Definition)
   }
 
-  static createDefinition (definition?: Partial<I.ISchema2Definition> | undefined): I.ISchema2Definition {
-    return Object.assign({}, definition) as I.ISchema2Definition
+  static createDefinition<T extends Partial<I.ISchema2Definition>> (definition?: T | undefined): I.ISchema2Definition & T {
+    return Object.assign({}, definition) as I.ISchema2Definition & T
   }
 
   static validate (definition: I.ISchema2Definition, version?: IVersion): ExceptionStore {

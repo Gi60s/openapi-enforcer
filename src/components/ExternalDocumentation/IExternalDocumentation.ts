@@ -24,7 +24,6 @@ interface IExternalDocumentationComponent extends IComponentInstance {
 }
 
 export interface IExternalDocumentation2Definition {
-  [Extensions]: Record<string, any>
   description?: string
   url: string
 }
@@ -36,7 +35,6 @@ export interface IExternalDocumentation2 extends IExternalDocumentationComponent
 }
 
 export interface IExternalDocumentation3Definition {
-  [Extensions]: Record<string, any>
   description?: string
   url: string
 }

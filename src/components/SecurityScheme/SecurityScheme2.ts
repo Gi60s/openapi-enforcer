@@ -90,10 +90,10 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definiti
     }
   }
 
-  static createDefinition (definition?: Partial<I.ISecurityScheme2Definition> | undefined): I.ISecurityScheme2Definition {
+  static createDefinition<T extends Partial<I.ISecurityScheme2Definition>> (definition?: T | undefined): I.ISecurityScheme2Definition & T {
     return Object.assign({
       type: 'basic'
-    }, definition) as I.ISecurityScheme2Definition
+    }, definition) as I.ISecurityScheme2Definition & T
   }
 
   static validate (definition: I.ISecurityScheme2Definition, version?: IVersion): ExceptionStore {

@@ -90,8 +90,8 @@ export class Responses extends EnforcerComponent<I.IResponses3Definition> implem
     return new Responses(Object.assign({}, definition) as I.IResponses3Definition)
   }
 
-  static createDefinition (definition?: Partial<I.IResponses3Definition> | undefined): I.IResponses3Definition {
-    return Object.assign({}, definition) as I.IResponses3Definition
+  static createDefinition<T extends Partial<I.IResponses3Definition>> (definition?: T | undefined): I.IResponses3Definition & T {
+    return Object.assign({}, definition) as I.IResponses3Definition & T
   }
 
   static validate (definition: I.IResponses3Definition, version?: IVersion): ExceptionStore {

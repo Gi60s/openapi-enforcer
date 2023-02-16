@@ -106,12 +106,12 @@ export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements
     }
   }
 
-  static createDefinition (definition?: Partial<I.ISwagger2Definition> | undefined): I.ISwagger2Definition {
+  static createDefinition<T extends Partial<I.ISwagger2Definition>> (definition?: T | undefined): I.ISwagger2Definition & T {
     return Object.assign({
       swagger: '2.0',
       info: I.Info2.create(),
       paths: I.Paths2.create()
-    }, definition) as I.ISwagger2Definition
+    }, definition) as I.ISwagger2Definition & T
   }
 
   static validate (definition: I.ISwagger2Definition, version?: IVersion): ExceptionStore {

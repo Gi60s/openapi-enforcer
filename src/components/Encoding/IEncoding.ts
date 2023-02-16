@@ -25,7 +25,6 @@ interface IEncodingComponent extends IComponentInstance {
 }
 
 export interface IEncoding3Definition {
-  [Extensions]: Record<string, any>
   contentType?: string
   headers?: Record<string, I.IHeader3Definition | I.IReference3Definition>
   style?: string

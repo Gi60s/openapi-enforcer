@@ -14,6 +14,13 @@ const resourcesDirectory = path.resolve(__dirname, '../../test-resources')
 const loaderResources = path.resolve(resourcesDirectory, 'loader')
 
 describe('loader', () => {
+  describe('object', () => {
+    it('can load from an in memory object', () => {
+      // TODO: pass in an object with references that need to be loaded
+      throw Error('not implemented')
+    })
+  })
+
   describe('json', () => {
     it('can load a valid json file', async function () {
       const filePath = path.resolve(loaderResources, 'all-types.json')
@@ -84,6 +91,18 @@ describe('loader', () => {
       })
     })
   })
+
+  // describe.only('lookup', () => {
+  //   it('can find the file and location for a loaded object', async () => {
+  //     const [node] = await load(path.resolve(resourcesDirectory, 'refs/openapi.yml'))
+  //
+  //     const internalObject = node.paths['/employees'].get.responses[200].content['application/json'].schema.items
+  //     const externalObject = node.paths['/students'].get.responses[200].content['application/json'].schema.items
+  //
+  //     expect(node.paths['/employees'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('employee')
+  //     expect(node.paths['/students'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('student')
+  //   })
+  // })
 })
 
 async function staticFileServer (directory: string): Promise<StaticFileServer> {

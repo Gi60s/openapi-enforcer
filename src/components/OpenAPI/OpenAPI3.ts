@@ -92,12 +92,12 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
     }
   }
 
-  static createDefinition (definition?: Partial<I.IOpenAPI3Definition> | undefined): I.IOpenAPI3Definition {
+  static createDefinition<T extends Partial<I.IOpenAPI3Definition>> (definition?: T | undefined): I.IOpenAPI3Definition & T {
     return Object.assign({
       openapi: '3.0.0',
       info: I.Info3.create(),
       paths: I.Paths3.create()
-    }, definition) as I.IOpenAPI3Definition
+    }, definition) as I.IOpenAPI3Definition & T
   }
 
   static validate (definition: I.IOpenAPI3Definition, version?: IVersion): ExceptionStore {

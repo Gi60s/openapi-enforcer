@@ -83,8 +83,8 @@ export class Callback extends EnforcerComponent<I.ICallback3Definition> implemen
     return new Callback(Object.assign({}, definition) as I.ICallback3Definition)
   }
 
-  static createDefinition (definition?: Partial<I.ICallback3Definition> | undefined): I.ICallback3Definition {
-    return Object.assign({}, definition) as I.ICallback3Definition
+  static createDefinition<T extends Partial<I.ICallback3Definition>> (definition?: T | undefined): I.ICallback3Definition & T {
+    return Object.assign({}, definition) as I.ICallback3Definition & T
   }
 
   static validate (definition: I.ICallback3Definition, version?: IVersion): ExceptionStore {

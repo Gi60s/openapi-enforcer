@@ -25,7 +25,6 @@ interface ITagComponent extends IComponentInstance {
 }
 
 export interface ITag2Definition {
-  [Extensions]: Record<string, any>
   name: string
   description?: string
   externalDocs?: I.IExternalDocumentation2Definition
@@ -39,7 +38,6 @@ export interface ITag2 extends ITagComponent {
 }
 
 export interface ITag3Definition {
-  [Extensions]: Record<string, any>
   name: string
   description?: string
   externalDocs?: I.IExternalDocumentation3Definition

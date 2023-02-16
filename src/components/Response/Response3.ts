@@ -77,15 +77,15 @@ export class Response extends EnforcerComponent<I.IResponse3Definition> implemen
       return new Response(Object.assign({}, definition))
     } else {
       return new Response(Object.assign({
-        description: ""
+        description: ''
       }, definition) as I.IResponse3Definition)
     }
   }
 
-  static createDefinition (definition?: Partial<I.IResponse3Definition> | undefined): I.IResponse3Definition {
+  static createDefinition<T extends Partial<I.IResponse3Definition>> (definition?: T | undefined): I.IResponse3Definition & T {
     return Object.assign({
-      description: ""
-    }, definition) as I.IResponse3Definition
+      description: ''
+    }, definition) as I.IResponse3Definition & T
   }
 
   static validate (definition: I.IResponse3Definition, version?: IVersion): ExceptionStore {
