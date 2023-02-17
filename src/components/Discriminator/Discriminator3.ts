@@ -16,6 +16,7 @@ import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
+import { ISchema3Definition } from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -65,19 +66,33 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
       const l = processor.getLocation()
       console.log(l)
 
-      // if (processor.parent !== null) {
-      //   processor.store.discriminators.push(processor.parent)
-      // }
-      //
-      // processor.lastly.addSingleton(Discriminator.id, () => {
-      //   processor.store.discriminatorSchemas.forEach(({ processor, used }) => {
-      //     // if there is no OpenAPI document then we can't make a fair assessment for the validity, so we skip
-      //     const openapi = processor.upTo('OpenAPI')
-      //     if (openapi === undefined) return
-      //
-      //
-      //   })
-      // })
+      if (processor.parent !== null) {
+        const parentDefinition = processor.parent.definition as ISchema3Definition
+        processor.store.discriminatorSchemas.push({
+          definition,
+          processor: processor.parent,
+          used: parentDefinition.anyOf !== undefined || parentDefinition.oneOf !== undefined
+        })
+      }
+
+      processor.lastly.addSingleton(Discriminator.id, () => {
+        // if there is no OpenAPI document then we can't make a fair assessment for the validity, so we skip
+        if (processor.store.documentRoot === undefined) return
+
+        // for any unused discriminators, look for a schema of type allOf that is using it
+        processor.store.discriminatorSchemas
+          .filter(s => !s.used)
+          .forEach(({ definition, processor, used }) => {
+            exception.add({
+              code: 'DISCRIMINATOR_ILLEGAL',
+              id,
+              level: 'error',
+              locations: [processor.getLocation()],
+              metadata: {},
+              reference
+            })
+          })
+      })
       //
       //
       //

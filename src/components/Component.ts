@@ -3,10 +3,9 @@ import { HookGetProperty, HookSetProperty } from './Symbols'
 import { SchemaProcessor } from '../ComponentSchemaDefinition/SchemaProcessor'
 import * as S from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ExceptionStore } from '../Exception/ExceptionStore'
-import { getLocation, saveLocation } from '../Locator/Locator'
+import { getLocation } from '../Locator/Locator'
 import { getMessage } from '../i18n/i18n'
 import { IDefinition } from './IInternalTypes'
-import { ISchemaDefinition } from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { saveObjectLocationData } from '../Loader/Loader'
 
 export const GetProperty = Symbol('GetProperty')
@@ -93,6 +92,7 @@ export class EnforcerComponent<Definition extends IDefinition> {
   }
 
   static validate (definition: any, version?: IVersion, processor?: SchemaProcessor<any, any>): ExceptionStore {
+    let isRoot = processor === undefined
     if (processor === undefined) {
       processor = new SchemaProcessor(definition, {}, this, version)
       const location = processor.getLocation()
@@ -151,11 +151,21 @@ export class EnforcerComponent<Definition extends IDefinition> {
         reference
       })
     } else {
-      validateDefinition(processor)
+      const previouslyProcessed = validateDefinition(processor)
 
-      const schema = processor.schema as S.ISchemaDefinition<any, any>
-      if (typeof schema.validate === 'function') {
-        schema.validate(processor)
+      if (!previouslyProcessed) {
+        const schema = processor.schema as S.ISchemaDefinition<any, any>
+        if (typeof schema.validate === 'function') {
+          schema.validate(processor)
+        }
+
+        if (processor.after !== undefined) {
+          processor.after()
+        }
+
+        if (isRoot) {
+          processor.lastly.run()
+        }
       }
     }
 
@@ -173,7 +183,7 @@ function validateChild (processor: SchemaProcessor, key: string, definition: any
   }
 }
 
-function validateDefinition (processor: SchemaProcessor): void {
+function validateDefinition (processor: SchemaProcessor): boolean {
   const { definition, exception, schema } = processor
   const { id, reference } = processor.component
 
@@ -188,7 +198,7 @@ function validateDefinition (processor: SchemaProcessor): void {
       },
       reference
     })
-    return
+    return false
   }
 
   // check that this definition and schema have not already been evaluated together - recursion break
@@ -197,7 +207,7 @@ function validateDefinition (processor: SchemaProcessor): void {
     const existingSchemaDefinition = previousSchemas?.get(schema)
     if (existingSchemaDefinition !== undefined) {
       processor.built = existingSchemaDefinition
-      return
+      return true
     }
 
     if (previousSchemas === undefined) {
@@ -225,12 +235,12 @@ function validateDefinition (processor: SchemaProcessor): void {
       },
       reference
     })
-    return
+    return false
   }
 
   if (definition === null) {
     if (nullable === true) {
-      return
+      return false
     } else {
       exception.add({
         id,
@@ -263,7 +273,7 @@ function validateDefinition (processor: SchemaProcessor): void {
     }
   }
 
-  if (schema.ignored === true) return
+  if (schema.ignored === true) return false
 
   if (expectedType !== actualType && expectedType !== 'any' && expectedType !== 'oneOf') {
     exception.add({
@@ -294,7 +304,7 @@ function validateDefinition (processor: SchemaProcessor): void {
     })
   }
 
-  if (expectedType === 'any') return
+  if (expectedType === 'any') return false
   if (type === 'array') {
     const value = definition as any[]
     value.forEach((def, index) => {
@@ -397,6 +407,8 @@ function validateDefinition (processor: SchemaProcessor): void {
       })
     }
   }
+
+  return false
 }
 
 // function buildComponentFromDefinition<Definition, Built> (data: ISchemaProcessor<Definition, Built>): void {

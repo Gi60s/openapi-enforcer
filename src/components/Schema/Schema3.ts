@@ -123,6 +123,28 @@ export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
     // Put your code here.
     // TODO: The discriminator attribute is legal only when using one of the composite keywords oneOf, anyOf, allOf.
+    const processor = _data
+    const { definition } = processor
+    processor.after = () => {
+      // if this schema has an 'allOf' then check to see if any of the allOf schemas have a discriminator and if
+      // so then mark it as used
+      if (definition.allOf !== undefined) {
+        const length = definition.allOf.length
+        for (let i = 0; i < length; i++) {
+          const childDefinition = definition.allOf[i]
+          const discriminatorDefinition = 'discriminator' in childDefinition
+            ? childDefinition.discriminator
+            : undefined
+          const match = discriminatorDefinition !== undefined
+            ? processor.store.discriminatorSchemas.find(s => s.definition === discriminatorDefinition)
+            : undefined
+          if (match !== undefined) {
+            match.used = true
+            break
+          }
+        }
+      }
+    }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     return result

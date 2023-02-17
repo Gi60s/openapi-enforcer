@@ -87,7 +87,13 @@ export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    // Put your code here.
+    result.build = function (processor) {
+      processor.store.documentRoot = processor
+    }
+
+    result.validate = function (processor) {
+      processor.store.documentRoot = processor
+    }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = result

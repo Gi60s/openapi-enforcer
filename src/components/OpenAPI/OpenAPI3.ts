@@ -73,7 +73,13 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
+    result.build = function (processor) {
+      processor.store.documentRoot = processor
+    }
 
+    result.validate = function (processor) {
+      processor.store.documentRoot = processor
+    }
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     cachedSchema = result

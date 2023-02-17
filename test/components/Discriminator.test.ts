@@ -1,8 +1,7 @@
 import { expect } from 'chai'
 import { OpenAPI3, Discriminator3 } from '../../src/components'
-import { load } from '../../src/Loader/Loader'
 
-describe('Discriminator', () => {
+describe.only('Discriminator', () => {
   describe('Discriminator3', () => {
     describe('legality', () => {
       it('will not check for legality if there is no OpenApi object', () => {
@@ -45,7 +44,7 @@ describe('Discriminator', () => {
       })
 
       it('can be used with anyOf', () => {
-        const def = OpenAPI3.createDefinition<any>({
+        const def = OpenAPI3.createDefinition({
           components: {
             schemas: {
               Pet: {
@@ -54,7 +53,7 @@ describe('Discriminator', () => {
                     type: 'object',
                     required: ['petType'],
                     properties: {
-                      petType: 'string',
+                      petType: { type: 'string' },
                       name: { type: 'string' },
                       packSize: { type: 'integer' }
                     }
@@ -67,13 +66,15 @@ describe('Discriminator', () => {
             }
           }
         })
-        def.components.schemas.Dog.allOf[0] = def.components.schemas.Pet
+        def.components.schemas.Dog = {
+          allOf: [def.components.schemas.Pet]
+        }
         const es = OpenAPI3.validate(def)
         expect(es.hasError).to.equal(false)
       })
 
       it('can be used with oneOf', () => {
-        const def = OpenAPI3.createDefinition<any>({
+        const def = OpenAPI3.createDefinition({
           components: {
             schemas: {
               Pet: {
@@ -82,7 +83,7 @@ describe('Discriminator', () => {
                     type: 'object',
                     required: ['petType'],
                     properties: {
-                      petType: 'string',
+                      petType: { type: 'string' },
                       name: { type: 'string' },
                       packSize: { type: 'integer' }
                     }
@@ -95,7 +96,9 @@ describe('Discriminator', () => {
             }
           }
         })
-        def.components.schemas.Dog.allOf[0] = def.components.schemas.Pet
+        def.components.schemas.Dog = {
+          allOf: [def.components.schemas.Pet]
+        }
         const es = OpenAPI3.validate(def)
         expect(es.hasError).to.equal(false)
       })
@@ -136,7 +139,6 @@ describe('Discriminator', () => {
               },
               Dog: {
                 allOf: [
-                  { $ref: '#/components/schemas/Pet' },
                   {
                     type: 'object',
                     properties: {
@@ -149,7 +151,7 @@ describe('Discriminator', () => {
             }
           }
         })
-        def.components.schemas.Dog.allOf[0] = def.components.schemas.Pet
+        def.components.schemas.Dog.allOf.push(def.components.schemas.Pet)
         const es = OpenAPI3.validate(def)
         expect(es.hasErrorByCode('DISCRIMINATOR_REQUIRED_PROPERTY')).to.equal(true)
       })
@@ -163,7 +165,7 @@ describe('Discriminator', () => {
                   {
                     type: 'object',
                     properties: {
-                      petType: 'string',
+                      petType: { type: 'string' },
                       name: { type: 'string' },
                       packSize: { type: 'integer' }
                     }
@@ -189,7 +191,7 @@ describe('Discriminator', () => {
                   {
                     type: 'object',
                     properties: {
-                      petType: 'string',
+                      petType: { type: 'string' },
                       name: { type: 'string' },
                       packSize: { type: 'integer' }
                     }

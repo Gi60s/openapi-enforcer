@@ -4,11 +4,13 @@ import { Lastly } from '../Lastly/Lastly'
 import { EnforcerComponent } from '../components/Component'
 import {
   IComponent,
-  IDefinition, IDiscriminatorDefinition,
+  IDefinition, IDiscriminatorDefinition, IOpenAPISchemaProcessor,
   IOperation,
   IOperationDefinition,
+  ISchema3 as ISchemaType,
+  ISchema3Definition as ISchemaDefinitionType,
   ISecurityScheme,
-  ISecuritySchemeDefinition
+  ISecuritySchemeDefinition, ISwaggerSchemaProcessor
 } from '../components/IInternalTypes'
 import { ILastly } from '../Lastly/ILastly'
 import { ISchema, ISchemaDefinition } from './IComponentSchemaDefinition'
@@ -19,6 +21,7 @@ import * as S from './IComponentSchemaDefinition'
 type EnforcerComponentClass = typeof EnforcerComponent<any>
 
 export class SchemaProcessor<Definition=any, Built=any> {
+  public after: (() => void) | undefined
   public built: Built
   public children: Record<string, SchemaProcessor>
   public component: {
@@ -35,9 +38,10 @@ export class SchemaProcessor<Definition=any, Built=any> {
   public lastly: ILastly
   public _schema: ISchema
   public store: {
+    documentRoot: IOpenAPISchemaProcessor | ISwaggerSchemaProcessor | undefined
     discriminatorSchemas: Array<{
       definition: IDiscriminatorDefinition
-      processor: SchemaProcessor<ISchemaDefinition<any, any>, ISchema>
+      processor: SchemaProcessor<ISchemaDefinitionType, ISchemaType>
       used: boolean
     }>
     operations: Array<SchemaProcessor<IOperationDefinition, IOperation>>
@@ -51,6 +55,7 @@ export class SchemaProcessor<Definition=any, Built=any> {
   constructor (definition: Definition, built: any, ctor: EnforcerComponentClass, version?: IVersion, parent?: SchemaProcessor)
   constructor (definition: Definition, built: any, ctor: null, version: IVersion, parent: SchemaProcessor)
   constructor (definition: Definition, built: any, ctor: EnforcerComponentClass | null, version?: IVersion, parent?: SchemaProcessor) {
+    this.after = undefined
     this.built = built
     this.children = {}
     this._definition = definition
@@ -59,6 +64,7 @@ export class SchemaProcessor<Definition=any, Built=any> {
     this.lastly = parent?.lastly ?? new Lastly()
     this._schema = { type: 'any' }
     this.store = parent?.store ?? {
+      documentRoot: undefined,
       discriminatorSchemas: [],
       operations: [],
       securitySchemes: {}
