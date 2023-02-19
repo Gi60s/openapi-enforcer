@@ -54,25 +54,32 @@ export function getReferenceNode (loadMap: Record<string, any>, rootNodePath: st
 /**
  * Load a path into memory and register locations.
  */
-export async function load (path: string, options?: ILoaderOptions, data?: ILoaderMetadata): Promise<Result> {
+export async function loadAsync (path: string | object, options?: ILoaderOptions, data?: ILoaderMetadata): Promise<Result> {
+  const pathIsString = typeof path === 'string'
+
   if (options === undefined || options === null) options = {}
   if (typeof options !== 'object') throw Error(getMessage('OPTIONS_INVALID', { details: '' }))
   if (options.dereference === undefined) options.dereference = true
+  if (options.workingDirectory === undefined) options.workingDirectory = Adapter.cwd
 
   if (data === undefined || data === null) data = {}
   if (data.exceptionStore === undefined) data.exceptionStore = new ExceptionStore()
   if (data.cache === undefined) data.cache = {}
 
   // load content and cache it
-  const node = data.cache[path] !== undefined ? data.cache[path] : await runLoaders(path, data)
+  const node = pathIsString
+    ? (data.cache[path] !== undefined ? data.cache[path] : await runLoadersAsync(path, data))
+    : path
   const hasException = data.exceptionStore.hasError
-  if (!hasException) data.cache[path] = node
+  if (!hasException && pathIsString) data.cache[path] = node
 
   // dereference any $refs
   if (!hasException && node !== undefined && options.dereference) {
     const references = findRefs(node)
     const length = references.length
-    const dirPath = Adapter.path.dirname(path)
+    const dirPath = pathIsString
+      ? Adapter.path.dirname(path)
+      : options.workingDirectory
     for (let i = 0; i < length; i++) {
       const { ref, parent, key } = references[i]
       let absoluteChildPath: string | undefined
@@ -87,7 +94,7 @@ export async function load (path: string, options?: ILoaderOptions, data?: ILoad
         let [childPath, subRef] = ref.split('#/')
         childPath = Adapter.path.resolve(dirPath, childPath)
         absoluteChildPath = childPath
-        const [node] = await load(childPath, options, data)
+        const [node] = await loadAsync(childPath, options, data)
         if (subRef === undefined) {
           n = node
         } else if (node !== undefined) {
@@ -115,6 +122,12 @@ export async function load (path: string, options?: ILoaderOptions, data?: ILoad
   }
 
   return new Result(node, data.exceptionStore)
+}
+
+export async function loadAsyncAndThrow<T=any> (path: string | object, options?: ILoaderOptions, data?: ILoaderMetadata): Promise<T> {
+  const { value, error } = await loadAsync(path, options, data)
+  if (error !== undefined) throw Error(error.toString())
+  return value
 }
 
 /**
@@ -227,7 +240,7 @@ function getLocationFromPosition (pos: number, lineEndings: ILineEnding[]): IPos
 /**
  * This function will attempt to find a loader that will work with the provided path
  */
-async function runLoaders (path: string, data: ILoaderMetadata): Promise<any> {
+async function runLoadersAsync (path: string, data: ILoaderMetadata): Promise<any> {
   const length = loaders.length
   const reasons: string[] = []
   for (let i = 0; i < length; i++) {

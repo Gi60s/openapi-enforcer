@@ -15,6 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -76,12 +77,27 @@ export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> impl
     return new OAuthFlows(Object.assign({}, definition) as I.IOAuthFlows3Definition)
   }
 
+  static async createAsync (definition?: Partial<I.IOAuthFlows3Definition> | OAuthFlows | string | undefined): Promise<OAuthFlows> {
+    if (definition instanceof OAuthFlows) {
+      return await this.createAsync(Object.assign({}, definition))
+    } else {
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<I.IOAuthFlows3Definition>)
+    }
+  }
+
   static createDefinition<T extends Partial<I.IOAuthFlows3Definition>> (definition?: T | undefined): I.IOAuthFlows3Definition & T {
     return Object.assign({}, definition) as I.IOAuthFlows3Definition & T
   }
 
   static validate (definition: I.IOAuthFlows3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  static async validateAsync (definition: I.IOAuthFlows3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
+    if (result.error !== undefined) return result.exceptionStore as ExceptionStore
+    return super.validate(result.value, version, arguments[2])
   }
 
   get implicit (): I.IOAuthFlow3 | undefined {

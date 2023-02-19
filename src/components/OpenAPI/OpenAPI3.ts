@@ -15,6 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -98,6 +99,15 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
     }
   }
 
+  static async createAsync (definition?: Partial<I.IOpenAPI3Definition> | OpenAPI | string | undefined): Promise<OpenAPI> {
+    if (definition instanceof OpenAPI) {
+      return await this.createAsync(Object.assign({}, definition))
+    } else {
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<I.IOpenAPI3Definition>)
+    }
+  }
+
   static createDefinition<T extends Partial<I.IOpenAPI3Definition>> (definition?: T | undefined): I.IOpenAPI3Definition & T {
     return Object.assign({
       openapi: '3.0.0',
@@ -108,6 +118,12 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
 
   static validate (definition: I.IOpenAPI3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  static async validateAsync (definition: I.IOpenAPI3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
+    if (result.error !== undefined) return result.exceptionStore as ExceptionStore
+    return super.validate(result.value, version, arguments[2])
   }
 
   get openapi (): '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3' {

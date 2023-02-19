@@ -15,6 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -94,12 +95,27 @@ export class PathItem extends EnforcerComponent<I.IPathItem3Definition> implemen
     return new PathItem(Object.assign({}, definition) as I.IPathItem3Definition)
   }
 
+  static async createAsync (definition?: Partial<I.IPathItem3Definition> | PathItem | string | undefined): Promise<PathItem> {
+    if (definition instanceof PathItem) {
+      return await this.createAsync(Object.assign({}, definition))
+    } else {
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<I.IPathItem3Definition>)
+    }
+  }
+
   static createDefinition<T extends Partial<I.IPathItem3Definition>> (definition?: T | undefined): I.IPathItem3Definition & T {
     return Object.assign({}, definition) as I.IPathItem3Definition & T
   }
 
   static validate (definition: I.IPathItem3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  static async validateAsync (definition: I.IPathItem3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
+    if (result.error !== undefined) return result.exceptionStore as ExceptionStore
+    return super.validate(result.value, version, arguments[2])
   }
 
   get $ref (): string | undefined {

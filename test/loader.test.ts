@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { load } from '../src/Loader/Loader'
+import { loadAsync } from '../src/Loader/Loader'
 import path from 'path'
 import fs from 'fs'
 import http from 'http'
@@ -24,7 +24,7 @@ describe('loader', () => {
   describe('json', () => {
     it('can load a valid json file', async function () {
       const filePath = path.resolve(loaderResources, 'all-types.json')
-      const [object] = await load(filePath)
+      const [object] = await loadAsync(filePath)
       const json = JSON.parse(fs.readFileSync(filePath, 'utf8'))
       expect(object).to.deep.equal(json)
     })
@@ -33,7 +33,7 @@ describe('loader', () => {
       const filePath = path.resolve(loaderResources, 'invalid.json')
       let count = 0
       try {
-        await load(filePath)
+        await loadAsync(filePath)
       } catch (e) {
         count++
       }
@@ -44,7 +44,7 @@ describe('loader', () => {
   describe('yaml', () => {
     it('can load a valid yaml file', async function () {
       try {
-        await load(path.resolve(loaderResources, 'all-types.yaml'))
+        await loadAsync(path.resolve(loaderResources, 'all-types.yaml'))
         throw Error('Expected error')
       } catch (e) {
         expect(e).to.match(/Expected error/)
@@ -55,7 +55,7 @@ describe('loader', () => {
       const filePath = path.resolve(loaderResources, 'invalid.yml')
       let count = 0
       try {
-        await load(filePath)
+        await loadAsync(filePath)
       } catch (e) {
         count++
       }
@@ -66,7 +66,7 @@ describe('loader', () => {
   describe('dereference', () => {
     describe('file system', () => {
       it('can dereference within a file and outside a file', async function () {
-        const [node] = await load(path.resolve(resourcesDirectory, 'refs/openapi.yml'))
+        const [node] = await loadAsync(path.resolve(resourcesDirectory, 'refs/openapi.yml'))
         expect(node.paths['/employees'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('employee')
         expect(node.paths['/students'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('student')
       })
@@ -76,7 +76,7 @@ describe('loader', () => {
       let server: StaticFileServer
 
       before(async () => {
-        server = await staticFileServer(resourcesDirectory)
+        server = await runStaticFileServerAsync(resourcesDirectory)
       })
 
       after(() => {
@@ -84,7 +84,7 @@ describe('loader', () => {
       })
 
       it('can dereference within a file and outside a file', async function () {
-        const result = await load(`http://localhost:${server.port}/refs/openapi.yml`)
+        const result = await loadAsync(`http://localhost:${server.port}/refs/openapi.yml`)
         const [node] = result
         expect(node.paths['/employees'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('employee')
         expect(node.paths['/students'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('student')
@@ -105,7 +105,7 @@ describe('loader', () => {
   // })
 })
 
-async function staticFileServer (directory: string): Promise<StaticFileServer> {
+async function runStaticFileServerAsync (directory: string): Promise<StaticFileServer> {
   let listener: any
 
   const server = http.createServer(function (req, res) {

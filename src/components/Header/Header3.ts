@@ -15,6 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -90,12 +91,27 @@ export class Header extends EnforcerComponent<I.IHeader3Definition> implements I
     return new Header(Object.assign({}, definition) as I.IHeader3Definition)
   }
 
+  static async createAsync (definition?: Partial<I.IHeader3Definition> | Header | string | undefined): Promise<Header> {
+    if (definition instanceof Header) {
+      return await this.createAsync(Object.assign({}, definition))
+    } else {
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<I.IHeader3Definition>)
+    }
+  }
+
   static createDefinition<T extends Partial<I.IHeader3Definition>> (definition?: T | undefined): I.IHeader3Definition & T {
     return Object.assign({}, definition) as I.IHeader3Definition & T
   }
 
   static validate (definition: I.IHeader3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  static async validateAsync (definition: I.IHeader3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
+    if (result.error !== undefined) return result.exceptionStore as ExceptionStore
+    return super.validate(result.value, version, arguments[2])
   }
 
   get description (): string | undefined {

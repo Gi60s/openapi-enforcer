@@ -1,5 +1,6 @@
 import { expect } from 'chai'
 import { OpenAPI3, Discriminator3 } from '../../src/components'
+import { loadAsync } from '../../src/Loader/Loader'
 
 describe.only('Discriminator', () => {
   describe('Discriminator3', () => {
@@ -210,20 +211,81 @@ describe.only('Discriminator', () => {
     })
 
     describe('mapping', () => {
-      it('can use implicit mapping', () => {
+      it.skip('can use implicit mapping', () => {
+        // TODO: move this test to schema testing on discriminate() function
         throw Error('not implemented')
       })
 
-      it('can use explicit mapping', () => {
+      it.skip('can use explicit mapping', () => {
+        // TODO: move this test to schema testing on discriminate() function
         throw Error('not implemented')
       })
 
-      it('will produce an error if mapping cannot be found', () => {
+      it.skip('will produce an error if mapping cannot be found', () => {
+        // TODO: move this test to schema testing on discriminate() function
         throw Error('not implemented')
       })
 
-      it('must match an item reference when used with anyOf', () => {
-        throw Error('not implemented')
+      it('can match an item reference when used with anyOf', async () => {
+        const def = OpenAPI3.createDefinition<any>({
+          components: {
+            schemas: {
+              Pet: {
+                anyOf: [
+                  { $ref: '#/components/schemas/Dog' }
+                ],
+                discriminator: {
+                  propertyName: 'petType',
+                  mapping: {
+                    puppy: '#/components/schemas/Dog'
+                  }
+                }
+              },
+              Dog: {
+                type: 'object',
+                required: ['petType'],
+                properties: {
+                  petType: { type: 'string' },
+                  name: { type: 'string' },
+                  packSize: { type: 'integer' }
+                }
+              }
+            }
+          }
+        })
+        const es = await OpenAPI3.validateAsync(def)
+        expect(es.hasErrorByCode('DISCRIMINATOR_MAPPING_INVALID')).to.equal(false)
+      })
+
+      it.only('must match an item reference when used with anyOf', async () => {
+        const def = OpenAPI3.createDefinition<any>({
+          components: {
+            schemas: {
+              Pet: {
+                anyOf: [
+                  { $ref: '#/components/schemas/Dog' }
+                ],
+                discriminator: {
+                  propertyName: 'petType',
+                  mapping: {
+                    kitten: '#/components/schemas/Cat'
+                  }
+                }
+              },
+              Dog: {
+                type: 'object',
+                required: ['petType'],
+                properties: {
+                  petType: { type: 'string' },
+                  name: { type: 'string' },
+                  packSize: { type: 'integer' }
+                }
+              }
+            }
+          }
+        })
+        const es = await OpenAPI3.validateAsync(def)
+        expect(es.hasErrorByCode('DISCRIMINATOR_MAPPING_INVALID')).to.equal(true)
       })
 
       it('must match an item reference when used with oneOf', () => {

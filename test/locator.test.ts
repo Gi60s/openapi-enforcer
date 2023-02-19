@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { load, saveObjectLocationData } from '../src/Loader/Loader'
+import { loadAsync, saveObjectLocationData } from '../src/Loader/Loader'
 import { getLocation } from '../src/Locator/Locator'
 import path from 'path'
 import '../src/Adapter/index.node'
@@ -15,7 +15,7 @@ const loaderResources = path.resolve(resourcesDirectory, 'loader')
 describe('locator', () => {
   describe('json', () => {
     it('can correctly locate an array', async function () {
-      const [object] = await load(path.resolve(loaderResources, 'all-types.json'))
+      const [object] = await loadAsync(path.resolve(loaderResources, 'all-types.json'))
       const result = getLocation(object.array)
       if (result === undefined) throw Error('Should have found reference')
 
@@ -28,7 +28,7 @@ describe('locator', () => {
     })
 
     it('can correctly locate an array index', async function () {
-      const [object] = await load(path.resolve(loaderResources, 'all-types.json'))
+      const [object] = await loadAsync(path.resolve(loaderResources, 'all-types.json'))
       const result = getLocation(object.array, 0)
       if (result === undefined) throw Error('Should have found reference')
 
@@ -40,7 +40,7 @@ describe('locator', () => {
     })
 
     it('can correctly locate an object property', async function () {
-      const [object] = await load(path.resolve(loaderResources, 'all-types.json'))
+      const [object] = await loadAsync(path.resolve(loaderResources, 'all-types.json'))
       const result = getLocation(object, 'boolean')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -52,7 +52,7 @@ describe('locator', () => {
     })
 
     it('can correctly locate an object property key', async function () {
-      const [object] = await load(path.resolve(loaderResources, 'all-types.json'))
+      const [object] = await loadAsync(path.resolve(loaderResources, 'all-types.json'))
       const result = getLocation(object, 'boolean', 'key')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -64,7 +64,7 @@ describe('locator', () => {
     })
 
     it('can correctly locate an object property value', async function () {
-      const [object] = await load(path.resolve(loaderResources, 'all-types.json'))
+      const [object] = await loadAsync(path.resolve(loaderResources, 'all-types.json'))
       const result = getLocation(object, 'boolean', 'value')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -78,7 +78,7 @@ describe('locator', () => {
 
   describe('yaml', () => {
     it('can correctly locate an array', async function () {
-      const [object] = await load(path.resolve(loaderResources, 'all-types.yaml'))
+      const [object] = await loadAsync(path.resolve(loaderResources, 'all-types.yaml'))
       const result = getLocation(object.array)
       if (result === undefined) throw Error('Should have found reference')
 
@@ -91,7 +91,7 @@ describe('locator', () => {
     })
 
     it('can correctly locate an array index', async function () {
-      const [object] = await load(path.resolve(loaderResources, 'all-types.yaml'))
+      const [object] = await loadAsync(path.resolve(loaderResources, 'all-types.yaml'))
       const result = getLocation(object.array, 0)
       if (result === undefined) throw Error('Should have found reference')
 
@@ -103,7 +103,7 @@ describe('locator', () => {
     })
 
     it('can correctly locate an object property', async function () {
-      const [object] = await load(path.resolve(loaderResources, 'all-types.yaml'))
+      const [object] = await loadAsync(path.resolve(loaderResources, 'all-types.yaml'))
       const result = getLocation(object, 'boolean')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -115,7 +115,7 @@ describe('locator', () => {
     })
 
     it('can correctly locate an object property key', async function () {
-      const [object] = await load(path.resolve(loaderResources, 'all-types.yaml'))
+      const [object] = await loadAsync(path.resolve(loaderResources, 'all-types.yaml'))
       const result = getLocation(object, 'boolean', 'key')
       if (result === undefined) throw Error('Should have found reference')
 
@@ -127,7 +127,7 @@ describe('locator', () => {
     })
 
     it('can correctly locate an object property value', async function () {
-      const [object] = await load(path.resolve(loaderResources, 'all-types.yaml'))
+      const [object] = await loadAsync(path.resolve(loaderResources, 'all-types.yaml'))
       const result = getLocation(object, 'boolean', 'value')
       if (result === undefined) throw Error('Should have found reference')
 

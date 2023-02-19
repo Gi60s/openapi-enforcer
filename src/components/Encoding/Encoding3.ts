@@ -15,6 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -78,12 +79,27 @@ export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implemen
     return new Encoding(Object.assign({}, definition) as I.IEncoding3Definition)
   }
 
+  static async createAsync (definition?: Partial<I.IEncoding3Definition> | Encoding | string | undefined): Promise<Encoding> {
+    if (definition instanceof Encoding) {
+      return await this.createAsync(Object.assign({}, definition))
+    } else {
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<I.IEncoding3Definition>)
+    }
+  }
+
   static createDefinition<T extends Partial<I.IEncoding3Definition>> (definition?: T | undefined): I.IEncoding3Definition & T {
     return Object.assign({}, definition) as I.IEncoding3Definition & T
   }
 
   static validate (definition: I.IEncoding3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  static async validateAsync (definition: I.IEncoding3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
+    if (result.error !== undefined) return result.exceptionStore as ExceptionStore
+    return super.validate(result.value, version, arguments[2])
   }
 
   get contentType (): string | undefined {

@@ -15,6 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -76,12 +77,27 @@ export class Contact extends EnforcerComponent<I.IContact2Definition> implements
     return new Contact(Object.assign({}, definition) as I.IContact2Definition)
   }
 
+  static async createAsync (definition?: Partial<I.IContact2Definition> | Contact | string | undefined): Promise<Contact> {
+    if (definition instanceof Contact) {
+      return await this.createAsync(Object.assign({}, definition))
+    } else {
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<I.IContact2Definition>)
+    }
+  }
+
   static createDefinition<T extends Partial<I.IContact2Definition>> (definition?: T | undefined): I.IContact2Definition & T {
     return Object.assign({}, definition) as I.IContact2Definition & T
   }
 
   static validate (definition: I.IContact2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  static async validateAsync (definition: I.IContact2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
+    if (result.error !== undefined) return result.exceptionStore as ExceptionStore
+    return super.validate(result.value, version, arguments[2])
   }
 
   get name (): string | undefined {

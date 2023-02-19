@@ -15,6 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -78,12 +79,27 @@ export class Xml extends EnforcerComponent<I.IXml2Definition> implements I.IXml2
     return new Xml(Object.assign({}, definition) as I.IXml2Definition)
   }
 
+  static async createAsync (definition?: Partial<I.IXml2Definition> | Xml | string | undefined): Promise<Xml> {
+    if (definition instanceof Xml) {
+      return await this.createAsync(Object.assign({}, definition))
+    } else {
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<I.IXml2Definition>)
+    }
+  }
+
   static createDefinition<T extends Partial<I.IXml2Definition>> (definition?: T | undefined): I.IXml2Definition & T {
     return Object.assign({}, definition) as I.IXml2Definition & T
   }
 
   static validate (definition: I.IXml2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  static async validateAsync (definition: I.IXml2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
+    if (result.error !== undefined) return result.exceptionStore as ExceptionStore
+    return super.validate(result.value, version, arguments[2])
   }
 
   get name (): string | undefined {

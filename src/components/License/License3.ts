@@ -15,6 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -78,6 +79,15 @@ export class License extends EnforcerComponent<I.ILicense3Definition> implements
     }
   }
 
+  static async createAsync (definition?: Partial<I.ILicense3Definition> | License | string | undefined): Promise<License> {
+    if (definition instanceof License) {
+      return await this.createAsync(Object.assign({}, definition))
+    } else {
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<I.ILicense3Definition>)
+    }
+  }
+
   static createDefinition<T extends Partial<I.ILicense3Definition>> (definition?: T | undefined): I.ILicense3Definition & T {
     return Object.assign({
       name: ''
@@ -86,6 +96,12 @@ export class License extends EnforcerComponent<I.ILicense3Definition> implements
 
   static validate (definition: I.ILicense3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  static async validateAsync (definition: I.ILicense3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
+    if (result.error !== undefined) return result.exceptionStore as ExceptionStore
+    return super.validate(result.value, version, arguments[2])
   }
 
   get name (): string {

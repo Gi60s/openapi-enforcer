@@ -15,6 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -83,12 +84,27 @@ export class Callback extends EnforcerComponent<I.ICallback3Definition> implemen
     return new Callback(Object.assign({}, definition) as I.ICallback3Definition)
   }
 
+  static async createAsync (definition?: Partial<I.ICallback3Definition> | Callback | string | undefined): Promise<Callback> {
+    if (definition instanceof Callback) {
+      return await this.createAsync(Object.assign({}, definition))
+    } else {
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<I.ICallback3Definition>)
+    }
+  }
+
   static createDefinition<T extends Partial<I.ICallback3Definition>> (definition?: T | undefined): I.ICallback3Definition & T {
     return Object.assign({}, definition) as I.ICallback3Definition & T
   }
 
   static validate (definition: I.ICallback3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  static async validateAsync (definition: I.ICallback3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
+    if (result.error !== undefined) return result.exceptionStore as ExceptionStore
+    return super.validate(result.value, version, arguments[2])
   }
 
   // <!# Custom Content Begin: BODY #!>

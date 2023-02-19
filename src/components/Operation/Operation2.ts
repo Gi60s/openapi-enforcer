@@ -15,6 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -183,6 +184,15 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
     }
   }
 
+  static async createAsync (definition?: Partial<I.IOperation2Definition> | Operation | string | undefined): Promise<Operation> {
+    if (definition instanceof Operation) {
+      return await this.createAsync(Object.assign({}, definition))
+    } else {
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<I.IOperation2Definition>)
+    }
+  }
+
   static createDefinition<T extends Partial<I.IOperation2Definition>> (definition?: T | undefined): I.IOperation2Definition & T {
     return Object.assign({
       responses: I.Responses2.create()
@@ -191,6 +201,12 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
 
   static validate (definition: I.IOperation2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  static async validateAsync (definition: I.IOperation2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
+    if (result.error !== undefined) return result.exceptionStore as ExceptionStore
+    return super.validate(result.value, version, arguments[2])
   }
 
   get tags (): string[] | undefined {

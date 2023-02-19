@@ -49,6 +49,7 @@ export interface INodeObject extends ObjectNode {
 
 export interface ILoaderOptions {
   dereference?: boolean
+  workingDirectory?: string
 }
 
 export interface IReference {

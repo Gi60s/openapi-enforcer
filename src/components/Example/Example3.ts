@@ -15,6 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -76,12 +77,27 @@ export class Example extends EnforcerComponent<I.IExample3Definition> implements
     return new Example(Object.assign({}, definition) as I.IExample3Definition)
   }
 
+  static async createAsync (definition?: Partial<I.IExample3Definition> | Example | string | undefined): Promise<Example> {
+    if (definition instanceof Example) {
+      return await this.createAsync(Object.assign({}, definition))
+    } else {
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<I.IExample3Definition>)
+    }
+  }
+
   static createDefinition<T extends Partial<I.IExample3Definition>> (definition?: T | undefined): I.IExample3Definition & T {
     return Object.assign({}, definition) as I.IExample3Definition & T
   }
 
   static validate (definition: I.IExample3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  static async validateAsync (definition: I.IExample3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
+    if (result.error !== undefined) return result.exceptionStore as ExceptionStore
+    return super.validate(result.value, version, arguments[2])
   }
 
   get summary (): string | undefined {

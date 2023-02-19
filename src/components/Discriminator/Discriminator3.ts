@@ -15,8 +15,8 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
-import { ISchema3Definition } from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -67,7 +67,7 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
       console.log(l)
 
       if (processor.parent !== null) {
-        const parentDefinition = processor.parent.definition as ISchema3Definition
+        const parentDefinition = processor.parent.definition as I.ISchema3Definition
         processor.store.discriminatorSchemas.push({
           definition,
           processor: processor.parent,
@@ -78,6 +78,23 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
       processor.lastly.addSingleton(Discriminator.id, () => {
         // if there is no OpenAPI document then we can't make a fair assessment for the validity, so we skip
         if (processor.store.documentRoot === undefined) return
+
+        processor.store.discriminatorSchemas
+          .forEach(s => {
+            if (!s.used) {
+              exception.add({
+                code: 'DISCRIMINATOR_ILLEGAL',
+                id,
+                level: 'error',
+                locations: [processor.getLocation()],
+                metadata: {},
+                reference
+              })
+            } else if (s.definition.mapping !== undefined) {
+              // TODO: check that each mapped item is listed if parent schema using oneOf or allOf
+              throw Error('working here')
+            }
+          })
 
         // for any unused discriminators, look for a schema of type allOf that is using it
         processor.store.discriminatorSchemas
@@ -143,6 +160,15 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
     }
   }
 
+  static async createAsync (definition?: Partial<I.IDiscriminator3Definition> | Discriminator | string | undefined): Promise<Discriminator> {
+    if (definition instanceof Discriminator) {
+      return await this.createAsync(Object.assign({}, definition))
+    } else {
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<I.IDiscriminator3Definition>)
+    }
+  }
+
   static createDefinition<T extends Partial<I.IDiscriminator3Definition>> (definition?: T | undefined): I.IDiscriminator3Definition & T {
     return Object.assign({
       propertyName: ''
@@ -151,6 +177,12 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
 
   static validate (definition: I.IDiscriminator3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
+  }
+
+  static async validateAsync (definition: I.IDiscriminator3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
+    if (result.error !== undefined) return result.exceptionStore as ExceptionStore
+    return super.validate(result.value, version, arguments[2])
   }
 
   get propertyName (): string {
