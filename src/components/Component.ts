@@ -28,7 +28,7 @@ const definitionSchemaMap: ISchemaDefinitionMap<any, any> = new WeakMap()
 export class EnforcerComponent<Definition extends IDefinition> {
   constructor (definition: Definition, version?: IVersion, processor?: SchemaProcessor) {
     if (processor === undefined) {
-      processor = new SchemaProcessor<Definition, any>(definition, this, this.constructor as typeof EnforcerComponent, version)
+      processor = new SchemaProcessor<Definition, any>('build', definition, this, this.constructor as typeof EnforcerComponent, version)
     }
     componentMap.set(this, {
       defaultValues: {},
@@ -92,11 +92,11 @@ export class EnforcerComponent<Definition extends IDefinition> {
   }
 
   static validate (definition: any, version?: IVersion, processor?: SchemaProcessor<any, any>): ExceptionStore {
-    let isRoot = processor === undefined
+    const isRoot = processor === undefined
     if (processor === undefined) {
-      processor = new SchemaProcessor(definition, {}, this, version)
+      processor = new SchemaProcessor('validate', definition, {}, this, version)
       const location = processor.getLocation()
-      if (location === undefined) saveObjectLocationData(definition)
+      if (location === undefined) saveObjectLocationData(definition, definition)
     }
 
     const { constructor: ctor, exception, version: v } = processor

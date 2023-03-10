@@ -23,7 +23,7 @@ describe('exceptions', () => {
 
   it('can generate a report', () => {
     const node: any = { foo: 5 }
-    saveObjectLocationData(node)
+    saveObjectLocationData(node, node)
     const store = new ExceptionStore()
     store.add({
       id: 'X',
@@ -55,7 +55,7 @@ describe('exceptions', () => {
   it('will group two exceptions at one location', () => {
     const store = new ExceptionStore()
     const node = { foo: 5 }
-    saveObjectLocationData(node)
+    saveObjectLocationData(node, node)
     store.add({
       id: 'X',
       code: 'VALUE_TYPE_INVALID',
@@ -85,7 +85,7 @@ describe('exceptions', () => {
   it('will group one exception at two locations', () => {
     const store = new ExceptionStore()
     const node = { foo: 5, bar: 6 }
-    saveObjectLocationData(node)
+    saveObjectLocationData(node, node)
     store.add({
       id: 'X',
       code: 'VALUE_TYPE_INVALID',

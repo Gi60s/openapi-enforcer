@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { OpenAPI3, Discriminator3 } from '../../src/components'
 import { loadAsync } from '../../src/Loader/Loader'
 
-describe.only('Discriminator', () => {
+describe('Discriminator', () => {
   describe('Discriminator3', () => {
     describe('legality', () => {
       it('will not check for legality if there is no OpenApi object', () => {
@@ -257,7 +257,7 @@ describe.only('Discriminator', () => {
         expect(es.hasErrorByCode('DISCRIMINATOR_MAPPING_INVALID')).to.equal(false)
       })
 
-      it.only('must match an item reference when used with anyOf', async () => {
+      it('must match an item reference when used with anyOf', async () => {
         const def = OpenAPI3.createDefinition<any>({
           components: {
             schemas: {

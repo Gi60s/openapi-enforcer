@@ -16,10 +16,15 @@ export interface ILookupLocationObject {
 }
 
 export interface ILocation {
-  breadcrumbs: string
+  path: string // the path to traverse the object to this item
+  root: ILocationRoot
   end?: IPosition
-  source?: string // file path
   start?: IPosition
+}
+
+export interface ILocationRoot {
+  node: object
+  source: string // file or server path
 }
 
 export interface IPosition {

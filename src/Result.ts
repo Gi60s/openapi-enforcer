@@ -9,26 +9,46 @@ import { getMessage } from './i18n/i18n'
  *
  * A value can be defined regardless of results in the warning report, info report, and ignored report.
  *
- * contains either a value or an error report. If the error report indicates one or more errors then the
+ * contains either a value or an error report. If the error report indicates one or more errors than the
  * value
  */
 export class Result<T=any> {
   readonly '0'?: T
+
+  /**
+   * If there are no errors to report then this value will be undefined.
+   * @type ErrorReport
+   */
   readonly '1'?: ErrorReport
 
   /**
    * If there are no warnings to report then this value will be undefined.
-   * @type ExceptionReport
+   * @type WarningReport
    */
   readonly '2'?: WarningReport
+
+  /**
+   * If there is no info to report then this value will be undefined.
+   * @type InfoReport
+   */
   readonly '3'?: InfoReport
+
+  /**
+   * If there are no ignored items to report then this value will be undefined.
+   * @type IgnoredReport
+   */
   readonly '4'?: IgnoredReport
+
+  /**
+   * The exception store attached to this result object.
+   * @type ExceptionStore
+   */
   readonly exceptionStore?: ExceptionStore
 
   /**
    * Create a {@link Result} instance.
    * @param value The resolved value. This value will automatically be converted to undefined if the exception has one or more error items.
-   * @param exception The {@link ExceptionStore} attached to this result.
+   * @param exceptionStore The {@link ExceptionStore} attached to this result.
    */
   constructor (value: T | null | undefined, exceptionStore?: ExceptionStore) {
     const { error, warning, info, ignored } = exceptionStore ?? {}
@@ -43,7 +63,7 @@ export class Result<T=any> {
   /**
    * If there are no error items to report then this value will be undefined and the {@link value} property will
    * contain the resolved value. If there are error items then the {@link value} property will be undefined.
-   * @returns An {@link ExceptionReport} limited to just error items or undefined if there are no error items.
+   * @returns An {@link ErrorReport} limited to just error items or undefined if there are no error items.
    */
   get error (): ErrorReport | undefined {
     return this[1]
@@ -58,7 +78,7 @@ export class Result<T=any> {
 
   /**
    * If there are no ignored items to report then this value will be undefined.
-   * @returns An {@link ExceptionReport} limited to just ignored items or undefined if there are no ignored items.
+   * @returns An {@link IgnoredReport} limited to just ignored items or undefined if there are no ignored items.
    */
   get ignored (): IgnoredReport | undefined {
     return this[4]
@@ -73,7 +93,7 @@ export class Result<T=any> {
 
   /**
    * If there is are no info items to report then this value will be undefined.
-   * @returns An {@link ExceptionReport} limited to just info items or undefined if there are no info items.
+   * @returns An {@link InfoReport} limited to just info items or undefined if there are no info items.
    */
   get info (): InfoReport | undefined {
     return this[3]
@@ -81,7 +101,7 @@ export class Result<T=any> {
 
   /**
    * @returns The resolved value if the {@link error} property is undefined. If the {@link error} property is not
-   * undefined then that signifies that there is an {@link ExceptionReport} with one or more error items resulting
+   * undefined then that signifies that there is an {@link ErrorReport} with one or more error items resulting
    * in an unvalidated result value.
    */
   get value (): T | undefined {
@@ -90,7 +110,7 @@ export class Result<T=any> {
 
   /**
    * If there are no warning items to report then this value will be undefined.
-   * @returns An {@link ExceptionReport} limited to just warning items or undefined if there are no warning items.
+   * @returns An {@link WarningReport} limited to just warning items or undefined if there are no warning items.
    */
   get warning (): WarningReport | undefined {
     return this[2]

@@ -15,8 +15,9 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
+import { getReferenceNode, loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
 import * as I from '../IInternalTypes'
+import { getLocation } from '../../Locator/Locator'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -75,39 +76,47 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
         })
       }
 
-      processor.lastly.addSingleton(Discriminator.id, () => {
+      processor.lastly.addSingleton(Discriminator.id, (mode) => {
         // if there is no OpenAPI document then we can't make a fair assessment for the validity, so we skip
         if (processor.store.documentRoot === undefined) return
 
         processor.store.discriminatorSchemas
           .forEach(s => {
-            if (!s.used) {
-              exception.add({
-                code: 'DISCRIMINATOR_ILLEGAL',
-                id,
-                level: 'error',
-                locations: [processor.getLocation()],
-                metadata: {},
-                reference
-              })
-            } else if (s.definition.mapping !== undefined) {
-              // TODO: check that each mapped item is listed if parent schema using oneOf or allOf
-              throw Error('working here')
-            }
-          })
+            if (mode === 'validate') {
+              if (!s.used) {
+                exception.add({
+                  code: 'DISCRIMINATOR_ILLEGAL',
+                  id,
+                  level: 'error',
+                  locations: [processor.getLocation()],
+                  metadata: {},
+                  reference
+                })
+              } else if (s.definition.mapping !== undefined) {
+                const mapping = s.definition.mapping
+                const loc = getLocation(s.definition)
+                if (loc !== undefined) {
+                  Object.keys(mapping)
+                    .forEach(key => {
+                      const ref = mapping[key]
+                      const refNode = getReferenceNode(loc.rootNode, loc.source, ref)
+                      console.log(refNode)
+                    })
+                }
 
-        // for any unused discriminators, look for a schema of type allOf that is using it
-        processor.store.discriminatorSchemas
-          .filter(s => !s.used)
-          .forEach(({ definition, processor, used }) => {
-            exception.add({
-              code: 'DISCRIMINATOR_ILLEGAL',
-              id,
-              level: 'error',
-              locations: [processor.getLocation()],
-              metadata: {},
-              reference
-            })
+
+                // const def = s.processor.definition
+                // const schemas = def.anyOf ?? def.oneOf ?? []
+                // const length = schemas.length
+                // for (let i = 0; i < length; i++) {
+                //   const loc = getLocation(schemas[i])
+                //   console.log(loc)
+                // }
+
+                // TODO: check that each mapped item is listed if parent schema using oneOf or allOf
+                throw Error('working here')
+              }
+            }
           })
       })
       //

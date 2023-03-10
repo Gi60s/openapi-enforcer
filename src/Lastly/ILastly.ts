@@ -1,6 +1,6 @@
 
 export interface ILastly {
-  add: (fn: () => void) => void
-  addSingleton: (componentId: string, fn: (() => void)) => void
+  add: (fn: (mode: 'build' | 'validate') => void) => void
+  addSingleton: (componentId: string, fn: ((mode: 'build' | 'validate') => void)) => void
   run: () => void
 }

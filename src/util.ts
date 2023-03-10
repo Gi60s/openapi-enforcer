@@ -9,7 +9,7 @@ export function copy<T> (value: T, map: Map<any, any> = new Map()): T {
     if (result !== undefined) return result
     result = []
     map.set(value, result)
-    value.forEach(v => result.push(copy(map, v)))
+    value.forEach(v => result.push(copy(v, map)))
     return result
   } else if (value !== null && typeof value === 'object') {
     let result = map.get(value)
@@ -17,7 +17,7 @@ export function copy<T> (value: T, map: Map<any, any> = new Map()): T {
     result = {}
     map.set(value, result)
     Object.keys(value).forEach(key => {
-      result[key] = copy(map, (value as any)[key])
+      result[key] = copy((value as any)[key], map)
     })
     return result
   } else {

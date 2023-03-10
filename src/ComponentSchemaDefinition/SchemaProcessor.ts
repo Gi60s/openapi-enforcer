@@ -51,17 +51,19 @@ export class SchemaProcessor<Definition=any, Built=any> {
   public version: IVersion
   public parent: SchemaProcessor | null
   public root: SchemaProcessor
+  public mode: 'build' | 'validate'
 
-  constructor (definition: Definition, built: any, ctor: EnforcerComponentClass, version?: IVersion, parent?: SchemaProcessor)
-  constructor (definition: Definition, built: any, ctor: null, version: IVersion, parent: SchemaProcessor)
-  constructor (definition: Definition, built: any, ctor: EnforcerComponentClass | null, version?: IVersion, parent?: SchemaProcessor) {
+  constructor (mode: 'build' | 'validate', definition: Definition, built: any, ctor: EnforcerComponentClass, version?: IVersion, parent?: SchemaProcessor)
+  constructor (mode: 'build' | 'validate', definition: Definition, built: any, ctor: null, version: IVersion, parent: SchemaProcessor)
+  constructor (mode: 'build' | 'validate', definition: Definition, built: any, ctor: EnforcerComponentClass | null, version?: IVersion, parent?: SchemaProcessor) {
+    this.mode = mode
     this.after = undefined
     this.built = built
     this.children = {}
     this._definition = definition
     this.exception = parent?.exception ?? new ExceptionStore()
     this.key = ''
-    this.lastly = parent?.lastly ?? new Lastly()
+    this.lastly = parent?.lastly ?? new Lastly(mode)
     this._schema = { type: 'any' }
     this.store = parent?.store ?? {
       documentRoot: undefined,
@@ -118,12 +120,12 @@ export class SchemaProcessor<Definition=any, Built=any> {
 
   createChild (key: string, definition: any, built: any, component: EnforcerComponentClass | null, schema?: ISchema): SchemaProcessor {
     if (component !== null) {
-      const child = new SchemaProcessor<any, any>(definition, null, component, this.version, this)
+      const child = new SchemaProcessor<any, any>(this.mode, definition, null, component, this.version, this)
       child.key = key
       this.children[key] = child
       return child
     } else {
-      const child = new SchemaProcessor<any, any>(definition, built, null, this.version, this)
+      const child = new SchemaProcessor<any, any>(this.mode, definition, built, null, this.version, this)
       child.key = key
       child._schema = schema as ISchema
       this.children[key] = child

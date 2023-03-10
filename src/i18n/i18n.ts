@@ -6,6 +6,7 @@ export type II18nMessageCode = keyof II18nMessagesMap
 export interface II18nMessagesMap {
   COMPONENT_NAME_INVALID: string
   CONTENT_TYPE_INVALID: string
+  DATA_STORE_REF_INVALID: string
   DISCRIMINATOR_ILLEGAL: string
   DISCRIMINATOR_MAPPING_INVALID: string
   DISCRIMINATOR_REQUIRED_PROPERTY: string

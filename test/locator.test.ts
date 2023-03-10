@@ -144,7 +144,7 @@ describe('locator', () => {
       const object = {
         array: []
       }
-      saveObjectLocationData(object)
+      saveObjectLocationData(object, object)
       const result = getLocation(object.array)
       expect(result?.breadcrumbs).to.equal('array')
     })
@@ -153,7 +153,7 @@ describe('locator', () => {
       const object = {
         array: ['item-1']
       }
-      saveObjectLocationData(object)
+      saveObjectLocationData(object, object)
       const result = getLocation(object.array, 0)
       expect(result?.breadcrumbs).to.equal('array > 0')
     })
@@ -162,7 +162,7 @@ describe('locator', () => {
       const object = {
         boolean: false
       }
-      saveObjectLocationData(object)
+      saveObjectLocationData(object, object)
       const result = getLocation(object, 'boolean')
       expect(result?.breadcrumbs).to.equal('boolean')
     })
@@ -171,7 +171,7 @@ describe('locator', () => {
       const object = {
         boolean: false
       }
-      saveObjectLocationData(object)
+      saveObjectLocationData(object, object)
       const result = getLocation(object, 'boolean', 'key')
       expect(result?.breadcrumbs).to.equal('boolean')
     })
@@ -180,7 +180,7 @@ describe('locator', () => {
       const object = {
         boolean: false
       }
-      saveObjectLocationData(object)
+      saveObjectLocationData(object, object)
       const result = getLocation(object, 'boolean', 'value')
       expect(result?.breadcrumbs).to.equal('boolean')
     })

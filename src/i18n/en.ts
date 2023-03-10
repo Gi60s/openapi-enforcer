@@ -4,6 +4,7 @@ export const language: II18nMessagesMap = {
   COMPONENT_NAME_INVALID: 'Component {{componentsNamespace}} property names can only contain letters, numbers, dots, ' +
     'dashes, and underscores. The property {{propertyName}} is not valid.',
   CONTENT_TYPE_INVALID: 'Content-type appears to be invalid: {{contentType}}.',
+  DATA_STORE_REF_INVALID: 'Unable to add the item to the datastore because the data store reference is invalid.',
   DISCRIMINATOR_ILLEGAL: 'The discriminator can only used in conjunction with allOf, oneOf, or anyOf.',
   DISCRIMINATOR_MAPPING_INVALID: 'The mapping value {{value}} was not found in the list of potential oneOf values.',
   DISCRIMINATOR_REQUIRED_PROPERTY: 'The discriminator property {{propertyName}} is required by all schemas associated with this discriminator.',

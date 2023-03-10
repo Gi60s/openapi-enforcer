@@ -28,9 +28,14 @@ export interface ILoaderMismatch {
 }
 
 export interface ILoaderMetadata {
-  callerPath?: string
-  cache?: Record<string, any>
-  exceptionStore?: ExceptionStore
+  cache: Record<string, any>
+  exceptionStore: ExceptionStore
+  root: ILoaderRootData
+}
+
+export interface ILoaderRootData {
+  node: object
+  source: string
 }
 
 export type INode = INodeArray | INodeLiteral | INodeObject
@@ -48,8 +53,8 @@ export interface INodeObject extends ObjectNode {
 }
 
 export interface ILoaderOptions {
-  dereference?: boolean
-  workingDirectory?: string
+  dereference: boolean
+  reload: boolean // clear known location and cache data
 }
 
 export interface IReference {
