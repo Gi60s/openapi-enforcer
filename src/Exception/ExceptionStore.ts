@@ -188,26 +188,25 @@ export class ExceptionStore {
         report.exceptions.push(exception)
 
         // create locations strings (breadcrumbs + source)
-        const bcrumbs: string[] = exception.locations
+        const paths: string[] = exception.locations
           .map(loc => {
-            const breadcrumbs = loc.breadcrumbs ?? ''
-            const source = loc.source ?? ''
-            return breadcrumbs + (source.length > 0 ? ' (' + source + ')' : '')
+            const source = loc.root.source
+            return loc.path + (source.length > 0 ? ' (' + source + ')' : '')
           })
-        bcrumbs.sort()
+        paths.sort()
 
         // find and add to a group or create a group if not found
         const found = reportItems.find(r => {
-          const length = r.breadcrumbs.length
-          if (length !== bcrumbs.length) return false
+          const length = r.paths.length
+          if (length !== paths.length) return false
           for (let i = 0; i < length; i++) {
-            if (r.breadcrumbs[i] !== bcrumbs[i]) return false
+            if (r.paths[i] !== paths[i]) return false
           }
           return true
         })
         if (found === undefined) {
           reportItems.push({
-            breadcrumbs: bcrumbs,
+            paths,
             exceptions: [exception]
           })
         } else if (found.exceptions.find(e => e === exception) === undefined) {

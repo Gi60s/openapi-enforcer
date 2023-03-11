@@ -15,9 +15,8 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { getReferenceNode, loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
+import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
-import { getLocation } from '../../Locator/Locator'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -94,13 +93,13 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
                 })
               } else if (s.definition.mapping !== undefined) {
                 const mapping = s.definition.mapping
-                const loc = getLocation(s.definition)
+                const loc = Loader.getLocation(s.definition)
                 if (loc !== undefined) {
                   Object.keys(mapping)
                     .forEach(key => {
                       const ref = mapping[key]
-                      const refNode = getReferenceNode(loc.rootNode, loc.source, ref)
-                      console.log(refNode)
+                      // const refNode = getReferenceNode(loc.rootNode, loc.source, ref)
+                      // console.log(refNode)
                     })
                 }
 
@@ -173,7 +172,7 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
     if (definition instanceof Discriminator) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
       return this.create(definition as Partial<I.IDiscriminator3Definition>)
     }
   }
@@ -189,7 +188,7 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
   }
 
   static async validateAsync (definition: I.IDiscriminator3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await loadAsync(definition)
+    const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
   }

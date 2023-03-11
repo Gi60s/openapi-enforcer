@@ -15,7 +15,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
+import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -79,7 +79,7 @@ export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> im
     if (definition instanceof RequestBody) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
       return this.create(definition as Partial<I.IRequestBody3Definition>)
     }
   }
@@ -93,7 +93,7 @@ export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> im
   }
 
   static async validateAsync (definition: I.IRequestBody3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await loadAsync(definition)
+    const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
   }

@@ -1,4 +1,4 @@
-import { ILineEnding, ILoader, ILoaderMetadata, ILoaderOptions } from './ILoader'
+import { ILineEnding, ILoader, ILoaderFunction, ILoaderMetadata, ILoaderOptions } from './ILoader'
 import { Result } from '../Result'
 import { appendToPath, map, normalizeLoaderMetadata, normalizeLoaderOptions, traverse } from './loader-common'
 import jsonParser, { ValueNode } from 'json-to-ast'
@@ -17,6 +17,10 @@ import { load } from './loader'
 const loaders: ILoader[] = []
 const rxJson = /\.json$/
 const rxYaml = /\.ya?ml$/
+
+export function define (name: string, loader: ILoaderFunction): void {
+  loaders.unshift({ name, loader })
+}
 
 /**
  * Accepts a path or object and resolves any $ref instances. This method is also used to associate location information
@@ -44,6 +48,21 @@ export async function loadAsync (definition: string | object, options?: Partial<
   } else {
     return load(definition, opts)
   }
+}
+
+/**
+ * Accepts a path or object and resolves any $ref instances. This method is also used to associate location information
+ * with an object. If an error is encountered then it will be thrown.
+ * @param definition The path or object to load.
+ * @param [options] Load options.
+ * @param [options.dereference=true] Whether to resolve $ref values.
+ * @returns The loaded object.
+ */
+export async function loadAsyncAndThrow<T=any> (definition: string | object, options?: ILoaderOptions): Promise<T> {
+  // @ts-expect-error
+  const { value, error } = await loadAsync(definition, options, arguments[2])
+  if (error !== undefined) throw Error(error.toString())
+  return value
 }
 
 function getLocationFromPosition (pos: number, lineEndings: ILineEnding[]): IPosition {

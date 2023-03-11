@@ -14,7 +14,7 @@ import {
 } from '../components/IInternalTypes'
 import { ILastly } from '../Lastly/ILastly'
 import { ISchema, ISchemaDefinition } from './IComponentSchemaDefinition'
-import { getLocation } from '../Locator/Locator'
+import { getLocation } from '../Loader'
 import { ILocation } from '../Locator/ILocator'
 import * as S from './IComponentSchemaDefinition'
 
@@ -135,7 +135,7 @@ export class SchemaProcessor<Definition=any, Built=any> {
 
   getLocation (position: 'key' | 'value' | 'both' = 'both'): ILocation | undefined {
     return this.parent === null
-      ? getLocation(this._definition)
+      ? getLocation(this._definition as unknown as object)
       : getLocation(this.parent._definition, this.key, position)
   }
 

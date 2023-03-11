@@ -32,26 +32,34 @@ One or more errors found:
     [responses.code.invalid] Response code invalid: "OK"  (https://spec.openapis.org/oas/v3.0.0#responses-object)
   at: paths > / > get > responses > OK > foo: (openapi.yml 11:20)
     [response.propertyNotAllowed] Property "foo" is not allowed. (https://spec.openapis.org/oas/v3.0.0#response-object)
-  at: components-old > schemas > Schema1 > maximum (openapi.yml 53:10)
+  at: components > schemas > Schema1 > maximum (openapi.yml 53:10)
     [schema.maximum.minConflict] Property maximum must be greater than or equal to minimum.
-  at: components-old > schemas > Schema1 > minimum (openapi.yml 54:10)
+  at: components > schemas > Schema1 > minimum (openapi.yml 54:10)
     [schema.minimum.maxConflict] Property minimum must be less than or equal to maximum.
-  at: components-old > schemas > Schema1 > default (openapi.yml 55:10)
+  at: components > schemas > Schema1 > default (openapi.yml 55:10)
     [schema.default.enum] Default value does not meet enum requirements.
     [schema.default.minimum] Default value is less than the allowed minimum.
-  at: components-old > schemas > Schema1 > enum (openapi.yml 56:7)
+  at: components > schemas > Schema1 > enum (openapi.yml 56:7)
     [schema.enum.empty] Enum cannot be empty.
-  at: components-old > schemas > Schema2 > type (openapi.yml 60:10)
+  at: components > schemas > Schema2 > type (openapi.yml 60:10)
     [schema.type] Type must be one of string, array, object, ... (https://spec.openapis.org/oas/v3.0.0#foo)
-  at: components-old > schemas > Schema2 > format (openapi.yml 61:12)
+  at: components > schemas > Schema2 > format (openapi.yml 61:12)
     [schema.format.unknown] Format is not recognized: "banana"
 
 === Multiple Locations for One Error ===
 
 One or more errors found:
   at:
-    components-old > schemas > Schema3 > default (openapi.yml 95:10)
-    components-old > schemas > Schema3 > required (openapi.yml 95:10)
+    components > schemas > Schema3 > default (openapi.yml 95:10)
+    components > schemas > Schema3 > required (openapi.yml 95:10)
+      [schema.conflict.defreq] Cannot have default value and be required.
+
+=== Multiple Locations Using Paths ===
+
+One or more errors found:
+  at:
+    #/components/schemas/Schema3/default (openapi.yml 95:10)
+    #/components/schemas/Schema3/required (openapi.yml 95:10)
       [schema.conflict.defreq] Cannot have default value and be required.
 
 === Use Breadcrumb Tails instead of full breadcrumbs ===

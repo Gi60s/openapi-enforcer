@@ -15,12 +15,12 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
+import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 import { getMergedParameters, mergeParameters, operationWillAcceptContentType, validate } from './common'
-import { getLocation } from '../../Locator/Locator'
+import { getLocation } from '../../Loader'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ContentType } from '../../ContentType/ContentType'
 import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
@@ -188,7 +188,7 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
     if (definition instanceof Operation) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
       return this.create(definition as Partial<I.IOperation2Definition>)
     }
   }
@@ -204,7 +204,7 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
   }
 
   static async validateAsync (definition: I.IOperation2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await loadAsync(definition)
+    const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
   }

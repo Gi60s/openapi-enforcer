@@ -24,6 +24,21 @@ export function load (definition: object, options?: Partial<ILoaderOptions>): Re
   return new Result(definition, data.exceptionStore)
 }
 
+/**
+ * Accepts an object and resolves any $ref instances as long as those $refs are local to the current object. This method
+ * is also used to associate location information with an object. If an error is encountered then it will be thrown.
+ * @param definition The object to load.
+ * @param [options] Load options.
+ * @param [options.dereference=true] Whether to resolve $ref values.
+ * @returns The loaded object.
+ */
+export function loadAndThrow<T=object> (definition: T, options?: ILoaderOptions): T {
+  // @ts-expect-error
+  const { error } = load(definition, options, arguments[2])
+  if (error !== undefined) throw Error(error.toString())
+  return definition
+}
+
 function processesLoadedData (path: string, node: object, options: ILoaderOptions, data: ILoaderMetadata): void {
   const isObject = node !== null && typeof node === 'object'
   if (isObject && !options.reload && map.has(node)) return

@@ -1,5 +1,5 @@
 import rx from '../rx'
-import { getLocation } from '../Locator/Locator'
+import { getLocation } from '../Loader'
 import { SchemaProcessor } from '../ComponentSchemaDefinition/SchemaProcessor'
 import {
   IOperation, IOperationDefinition,

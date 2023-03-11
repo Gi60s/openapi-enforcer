@@ -1,6 +1,6 @@
 import { IPathItemMethod } from './IPathItem'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
-import { getLocation } from '../../Locator/Locator'
+import { getLocation } from '../../Loader'
 import { parametersAreUnique } from '../validations'
 
 export const validate = function (data: SchemaProcessor<any, any>): void {

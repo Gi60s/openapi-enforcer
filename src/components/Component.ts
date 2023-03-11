@@ -3,10 +3,9 @@ import { HookGetProperty, HookSetProperty } from './Symbols'
 import { SchemaProcessor } from '../ComponentSchemaDefinition/SchemaProcessor'
 import * as S from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ExceptionStore } from '../Exception/ExceptionStore'
-import { getLocation } from '../Locator/Locator'
+import { getLocation, load } from '../Loader'
 import { getMessage } from '../i18n/i18n'
 import { IDefinition } from './IInternalTypes'
-import { saveObjectLocationData } from '../Loader/Loader'
 
 export const GetProperty = Symbol('GetProperty')
 export const SetProperty = Symbol('GetProperty')
@@ -96,7 +95,7 @@ export class EnforcerComponent<Definition extends IDefinition> {
     if (processor === undefined) {
       processor = new SchemaProcessor('validate', definition, {}, this, version)
       const location = processor.getLocation()
-      if (location === undefined) saveObjectLocationData(definition, definition)
+      if (location === undefined) load(definition)
     }
 
     const { constructor: ctor, exception, version: v } = processor

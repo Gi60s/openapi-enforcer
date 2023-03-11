@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { OpenAPI3, Discriminator3 } from '../../src/components'
-import { loadAsync } from '../../src/Loader/Loader'
+import { loadAndThrow } from '../../src/Loader'
 
 describe('Discriminator', () => {
   describe('Discriminator3', () => {
@@ -11,7 +11,7 @@ describe('Discriminator', () => {
       })
 
       it('can be used with allOf', () => {
-        const def = OpenAPI3.createDefinition<any>({
+        const def = loadAndThrow(OpenAPI3.createDefinition<any>({
           components: {
             schemas: {
               Pet: {
@@ -38,8 +38,7 @@ describe('Discriminator', () => {
               }
             }
           }
-        })
-        def.components.schemas.Dog.allOf[0] = def.components.schemas.Pet
+        }))
         const es = OpenAPI3.validate(def)
         expect(es.hasError).to.equal(false)
       })

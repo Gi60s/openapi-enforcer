@@ -1,5 +1,5 @@
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
-import { getLocation } from '../../Locator/Locator'
+import { getLocation } from '../../Loader'
 import { methods } from '../PathItem/common'
 import { IPaths2, IPaths3 } from './IPaths'
 import { IPathItemMethod, IFindPathMatchesOptions, IFindPathMatchesResult } from '../PathItem'

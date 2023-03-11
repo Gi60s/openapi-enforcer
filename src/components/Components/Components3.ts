@@ -15,12 +15,10 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { loadAsync, loadAsyncAndThrow } from '../../Loader/Loader'
+import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
-import { getLocation } from '../../Locator/Locator'
-
 const rxPropertyName = /^[a-zA-Z0-9._-]+$/
 // <!# Custom Content End: HEADER #!>
 
@@ -92,7 +90,7 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
                 id,
                 code: 'COMPONENT_NAME_INVALID',
                 level: 'error',
-                locations: [getLocation(definitionSet, name, 'key')],
+                locations: [Loader.getLocation(definitionSet, name, 'key')],
                 metadata: {
                   componentsNamespace: key,
                   propertyName: name
@@ -118,7 +116,7 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
     if (definition instanceof Components) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
       return this.create(definition as Partial<I.IComponents3Definition>)
     }
   }
@@ -132,7 +130,7 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
   }
 
   static async validateAsync (definition: I.IComponents3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await loadAsync(definition)
+    const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
   }

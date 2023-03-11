@@ -7,7 +7,7 @@ import {
 } from '../IInternalTypes'
 import { IOperation2, IOperation2Definition, IOperation3, IOperation3Definition } from '../'
 import { getPathParameterNames } from '../Paths/common'
-import { getLocation } from '../../Locator/Locator'
+import { getLocation } from '../../Loader'
 import { ContentType } from '../../ContentType/ContentType'
 
 type IFromParameterArray = Array<IParameter | IParameterDefinition>

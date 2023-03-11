@@ -1,8 +1,7 @@
 import '../src/Adapter/index.node'
 import { expect } from 'chai'
 import { ExceptionStore } from '../src/Exception/ExceptionStore'
-import { saveObjectLocationData } from '../src/Loader/Loader'
-import { getLocation } from '../src/Locator/Locator'
+import { loadAndThrow, getLocation } from '../src/Loader'
 
 describe('exceptions', () => {
   it('can create an exception store instance', () => {
@@ -22,8 +21,7 @@ describe('exceptions', () => {
   })
 
   it('can generate a report', () => {
-    const node: any = { foo: 5 }
-    saveObjectLocationData(node, node)
+    const node = loadAndThrow({ foo: 5 })
     const store = new ExceptionStore()
     store.add({
       id: 'X',
@@ -54,8 +52,7 @@ describe('exceptions', () => {
 
   it('will group two exceptions at one location', () => {
     const store = new ExceptionStore()
-    const node = { foo: 5 }
-    saveObjectLocationData(node, node)
+    const node = loadAndThrow({ foo: 5 })
     store.add({
       id: 'X',
       code: 'VALUE_TYPE_INVALID',
@@ -84,8 +81,7 @@ describe('exceptions', () => {
 
   it('will group one exception at two locations', () => {
     const store = new ExceptionStore()
-    const node = { foo: 5, bar: 6 }
-    saveObjectLocationData(node, node)
+    const node = loadAndThrow({ foo: 5, bar: 6 })
     store.add({
       id: 'X',
       code: 'VALUE_TYPE_INVALID',
