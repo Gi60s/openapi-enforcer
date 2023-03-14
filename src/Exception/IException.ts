@@ -29,5 +29,6 @@ export interface IExceptionReportConfiguration {
 
 export interface IExceptionReportItem {
   paths: string[]
+  breadcrumbs: string[]
   exceptions: IException[]
 }

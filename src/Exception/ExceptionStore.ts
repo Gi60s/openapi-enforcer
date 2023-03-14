@@ -12,6 +12,7 @@ import {
   WarningReport
 } from './ExceptionReport'
 import { getMessage } from '../i18n/i18n'
+import { convertPathToBreadcrumbs } from '../Loader/loader-common'
 
 interface ICache {
   report: IExceptionReport | null
@@ -207,6 +208,7 @@ export class ExceptionStore {
         if (found === undefined) {
           reportItems.push({
             paths,
+            breadcrumbs: paths.map(convertPathToBreadcrumbs),
             exceptions: [exception]
           })
         } else if (found.exceptions.find(e => e === exception) === undefined) {

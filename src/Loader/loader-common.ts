@@ -8,6 +8,53 @@ export function appendToPath (path: string, value: string): string {
   return path + '/' + value.replace(/~/g, '~0').replace(/\//g, '~1')
 }
 
+export function applyPositionInformation (path: string, node: object, options: ILoaderOptions, data: ILoaderMetadata): void {
+  const isObject = node !== null && typeof node === 'object'
+  if (isObject && map.has(node)) return
+
+  if (Array.isArray(node)) {
+    const lookup: ILookupLocation = {
+      type: 'array',
+      loc: {
+        path,
+        root: data.root
+      },
+      items: []
+    }
+    map.set(node, lookup)
+    const length = node.length
+    for (let index = 0; index < length; index++) {
+      const pathPlus = appendToPath(path, String(index))
+      lookup.items.push({
+        path: pathPlus,
+        root: data.root
+      })
+      applyPositionInformation(pathPlus, node[index], options, data)
+    }
+  } else if (isObject) {
+    const lookup: ILookupLocation = {
+      type: 'object',
+      loc: {
+        path,
+        root: data.root
+      },
+      properties: {}
+    }
+    map.set(node, lookup)
+
+    const n = node as Record<string, any>
+    Object.keys(n)
+      .forEach(key => {
+        const pathPlus = appendToPath(path, key)
+        lookup.properties[key] = {
+          key: { path: pathPlus, root: data.root },
+          value: { path: pathPlus, root: data.root }
+        }
+        applyPositionInformation(appendToPath(path, key), n[key] as object, options, data)
+      })
+  }
+}
+
 export function convertPathToBreadcrumbs (path: string): string {
   return path
     .split('/')
@@ -49,6 +96,7 @@ export function normalizeLoaderMetadata (data?: ILoaderMetadata): ILoaderMetadat
   data = Object.assign({}, data)
   if (data.exceptionStore === undefined) data.exceptionStore = new ExceptionStore()
   if (data.cache === undefined) data.cache = {}
+  if (data.root === undefined) data.root = { source: '', node: {} }
   return data
 }
 
@@ -56,7 +104,6 @@ export function normalizeLoaderOptions (options?: Partial<ILoaderOptions>): ILoa
   options = Object.assign({}, options)
   if (typeof options !== 'object') throw Error(getMessage('OPTIONS_INVALID', { details: '' }))
   if (options.dereference === undefined) options.dereference = true
-  if (options.reload === undefined) options.reload = true
   return options as ILoaderOptions
 }
 

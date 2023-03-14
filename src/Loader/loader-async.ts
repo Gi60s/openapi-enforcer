@@ -1,6 +1,13 @@
 import { ILineEnding, ILoader, ILoaderFunction, ILoaderMetadata, ILoaderOptions } from './ILoader'
 import { Result } from '../Result'
-import { appendToPath, map, normalizeLoaderMetadata, normalizeLoaderOptions, traverse } from './loader-common'
+import {
+  appendToPath,
+  applyPositionInformation,
+  map,
+  normalizeLoaderMetadata,
+  normalizeLoaderOptions,
+  traverse
+} from './loader-common'
 import jsonParser, { ValueNode } from 'json-to-ast'
 import { safeLoad as loadYaml } from 'yaml-ast-parser/dist/src/loader'
 import { getMessage } from '../i18n/i18n'
@@ -12,7 +19,6 @@ import {
 } from 'yaml-ast-parser/dist/src/yamlAST'
 import { ILookupLocationArray, ILookupLocationObject, IPosition } from '../Locator/ILocator'
 import { Adapter } from '../Adapter/Adapter'
-import { load } from './loader'
 
 const loaders: ILoader[] = []
 const rxJson = /\.json$/
@@ -32,22 +38,8 @@ export function define (name: string, loader: ILoaderFunction): void {
  */
 export async function loadAsync (definition: string | object, options?: Partial<ILoaderOptions>): Promise<Result> {
   const opts = normalizeLoaderOptions(options)
-  const data = normalizeLoaderMetadata(arguments[2])
-
-  if (typeof definition === 'string') {
-    const node = data.cache[definition] ?? await runLoadersAsync(definition, data)
-    if (data.exceptionStore.hasError) return new Result(null, data.exceptionStore)
-    data.cache[definition] = node
-
-    if (opts.dereference) await processLoadedDataAsync('#', node, normalizeLoaderOptions(options), data)
-
-    return new Result(node, data.exceptionStore)
-  } else if (opts.dereference) {
-    await processLoadedDataAsync('#', definition, normalizeLoaderOptions(options), data)
-    return new Result(definition, data.exceptionStore)
-  } else {
-    return load(definition, opts)
-  }
+  const data = normalizeLoaderMetadata()
+  return await loadAsyncWithData(definition, opts, data)
 }
 
 /**
@@ -59,10 +51,30 @@ export async function loadAsync (definition: string | object, options?: Partial<
  * @returns The loaded object.
  */
 export async function loadAsyncAndThrow<T=any> (definition: string | object, options?: ILoaderOptions): Promise<T> {
-  // @ts-expect-error
-  const { value, error } = await loadAsync(definition, options, arguments[2])
+  const opts = normalizeLoaderOptions(options)
+  const { value, error } = await loadAsyncWithData(definition, opts, normalizeLoaderMetadata())
   if (error !== undefined) throw Error(error.toString())
   return value
+}
+
+export async function loadAsyncWithData (definition: string | object, options: ILoaderOptions, data: ILoaderMetadata): Promise<Result> {
+  if (typeof definition === 'string') {
+    data.root = { source: definition, node: {} }
+    const node = data.cache[definition] ?? await runLoadersAsync(definition, data)
+    if (data.exceptionStore.hasError) return new Result(null, data.exceptionStore)
+    data.cache[definition] = node
+    data.root.node = node
+
+    const parent = { _: node }
+    if (options.dereference) await resolveAndLoadRefsAsync('#', options, data, parent, '_')
+    return new Result(parent._, data.exceptionStore)
+  } else {
+    data.root = { source: '', node: definition }
+    applyPositionInformation('#', definition, options, data)
+    const parent = { _: definition }
+    if (options.dereference) await resolveAndLoadRefsAsync('#', options, data, parent, '_')
+    return new Result(parent._, data.exceptionStore)
+  }
 }
 
 function getLocationFromPosition (pos: number, lineEndings: ILineEnding[]): IPosition {
@@ -103,9 +115,10 @@ function getLocationFromPosition (pos: number, lineEndings: ILineEnding[]): IPos
   return result
 }
 
-function processJsonAst (ast: ValueNode, path: string, meta: ILoaderMetadata): any {
+function processJsonAst (ast: ValueNode, path: string, meta: ILoaderMetadata, isRoot: boolean): any {
   if (ast.type === 'Array') {
     const node: any[] = []
+    if (isRoot) meta.root.node = node
     const lookup: ILookupLocationArray = {
       type: 'array',
       loc: {
@@ -120,7 +133,7 @@ function processJsonAst (ast: ValueNode, path: string, meta: ILoaderMetadata): a
 
     ast.children.forEach((astChild, index) => {
       const pathPlus = appendToPath(path, String(index))
-      const childNode = processJsonAst(astChild, pathPlus, meta)
+      const childNode = processJsonAst(astChild, pathPlus, meta, false)
       node.push(childNode)
       lookup.items.push({
         path: pathPlus,
@@ -134,6 +147,7 @@ function processJsonAst (ast: ValueNode, path: string, meta: ILoaderMetadata): a
     return ast.value
   } else if (ast.type === 'Object') {
     const node: Record<string, any> = {}
+    if (isRoot) meta.root.node = node
     const lookup: ILookupLocationObject = {
       type: 'object',
       loc: {
@@ -144,11 +158,12 @@ function processJsonAst (ast: ValueNode, path: string, meta: ILoaderMetadata): a
       },
       properties: {}
     }
+    map.set(node, lookup)
 
     ast.children.forEach(childAst => {
       const propertyName = childAst.key.value
       const pathPlus = appendToPath(path, propertyName)
-      node[propertyName] = processJsonAst(childAst.value, pathPlus, meta)
+      node[propertyName] = processJsonAst(childAst.value, pathPlus, meta, false)
       lookup.properties[propertyName] = {
         key: {
           path: pathPlus,
@@ -168,20 +183,22 @@ function processJsonAst (ast: ValueNode, path: string, meta: ILoaderMetadata): a
   }
 }
 
-async function processLoadedDataAsync (path: string, node: object, options: ILoaderOptions, data: ILoaderMetadata): Promise<void> {
+async function resolveAndLoadRefsAsync (path: string, options: ILoaderOptions, data: ILoaderMetadata, parent: object, key: string): Promise<void> {
   const promises: Array<Promise<void>> = []
+  const node = (parent as Record<string, any>)[key]
+
   if (Array.isArray(node)) {
     const length = node.length
     for (let index = 0; index < length; index++) {
       const i = String(index)
-      promises.push(processLoadedDataAsync(appendToPath(path, String(i)), node[index], options, data))
+      promises.push(resolveAndLoadRefsAsync(appendToPath(path, i), options, data, node, i))
     }
   } else if (node !== null && typeof node === 'object') {
     const n = node as Record<string, any>
     if (n.$ref === undefined) {
       Object.keys(node)
         .forEach(key => {
-          promises.push(processLoadedDataAsync(appendToPath(path, key), n[key], options, data))
+          promises.push(resolveAndLoadRefsAsync(appendToPath(path, key), options, data, n, key))
         })
     } else if (typeof n.$ref === 'string' && options.dereference) {
       const ref = n.$ref
@@ -190,8 +207,7 @@ async function processLoadedDataAsync (path: string, node: object, options: ILoa
       if (ref.startsWith('#/')) {
         const found = traverse(data.root.node, ref)
         if (found !== undefined) {
-          Object.assign(node, found)
-          delete n.$ref
+          (parent as Record<string, any>)[key] = found
         }
 
       // reference to other location
@@ -265,7 +281,7 @@ async function runLoadersAsync (path: string, data: ILoaderMetadata): Promise<an
 
         if (value !== undefined) {
           const ast = jsonParser(result.content, { source: path })
-          return processJsonAst(ast, '#', data)
+          return processJsonAst(ast, '#', data, true)
         }
       }
 
@@ -285,7 +301,7 @@ async function runLoadersAsync (path: string, data: ILoaderMetadata): Promise<an
         }
         const ast = loadYaml(result.content)
         if (ast.errors.length > 0) throw Error(getMessage('LOADER_YAML_PARSE_ERROR', { reasons: ast.errors.join('\r  ') }))
-        const built = yamlAstToObject(ast)
+        const built = yamlAstToObject(ast, data, true)
         yamlAstToLocations(ast, built, built, path, lineEndings, '#', data)
         return built
       }
@@ -305,13 +321,14 @@ async function runLoadersAsync (path: string, data: ILoaderMetadata): Promise<an
   })
 }
 
-function yamlAstToObject (data: YamlNode): any {
+function yamlAstToObject (data: YamlNode, meta: ILoaderMetadata, isRoot: boolean): any {
   if (data.kind === YamlKind.MAP) {
     // YamlKind.MAP === object
     const built: Record<string, any> = {}
+    if (isRoot) meta.root.node = built
     data.mappings.forEach((o: YamlMapping) => {
       const key = o.key.value
-      built[key] = yamlAstToObject(o.value)
+      built[key] = yamlAstToObject(o.value, meta, false)
     })
     return built
   } else if (data.kind === YamlKind.SCALAR) {
@@ -320,8 +337,9 @@ function yamlAstToObject (data: YamlNode): any {
   } else if (data.kind === YamlKind.SEQ) {
     // YamlKind.SEQ === Array
     const built: any[] = []
+    if (isRoot) meta.root.node = built
     ;(data as YamlSequence).items.forEach((o: YamlNode) => {
-      built.push(yamlAstToObject(o))
+      built.push(yamlAstToObject(o, meta, false))
     })
     return built
   } else {

@@ -98,6 +98,7 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
                   Object.keys(mapping)
                     .forEach(key => {
                       const ref = mapping[key]
+
                       // const refNode = getReferenceNode(loc.rootNode, loc.source, ref)
                       // console.log(refNode)
                     })

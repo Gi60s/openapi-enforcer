@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { load, loadAsync, getLocation, saveObjectLocationData } from '../src/Loader'
+import { load, loadAsync, getLocation, loadAndThrow } from '../src/Loader'
 import path from 'path'
 import fs from 'fs'
 import http from 'http'
@@ -14,7 +14,7 @@ export interface StaticFileServer {
 const resourcesDirectory = path.resolve(__dirname, '../../test-resources')
 const loaderResources = path.resolve(resourcesDirectory, 'loader')
 
-describe.only('loader', () => {
+describe('loader', () => {
   describe('loadAsync', () => {
     describe('object', () => {
       it('can load from an in memory object', async () => {
@@ -98,12 +98,6 @@ describe.only('loader', () => {
     })
   })
 
-  describe('reload', () => {
-    it('will automatically reload data', () => {
-      throw Error('not implemented')
-    })
-  })
-
   describe('getLocation', () => {
     describe('json', () => {
       it('can correctly locate an array', async function () {
@@ -116,7 +110,7 @@ describe.only('loader', () => {
         expect(result.end?.line).to.equal(2)
         expect(result.end?.column).to.equal(15)
         expect(result.root.source?.endsWith('all-types.json')).to.equal(true)
-        expect(result.path).to.equal('array')
+        expect(result.path).to.equal('#/array')
       })
 
       it('can correctly locate an array index', async function () {
@@ -128,7 +122,7 @@ describe.only('loader', () => {
         expect(result.start?.column).to.equal(13)
         expect(result.end?.line).to.equal(2)
         expect(result.end?.column).to.equal(14)
-        expect(result.path).to.equal('array/0')
+        expect(result.path).to.equal('#/array/0')
       })
 
       it('can correctly locate an object property', async function () {
@@ -140,7 +134,7 @@ describe.only('loader', () => {
         expect(result.start?.column).to.equal(3)
         expect(result.end?.line).to.equal(3)
         expect(result.end?.column).to.equal(18)
-        expect(result.path).to.equal('boolean')
+        expect(result.path).to.equal('#/boolean')
       })
 
       it('can correctly locate an object property key', async function () {
@@ -152,7 +146,7 @@ describe.only('loader', () => {
         expect(result.start?.column).to.equal(3)
         expect(result.end?.line).to.equal(3)
         expect(result.end?.column).to.equal(12)
-        expect(result.path).to.equal('boolean')
+        expect(result.path).to.equal('#/boolean')
       })
 
       it('can correctly locate an object property value', async function () {
@@ -164,7 +158,14 @@ describe.only('loader', () => {
         expect(result.start?.column).to.equal(14)
         expect(result.end?.line).to.equal(3)
         expect(result.end?.column).to.equal(18)
-        expect(result.path).to.equal('boolean')
+        expect(result.path).to.equal('#/boolean')
+      })
+
+      it('can resolve circular reference path', async () => {
+        const [object] = await loadAsync(path.resolve(loaderResources, 'circular.json'))
+        expect(object.y).to.equal(object.y.y)
+        expect(getLocation(object.y, 'y')?.path).to.equal('#/y/y')
+        expect(getLocation(object.y.y, 'y')?.path).to.equal('#/y/y')
       })
     })
 
@@ -179,7 +180,7 @@ describe.only('loader', () => {
         expect(result.end?.line).to.equal(3)
         expect(result.end?.column).to.equal(1)
         expect(result.root.source?.endsWith('all-types.yaml')).to.equal(true)
-        expect(result.path).to.equal('array')
+        expect(result.path).to.equal('#/array')
       })
 
       it('can correctly locate an array index', async function () {
@@ -191,7 +192,7 @@ describe.only('loader', () => {
         expect(result.start?.column).to.equal(5)
         expect(result.end?.line).to.equal(2)
         expect(result.end?.column).to.equal(6)
-        expect(result.path).to.equal('array/0')
+        expect(result.path).to.equal('#/array/0')
       })
 
       it('can correctly locate an object property', async function () {
@@ -203,7 +204,7 @@ describe.only('loader', () => {
         expect(result.start?.column).to.equal(1)
         expect(result.end?.line).to.equal(3)
         expect(result.end?.column).to.equal(14)
-        expect(result.path).to.equal('boolean')
+        expect(result.path).to.equal('#/boolean')
       })
 
       it('can correctly locate an object property key', async function () {
@@ -215,7 +216,7 @@ describe.only('loader', () => {
         expect(result.start?.column).to.equal(1)
         expect(result.end?.line).to.equal(3)
         expect(result.end?.column).to.equal(8)
-        expect(result.path).to.equal('boolean')
+        expect(result.path).to.equal('#/boolean')
       })
 
       it('can correctly locate an object property value', async function () {
@@ -227,54 +228,62 @@ describe.only('loader', () => {
         expect(result.start?.column).to.equal(10)
         expect(result.end?.line).to.equal(3)
         expect(result.end?.column).to.equal(14)
-        expect(result.path).to.equal('boolean')
+        expect(result.path).to.equal('#/boolean')
       })
     })
 
     describe('in memory', () => {
       it('can correctly locate an array', () => {
-        const object = {
+        const object = loadAndThrow({
           array: []
-        }
-        saveObjectLocationData(object, object)
+        })
         const result = getLocation(object.array)
-        expect(result?.path).to.equal('array')
+        expect(result?.path).to.equal('#/array')
       })
 
       it('can correctly locate an array index', async function () {
-        const object = {
+        const object = loadAndThrow({
           array: ['item-1']
-        }
-        saveObjectLocationData(object, object)
+        })
         const result = getLocation(object.array, 0)
-        expect(result?.path).to.equal('array/0')
+        expect(result?.path).to.equal('#/array/0')
       })
 
       it('can correctly locate an object property', async function () {
-        const object = {
+        const object = loadAndThrow({
           boolean: false
-        }
-        saveObjectLocationData(object, object)
+        })
         const result = getLocation(object, 'boolean')
-        expect(result?.path).to.equal('boolean')
+        expect(result?.path).to.equal('#/boolean')
       })
 
       it('can correctly locate an object property key', async function () {
-        const object = {
+        const object = loadAndThrow({
           boolean: false
-        }
-        saveObjectLocationData(object, object)
+        })
         const result = getLocation(object, 'boolean', 'key')
-        expect(result?.path).to.equal('boolean')
+        expect(result?.path).to.equal('#/boolean')
       })
 
       it('can correctly locate an object property value', async function () {
-        const object = {
+        const object = loadAndThrow({
           boolean: false
-        }
-        saveObjectLocationData(object, object)
+        })
         const result = getLocation(object, 'boolean', 'value')
-        expect(result?.path).to.equal('boolean')
+        expect(result?.path).to.equal('#/boolean')
+      })
+
+      it('can resolve circular reference path', () => {
+        const object = loadAndThrow({
+          x: 1,
+          y: {
+            b: true,
+            y: { $ref: '#/y' }
+          }
+        })
+        expect(object.y).to.equal(object.y.y)
+        expect(getLocation(object.y, 'y')?.path).to.equal('#/y/y')
+        expect(getLocation(object.y.y, 'y')?.path).to.equal('#/y/y')
       })
     })
   })

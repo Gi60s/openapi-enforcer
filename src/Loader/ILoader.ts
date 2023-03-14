@@ -54,7 +54,6 @@ export interface INodeObject extends ObjectNode {
 
 export interface ILoaderOptions {
   dereference: boolean
-  reload: boolean // clear known location and cache data
 }
 
 export interface IReference {
