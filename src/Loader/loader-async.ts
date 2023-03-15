@@ -60,19 +60,19 @@ export async function loadAsyncAndThrow<T=any> (definition: string | object, opt
 export async function loadAsyncWithData (definition: string | object, options: ILoaderOptions, data: ILoaderMetadata): Promise<Result> {
   if (typeof definition === 'string') {
     data.root = { source: definition, node: {} }
-    const node = data.cache[definition] ?? await runLoadersAsync(definition, data)
+    const node = data.fileCache[definition] ?? await runLoadersAsync(definition, data)
     if (data.exceptionStore.hasError) return new Result(null, data.exceptionStore)
-    data.cache[definition] = node
+    data.fileCache[definition] = node
     data.root.node = node
 
     const parent = { _: node }
-    if (options.dereference) await resolveAndLoadRefsAsync('#', options, data, parent, '_')
+    if (options.dereference) await resolveAndLoadRefsAsync('#', options, data, parent, '_', new Map())
     return new Result(parent._, data.exceptionStore)
   } else {
     data.root = { source: '', node: definition }
     applyPositionInformation('#', definition, options, data)
     const parent = { _: definition }
-    if (options.dereference) await resolveAndLoadRefsAsync('#', options, data, parent, '_')
+    if (options.dereference) await resolveAndLoadRefsAsync('#', options, data, parent, '_', new Map())
     return new Result(parent._, data.exceptionStore)
   }
 }
@@ -183,22 +183,29 @@ function processJsonAst (ast: ValueNode, path: string, meta: ILoaderMetadata, is
   }
 }
 
-async function resolveAndLoadRefsAsync (path: string, options: ILoaderOptions, data: ILoaderMetadata, parent: object, key: string): Promise<void> {
+async function resolveAndLoadRefsAsync (path: string, options: ILoaderOptions, data: ILoaderMetadata, parent: object,
+  key: string, map: Map<object, boolean>): Promise<void> {
+
   const promises: Array<Promise<void>> = []
   const node = (parent as Record<string, any>)[key]
+  const isObject = node !== null && typeof node === 'object'
+  if (isObject) {
+    if (map.has(node)) return
+    map.set(node, true)
+  }
 
   if (Array.isArray(node)) {
     const length = node.length
     for (let index = 0; index < length; index++) {
       const i = String(index)
-      promises.push(resolveAndLoadRefsAsync(appendToPath(path, i), options, data, node, i))
+      promises.push(resolveAndLoadRefsAsync(appendToPath(path, i), options, data, node, i, map))
     }
-  } else if (node !== null && typeof node === 'object') {
+  } else if (isObject) {
     const n = node as Record<string, any>
     if (n.$ref === undefined) {
       Object.keys(node)
         .forEach(key => {
-          promises.push(resolveAndLoadRefsAsync(appendToPath(path, key), options, data, n, key))
+          promises.push(resolveAndLoadRefsAsync(appendToPath(path, key), options, data, n, key, map))
         })
     } else if (typeof n.$ref === 'string' && options.dereference) {
       const ref = n.$ref

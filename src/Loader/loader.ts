@@ -1,6 +1,5 @@
 import { ILoaderMetadata, ILoaderOptions } from './ILoader'
 import { Result } from '../Result'
-import { ILookupLocation } from '../Locator/ILocator'
 import {
   appendToPath,
   applyPositionInformation,
@@ -46,26 +45,30 @@ export function loadWithData (definition: object, options: ILoaderOptions, data:
   applyPositionInformation('#', definition, options, data)
 
   const parent = { _: definition }
-  if (options.dereference) resolveRefs('#', data, parent, '_')
+  if (options.dereference) resolveRefs('#', data, parent, '_', new Map())
   return new Result(parent._, data.exceptionStore)
 }
 
-function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: string): void {
+function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: string, map: Map<object, boolean>): void {
   const node = (parent as Record<string, any>)[key] as object
   const isObject = node !== null && typeof node === 'object'
+  if (isObject) {
+    if (map.has(node)) return
+    map.set(node, true)
+  }
 
   if (Array.isArray(node)) {
     const length = node.length
     for (let index = 0; index < length; index++) {
       const i = String(index)
-      resolveRefs(appendToPath(path, i), data, node, i)
+      resolveRefs(appendToPath(path, i), data, node, i, map)
     }
   } else if (isObject) {
     const n = node as Record<string, any>
     if (n.$ref === undefined) {
       Object.keys(n)
         .forEach(key => {
-          resolveRefs(appendToPath(path, key), data, n, key)
+          resolveRefs(appendToPath(path, key), data, n, key, map)
         })
     } else if (typeof n.$ref === 'string') {
       if (!n.$ref.startsWith('#/')) {

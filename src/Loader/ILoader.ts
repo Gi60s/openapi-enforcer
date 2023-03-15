@@ -28,7 +28,7 @@ export interface ILoaderMismatch {
 }
 
 export interface ILoaderMetadata {
-  cache: Record<string, any>
+  fileCache: Record<string, any>
   exceptionStore: ExceptionStore
   root: ILoaderRootData
 }

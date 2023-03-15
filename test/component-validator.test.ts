@@ -424,7 +424,7 @@ describe('component validator', () => {
   })
 
   describe('one time validation per definition schema', () => {
-    it.only('will catch simple recursion', () => {
+    it('will catch simple recursion', () => {
       x.schema = schema
       const def: any = { x: null }
       def.x = def

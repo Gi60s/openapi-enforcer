@@ -95,7 +95,7 @@ export function getLocation (node: object, key?: string | number, filter: 'key' 
 export function normalizeLoaderMetadata (data?: ILoaderMetadata): ILoaderMetadata {
   data = Object.assign({}, data)
   if (data.exceptionStore === undefined) data.exceptionStore = new ExceptionStore()
-  if (data.cache === undefined) data.cache = {}
+  if (data.fileCache === undefined) data.fileCache = {}
   if (data.root === undefined) data.root = { source: '', node: {} }
   return data
 }
