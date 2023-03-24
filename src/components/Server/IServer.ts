@@ -25,6 +25,7 @@ interface IServerComponent extends IComponentInstance {
 }
 
 export interface IServer3Definition {
+  [Extensions: `x-${string}`]: any
   url: string
   description?: string
   variables?: Record<string, I.IServerVariable3Definition>

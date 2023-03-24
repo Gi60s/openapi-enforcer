@@ -32,6 +32,7 @@ interface IOperationComponent extends IComponentInstance {
 }
 
 export interface IOperation2Definition {
+  [Extensions: `x-${string}`]: any
   tags?: string[]
   summary?: string
   description?: string
@@ -63,6 +64,7 @@ export interface IOperation2 extends IOperationComponent {
 }
 
 export interface IOperation3Definition {
+  [Extensions: `x-${string}`]: any
   tags?: string[]
   summary?: string
   description?: string

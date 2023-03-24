@@ -25,6 +25,7 @@ interface IHeaderComponent extends IComponentInstance {
 }
 
 export interface IHeader2Definition {
+  [Extensions: `x-${string}`]: any
   description?: string
   type: 'array'|'boolean'|'integer'|'number'|'string'
   format?: string
@@ -68,6 +69,7 @@ export interface IHeader2 extends IHeaderComponent {
 }
 
 export interface IHeader3Definition {
+  [Extensions: `x-${string}`]: any
   description?: string
   required?: boolean
   deprecated?: boolean

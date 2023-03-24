@@ -18,7 +18,10 @@ import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefini
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
-// Put your code here.
+import { traverseFromNode } from '../../Loader/loader-common'
+import { getLocation } from '../../Loader'
+import { ISchema3Definition } from '../IInternalTypes'
+import { getNormalizedSchema, getSchemaPropertyValue } from '../Schema/common'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISchema.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> | null = null
@@ -63,9 +66,6 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
       const { definition, exception } = processor
       const { id, reference } = processor.component
 
-      const l = processor.getLocation()
-      console.log(l)
-
       if (processor.parent !== null) {
         const parentDefinition = processor.parent.definition as I.ISchema3Definition
         processor.store.discriminatorSchemas.push({
@@ -91,30 +91,70 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
                   metadata: {},
                   reference
                 })
-              } else if (s.definition.mapping !== undefined) {
+                return
+              }
+
+
+              const parentDefinition = processor.parent?.definition
+              const anyOfOneOf = parentDefinition?.anyOf !== undefined
+                ? 'anyOf'
+                : parentDefinition?.oneOf !== undefined ? 'oneOf' : ''
+              const parentDefinitionAnyOneOfCollection = (parentDefinition?.[anyOfOneOf] ?? []) as ISchema3Definition[]
+              const requiredPropertyName = s.definition.propertyName
+
+              working here - make sure each anyOf/oneOf has discriminator property name. As required = no warning, as property or additional property = warning, no additional property = error
+              if (anyOfOneOf !== undefined && requiredPropertyName !== undefined) {
+                parentDefinitionAnyOneOfCollection.forEach(itemSchema => {
+                  const schema = getNormalizedSchema(itemSchema, { [requiredPropertyName]: '' })
+
+                  // TODO: a problem here is what if the schema is an anyOf, allOf, or oneOf? This won't work. I need to determine the final schema
+                  if (!(schema?.required ?? []).includes(requiredPropertyName)) {
+
+
+                    if (schema?.properties?.[requiredPropertyName] === undefined ||)
+                  }
+                })
+
+                const requiredProperties = getSchemaPropertyValue(parentDefinition as ISchema3Definition,
+                  [anyOfOneOf, 'require'])
+
+                const hasRequiredProperty = parentDefinitionAnyOneOfCollection.require
+                  ?.find(propertyName => propertyName === requiredPropertyName) !== undefined
+                if (!hasRequiredProperty) {
+
+                } else if ()
+
+                // if ( && parentDefinition?.[anyOfOneOf]?.properties?.[s.definition.propertyName] === undefined)
+
+                exception.add({
+                  code: 'DISCRIMINATOR_REQUIRED_PROPERTY',
+                  id,
+                  level: 'error',
+                  locations: [getLocation(parentDefinition[anyOfOneOf], 'properties', 'value')],
+                  metadata: { propertyName: s.definition.propertyName },
+                  reference
+                })
+              }
+
+              if (s.definition.mapping !== undefined) {
+
                 const mapping = s.definition.mapping
-                const loc = Loader.getLocation(s.definition)
-                if (loc !== undefined) {
-                  Object.keys(mapping)
-                    .forEach(key => {
-                      const ref = mapping[key]
-
-                      // const refNode = getReferenceNode(loc.rootNode, loc.source, ref)
-                      // console.log(refNode)
-                    })
-                }
-
-
-                // const def = s.processor.definition
-                // const schemas = def.anyOf ?? def.oneOf ?? []
-                // const length = schemas.length
-                // for (let i = 0; i < length; i++) {
-                //   const loc = getLocation(schemas[i])
-                //   console.log(loc)
-                // }
-
-                // TODO: check that each mapped item is listed if parent schema using oneOf or allOf
-                throw Error('working here')
+                const rootNode = getLocation(s.definition)?.root.node as any
+                Object.keys(mapping)
+                  .forEach(key => {
+                    const ref = mapping[key]
+                    const match = traverseFromNode(s.definition, ref) ?? rootNode?.components?.schemas?.[ref]
+                    if (match === undefined || parentDefinition[anyOfOneOf].find((s: any) => s === match) === undefined) {
+                      exception.add({
+                        code: 'DISCRIMINATOR_MAPPING_INVALID',
+                        id,
+                        level: 'error',
+                        locations: [getLocation(mapping, key, 'value')],
+                        metadata: { anyOfOneOf, value: ref },
+                        reference
+                      })
+                    }
+                  })
               }
             }
           })

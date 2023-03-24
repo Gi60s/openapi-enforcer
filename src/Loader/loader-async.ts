@@ -5,7 +5,7 @@ import {
   applyPositionInformation,
   map,
   normalizeLoaderMetadata,
-  normalizeLoaderOptions,
+  normalizeLoaderOptions, rootNodeFileCache,
   traverse
 } from './loader-common'
 import jsonParser, { ValueNode } from 'json-to-ast'
@@ -64,6 +64,7 @@ export async function loadAsyncWithData (definition: string | object, options: I
     if (data.exceptionStore.hasError) return new Result(null, data.exceptionStore)
     data.fileCache[definition] = node
     data.root.node = node
+    rootNodeFileCache.set(node, data.fileCache)
 
     const parent = { _: node }
     if (options.dereference) await resolveAndLoadRefsAsync('#', options, data, parent, '_', new Map())

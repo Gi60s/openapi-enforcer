@@ -25,6 +25,7 @@ interface ISchemaComponent extends IComponentInstance {
 }
 
 export interface ISchema2Definition {
+  [Extensions: `x-${string}`]: any
   format?: string
   title?: string
   description?: string
@@ -90,6 +91,7 @@ export interface ISchema2 extends ISchemaComponent {
 }
 
 export interface ISchema3Definition {
+  [Extensions: `x-${string}`]: any
   type?: string
   allOf?: Array<I.ISchema3Definition | I.IReference3Definition>
   oneOf?: Array<I.ISchema3Definition | I.IReference3Definition>

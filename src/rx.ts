@@ -8,7 +8,6 @@ interface PatternMap {
   dateTime: RegExp
   integer: RegExp
   number: RegExp
-
   contentType: RegExp
   email: RegExp
   extension: RegExp

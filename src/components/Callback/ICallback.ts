@@ -25,6 +25,7 @@ interface ICallbackComponent extends IComponentInstance {
 }
 
 export interface ICallback3Definition {
+  [Extensions: `x-${string}`]: any
   [key: `http${string}`]: I.IPathItem3Definition
   [key: `{$${string}`]: I.IPathItem3Definition
 }

@@ -25,6 +25,7 @@ interface IParameterComponent extends IComponentInstance {
 }
 
 export interface IParameter2Definition {
+  [Extensions: `x-${string}`]: any
   name: string
   in: 'body'|'formData'|'header'|'path'|'query'
   description?: string
@@ -78,6 +79,7 @@ export interface IParameter2 extends IParameterComponent {
 }
 
 export interface IParameter3Definition {
+  [Extensions: `x-${string}`]: any
   name: string
   in: 'cookie'|'header'|'path'|'query'
   description?: string

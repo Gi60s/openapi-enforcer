@@ -25,6 +25,7 @@ interface IInfoComponent extends IComponentInstance {
 }
 
 export interface IInfo2Definition {
+  [Extensions: `x-${string}`]: any
   title: string
   description?: string
   termsOfService?: string
@@ -44,6 +45,7 @@ export interface IInfo2 extends IInfoComponent {
 }
 
 export interface IInfo3Definition {
+  [Extensions: `x-${string}`]: any
   title: string
   description?: string
   termsOfService?: string

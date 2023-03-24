@@ -25,6 +25,7 @@ interface IOAuthFlowsComponent extends IComponentInstance {
 }
 
 export interface IOAuthFlows3Definition {
+  [Extensions: `x-${string}`]: any
   implicit?: I.IOAuthFlow3Definition
   password?: I.IOAuthFlow3Definition
   clientCredentials?: I.IOAuthFlow3Definition

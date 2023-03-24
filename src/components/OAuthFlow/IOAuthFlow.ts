@@ -24,6 +24,7 @@ interface IOAuthFlowComponent extends IComponentInstance {
 }
 
 export interface IOAuthFlow3Definition {
+  [Extensions: `x-${string}`]: any
   authorizationUrl?: string
   tokenUrl?: string
   refreshUrl?: string

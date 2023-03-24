@@ -25,6 +25,7 @@ interface ISwaggerComponent extends IComponentInstance {
 }
 
 export interface ISwagger2Definition {
+  [Extensions: `x-${string}`]: any
   swagger: '2.0'
   info: I.IInfo2Definition
   host?: string

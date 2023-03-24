@@ -25,6 +25,7 @@ interface IPathsComponent extends IComponentInstance {
 }
 
 export interface IPaths2Definition {
+  [Extensions: `x-${string}`]: any
   [key: `/${string}`]: I.IPathItem2Definition
 }
 
@@ -34,6 +35,7 @@ export interface IPaths2 extends IPathsComponent {
 }
 
 export interface IPaths3Definition {
+  [Extensions: `x-${string}`]: any
   [key: `/${string}`]: I.IPathItem3Definition
 }
 

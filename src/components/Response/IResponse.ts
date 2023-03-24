@@ -23,6 +23,7 @@ interface IResponseComponent extends IComponentInstance {
 }
 
 export interface IResponse2Definition {
+  [Extensions: `x-${string}`]: any
   description: string
   schema?: I.ISchema2Definition | I.IReference2Definition
   headers?: Record<string, I.IHeader2Definition>
@@ -38,6 +39,7 @@ export interface IResponse2 extends IResponseComponent {
 }
 
 export interface IResponse3Definition {
+  [Extensions: `x-${string}`]: any
   description: string
   headers?: Record<string, I.IHeader3Definition | I.IReference3Definition>
   content?: Record<string, I.IMediaType3Definition>

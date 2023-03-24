@@ -25,6 +25,7 @@ interface IRequestBodyComponent extends IComponentInstance {
 }
 
 export interface IRequestBody3Definition {
+  [Extensions: `x-${string}`]: any
   description?: string
   content?: Record<string, I.IMediaType3Definition>
   required?: boolean

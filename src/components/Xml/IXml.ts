@@ -24,6 +24,7 @@ interface IXmlComponent extends IComponentInstance {
 }
 
 export interface IXml2Definition {
+  [Extensions: `x-${string}`]: any
   name?: string
   namespace?: string
   prefix?: string
@@ -41,6 +42,7 @@ export interface IXml2 extends IXmlComponent {
 }
 
 export interface IXml3Definition {
+  [Extensions: `x-${string}`]: any
   name?: string
   namespace?: string
   prefix?: string

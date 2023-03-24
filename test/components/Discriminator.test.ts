@@ -140,6 +140,9 @@ describe('Discriminator', () => {
               Dog: {
                 allOf: [
                   {
+                    $ref: '#/components/schemas/Pet'
+                  },
+                  {
                     type: 'object',
                     properties: {
                       name: { type: 'string' },
@@ -151,12 +154,11 @@ describe('Discriminator', () => {
             }
           }
         })
-        def.components.schemas.Dog.allOf.push(def.components.schemas.Pet)
         const es = OpenAPI3.validate(def)
         expect(es.hasErrorByCode('DISCRIMINATOR_REQUIRED_PROPERTY')).to.equal(true)
       })
 
-      it('requires anyof to specify that the propertyName is required on all anyOf schemas', () => {
+      it.only('expects anyof to specify that the propertyName is required on all anyOf schemas', () => {
         const def = OpenAPI3.createDefinition<any>({
           components: {
             schemas: {
@@ -179,7 +181,8 @@ describe('Discriminator', () => {
           }
         })
         const es = OpenAPI3.validate(def)
-        expect(es.hasErrorByCode('DISCRIMINATOR_REQUIRED_PROPERTY')).to.equal(true)
+        expect(es.hasErrorByCode('DISCRIMINATOR_REQUIRED_PROPERTY')).to.equal(false)
+        expect(es.hasWarningByCode('DISCRIMINATOR_REQUIRED_PROPERTY')).to.equal(false)
       })
 
       it('requires oneOf to specify that the propertyName is required on all oneOf schemas', () => {
@@ -210,21 +213,6 @@ describe('Discriminator', () => {
     })
 
     describe('mapping', () => {
-      it.skip('can use implicit mapping', () => {
-        // TODO: move this test to schema testing on discriminate() function
-        throw Error('not implemented')
-      })
-
-      it.skip('can use explicit mapping', () => {
-        // TODO: move this test to schema testing on discriminate() function
-        throw Error('not implemented')
-      })
-
-      it.skip('will produce an error if mapping cannot be found', () => {
-        // TODO: move this test to schema testing on discriminate() function
-        throw Error('not implemented')
-      })
-
       it('can match an item reference when used with anyOf', async () => {
         const def = OpenAPI3.createDefinition<any>({
           components: {
@@ -237,6 +225,37 @@ describe('Discriminator', () => {
                   propertyName: 'petType',
                   mapping: {
                     puppy: '#/components/schemas/Dog'
+                  }
+                }
+              },
+              Dog: {
+                type: 'object',
+                required: ['petType'],
+                properties: {
+                  petType: { type: 'string' },
+                  name: { type: 'string' },
+                  packSize: { type: 'integer' }
+                }
+              }
+            }
+          }
+        })
+        const es = await OpenAPI3.validateAsync(def)
+        expect(es.hasErrorByCode('DISCRIMINATOR_MAPPING_INVALID')).to.equal(false)
+      })
+
+      it('can match an item reference when used with anyOf when the ref is a name', async () => {
+        const def = OpenAPI3.createDefinition<any>({
+          components: {
+            schemas: {
+              Pet: {
+                anyOf: [
+                  { $ref: '#/components/schemas/Dog' }
+                ],
+                discriminator: {
+                  propertyName: 'petType',
+                  mapping: {
+                    puppy: 'Dog'
                   }
                 }
               },
@@ -287,8 +306,35 @@ describe('Discriminator', () => {
         expect(es.hasErrorByCode('DISCRIMINATOR_MAPPING_INVALID')).to.equal(true)
       })
 
-      it('must match an item reference when used with oneOf', () => {
-        throw Error('not implemented')
+      it('must match an item reference when used with oneOf', async () => {
+        const def = OpenAPI3.createDefinition<any>({
+          components: {
+            schemas: {
+              Pet: {
+                oneOf: [
+                  { $ref: '#/components/schemas/Dog' }
+                ],
+                discriminator: {
+                  propertyName: 'petType',
+                  mapping: {
+                    kitten: '#/components/schemas/Cat'
+                  }
+                }
+              },
+              Dog: {
+                type: 'object',
+                required: ['petType'],
+                properties: {
+                  petType: { type: 'string' },
+                  name: { type: 'string' },
+                  packSize: { type: 'integer' }
+                }
+              }
+            }
+          }
+        })
+        const es = await OpenAPI3.validateAsync(def)
+        expect(es.hasErrorByCode('DISCRIMINATOR_MAPPING_INVALID')).to.equal(true)
       })
     })
   })

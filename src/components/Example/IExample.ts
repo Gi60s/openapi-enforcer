@@ -32,6 +32,7 @@ export interface IExample2 extends IExampleComponent {
 }
 
 export interface IExample3Definition {
+  [Extensions: `x-${string}`]: any
   summary?: string
   description?: string
   value?: any

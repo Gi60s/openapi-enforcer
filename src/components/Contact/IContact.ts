@@ -24,6 +24,7 @@ interface IContactComponent extends IComponentInstance {
 }
 
 export interface IContact2Definition {
+  [Extensions: `x-${string}`]: any
   name?: string
   url?: string
   email?: string
@@ -37,6 +38,7 @@ export interface IContact2 extends IContactComponent {
 }
 
 export interface IContact3Definition {
+  [Extensions: `x-${string}`]: any
   name?: string
   url?: string
   email?: string

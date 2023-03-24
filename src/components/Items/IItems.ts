@@ -25,6 +25,7 @@ interface IItemsComponent extends IComponentInstance {
 }
 
 export interface IItems2Definition {
+  [Extensions: `x-${string}`]: any
   type: 'array'|'boolean'|'integer'|'number'|'string'
   format?: string
   items?: I.IItems2Definition

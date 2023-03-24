@@ -25,6 +25,7 @@ interface IOpenAPIComponent extends IComponentInstance {
 }
 
 export interface IOpenAPI3Definition {
+  [Extensions: `x-${string}`]: any
   openapi: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
   info: I.IInfo3Definition
   servers?: I.IServer3Definition[]

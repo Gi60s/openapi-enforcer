@@ -2,7 +2,9 @@ import { ILoaderMetadata, ILoaderOptions } from './ILoader'
 import { ExceptionStore } from '../Exception/ExceptionStore'
 import { getMessage } from '../i18n/i18n'
 import { ILocation, ILookupLocation } from '../Locator/ILocator'
+import { Adapter } from '../Adapter/Adapter'
 export const map = new WeakMap<object, ILookupLocation>()
+export const rootNodeFileCache = new WeakMap<object, Record<string, any>>()
 
 export function appendToPath (path: string, value: string): string {
   return path + '/' + value.replace(/~/g, '~0').replace(/\//g, '~1')
@@ -57,6 +59,7 @@ export function applyPositionInformation (path: string, node: object, options: I
 
 export function convertPathToBreadcrumbs (path: string): string {
   return path
+    .replace(/^#\//, '')
     .split('/')
     .map(value => value.replace(/~0/g, '~').replace(/~1/g, '/'))
     .join(' > ')
@@ -123,4 +126,26 @@ export function traverse (node: any, path: string): any {
     }
   }
   return o
+}
+
+export function traverseFromNode (node: object, ref: string): any {
+  const loc = map.get(node)?.loc
+  if (loc === undefined) return
+
+  const { node: nodeRoot, source: nodeSource } = loc.root
+
+  if (ref.startsWith('#/')) {
+    return traverse(nodeRoot, ref)
+  } else {
+    const fileCache = rootNodeFileCache.get(nodeRoot)
+    if (fileCache === undefined) return
+
+    const [childPath, subRef] = ref.split('#/')
+    const dirPath = Adapter.path.dirname(nodeSource)
+    const absoluteChildPath = Adapter.path.resolve(dirPath, childPath)
+    const rootNode = fileCache[absoluteChildPath]
+    if (rootNode === undefined) return
+
+    return traverse(rootNode, subRef)
+  }
 }

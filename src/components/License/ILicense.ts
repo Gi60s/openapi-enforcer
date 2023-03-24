@@ -24,6 +24,7 @@ interface ILicenseComponent extends IComponentInstance {
 }
 
 export interface ILicense2Definition {
+  [Extensions: `x-${string}`]: any
   name: string
   url?: string
 }
@@ -35,6 +36,7 @@ export interface ILicense2 extends ILicenseComponent {
 }
 
 export interface ILicense3Definition {
+  [Extensions: `x-${string}`]: any
   name: string
   url?: string
 }
