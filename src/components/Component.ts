@@ -399,6 +399,7 @@ function validateDefinition (processor: SchemaProcessor): boolean {
         level: 'error',
         locations: [processor.getLocation('value')],
         metadata: {
+          exclusive: '',
           maximum: schema.maximum,
           value: definition
         },

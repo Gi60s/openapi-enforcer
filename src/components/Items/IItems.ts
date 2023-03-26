@@ -34,7 +34,7 @@ export interface IItems2Definition {
   maximum?: number
   exclusiveMaximum?: boolean
   minimum?: number
-  exclusiveMinimum?: number
+  exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
   pattern?: string
@@ -55,7 +55,7 @@ export interface IItems2 extends IItemsComponent {
   maximum?: number
   exclusiveMaximum?: boolean
   minimum?: number
-  exclusiveMinimum?: number
+  exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
   pattern?: string

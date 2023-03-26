@@ -49,11 +49,27 @@ export const language: II18nMessagesMap = {
   SCHEMA_NOT_MET: 'The value {{value}} does not match any of the potential values.',
   SCHEMA_NOT_DESERIALIZABLE: 'The value could not be deserialized. {reason}',
   SCHEMA_NOT_RANDOMIZABLE: 'A random value could not be generated. {reason}',
-  SCHEMA_NOT_SERIALIZABLE: 'The value could not be serialized. {reason}',
+  SCHEMA_NOT_SERIALIZABLE_TYPE: 'The value could not be serialized. The value is not the expected type: {expectedType}',
+  SCHEMA_TYPE_FORMAT_BINARY_LENGTH: 'The binary format requires {lengthProperty} to be a multiple of 8.',
+  SCHEMA_TYPE_FORMAT_BYTE_LENGTH: 'The binary format requires {lengthProperty} to be a multiple of 4',
+  SCHEMA_TYPE_FORMAT_DATE_FORMAT: 'The date string should be formatted as YYYY-MM-DD',
+  SCHEMA_TYPE_FORMAT_DATE_TIME_FORMAT: 'The date-time string should be formatted as YYYY-MM-DDThh:mm:ss.sssZ',
+  SCHEMA_TYPE_FORMAT_DATE_INVALID: 'The date is not valid: {{value}}.',
+  SCHEMA_TYPE_FORMAT_DATE_LENGTH: 'The date format requires {lengthProperty} to equal 10',
   SUMMERY_EXCEEDS_RECOMMENDED_LENGTH: 'The summary should be less than 120 characters in length.',
   URL_INVALID: 'URL appears to be invalid: {{url}}.',
-  VALUE_OUT_OF_RANGE_MAX: 'The value {{value}} must be less than or equal to {{maximum}}.',
-  VALUE_OUT_OF_RANGE_MIN: 'The value {{value}} must be greater than or equal to {{minimum}}.',
+  VALUE_OUT_OF_RANGE: metadata => {
+    if (metadata.description === undefined) metadata.description = 'value'
+    if ('maximum' in metadata && 'minimum' in metadata) {
+      return `The {description} {{value}} must be ${metadata.exclusive === true ? '' : 'equal to or '} between {{minimum}} and {{maximum}}`
+    } else if ('maximum' in metadata) {
+      return `The {description} {{value}} must be less than ${metadata.exclusive === true ? '' : 'or equal to '} {{maximum}}`
+    } else if ('minimum' in metadata) {
+      return `The {description} {{value}} must be greater than ${metadata.exclusive === true ? '' : 'or equal to '} {{minimum}}`
+    } else {
+      return 'The value {{value}} is outside the expected range'
+    }
+  },
   VALUE_TYPE_INVALID: 'The value {{value}} did not match the expected data type: {{expectedType}}.',
   VERSION_MISMATCH: 'The OpenAPI Enforcer and the OpenAPI specification both support a {{componentName}} object, although ' +
     'you\'re using the wrong version of the class in the OpenAPI enforcer for this object.',

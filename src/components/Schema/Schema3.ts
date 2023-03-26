@@ -30,9 +30,9 @@ interface IValidatorsMap {
   not: ISchema.IProperty<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>
   title: ISchema.IProperty<ISchema.IString>
   maximum: ISchema.IProperty<ISchema.INumber>
-  exclusiveMaximum: ISchema.IProperty<ISchema.INumber>
+  exclusiveMaximum: ISchema.IProperty<ISchema.IBoolean>
   minimum: ISchema.IProperty<ISchema.INumber>
-  exclusiveMinimum: ISchema.IProperty<ISchema.INumber>
+  exclusiveMinimum: ISchema.IProperty<ISchema.IBoolean>
   maxLength: ISchema.IProperty<ISchema.INumber>
   minLength: ISchema.IProperty<ISchema.INumber>
   pattern: ISchema.IProperty<ISchema.IString>
@@ -234,11 +234,11 @@ export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I
     this[SetProperty]('maximum', value)
   }
 
-  get exclusiveMaximum (): number | undefined {
+  get exclusiveMaximum (): boolean | undefined {
     return this[GetProperty]('exclusiveMaximum')
   }
 
-  set exclusiveMaximum (value: number | undefined) {
+  set exclusiveMaximum (value: boolean | undefined) {
     this[SetProperty]('exclusiveMaximum', value)
   }
 
@@ -250,11 +250,11 @@ export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I
     this[SetProperty]('minimum', value)
   }
 
-  get exclusiveMinimum (): number | undefined {
+  get exclusiveMinimum (): boolean | undefined {
     return this[GetProperty]('exclusiveMinimum')
   }
 
-  set exclusiveMinimum (value: number | undefined) {
+  set exclusiveMinimum (value: boolean | undefined) {
     this[SetProperty]('exclusiveMinimum', value)
   }
 
@@ -527,7 +527,7 @@ function getValidatorsMap (): IValidatorsMap {
     exclusiveMaximum: {
       name: 'exclusiveMaximum',
       schema: {
-        type: 'number'
+        type: 'boolean'
       }
     },
     minimum: {
@@ -539,7 +539,7 @@ function getValidatorsMap (): IValidatorsMap {
     exclusiveMinimum: {
       name: 'exclusiveMinimum',
       schema: {
-        type: 'number'
+        type: 'boolean'
       }
     },
     maxLength: {

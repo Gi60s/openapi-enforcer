@@ -15,12 +15,45 @@ import { IComponentInstance } from '../IComponent'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
-// Put your code here.
+import { Result } from '../../Result'
+import { ExceptionStore } from '../../Exception/ExceptionStore'
+
+export interface ISchemaPopulateOptions {
+  copy?: boolean
+  conditions?: boolean
+  defaults?: boolean
+  depth?: number
+  replacement?: string
+  templateDefaults?: boolean
+  templates?: boolean
+  variables?: boolean
+}
+
+export interface ISchemaRandomOptions {
+  additionalPropertiesPossibility?: number
+  arrayVariation?: number
+  copy?: false
+  defaultPossibility?: number
+  definedPropertyPossibility?: number
+  maxDepth?: number
+  numberVariation?: number
+  uniqueItemRetry?: number
+}
+
+export interface ISchemaValidateOptions {
+  readWriteMode?: 'read' | 'write'
+}
 // <!# Custom Content End: HEADER #!>
 
 interface ISchemaComponent extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
-  // Put your code here.
+  deserialize: (value: string, options?: { strict: boolean }) => any
+  discriminate: (value: object) => { key: string, name: string, schema: ISchemaComponent }
+  formalize: (value: object) => any
+  populate: (params: Record<string, any>, value: object, options?: ISchemaPopulateOptions) => Result
+  random: (value: any, options?: ISchemaRandomOptions) => Result<object>
+  serialize: (value: any) => Result
+  validate: (value: any, options?: ISchemaValidateOptions) => ExceptionStore | undefined
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
@@ -31,9 +64,9 @@ export interface ISchema2Definition {
   description?: string
   default?: any
   maximum?: number
-  exclusiveMaximum?: number
+  exclusiveMaximum?: boolean
   minimum?: number
-  exclusiveMinimum?: number
+  exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
   pattern?: string
@@ -64,9 +97,9 @@ export interface ISchema2 extends ISchemaComponent {
   description?: string
   default?: any
   maximum?: number
-  exclusiveMaximum?: number
+  exclusiveMaximum?: boolean
   minimum?: number
-  exclusiveMinimum?: number
+  exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
   pattern?: string
@@ -99,9 +132,9 @@ export interface ISchema3Definition {
   not?: I.ISchema3Definition | I.IReference3Definition
   title?: string
   maximum?: number
-  exclusiveMaximum?: number
+  exclusiveMaximum?: boolean
   minimum?: number
-  exclusiveMinimum?: number
+  exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
   pattern?: string
@@ -138,9 +171,9 @@ export interface ISchema3 extends ISchemaComponent {
   not?: I.ISchema3
   title?: string
   maximum?: number
-  exclusiveMaximum?: number
+  exclusiveMaximum?: boolean
   minimum?: number
-  exclusiveMinimum?: number
+  exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
   pattern?: string

@@ -40,7 +40,7 @@ export interface IParameter2Definition {
   maximum?: number
   exclusiveMaximum?: boolean
   minimum?: number
-  exclusiveMinimum?: number
+  exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
   pattern?: string
@@ -67,7 +67,7 @@ export interface IParameter2 extends IParameterComponent {
   maximum?: number
   exclusiveMaximum?: boolean
   minimum?: number
-  exclusiveMinimum?: number
+  exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
   pattern?: string

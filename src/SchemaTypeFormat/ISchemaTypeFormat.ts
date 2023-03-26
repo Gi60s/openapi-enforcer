@@ -1,7 +1,8 @@
 import { ExceptionStore } from '../Exception/ExceptionStore'
-import { ISchema2Definition, ISchema3Definition } from '../components'
+import { ISchema2, ISchema3 } from '../components'
+import { ISchemaSchemaProcessor } from '../components/IInternalTypes'
 
-export type ISchema = ISchema2Definition | ISchema3Definition
+export type ISchema = ISchema2 | ISchema3
 
 export interface ISchemaTypeFormat<Serialized, Deserialized> {
 
@@ -9,6 +10,12 @@ export interface ISchemaTypeFormat<Serialized, Deserialized> {
    * A list of constructors that use this schema type formatter.
    */
   constructors: Function[]
+
+  /**
+   * Define additional schema validations for this type format.
+   * @param data
+   */
+  definitionValidator: (data: ISchemaSchemaProcessor) => void
 
   /**
    * Take a serialized value and deserialize it.
@@ -19,10 +26,10 @@ export interface ISchemaTypeFormat<Serialized, Deserialized> {
   deserialize: (exceptionStore: ExceptionStore, schema: ISchema, value: Deserialized | Serialized) => Deserialized
 
   /**
-   * Whether the value is considered numeric in its deserialized state.
-   * For example, a Date is numeric which allows you to set max and min values.
+   * If the deserialized value can be represented as a number, then include a numberValueOf function.
+   * Having this function means that the schema for this type format can have a minimum, maximum, and multipleOf.
    */
-  isNumeric: boolean
+  numberValueOf?: (value: Deserialized) => number
 
   /**
    * Generate a random deserialized value.
@@ -31,12 +38,6 @@ export interface ISchemaTypeFormat<Serialized, Deserialized> {
    * @param options
    */
   random: (exceptionStore: ExceptionStore, schema: ISchema, options?: unknown) => Deserialized
-
-  /**
-   * Additional validations to run with the schema definition.
-   * @param definition
-   */
-  runSchemaDefinitionValidations: (exceptionStore: ExceptionStore, schema: ISchema, value: Serialized) => void
 
   /**
    * Take a deserialized value and serialize it.
@@ -51,7 +52,7 @@ export interface ISchemaTypeFormat<Serialized, Deserialized> {
    * @param exceptionStore
    * @param schema
    * @param value
-   * @returns true if valid, false if one or more validation errors were found.
+   * @param returns true if no exceptions were added, otherwise false
    */
   validate: (exceptionStore: ExceptionStore, schema: ISchema, value: Deserialized) => boolean
 }

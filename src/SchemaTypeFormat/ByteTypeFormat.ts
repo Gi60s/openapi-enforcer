@@ -7,7 +7,9 @@ import { validateMaxMin } from '../components/Schema/common'
 import { ISchemaSchemaProcessor } from '../components/IInternalTypes'
 import { getLocation } from '../Loader'
 
-export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> implements ISchemaTypeFormat<string, ArrayBuffer> {
+// TODO: lots of testing around this - I'm confident this won't currently work.
+
+export class ByteTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> implements ISchemaTypeFormat<string, ArrayBuffer> {
   constructor () {
     super()
     this.constructors = [ArrayBuffer]
@@ -15,7 +17,7 @@ export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> impl
 
   definitionValidator (data: ISchemaSchemaProcessor): void {
     const { exception, definition } = data
-    if (definition.maxLength !== undefined && definition.maxLength % 8 !== 0) {
+    if (definition.maxLength !== undefined && definition.maxLength % 4 !== 0) {
       exception.add({
         code: 'SCHEMA_TYPE_FORMAT_BINARY_LENGTH',
         id: 'SCHEMA',
@@ -26,7 +28,7 @@ export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> impl
         }
       })
     }
-    if (definition.minLength !== undefined && definition.minLength % 8 !== 0) {
+    if (definition.minLength !== undefined && definition.minLength % 4 !== 0) {
       exception.add({
         code: 'SCHEMA_TYPE_FORMAT_BINARY_LENGTH',
         id: 'SCHEMA',
@@ -42,8 +44,8 @@ export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> impl
   deserialize (exceptionStore: ExceptionStore, schema: ISchema, value: ArrayBuffer | string): ArrayBuffer {
     if (value instanceof ArrayBuffer) {
       return value
-    } else if (typeof value === 'string' && rx.binary.test(value)) {
-      const buffer = new ArrayBuffer(value.length * 2)
+    } else if (typeof value === 'string' && rx.byte.test(value)) {
+      const buffer = new ArrayBuffer(value.length * 4)
       const view = new Uint16Array(buffer)
       const length = value.length
       for (let i = 0; i < length; i++) {
@@ -58,7 +60,7 @@ export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> impl
         locations: [],
         metadata: {
           // TODO: this wont work for i18n - make more error codes to address this
-          reason: 'The value was not a string of zero and one values.'
+          reason: 'The value was not a string of hexadecimal values.'
         }
       })
       return new ArrayBuffer(0)
@@ -109,9 +111,9 @@ export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> impl
       })
       return false
     } else {
-      const exceptionData = validateMaxMin(exceptionStore, schema, 'binary length', 'maxLength',
+      const exception = validateMaxMin(exceptionStore, schema, 'byte length', 'maxLength',
         'minLength', true, 'error', value.byteLength, schema.maxLength, schema.minLength)
-      return exceptionData === undefined
+      return exception === undefined
     }
   }
 }

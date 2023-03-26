@@ -33,9 +33,9 @@ export interface IHeader2Definition {
   collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'
   default?: any
   maximum?: number
-  exclusiveMaximum?: number
+  exclusiveMaximum?: boolean
   minimum?: number
-  exclusiveMinimum?: number
+  exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
   pattern?: string
@@ -55,9 +55,9 @@ export interface IHeader2 extends IHeaderComponent {
   collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'
   default?: any
   maximum?: number
-  exclusiveMaximum?: number
+  exclusiveMaximum?: boolean
   minimum?: number
-  exclusiveMinimum?: number
+  exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
   pattern?: string

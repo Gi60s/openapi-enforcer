@@ -1,6 +1,9 @@
-import { ISchema2Definition, ISchema3Definition } from './ISchema'
+import { ISchema2Definition, ISchema3Definition, ISchema2, ISchema3 } from './ISchema'
+import { ExceptionStore } from '../../Exception/ExceptionStore'
+import { IExceptionData, IExceptionLevel } from '../../Exception/IException'
 
 type Definition = ISchema2Definition | ISchema3Definition
+type ISchema = ISchema2 | ISchema3
 
 const rxNumber = /^-?\d+(?:\.\d+)?$/
 
@@ -53,4 +56,49 @@ export function getSchemaForObjectPath (schema: Definition, path: string[]): Def
 export function hasRequiredProperty (schema: Definition, property: string): boolean {
   const required = getSchemaPropertyValue<string[]>(schema, ['required']) ?? []
   return required.includes(property)
+}
+
+export function validateMaxMin (exceptionStore: ExceptionStore,
+  schema: ISchema, valueDescription: string,
+  maxPropertyName: string, minPropertyName: string,
+  exclusives: boolean,
+  level: IExceptionLevel,
+  value: number, maximum: number | undefined, minimum: number | undefined): IExceptionData | undefined {
+
+  if (maxPropertyName in schema && maximum !== undefined) {
+    if ((exclusives && schema.exclusiveMaximum === true && value >= maximum) || value > maximum) {
+      const data: IExceptionData = {
+        code: 'VALUE_OUT_OF_RANGE',
+        id: 'Schema',
+        level,
+        locations: [],
+        metadata: {
+          description: valueDescription,
+          exclusive: true,
+          maximum: schema.serialize((schema as any)[maxPropertyName]).value ?? (schema as any)[maxPropertyName],
+          value: schema.serialize(value).value ?? value
+        }
+      }
+      exceptionStore.add(data)
+      return data
+    }
+  }
+
+  if (minPropertyName in schema && minimum !== undefined) {
+    if ((exclusives && schema.exclusiveMinimum === true && value <= minimum) || value < minimum) {
+      const data: IExceptionData = {
+        code: 'VALUE_OUT_OF_RANGE',
+        id: 'Schema',
+        level,
+        locations: [],
+        metadata: {
+          exclusive: true,
+          minimum: schema.serialize((schema as any)[maxPropertyName]).value ?? (schema as any)[maxPropertyName],
+          value: schema.serialize(value).value ?? value
+        }
+      }
+      exceptionStore.add(data)
+      return data
+    }
+  }
 }

@@ -39,7 +39,7 @@ interface IValidatorsMap {
   maximum: ISchema.IProperty<ISchema.INumber>
   exclusiveMaximum: ISchema.IProperty<ISchema.IBoolean>
   minimum: ISchema.IProperty<ISchema.INumber>
-  exclusiveMinimum: ISchema.IProperty<ISchema.INumber>
+  exclusiveMinimum: ISchema.IProperty<ISchema.IBoolean>
   maxLength: ISchema.IProperty<ISchema.INumber>
   minLength: ISchema.IProperty<ISchema.INumber>
   pattern: ISchema.IProperty<ISchema.IString>
@@ -260,11 +260,11 @@ export class Parameter extends EnforcerComponent<I.IParameter2Definition> implem
     this[SetProperty]('minimum', value)
   }
 
-  get exclusiveMinimum (): number | undefined {
+  get exclusiveMinimum (): boolean | undefined {
     return this[GetProperty]('exclusiveMinimum')
   }
 
-  set exclusiveMinimum (value: number | undefined) {
+  set exclusiveMinimum (value: boolean | undefined) {
     this[SetProperty]('exclusiveMinimum', value)
   }
 
@@ -435,7 +435,7 @@ function getValidatorsMap (): IValidatorsMap {
     exclusiveMinimum: {
       name: 'exclusiveMinimum',
       schema: {
-        type: 'number'
+        type: 'boolean'
       }
     },
     maxLength: {
