@@ -8,26 +8,26 @@ import { ISchemaSchemaProcessor } from '../components/IInternalTypes'
 import { getDateFromValidDateString } from '../util'
 import { getLocation } from '../Loader'
 
-export class DateTypeFormat extends SchemaTypeFormat<string, Date> implements ISchemaTypeFormat<string, Date> {
+export class DateTimeTypeFormat extends SchemaTypeFormat<string, Date> implements ISchemaTypeFormat<string, Date> {
 
   constructor () {
-    super('string', 'date', [Date])
+    super('string', 'date-time', [Date])
   }
 
   definitionValidator (data: ISchemaSchemaProcessor): void {
     const { exception, definition } = data
-    if (definition.maxLength !== undefined && definition.maxLength !== 10) {
+    if (definition.maxLength !== undefined && (definition.maxLength < 20 || definition.maxLength > 29)) {
       exception.add({
-        code: 'SCHEMA_TYPE_FORMAT_DATE_LENGTH',
+        code: 'SCHEMA_TYPE_FORMAT_DATE_TIME_LENGTH',
         id: 'SCHEMA',
         level: 'error',
         locations: [getLocation(definition, 'maxLength', 'value')],
         metadata: { lengthProperty: 'maxLength' }
       })
     }
-    if (definition.minLength !== undefined && definition.minLength !== 10) {
+    if (definition.minLength !== undefined && (definition.minLength < 20 || definition.minLength > 29)) {
       exception.add({
-        code: 'SCHEMA_TYPE_FORMAT_DATE_LENGTH',
+        code: 'SCHEMA_TYPE_FORMAT_DATE_TIME_LENGTH',
         id: 'SCHEMA',
         level: 'error',
         locations: [getLocation(definition, 'minLength', 'value')],
@@ -39,7 +39,7 @@ export class DateTypeFormat extends SchemaTypeFormat<string, Date> implements IS
   deserialize (exceptionStore: ExceptionStore, schema: ISchema, value: Date | string): Date {
     if (value instanceof Date) {
       return value
-    } else if (typeof value !== 'string' || !rx.date.test(value)) {
+    } else if (typeof value !== 'string' || !rx.dateTime.test(value)) {
       exceptionStore.add({
         code: 'SCHEMA_TYPE_FORMAT_DATE_FORMAT',
         id: 'SCHEMA',
@@ -79,7 +79,7 @@ export class DateTypeFormat extends SchemaTypeFormat<string, Date> implements IS
 
   serialize (exceptionStore: ExceptionStore, schema: ISchema, value: Date | string): string {
     if (value instanceof Date && !isNaN(+value)) {
-      return value.toISOString().substring(0, 10)
+      return value.toISOString()
     } else if (typeof value === 'string') {
       return value
     } else {

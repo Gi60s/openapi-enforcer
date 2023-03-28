@@ -11,8 +11,7 @@ import { getLocation } from '../Loader'
 
 export class ByteTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> implements ISchemaTypeFormat<string, ArrayBuffer> {
   constructor () {
-    super()
-    this.constructors = [ArrayBuffer]
+    super('string', 'byte', [ArrayBuffer])
   }
 
   definitionValidator (data: ISchemaSchemaProcessor): void {

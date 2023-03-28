@@ -53,9 +53,10 @@ export const language: II18nMessagesMap = {
   SCHEMA_TYPE_FORMAT_BINARY_LENGTH: 'The binary format requires {lengthProperty} to be a multiple of 8.',
   SCHEMA_TYPE_FORMAT_BYTE_LENGTH: 'The binary format requires {lengthProperty} to be a multiple of 4',
   SCHEMA_TYPE_FORMAT_DATE_FORMAT: 'The date string should be formatted as YYYY-MM-DD',
-  SCHEMA_TYPE_FORMAT_DATE_TIME_FORMAT: 'The date-time string should be formatted as YYYY-MM-DDThh:mm:ss.sssZ',
   SCHEMA_TYPE_FORMAT_DATE_INVALID: 'The date is not valid: {{value}}.',
   SCHEMA_TYPE_FORMAT_DATE_LENGTH: 'The date format requires {lengthProperty} to equal 10',
+  SCHEMA_TYPE_FORMAT_DATE_TIME_FORMAT: 'The date-time string should be formatted as YYYY-MM-DDThh:mm:ss.sssZ or YYYY-MM-DDThh:mm:ss.sss+00:00',
+  SCHEMA_TYPE_FORMAT_DATE_TIME_LENGTH: 'The date-time string {lengthProperty} must be between 20 and 29.',
   SUMMERY_EXCEEDS_RECOMMENDED_LENGTH: 'The summary should be less than 120 characters in length.',
   URL_INVALID: 'URL appears to be invalid: {{url}}.',
   VALUE_OUT_OF_RANGE: metadata => {

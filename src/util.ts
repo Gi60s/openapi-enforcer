@@ -47,29 +47,17 @@ export function deprecated<F extends Function> (oldName: string, newName: string
 
 export function getDateFromValidDateString (format: 'date' | 'date-time', string: string): Date | null {
   const date = new Date(string)
+  if (isNaN(date.getTime())) return null
+
   const isoDate = date.toISOString()
   const match = format === 'date'
     ? rx.date.exec(isoDate.substring(0, 10))
     : rx['date-time'].exec(isoDate)
   if (match === null) return null
 
-  const year = +match[1]
-  const month = +match[2] - 1
+  // if the day of the month doesn't match then someone put too many days on the date string. Ex: 2000-02-31 - February never has 31 days.
   const day = +match[3]
-  const hour = +(match?.[4] ?? 0)
-  const minute = +(match?.[5] ?? 0)
-  const second = +(match?.[6] ?? 0)
-  const milliseconds = +(match?.[7]?.substring(0, 3) ?? 0)
-
-  return date.getUTCFullYear() === year &&
-  date.getUTCMonth() === month &&
-  date.getUTCDate() === day &&
-  date.getUTCHours() === hour &&
-  date.getUTCMinutes() === minute &&
-  date.getUTCSeconds() === second &&
-  date.getUTCMilliseconds() === milliseconds
-    ? date
-    : null
+  return date.getUTCDate() === day ? date : null
 }
 
 /**

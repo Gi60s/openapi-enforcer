@@ -9,8 +9,7 @@ import { getLocation } from '../Loader'
 
 export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> implements ISchemaTypeFormat<string, ArrayBuffer> {
   constructor () {
-    super()
-    this.constructors = [ArrayBuffer]
+    super('string', 'binary', [ArrayBuffer])
   }
 
   definitionValidator (data: ISchemaSchemaProcessor): void {
