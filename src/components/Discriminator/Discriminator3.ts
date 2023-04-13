@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -32,8 +32,14 @@ interface IValidatorsMap {
 }
 
 export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition> implements I.IDiscriminator3 {
+  public propertyName!: string
+  public mapping?: Record<string, string>
+
   constructor (definition: I.IDiscriminator3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
+    // <!# Custom Content Begin: CONSTRUCTOR #!>
+    // Put your code here.
+    // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
   static id: string = 'DISCRIMINATOR3'
@@ -201,7 +207,7 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
 
   static create (definition?: Partial<I.IDiscriminator3Definition> | Discriminator | undefined): Discriminator {
     if (definition instanceof Discriminator) {
-      return new Discriminator(Object.assign({}, definition))
+      return new Discriminator(Object.assign({}, definition as unknown) as I.IDiscriminator3Definition)
     } else {
       return new Discriminator(Object.assign({
         propertyName: ''
@@ -232,22 +238,6 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get propertyName (): string {
-    return this[GetProperty]('propertyName')
-  }
-
-  set propertyName (value: string) {
-    this[SetProperty]('propertyName', value)
-  }
-
-  get mapping (): Record<string, string> | undefined {
-    return this[GetProperty]('mapping')
-  }
-
-  set mapping (value: Record<string, string> | undefined) {
-    this[SetProperty]('mapping', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

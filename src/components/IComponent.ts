@@ -2,9 +2,10 @@ import { IExceptionLevel } from '../Exception/IException'
 import { HookGetProperty, HookSetProperty } from './Symbols'
 
 // This is the base component interface. All other component interfaces inherit from this.
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IComponentInstance {
-  [HookGetProperty]: <T>(key: string, callback: (value: T) => T) => void
-  [HookSetProperty]: <T>(key: string, callback: (newValue: T, oldValue: T) => T) => void
+  // [HookGetProperty]: <T>(key: string, callback: (value: T) => T) => void
+  // [HookSetProperty]: <T>(key: string, callback: (newValue: T, oldValue: T) => T) => void
 }
 
 // if an openapi extension of x-enforcer is found then the value will have this interface

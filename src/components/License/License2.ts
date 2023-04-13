@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -31,9 +31,14 @@ interface IValidatorsMap {
 
 export class License extends EnforcerComponent<I.ILicense2Definition> implements I.ILicense2 {
   [S.Extensions]: Record<string, any> = {}
+  public name!: string
+  public url?: string
 
   constructor (definition: I.ILicense2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
+    // <!# Custom Content Begin: CONSTRUCTOR #!>
+    // Put your code here.
+    // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
   static id: string = 'LICENSE2'
@@ -71,7 +76,7 @@ export class License extends EnforcerComponent<I.ILicense2Definition> implements
 
   static create (definition?: Partial<I.ILicense2Definition> | License | undefined): License {
     if (definition instanceof License) {
-      return new License(Object.assign({}, definition))
+      return new License(Object.assign({}, definition as unknown) as I.ILicense2Definition)
     } else {
       return new License(Object.assign({
         name: ''
@@ -102,22 +107,6 @@ export class License extends EnforcerComponent<I.ILicense2Definition> implements
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get name (): string {
-    return this[GetProperty]('name')
-  }
-
-  set name (value: string) {
-    this[SetProperty]('name', value)
-  }
-
-  get url (): string | undefined {
-    return this[GetProperty]('url')
-  }
-
-  set url (value: string | undefined) {
-    this[SetProperty]('url', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

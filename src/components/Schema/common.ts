@@ -7,20 +7,32 @@ type ISchema = ISchema2 | ISchema3
 
 const rxNumber = /^-?\d+(?:\.\d+)?$/
 
+export function deserialize (value: string, options: { strict: boolean } | undefined): any {
+  return null
+}
+
+export function discriminate<T extends ISchema> (value: object): { key: string, name: string, schema: T } {
+  return {
+    key: '',
+    name: '',
+    schema: {} as unknown as T
+  }
+}
+
 /**
  * Generate a schema definition object that has default properties added, allOf schemas merged, oneOf or anyOf schemas
  * determined, etc.
  * @param schema
  * @param [hint] A value used to help determine the correct schema when using oneOf or anyOf.
  */
-export function getNormalizedSchema (schema: ISchema2Definition, hint?: any): ISchema2Definition
-export function getNormalizedSchema (schema: ISchema3Definition, hint?: any): ISchema3Definition
-export function getNormalizedSchema (schema: Definition, hint?: any): Definition {
+export function getNormalizedSchema (schema: ISchema2Definition | ISchema2, hint?: any): ISchema2Definition
+export function getNormalizedSchema (schema: ISchema3Definition | ISchema3, hint?: any): ISchema3Definition
+export function getNormalizedSchema (schema: Definition | ISchema, hint?: any): Definition {
   if (schema.allOf !== undefined) {
 
-  } else if (schema.anyOf !== undefined) {
+  } else if ('anyOf' in schema && schema.anyOf !== undefined) {
 
-  } else if (schema.oneOf !== undefined) {
+  } else if ('oneOf' in schema && schema.oneOf !== undefined) {
 
   } else {
 
@@ -28,7 +40,13 @@ export function getNormalizedSchema (schema: Definition, hint?: any): Definition
 }
 
 export function getSchemaProperty<T=any> (schema: Definition, path: string[]): T | undefined {
-
+  let node: any = schema
+  const length = path.length
+  for (let i = 0; i < length; i++) {
+    node = node[path[i]]
+    if (node === undefined) return
+  }
+  return node as T
 }
 
 /**
@@ -53,9 +71,22 @@ export function getSchemaForObjectPath (schema: Definition, path: string[]): Def
   }
 }
 
-export function hasRequiredProperty (schema: Definition, property: string): boolean {
-  const required = getSchemaPropertyValue<string[]>(schema, ['required']) ?? []
-  return required.includes(property)
+export function serialize<T=any> (schema: ISchema, value: any, map = new Map<object, any[]>()): T {
+  const type = schema.type
+
+  // handle cyclic serialization
+  if (typeof value === 'object' && value !== null) {
+    const matches = map.get(schema)
+    if (matches?.includes(value) === true) {
+      return value
+    } else {
+      map.set(schema, [value])
+    }
+  }
+
+  const hookResult = hooks.runHooks(schema, 'beforeSerialize', value, exception)
+  value = hookResult.value
+  if (hookResult.done) return value
 }
 
 export function validateMaxMin (exceptionStore: ExceptionStore,

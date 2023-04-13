@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -43,9 +43,24 @@ interface IValidatorsMap {
 
 export class Operation extends EnforcerComponent<I.IOperation3Definition> implements I.IOperation3 {
   [S.Extensions]: Record<string, any> = {}
+  public tags?: string[]
+  public summary?: string
+  public description?: string
+  public externalDocs?: I.IExternalDocumentation3
+  public operationId?: string
+  public parameters?: I.IParameter3[]
+  public requestBody?: I.IRequestBody3
+  public responses!: I.IResponses3
+  public callbacks?: Record<string, I.ICallback3>
+  public deprecated?: boolean
+  public security?: I.ISecurityRequirement3[]
+  public servers?: I.IServer3[]
 
   constructor (definition: I.IOperation3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
+    // <!# Custom Content Begin: CONSTRUCTOR #!>
+    // Put your code here.
+    // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
   static id: string = 'OPERATION3'
@@ -106,7 +121,7 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
 
   static create (definition?: Partial<I.IOperation3Definition> | Operation | undefined): Operation {
     if (definition instanceof Operation) {
-      return new Operation(Object.assign({}, definition))
+      return new Operation(Object.assign({}, definition as unknown) as I.IOperation3Definition)
     } else {
       return new Operation(Object.assign({
         responses: I.Responses3.create()
@@ -137,102 +152,6 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get tags (): string[] | undefined {
-    return this[GetProperty]('tags')
-  }
-
-  set tags (value: string[] | undefined) {
-    this[SetProperty]('tags', value)
-  }
-
-  get summary (): string | undefined {
-    return this[GetProperty]('summary')
-  }
-
-  set summary (value: string | undefined) {
-    this[SetProperty]('summary', value)
-  }
-
-  get description (): string | undefined {
-    return this[GetProperty]('description')
-  }
-
-  set description (value: string | undefined) {
-    this[SetProperty]('description', value)
-  }
-
-  get externalDocs (): I.IExternalDocumentation3 | undefined {
-    return this[GetProperty]('externalDocs')
-  }
-
-  set externalDocs (value: I.IExternalDocumentation3 | undefined) {
-    this[SetProperty]('externalDocs', value)
-  }
-
-  get operationId (): string | undefined {
-    return this[GetProperty]('operationId')
-  }
-
-  set operationId (value: string | undefined) {
-    this[SetProperty]('operationId', value)
-  }
-
-  get parameters (): I.IParameter3[] | undefined {
-    return this[GetProperty]('parameters')
-  }
-
-  set parameters (value: I.IParameter3[] | undefined) {
-    this[SetProperty]('parameters', value)
-  }
-
-  get requestBody (): I.IRequestBody3 | undefined {
-    return this[GetProperty]('requestBody')
-  }
-
-  set requestBody (value: I.IRequestBody3 | undefined) {
-    this[SetProperty]('requestBody', value)
-  }
-
-  get responses (): I.IResponses3 {
-    return this[GetProperty]('responses')
-  }
-
-  set responses (value: I.IResponses3) {
-    this[SetProperty]('responses', value)
-  }
-
-  get callbacks (): Record<string, I.ICallback3> | undefined {
-    return this[GetProperty]('callbacks')
-  }
-
-  set callbacks (value: Record<string, I.ICallback3> | undefined) {
-    this[SetProperty]('callbacks', value)
-  }
-
-  get deprecated (): boolean | undefined {
-    return this[GetProperty]('deprecated')
-  }
-
-  set deprecated (value: boolean | undefined) {
-    this[SetProperty]('deprecated', value)
-  }
-
-  get security (): I.ISecurityRequirement3[] | undefined {
-    return this[GetProperty]('security')
-  }
-
-  set security (value: I.ISecurityRequirement3[] | undefined) {
-    this[SetProperty]('security', value)
-  }
-
-  get servers (): I.IServer3[] | undefined {
-    return this[GetProperty]('servers')
-  }
-
-  set servers (value: I.IServer3[] | undefined) {
-    this[SetProperty]('servers', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

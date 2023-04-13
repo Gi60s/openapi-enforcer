@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -37,9 +37,20 @@ interface IValidatorsMap {
 
 export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements I.IOpenAPI3 {
   [S.Extensions]: Record<string, any> = {}
+  public openapi!: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3'
+  public info!: I.IInfo3
+  public servers?: I.IServer3[]
+  public paths!: I.IPaths3
+  public components?: I.IComponents3
+  public security?: I.ISecurityRequirement3[]
+  public tags?: I.ITag3[]
+  public externalDocs?: I.IExternalDocumentation3
 
   constructor (definition: I.IOpenAPI3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
+    // <!# Custom Content Begin: CONSTRUCTOR #!>
+    // Put your code here.
+    // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
   static id: string = 'OPEN_API3'
@@ -89,7 +100,7 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
 
   static create (definition?: Partial<I.IOpenAPI3Definition> | OpenAPI | undefined): OpenAPI {
     if (definition instanceof OpenAPI) {
-      return new OpenAPI(Object.assign({}, definition))
+      return new OpenAPI(Object.assign({}, definition as unknown) as I.IOpenAPI3Definition)
     } else {
       return new OpenAPI(Object.assign({
         openapi: '3.0.0',
@@ -124,70 +135,6 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get openapi (): '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3' {
-    return this[GetProperty]('openapi')
-  }
-
-  set openapi (value: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3') {
-    this[SetProperty]('openapi', value)
-  }
-
-  get info (): I.IInfo3 {
-    return this[GetProperty]('info')
-  }
-
-  set info (value: I.IInfo3) {
-    this[SetProperty]('info', value)
-  }
-
-  get servers (): I.IServer3[] | undefined {
-    return this[GetProperty]('servers')
-  }
-
-  set servers (value: I.IServer3[] | undefined) {
-    this[SetProperty]('servers', value)
-  }
-
-  get paths (): I.IPaths3 {
-    return this[GetProperty]('paths')
-  }
-
-  set paths (value: I.IPaths3) {
-    this[SetProperty]('paths', value)
-  }
-
-  get components (): I.IComponents3 | undefined {
-    return this[GetProperty]('components')
-  }
-
-  set components (value: I.IComponents3 | undefined) {
-    this[SetProperty]('components', value)
-  }
-
-  get security (): I.ISecurityRequirement3[] | undefined {
-    return this[GetProperty]('security')
-  }
-
-  set security (value: I.ISecurityRequirement3[] | undefined) {
-    this[SetProperty]('security', value)
-  }
-
-  get tags (): I.ITag3[] | undefined {
-    return this[GetProperty]('tags')
-  }
-
-  set tags (value: I.ITag3[] | undefined) {
-    this[SetProperty]('tags', value)
-  }
-
-  get externalDocs (): I.IExternalDocumentation3 | undefined {
-    return this[GetProperty]('externalDocs')
-  }
-
-  set externalDocs (value: I.IExternalDocumentation3 | undefined) {
-    this[SetProperty]('externalDocs', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

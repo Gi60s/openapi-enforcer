@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -28,8 +28,13 @@ interface IValidatorsMap {
 }
 
 export class Reference extends EnforcerComponent<I.IReference2Definition> implements I.IReference2 {
+  public $ref!: string
+
   constructor (definition: I.IReference2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
+    // <!# Custom Content Begin: CONSTRUCTOR #!>
+    // Put your code here.
+    // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
   static id: string = 'REFERENCE2'
@@ -66,7 +71,7 @@ export class Reference extends EnforcerComponent<I.IReference2Definition> implem
 
   static create (definition?: Partial<I.IReference2Definition> | Reference | undefined): Reference {
     if (definition instanceof Reference) {
-      return new Reference(Object.assign({}, definition))
+      return new Reference(Object.assign({}, definition as unknown) as I.IReference2Definition)
     } else {
       return new Reference(Object.assign({
         $ref: ''
@@ -97,14 +102,6 @@ export class Reference extends EnforcerComponent<I.IReference2Definition> implem
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get $ref (): string {
-    return this[GetProperty]('$ref')
-  }
-
-  set $ref (value: string) {
-    this[SetProperty]('$ref', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

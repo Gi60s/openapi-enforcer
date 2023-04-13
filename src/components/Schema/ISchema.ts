@@ -43,16 +43,26 @@ export interface ISchemaRandomOptions {
 export interface ISchemaValidateOptions {
   readWriteMode?: 'read' | 'write'
 }
+
+export type ISchemaHookType = 'afterDeserialize' | 'afterSerialize' | 'afterValidate' | 'beforeDeserialize' | 'beforeSerialize' | 'beforeValidate'
+export type ISchemaHookHandler = (value: any, schema: ISchema2 | ISchema3, exception: ExceptionStore) => void
+export interface ISchemaHookResult {
+  done: boolean
+  hasException?: boolean
+  value: any
+}
+
 // <!# Custom Content End: HEADER #!>
 
 interface ISchemaComponent extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   deserialize: (value: string, options?: { strict: boolean }) => any
   discriminate: (value: object) => { key: string, name: string, schema: ISchemaComponent }
-  formalize: (value: object) => any
+  hook: (type: ISchemaHookType, handler: ISchemaHookHandler) => ISchemaHookResult
   populate: (params: Record<string, any>, value: object, options?: ISchemaPopulateOptions) => Result
   random: (value: any, options?: ISchemaRandomOptions) => Result<object>
   serialize: (value: any) => Result
+  unhook: (type: ISchemaHookType, handler: ISchemaHookHandler) => void
   validate: (value: any, options?: ISchemaValidateOptions) => ExceptionStore | undefined
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }

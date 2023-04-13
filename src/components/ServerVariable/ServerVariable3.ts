@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -32,9 +32,15 @@ interface IValidatorsMap {
 
 export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definition> implements I.IServerVariable3 {
   [S.Extensions]: Record<string, any> = {}
+  public enum?: string[]
+  public default!: string
+  public description?: string
 
   constructor (definition: I.IServerVariable3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
+    // <!# Custom Content Begin: CONSTRUCTOR #!>
+    // Put your code here.
+    // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
   static id: string = 'SERVER_VARIABLE3'
@@ -73,7 +79,7 @@ export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definiti
 
   static create (definition?: Partial<I.IServerVariable3Definition> | ServerVariable | undefined): ServerVariable {
     if (definition instanceof ServerVariable) {
-      return new ServerVariable(Object.assign({}, definition))
+      return new ServerVariable(Object.assign({}, definition as unknown) as I.IServerVariable3Definition)
     } else {
       return new ServerVariable(Object.assign({
         default: ''
@@ -104,30 +110,6 @@ export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definiti
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get enum (): string[] | undefined {
-    return this[GetProperty]('enum')
-  }
-
-  set enum (value: string[] | undefined) {
-    this[SetProperty]('enum', value)
-  }
-
-  get default (): string {
-    return this[GetProperty]('default')
-  }
-
-  set default (value: string) {
-    this[SetProperty]('default', value)
-  }
-
-  get description (): string | undefined {
-    return this[GetProperty]('description')
-  }
-
-  set description (value: string | undefined) {
-    this[SetProperty]('description', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

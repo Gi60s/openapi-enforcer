@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -33,9 +33,16 @@ interface IValidatorsMap {
 
 export class Example extends EnforcerComponent<I.IExample3Definition> implements I.IExample3 {
   [S.Extensions]: Record<string, any> = {}
+  public summary?: string
+  public description?: string
+  public value?: any
+  public externalValue?: string
 
   constructor (definition: I.IExample3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
+    // <!# Custom Content Begin: CONSTRUCTOR #!>
+    // Put your code here.
+    // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
   static id: string = 'EXAMPLE3'
@@ -98,38 +105,6 @@ export class Example extends EnforcerComponent<I.IExample3Definition> implements
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get summary (): string | undefined {
-    return this[GetProperty]('summary')
-  }
-
-  set summary (value: string | undefined) {
-    this[SetProperty]('summary', value)
-  }
-
-  get description (): string | undefined {
-    return this[GetProperty]('description')
-  }
-
-  set description (value: string | undefined) {
-    this[SetProperty]('description', value)
-  }
-
-  get value (): any | undefined {
-    return this[GetProperty]('value')
-  }
-
-  set value (value: any | undefined) {
-    this[SetProperty]('value', value)
-  }
-
-  get externalValue (): string | undefined {
-    return this[GetProperty]('externalValue')
-  }
-
-  set externalValue (value: string | undefined) {
-    this[SetProperty]('externalValue', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

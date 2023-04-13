@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -32,9 +32,15 @@ interface IValidatorsMap {
 
 export class Server extends EnforcerComponent<I.IServer3Definition> implements I.IServer3 {
   [S.Extensions]: Record<string, any> = {}
+  public url!: string
+  public description?: string
+  public variables?: Record<string, I.IServerVariable3>
 
   constructor (definition: I.IServer3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
+    // <!# Custom Content Begin: CONSTRUCTOR #!>
+    // Put your code here.
+    // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
   static id: string = 'SERVER3'
@@ -75,7 +81,7 @@ export class Server extends EnforcerComponent<I.IServer3Definition> implements I
 
   static create (definition?: Partial<I.IServer3Definition> | Server | undefined): Server {
     if (definition instanceof Server) {
-      return new Server(Object.assign({}, definition))
+      return new Server(Object.assign({}, definition as unknown) as I.IServer3Definition)
     } else {
       return new Server(Object.assign({
         url: ''
@@ -106,30 +112,6 @@ export class Server extends EnforcerComponent<I.IServer3Definition> implements I
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get url (): string {
-    return this[GetProperty]('url')
-  }
-
-  set url (value: string) {
-    this[SetProperty]('url', value)
-  }
-
-  get description (): string | undefined {
-    return this[GetProperty]('description')
-  }
-
-  set description (value: string | undefined) {
-    this[SetProperty]('description', value)
-  }
-
-  get variables (): Record<string, I.IServerVariable3> | undefined {
-    return this[GetProperty]('variables')
-  }
-
-  set variables (value: Record<string, I.IServerVariable3> | undefined) {
-    this[SetProperty]('variables', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

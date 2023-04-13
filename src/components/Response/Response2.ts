@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -33,9 +33,16 @@ interface IValidatorsMap {
 
 export class Response extends EnforcerComponent<I.IResponse2Definition> implements I.IResponse2 {
   [S.Extensions]: Record<string, any> = {}
+  public description!: string
+  public schema?: I.ISchema2
+  public headers?: Record<string, I.IHeader2>
+  public examples?: I.IExample2
 
   constructor (definition: I.IResponse2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
+    // <!# Custom Content Begin: CONSTRUCTOR #!>
+    // Put your code here.
+    // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
   static id: string = 'RESPONSE2'
@@ -75,7 +82,7 @@ export class Response extends EnforcerComponent<I.IResponse2Definition> implemen
 
   static create (definition?: Partial<I.IResponse2Definition> | Response | undefined): Response {
     if (definition instanceof Response) {
-      return new Response(Object.assign({}, definition))
+      return new Response(Object.assign({}, definition as unknown) as I.IResponse2Definition)
     } else {
       return new Response(Object.assign({
         description: ''
@@ -106,38 +113,6 @@ export class Response extends EnforcerComponent<I.IResponse2Definition> implemen
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get description (): string {
-    return this[GetProperty]('description')
-  }
-
-  set description (value: string) {
-    this[SetProperty]('description', value)
-  }
-
-  get schema (): I.ISchema2 | undefined {
-    return this[GetProperty]('schema')
-  }
-
-  set schema (value: I.ISchema2 | undefined) {
-    this[SetProperty]('schema', value)
-  }
-
-  get headers (): Record<string, I.IHeader2> | undefined {
-    return this[GetProperty]('headers')
-  }
-
-  set headers (value: Record<string, I.IHeader2> | undefined) {
-    this[SetProperty]('headers', value)
-  }
-
-  get examples (): I.IExample2 | undefined {
-    return this[GetProperty]('examples')
-  }
-
-  set examples (value: I.IExample2 | undefined) {
-    this[SetProperty]('examples', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

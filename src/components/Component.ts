@@ -1,5 +1,4 @@
 import { IComponentSpec, IVersion } from './IComponent'
-import { HookGetProperty, HookSetProperty } from './Symbols'
 import { SchemaProcessor } from '../ComponentSchemaDefinition/SchemaProcessor'
 import * as S from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ExceptionStore } from '../Exception/ExceptionStore'
@@ -24,6 +23,7 @@ type ISchemaDefinitionMap<Definition extends IDefinition, Built extends typeof E
 const componentMap = new WeakMap<any, IComponentMapData>()
 const definitionSchemaMap: ISchemaDefinitionMap<any, any> = new WeakMap()
 
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class EnforcerComponent<Definition extends IDefinition> {
   constructor (definition: Definition, version?: IVersion, processor?: SchemaProcessor) {
     if (processor === undefined) {
@@ -37,43 +37,6 @@ export class EnforcerComponent<Definition extends IDefinition> {
       setHooks: {}
     })
     // buildComponentFromDefinition<Definition, Built>(processorData)
-  }
-
-  public [HookGetProperty]<T> (key: string, callback: (value: T) => T): void {
-    const data = componentMap.get(this) as IComponentMapData
-    const hooks = data.getHooks
-    if (hooks[key] === undefined) hooks[key] = []
-    hooks[key].push(callback)
-  }
-
-  public [HookSetProperty]<T> (key: string, callback: (currValue: T, originalValue: T) => T): void {
-    const data = componentMap.get(this) as IComponentMapData
-    const hooks = data.setHooks
-    if (hooks[key] === undefined) hooks[key] = []
-    hooks[key].push(callback)
-  }
-
-  protected [GetProperty]<T> (key: string): T {
-    const data = componentMap.get(this) as IComponentMapData
-    const hooks = data.getHooks[key]
-    const originalValue = data.propertyValues[key] ?? data.defaultValues as T
-    let value = originalValue
-    hooks?.forEach(hook => {
-      value = hook(value, originalValue)
-    })
-    return value
-  }
-
-  protected [SetProperty] (key: string, value: any): void {
-    const data = componentMap.get(this) as IComponentMapData
-    const hooks = data.setHooks[key]
-    const record = data.propertyValues
-    const originalValue = value
-    let currValue = value
-    hooks?.forEach(hook => {
-      currValue = hook(currValue, originalValue)
-    })
-    record[key] = currValue
   }
 
   static id: string = 'BASE_COMPONENT'

@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -34,9 +34,17 @@ interface IValidatorsMap {
 
 export class Xml extends EnforcerComponent<I.IXml2Definition> implements I.IXml2 {
   [S.Extensions]: Record<string, any> = {}
+  public name?: string
+  public namespace?: string
+  public prefix?: string
+  public attribute?: boolean
+  public wrapped?: boolean
 
   constructor (definition: I.IXml2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
+    // <!# Custom Content Begin: CONSTRUCTOR #!>
+    // Put your code here.
+    // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
   static id: string = 'XML2'
@@ -100,46 +108,6 @@ export class Xml extends EnforcerComponent<I.IXml2Definition> implements I.IXml2
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get name (): string | undefined {
-    return this[GetProperty]('name')
-  }
-
-  set name (value: string | undefined) {
-    this[SetProperty]('name', value)
-  }
-
-  get namespace (): string | undefined {
-    return this[GetProperty]('namespace')
-  }
-
-  set namespace (value: string | undefined) {
-    this[SetProperty]('namespace', value)
-  }
-
-  get prefix (): string | undefined {
-    return this[GetProperty]('prefix')
-  }
-
-  set prefix (value: string | undefined) {
-    this[SetProperty]('prefix', value)
-  }
-
-  get attribute (): boolean | undefined {
-    return this[GetProperty]('attribute')
-  }
-
-  set attribute (value: boolean | undefined) {
-    this[SetProperty]('attribute', value)
-  }
-
-  get wrapped (): boolean | undefined {
-    return this[GetProperty]('wrapped')
-  }
-
-  set wrapped (value: boolean | undefined) {
-    this[SetProperty]('wrapped', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
