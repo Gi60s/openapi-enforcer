@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -37,14 +37,6 @@ interface IValidatorsMap {
 
 export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definition> implements I.ISecurityScheme3 {
   [S.Extensions]: Record<string, any> = {}
-  public type?: 'apiKey'|'http'|'oauth2'|'openIdConnect'
-  public description?: string
-  public name?: string
-  public in?: 'query'|'header'|'cookie'
-  public scheme?: string
-  public bearerFormat?: string
-  public flows?: I.IOAuthFlows3
-  public openIdConnectUrl?: string
 
   constructor (definition: I.ISecurityScheme3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -117,6 +109,70 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definiti
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get type (): 'apiKey'|'http'|'oauth2'|'openIdConnect' | undefined {
+    return this[GetProperty]('type')
+  }
+
+  set type (value: 'apiKey'|'http'|'oauth2'|'openIdConnect' | undefined) {
+    this[SetProperty]('type', value)
+  }
+
+  get description (): string | undefined {
+    return this[GetProperty]('description')
+  }
+
+  set description (value: string | undefined) {
+    this[SetProperty]('description', value)
+  }
+
+  get name (): string | undefined {
+    return this[GetProperty]('name')
+  }
+
+  set name (value: string | undefined) {
+    this[SetProperty]('name', value)
+  }
+
+  get in (): 'query'|'header'|'cookie' | undefined {
+    return this[GetProperty]('in')
+  }
+
+  set in (value: 'query'|'header'|'cookie' | undefined) {
+    this[SetProperty]('in', value)
+  }
+
+  get scheme (): string | undefined {
+    return this[GetProperty]('scheme')
+  }
+
+  set scheme (value: string | undefined) {
+    this[SetProperty]('scheme', value)
+  }
+
+  get bearerFormat (): string | undefined {
+    return this[GetProperty]('bearerFormat')
+  }
+
+  set bearerFormat (value: string | undefined) {
+    this[SetProperty]('bearerFormat', value)
+  }
+
+  get flows (): I.IOAuthFlows3 | undefined {
+    return this[GetProperty]('flows')
+  }
+
+  set flows (value: I.IOAuthFlows3 | undefined) {
+    this[SetProperty]('flows', value)
+  }
+
+  get openIdConnectUrl (): string | undefined {
+    return this[GetProperty]('openIdConnectUrl')
+  }
+
+  set openIdConnectUrl (value: string | undefined) {
+    this[SetProperty]('openIdConnectUrl', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

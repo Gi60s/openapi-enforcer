@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -33,10 +33,6 @@ interface IValidatorsMap {
 
 export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implements I.IMediaType3 {
   [S.Extensions]: Record<string, any> = {}
-  public schema?: I.ISchema3
-  public example?: any
-  public examples?: Record<string, I.IExample3>
-  public encoding?: Record<string, I.IEncoding3>
 
   constructor (definition: I.IMediaType3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -105,6 +101,38 @@ export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implem
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get schema (): I.ISchema3 | undefined {
+    return this[GetProperty]('schema')
+  }
+
+  set schema (value: I.ISchema3 | undefined) {
+    this[SetProperty]('schema', value)
+  }
+
+  get example (): any | undefined {
+    return this[GetProperty]('example')
+  }
+
+  set example (value: any | undefined) {
+    this[SetProperty]('example', value)
+  }
+
+  get examples (): Record<string, I.IExample3> | undefined {
+    return this[GetProperty]('examples')
+  }
+
+  set examples (value: Record<string, I.IExample3> | undefined) {
+    this[SetProperty]('examples', value)
+  }
+
+  get encoding (): Record<string, I.IEncoding3> | undefined {
+    return this[GetProperty]('encoding')
+  }
+
+  set encoding (value: Record<string, I.IEncoding3> | undefined) {
+    this[SetProperty]('encoding', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

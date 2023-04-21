@@ -1,4 +1,5 @@
 import { IComponentSpec, IVersion } from './IComponent'
+import { HookGetProperty, HookSetProperty } from './Symbols'
 import { SchemaProcessor } from '../ComponentSchemaDefinition/SchemaProcessor'
 import * as S from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ExceptionStore } from '../Exception/ExceptionStore'
@@ -37,6 +38,72 @@ export class EnforcerComponent<Definition extends IDefinition> {
       setHooks: {}
     })
     // buildComponentFromDefinition<Definition, Built>(processorData)
+  }
+
+  x (num: number): boolean {
+    return num % 2 === 0
+  }
+
+  /**
+   * If you want to modify a property's retrieved value, call this function to define how the property value
+   * should be modified.
+   * @param key
+   * @param callback
+   */
+  public [HookGetProperty]<T> (key: string, callback: (value: T) => T): void {
+    const data = componentMap.get(this) as IComponentMapData
+    const hooks = data.getHooks
+    if (hooks[key] === undefined) hooks[key] = []
+    hooks[key].push(callback)
+  }
+
+  /**
+   * If you want to modify a property's set value, call this function to define how the property value should
+   * be modified prior to setting.
+   * @param key
+   * @param callback
+   */
+  public [HookSetProperty]<T> (key: string, callback: (currValue: T, originalValue: T) => T): void {
+    const data = componentMap.get(this) as IComponentMapData
+    const hooks = data.setHooks
+    if (hooks[key] === undefined) hooks[key] = []
+    hooks[key].push(callback)
+  }
+
+  /**
+   * Calling this function gets the value for this property, runs it through any defined get hooks, and returns
+   * the final value.
+   * @param {string} key
+   * @protected
+   */
+  protected [GetProperty]<T> (key: string): T {
+    const data = componentMap.get(this) as IComponentMapData
+    const hooks = data.getHooks[key]
+    const originalValue = data.propertyValues[key] ?? data.defaultValues as T
+    let value = originalValue
+    hooks?.forEach(hook => {
+      value = hook(value, originalValue)
+    })
+    return value
+  }
+
+  /**
+   * Calling this function takes the value to be set for this property, runs it through any defined set hooks,
+   * and then sets the property to this value.
+   * @param key
+   * @param value
+   * @protected
+   */
+  protected [SetProperty] (key: string, value: any): void {
+    const data = componentMap.get(this) as IComponentMapData
+    const hooks = data.setHooks[key]
+    const record = data.propertyValues
+    const originalValue = value
+    let currValue = value
+    hooks?.forEach(hook => {
+      currValue = hook(currValue, originalValue)
+    })
+    record[key] = currValue
   }
 
   static id: string = 'BASE_COMPONENT'

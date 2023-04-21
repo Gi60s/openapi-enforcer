@@ -72,19 +72,11 @@ export const language: II18nMessagesMap = {
   SCHEMA_TYPE_INVALID_FILE: 'The schema type "file" cannot be used in a schema that is a dependency to another schema.',
   SUMMERY_EXCEEDS_RECOMMENDED_LENGTH: 'The summary should be less than 120 characters in length.',
   URL_INVALID: 'URL appears to be invalid: {{url}}.',
-  VALUE_OUT_OF_RANGE: metadata => {
-    if (metadata.description === undefined) metadata.description = 'value'
-    if ('maximum' in metadata && 'minimum' in metadata) {
-      return `The {description} {{value}} must be ${metadata.exclusive === true ? '' : 'equal to or '} between {{minimum}} and {{maximum}}`
-    } else if ('maximum' in metadata) {
-      return `The {description} {{value}} must be less than ${metadata.exclusive === true ? '' : 'or equal to '} {{maximum}}`
-    } else if ('minimum' in metadata) {
-      return `The {description} {{value}} must be greater than ${metadata.exclusive === true ? '' : 'or equal to '} {{minimum}}`
-    } else {
-      return 'The value {{value}} is outside the expected range'
-    }
-  },
-  VALUE_TYPE_INVALID: 'The value {{value}} did not match the expected data type: {{expectedType}}.',
+  VALUE_OUT_OF_RANGE_MAX: 'The {description} {{value}} must be less than {OR_EQUAL} {{maximum}}.',
+  VALUE_OUT_OF_RANGE_MAX_EXCLUSIVE: 'The {description} {{value}} must be less than or equal to {{maximum}}.',
+  VALUE_OUT_OF_RANGE_MIN: 'The {description} {{value}} must be greater than {OR_EQUAL} {{minimum}}.',
+  VALUE_OUT_OF_RANGE_MIN_EXCLUSIVE: 'The {description} {{value}} must be greater than or equal to {{minimum}}.',
+  VALUE_TYPE_INVALID: 'The value {{value}} of type {{type}} is not valid. Allowed types: {{expectedTypes}}.',
   VERSION_MISMATCH: 'The OpenAPI Enforcer and the OpenAPI specification both support a {{componentName}} object, although ' +
     'you\'re using the wrong version of the class in the OpenAPI enforcer for this object.',
   VERSION_NOT_IMPLEMENTED: 'The OpenAPI Enforcer does not currently support OpenAPI specification version {{version}}.',

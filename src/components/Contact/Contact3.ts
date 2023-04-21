@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -32,9 +32,6 @@ interface IValidatorsMap {
 
 export class Contact extends EnforcerComponent<I.IContact3Definition> implements I.IContact3 {
   [S.Extensions]: Record<string, any> = {}
-  public name?: string
-  public url?: string
-  public email?: string
 
   constructor (definition: I.IContact3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -104,6 +101,30 @@ export class Contact extends EnforcerComponent<I.IContact3Definition> implements
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get name (): string | undefined {
+    return this[GetProperty]('name')
+  }
+
+  set name (value: string | undefined) {
+    this[SetProperty]('name', value)
+  }
+
+  get url (): string | undefined {
+    return this[GetProperty]('url')
+  }
+
+  set url (value: string | undefined) {
+    this[SetProperty]('url', value)
+  }
+
+  get email (): string | undefined {
+    return this[GetProperty]('email')
+  }
+
+  set email (value: string | undefined) {
+    this[SetProperty]('email', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

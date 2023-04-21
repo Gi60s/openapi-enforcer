@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -28,8 +28,6 @@ interface IValidatorsMap {
 }
 
 export class Reference extends EnforcerComponent<I.IReference3Definition> implements I.IReference3 {
-  public $ref!: string
-
   constructor (definition: I.IReference3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
@@ -102,6 +100,14 @@ export class Reference extends EnforcerComponent<I.IReference3Definition> implem
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get $ref (): string {
+    return this[GetProperty]('$ref')
+  }
+
+  set $ref (value: string) {
+    this[SetProperty]('$ref', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

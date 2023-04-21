@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -33,10 +33,6 @@ interface IValidatorsMap {
 
 export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> implements I.IOAuthFlows3 {
   [S.Extensions]: Record<string, any> = {}
-  public implicit?: I.IOAuthFlow3
-  public password?: I.IOAuthFlow3
-  public clientCredentials?: I.IOAuthFlow3
-  public authorizationCode?: I.IOAuthFlow3
 
   constructor (definition: I.IOAuthFlows3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -105,6 +101,38 @@ export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> impl
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get implicit (): I.IOAuthFlow3 | undefined {
+    return this[GetProperty]('implicit')
+  }
+
+  set implicit (value: I.IOAuthFlow3 | undefined) {
+    this[SetProperty]('implicit', value)
+  }
+
+  get password (): I.IOAuthFlow3 | undefined {
+    return this[GetProperty]('password')
+  }
+
+  set password (value: I.IOAuthFlow3 | undefined) {
+    this[SetProperty]('password', value)
+  }
+
+  get clientCredentials (): I.IOAuthFlow3 | undefined {
+    return this[GetProperty]('clientCredentials')
+  }
+
+  set clientCredentials (value: I.IOAuthFlow3 | undefined) {
+    this[SetProperty]('clientCredentials', value)
+  }
+
+  get authorizationCode (): I.IOAuthFlow3 | undefined {
+    return this[GetProperty]('authorizationCode')
+  }
+
+  set authorizationCode (value: I.IOAuthFlow3 | undefined) {
+    this[SetProperty]('authorizationCode', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

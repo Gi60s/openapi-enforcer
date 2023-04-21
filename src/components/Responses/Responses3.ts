@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -37,10 +37,21 @@ const additionalProperties: ISchema.IComponent<I.IResponse3Definition, I.IRespon
 export class Responses extends EnforcerComponent<I.IResponses3Definition> implements I.IResponses3 {
   [S.Extensions]: Record<string, any> = {};
   [key: number]: I.IResponse3
-  public default?: I.IResponse3
 
   constructor (definition: I.IResponses3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
+    Object.keys(definition).forEach(key => {
+      Object.defineProperty(this, key, {
+        configurable: true,
+        enumerable: true,
+        get () {
+          return this[GetProperty](key)
+        },
+        set (value) {
+          this[SetProperty](key, value)
+        }
+      })
+    })
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
     // <!# Custom Content End: CONSTRUCTOR #!>
@@ -104,6 +115,14 @@ export class Responses extends EnforcerComponent<I.IResponses3Definition> implem
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get default (): I.IResponse3 | undefined {
+    return this[GetProperty]('default')
+  }
+
+  set default (value: I.IResponse3 | undefined) {
+    this[SetProperty]('default', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

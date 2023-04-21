@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -31,8 +31,6 @@ interface IValidatorsMap {
 
 export class License extends EnforcerComponent<I.ILicense3Definition> implements I.ILicense3 {
   [S.Extensions]: Record<string, any> = {}
-  public name!: string
-  public url?: string
 
   constructor (definition: I.ILicense3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -107,6 +105,22 @@ export class License extends EnforcerComponent<I.ILicense3Definition> implements
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get name (): string {
+    return this[GetProperty]('name')
+  }
+
+  set name (value: string) {
+    this[SetProperty]('name', value)
+  }
+
+  get url (): string | undefined {
+    return this[GetProperty]('url')
+  }
+
+  set url (value: string | undefined) {
+    this[SetProperty]('url', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

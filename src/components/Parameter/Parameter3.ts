@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -42,19 +42,6 @@ interface IValidatorsMap {
 
 export class Parameter extends EnforcerComponent<I.IParameter3Definition> implements I.IParameter3 {
   [S.Extensions]: Record<string, any> = {}
-  public name!: string
-  public in!: 'cookie'|'header'|'path'|'query'
-  public description?: string
-  public required?: boolean
-  public deprecated?: boolean
-  public allowEmptyValue?: boolean
-  public style?: 'deepObject'|'form'|'label'|'matrix'|'pipeDelimited'|'simple'|'spaceDelimited'
-  public explode?: boolean
-  public allowReserved?: boolean
-  public schema?: I.ISchema3
-  public example?: any
-  public examples?: Record<string, I.IExample3>
-  public content?: Record<string, I.IMediaType3>
 
   constructor (definition: I.IParameter3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -142,6 +129,110 @@ export class Parameter extends EnforcerComponent<I.IParameter3Definition> implem
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get name (): string {
+    return this[GetProperty]('name')
+  }
+
+  set name (value: string) {
+    this[SetProperty]('name', value)
+  }
+
+  get in (): 'cookie'|'header'|'path'|'query' {
+    return this[GetProperty]('in')
+  }
+
+  set in (value: 'cookie'|'header'|'path'|'query') {
+    this[SetProperty]('in', value)
+  }
+
+  get description (): string | undefined {
+    return this[GetProperty]('description')
+  }
+
+  set description (value: string | undefined) {
+    this[SetProperty]('description', value)
+  }
+
+  get required (): boolean | undefined {
+    return this[GetProperty]('required')
+  }
+
+  set required (value: boolean | undefined) {
+    this[SetProperty]('required', value)
+  }
+
+  get deprecated (): boolean | undefined {
+    return this[GetProperty]('deprecated')
+  }
+
+  set deprecated (value: boolean | undefined) {
+    this[SetProperty]('deprecated', value)
+  }
+
+  get allowEmptyValue (): boolean | undefined {
+    return this[GetProperty]('allowEmptyValue')
+  }
+
+  set allowEmptyValue (value: boolean | undefined) {
+    this[SetProperty]('allowEmptyValue', value)
+  }
+
+  get style (): 'deepObject'|'form'|'label'|'matrix'|'pipeDelimited'|'simple'|'spaceDelimited' | undefined {
+    return this[GetProperty]('style')
+  }
+
+  set style (value: 'deepObject'|'form'|'label'|'matrix'|'pipeDelimited'|'simple'|'spaceDelimited' | undefined) {
+    this[SetProperty]('style', value)
+  }
+
+  get explode (): boolean | undefined {
+    return this[GetProperty]('explode')
+  }
+
+  set explode (value: boolean | undefined) {
+    this[SetProperty]('explode', value)
+  }
+
+  get allowReserved (): boolean | undefined {
+    return this[GetProperty]('allowReserved')
+  }
+
+  set allowReserved (value: boolean | undefined) {
+    this[SetProperty]('allowReserved', value)
+  }
+
+  get schema (): I.ISchema3 | undefined {
+    return this[GetProperty]('schema')
+  }
+
+  set schema (value: I.ISchema3 | undefined) {
+    this[SetProperty]('schema', value)
+  }
+
+  get example (): any | undefined {
+    return this[GetProperty]('example')
+  }
+
+  set example (value: any | undefined) {
+    this[SetProperty]('example', value)
+  }
+
+  get examples (): Record<string, I.IExample3> | undefined {
+    return this[GetProperty]('examples')
+  }
+
+  set examples (value: Record<string, I.IExample3> | undefined) {
+    this[SetProperty]('examples', value)
+  }
+
+  get content (): Record<string, I.IMediaType3> | undefined {
+    return this[GetProperty]('content')
+  }
+
+  set content (value: Record<string, I.IMediaType3> | undefined) {
+    this[SetProperty]('content', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

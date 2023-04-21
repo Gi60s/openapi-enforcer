@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -31,8 +31,6 @@ interface IValidatorsMap {
 
 export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocumentation2Definition> implements I.IExternalDocumentation2 {
   [S.Extensions]: Record<string, any> = {}
-  public description?: string
-  public url!: string
 
   constructor (definition: I.IExternalDocumentation2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -107,6 +105,22 @@ export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocument
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get description (): string | undefined {
+    return this[GetProperty]('description')
+  }
+
+  set description (value: string | undefined) {
+    this[SetProperty]('description', value)
+  }
+
+  get url (): string {
+    return this[GetProperty]('url')
+  }
+
+  set url (value: string) {
+    this[SetProperty]('url', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

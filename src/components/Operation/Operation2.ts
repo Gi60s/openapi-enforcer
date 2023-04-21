@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -48,18 +48,6 @@ interface IValidatorsMap {
 
 export class Operation extends EnforcerComponent<I.IOperation2Definition> implements I.IOperation2 {
   [S.Extensions]: Record<string, any> = {}
-  public tags?: string[]
-  public summary?: string
-  public description?: string
-  public externalDocs?: I.IExternalDocumentation2
-  public operationId?: string
-  public consumes?: string[]
-  public produces?: string[]
-  public parameters?: I.IParameter2[]
-  public responses!: I.IResponses2
-  public schemes?: Array<'http'|'https'|'ws'|'wss'>
-  public deprecated?: boolean
-  public security?: I.ISecurityRequirement2[]
 
   constructor (definition: I.IOperation2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -125,7 +113,7 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
     result.validate = function (data) {
       const { definition, exception } = data
       const { reference, id } = data.component
-      const parameters = getMergedParameters(data)
+      const parameters = getMergedParameters(data) as I.IParameter2Definition[]
       validate(data, parameters)
 
       const bodies: I.IParameter2Definition[] = []
@@ -222,6 +210,102 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get tags (): string[] | undefined {
+    return this[GetProperty]('tags')
+  }
+
+  set tags (value: string[] | undefined) {
+    this[SetProperty]('tags', value)
+  }
+
+  get summary (): string | undefined {
+    return this[GetProperty]('summary')
+  }
+
+  set summary (value: string | undefined) {
+    this[SetProperty]('summary', value)
+  }
+
+  get description (): string | undefined {
+    return this[GetProperty]('description')
+  }
+
+  set description (value: string | undefined) {
+    this[SetProperty]('description', value)
+  }
+
+  get externalDocs (): I.IExternalDocumentation2 | undefined {
+    return this[GetProperty]('externalDocs')
+  }
+
+  set externalDocs (value: I.IExternalDocumentation2 | undefined) {
+    this[SetProperty]('externalDocs', value)
+  }
+
+  get operationId (): string | undefined {
+    return this[GetProperty]('operationId')
+  }
+
+  set operationId (value: string | undefined) {
+    this[SetProperty]('operationId', value)
+  }
+
+  get consumes (): string[] | undefined {
+    return this[GetProperty]('consumes')
+  }
+
+  set consumes (value: string[] | undefined) {
+    this[SetProperty]('consumes', value)
+  }
+
+  get produces (): string[] | undefined {
+    return this[GetProperty]('produces')
+  }
+
+  set produces (value: string[] | undefined) {
+    this[SetProperty]('produces', value)
+  }
+
+  get parameters (): I.IParameter2[] | undefined {
+    return this[GetProperty]('parameters')
+  }
+
+  set parameters (value: I.IParameter2[] | undefined) {
+    this[SetProperty]('parameters', value)
+  }
+
+  get responses (): I.IResponses2 {
+    return this[GetProperty]('responses')
+  }
+
+  set responses (value: I.IResponses2) {
+    this[SetProperty]('responses', value)
+  }
+
+  get schemes (): Array<'http'|'https'|'ws'|'wss'> | undefined {
+    return this[GetProperty]('schemes')
+  }
+
+  set schemes (value: Array<'http'|'https'|'ws'|'wss'> | undefined) {
+    this[SetProperty]('schemes', value)
+  }
+
+  get deprecated (): boolean | undefined {
+    return this[GetProperty]('deprecated')
+  }
+
+  set deprecated (value: boolean | undefined) {
+    this[SetProperty]('deprecated', value)
+  }
+
+  get security (): I.ISecurityRequirement2[] | undefined {
+    return this[GetProperty]('security')
+  }
+
+  set security (value: I.ISecurityRequirement2[] | undefined) {
+    this[SetProperty]('security', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -35,12 +35,6 @@ interface IValidatorsMap {
 
 export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILink3 {
   [S.Extensions]: Record<string, any> = {}
-  public operationRef?: string
-  public operationId?: string
-  public parameters?: Record<string, any>
-  public requestBody?: any
-  public description?: string
-  public server?: I.IServer3
 
   constructor (definition: I.ILink3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -111,6 +105,54 @@ export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILi
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get operationRef (): string | undefined {
+    return this[GetProperty]('operationRef')
+  }
+
+  set operationRef (value: string | undefined) {
+    this[SetProperty]('operationRef', value)
+  }
+
+  get operationId (): string | undefined {
+    return this[GetProperty]('operationId')
+  }
+
+  set operationId (value: string | undefined) {
+    this[SetProperty]('operationId', value)
+  }
+
+  get parameters (): Record<string, any> | undefined {
+    return this[GetProperty]('parameters')
+  }
+
+  set parameters (value: Record<string, any> | undefined) {
+    this[SetProperty]('parameters', value)
+  }
+
+  get requestBody (): any | undefined {
+    return this[GetProperty]('requestBody')
+  }
+
+  set requestBody (value: any | undefined) {
+    this[SetProperty]('requestBody', value)
+  }
+
+  get description (): string | undefined {
+    return this[GetProperty]('description')
+  }
+
+  set description (value: string | undefined) {
+    this[SetProperty]('description', value)
+  }
+
+  get server (): I.IServer3 | undefined {
+    return this[GetProperty]('server')
+  }
+
+  set server (value: I.IServer3 | undefined) {
+    this[SetProperty]('server', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -25,14 +25,14 @@ interface IPathRegExp {
 }
 
 const rxPathVariable = /^({.+?})$/
-const pathLookupMap: WeakMap<IPathsDefinition, IPathRegExp[]> = new WeakMap<IPaths2 | IPaths3, IPathRegExp[]>()
+const pathLookupMap: WeakMap<IPathsDefinition, IPathRegExp[]> = new WeakMap<IPathsDefinition, IPathRegExp[]>()
 
 export const build = function (this: IPaths2 | IPaths3, data: SchemaProcessor): void {
   const { definition } = data
   const paths = Object.keys(definition)
 
   const rxPaths: IPathRegExp[] = []
-  pathLookupMap.set(this, rxPaths)
+  pathLookupMap.set(definition, rxPaths)
 
   paths.forEach(path => {
     const rxFind = /{([^}]+)}/g
@@ -179,7 +179,7 @@ export const validate = function (this: IPaths2 | IPaths3, data: SchemaProcessor
   }
 }
 
-export function findPathMatches (context: IPaths2 | IPaths3, searchPath: string, options: Required<IFindPathMatchesOptions>): IFindPathMatchesResult {
+export function findPathMatches (context: IPathsDefinition | IPaths2 | IPaths3, searchPath: string, options: Required<IFindPathMatchesOptions>): IFindPathMatchesResult {
   const lookups = pathLookupMap.get(context)
   const results: Array<{
     params: Record<string, string>

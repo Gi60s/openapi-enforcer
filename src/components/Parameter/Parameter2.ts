@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -52,29 +52,6 @@ interface IValidatorsMap {
 
 export class Parameter extends EnforcerComponent<I.IParameter2Definition> implements I.IParameter2 {
   [S.Extensions]: Record<string, any> = {}
-  public name!: string
-  public in!: 'body'|'formData'|'header'|'path'|'query'
-  public description?: string
-  public required?: boolean
-  public schema?: I.ISchema2
-  public type?: 'array'|'boolean'|'file'|'integer'|'number'|'string'
-  public format?: string
-  public allowEmptyValue?: boolean
-  public items?: I.IItems2
-  public collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'|'multi'
-  public default?: any
-  public maximum?: number
-  public exclusiveMaximum?: boolean
-  public minimum?: number
-  public exclusiveMinimum?: boolean
-  public maxLength?: number
-  public minLength?: number
-  public pattern?: string
-  public maxItems?: number
-  public minItems?: number
-  public uniqueItems?: boolean
-  public enum?: any[]
-  public multipleOf?: number
 
   constructor (definition: I.IParameter2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -172,6 +149,190 @@ export class Parameter extends EnforcerComponent<I.IParameter2Definition> implem
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get name (): string {
+    return this[GetProperty]('name')
+  }
+
+  set name (value: string) {
+    this[SetProperty]('name', value)
+  }
+
+  get in (): 'body'|'formData'|'header'|'path'|'query' {
+    return this[GetProperty]('in')
+  }
+
+  set in (value: 'body'|'formData'|'header'|'path'|'query') {
+    this[SetProperty]('in', value)
+  }
+
+  get description (): string | undefined {
+    return this[GetProperty]('description')
+  }
+
+  set description (value: string | undefined) {
+    this[SetProperty]('description', value)
+  }
+
+  get required (): boolean | undefined {
+    return this[GetProperty]('required')
+  }
+
+  set required (value: boolean | undefined) {
+    this[SetProperty]('required', value)
+  }
+
+  get schema (): I.ISchema2 | undefined {
+    return this[GetProperty]('schema')
+  }
+
+  set schema (value: I.ISchema2 | undefined) {
+    this[SetProperty]('schema', value)
+  }
+
+  get type (): 'array'|'boolean'|'file'|'integer'|'number'|'string' | undefined {
+    return this[GetProperty]('type')
+  }
+
+  set type (value: 'array'|'boolean'|'file'|'integer'|'number'|'string' | undefined) {
+    this[SetProperty]('type', value)
+  }
+
+  get format (): string | undefined {
+    return this[GetProperty]('format')
+  }
+
+  set format (value: string | undefined) {
+    this[SetProperty]('format', value)
+  }
+
+  get allowEmptyValue (): boolean | undefined {
+    return this[GetProperty]('allowEmptyValue')
+  }
+
+  set allowEmptyValue (value: boolean | undefined) {
+    this[SetProperty]('allowEmptyValue', value)
+  }
+
+  get items (): I.IItems2 | undefined {
+    return this[GetProperty]('items')
+  }
+
+  set items (value: I.IItems2 | undefined) {
+    this[SetProperty]('items', value)
+  }
+
+  get collectionFormat (): 'csv'|'ssv'|'tsv'|'pipes'|'multi' | undefined {
+    return this[GetProperty]('collectionFormat')
+  }
+
+  set collectionFormat (value: 'csv'|'ssv'|'tsv'|'pipes'|'multi' | undefined) {
+    this[SetProperty]('collectionFormat', value)
+  }
+
+  get default (): any | undefined {
+    return this[GetProperty]('default')
+  }
+
+  set default (value: any | undefined) {
+    this[SetProperty]('default', value)
+  }
+
+  get maximum (): number | undefined {
+    return this[GetProperty]('maximum')
+  }
+
+  set maximum (value: number | undefined) {
+    this[SetProperty]('maximum', value)
+  }
+
+  get exclusiveMaximum (): boolean | undefined {
+    return this[GetProperty]('exclusiveMaximum')
+  }
+
+  set exclusiveMaximum (value: boolean | undefined) {
+    this[SetProperty]('exclusiveMaximum', value)
+  }
+
+  get minimum (): number | undefined {
+    return this[GetProperty]('minimum')
+  }
+
+  set minimum (value: number | undefined) {
+    this[SetProperty]('minimum', value)
+  }
+
+  get exclusiveMinimum (): boolean | undefined {
+    return this[GetProperty]('exclusiveMinimum')
+  }
+
+  set exclusiveMinimum (value: boolean | undefined) {
+    this[SetProperty]('exclusiveMinimum', value)
+  }
+
+  get maxLength (): number | undefined {
+    return this[GetProperty]('maxLength')
+  }
+
+  set maxLength (value: number | undefined) {
+    this[SetProperty]('maxLength', value)
+  }
+
+  get minLength (): number | undefined {
+    return this[GetProperty]('minLength')
+  }
+
+  set minLength (value: number | undefined) {
+    this[SetProperty]('minLength', value)
+  }
+
+  get pattern (): string | undefined {
+    return this[GetProperty]('pattern')
+  }
+
+  set pattern (value: string | undefined) {
+    this[SetProperty]('pattern', value)
+  }
+
+  get maxItems (): number | undefined {
+    return this[GetProperty]('maxItems')
+  }
+
+  set maxItems (value: number | undefined) {
+    this[SetProperty]('maxItems', value)
+  }
+
+  get minItems (): number | undefined {
+    return this[GetProperty]('minItems')
+  }
+
+  set minItems (value: number | undefined) {
+    this[SetProperty]('minItems', value)
+  }
+
+  get uniqueItems (): boolean | undefined {
+    return this[GetProperty]('uniqueItems')
+  }
+
+  set uniqueItems (value: boolean | undefined) {
+    this[SetProperty]('uniqueItems', value)
+  }
+
+  get enum (): any[] | undefined {
+    return this[GetProperty]('enum')
+  }
+
+  set enum (value: any[] | undefined) {
+    this[SetProperty]('enum', value)
+  }
+
+  get multipleOf (): number | undefined {
+    return this[GetProperty]('multipleOf')
+  }
+
+  set multipleOf (value: number | undefined) {
+    this[SetProperty]('multipleOf', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

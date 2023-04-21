@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -33,10 +33,6 @@ interface IValidatorsMap {
 
 export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implements I.IOAuthFlow3 {
   [S.Extensions]: Record<string, any> = {}
-  public authorizationUrl?: string
-  public tokenUrl?: string
-  public refreshUrl?: string
-  public scopes?: Record<string, string>
 
   constructor (definition: I.IOAuthFlow3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -105,6 +101,38 @@ export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implem
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get authorizationUrl (): string | undefined {
+    return this[GetProperty]('authorizationUrl')
+  }
+
+  set authorizationUrl (value: string | undefined) {
+    this[SetProperty]('authorizationUrl', value)
+  }
+
+  get tokenUrl (): string | undefined {
+    return this[GetProperty]('tokenUrl')
+  }
+
+  set tokenUrl (value: string | undefined) {
+    this[SetProperty]('tokenUrl', value)
+  }
+
+  get refreshUrl (): string | undefined {
+    return this[GetProperty]('refreshUrl')
+  }
+
+  set refreshUrl (value: string | undefined) {
+    this[SetProperty]('refreshUrl', value)
+  }
+
+  get scopes (): Record<string, string> | undefined {
+    return this[GetProperty]('scopes')
+  }
+
+  set scopes (value: Record<string, string> | undefined) {
+    this[SetProperty]('scopes', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

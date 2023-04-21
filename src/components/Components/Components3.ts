@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -38,15 +38,6 @@ interface IValidatorsMap {
 
 export class Components extends EnforcerComponent<I.IComponents3Definition> implements I.IComponents3 {
   [S.Extensions]: Record<string, any> = {}
-  public schemas?: Record<string, I.ISchema3>
-  public responses?: Record<string, I.IResponse3>
-  public parameters?: Record<string, I.IParameter3>
-  public examples?: Record<string, I.IExample3>
-  public requestBodies?: Record<string, I.IRequestBody3>
-  public headers?: Record<string, I.IHeader3>
-  public securitySchemes?: Record<string, I.ISecurityScheme3>
-  public links?: Record<string, I.ILink3>
-  public callbacks?: Record<string, I.ICallback3>
 
   constructor (definition: I.IComponents3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -145,6 +136,78 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get schemas (): Record<string, I.ISchema3> | undefined {
+    return this[GetProperty]('schemas')
+  }
+
+  set schemas (value: Record<string, I.ISchema3> | undefined) {
+    this[SetProperty]('schemas', value)
+  }
+
+  get responses (): Record<string, I.IResponse3> | undefined {
+    return this[GetProperty]('responses')
+  }
+
+  set responses (value: Record<string, I.IResponse3> | undefined) {
+    this[SetProperty]('responses', value)
+  }
+
+  get parameters (): Record<string, I.IParameter3> | undefined {
+    return this[GetProperty]('parameters')
+  }
+
+  set parameters (value: Record<string, I.IParameter3> | undefined) {
+    this[SetProperty]('parameters', value)
+  }
+
+  get examples (): Record<string, I.IExample3> | undefined {
+    return this[GetProperty]('examples')
+  }
+
+  set examples (value: Record<string, I.IExample3> | undefined) {
+    this[SetProperty]('examples', value)
+  }
+
+  get requestBodies (): Record<string, I.IRequestBody3> | undefined {
+    return this[GetProperty]('requestBodies')
+  }
+
+  set requestBodies (value: Record<string, I.IRequestBody3> | undefined) {
+    this[SetProperty]('requestBodies', value)
+  }
+
+  get headers (): Record<string, I.IHeader3> | undefined {
+    return this[GetProperty]('headers')
+  }
+
+  set headers (value: Record<string, I.IHeader3> | undefined) {
+    this[SetProperty]('headers', value)
+  }
+
+  get securitySchemes (): Record<string, I.ISecurityScheme3> | undefined {
+    return this[GetProperty]('securitySchemes')
+  }
+
+  set securitySchemes (value: Record<string, I.ISecurityScheme3> | undefined) {
+    this[SetProperty]('securitySchemes', value)
+  }
+
+  get links (): Record<string, I.ILink3> | undefined {
+    return this[GetProperty]('links')
+  }
+
+  set links (value: Record<string, I.ILink3> | undefined) {
+    this[SetProperty]('links', value)
+  }
+
+  get callbacks (): Record<string, I.ICallback3> | undefined {
+    return this[GetProperty]('callbacks')
+  }
+
+  set callbacks (value: Record<string, I.ICallback3> | undefined) {
+    this[SetProperty]('callbacks', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

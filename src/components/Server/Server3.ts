@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -32,9 +32,6 @@ interface IValidatorsMap {
 
 export class Server extends EnforcerComponent<I.IServer3Definition> implements I.IServer3 {
   [S.Extensions]: Record<string, any> = {}
-  public url!: string
-  public description?: string
-  public variables?: Record<string, I.IServerVariable3>
 
   constructor (definition: I.IServer3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -112,6 +109,30 @@ export class Server extends EnforcerComponent<I.IServer3Definition> implements I
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get url (): string {
+    return this[GetProperty]('url')
+  }
+
+  set url (value: string) {
+    this[SetProperty]('url', value)
+  }
+
+  get description (): string | undefined {
+    return this[GetProperty]('description')
+  }
+
+  set description (value: string | undefined) {
+    this[SetProperty]('description', value)
+  }
+
+  get variables (): Record<string, I.IServerVariable3> | undefined {
+    return this[GetProperty]('variables')
+  }
+
+  set variables (value: Record<string, I.IServerVariable3> | undefined) {
+    this[SetProperty]('variables', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

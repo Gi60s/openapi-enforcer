@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -34,11 +34,6 @@ interface IValidatorsMap {
 
 export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implements I.IEncoding3 {
   [S.Extensions]: Record<string, any> = {}
-  public contentType?: string
-  public headers?: Record<string, I.IHeader3>
-  public style?: string
-  public explode?: boolean
-  public allowReserved?: boolean
 
   constructor (definition: I.IEncoding3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -108,6 +103,46 @@ export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implemen
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get contentType (): string | undefined {
+    return this[GetProperty]('contentType')
+  }
+
+  set contentType (value: string | undefined) {
+    this[SetProperty]('contentType', value)
+  }
+
+  get headers (): Record<string, I.IHeader3> | undefined {
+    return this[GetProperty]('headers')
+  }
+
+  set headers (value: Record<string, I.IHeader3> | undefined) {
+    this[SetProperty]('headers', value)
+  }
+
+  get style (): string | undefined {
+    return this[GetProperty]('style')
+  }
+
+  set style (value: string | undefined) {
+    this[SetProperty]('style', value)
+  }
+
+  get explode (): boolean | undefined {
+    return this[GetProperty]('explode')
+  }
+
+  set explode (value: boolean | undefined) {
+    this[SetProperty]('explode', value)
+  }
+
+  get allowReserved (): boolean | undefined {
+    return this[GetProperty]('allowReserved')
+  }
+
+  set allowReserved (value: boolean | undefined) {
+    this[SetProperty]('allowReserved', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

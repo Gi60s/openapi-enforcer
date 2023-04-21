@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -37,14 +37,6 @@ interface IValidatorsMap {
 
 export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definition> implements I.ISecurityScheme2 {
   [S.Extensions]: Record<string, any> = {}
-  public type!: 'basic'|'apiKey'|'oauth2'
-  public description?: string
-  public name?: string
-  public in?: 'query'|'header'
-  public flow?: 'implicit'|'password'|'application'|'accessCode'
-  public authorizationUrl?: string
-  public tokenUrl?: string
-  public scopes?: Record<string, string>
 
   constructor (definition: I.ISecurityScheme2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -125,6 +117,70 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definiti
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get type (): 'basic'|'apiKey'|'oauth2' {
+    return this[GetProperty]('type')
+  }
+
+  set type (value: 'basic'|'apiKey'|'oauth2') {
+    this[SetProperty]('type', value)
+  }
+
+  get description (): string | undefined {
+    return this[GetProperty]('description')
+  }
+
+  set description (value: string | undefined) {
+    this[SetProperty]('description', value)
+  }
+
+  get name (): string | undefined {
+    return this[GetProperty]('name')
+  }
+
+  set name (value: string | undefined) {
+    this[SetProperty]('name', value)
+  }
+
+  get in (): 'query'|'header' | undefined {
+    return this[GetProperty]('in')
+  }
+
+  set in (value: 'query'|'header' | undefined) {
+    this[SetProperty]('in', value)
+  }
+
+  get flow (): 'implicit'|'password'|'application'|'accessCode' | undefined {
+    return this[GetProperty]('flow')
+  }
+
+  set flow (value: 'implicit'|'password'|'application'|'accessCode' | undefined) {
+    this[SetProperty]('flow', value)
+  }
+
+  get authorizationUrl (): string | undefined {
+    return this[GetProperty]('authorizationUrl')
+  }
+
+  set authorizationUrl (value: string | undefined) {
+    this[SetProperty]('authorizationUrl', value)
+  }
+
+  get tokenUrl (): string | undefined {
+    return this[GetProperty]('tokenUrl')
+  }
+
+  set tokenUrl (value: string | undefined) {
+    this[SetProperty]('tokenUrl', value)
+  }
+
+  get scopes (): Record<string, string> | undefined {
+    return this[GetProperty]('scopes')
+  }
+
+  set scopes (value: Record<string, string> | undefined) {
+    this[SetProperty]('scopes', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

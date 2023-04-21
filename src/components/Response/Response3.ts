@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -33,10 +33,6 @@ interface IValidatorsMap {
 
 export class Response extends EnforcerComponent<I.IResponse3Definition> implements I.IResponse3 {
   [S.Extensions]: Record<string, any> = {}
-  public description!: string
-  public headers?: Record<string, I.IHeader3>
-  public content?: Record<string, I.IMediaType3>
-  public links?: Record<string, I.ILink3>
 
   constructor (definition: I.IResponse3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -113,6 +109,38 @@ export class Response extends EnforcerComponent<I.IResponse3Definition> implemen
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get description (): string {
+    return this[GetProperty]('description')
+  }
+
+  set description (value: string) {
+    this[SetProperty]('description', value)
+  }
+
+  get headers (): Record<string, I.IHeader3> | undefined {
+    return this[GetProperty]('headers')
+  }
+
+  set headers (value: Record<string, I.IHeader3> | undefined) {
+    this[SetProperty]('headers', value)
+  }
+
+  get content (): Record<string, I.IMediaType3> | undefined {
+    return this[GetProperty]('content')
+  }
+
+  set content (value: Record<string, I.IMediaType3> | undefined) {
+    this[SetProperty]('content', value)
+  }
+
+  get links (): Record<string, I.ILink3> | undefined {
+    return this[GetProperty]('links')
+  }
+
+  set links (value: Record<string, I.ILink3> | undefined) {
+    this[SetProperty]('links', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

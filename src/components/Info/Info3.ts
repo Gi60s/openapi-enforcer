@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
+import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -35,12 +35,6 @@ interface IValidatorsMap {
 
 export class Info extends EnforcerComponent<I.IInfo3Definition> implements I.IInfo3 {
   [S.Extensions]: Record<string, any> = {}
-  public title!: string
-  public description?: string
-  public termsOfService?: string
-  public contact?: I.IContact3
-  public license?: I.ILicense3
-  public version!: string
 
   constructor (definition: I.IInfo3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -121,6 +115,54 @@ export class Info extends EnforcerComponent<I.IInfo3Definition> implements I.IIn
     const result = await Loader.loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
+  }
+
+  get title (): string {
+    return this[GetProperty]('title')
+  }
+
+  set title (value: string) {
+    this[SetProperty]('title', value)
+  }
+
+  get description (): string | undefined {
+    return this[GetProperty]('description')
+  }
+
+  set description (value: string | undefined) {
+    this[SetProperty]('description', value)
+  }
+
+  get termsOfService (): string | undefined {
+    return this[GetProperty]('termsOfService')
+  }
+
+  set termsOfService (value: string | undefined) {
+    this[SetProperty]('termsOfService', value)
+  }
+
+  get contact (): I.IContact3 | undefined {
+    return this[GetProperty]('contact')
+  }
+
+  set contact (value: I.IContact3 | undefined) {
+    this[SetProperty]('contact', value)
+  }
+
+  get license (): I.ILicense3 | undefined {
+    return this[GetProperty]('license')
+  }
+
+  set license (value: I.ILicense3 | undefined) {
+    this[SetProperty]('license', value)
+  }
+
+  get version (): string {
+    return this[GetProperty]('version')
+  }
+
+  set version (value: string) {
+    this[SetProperty]('version', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
