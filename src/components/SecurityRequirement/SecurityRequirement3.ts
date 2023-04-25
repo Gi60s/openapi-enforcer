@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -31,7 +31,7 @@ const additionalProperties: ISchema.IArray<ISchema.IString> = {
 }
 
 export class SecurityRequirement extends EnforcerComponent<I.ISecurityRequirement3Definition> implements I.ISecurityRequirement3 {
-  [key: `_${string}`]: string[]
+  items!: Record<string, string[]>
 
   constructor (definition: I.ISecurityRequirement3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -40,10 +40,10 @@ export class SecurityRequirement extends EnforcerComponent<I.ISecurityRequiremen
         configurable: true,
         enumerable: true,
         get () {
-          return this[GetProperty](key)
+          return this.getProperty(key)
         },
         set (value) {
-          this[SetProperty](key, value)
+          this.setProperty(key, value)
         }
       })
     })

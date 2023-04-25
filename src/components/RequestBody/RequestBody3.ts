@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -102,27 +102,27 @@ export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> im
   }
 
   get description (): string | undefined {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string | undefined) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   get content (): Record<string, I.IMediaType3> | undefined {
-    return this[GetProperty]('content')
+    return this.getProperty('content')
   }
 
   set content (value: Record<string, I.IMediaType3> | undefined) {
-    this[SetProperty]('content', value)
+    this.setProperty('content', value)
   }
 
   get required (): boolean | undefined {
-    return this[GetProperty]('required')
+    return this.getProperty('required')
   }
 
   set required (value: boolean | undefined) {
-    this[SetProperty]('required', value)
+    this.setProperty('required', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

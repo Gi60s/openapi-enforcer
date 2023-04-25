@@ -1,11 +1,11 @@
-import { ILineEnding, ILoader, ILoaderFunction, ILoaderMetadata, ILoaderOptions } from './ILoader'
+import { ILineEnding, ILoader, ILoaderFunction, ILoaderMetadata, ILoaderOptions, ILoaderReplacements } from './ILoader'
 import { Result } from '../Result'
 import {
   appendToPath,
-  applyPositionInformation,
+  applyPositionInformation, getLocation,
   map,
   normalizeLoaderMetadata,
-  normalizeLoaderOptions, rootNodeFileCache,
+  normalizeLoaderOptions, overwriteReplacementsWithCopies, rootNodeFileCache,
   traverse
 } from './loader-common'
 import jsonParser, { ValueNode } from 'json-to-ast'
@@ -67,13 +67,21 @@ export async function loadAsyncWithData (definition: string | object, options: I
     rootNodeFileCache.set(node, data.fileCache)
 
     const parent = { _: node }
-    if (options.dereference) await resolveAndLoadRefsAsync('#', options, data, parent, '_', new Map())
+    if (options.dereference) {
+      const replacements: ILoaderReplacements = []
+      await resolveAndLoadRefsAsync('#', options, data, parent, '_', new Map(), [parent], replacements)
+      overwriteReplacementsWithCopies(replacements)
+    }
     return new Result(parent._, data.exceptionStore)
   } else {
     data.root = { source: '', node: definition }
     applyPositionInformation('#', definition, options, data)
     const parent = { _: definition }
-    if (options.dereference) await resolveAndLoadRefsAsync('#', options, data, parent, '_', new Map())
+    if (options.dereference) {
+      const replacements: ILoaderReplacements = []
+      await resolveAndLoadRefsAsync('#', options, data, parent, '_', new Map(), [parent], replacements)
+      overwriteReplacementsWithCopies(replacements)
+    }
     return new Result(parent._, data.exceptionStore)
   }
 }
@@ -114,6 +122,27 @@ function getLocationFromPosition (pos: number, lineEndings: ILineEnding[]): IPos
   }
 
   return result
+}
+
+function handleFoundReference (data: ILoaderMetadata, node: any, found: any, parent: object, key: string, chain: object[], replacements: ILoaderReplacements): void {
+  if (found !== undefined) {
+    (parent as Record<string, any>)[key] = found
+    if (!chain.includes(found)) {
+      replacements.push({
+        parent,
+        key,
+        value: found
+      })
+    }
+  } else {
+    data.exceptionStore.add({
+      id: 'LOADER',
+      code: 'REF_NOT_RESOLVED',
+      level: 'error',
+      locations: [getLocation(node, '$ref', 'value')],
+      metadata: { reference: node.$ref }
+    })
+  }
 }
 
 function processJsonAst (ast: ValueNode, path: string, meta: ILoaderMetadata, isRoot: boolean): any {
@@ -185,7 +214,7 @@ function processJsonAst (ast: ValueNode, path: string, meta: ILoaderMetadata, is
 }
 
 async function resolveAndLoadRefsAsync (path: string, options: ILoaderOptions, data: ILoaderMetadata, parent: object,
-  key: string, map: Map<object, boolean>): Promise<void> {
+  key: string, map: Map<object, boolean>, chain: object[], replacements: ILoaderReplacements): Promise<void> {
 
   const promises: Array<Promise<void>> = []
   const node = (parent as Record<string, any>)[key]
@@ -199,14 +228,14 @@ async function resolveAndLoadRefsAsync (path: string, options: ILoaderOptions, d
     const length = node.length
     for (let index = 0; index < length; index++) {
       const i = String(index)
-      promises.push(resolveAndLoadRefsAsync(appendToPath(path, i), options, data, node, i, map))
+      promises.push(resolveAndLoadRefsAsync(appendToPath(path, i), options, data, node, i, map, chain.concat([node]), replacements))
     }
   } else if (isObject) {
     const n = node as Record<string, any>
     if (n.$ref === undefined) {
       Object.keys(node)
         .forEach(key => {
-          promises.push(resolveAndLoadRefsAsync(appendToPath(path, key), options, data, n, key, map))
+          promises.push(resolveAndLoadRefsAsync(appendToPath(path, key), options, data, n, key, map, chain.concat([node]), replacements))
         })
     } else if (typeof n.$ref === 'string' && options.dereference) {
       const ref = n.$ref
@@ -214,9 +243,7 @@ async function resolveAndLoadRefsAsync (path: string, options: ILoaderOptions, d
       // local reference
       if (ref.startsWith('#/')) {
         const found = traverse(data.root.node, ref)
-        if (found !== undefined) {
-          (parent as Record<string, any>)[key] = found
-        }
+        handleFoundReference(data, node, found, parent, key, chain, replacements)
 
       // reference to other location
       } else {
@@ -231,14 +258,17 @@ async function resolveAndLoadRefsAsync (path: string, options: ILoaderOptions, d
         } else if (result.value !== undefined) {
           const newNode = result.value
           if (subRef === undefined) {
-            Object.assign(n, newNode)
-            delete n.$ref
+            (parent as Record<string, any>)[key] = newNode
+            if (!chain.includes(newNode)) {
+              replacements.push({
+                parent,
+                key,
+                value: newNode
+              })
+            }
           } else {
             const found = traverse(newNode, '#/' + subRef)
-            if (found !== undefined) {
-              Object.assign(n, found)
-              delete n.$ref
-            }
+            handleFoundReference(data, node, found, parent, key, chain, replacements)
           }
         }
       }
@@ -254,7 +284,7 @@ async function runLoadersAsync (path: string, data: ILoaderMetadata): Promise<an
     const loader = loaders[i]
     const result = await loader.loader(path, data)
     if (!result.loaded) {
-      reasons.push(loader.name + ': ' + result.reason)
+      reasons.push('Loader ' + loader.name + ': ' + result.reason)
     } else {
       // if type is not known then maybe the path can tell us
       if (result.type === undefined) {

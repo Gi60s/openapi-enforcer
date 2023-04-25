@@ -1,5 +1,4 @@
 import { IComponentSpec, IVersion } from './IComponent'
-import { HookGetProperty, HookSetProperty } from './Symbols'
 import { SchemaProcessor } from '../ComponentSchemaDefinition/SchemaProcessor'
 import * as S from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ExceptionStore } from '../Exception/ExceptionStore'
@@ -7,41 +6,47 @@ import { getLocation, load } from '../Loader'
 import { getMessage } from '../i18n/i18n'
 import { IDefinition } from './IInternalTypes'
 
-export const GetProperty = Symbol('GetProperty')
-export const SetProperty = Symbol('GetProperty')
-
-interface IComponentMapData {
-  defaultValues: Record<string, any>
-  getHooks: Record<string, Array<(currValue: any, originalValue: any) => any>>
-  propertyValues: Record<string, any>
-  processor: SchemaProcessor<any, any>
-  setHooks: Record<string, Array<(currValue: any, originalValue: any) => any>>
-}
-
 type ISchemaDefinitionMap<Definition extends IDefinition, Built extends typeof EnforcerComponent<Definition>> =
   WeakMap<Definition, WeakMap<Built, S.ISchemaDefinition<any, any>>>
 
-const componentMap = new WeakMap<any, IComponentMapData>()
 const definitionSchemaMap: ISchemaDefinitionMap<any, any> = new WeakMap()
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class EnforcerComponent<Definition extends IDefinition> {
+  readonly #defaultValues: Record<string, any>
+  readonly #definition: Definition
+  readonly #getHooks: Record<string, Array<(value: any) => any>>
+  readonly #processor: SchemaProcessor
+  readonly #propertyValues: Record<string, any>
+  readonly #setHooks: Record<string, Array<(currValue: any, originalValue: any) => any>>
+
   constructor (definition: Definition, version?: IVersion, processor?: SchemaProcessor) {
+    this.#defaultValues = {}
+    this.#getHooks = {}
+    this.#setHooks = {}
+    this.#propertyValues = {}
+    this.#definition = definition
+
     if (processor === undefined) {
       processor = new SchemaProcessor<Definition, any>('build', definition, this, this.constructor as typeof EnforcerComponent, version)
     }
-    componentMap.set(this, {
-      defaultValues: {},
-      getHooks: {},
-      propertyValues: {},
-      processor,
-      setHooks: {}
-    })
+    this.#processor = processor
+
     // buildComponentFromDefinition<Definition, Built>(processorData)
   }
 
-  x (num: number): boolean {
-    return num % 2 === 0
+  protected getParent<T = any> (componentName?: string): { component: T | undefined, keys: string[] } {
+    if (componentName === undefined) {
+      return {
+        component: undefined,
+        keys: []
+      }
+    } else {
+      return {
+        component: undefined,
+        keys: []
+      }
+    }
   }
 
   /**
@@ -50,9 +55,8 @@ export class EnforcerComponent<Definition extends IDefinition> {
    * @param key
    * @param callback
    */
-  public [HookGetProperty]<T> (key: string, callback: (value: T) => T): void {
-    const data = componentMap.get(this) as IComponentMapData
-    const hooks = data.getHooks
+  protected getPropertyHook<T> (key: string, callback: ((value: T) => T)): void {
+    const hooks = this.#getHooks
     if (hooks[key] === undefined) hooks[key] = []
     hooks[key].push(callback)
   }
@@ -63,9 +67,8 @@ export class EnforcerComponent<Definition extends IDefinition> {
    * @param key
    * @param callback
    */
-  public [HookSetProperty]<T> (key: string, callback: (currValue: T, originalValue: T) => T): void {
-    const data = componentMap.get(this) as IComponentMapData
-    const hooks = data.setHooks
+  protected setPropertyHook<T> (key: string, callback: ((newValue: T, oldValue: T) => T)): void {
+    const hooks = this.#setHooks
     if (hooks[key] === undefined) hooks[key] = []
     hooks[key].push(callback)
   }
@@ -76,13 +79,12 @@ export class EnforcerComponent<Definition extends IDefinition> {
    * @param {string} key
    * @protected
    */
-  protected [GetProperty]<T> (key: string): T {
-    const data = componentMap.get(this) as IComponentMapData
-    const hooks = data.getHooks[key]
-    const originalValue = data.propertyValues[key] ?? data.defaultValues as T
+  protected getProperty<T> (key: string): T {
+    const hooks = this.#getHooks[key]
+    const originalValue = this.#propertyValues[key] ?? this.#defaultValues as T
     let value = originalValue
     hooks?.forEach(hook => {
-      value = hook(value, originalValue)
+      value = hook(value)
     })
     return value
   }
@@ -94,10 +96,9 @@ export class EnforcerComponent<Definition extends IDefinition> {
    * @param value
    * @protected
    */
-  protected [SetProperty] (key: string, value: any): void {
-    const data = componentMap.get(this) as IComponentMapData
-    const hooks = data.setHooks[key]
-    const record = data.propertyValues
+  protected setProperty<T> (key: string, value: T): void {
+    const hooks = this.#setHooks[key]
+    const record = this.#propertyValues
     const originalValue = value
     let currValue = value
     hooks?.forEach(hook => {

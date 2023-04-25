@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -103,11 +103,11 @@ export class Reference extends EnforcerComponent<I.IReference2Definition> implem
   }
 
   get $ref (): string {
-    return this[GetProperty]('$ref')
+    return this.getProperty('$ref')
   }
 
   set $ref (value: string) {
-    this[SetProperty]('$ref', value)
+    this.setProperty('$ref', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

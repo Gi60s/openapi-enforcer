@@ -5,7 +5,7 @@ interface TestMultipleComponentsResult<T> {
   testAsync: (fn: ((component: T) => Promise<void>)) => Promise<void>
 }
 
-export function testMultipleComponents<T extends EnforcerComponent<any>> (components: T[]): TestMultipleComponentsResult<T> {
+export function testMultipleComponents<T extends typeof EnforcerComponent<any>> (components: T[]): TestMultipleComponentsResult<T> {
   return {
     test: function (test: (component: T) => void): void {
       const length = components.length

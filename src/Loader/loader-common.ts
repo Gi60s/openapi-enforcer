@@ -1,8 +1,9 @@
-import { ILoaderMetadata, ILoaderOptions } from './ILoader'
+import { ILoaderMetadata, ILoaderOptions, ILoaderReplacements } from './ILoader'
 import { ExceptionStore } from '../Exception/ExceptionStore'
 import { getMessage } from '../i18n/i18n'
 import { ILocation, ILookupLocation } from '../Locator/ILocator'
 import { Adapter } from '../Adapter/Adapter'
+import { copy } from '../util'
 export const map = new WeakMap<object, ILookupLocation>()
 export const rootNodeFileCache = new WeakMap<object, Record<string, any>>()
 
@@ -108,6 +109,12 @@ export function normalizeLoaderOptions (options?: Partial<ILoaderOptions>): ILoa
   if (typeof options !== 'object') throw Error(getMessage('OPTIONS_INVALID', { details: '' }))
   if (options.dereference === undefined) options.dereference = true
   return options as ILoaderOptions
+}
+
+export function overwriteReplacementsWithCopies (replacements: ILoaderReplacements): void {
+  replacements.forEach(({ parent, key, value }) => {
+    (parent as Record<string, any>)[key] = copy(value)
+  })
 }
 
 export function traverse (node: any, path: string): any {

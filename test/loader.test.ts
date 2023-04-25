@@ -75,6 +75,35 @@ describe('loader', () => {
           expect(node.paths['/employees'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('employee')
           expect(node.paths['/students'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('student')
         })
+
+        it('will not reference the same object for non-circular references', async () => {
+          const [node, err] = await loadAsync(path.resolve(resourcesDirectory, 'refs/references.yaml'))
+          console.log(err)
+          const a = node.paths['/'].get.responses
+          const b = node.paths['/foo'].get.responses
+
+          expect(a).to.be.an('object')
+          expect(b).to.be.an('object')
+          expect(a).not.to.equal(b)
+          expect(a).to.deep.equal(b)
+        })
+
+        it('will copy primitive values', async () => {
+          const [node] = await loadAsync(path.resolve(resourcesDirectory, 'refs/references.yaml'))
+          const a = node.components.schemas.A
+          expect(a.properties.type).to.equal(a.properties.number.type)
+        })
+
+        it('will reference the same object for circular references', async () => {
+          const [node] = await loadAsync(path.resolve(resourcesDirectory, 'refs/references.yaml'))
+          const a = node.components.schemas.A
+          const o1 = a.properties.object1
+          const o2 = a.properties.object2
+
+          expect(a).to.equal(a.properties.circular)
+          expect(o1).not.to.equal(o2)
+          expect(o1).to.deep.equal(o2)
+        })
       })
 
       describe('internet', () => {
@@ -95,6 +124,51 @@ describe('loader', () => {
           expect(node.paths['/students'].get.responses[200].content['application/json'].schema.items['x-id']).to.equal('student')
         })
       })
+    })
+  })
+
+  describe('load (not async)', () => {
+    it('can load from an in memory object', () => {
+      const [node] = load({
+        a: { type: 'string' },
+        b: { type: 'object', propertes: { x: { type: 'number' } } },
+        c: { $ref: '#/b' }
+      })
+      expect(node.c.type).to.equal('object')
+      expect(node.b).not.to.equal(node.c)
+      expect(node.b).to.deep.equal(node.c)
+    })
+
+    it('cannot load outside of itself', () => {
+      const result = load({
+        c: { $ref: 'https://foo.com' }
+      })
+      expect(result.exceptionStore?.hasErrorByCode('REF_NOT_RESOLVED')).to.equal(true)
+    })
+
+    it('will reference the same object for circular references', () => {
+      const [node] = load({
+        A: {
+          type: 'object',
+          properties: {
+            object1: {
+              type: 'object',
+              properties: {
+                x: { type: 'string' }
+              }
+            },
+            object2: { $ref: '#/A/properties/object1' },
+            circular: { $ref: '#/A' }
+          }
+        }
+      })
+      const a = node.A
+      const o1 = a.properties.object1
+      const o2 = a.properties.object2
+
+      expect(a).to.equal(a.properties.circular)
+      expect(o1).not.to.equal(o2)
+      expect(o1).to.deep.equal(o2)
     })
   })
 

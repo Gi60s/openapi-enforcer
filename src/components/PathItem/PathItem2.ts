@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -114,75 +114,75 @@ export class PathItem extends EnforcerComponent<I.IPathItem2Definition> implemen
   }
 
   get $ref (): string | undefined {
-    return this[GetProperty]('$ref')
+    return this.getProperty('$ref')
   }
 
   set $ref (value: string | undefined) {
-    this[SetProperty]('$ref', value)
+    this.setProperty('$ref', value)
   }
 
   get get (): I.IOperation2 | undefined {
-    return this[GetProperty]('get')
+    return this.getProperty('get')
   }
 
   set get (value: I.IOperation2 | undefined) {
-    this[SetProperty]('get', value)
+    this.setProperty('get', value)
   }
 
   get put (): I.IOperation2 | undefined {
-    return this[GetProperty]('put')
+    return this.getProperty('put')
   }
 
   set put (value: I.IOperation2 | undefined) {
-    this[SetProperty]('put', value)
+    this.setProperty('put', value)
   }
 
   get post (): I.IOperation2 | undefined {
-    return this[GetProperty]('post')
+    return this.getProperty('post')
   }
 
   set post (value: I.IOperation2 | undefined) {
-    this[SetProperty]('post', value)
+    this.setProperty('post', value)
   }
 
   get delete (): I.IOperation2 | undefined {
-    return this[GetProperty]('delete')
+    return this.getProperty('delete')
   }
 
   set delete (value: I.IOperation2 | undefined) {
-    this[SetProperty]('delete', value)
+    this.setProperty('delete', value)
   }
 
   get options (): I.IOperation2 | undefined {
-    return this[GetProperty]('options')
+    return this.getProperty('options')
   }
 
   set options (value: I.IOperation2 | undefined) {
-    this[SetProperty]('options', value)
+    this.setProperty('options', value)
   }
 
   get head (): I.IOperation2 | undefined {
-    return this[GetProperty]('head')
+    return this.getProperty('head')
   }
 
   set head (value: I.IOperation2 | undefined) {
-    this[SetProperty]('head', value)
+    this.setProperty('head', value)
   }
 
   get patch (): I.IOperation2 | undefined {
-    return this[GetProperty]('patch')
+    return this.getProperty('patch')
   }
 
   set patch (value: I.IOperation2 | undefined) {
-    this[SetProperty]('patch', value)
+    this.setProperty('patch', value)
   }
 
   get parameters (): I.IParameter2[] | undefined {
-    return this[GetProperty]('parameters')
+    return this.getProperty('parameters')
   }
 
   set parameters (value: I.IParameter2[] | undefined) {
-    this[SetProperty]('parameters', value)
+    this.setProperty('parameters', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

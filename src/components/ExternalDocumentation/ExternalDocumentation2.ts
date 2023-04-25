@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -108,19 +108,19 @@ export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocument
   }
 
   get description (): string | undefined {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string | undefined) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   get url (): string {
-    return this[GetProperty]('url')
+    return this.getProperty('url')
   }
 
   set url (value: string) {
-    this[SetProperty]('url', value)
+    this.setProperty('url', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -45,10 +45,10 @@ export class Responses extends EnforcerComponent<I.IResponses2Definition> implem
         configurable: true,
         enumerable: true,
         get () {
-          return this[GetProperty](key)
+          return this.getProperty(key)
         },
         set (value) {
-          this[SetProperty](key, value)
+          this.setProperty(key, value)
         }
       })
     })
@@ -118,11 +118,11 @@ export class Responses extends EnforcerComponent<I.IResponses2Definition> implem
   }
 
   get default (): I.IResponse2 | undefined {
-    return this[GetProperty]('default')
+    return this.getProperty('default')
   }
 
   set default (value: I.IResponse2 | undefined) {
-    this[SetProperty]('default', value)
+    this.setProperty('default', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

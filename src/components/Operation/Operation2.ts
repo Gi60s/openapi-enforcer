@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -52,7 +52,23 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
   constructor (definition: I.IOperation2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
-    // Put your code here.
+    this.getPropertyHook('parameters', (parameters?: I.IParameter2[]) => {
+      const pathItem = this.getParent<I.IPathItem2>('PathItem').component
+      const pathItemParameters: I.IParameter2[] = pathItem?.parameters ?? []
+      return mergeParameters(pathItemParameters, parameters) as I.IParameter2[]
+    })
+
+    this.getPropertyHook('consumes', (consumes?: string[]) => {
+      const swagger = this.getParent<I.ISwagger2>('Swagger').component
+      const result = new Set<string>((swagger?.consumes ?? []).concat(consumes ?? []))
+      return Array.from(result)
+    })
+
+    this.getPropertyHook('produces', (produces?: string[]) => {
+      const swagger = this.getParent<I.ISwagger2>('Swagger').component
+      const result = new Set<string>((swagger?.produces ?? []).concat(produces ?? []))
+      return Array.from(result)
+    })
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
@@ -92,24 +108,6 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    result.build = function (data) {
-      const { built } = data
-
-      built[S.HookGetProperty]('parameters', (parameters: I.IParameter2[] | undefined) => {
-        const pathItem: SchemaProcessor<I.IPathItem2Definition, I.IPathItem2> | undefined = data.upTo('PathItem')
-        const pathItemParameters: I.IParameter2[] = pathItem?.built.parameters ?? []
-        return mergeParameters(pathItemParameters, parameters) as I.IParameter2[]
-      })
-
-      built[S.HookGetProperty]('consumes', (consumes: string[] | undefined) => {
-        return getAllContentTypeStrings(data, 'consumes', consumes)
-      })
-
-      built[S.HookGetProperty]('produces', (produces: string[] | undefined) => {
-        return getAllContentTypeStrings(data, 'produces', produces)
-      })
-    }
-
     result.validate = function (data) {
       const { definition, exception } = data
       const { reference, id } = data.component
@@ -213,99 +211,99 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
   }
 
   get tags (): string[] | undefined {
-    return this[GetProperty]('tags')
+    return this.getProperty('tags')
   }
 
   set tags (value: string[] | undefined) {
-    this[SetProperty]('tags', value)
+    this.setProperty('tags', value)
   }
 
   get summary (): string | undefined {
-    return this[GetProperty]('summary')
+    return this.getProperty('summary')
   }
 
   set summary (value: string | undefined) {
-    this[SetProperty]('summary', value)
+    this.setProperty('summary', value)
   }
 
   get description (): string | undefined {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string | undefined) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   get externalDocs (): I.IExternalDocumentation2 | undefined {
-    return this[GetProperty]('externalDocs')
+    return this.getProperty('externalDocs')
   }
 
   set externalDocs (value: I.IExternalDocumentation2 | undefined) {
-    this[SetProperty]('externalDocs', value)
+    this.setProperty('externalDocs', value)
   }
 
   get operationId (): string | undefined {
-    return this[GetProperty]('operationId')
+    return this.getProperty('operationId')
   }
 
   set operationId (value: string | undefined) {
-    this[SetProperty]('operationId', value)
+    this.setProperty('operationId', value)
   }
 
   get consumes (): string[] | undefined {
-    return this[GetProperty]('consumes')
+    return this.getProperty('consumes')
   }
 
   set consumes (value: string[] | undefined) {
-    this[SetProperty]('consumes', value)
+    this.setProperty('consumes', value)
   }
 
   get produces (): string[] | undefined {
-    return this[GetProperty]('produces')
+    return this.getProperty('produces')
   }
 
   set produces (value: string[] | undefined) {
-    this[SetProperty]('produces', value)
+    this.setProperty('produces', value)
   }
 
   get parameters (): I.IParameter2[] | undefined {
-    return this[GetProperty]('parameters')
+    return this.getProperty('parameters')
   }
 
   set parameters (value: I.IParameter2[] | undefined) {
-    this[SetProperty]('parameters', value)
+    this.setProperty('parameters', value)
   }
 
   get responses (): I.IResponses2 {
-    return this[GetProperty]('responses')
+    return this.getProperty('responses')
   }
 
   set responses (value: I.IResponses2) {
-    this[SetProperty]('responses', value)
+    this.setProperty('responses', value)
   }
 
   get schemes (): Array<'http'|'https'|'ws'|'wss'> | undefined {
-    return this[GetProperty]('schemes')
+    return this.getProperty('schemes')
   }
 
   set schemes (value: Array<'http'|'https'|'ws'|'wss'> | undefined) {
-    this[SetProperty]('schemes', value)
+    this.setProperty('schemes', value)
   }
 
   get deprecated (): boolean | undefined {
-    return this[GetProperty]('deprecated')
+    return this.getProperty('deprecated')
   }
 
   set deprecated (value: boolean | undefined) {
-    this[SetProperty]('deprecated', value)
+    this.setProperty('deprecated', value)
   }
 
   get security (): I.ISecurityRequirement2[] | undefined {
-    return this[GetProperty]('security')
+    return this.getProperty('security')
   }
 
   set security (value: I.ISecurityRequirement2[] | undefined) {
-    this[SetProperty]('security', value)
+    this.setProperty('security', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -112,35 +112,35 @@ export class Response extends EnforcerComponent<I.IResponse3Definition> implemen
   }
 
   get description (): string {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   get headers (): Record<string, I.IHeader3> | undefined {
-    return this[GetProperty]('headers')
+    return this.getProperty('headers')
   }
 
   set headers (value: Record<string, I.IHeader3> | undefined) {
-    this[SetProperty]('headers', value)
+    this.setProperty('headers', value)
   }
 
   get content (): Record<string, I.IMediaType3> | undefined {
-    return this[GetProperty]('content')
+    return this.getProperty('content')
   }
 
   set content (value: Record<string, I.IMediaType3> | undefined) {
-    this[SetProperty]('content', value)
+    this.setProperty('content', value)
   }
 
   get links (): Record<string, I.ILink3> | undefined {
-    return this[GetProperty]('links')
+    return this.getProperty('links')
   }
 
   set links (value: Record<string, I.ILink3> | undefined) {
-    this[SetProperty]('links', value)
+    this.setProperty('links', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

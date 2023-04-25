@@ -158,7 +158,7 @@ describe('Discriminator', () => {
         expect(es.hasErrorByCode('DISCRIMINATOR_REQUIRED_PROPERTY')).to.equal(true)
       })
 
-      it.only('expects anyof to specify that the propertyName is required on all anyOf schemas', () => {
+      it('expects anyof to specify that the propertyName is required on all anyOf schemas', () => {
         const def = OpenAPI3.createDefinition<any>({
           components: {
             schemas: {

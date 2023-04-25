@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -104,35 +104,35 @@ export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implem
   }
 
   get schema (): I.ISchema3 | undefined {
-    return this[GetProperty]('schema')
+    return this.getProperty('schema')
   }
 
   set schema (value: I.ISchema3 | undefined) {
-    this[SetProperty]('schema', value)
+    this.setProperty('schema', value)
   }
 
   get example (): any | undefined {
-    return this[GetProperty]('example')
+    return this.getProperty('example')
   }
 
   set example (value: any | undefined) {
-    this[SetProperty]('example', value)
+    this.setProperty('example', value)
   }
 
   get examples (): Record<string, I.IExample3> | undefined {
-    return this[GetProperty]('examples')
+    return this.getProperty('examples')
   }
 
   set examples (value: Record<string, I.IExample3> | undefined) {
-    this[SetProperty]('examples', value)
+    this.setProperty('examples', value)
   }
 
   get encoding (): Record<string, I.IEncoding3> | undefined {
-    return this[GetProperty]('encoding')
+    return this.getProperty('encoding')
   }
 
   set encoding (value: Record<string, I.IEncoding3> | undefined) {
-    this[SetProperty]('encoding', value)
+    this.setProperty('encoding', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

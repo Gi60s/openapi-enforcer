@@ -25,7 +25,7 @@ interface IPathRegExp {
 }
 
 const rxPathVariable = /^({.+?})$/
-const pathLookupMap: WeakMap<IPathsDefinition, IPathRegExp[]> = new WeakMap<IPathsDefinition, IPathRegExp[]>()
+const pathLookupMap = new WeakMap<IPathsDefinition | IPaths2 | IPaths3, IPathRegExp[]>()
 
 export const build = function (this: IPaths2 | IPaths3, data: SchemaProcessor): void {
   const { definition } = data

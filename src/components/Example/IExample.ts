@@ -24,11 +24,11 @@ interface IExampleComponent extends IComponentInstance {
 }
 
 export interface IExample2Definition {
-  [key: `_${string}`]: any
+  items: Record<string, any >
 }
 
 export interface IExample2 extends IExampleComponent {
-  [key: `_${string}`]: any
+  items: Record<string, any >
 }
 
 export interface IExample3Definition {

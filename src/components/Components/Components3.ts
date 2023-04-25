@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -139,75 +139,75 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
   }
 
   get schemas (): Record<string, I.ISchema3> | undefined {
-    return this[GetProperty]('schemas')
+    return this.getProperty('schemas')
   }
 
   set schemas (value: Record<string, I.ISchema3> | undefined) {
-    this[SetProperty]('schemas', value)
+    this.setProperty('schemas', value)
   }
 
   get responses (): Record<string, I.IResponse3> | undefined {
-    return this[GetProperty]('responses')
+    return this.getProperty('responses')
   }
 
   set responses (value: Record<string, I.IResponse3> | undefined) {
-    this[SetProperty]('responses', value)
+    this.setProperty('responses', value)
   }
 
   get parameters (): Record<string, I.IParameter3> | undefined {
-    return this[GetProperty]('parameters')
+    return this.getProperty('parameters')
   }
 
   set parameters (value: Record<string, I.IParameter3> | undefined) {
-    this[SetProperty]('parameters', value)
+    this.setProperty('parameters', value)
   }
 
   get examples (): Record<string, I.IExample3> | undefined {
-    return this[GetProperty]('examples')
+    return this.getProperty('examples')
   }
 
   set examples (value: Record<string, I.IExample3> | undefined) {
-    this[SetProperty]('examples', value)
+    this.setProperty('examples', value)
   }
 
   get requestBodies (): Record<string, I.IRequestBody3> | undefined {
-    return this[GetProperty]('requestBodies')
+    return this.getProperty('requestBodies')
   }
 
   set requestBodies (value: Record<string, I.IRequestBody3> | undefined) {
-    this[SetProperty]('requestBodies', value)
+    this.setProperty('requestBodies', value)
   }
 
   get headers (): Record<string, I.IHeader3> | undefined {
-    return this[GetProperty]('headers')
+    return this.getProperty('headers')
   }
 
   set headers (value: Record<string, I.IHeader3> | undefined) {
-    this[SetProperty]('headers', value)
+    this.setProperty('headers', value)
   }
 
   get securitySchemes (): Record<string, I.ISecurityScheme3> | undefined {
-    return this[GetProperty]('securitySchemes')
+    return this.getProperty('securitySchemes')
   }
 
   set securitySchemes (value: Record<string, I.ISecurityScheme3> | undefined) {
-    this[SetProperty]('securitySchemes', value)
+    this.setProperty('securitySchemes', value)
   }
 
   get links (): Record<string, I.ILink3> | undefined {
-    return this[GetProperty]('links')
+    return this.getProperty('links')
   }
 
   set links (value: Record<string, I.ILink3> | undefined) {
-    this[SetProperty]('links', value)
+    this.setProperty('links', value)
   }
 
   get callbacks (): Record<string, I.ICallback3> | undefined {
-    return this[GetProperty]('callbacks')
+    return this.getProperty('callbacks')
   }
 
   set callbacks (value: Record<string, I.ICallback3> | undefined) {
-    this[SetProperty]('callbacks', value)
+    this.setProperty('callbacks', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

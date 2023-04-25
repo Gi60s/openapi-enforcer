@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -130,67 +130,67 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
   }
 
   get openapi (): '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3' {
-    return this[GetProperty]('openapi')
+    return this.getProperty('openapi')
   }
 
   set openapi (value: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3') {
-    this[SetProperty]('openapi', value)
+    this.setProperty('openapi', value)
   }
 
   get info (): I.IInfo3 {
-    return this[GetProperty]('info')
+    return this.getProperty('info')
   }
 
   set info (value: I.IInfo3) {
-    this[SetProperty]('info', value)
+    this.setProperty('info', value)
   }
 
   get servers (): I.IServer3[] | undefined {
-    return this[GetProperty]('servers')
+    return this.getProperty('servers')
   }
 
   set servers (value: I.IServer3[] | undefined) {
-    this[SetProperty]('servers', value)
+    this.setProperty('servers', value)
   }
 
   get paths (): I.IPaths3 {
-    return this[GetProperty]('paths')
+    return this.getProperty('paths')
   }
 
   set paths (value: I.IPaths3) {
-    this[SetProperty]('paths', value)
+    this.setProperty('paths', value)
   }
 
   get components (): I.IComponents3 | undefined {
-    return this[GetProperty]('components')
+    return this.getProperty('components')
   }
 
   set components (value: I.IComponents3 | undefined) {
-    this[SetProperty]('components', value)
+    this.setProperty('components', value)
   }
 
   get security (): I.ISecurityRequirement3[] | undefined {
-    return this[GetProperty]('security')
+    return this.getProperty('security')
   }
 
   set security (value: I.ISecurityRequirement3[] | undefined) {
-    this[SetProperty]('security', value)
+    this.setProperty('security', value)
   }
 
   get tags (): I.ITag3[] | undefined {
-    return this[GetProperty]('tags')
+    return this.getProperty('tags')
   }
 
   set tags (value: I.ITag3[] | undefined) {
-    this[SetProperty]('tags', value)
+    this.setProperty('tags', value)
   }
 
   get externalDocs (): I.IExternalDocumentation3 | undefined {
-    return this[GetProperty]('externalDocs')
+    return this.getProperty('externalDocs')
   }
 
   set externalDocs (value: I.IExternalDocumentation3 | undefined) {
-    this[SetProperty]('externalDocs', value)
+    this.setProperty('externalDocs', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

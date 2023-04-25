@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -104,35 +104,35 @@ export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implem
   }
 
   get authorizationUrl (): string | undefined {
-    return this[GetProperty]('authorizationUrl')
+    return this.getProperty('authorizationUrl')
   }
 
   set authorizationUrl (value: string | undefined) {
-    this[SetProperty]('authorizationUrl', value)
+    this.setProperty('authorizationUrl', value)
   }
 
   get tokenUrl (): string | undefined {
-    return this[GetProperty]('tokenUrl')
+    return this.getProperty('tokenUrl')
   }
 
   set tokenUrl (value: string | undefined) {
-    this[SetProperty]('tokenUrl', value)
+    this.setProperty('tokenUrl', value)
   }
 
   get refreshUrl (): string | undefined {
-    return this[GetProperty]('refreshUrl')
+    return this.getProperty('refreshUrl')
   }
 
   set refreshUrl (value: string | undefined) {
-    this[SetProperty]('refreshUrl', value)
+    this.setProperty('refreshUrl', value)
   }
 
   get scopes (): Record<string, string> | undefined {
-    return this[GetProperty]('scopes')
+    return this.getProperty('scopes')
   }
 
   set scopes (value: Record<string, string> | undefined) {
-    this[SetProperty]('scopes', value)
+    this.setProperty('scopes', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

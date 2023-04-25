@@ -23,19 +23,19 @@ interface ISecurityRequirementComponent extends IComponentInstance {
 }
 
 export interface ISecurityRequirement2Definition {
-  [key: `_${string}`]: string[]
+  items: Record<string, string[] >
 }
 
 export interface ISecurityRequirement2 extends ISecurityRequirementComponent {
-  [key: `_${string}`]: string[]
+  items: Record<string, string[] >
 }
 
 export interface ISecurityRequirement3Definition {
-  [key: `_${string}`]: string[]
+  items: Record<string, string[] >
 }
 
 export interface ISecurityRequirement3 extends ISecurityRequirementComponent {
-  [key: `_${string}`]: string[]
+  items: Record<string, string[] >
 }
 
 // <!# Custom Content Begin: FOOTER #!>

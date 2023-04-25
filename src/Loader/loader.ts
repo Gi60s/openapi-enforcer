@@ -1,4 +1,4 @@
-import { ILoaderMetadata, ILoaderOptions } from './ILoader'
+import { ILoaderMetadata, ILoaderOptions, ILoaderReplacements } from './ILoader'
 import { Result } from '../Result'
 import {
   appendToPath,
@@ -6,7 +6,7 @@ import {
   getLocation,
   map,
   normalizeLoaderMetadata,
-  normalizeLoaderOptions,
+  normalizeLoaderOptions, overwriteReplacementsWithCopies,
   traverse
 } from './loader-common'
 
@@ -36,7 +36,7 @@ export function loadAndThrow<T extends object=object> (definition: T, options?: 
   return definition
 }
 
-export function loadWithData (definition: object, options: ILoaderOptions, data: ILoaderMetadata): Result {
+function loadWithData (definition: object, options: ILoaderOptions, data: ILoaderMetadata): Result {
   // if this object has already been loaded then we exit now
   const found = map.get(definition)
   if (found !== undefined) return new Result(definition)
@@ -45,11 +45,15 @@ export function loadWithData (definition: object, options: ILoaderOptions, data:
   applyPositionInformation('#', definition, options, data)
 
   const parent = { _: definition }
-  if (options.dereference) resolveRefs('#', data, parent, '_', new Map())
+  if (options.dereference) {
+    const replacements: ILoaderReplacements = []
+    resolveRefs('#', data, parent, '_', new Map(), [parent], replacements)
+    overwriteReplacementsWithCopies(replacements)
+  }
   return new Result(parent._, data.exceptionStore)
 }
 
-function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: string, map: Map<object, boolean>): void {
+function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: string, map: Map<object, boolean>, chain: object[], replacements: ILoaderReplacements): void {
   const node = (parent as Record<string, any>)[key] as object
   const isObject = node !== null && typeof node === 'object'
   if (isObject) {
@@ -61,14 +65,14 @@ function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: 
     const length = node.length
     for (let index = 0; index < length; index++) {
       const i = String(index)
-      resolveRefs(appendToPath(path, i), data, node, i, map)
+      resolveRefs(appendToPath(path, i), data, node, i, map, chain.concat([node]), replacements)
     }
   } else if (isObject) {
     const n = node as Record<string, any>
     if (n.$ref === undefined) {
       Object.keys(n)
         .forEach(key => {
-          resolveRefs(appendToPath(path, key), data, n, key, map)
+          resolveRefs(appendToPath(path, key), data, n, key, map, chain.concat([node]), replacements)
         })
     } else if (typeof n.$ref === 'string') {
       if (!n.$ref.startsWith('#/')) {
@@ -91,6 +95,13 @@ function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: 
           })
         } else {
           (parent as Record<string, any>)[key] = found
+          if (!chain.includes(found)) {
+            replacements.push({
+              parent,
+              key,
+              value: found
+            })
+          }
         }
       }
     } else {

@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -120,67 +120,67 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definiti
   }
 
   get type (): 'basic'|'apiKey'|'oauth2' {
-    return this[GetProperty]('type')
+    return this.getProperty('type')
   }
 
   set type (value: 'basic'|'apiKey'|'oauth2') {
-    this[SetProperty]('type', value)
+    this.setProperty('type', value)
   }
 
   get description (): string | undefined {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string | undefined) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   get name (): string | undefined {
-    return this[GetProperty]('name')
+    return this.getProperty('name')
   }
 
   set name (value: string | undefined) {
-    this[SetProperty]('name', value)
+    this.setProperty('name', value)
   }
 
   get in (): 'query'|'header' | undefined {
-    return this[GetProperty]('in')
+    return this.getProperty('in')
   }
 
   set in (value: 'query'|'header' | undefined) {
-    this[SetProperty]('in', value)
+    this.setProperty('in', value)
   }
 
   get flow (): 'implicit'|'password'|'application'|'accessCode' | undefined {
-    return this[GetProperty]('flow')
+    return this.getProperty('flow')
   }
 
   set flow (value: 'implicit'|'password'|'application'|'accessCode' | undefined) {
-    this[SetProperty]('flow', value)
+    this.setProperty('flow', value)
   }
 
   get authorizationUrl (): string | undefined {
-    return this[GetProperty]('authorizationUrl')
+    return this.getProperty('authorizationUrl')
   }
 
   set authorizationUrl (value: string | undefined) {
-    this[SetProperty]('authorizationUrl', value)
+    this.setProperty('authorizationUrl', value)
   }
 
   get tokenUrl (): string | undefined {
-    return this[GetProperty]('tokenUrl')
+    return this.getProperty('tokenUrl')
   }
 
   set tokenUrl (value: string | undefined) {
-    this[SetProperty]('tokenUrl', value)
+    this.setProperty('tokenUrl', value)
   }
 
   get scopes (): Record<string, string> | undefined {
-    return this[GetProperty]('scopes')
+    return this.getProperty('scopes')
   }
 
   set scopes (value: Record<string, string> | undefined) {
-    this[SetProperty]('scopes', value)
+    this.setProperty('scopes', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

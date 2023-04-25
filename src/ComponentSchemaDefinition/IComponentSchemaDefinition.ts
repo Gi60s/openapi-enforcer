@@ -35,7 +35,7 @@ export interface IBoolean extends Base<boolean> {
 export interface IComponent<Definition, Built> extends Base<Definition | Built> {
   type: 'component'
   allowsRef: boolean
-  component: typeof EnforcerComponent<Definition>
+  component: typeof EnforcerComponent<any>
 }
 
 // this interface is used only by component's getSchema() method which returns it

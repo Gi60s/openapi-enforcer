@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -112,35 +112,35 @@ export class Response extends EnforcerComponent<I.IResponse2Definition> implemen
   }
 
   get description (): string {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   get schema (): I.ISchema2 | undefined {
-    return this[GetProperty]('schema')
+    return this.getProperty('schema')
   }
 
   set schema (value: I.ISchema2 | undefined) {
-    this[SetProperty]('schema', value)
+    this.setProperty('schema', value)
   }
 
   get headers (): Record<string, I.IHeader2> | undefined {
-    return this[GetProperty]('headers')
+    return this.getProperty('headers')
   }
 
   set headers (value: Record<string, I.IHeader2> | undefined) {
-    this[SetProperty]('headers', value)
+    this.setProperty('headers', value)
   }
 
   get examples (): I.IExample2 | undefined {
-    return this[GetProperty]('examples')
+    return this.getProperty('examples')
   }
 
   set examples (value: I.IExample2 | undefined) {
-    this[SetProperty]('examples', value)
+    this.setProperty('examples', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

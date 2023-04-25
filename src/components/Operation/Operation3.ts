@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -47,7 +47,11 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
   constructor (definition: I.IOperation3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
-    // Put your code here.
+    this.getPropertyHook('parameters', (parameters: I.IParameter3[] | undefined) => {
+      const pathItem = this.getParent<I.IPathItem3>('PathItem').component
+      const pathItemParameters: I.IParameter3[] = pathItem?.parameters ?? []
+      return mergeParameters(pathItemParameters, parameters) as I.IParameter3[]
+    })
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
@@ -87,16 +91,6 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    result.build = function (data) {
-      const { built } = data
-
-      built[S.HookGetProperty]('parameters', (parameters: I.IParameter3[] | undefined) => {
-        const pathItem = data.upTo<I.IPathItem3Definition, I.IPathItem3>('PathItem')
-        const pathItemParameters: I.IParameter3[] = pathItem?.built.parameters ?? []
-        return mergeParameters(pathItemParameters, parameters) as I.IParameter3[]
-      })
-    }
-
     result.validate = function (data) {
       const parameters = getMergedParameters(data)
       validate(data, parameters)
@@ -143,99 +137,99 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
   }
 
   get tags (): string[] | undefined {
-    return this[GetProperty]('tags')
+    return this.getProperty('tags')
   }
 
   set tags (value: string[] | undefined) {
-    this[SetProperty]('tags', value)
+    this.setProperty('tags', value)
   }
 
   get summary (): string | undefined {
-    return this[GetProperty]('summary')
+    return this.getProperty('summary')
   }
 
   set summary (value: string | undefined) {
-    this[SetProperty]('summary', value)
+    this.setProperty('summary', value)
   }
 
   get description (): string | undefined {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string | undefined) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   get externalDocs (): I.IExternalDocumentation3 | undefined {
-    return this[GetProperty]('externalDocs')
+    return this.getProperty('externalDocs')
   }
 
   set externalDocs (value: I.IExternalDocumentation3 | undefined) {
-    this[SetProperty]('externalDocs', value)
+    this.setProperty('externalDocs', value)
   }
 
   get operationId (): string | undefined {
-    return this[GetProperty]('operationId')
+    return this.getProperty('operationId')
   }
 
   set operationId (value: string | undefined) {
-    this[SetProperty]('operationId', value)
+    this.setProperty('operationId', value)
   }
 
   get parameters (): I.IParameter3[] | undefined {
-    return this[GetProperty]('parameters')
+    return this.getProperty('parameters')
   }
 
   set parameters (value: I.IParameter3[] | undefined) {
-    this[SetProperty]('parameters', value)
+    this.setProperty('parameters', value)
   }
 
   get requestBody (): I.IRequestBody3 | undefined {
-    return this[GetProperty]('requestBody')
+    return this.getProperty('requestBody')
   }
 
   set requestBody (value: I.IRequestBody3 | undefined) {
-    this[SetProperty]('requestBody', value)
+    this.setProperty('requestBody', value)
   }
 
   get responses (): I.IResponses3 {
-    return this[GetProperty]('responses')
+    return this.getProperty('responses')
   }
 
   set responses (value: I.IResponses3) {
-    this[SetProperty]('responses', value)
+    this.setProperty('responses', value)
   }
 
   get callbacks (): Record<string, I.ICallback3> | undefined {
-    return this[GetProperty]('callbacks')
+    return this.getProperty('callbacks')
   }
 
   set callbacks (value: Record<string, I.ICallback3> | undefined) {
-    this[SetProperty]('callbacks', value)
+    this.setProperty('callbacks', value)
   }
 
   get deprecated (): boolean | undefined {
-    return this[GetProperty]('deprecated')
+    return this.getProperty('deprecated')
   }
 
   set deprecated (value: boolean | undefined) {
-    this[SetProperty]('deprecated', value)
+    this.setProperty('deprecated', value)
   }
 
   get security (): I.ISecurityRequirement3[] | undefined {
-    return this[GetProperty]('security')
+    return this.getProperty('security')
   }
 
   set security (value: I.ISecurityRequirement3[] | undefined) {
-    this[SetProperty]('security', value)
+    this.setProperty('security', value)
   }
 
   get servers (): I.IServer3[] | undefined {
-    return this[GetProperty]('servers')
+    return this.getProperty('servers')
   }
 
   set servers (value: I.IServer3[] | undefined) {
-    this[SetProperty]('servers', value)
+    this.setProperty('servers', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -110,27 +110,27 @@ export class Tag extends EnforcerComponent<I.ITag2Definition> implements I.ITag2
   }
 
   get name (): string {
-    return this[GetProperty]('name')
+    return this.getProperty('name')
   }
 
   set name (value: string) {
-    this[SetProperty]('name', value)
+    this.setProperty('name', value)
   }
 
   get description (): string | undefined {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string | undefined) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   get externalDocs (): I.IExternalDocumentation2 | undefined {
-    return this[GetProperty]('externalDocs')
+    return this.getProperty('externalDocs')
   }
 
   set externalDocs (value: I.IExternalDocumentation2 | undefined) {
-    this[SetProperty]('externalDocs', value)
+    this.setProperty('externalDocs', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

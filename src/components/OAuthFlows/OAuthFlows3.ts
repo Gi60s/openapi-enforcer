@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -104,35 +104,35 @@ export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> impl
   }
 
   get implicit (): I.IOAuthFlow3 | undefined {
-    return this[GetProperty]('implicit')
+    return this.getProperty('implicit')
   }
 
   set implicit (value: I.IOAuthFlow3 | undefined) {
-    this[SetProperty]('implicit', value)
+    this.setProperty('implicit', value)
   }
 
   get password (): I.IOAuthFlow3 | undefined {
-    return this[GetProperty]('password')
+    return this.getProperty('password')
   }
 
   set password (value: I.IOAuthFlow3 | undefined) {
-    this[SetProperty]('password', value)
+    this.setProperty('password', value)
   }
 
   get clientCredentials (): I.IOAuthFlow3 | undefined {
-    return this[GetProperty]('clientCredentials')
+    return this.getProperty('clientCredentials')
   }
 
   set clientCredentials (value: I.IOAuthFlow3 | undefined) {
-    this[SetProperty]('clientCredentials', value)
+    this.setProperty('clientCredentials', value)
   }
 
   get authorizationCode (): I.IOAuthFlow3 | undefined {
-    return this[GetProperty]('authorizationCode')
+    return this.getProperty('authorizationCode')
   }
 
   set authorizationCode (value: I.IOAuthFlow3 | undefined) {
-    this[SetProperty]('authorizationCode', value)
+    this.setProperty('authorizationCode', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

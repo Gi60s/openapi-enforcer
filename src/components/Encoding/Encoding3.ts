@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -106,43 +106,43 @@ export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implemen
   }
 
   get contentType (): string | undefined {
-    return this[GetProperty]('contentType')
+    return this.getProperty('contentType')
   }
 
   set contentType (value: string | undefined) {
-    this[SetProperty]('contentType', value)
+    this.setProperty('contentType', value)
   }
 
   get headers (): Record<string, I.IHeader3> | undefined {
-    return this[GetProperty]('headers')
+    return this.getProperty('headers')
   }
 
   set headers (value: Record<string, I.IHeader3> | undefined) {
-    this[SetProperty]('headers', value)
+    this.setProperty('headers', value)
   }
 
   get style (): string | undefined {
-    return this[GetProperty]('style')
+    return this.getProperty('style')
   }
 
   set style (value: string | undefined) {
-    this[SetProperty]('style', value)
+    this.setProperty('style', value)
   }
 
   get explode (): boolean | undefined {
-    return this[GetProperty]('explode')
+    return this.getProperty('explode')
   }
 
   set explode (value: boolean | undefined) {
-    this[SetProperty]('explode', value)
+    this.setProperty('explode', value)
   }
 
   get allowReserved (): boolean | undefined {
-    return this[GetProperty]('allowReserved')
+    return this.getProperty('allowReserved')
   }
 
   set allowReserved (value: boolean | undefined) {
-    this[SetProperty]('allowReserved', value)
+    this.setProperty('allowReserved', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -118,91 +118,91 @@ export class Header extends EnforcerComponent<I.IHeader3Definition> implements I
   }
 
   get description (): string | undefined {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string | undefined) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   get required (): boolean | undefined {
-    return this[GetProperty]('required')
+    return this.getProperty('required')
   }
 
   set required (value: boolean | undefined) {
-    this[SetProperty]('required', value)
+    this.setProperty('required', value)
   }
 
   get deprecated (): boolean | undefined {
-    return this[GetProperty]('deprecated')
+    return this.getProperty('deprecated')
   }
 
   set deprecated (value: boolean | undefined) {
-    this[SetProperty]('deprecated', value)
+    this.setProperty('deprecated', value)
   }
 
   get allowEmptyValue (): boolean | undefined {
-    return this[GetProperty]('allowEmptyValue')
+    return this.getProperty('allowEmptyValue')
   }
 
   set allowEmptyValue (value: boolean | undefined) {
-    this[SetProperty]('allowEmptyValue', value)
+    this.setProperty('allowEmptyValue', value)
   }
 
   get style (): 'simple' | undefined {
-    return this[GetProperty]('style')
+    return this.getProperty('style')
   }
 
   set style (value: 'simple' | undefined) {
-    this[SetProperty]('style', value)
+    this.setProperty('style', value)
   }
 
   get explode (): boolean | undefined {
-    return this[GetProperty]('explode')
+    return this.getProperty('explode')
   }
 
   set explode (value: boolean | undefined) {
-    this[SetProperty]('explode', value)
+    this.setProperty('explode', value)
   }
 
   get allowReserved (): boolean | undefined {
-    return this[GetProperty]('allowReserved')
+    return this.getProperty('allowReserved')
   }
 
   set allowReserved (value: boolean | undefined) {
-    this[SetProperty]('allowReserved', value)
+    this.setProperty('allowReserved', value)
   }
 
   get schema (): I.ISchema3 | undefined {
-    return this[GetProperty]('schema')
+    return this.getProperty('schema')
   }
 
   set schema (value: I.ISchema3 | undefined) {
-    this[SetProperty]('schema', value)
+    this.setProperty('schema', value)
   }
 
   get example (): any | undefined {
-    return this[GetProperty]('example')
+    return this.getProperty('example')
   }
 
   set example (value: any | undefined) {
-    this[SetProperty]('example', value)
+    this.setProperty('example', value)
   }
 
   get examples (): Record<string, I.IExample3> | undefined {
-    return this[GetProperty]('examples')
+    return this.getProperty('examples')
   }
 
   set examples (value: Record<string, I.IExample3> | undefined) {
-    this[SetProperty]('examples', value)
+    this.setProperty('examples', value)
   }
 
   get content (): Record<string, I.IMediaType3> | undefined {
-    return this[GetProperty]('content')
+    return this.getProperty('content')
   }
 
   set content (value: Record<string, I.IMediaType3> | undefined) {
-    this[SetProperty]('content', value)
+    this.setProperty('content', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

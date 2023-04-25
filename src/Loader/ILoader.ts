@@ -33,6 +33,8 @@ export interface ILoaderMetadata {
   root: ILoaderRootData
 }
 
+export type ILoaderReplacements = Array<{ parent: object, key: string, value: object }>
+
 export interface ILoaderRootData {
   node: object
   source: string

@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -118,51 +118,51 @@ export class Info extends EnforcerComponent<I.IInfo3Definition> implements I.IIn
   }
 
   get title (): string {
-    return this[GetProperty]('title')
+    return this.getProperty('title')
   }
 
   set title (value: string) {
-    this[SetProperty]('title', value)
+    this.setProperty('title', value)
   }
 
   get description (): string | undefined {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string | undefined) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   get termsOfService (): string | undefined {
-    return this[GetProperty]('termsOfService')
+    return this.getProperty('termsOfService')
   }
 
   set termsOfService (value: string | undefined) {
-    this[SetProperty]('termsOfService', value)
+    this.setProperty('termsOfService', value)
   }
 
   get contact (): I.IContact3 | undefined {
-    return this[GetProperty]('contact')
+    return this.getProperty('contact')
   }
 
   set contact (value: I.IContact3 | undefined) {
-    this[SetProperty]('contact', value)
+    this.setProperty('contact', value)
   }
 
   get license (): I.ILicense3 | undefined {
-    return this[GetProperty]('license')
+    return this.getProperty('license')
   }
 
   set license (value: I.ILicense3 | undefined) {
-    this[SetProperty]('license', value)
+    this.setProperty('license', value)
   }
 
   get version (): string {
-    return this[GetProperty]('version')
+    return this.getProperty('version')
   }
 
   set version (value: string) {
-    this[SetProperty]('version', value)
+    this.setProperty('version', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -112,27 +112,27 @@ export class Server extends EnforcerComponent<I.IServer3Definition> implements I
   }
 
   get url (): string {
-    return this[GetProperty]('url')
+    return this.getProperty('url')
   }
 
   set url (value: string) {
-    this[SetProperty]('url', value)
+    this.setProperty('url', value)
   }
 
   get description (): string | undefined {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string | undefined) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   get variables (): Record<string, I.IServerVariable3> | undefined {
-    return this[GetProperty]('variables')
+    return this.getProperty('variables')
   }
 
   set variables (value: Record<string, I.IServerVariable3> | undefined) {
-    this[SetProperty]('variables', value)
+    this.setProperty('variables', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

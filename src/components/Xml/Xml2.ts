@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -106,43 +106,43 @@ export class Xml extends EnforcerComponent<I.IXml2Definition> implements I.IXml2
   }
 
   get name (): string | undefined {
-    return this[GetProperty]('name')
+    return this.getProperty('name')
   }
 
   set name (value: string | undefined) {
-    this[SetProperty]('name', value)
+    this.setProperty('name', value)
   }
 
   get namespace (): string | undefined {
-    return this[GetProperty]('namespace')
+    return this.getProperty('namespace')
   }
 
   set namespace (value: string | undefined) {
-    this[SetProperty]('namespace', value)
+    this.setProperty('namespace', value)
   }
 
   get prefix (): string | undefined {
-    return this[GetProperty]('prefix')
+    return this.getProperty('prefix')
   }
 
   set prefix (value: string | undefined) {
-    this[SetProperty]('prefix', value)
+    this.setProperty('prefix', value)
   }
 
   get attribute (): boolean | undefined {
-    return this[GetProperty]('attribute')
+    return this.getProperty('attribute')
   }
 
   set attribute (value: boolean | undefined) {
-    this[SetProperty]('attribute', value)
+    this.setProperty('attribute', value)
   }
 
   get wrapped (): boolean | undefined {
-    return this[GetProperty]('wrapped')
+    return this.getProperty('wrapped')
   }
 
   set wrapped (value: boolean | undefined) {
-    this[SetProperty]('wrapped', value)
+    this.setProperty('wrapped', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

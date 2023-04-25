@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -104,27 +104,27 @@ export class Contact extends EnforcerComponent<I.IContact2Definition> implements
   }
 
   get name (): string | undefined {
-    return this[GetProperty]('name')
+    return this.getProperty('name')
   }
 
   set name (value: string | undefined) {
-    this[SetProperty]('name', value)
+    this.setProperty('name', value)
   }
 
   get url (): string | undefined {
-    return this[GetProperty]('url')
+    return this.getProperty('url')
   }
 
   set url (value: string | undefined) {
-    this[SetProperty]('url', value)
+    this.setProperty('url', value)
   }
 
   get email (): string | undefined {
-    return this[GetProperty]('email')
+    return this.getProperty('email')
   }
 
   set email (value: string | undefined) {
-    this[SetProperty]('email', value)
+    this.setProperty('email', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

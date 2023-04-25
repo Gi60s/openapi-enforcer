@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -43,10 +43,10 @@ export class Paths extends EnforcerComponent<I.IPaths3Definition> implements I.I
         configurable: true,
         enumerable: true,
         get () {
-          return this[GetProperty](key)
+          return this.getProperty(key)
         },
         set (value) {
-          this[SetProperty](key, value)
+          this.setProperty(key, value)
         }
       })
     })

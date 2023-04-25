@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -110,27 +110,27 @@ export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definiti
   }
 
   get enum (): string[] | undefined {
-    return this[GetProperty]('enum')
+    return this.getProperty('enum')
   }
 
   set enum (value: string[] | undefined) {
-    this[SetProperty]('enum', value)
+    this.setProperty('enum', value)
   }
 
   get default (): string {
-    return this[GetProperty]('default')
+    return this.getProperty('default')
   }
 
   set default (value: string) {
-    this[SetProperty]('default', value)
+    this.setProperty('default', value)
   }
 
   get description (): string | undefined {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string | undefined) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

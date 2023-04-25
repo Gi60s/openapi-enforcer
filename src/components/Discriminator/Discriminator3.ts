@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -238,19 +238,19 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
   }
 
   get propertyName (): string {
-    return this[GetProperty]('propertyName')
+    return this.getProperty('propertyName')
   }
 
   set propertyName (value: string) {
-    this[SetProperty]('propertyName', value)
+    this.setProperty('propertyName', value)
   }
 
   get mapping (): Record<string, string> | undefined {
-    return this[GetProperty]('mapping')
+    return this.getProperty('mapping')
   }
 
   set mapping (value: Record<string, string> | undefined) {
-    this[SetProperty]('mapping', value)
+    this.setProperty('mapping', value)
   }
 
   // <!# Custom Content Begin: BODY #!>

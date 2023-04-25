@@ -12,8 +12,8 @@ export const language: II18nMessagesMap = {
   I18N_LANGUAGE_NOT_DEFINED: 'Language cannot be set to {{languageCode}} because that language has not yet been added.',
   I18N_MISSING_MESSAGES: 'Cannot add language {{languageCode}} because the following message codes are not defined ' +
     'within the messages map: {{missingMessageCodes}}',
-  LOADER_NOT_FOUND: 'Unable to find a loader to load the provided resource: {{resource}}.',
-  LOADER_YAML_PARSE_ERROR: 'Unable to parse YAML for one or more reasons: {{reasons}}.',
+  LOADER_NOT_FOUND: 'Unable to find a loader to load the provided resource: {{resource}}. {reasons}',
+  LOADER_YAML_PARSE_ERROR: 'Unable to parse YAML for one or more reasons: {reasons}.',
   LOADER_YAML_SUPPORT_ERROR: 'YAML anchors and aliases are not currently supported.',
   LOCATOR_INVALID_REFERENCE: 'Invalid reference. It must be a non-null object or an array.',
   NOT_IMPLEMENTED: 'Function not implemented',

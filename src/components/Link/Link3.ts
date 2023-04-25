@@ -12,7 +12,7 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent, SetProperty, GetProperty } from '../Component'
+import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
@@ -108,51 +108,51 @@ export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILi
   }
 
   get operationRef (): string | undefined {
-    return this[GetProperty]('operationRef')
+    return this.getProperty('operationRef')
   }
 
   set operationRef (value: string | undefined) {
-    this[SetProperty]('operationRef', value)
+    this.setProperty('operationRef', value)
   }
 
   get operationId (): string | undefined {
-    return this[GetProperty]('operationId')
+    return this.getProperty('operationId')
   }
 
   set operationId (value: string | undefined) {
-    this[SetProperty]('operationId', value)
+    this.setProperty('operationId', value)
   }
 
   get parameters (): Record<string, any> | undefined {
-    return this[GetProperty]('parameters')
+    return this.getProperty('parameters')
   }
 
   set parameters (value: Record<string, any> | undefined) {
-    this[SetProperty]('parameters', value)
+    this.setProperty('parameters', value)
   }
 
   get requestBody (): any | undefined {
-    return this[GetProperty]('requestBody')
+    return this.getProperty('requestBody')
   }
 
   set requestBody (value: any | undefined) {
-    this[SetProperty]('requestBody', value)
+    this.setProperty('requestBody', value)
   }
 
   get description (): string | undefined {
-    return this[GetProperty]('description')
+    return this.getProperty('description')
   }
 
   set description (value: string | undefined) {
-    this[SetProperty]('description', value)
+    this.setProperty('description', value)
   }
 
   get server (): I.IServer3 | undefined {
-    return this[GetProperty]('server')
+    return this.getProperty('server')
   }
 
   set server (value: I.IServer3 | undefined) {
-    this[SetProperty]('server', value)
+    this.setProperty('server', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
