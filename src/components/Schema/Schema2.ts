@@ -115,7 +115,7 @@ export class Schema extends EnforcerComponent<I.ISchema2Definition> implements I
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    // Put your code here.
+    common.schemaDefinition(_data, result)
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     return result

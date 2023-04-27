@@ -1,6 +1,7 @@
 import { SchemaProcessor } from './SchemaProcessor'
 import { EnforcerComponent } from '../components/Component'
 import * as I from '../components/IInternalTypes'
+import { II18nMessageCode } from '../i18n/i18n'
 
 export interface IAny extends Base<any> {
   type: 'any'
@@ -15,7 +16,7 @@ export interface IArray<T> extends Base<T[]> {
 
 interface Base<T> {
   // Is the property allowed? Based on sibling properties it may not be.
-  notAllowed?: string // the string is the message
+  notAllowed?: II18nMessageCode // the string is the message
 
   // Set the default.
   default?: T
@@ -72,7 +73,7 @@ export interface IObject<T=ISchema> extends Base<Record<string, any>> {
 
 export interface IProperty<SchemaType=ISchema> {
   name: string
-  notAllowed?: string | undefined // If this property could be allowed in certain circumstances but is not currently allowed then we provide a string here indicating why it is currently not allowed.
+  notAllowed?: II18nMessageCode | undefined // If this property could be allowed in certain circumstances but is not currently allowed then we provide a string here indicating why it is currently not allowed.
   required?: boolean
   schema: SchemaType
 }

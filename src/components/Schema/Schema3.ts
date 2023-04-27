@@ -134,6 +134,8 @@ export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
     // Put your code here.
+    common.schemaDefinition(_data, result)
+
     // TODO: The discriminator attribute is legal only when using one of the composite keywords oneOf, anyOf, allOf.
     const processor = _data
     const { definition } = processor

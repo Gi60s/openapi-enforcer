@@ -103,7 +103,7 @@ describe('component validator', () => {
   describe('common validations', () => {
     describe('allowed', () => {
       it('will produce an error if the property is not allowed', () => {
-        x.schema.notAllowed = 'Not allowed because I said so.'
+        x.schema.notAllowed = 'PROPERTY_NOT_ALLOWED'
         const es = Foo.validate({ x: true })
         expect(es.hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(true)
       })
@@ -115,7 +115,7 @@ describe('component validator', () => {
 
       it('will produce an error if the property is not allowed but allowed via additional properties', () => {
         schema.additionalProperties = { type: 'any' }
-        x.schema.notAllowed = 'Not allowed because I said so'
+        x.schema.notAllowed = 'PROPERTY_NOT_ALLOWED'
         const es = Foo.validate({ x: true })
         expect(es.hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(true)
       })
@@ -394,7 +394,7 @@ describe('component validator', () => {
       })
 
       it('can define not allowed properties', () => {
-        x.notAllowed = 'Not allowed'
+        x.notAllowed = 'PROPERTY_NOT_ALLOWED'
         expect(Foo.validate({ x: true }).hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(true)
       })
     })

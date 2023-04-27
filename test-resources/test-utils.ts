@@ -10,13 +10,25 @@ export function testMultipleComponents<T extends typeof EnforcerComponent<any>> 
     test: function (test: (component: T) => void): void {
       const length = components.length
       for (let i = 0; i < length; i++) {
-        test(components[i])
+        const component = components[i]
+        try {
+          test(component)
+        } catch (e: any) {
+          e.message = component.id + ': ' + String(e.message ?? '')
+          throw e
+        }
       }
     },
     testAsync: async function (test: (component: T) => void): Promise<void> {
       const length = components.length
       for (let i = 0; i < length; i++) {
-        await test(components[i])
+        const component = components[i]
+        try {
+          await test(components[i])
+        } catch (e: any) {
+          e.message = component.id + ': ' + String(e.message ?? '')
+          throw e
+        }
       }
     }
   }

@@ -1,60 +1,61 @@
 import { Schema2, Schema3 } from '../../src/components'
 import { expect } from 'chai'
 import { testMultipleComponents } from '../../test-resources/test-utils'
+import '../../test-resources/chai-exception-store'
 
 const { test } = testMultipleComponents([Schema2, Schema3])
 
-describe('Schema', () => {
+describe.only('Schema', () => {
   describe('definition', () => {
     it('allows a valid schema', () => {
       test(Schema => {
-        const result = Schema.validate({ type: 'string' })
-        expect(result.hasError).to.equal(false)
+        const es = Schema.validate({ type: 'string' })
+        expect(es).not.to.have.exceptionError()
       })
     })
 
     describe('property: additionalProperties', () => {
-      it('is valid for objects', () => {
+      it('is valid if type is explicitly set to "object"', () => {
         test(Schema => {
-          const result = Schema.validate({ type: 'object', additionalProperties: true })
-          expect(result.hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(false)
+          const es = Schema.validate({ type: 'object', additionalProperties: true })
+          expect(es).not.to.have.exceptionErrorCode('PROPERTY_NOT_ALLOWED_UNLESS_OBJECT')
         })
       })
 
-      it('is not valid for non-objects', () => {
+      it('is not valid if type is explicitly set to something other than "object"', () => {
         test(Schema => {
-          const result = Schema.validate({ type: 'string', additionalProperties: true })
-          expect(result.hasErrorByCode('PROPERTY_NOT_ALLOWED')).to.equal(true)
+          const es = Schema.validate({ type: 'string', additionalProperties: true })
+          expect(es).to.have.exceptionErrorCode('PROPERTY_NOT_ALLOWED_UNLESS_OBJECT')
         })
       })
 
       it('can be a boolean', () => {
         test(Schema => {
-          const result = Schema.validate({ type: 'object', additionalProperties: false })
-          expect(result.hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(false)
+          const es = Schema.validate({ type: 'object', additionalProperties: false })
+          expect(es).not.to.have.exceptionErrorCode('VALUE_TYPE_INVALID')
         })
       })
 
       it('can be an object', () => {
         test(Schema => {
-          const result = Schema.validate({ type: 'object', additionalProperties: { type: 'string' } })
-          expect(result.hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(false)
-          expect(result.hasErrorByCode('ENUM_NOT_MET')).to.equal(false)
+          const es = Schema.validate({ type: 'object', additionalProperties: { type: 'string' } })
+          expect(es).not.to.have.exceptionErrorCode('ENUM_NOT_MET')
         })
       })
 
       it('cannot be a string', () => {
         test(Schema => {
           // @ts-expect-error
-          const result = Schema.validate({ type: 'object', additionalProperties: 'yes' })
-          expect(result.hasErrorByCode('VALUE_TYPE_INVALID')).to.equal(true)
+          const es = Schema.validate({ type: 'object', additionalProperties: 'yes' })
+
+          expect(es).to.have.exceptionErrorCode('VALUE_TYPE_INVALID')
         })
       })
 
       it('will validate sub definition', () => {
         test(Schema => {
-          const result = Schema.validate({ type: 'object', additionalProperties: { type: 'not-a-type' } })
-          expect(result.hasErrorByCode('ENUM_NOT_MET')).to.equal(true)
+          const es = Schema.validate({ type: 'object', additionalProperties: { type: 'not-a-type' } })
+          expect(es).to.have.exceptionErrorCode('ENUM_NOT_MET')
         })
       })
     })

@@ -1,6 +1,8 @@
 import { ISchema2Definition, ISchema3Definition, ISchema2, ISchema3 } from './ISchema'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { IExceptionData, IExceptionLevel } from '../../Exception/IException'
+import * as I from '../IInternalTypes'
+import * as C from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 
 type Definition = ISchema2Definition | ISchema3Definition
 type ISchema = ISchema2 | ISchema3
@@ -11,12 +13,74 @@ export function deserialize (value: string, options: { strict: boolean } | undef
   return null
 }
 
+export function determineSchemaType (definition: I.ISchemaDefinition | I.ISchema): string | undefined {
+  if (definition.type !== undefined) return definition.type
+  if ('items' in definition ||
+    'maxItems' in definition ||
+    'minItems' in definition ||
+    'uniqueItems' in definition ||
+    Array.isArray(definition.default) ||
+    Array.isArray(definition.enum?.[0])) return 'array'
+  if ('additionalProperties' in definition ||
+    'discriminator' in definition ||
+    'properties' in definition ||
+    'maxProperties' in definition ||
+    'minProperties' in definition ||
+    'required' in definition ||
+    (typeof definition.default === 'object' && definition.default !== null) ||
+    (typeof definition.enum?.[0] === 'object' && definition.enum[0] !== null)) return 'object'
+  if ('maximum' in definition ||
+    'minimum' in definition ||
+    'exclusiveMaximum' in definition ||
+    'exclusiveMinimum' in definition ||
+    'multipleOf' in definition ||
+    typeof definition.default === 'number' ||
+    typeof definition.enum?.[0] === 'number') return 'number'
+  if ('maxLength' in definition ||
+    'minLength' in definition ||
+    'pattern' in definition ||
+    typeof definition.default === 'string' ||
+    typeof definition.enum?.[0] === 'string') return 'string'
+  if (typeof definition.default === 'boolean' ||
+    typeof definition.enum?.[0] === 'boolean') return 'boolean'
+}
+
 export function discriminate<T extends ISchema> (value: object): { key: string, name: string, schema: T } {
   return {
     key: '',
     name: '',
     schema: {} as unknown as T
   }
+}
+
+export function schemaDefinition (data: I.ISchemaSchemaProcessor, schema: C.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> | C.ISchemaDefinition<I.ISchema3Definition, I.ISchema3>): void {
+  const { definition } = data
+  const type = determineSchemaType(definition)
+  schema.properties?.forEach(property => {
+    switch (property.name) {
+      case 'additionalProperties':
+        property.schema = {
+          type: 'oneOf',
+          oneOf: [
+            {
+              condition: ({ definition }) =>
+                typeof definition !== 'boolean',
+              schema: {
+                type: 'component',
+                allowsRef: true,
+                component: data.component.constructor
+              }
+            },
+            {
+              condition: ({ definition }) => typeof definition === 'boolean',
+              schema: { type: 'boolean' }
+            }
+          ]
+        }
+        property.notAllowed = type !== 'object' ? 'PROPERTY_NOT_ALLOWED_UNLESS_OBJECT' : undefined
+        break
+    }
+  })
 }
 
 // /**

@@ -28,7 +28,7 @@ describe('exceptions', () => {
       code: 'VALUE_TYPE_INVALID',
       level: 'error',
       locations: [getLocation(node, 'foo')],
-      metadata: { value: 'foo', expectedType: 'boolean' }
+      metadata: { value: 'foo', type: 'string', allowedTypes: ['boolean'] }
     })
     expect(store.error).not.to.equal(undefined)
     expect(store.warning).to.equal(undefined)
@@ -42,7 +42,7 @@ describe('exceptions', () => {
 
     const lines = store.error?.toString().split(/\r\n|\r|\n/) ?? []
     expect(lines[1]).to.equal('  at: foo')
-    expect(lines[2]).to.equal('    [X_VALUE_TYPE_INVALID] The value "foo" did not match the expected data type: "boolean".')
+    expect(lines[2]).to.equal('    [X_VALUE_TYPE_INVALID] The value "foo" of type "string" is not valid. Allowed types: "boolean".')
     expect(lines.length).to.equal(3)
 
     expect(store.hasError).to.equal(true)
@@ -58,7 +58,7 @@ describe('exceptions', () => {
       code: 'VALUE_TYPE_INVALID',
       level: 'error',
       locations: [getLocation(node, 'foo', 'value')],
-      metadata: { value: 'foo', expectedType: 'boolean' }
+      metadata: { value: 'foo', type: 'string', allowedTypes: 'boolean' }
     })
     store.add({
       id: 'X',
@@ -74,7 +74,7 @@ describe('exceptions', () => {
 
     const lines = store.error?.toString().split(/\r\n|\r|\n/) ?? []
     expect(lines[1]).to.equal('  at: foo')
-    expect(lines[2]).to.equal('    [X_VALUE_TYPE_INVALID] The value "foo" did not match the expected data type: "boolean".')
+    expect(lines[2]).to.equal('    [X_VALUE_TYPE_INVALID] The value "foo" of type "string" is not valid. Allowed types: "boolean".')
     expect(lines[3]).to.equal('    [X_URL_INVALID] URL appears to be invalid: "hello".')
     expect(lines.length).to.equal(4)
   })
@@ -90,7 +90,7 @@ describe('exceptions', () => {
         getLocation(node, 'foo', 'value'),
         getLocation(node, 'bar', 'value')
       ],
-      metadata: { value: 'foo', expectedType: 'boolean' }
+      metadata: { value: 'foo', type: 'string', allowedTypes: 'boolean' }
     })
     expect(store.error?.reportItems.length).to.equal(1)
     const reportItem = store.error?.reportItems[0]
@@ -102,6 +102,6 @@ describe('exceptions', () => {
     expect(lines[1]).to.equal('  at 2 locations:')
     expect(lines[2]).to.equal('    1. bar')
     expect(lines[3]).to.equal('    2. foo')
-    expect(lines[4]).to.equal('      [X_VALUE_TYPE_INVALID] The value "foo" did not match the expected data type: "boolean".')
+    expect(lines[4]).to.equal('      [X_VALUE_TYPE_INVALID] The value "foo" of type "string" is not valid. Allowed types: "boolean".')
   })
 })

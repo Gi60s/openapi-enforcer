@@ -204,6 +204,10 @@ export class EnforcerComponent<Definition extends IDefinition> {
 }
 
 function validateChild (processor: SchemaProcessor, key: string, definition: any, schema: S.ISchema): void {
+
+  if (schema.type === 'oneOf') {
+    schema = processor.schema ?? { type: 'any' }
+  }
   if (schema.type === 'component') {
     const child = processor.createChild(key, definition, {}, schema.component)
     schema.component.validate(definition, processor.version, child)
@@ -256,12 +260,11 @@ function validateDefinition (processor: SchemaProcessor): boolean {
   if (schema.notAllowed !== undefined) {
     exception.add({
       id,
-      code: 'PROPERTY_NOT_ALLOWED',
+      code: schema.notAllowed,
       level: 'error',
       locations: [processor.getLocation('key')],
       metadata: {
-        propertyName: processor.key,
-        reason: schema.notAllowed
+        propertyName: processor.key
       },
       reference
     })
@@ -381,12 +384,11 @@ function validateDefinition (processor: SchemaProcessor): boolean {
         } else if (property.notAllowed !== undefined) {
           exception.add({
             id,
-            code: 'PROPERTY_NOT_ALLOWED',
+            code: property.notAllowed,
             level: 'error',
             locations: [getLocation(value, key, 'key')],
             metadata: {
-              propertyName: key,
-              reason: property.notAllowed
+              propertyName: key
             },
             reference
           })
