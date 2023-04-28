@@ -88,7 +88,7 @@ export interface ISchema2Definition {
   enum?: any[]
   multipleOf?: number
   required?: string[]
-  type?: string
+  type?: 'array'|'boolean'|'integer'|'number'|'object'|'string'
   items?: I.ISchema2Definition
   allOf?: Array<I.ISchema2Definition | I.IReference2Definition>
   properties?: Record<string, I.ISchema2Definition | I.IReference2Definition>
@@ -121,7 +121,7 @@ export interface ISchema2 extends ISchemaComponent {
   enum?: any[]
   multipleOf?: number
   required?: string[]
-  type?: string
+  type?: 'array'|'boolean'|'integer'|'number'|'object'|'string'
   items?: I.ISchema2
   allOf?: I.ISchema2[]
   properties?: Record<string, I.ISchema2>
@@ -135,7 +135,7 @@ export interface ISchema2 extends ISchemaComponent {
 
 export interface ISchema3Definition {
   [Extensions: `x-${string}`]: any
-  type?: string
+  type?: 'array'|'boolean'|'integer'|'number'|'object'|'string'
   allOf?: Array<I.ISchema3Definition | I.IReference3Definition>
   oneOf?: Array<I.ISchema3Definition | I.IReference3Definition>
   anyOf?: Array<I.ISchema3Definition | I.IReference3Definition>
@@ -174,7 +174,7 @@ export interface ISchema3Definition {
 
 export interface ISchema3 extends ISchemaComponent {
   [Extensions]: Record<string, any>
-  type?: string
+  type?: 'array'|'boolean'|'integer'|'number'|'object'|'string'
   allOf?: I.ISchema3[]
   oneOf?: I.ISchema3[]
   anyOf?: I.ISchema3[]

@@ -206,8 +206,17 @@ export class EnforcerComponent<Definition extends IDefinition> {
 function validateChild (processor: SchemaProcessor, key: string, definition: any, schema: S.ISchema): void {
 
   if (schema.type === 'oneOf') {
-    schema = processor.schema ?? { type: 'any' }
+    const length = schema.oneOf.length
+    const oneOf = schema.oneOf
+    for (let i = 0; i < length; i++) {
+      const s = oneOf[i]
+      if (s.condition(processor)) {
+        schema = s.schema
+        break
+      }
+    }
   }
+
   if (schema.type === 'component') {
     const child = processor.createChild(key, definition, {}, schema.component)
     schema.component.validate(definition, processor.version, child)

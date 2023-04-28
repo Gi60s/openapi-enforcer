@@ -300,11 +300,11 @@ export class Schema extends EnforcerComponent<I.ISchema2Definition> implements I
     this.setProperty('required', value)
   }
 
-  get type (): string | undefined {
+  get type (): 'array'|'boolean'|'integer'|'number'|'object'|'string' | undefined {
     return this.getProperty('type')
   }
 
-  set type (value: string | undefined) {
+  set type (value: 'array'|'boolean'|'integer'|'number'|'object'|'string' | undefined) {
     this.setProperty('type', value)
   }
 
@@ -544,7 +544,8 @@ function getValidatorsMap (): IValidatorsMap {
     type: {
       name: 'type',
       schema: {
-        type: 'string'
+        type: 'string',
+        enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
       }
     },
     items: {

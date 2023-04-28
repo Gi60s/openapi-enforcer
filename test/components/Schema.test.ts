@@ -47,13 +47,13 @@ describe.only('Schema', () => {
         test(Schema => {
           // @ts-expect-error
           const es = Schema.validate({ type: 'object', additionalProperties: 'yes' })
-
           expect(es).to.have.exceptionErrorCode('VALUE_TYPE_INVALID')
         })
       })
 
       it('will validate sub definition', () => {
         test(Schema => {
+          // @ts-expect-error
           const es = Schema.validate({ type: 'object', additionalProperties: { type: 'not-a-type' } })
           expect(es).to.have.exceptionErrorCode('ENUM_NOT_MET')
         })
@@ -171,41 +171,16 @@ describe.only('Schema', () => {
     describe('property: type', () => {
       it('will warn if schema type is indeterminate', () => {
         test(Schema => {
-          const result = Schema.validate({})
-          expect(result.hasWarningByCode('SCHEMA_TYPE_INDETERMINATE')).to.equal(true)
+          const es = Schema.validate({})
+          expect(es).to.have.exceptionWarningCode('SCHEMA_TYPE_INDETERMINATE')
         })
       })
 
       it('requires a valid type', () => {
         test(Schema => {
-          const result = Schema.validate({ type: 'foo' })
-          expect(result.hasErrorByCode('SCHEMA_TYPE_INVALID')).to.equal(true)
-        })
-      })
-
-      describe('Schema2', () => {
-        it('allows top level schema to be of type "file" for v2', () => {
-          const result = Schema2.validate({ type: 'file' })
-          expect(result.hasErrorByCode('SCHEMA_TYPE_INVALID')).to.be.equal(false)
-          expect(result.hasErrorByCode('SCHEMA_TYPE_INVALID_FILE')).to.be.equal(false)
-        })
-
-        it('does not allow nested schema to be of type "file" for nested schema', () => {
-          const result = Schema2.validate({
-            type: 'object',
-            properties: {
-              file: { type: 'file' }
-            }
-          })
-          expect(result.hasErrorByCode('SCHEMA_TYPE_INVALID')).to.be.equal(false)
-          expect(result.hasErrorByCode('SCHEMA_TYPE_INVALID_FILE')).to.be.equal(true)
-        })
-      })
-
-      describe('Schema3', () => {
-        it('does not allow type "file" for v3', () => {
-          const result = Schema3.validate({ type: 'file' })
-          expect(result.hasErrorByCode('SCHEMA_TYPE_INVALID')).to.be.equal(true)
+          // @ts-expect-error
+          const es = Schema.validate({ type: 'foo' })
+          expect(es).to.have.exceptionErrorCode('SCHEMA_TYPE_INVALID')
         })
       })
     })

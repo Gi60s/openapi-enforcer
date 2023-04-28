@@ -191,11 +191,11 @@ export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I
     return super.validate(result.value, version, arguments[2])
   }
 
-  get type (): string | undefined {
+  get type (): 'array'|'boolean'|'integer'|'number'|'object'|'string' | undefined {
     return this.getProperty('type')
   }
 
-  set type (value: string | undefined) {
+  set type (value: 'array'|'boolean'|'integer'|'number'|'object'|'string' | undefined) {
     this.setProperty('type', value)
   }
 
@@ -515,7 +515,8 @@ function getValidatorsMap (): IValidatorsMap {
     type: {
       name: 'type',
       schema: {
-        type: 'string'
+        type: 'string',
+        enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
       }
     },
     allOf: {
