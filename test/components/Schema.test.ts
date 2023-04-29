@@ -180,7 +180,7 @@ describe.only('Schema', () => {
         test(Schema => {
           // @ts-expect-error
           const es = Schema.validate({ type: 'foo' })
-          expect(es).to.have.exceptionErrorCode('SCHEMA_TYPE_INVALID')
+          expect(es).to.have.exceptionErrorCode('ENUM_NOT_MET')
         })
       })
     })

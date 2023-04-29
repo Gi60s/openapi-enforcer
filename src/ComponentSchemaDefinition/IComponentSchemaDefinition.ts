@@ -43,7 +43,6 @@ export interface IComponent<Definition, Built> extends Base<Definition | Built> 
 export interface ISchemaDefinition<Definition, Built extends I.IComponent> extends IObject {
   additionalProperties?: ISchema
   allowsSchemaExtensions: boolean
-  // after?: (data: ISchemaProcessor<Definition, Built>, mode: 'build' | 'validate') => void // runs after all build and validate functions throughout the entire tree
   build?: (data: SchemaProcessor<Definition, Built>) => void
   validate?: (data: SchemaProcessor<Definition, Built>) => void
 }

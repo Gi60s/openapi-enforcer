@@ -53,9 +53,10 @@ export function discriminate<T extends ISchema> (value: object): { key: string, 
   }
 }
 
-export function schemaDefinition (data: I.ISchemaSchemaProcessor, schema: C.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> | C.ISchemaDefinition<I.ISchema3Definition, I.ISchema3>): void {
-  const { definition } = data
+export function schemaDefinition (processor: I.ISchemaSchemaProcessor, schema: C.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> | C.ISchemaDefinition<I.ISchema3Definition, I.ISchema3>): void {
+  const { definition, exception } = processor
   const type = determineSchemaType(definition)
+  const ctor = processor.component.constructor
   schema.properties?.forEach(property => {
     switch (property.name) {
       case 'additionalProperties':
@@ -68,7 +69,7 @@ export function schemaDefinition (data: I.ISchemaSchemaProcessor, schema: C.ISch
               schema: {
                 type: 'component',
                 allowsRef: true,
-                component: data.component.constructor
+                component: ctor
               }
             },
             {
@@ -81,6 +82,18 @@ export function schemaDefinition (data: I.ISchemaSchemaProcessor, schema: C.ISch
         break
     }
   })
+
+  processor.after = () => {
+    if (type === undefined && !('allOf' in definition) && !('anyOf' in definition) && !('oneOf' in definition) && !('not' in definition)) {
+      exception.add({
+        code: 'SCHEMA_TYPE_INDETERMINATE',
+        id: ctor.id,
+        level: 'warn',
+        locations: [processor.getLocation('value')],
+        metadata: {}
+      })
+    }
+  }
 }
 
 // /**
