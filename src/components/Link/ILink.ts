@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -42,6 +43,15 @@ export interface ILink3 extends ILinkComponent {
   requestBody?: any
   description?: string
   server?: I.IServer3
+}
+
+export interface ILinkValidatorsMap3 {
+  operationRef: Icsd.IProperty<Icsd.IString>
+  operationId: Icsd.IProperty<Icsd.IString>
+  parameters: Icsd.IProperty<Icsd.IObject<any>>
+  requestBody: Icsd.IProperty<any>
+  description: Icsd.IProperty<Icsd.IString>
+  server: Icsd.IProperty<Icsd.IComponent<I.IServer3Definition, I.IServer3>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -36,6 +37,12 @@ export interface IRequestBody3 extends IRequestBodyComponent {
   description?: string
   content?: Record<string, I.IMediaType3>
   required?: boolean
+}
+
+export interface IRequestBodyValidatorsMap3 {
+  description: Icsd.IProperty<Icsd.IString>
+  content: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IMediaType3Definition, I.IMediaType3>>>
+  required: Icsd.IProperty<Icsd.IBoolean>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

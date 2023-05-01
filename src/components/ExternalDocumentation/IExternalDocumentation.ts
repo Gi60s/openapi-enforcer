@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -35,6 +36,11 @@ export interface IExternalDocumentation2 extends IExternalDocumentationComponent
   url: string
 }
 
+export interface IExternalDocumentationValidatorsMap2 {
+  description: Icsd.IProperty<Icsd.IString>
+  url: Icsd.IProperty<Icsd.IString>
+}
+
 export interface IExternalDocumentation3Definition {
   [Extensions: `x-${string}`]: any
   description?: string
@@ -45,6 +51,11 @@ export interface IExternalDocumentation3 extends IExternalDocumentationComponent
   [Extensions]: Record<string, any>
   description?: string
   url: string
+}
+
+export interface IExternalDocumentationValidatorsMap3 {
+  description: Icsd.IProperty<Icsd.IString>
+  url: Icsd.IProperty<Icsd.IString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

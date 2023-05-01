@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -48,6 +49,17 @@ export interface ISecurityScheme2 extends ISecuritySchemeComponent {
   scopes?: Record<string, string>
 }
 
+export interface ISecuritySchemeValidatorsMap2 {
+  type: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
+  name: Icsd.IProperty<Icsd.IString>
+  _in: Icsd.IProperty<Icsd.IString>
+  flow: Icsd.IProperty<Icsd.IString>
+  authorizationUrl: Icsd.IProperty<Icsd.IString>
+  tokenUrl: Icsd.IProperty<Icsd.IString>
+  scopes: Icsd.IProperty<Icsd.IObject<Icsd.IString>>
+}
+
 export interface ISecurityScheme3Definition {
   [Extensions: `x-${string}`]: any
   type?: 'apiKey'|'http'|'oauth2'|'openIdConnect'
@@ -70,6 +82,17 @@ export interface ISecurityScheme3 extends ISecuritySchemeComponent {
   bearerFormat?: string
   flows?: I.IOAuthFlows3
   openIdConnectUrl?: string
+}
+
+export interface ISecuritySchemeValidatorsMap3 {
+  type: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
+  name: Icsd.IProperty<Icsd.IString>
+  _in: Icsd.IProperty<Icsd.IString>
+  scheme: Icsd.IProperty<Icsd.IString>
+  bearerFormat: Icsd.IProperty<Icsd.IString>
+  flows: Icsd.IProperty<Icsd.IComponent<I.IOAuthFlows3Definition, I.IOAuthFlows3>>
+  openIdConnectUrl: Icsd.IProperty<Icsd.IString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

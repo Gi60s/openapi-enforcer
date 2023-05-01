@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,9 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.ICallback3Definition, I.ICallback3> | null = null
+let cachedSchema: Icsd.ISchemaDefinition<I.ICallback3Definition, I.ICallback3> | null = null
 
-const additionalProperties: ISchema.IComponent<I.IPathItem3Definition, I.IPathItem3> = {
+const additionalProperties: Icsd.IComponent<I.IPathItem3Definition, I.IPathItem3> = {
   type: 'component',
   allowsRef: false,
   component: I.PathItem3
@@ -64,12 +64,12 @@ export class Callback extends EnforcerComponent<I.ICallback3Definition> implemen
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#callback-object'
   }
 
-  static getSchemaDefinition (_data: I.ICallbackSchemaProcessor): ISchema.ISchemaDefinition<I.ICallback3Definition, I.ICallback3> {
+  static getSchemaDefinition (_data: I.ICallbackSchemaProcessor): Icsd.ISchemaDefinition<I.ICallback3Definition, I.ICallback3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<I.ICallback3Definition, I.ICallback3> = {
+    const result: Icsd.ISchemaDefinition<I.ICallback3Definition, I.ICallback3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties

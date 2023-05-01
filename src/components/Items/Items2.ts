@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,27 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IItems2Definition, I.IItems2> | null = null
+type IValidatorsMap = I.IItemsValidatorsMap2
 
-interface IValidatorsMap {
-  type: ISchema.IProperty<ISchema.IString>
-  format: ISchema.IProperty<ISchema.IString>
-  items: ISchema.IProperty<ISchema.IComponent<I.IItems2Definition, I.IItems2>>
-  collectionFormat: ISchema.IProperty<ISchema.IString>
-  _default: ISchema.IProperty<any>
-  maximum: ISchema.IProperty<ISchema.INumber>
-  exclusiveMaximum: ISchema.IProperty<ISchema.IBoolean>
-  minimum: ISchema.IProperty<ISchema.INumber>
-  exclusiveMinimum: ISchema.IProperty<ISchema.IBoolean>
-  maxLength: ISchema.IProperty<ISchema.INumber>
-  minLength: ISchema.IProperty<ISchema.INumber>
-  pattern: ISchema.IProperty<ISchema.IString>
-  maxItems: ISchema.IProperty<ISchema.INumber>
-  minItems: ISchema.IProperty<ISchema.INumber>
-  uniqueItems: ISchema.IProperty<ISchema.IBoolean>
-  _enum: ISchema.IProperty<ISchema.IArray<any>>
-  multipleOf: ISchema.IProperty<ISchema.INumber>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IItems2Definition, I.IItems2> | null = null
 
 export class Items extends EnforcerComponent<I.IItems2Definition> implements I.IItems2 {
   [S.Extensions]: Record<string, any> = {}
@@ -64,13 +46,13 @@ export class Items extends EnforcerComponent<I.IItems2Definition> implements I.I
     '3.0.3': false
   }
 
-  static getSchemaDefinition (_data: I.IItemsSchemaProcessor): ISchema.ISchemaDefinition<I.IItems2Definition, I.IItems2> {
+  static getSchemaDefinition (_data: I.IItemsSchemaProcessor): Icsd.ISchemaDefinition<I.IItems2Definition, I.IItems2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IItems2Definition, I.IItems2> = {
+    const result: Icsd.ISchemaDefinition<I.IItems2Definition, I.IItems2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

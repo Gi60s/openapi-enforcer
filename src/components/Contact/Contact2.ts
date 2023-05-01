@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,13 +22,9 @@ import * as S from '../Symbols'
 import { validate } from './common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IContact2Definition, I.IContact2> | null = null
+type IValidatorsMap = I.IContactValidatorsMap2
 
-interface IValidatorsMap {
-  name: ISchema.IProperty<ISchema.IString>
-  url: ISchema.IProperty<ISchema.IString>
-  email: ISchema.IProperty<ISchema.IString>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IContact2Definition, I.IContact2> | null = null
 
 export class Contact extends EnforcerComponent<I.IContact2Definition> implements I.IContact2 {
   [S.Extensions]: Record<string, any> = {}
@@ -50,13 +46,13 @@ export class Contact extends EnforcerComponent<I.IContact2Definition> implements
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: I.IContactSchemaProcessor): ISchema.ISchemaDefinition<I.IContact2Definition, I.IContact2> {
+  static getSchemaDefinition (_data: I.IContactSchemaProcessor): Icsd.ISchemaDefinition<I.IContact2Definition, I.IContact2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IContact2Definition, I.IContact2> = {
+    const result: Icsd.ISchemaDefinition<I.IContact2Definition, I.IContact2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

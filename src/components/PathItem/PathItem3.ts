@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,23 +22,9 @@ import * as S from '../Symbols'
 import { validate } from './common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IPathItem3Definition, I.IPathItem3> | null = null
+type IValidatorsMap = I.IPathItemValidatorsMap3
 
-interface IValidatorsMap {
-  $ref: ISchema.IProperty<ISchema.IString>
-  summary: ISchema.IProperty<ISchema.IString>
-  description: ISchema.IProperty<ISchema.IString>
-  get: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
-  put: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
-  post: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
-  _delete: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
-  options: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
-  head: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
-  patch: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
-  trace: ISchema.IProperty<ISchema.IComponent<I.IOperation3Definition, I.IOperation3>>
-  servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IServer3Definition, I.IServer3>>>
-  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IParameter3Definition, I.IParameter3>>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IPathItem3Definition, I.IPathItem3> | null = null
 
 export class PathItem extends EnforcerComponent<I.IPathItem3Definition> implements I.IPathItem3 {
   [S.Extensions]: Record<string, any> = {}
@@ -60,13 +46,13 @@ export class PathItem extends EnforcerComponent<I.IPathItem3Definition> implemen
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#path-item-object'
   }
 
-  static getSchemaDefinition (_data: I.IPathItemSchemaProcessor): ISchema.ISchemaDefinition<I.IPathItem3Definition, I.IPathItem3> {
+  static getSchemaDefinition (_data: I.IPathItemSchemaProcessor): Icsd.ISchemaDefinition<I.IPathItem3Definition, I.IPathItem3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IPathItem3Definition, I.IPathItem3> = {
+    const result: Icsd.ISchemaDefinition<I.IPathItem3Definition, I.IPathItem3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

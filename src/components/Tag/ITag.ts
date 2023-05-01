@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -38,6 +39,12 @@ export interface ITag2 extends ITagComponent {
   externalDocs?: I.IExternalDocumentation2
 }
 
+export interface ITagValidatorsMap2 {
+  name: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
+  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
+}
+
 export interface ITag3Definition {
   [Extensions: `x-${string}`]: any
   name: string
@@ -50,6 +57,12 @@ export interface ITag3 extends ITagComponent {
   name: string
   description?: string
   externalDocs?: I.IExternalDocumentation3
+}
+
+export interface ITagValidatorsMap3 {
+  name: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
+  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

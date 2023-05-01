@@ -210,7 +210,7 @@ function validateChild (processor: SchemaProcessor, key: string, definition: any
     const oneOf = schema.oneOf
     for (let i = 0; i < length; i++) {
       const s = oneOf[i]
-      if (s.condition(processor)) {
+      if (s.condition(definition, key, processor)) {
         schema = s.schema
         break
       }
@@ -298,7 +298,7 @@ function validateDefinition (processor: SchemaProcessor): boolean {
   if (actualType === 'object' && definition !== null && '$ref' in definition) {
     const key = processor.key
     const parentSchema = processor.parent?.schema as S.IObject
-    const subSchema = processor._schema.type === 'oneOf'
+    const subSchema = processor.schema.type === 'oneOf'
       ? schema
       : parentSchema.properties?.find(s => s.name === key)?.schema ?? parentSchema.additionalProperties
     if (subSchema !== undefined && (!('allowsRef' in subSchema) || !subSchema.allowsRef)) {
@@ -324,12 +324,13 @@ function validateDefinition (processor: SchemaProcessor): boolean {
       level: 'error',
       locations: [processor.getLocation('value')],
       metadata: {
-        actualType,
-        expectedType,
+        allowedTypes: expectedType,
+        type: actualType,
         value: definition
       },
       reference
     })
+    return false
   }
 
   if ('enum' in schema && schema.enum !== undefined && !schema.enum.includes(definition as never)) {

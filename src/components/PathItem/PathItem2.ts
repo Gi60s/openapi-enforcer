@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,19 +22,9 @@ import * as S from '../Symbols'
 import { validate } from './common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> | null = null
+type IValidatorsMap = I.IPathItemValidatorsMap2
 
-interface IValidatorsMap {
-  $ref: ISchema.IProperty<ISchema.IString>
-  get: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
-  put: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
-  post: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
-  _delete: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
-  options: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
-  head: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
-  patch: ISchema.IProperty<ISchema.IComponent<I.IOperation2Definition, I.IOperation2>>
-  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IParameter2Definition, I.IParameter2>>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> | null = null
 
 export class PathItem extends EnforcerComponent<I.IPathItem2Definition> implements I.IPathItem2 {
   [S.Extensions]: Record<string, any> = {}
@@ -56,13 +46,13 @@ export class PathItem extends EnforcerComponent<I.IPathItem2Definition> implemen
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: I.IPathItemSchemaProcessor): ISchema.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> {
+  static getSchemaDefinition (_data: I.IPathItemSchemaProcessor): Icsd.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> = {
+    const result: Icsd.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
@@ -24,12 +24,9 @@ import * as I from '../IInternalTypes'
 // import { getNormalizedSchema, getSchemaPropertyValue } from '../Schema/common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> | null = null
+type IValidatorsMap = I.IDiscriminatorValidatorsMap3
 
-interface IValidatorsMap {
-  propertyName: ISchema.IProperty<ISchema.IString>
-  mapping: ISchema.IProperty<ISchema.IObject<ISchema.IString>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> | null = null
 
 export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition> implements I.IDiscriminator3 {
   constructor (definition: I.IDiscriminator3Definition, version?: IVersion) {
@@ -49,13 +46,13 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#discriminator-object'
   }
 
-  static getSchemaDefinition (_data: I.IDiscriminatorSchemaProcessor): ISchema.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> {
+  static getSchemaDefinition (_data: I.IDiscriminatorSchemaProcessor): Icsd.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> = {
+    const result: Icsd.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [

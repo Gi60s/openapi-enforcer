@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -30,6 +31,11 @@ export interface IDiscriminator3Definition {
 export interface IDiscriminator3 extends IDiscriminatorComponent {
   propertyName: string
   mapping?: Record<string, string>
+}
+
+export interface IDiscriminatorValidatorsMap3 {
+  propertyName: Icsd.IProperty<Icsd.IString>
+  mapping: Icsd.IProperty<Icsd.IObject<Icsd.IString>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

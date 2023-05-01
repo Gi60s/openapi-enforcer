@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,14 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> | null = null
+type IValidatorsMap = I.IMediaTypeValidatorsMap3
 
-interface IValidatorsMap {
-  schema: ISchema.IProperty<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>
-  example: ISchema.IProperty<any>
-  examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IExample3Definition, I.IExample3>>>
-  encoding: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IEncoding3Definition, I.IEncoding3>>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> | null = null
 
 export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implements I.IMediaType3 {
   [S.Extensions]: Record<string, any> = {}
@@ -51,13 +46,13 @@ export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implem
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#media-type-object'
   }
 
-  static getSchemaDefinition (_data: I.IMediaTypeSchemaProcessor): ISchema.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> {
+  static getSchemaDefinition (_data: I.IMediaTypeSchemaProcessor): Icsd.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> = {
+    const result: Icsd.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

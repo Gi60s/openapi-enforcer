@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
@@ -30,12 +31,20 @@ export interface IReference2 extends IReferenceComponent {
   $ref: string
 }
 
+export interface IReferenceValidatorsMap2 {
+  $ref: Icsd.IProperty<Icsd.IString>
+}
+
 export interface IReference3Definition {
   $ref: string
 }
 
 export interface IReference3 extends IReferenceComponent {
   $ref: string
+}
+
+export interface IReferenceValidatorsMap3 {
+  $ref: Icsd.IProperty<Icsd.IString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

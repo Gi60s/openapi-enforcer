@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -40,6 +41,14 @@ export interface IEncoding3 extends IEncodingComponent {
   style?: string
   explode?: boolean
   allowReserved?: boolean
+}
+
+export interface IEncodingValidatorsMap3 {
+  contentType: Icsd.IProperty<Icsd.IString>
+  headers: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IHeader3Definition, I.IHeader3>>>
+  style: Icsd.IProperty<Icsd.IString>
+  explode: Icsd.IProperty<Icsd.IBoolean>
+  allowReserved: Icsd.IProperty<Icsd.IBoolean>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

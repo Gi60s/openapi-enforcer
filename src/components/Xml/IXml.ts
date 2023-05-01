@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -41,6 +42,14 @@ export interface IXml2 extends IXmlComponent {
   wrapped?: boolean
 }
 
+export interface IXmlValidatorsMap2 {
+  name: Icsd.IProperty<Icsd.IString>
+  namespace: Icsd.IProperty<Icsd.IString>
+  prefix: Icsd.IProperty<Icsd.IString>
+  attribute: Icsd.IProperty<Icsd.IBoolean>
+  wrapped: Icsd.IProperty<Icsd.IBoolean>
+}
+
 export interface IXml3Definition {
   [Extensions: `x-${string}`]: any
   name?: string
@@ -57,6 +66,14 @@ export interface IXml3 extends IXmlComponent {
   prefix?: string
   attribute?: boolean
   wrapped?: boolean
+}
+
+export interface IXmlValidatorsMap3 {
+  name: Icsd.IProperty<Icsd.IString>
+  namespace: Icsd.IProperty<Icsd.IString>
+  prefix: Icsd.IProperty<Icsd.IString>
+  attribute: Icsd.IProperty<Icsd.IBoolean>
+  wrapped: Icsd.IProperty<Icsd.IBoolean>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

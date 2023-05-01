@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -29,22 +29,9 @@ const multipartContentType = ContentType.fromString('multipart/form-data')
 const formUrlEncodedContentType = ContentType.fromString('application/x-www-form-urlencoded')
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IOperation2Definition, I.IOperation2> | null = null
+type IValidatorsMap = I.IOperationValidatorsMap2
 
-interface IValidatorsMap {
-  tags: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  summary: ISchema.IProperty<ISchema.IString>
-  description: ISchema.IProperty<ISchema.IString>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
-  operationId: ISchema.IProperty<ISchema.IString>
-  consumes: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  produces: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IParameter2Definition, I.IParameter2>>>
-  responses: ISchema.IProperty<ISchema.IComponent<I.IResponses2Definition, I.IResponses2>>
-  schemes: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  deprecated: ISchema.IProperty<ISchema.IBoolean>
-  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISecurityRequirement2Definition, I.ISecurityRequirement2>>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IOperation2Definition, I.IOperation2> | null = null
 
 export class Operation extends EnforcerComponent<I.IOperation2Definition> implements I.IOperation2 {
   [S.Extensions]: Record<string, any> = {}
@@ -82,13 +69,13 @@ export class Operation extends EnforcerComponent<I.IOperation2Definition> implem
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: I.IOperationSchemaProcessor): ISchema.ISchemaDefinition<I.IOperation2Definition, I.IOperation2> {
+  static getSchemaDefinition (_data: I.IOperationSchemaProcessor): Icsd.ISchemaDefinition<I.IOperation2Definition, I.IOperation2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IOperation2Definition, I.IOperation2> = {
+    const result: Icsd.ISchemaDefinition<I.IOperation2Definition, I.IOperation2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

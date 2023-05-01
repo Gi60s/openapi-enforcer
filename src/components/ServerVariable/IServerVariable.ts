@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -35,6 +36,12 @@ export interface IServerVariable3 extends IServerVariableComponent {
   enum?: string[]
   default: string
   description?: string
+}
+
+export interface IServerVariableValidatorsMap3 {
+  _enum: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
+  _default: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

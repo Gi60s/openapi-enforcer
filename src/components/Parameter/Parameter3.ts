@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,23 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IParameter3Definition, I.IParameter3> | null = null
+type IValidatorsMap = I.IParameterValidatorsMap3
 
-interface IValidatorsMap {
-  name: ISchema.IProperty<ISchema.IString>
-  _in: ISchema.IProperty<ISchema.IString>
-  description: ISchema.IProperty<ISchema.IString>
-  required: ISchema.IProperty<ISchema.IBoolean>
-  deprecated: ISchema.IProperty<ISchema.IBoolean>
-  allowEmptyValue: ISchema.IProperty<ISchema.IBoolean>
-  style: ISchema.IProperty<ISchema.IString>
-  explode: ISchema.IProperty<ISchema.IBoolean>
-  allowReserved: ISchema.IProperty<ISchema.IBoolean>
-  schema: ISchema.IProperty<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>
-  example: ISchema.IProperty<any>
-  examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IExample3Definition, I.IExample3>>>
-  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IMediaType3Definition, I.IMediaType3>>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IParameter3Definition, I.IParameter3> | null = null
 
 export class Parameter extends EnforcerComponent<I.IParameter3Definition> implements I.IParameter3 {
   [S.Extensions]: Record<string, any> = {}
@@ -60,13 +46,13 @@ export class Parameter extends EnforcerComponent<I.IParameter3Definition> implem
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#parameter-object'
   }
 
-  static getSchemaDefinition (_data: I.IParameterSchemaProcessor): ISchema.ISchemaDefinition<I.IParameter3Definition, I.IParameter3> {
+  static getSchemaDefinition (_data: I.IParameterSchemaProcessor): Icsd.ISchemaDefinition<I.IParameter3Definition, I.IParameter3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IParameter3Definition, I.IParameter3> = {
+    const result: Icsd.ISchemaDefinition<I.IParameter3Definition, I.IParameter3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

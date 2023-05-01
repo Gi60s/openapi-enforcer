@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -38,6 +39,13 @@ export interface IResponse2 extends IResponseComponent {
   examples?: I.IExample2
 }
 
+export interface IResponseValidatorsMap2 {
+  description: Icsd.IProperty<Icsd.IString>
+  schema: Icsd.IProperty<Icsd.IComponent<I.ISchema2Definition, I.ISchema2>>
+  headers: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IHeader2Definition, I.IHeader2>>>
+  examples: Icsd.IProperty<Icsd.IComponent<I.IExample2Definition, I.IExample2>>
+}
+
 export interface IResponse3Definition {
   [Extensions: `x-${string}`]: any
   description: string
@@ -52,6 +60,13 @@ export interface IResponse3 extends IResponseComponent {
   headers?: Record<string, I.IHeader3>
   content?: Record<string, I.IMediaType3>
   links?: Record<string, I.ILink3>
+}
+
+export interface IResponseValidatorsMap3 {
+  description: Icsd.IProperty<Icsd.IString>
+  headers: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IHeader3Definition, I.IHeader3>>>
+  content: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IMediaType3Definition, I.IMediaType3>>>
+  links: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ILink3Definition, I.ILink3>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

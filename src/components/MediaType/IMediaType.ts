@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -38,6 +39,13 @@ export interface IMediaType3 extends IMediaTypeComponent {
   example?: any
   examples?: Record<string, I.IExample3>
   encoding?: Record<string, I.IEncoding3>
+}
+
+export interface IMediaTypeValidatorsMap3 {
+  schema: Icsd.IProperty<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>
+  example: Icsd.IProperty<any>
+  examples: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IExample3Definition, I.IExample3>>>
+  encoding: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IEncoding3Definition, I.IEncoding3>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

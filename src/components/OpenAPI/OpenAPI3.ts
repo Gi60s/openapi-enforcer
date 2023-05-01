@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,18 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> | null = null
+type IValidatorsMap = I.IOpenAPIValidatorsMap3
 
-interface IValidatorsMap {
-  openapi: ISchema.IProperty<ISchema.IString>
-  info: ISchema.IProperty<ISchema.IComponent<I.IInfo3Definition, I.IInfo3>>
-  servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IServer3Definition, I.IServer3>>>
-  paths: ISchema.IProperty<ISchema.IComponent<I.IPaths3Definition, I.IPaths3>>
-  components: ISchema.IProperty<ISchema.IComponent<I.IComponents3Definition, I.IComponents3>>
-  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISecurityRequirement3Definition, I.ISecurityRequirement3>>>
-  tags: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ITag3Definition, I.ITag3>>>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> | null = null
 
 export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements I.IOpenAPI3 {
   [S.Extensions]: Record<string, any> = {}
@@ -55,13 +46,13 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#openapi-object'
   }
 
-  static getSchemaDefinition (_data: I.IOpenAPISchemaProcessor): ISchema.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> {
+  static getSchemaDefinition (_data: I.IOpenAPISchemaProcessor): Icsd.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> = {
+    const result: Icsd.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

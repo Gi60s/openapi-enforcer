@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -37,6 +38,13 @@ export interface IOAuthFlow3 extends IOAuthFlowComponent {
   tokenUrl?: string
   refreshUrl?: string
   scopes?: Record<string, string>
+}
+
+export interface IOAuthFlowValidatorsMap3 {
+  authorizationUrl: Icsd.IProperty<Icsd.IString>
+  tokenUrl: Icsd.IProperty<Icsd.IString>
+  refreshUrl: Icsd.IProperty<Icsd.IString>
+  scopes: Icsd.IProperty<Icsd.IObject<Icsd.IString>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

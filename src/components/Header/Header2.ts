@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,28 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IHeader2Definition, I.IHeader2> | null = null
+type IValidatorsMap = I.IHeaderValidatorsMap2
 
-interface IValidatorsMap {
-  description: ISchema.IProperty<ISchema.IString>
-  type: ISchema.IProperty<ISchema.IString>
-  format: ISchema.IProperty<ISchema.IString>
-  items: ISchema.IProperty<ISchema.IComponent<I.IItems2Definition, I.IItems2>>
-  collectionFormat: ISchema.IProperty<ISchema.IString>
-  _default: ISchema.IProperty<any>
-  maximum: ISchema.IProperty<ISchema.INumber>
-  exclusiveMaximum: ISchema.IProperty<ISchema.IBoolean>
-  minimum: ISchema.IProperty<ISchema.INumber>
-  exclusiveMinimum: ISchema.IProperty<ISchema.IBoolean>
-  maxLength: ISchema.IProperty<ISchema.INumber>
-  minLength: ISchema.IProperty<ISchema.INumber>
-  pattern: ISchema.IProperty<ISchema.IString>
-  maxItems: ISchema.IProperty<ISchema.INumber>
-  minItems: ISchema.IProperty<ISchema.INumber>
-  uniqueItems: ISchema.IProperty<ISchema.IBoolean>
-  _enum: ISchema.IProperty<ISchema.IArray<any>>
-  multipleOf: ISchema.IProperty<ISchema.INumber>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IHeader2Definition, I.IHeader2> | null = null
 
 export class Header extends EnforcerComponent<I.IHeader2Definition> implements I.IHeader2 {
   [S.Extensions]: Record<string, any> = {}
@@ -65,13 +46,13 @@ export class Header extends EnforcerComponent<I.IHeader2Definition> implements I
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: I.IHeaderSchemaProcessor): ISchema.ISchemaDefinition<I.IHeader2Definition, I.IHeader2> {
+  static getSchemaDefinition (_data: I.IHeaderSchemaProcessor): Icsd.ISchemaDefinition<I.IHeader2Definition, I.IHeader2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IHeader2Definition, I.IHeader2> = {
+    const result: Icsd.ISchemaDefinition<I.IHeader2Definition, I.IHeader2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

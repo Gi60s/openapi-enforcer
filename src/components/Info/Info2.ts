@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,16 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IInfo2Definition, I.IInfo2> | null = null
+type IValidatorsMap = I.IInfoValidatorsMap2
 
-interface IValidatorsMap {
-  title: ISchema.IProperty<ISchema.IString>
-  description: ISchema.IProperty<ISchema.IString>
-  termsOfService: ISchema.IProperty<ISchema.IString>
-  contact: ISchema.IProperty<ISchema.IComponent<I.IContact2Definition, I.IContact2>>
-  license: ISchema.IProperty<ISchema.IComponent<I.ILicense2Definition, I.ILicense2>>
-  version: ISchema.IProperty<ISchema.IString>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IInfo2Definition, I.IInfo2> | null = null
 
 export class Info extends EnforcerComponent<I.IInfo2Definition> implements I.IInfo2 {
   [S.Extensions]: Record<string, any> = {}
@@ -53,13 +46,13 @@ export class Info extends EnforcerComponent<I.IInfo2Definition> implements I.IIn
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: I.IInfoSchemaProcessor): ISchema.ISchemaDefinition<I.IInfo2Definition, I.IInfo2> {
+  static getSchemaDefinition (_data: I.IInfoSchemaProcessor): Icsd.ISchemaDefinition<I.IInfo2Definition, I.IInfo2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IInfo2Definition, I.IInfo2> = {
+    const result: Icsd.ISchemaDefinition<I.IInfo2Definition, I.IInfo2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

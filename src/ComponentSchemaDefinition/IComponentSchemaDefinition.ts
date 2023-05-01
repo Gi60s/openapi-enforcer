@@ -58,7 +58,7 @@ export interface INumber extends Base<number> {
 export interface IOneOf extends Base<any> {
   type: 'oneOf'
   oneOf: Array<{
-    condition: (data: SchemaProcessor) => boolean
+    condition: (definition: any, key: string, data: SchemaProcessor) => boolean
     schema: ISchema
   }>
   // error: (data: SchemaProcessor) => void // only called by validator, not builder

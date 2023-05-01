@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -36,6 +37,12 @@ export interface IServer3 extends IServerComponent {
   url: string
   description?: string
   variables?: Record<string, I.IServerVariable3>
+}
+
+export interface IServerValidatorsMap3 {
+  url: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
+  variables: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IServerVariable3Definition, I.IServerVariable3>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

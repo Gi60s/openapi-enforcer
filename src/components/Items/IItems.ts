@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -64,6 +65,26 @@ export interface IItems2 extends IItemsComponent {
   uniqueItems?: boolean
   enum?: any[]
   multipleOf?: number
+}
+
+export interface IItemsValidatorsMap2 {
+  type: Icsd.IProperty<Icsd.IString>
+  format: Icsd.IProperty<Icsd.IString>
+  items: Icsd.IProperty<Icsd.IComponent<I.IItems2Definition, I.IItems2>>
+  collectionFormat: Icsd.IProperty<Icsd.IString>
+  _default: Icsd.IProperty<any>
+  maximum: Icsd.IProperty<Icsd.INumber>
+  exclusiveMaximum: Icsd.IProperty<Icsd.IBoolean>
+  minimum: Icsd.IProperty<Icsd.INumber>
+  exclusiveMinimum: Icsd.IProperty<Icsd.IBoolean>
+  maxLength: Icsd.IProperty<Icsd.INumber>
+  minLength: Icsd.IProperty<Icsd.INumber>
+  pattern: Icsd.IProperty<Icsd.IString>
+  maxItems: Icsd.IProperty<Icsd.INumber>
+  minItems: Icsd.IProperty<Icsd.INumber>
+  uniqueItems: Icsd.IProperty<Icsd.IBoolean>
+  _enum: Icsd.IProperty<Icsd.IArray<any>>
+  multipleOf: Icsd.IProperty<Icsd.INumber>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,13 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IServerVariable3Definition, I.IServerVariable3> | null = null
+type IValidatorsMap = I.IServerVariableValidatorsMap3
 
-interface IValidatorsMap {
-  _enum: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  _default: ISchema.IProperty<ISchema.IString>
-  description: ISchema.IProperty<ISchema.IString>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IServerVariable3Definition, I.IServerVariable3> | null = null
 
 export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definition> implements I.IServerVariable3 {
   [S.Extensions]: Record<string, any> = {}
@@ -50,13 +46,13 @@ export class ServerVariable extends EnforcerComponent<I.IServerVariable3Definiti
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-variable-object'
   }
 
-  static getSchemaDefinition (_data: I.IServerVariableSchemaProcessor): ISchema.ISchemaDefinition<I.IServerVariable3Definition, I.IServerVariable3> {
+  static getSchemaDefinition (_data: I.IServerVariableSchemaProcessor): Icsd.ISchemaDefinition<I.IServerVariable3Definition, I.IServerVariable3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IServerVariable3Definition, I.IServerVariable3> = {
+    const result: Icsd.ISchemaDefinition<I.IServerVariable3Definition, I.IServerVariable3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

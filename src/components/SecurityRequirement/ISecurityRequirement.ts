@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>

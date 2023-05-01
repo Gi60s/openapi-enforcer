@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -48,6 +49,18 @@ export interface IComponents3 extends IComponentsComponent {
   securitySchemes?: Record<string, I.ISecurityScheme3>
   links?: Record<string, I.ILink3>
   callbacks?: Record<string, I.ICallback3>
+}
+
+export interface IComponentsValidatorsMap3 {
+  schemas: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>>
+  responses: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IResponse3Definition, I.IResponse3>>>
+  parameters: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IParameter3Definition, I.IParameter3>>>
+  examples: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IExample3Definition, I.IExample3>>>
+  requestBodies: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IRequestBody3Definition, I.IRequestBody3>>>
+  headers: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IHeader3Definition, I.IHeader3>>>
+  securitySchemes: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ISecurityScheme3Definition, I.ISecurityScheme3>>>
+  links: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ILink3Definition, I.ILink3>>>
+  callbacks: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ICallback3Definition, I.ICallback3>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

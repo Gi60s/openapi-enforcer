@@ -16,7 +16,7 @@ import { ILastly } from '../Lastly/ILastly'
 import { ISchema, ISchemaDefinition } from './IComponentSchemaDefinition'
 import { getLocation } from '../Loader'
 import { ILocation } from '../Locator/ILocator'
-import * as S from './IComponentSchemaDefinition'
+// import * as S from './IComponentSchemaDefinition'
 
 type EnforcerComponentClass = typeof EnforcerComponent<any>
 
@@ -32,11 +32,11 @@ export class SchemaProcessor<Definition=any, Built=any> {
     schema: ISchema
   }
 
-  public _definition: Definition
+  public definition: Definition
   public exception: ExceptionStore
   public key: string
   public lastly: ILastly
-  public _schema: ISchema
+  public schema: ISchema
   public store: {
     documentRoot: IOpenAPISchemaProcessor | ISwaggerSchemaProcessor | undefined
     discriminatorSchemas: Array<{
@@ -60,11 +60,11 @@ export class SchemaProcessor<Definition=any, Built=any> {
     this.after = undefined
     this.built = built
     this.children = {}
-    this._definition = definition
+    this.definition = definition
     this.exception = parent?.exception ?? new ExceptionStore()
     this.key = ''
     this.lastly = parent?.lastly ?? new Lastly(mode)
-    this._schema = { type: 'any' }
+    this.schema = { type: 'any' }
     this.store = parent?.store ?? {
       documentRoot: undefined,
       discriminatorSchemas: [],
@@ -127,7 +127,7 @@ export class SchemaProcessor<Definition=any, Built=any> {
     } else {
       const child = new SchemaProcessor<any, any>(this.mode, definition, built, null, this.version, this)
       child.key = key
-      child._schema = schema as ISchema
+      child.schema = schema as ISchema
       this.children[key] = child
       return child
     }
@@ -135,8 +135,8 @@ export class SchemaProcessor<Definition=any, Built=any> {
 
   getLocation (position: 'key' | 'value' | 'both' = 'both'): ILocation | undefined {
     return this.parent === null
-      ? getLocation(this._definition as unknown as object)
-      : getLocation(this.parent._definition, this.key, position)
+      ? getLocation(this.definition as unknown as object)
+      : getLocation(this.parent.definition, this.key, position)
   }
 
   getSiblingValue (key: string): any | undefined {
@@ -180,28 +180,22 @@ export class SchemaProcessor<Definition=any, Built=any> {
     }
   }
 
-  get definition (): Definition {
-    if (this._definition !== undefined) return this._definition
-    const schema = this._schema.type === 'oneOf' ? findOneOfSchema(this) : this._schema
-    return schema?.default
-  }
-
-  get schema (): S.ISchema | undefined {
-    const schema = this._schema
-    return schema.type === 'oneOf'
-      ? findOneOfSchema(this)
-      : this._schema
-  }
+  // get schema (): S.ISchema | undefined {
+  //   const schema = this._schema
+  //   return schema.type === 'oneOf'
+  //     ? findOneOfSchema(this)
+  //     : this._schema
+  // }
 }
 
-function findOneOfSchema (processor: SchemaProcessor): S.ISchema | undefined {
-  const schema = processor._schema as S.IOneOf
-  const length = schema.oneOf.length
-  for (let i = 0; i < length; i++) {
-    const item = schema.oneOf[i]
-    if (item.condition(processor)) return item.schema
-  }
-}
+// function findOneOfSchema (processor: SchemaProcessor): S.ISchema | undefined {
+//   const schema = processor._schema as S.IOneOf
+//   const length = schema.oneOf.length
+//   for (let i = 0; i < length; i++) {
+//     const item = schema.oneOf[i]
+//     if (item.condition(processor)) return item.schema
+//   }
+// }
 
 function getHighestVersion (versions: IVersion[]): IVersion {
   let highMajor: number | undefined

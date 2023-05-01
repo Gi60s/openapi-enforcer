@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,19 +22,9 @@ import * as S from '../Symbols'
 const rxPropertyName = /^[a-zA-Z0-9._-]+$/
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IComponents3Definition, I.IComponents3> | null = null
+type IValidatorsMap = I.IComponentsValidatorsMap3
 
-interface IValidatorsMap {
-  schemas: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>>
-  responses: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IResponse3Definition, I.IResponse3>>>
-  parameters: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IParameter3Definition, I.IParameter3>>>
-  examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IExample3Definition, I.IExample3>>>
-  requestBodies: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IRequestBody3Definition, I.IRequestBody3>>>
-  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IHeader3Definition, I.IHeader3>>>
-  securitySchemes: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ISecurityScheme3Definition, I.ISecurityScheme3>>>
-  links: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ILink3Definition, I.ILink3>>>
-  callbacks: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ICallback3Definition, I.ICallback3>>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IComponents3Definition, I.IComponents3> | null = null
 
 export class Components extends EnforcerComponent<I.IComponents3Definition> implements I.IComponents3 {
   [S.Extensions]: Record<string, any> = {}
@@ -56,13 +46,13 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#components-object'
   }
 
-  static getSchemaDefinition (_data: I.IComponentsSchemaProcessor): ISchema.ISchemaDefinition<I.IComponents3Definition, I.IComponents3> {
+  static getSchemaDefinition (_data: I.IComponentsSchemaProcessor): Icsd.ISchemaDefinition<I.IComponents3Definition, I.IComponents3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IComponents3Definition, I.IComponents3> = {
+    const result: Icsd.ISchemaDefinition<I.IComponents3Definition, I.IComponents3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

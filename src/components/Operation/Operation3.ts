@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -24,22 +24,9 @@ import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestR
 import { validate, getMergedParameters, mergeParameters, operationWillAcceptContentType } from './common'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> | null = null
+type IValidatorsMap = I.IOperationValidatorsMap3
 
-interface IValidatorsMap {
-  tags: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  summary: ISchema.IProperty<ISchema.IString>
-  description: ISchema.IProperty<ISchema.IString>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
-  operationId: ISchema.IProperty<ISchema.IString>
-  parameters: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IParameter3Definition, I.IParameter3>>>
-  requestBody: ISchema.IProperty<ISchema.IComponent<I.IRequestBody3Definition, I.IRequestBody3>>
-  responses: ISchema.IProperty<ISchema.IComponent<I.IResponses3Definition, I.IResponses3>>
-  callbacks: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ICallback3Definition, I.ICallback3>>>
-  deprecated: ISchema.IProperty<ISchema.IBoolean>
-  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISecurityRequirement3Definition, I.ISecurityRequirement3>>>
-  servers: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.IServer3Definition, I.IServer3>>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> | null = null
 
 export class Operation extends EnforcerComponent<I.IOperation3Definition> implements I.IOperation3 {
   [S.Extensions]: Record<string, any> = {}
@@ -65,13 +52,13 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#operation-object'
   }
 
-  static getSchemaDefinition (_data: I.IOperationSchemaProcessor): ISchema.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> {
+  static getSchemaDefinition (_data: I.IOperationSchemaProcessor): Icsd.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> = {
+    const result: Icsd.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -38,6 +39,13 @@ export interface IOAuthFlows3 extends IOAuthFlowsComponent {
   password?: I.IOAuthFlow3
   clientCredentials?: I.IOAuthFlow3
   authorizationCode?: I.IOAuthFlow3
+}
+
+export interface IOAuthFlowsValidatorsMap3 {
+  implicit: Icsd.IProperty<Icsd.IComponent<I.IOAuthFlow3Definition, I.IOAuthFlow3>>
+  password: Icsd.IProperty<Icsd.IComponent<I.IOAuthFlow3Definition, I.IOAuthFlow3>>
+  clientCredentials: Icsd.IProperty<Icsd.IComponent<I.IOAuthFlow3Definition, I.IOAuthFlow3>>
+  authorizationCode: Icsd.IProperty<Icsd.IComponent<I.IOAuthFlow3Definition, I.IOAuthFlow3>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -36,6 +37,10 @@ export interface IResponses2 extends IResponsesComponent {
   default?: I.IResponse2
 }
 
+export interface IResponsesValidatorsMap2 {
+  _default: Icsd.IProperty<Icsd.IComponent<I.IResponse2Definition, I.IResponse2>>
+}
+
 export interface IResponses3Definition {
   [Extensions: `x-${string}`]: any
   [key: number]: I.IResponse3Definition | I.IReference3Definition
@@ -46,6 +51,10 @@ export interface IResponses3 extends IResponsesComponent {
   [Extensions]: Record<string, any>
   [key: number]: I.IResponse3
   default?: I.IResponse3
+}
+
+export interface IResponsesValidatorsMap3 {
+  _default: Icsd.IProperty<Icsd.IComponent<I.IResponse3Definition, I.IResponse3>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

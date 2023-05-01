@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,16 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.ILink3Definition, I.ILink3> | null = null
+type IValidatorsMap = I.ILinkValidatorsMap3
 
-interface IValidatorsMap {
-  operationRef: ISchema.IProperty<ISchema.IString>
-  operationId: ISchema.IProperty<ISchema.IString>
-  parameters: ISchema.IProperty<ISchema.IObject<any>>
-  requestBody: ISchema.IProperty<any>
-  description: ISchema.IProperty<ISchema.IString>
-  server: ISchema.IProperty<ISchema.IComponent<I.IServer3Definition, I.IServer3>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.ILink3Definition, I.ILink3> | null = null
 
 export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILink3 {
   [S.Extensions]: Record<string, any> = {}
@@ -53,13 +46,13 @@ export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILi
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#link-object'
   }
 
-  static getSchemaDefinition (_data: I.ILinkSchemaProcessor): ISchema.ISchemaDefinition<I.ILink3Definition, I.ILink3> {
+  static getSchemaDefinition (_data: I.ILinkSchemaProcessor): Icsd.ISchemaDefinition<I.ILink3Definition, I.ILink3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.ILink3Definition, I.ILink3> = {
+    const result: Icsd.ISchemaDefinition<I.ILink3Definition, I.ILink3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

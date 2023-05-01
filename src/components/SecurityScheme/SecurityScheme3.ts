@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,18 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> | null = null
+type IValidatorsMap = I.ISecuritySchemeValidatorsMap3
 
-interface IValidatorsMap {
-  type: ISchema.IProperty<ISchema.IString>
-  description: ISchema.IProperty<ISchema.IString>
-  name: ISchema.IProperty<ISchema.IString>
-  _in: ISchema.IProperty<ISchema.IString>
-  scheme: ISchema.IProperty<ISchema.IString>
-  bearerFormat: ISchema.IProperty<ISchema.IString>
-  flows: ISchema.IProperty<ISchema.IComponent<I.IOAuthFlows3Definition, I.IOAuthFlows3>>
-  openIdConnectUrl: ISchema.IProperty<ISchema.IString>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> | null = null
 
 export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definition> implements I.ISecurityScheme3 {
   [S.Extensions]: Record<string, any> = {}
@@ -55,13 +46,13 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definiti
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-scheme-object'
   }
 
-  static getSchemaDefinition (_data: I.ISecuritySchemeSchemaProcessor): ISchema.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> {
+  static getSchemaDefinition (_data: I.ISecuritySchemeSchemaProcessor): Icsd.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> = {
+    const result: Icsd.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

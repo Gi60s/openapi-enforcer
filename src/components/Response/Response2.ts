@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,14 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> | null = null
+type IValidatorsMap = I.IResponseValidatorsMap2
 
-interface IValidatorsMap {
-  description: ISchema.IProperty<ISchema.IString>
-  schema: ISchema.IProperty<ISchema.IComponent<I.ISchema2Definition, I.ISchema2>>
-  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IHeader2Definition, I.IHeader2>>>
-  examples: ISchema.IProperty<ISchema.IComponent<I.IExample2Definition, I.IExample2>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> | null = null
 
 export class Response extends EnforcerComponent<I.IResponse2Definition> implements I.IResponse2 {
   [S.Extensions]: Record<string, any> = {}
@@ -51,13 +46,13 @@ export class Response extends EnforcerComponent<I.IResponse2Definition> implemen
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: I.IResponseSchemaProcessor): ISchema.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> {
+  static getSchemaDefinition (_data: I.IResponseSchemaProcessor): Icsd.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> = {
+    const result: Icsd.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

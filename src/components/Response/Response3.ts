@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,14 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> | null = null
+type IValidatorsMap = I.IResponseValidatorsMap3
 
-interface IValidatorsMap {
-  description: ISchema.IProperty<ISchema.IString>
-  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IHeader3Definition, I.IHeader3>>>
-  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IMediaType3Definition, I.IMediaType3>>>
-  links: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ILink3Definition, I.ILink3>>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> | null = null
 
 export class Response extends EnforcerComponent<I.IResponse3Definition> implements I.IResponse3 {
   [S.Extensions]: Record<string, any> = {}
@@ -51,13 +46,13 @@ export class Response extends EnforcerComponent<I.IResponse3Definition> implemen
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#response-object'
   }
 
-  static getSchemaDefinition (_data: I.IResponseSchemaProcessor): ISchema.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> {
+  static getSchemaDefinition (_data: I.IResponseSchemaProcessor): Icsd.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> = {
+    const result: Icsd.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

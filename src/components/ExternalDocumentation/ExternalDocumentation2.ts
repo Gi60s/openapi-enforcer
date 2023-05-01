@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,12 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IExternalDocumentation2Definition, I.IExternalDocumentation2> | null = null
+type IValidatorsMap = I.IExternalDocumentationValidatorsMap2
 
-interface IValidatorsMap {
-  description: ISchema.IProperty<ISchema.IString>
-  url: ISchema.IProperty<ISchema.IString>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IExternalDocumentation2Definition, I.IExternalDocumentation2> | null = null
 
 export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocumentation2Definition> implements I.IExternalDocumentation2 {
   [S.Extensions]: Record<string, any> = {}
@@ -49,13 +46,13 @@ export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocument
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: I.IExternalDocumentationSchemaProcessor): ISchema.ISchemaDefinition<I.IExternalDocumentation2Definition, I.IExternalDocumentation2> {
+  static getSchemaDefinition (_data: I.IExternalDocumentationSchemaProcessor): Icsd.ISchemaDefinition<I.IExternalDocumentation2Definition, I.IExternalDocumentation2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IExternalDocumentation2Definition, I.IExternalDocumentation2> = {
+    const result: Icsd.ISchemaDefinition<I.IExternalDocumentation2Definition, I.IExternalDocumentation2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

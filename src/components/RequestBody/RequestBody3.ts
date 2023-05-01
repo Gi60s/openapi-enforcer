@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,13 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> | null = null
+type IValidatorsMap = I.IRequestBodyValidatorsMap3
 
-interface IValidatorsMap {
-  description: ISchema.IProperty<ISchema.IString>
-  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IMediaType3Definition, I.IMediaType3>>>
-  required: ISchema.IProperty<ISchema.IBoolean>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> | null = null
 
 export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> implements I.IRequestBody3 {
   [S.Extensions]: Record<string, any> = {}
@@ -50,13 +46,13 @@ export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> im
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#request-body-object'
   }
 
-  static getSchemaDefinition (_data: I.IRequestBodySchemaProcessor): ISchema.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> {
+  static getSchemaDefinition (_data: I.IRequestBodySchemaProcessor): Icsd.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> = {
+    const result: Icsd.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

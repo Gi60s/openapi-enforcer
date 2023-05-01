@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,21 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IHeader3Definition, I.IHeader3> | null = null
+type IValidatorsMap = I.IHeaderValidatorsMap3
 
-interface IValidatorsMap {
-  description: ISchema.IProperty<ISchema.IString>
-  required: ISchema.IProperty<ISchema.IBoolean>
-  deprecated: ISchema.IProperty<ISchema.IBoolean>
-  allowEmptyValue: ISchema.IProperty<ISchema.IBoolean>
-  style: ISchema.IProperty<ISchema.IString>
-  explode: ISchema.IProperty<ISchema.IBoolean>
-  allowReserved: ISchema.IProperty<ISchema.IBoolean>
-  schema: ISchema.IProperty<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>
-  example: ISchema.IProperty<any>
-  examples: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IExample3Definition, I.IExample3>>>
-  content: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IMediaType3Definition, I.IMediaType3>>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IHeader3Definition, I.IHeader3> | null = null
 
 export class Header extends EnforcerComponent<I.IHeader3Definition> implements I.IHeader3 {
   [S.Extensions]: Record<string, any> = {}
@@ -58,13 +46,13 @@ export class Header extends EnforcerComponent<I.IHeader3Definition> implements I
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#header-object'
   }
 
-  static getSchemaDefinition (_data: I.IHeaderSchemaProcessor): ISchema.ISchemaDefinition<I.IHeader3Definition, I.IHeader3> {
+  static getSchemaDefinition (_data: I.IHeaderSchemaProcessor): Icsd.ISchemaDefinition<I.IHeader3Definition, I.IHeader3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IHeader3Definition, I.IHeader3> = {
+    const result: Icsd.ISchemaDefinition<I.IHeader3Definition, I.IHeader3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

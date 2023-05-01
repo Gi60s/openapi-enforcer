@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -30,43 +30,7 @@ import * as common from './common'
 import { Result } from '../../Result'
 // <!# Custom Content End: HEADER #!>
 
-interface IValidatorsMap {
-  type: ISchema.IProperty<ISchema.IString>
-  allOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>>
-  oneOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>>
-  anyOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>>
-  not: ISchema.IProperty<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>
-  title: ISchema.IProperty<ISchema.IString>
-  maximum: ISchema.IProperty<ISchema.INumber>
-  exclusiveMaximum: ISchema.IProperty<ISchema.IBoolean>
-  minimum: ISchema.IProperty<ISchema.INumber>
-  exclusiveMinimum: ISchema.IProperty<ISchema.IBoolean>
-  maxLength: ISchema.IProperty<ISchema.INumber>
-  minLength: ISchema.IProperty<ISchema.INumber>
-  pattern: ISchema.IProperty<ISchema.IString>
-  maxItems: ISchema.IProperty<ISchema.INumber>
-  minItems: ISchema.IProperty<ISchema.INumber>
-  maxProperties: ISchema.IProperty<ISchema.INumber>
-  minProperties: ISchema.IProperty<ISchema.INumber>
-  uniqueItems: ISchema.IProperty<ISchema.IBoolean>
-  _enum: ISchema.IProperty<ISchema.IArray<any>>
-  multipleOf: ISchema.IProperty<ISchema.INumber>
-  required: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  items: ISchema.IProperty<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>
-  properties: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ISchema3Definition, I.ISchema3>>>
-  additionalProperties: ISchema.IProperty<ISchema.IOneOf>
-  description: ISchema.IProperty<ISchema.IString>
-  format: ISchema.IProperty<ISchema.IString>
-  _default: ISchema.IProperty<any>
-  nullable: ISchema.IProperty<ISchema.IBoolean>
-  discriminator: ISchema.IProperty<ISchema.IComponent<I.IDiscriminator3Definition, I.IDiscriminator3>>
-  readOnly: ISchema.IProperty<ISchema.IBoolean>
-  writeOnly: ISchema.IProperty<ISchema.IBoolean>
-  xml: ISchema.IProperty<ISchema.IComponent<I.IXml3Definition, I.IXml3>>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
-  example: ISchema.IProperty<any>
-  deprecated: ISchema.IProperty<ISchema.IBoolean>
-}
+type IValidatorsMap = I.ISchemaValidatorsMap3
 
 export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I.ISchema3 {
   [S.Extensions]: Record<string, any> = {}
@@ -88,9 +52,9 @@ export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#schema-object'
   }
 
-  static getSchemaDefinition (_data: I.ISchemaSchemaProcessor): ISchema.ISchemaDefinition<I.ISchema3Definition, I.ISchema3> {
+  static getSchemaDefinition (_data: I.ISchemaSchemaProcessor): Icsd.ISchemaDefinition<I.ISchema3Definition, I.ISchema3> {
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.ISchema3Definition, I.ISchema3> = {
+    const result: Icsd.ISchemaDefinition<I.ISchema3Definition, I.ISchema3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -134,14 +98,14 @@ export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
     // Put your code here.
-    common.schemaDefinition(_data, result)
+    common.schemaDefinition(_data, validators, result)
 
     // TODO: The discriminator attribute is legal only when using one of the composite keywords oneOf, anyOf, allOf.
     const processor = _data
     const { definition } = processor
-    const after = _data.after ?? function () {}
-    processor.after = () => {
-      after()
+    const commonValidate = result.validate ?? function () {}
+    result.validate = (data) => {
+      commonValidate(data)
 
       // if this schema has an 'allOf' then check to see if any of the allOf schemas have a discriminator and if
       // so then mark it as used

@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -133,6 +134,38 @@ export interface ISchema2 extends ISchemaComponent {
   example?: any
 }
 
+export interface ISchemaValidatorsMap2 {
+  format: Icsd.IProperty<Icsd.IString>
+  title: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
+  _default: Icsd.IProperty<any>
+  maximum: Icsd.IProperty<Icsd.INumber>
+  exclusiveMaximum: Icsd.IProperty<Icsd.IBoolean>
+  minimum: Icsd.IProperty<Icsd.INumber>
+  exclusiveMinimum: Icsd.IProperty<Icsd.IBoolean>
+  maxLength: Icsd.IProperty<Icsd.INumber>
+  minLength: Icsd.IProperty<Icsd.INumber>
+  pattern: Icsd.IProperty<Icsd.IString>
+  maxItems: Icsd.IProperty<Icsd.INumber>
+  minItems: Icsd.IProperty<Icsd.INumber>
+  maxProperties: Icsd.IProperty<Icsd.INumber>
+  minProperties: Icsd.IProperty<Icsd.INumber>
+  uniqueItems: Icsd.IProperty<Icsd.IBoolean>
+  _enum: Icsd.IProperty<Icsd.IArray<any>>
+  multipleOf: Icsd.IProperty<Icsd.INumber>
+  required: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
+  type: Icsd.IProperty<Icsd.IString>
+  items: Icsd.IProperty<Icsd.IComponent<I.ISchema2Definition, I.ISchema2>>
+  allOf: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISchema2Definition, I.ISchema2>>>
+  properties: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ISchema2Definition, I.ISchema2>>>
+  additionalProperties: Icsd.IProperty<Icsd.IOneOf>
+  discriminator: Icsd.IProperty<Icsd.IString>
+  readOnly: Icsd.IProperty<Icsd.IBoolean>
+  xml: Icsd.IProperty<Icsd.IComponent<I.IXml2Definition, I.IXml2>>
+  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
+  example: Icsd.IProperty<any>
+}
+
 export interface ISchema3Definition {
   [Extensions: `x-${string}`]: any
   type?: 'array'|'boolean'|'integer'|'number'|'object'|'string'
@@ -209,6 +242,44 @@ export interface ISchema3 extends ISchemaComponent {
   externalDocs?: I.IExternalDocumentation3
   example?: any
   deprecated?: boolean
+}
+
+export interface ISchemaValidatorsMap3 {
+  type: Icsd.IProperty<Icsd.IString>
+  allOf: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>>
+  oneOf: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>>
+  anyOf: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>>
+  not: Icsd.IProperty<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>
+  title: Icsd.IProperty<Icsd.IString>
+  maximum: Icsd.IProperty<Icsd.INumber>
+  exclusiveMaximum: Icsd.IProperty<Icsd.IBoolean>
+  minimum: Icsd.IProperty<Icsd.INumber>
+  exclusiveMinimum: Icsd.IProperty<Icsd.IBoolean>
+  maxLength: Icsd.IProperty<Icsd.INumber>
+  minLength: Icsd.IProperty<Icsd.INumber>
+  pattern: Icsd.IProperty<Icsd.IString>
+  maxItems: Icsd.IProperty<Icsd.INumber>
+  minItems: Icsd.IProperty<Icsd.INumber>
+  maxProperties: Icsd.IProperty<Icsd.INumber>
+  minProperties: Icsd.IProperty<Icsd.INumber>
+  uniqueItems: Icsd.IProperty<Icsd.IBoolean>
+  _enum: Icsd.IProperty<Icsd.IArray<any>>
+  multipleOf: Icsd.IProperty<Icsd.INumber>
+  required: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
+  items: Icsd.IProperty<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>
+  properties: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>>
+  additionalProperties: Icsd.IProperty<Icsd.IOneOf>
+  description: Icsd.IProperty<Icsd.IString>
+  format: Icsd.IProperty<Icsd.IString>
+  _default: Icsd.IProperty<any>
+  nullable: Icsd.IProperty<Icsd.IBoolean>
+  discriminator: Icsd.IProperty<Icsd.IComponent<I.IDiscriminator3Definition, I.IDiscriminator3>>
+  readOnly: Icsd.IProperty<Icsd.IBoolean>
+  writeOnly: Icsd.IProperty<Icsd.IBoolean>
+  xml: Icsd.IProperty<Icsd.IComponent<I.IXml3Definition, I.IXml3>>
+  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
+  example: Icsd.IProperty<any>
+  deprecated: Icsd.IProperty<Icsd.IBoolean>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

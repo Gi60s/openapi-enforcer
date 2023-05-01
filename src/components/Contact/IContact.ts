@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -37,6 +38,12 @@ export interface IContact2 extends IContactComponent {
   email?: string
 }
 
+export interface IContactValidatorsMap2 {
+  name: Icsd.IProperty<Icsd.IString>
+  url: Icsd.IProperty<Icsd.IString>
+  email: Icsd.IProperty<Icsd.IString>
+}
+
 export interface IContact3Definition {
   [Extensions: `x-${string}`]: any
   name?: string
@@ -49,6 +56,12 @@ export interface IContact3 extends IContactComponent {
   name?: string
   url?: string
   email?: string
+}
+
+export interface IContactValidatorsMap3 {
+  name: Icsd.IProperty<Icsd.IString>
+  url: Icsd.IProperty<Icsd.IString>
+  email: Icsd.IProperty<Icsd.IString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -24,37 +24,7 @@ import { ISchemaHookHandler, ISchemaHookResult, ISchemaHookType, ISchemaPopulate
 import { Result } from '../../Result'
 // <!# Custom Content End: HEADER #!>
 
-interface IValidatorsMap {
-  format: ISchema.IProperty<ISchema.IString>
-  title: ISchema.IProperty<ISchema.IString>
-  description: ISchema.IProperty<ISchema.IString>
-  _default: ISchema.IProperty<any>
-  maximum: ISchema.IProperty<ISchema.INumber>
-  exclusiveMaximum: ISchema.IProperty<ISchema.IBoolean>
-  minimum: ISchema.IProperty<ISchema.INumber>
-  exclusiveMinimum: ISchema.IProperty<ISchema.IBoolean>
-  maxLength: ISchema.IProperty<ISchema.INumber>
-  minLength: ISchema.IProperty<ISchema.INumber>
-  pattern: ISchema.IProperty<ISchema.IString>
-  maxItems: ISchema.IProperty<ISchema.INumber>
-  minItems: ISchema.IProperty<ISchema.INumber>
-  maxProperties: ISchema.IProperty<ISchema.INumber>
-  minProperties: ISchema.IProperty<ISchema.INumber>
-  uniqueItems: ISchema.IProperty<ISchema.IBoolean>
-  _enum: ISchema.IProperty<ISchema.IArray<any>>
-  multipleOf: ISchema.IProperty<ISchema.INumber>
-  required: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  type: ISchema.IProperty<ISchema.IString>
-  items: ISchema.IProperty<ISchema.IComponent<I.ISchema2Definition, I.ISchema2>>
-  allOf: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISchema2Definition, I.ISchema2>>>
-  properties: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ISchema2Definition, I.ISchema2>>>
-  additionalProperties: ISchema.IProperty<ISchema.IOneOf>
-  discriminator: ISchema.IProperty<ISchema.IString>
-  readOnly: ISchema.IProperty<ISchema.IBoolean>
-  xml: ISchema.IProperty<ISchema.IComponent<I.IXml2Definition, I.IXml2>>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
-  example: ISchema.IProperty<any>
-}
+type IValidatorsMap = I.ISchemaValidatorsMap2
 
 export class Schema extends EnforcerComponent<I.ISchema2Definition> implements I.ISchema2 {
   [S.Extensions]: Record<string, any> = {}
@@ -76,9 +46,9 @@ export class Schema extends EnforcerComponent<I.ISchema2Definition> implements I
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: I.ISchemaSchemaProcessor): ISchema.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> {
+  static getSchemaDefinition (_data: I.ISchemaSchemaProcessor): Icsd.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> {
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> = {
+    const result: Icsd.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -115,7 +85,7 @@ export class Schema extends EnforcerComponent<I.ISchema2Definition> implements I
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    common.schemaDefinition(_data, result)
+    common.schemaDefinition(_data, validators, result)
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     return result

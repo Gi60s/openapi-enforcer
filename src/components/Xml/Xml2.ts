@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,15 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IXml2Definition, I.IXml2> | null = null
+type IValidatorsMap = I.IXmlValidatorsMap2
 
-interface IValidatorsMap {
-  name: ISchema.IProperty<ISchema.IString>
-  namespace: ISchema.IProperty<ISchema.IString>
-  prefix: ISchema.IProperty<ISchema.IString>
-  attribute: ISchema.IProperty<ISchema.IBoolean>
-  wrapped: ISchema.IProperty<ISchema.IBoolean>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IXml2Definition, I.IXml2> | null = null
 
 export class Xml extends EnforcerComponent<I.IXml2Definition> implements I.IXml2 {
   [S.Extensions]: Record<string, any> = {}
@@ -52,13 +46,13 @@ export class Xml extends EnforcerComponent<I.IXml2Definition> implements I.IXml2
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: I.IXmlSchemaProcessor): ISchema.ISchemaDefinition<I.IXml2Definition, I.IXml2> {
+  static getSchemaDefinition (_data: I.IXmlSchemaProcessor): Icsd.ISchemaDefinition<I.IXml2Definition, I.IXml2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IXml2Definition, I.IXml2> = {
+    const result: Icsd.ISchemaDefinition<I.IXml2Definition, I.IXml2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

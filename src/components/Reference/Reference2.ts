@@ -14,18 +14,16 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IReference2Definition, I.IReference2> | null = null
+type IValidatorsMap = I.IReferenceValidatorsMap2
 
-interface IValidatorsMap {
-  $ref: ISchema.IProperty<ISchema.IString>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IReference2Definition, I.IReference2> | null = null
 
 export class Reference extends EnforcerComponent<I.IReference2Definition> implements I.IReference2 {
   constructor (definition: I.IReference2Definition, version?: IVersion) {
@@ -45,13 +43,13 @@ export class Reference extends EnforcerComponent<I.IReference2Definition> implem
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: I.IReferenceSchemaProcessor): ISchema.ISchemaDefinition<I.IReference2Definition, I.IReference2> {
+  static getSchemaDefinition (_data: I.IReferenceSchemaProcessor): Icsd.ISchemaDefinition<I.IReference2Definition, I.IReference2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IReference2Definition, I.IReference2> = {
+    const result: Icsd.ISchemaDefinition<I.IReference2Definition, I.IReference2> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [

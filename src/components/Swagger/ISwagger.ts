@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -60,6 +61,24 @@ export interface ISwagger2 extends ISwaggerComponent {
   security?: I.ISecurityRequirement2[]
   tags?: I.ITag2[]
   externalDocs?: I.IExternalDocumentation2
+}
+
+export interface ISwaggerValidatorsMap2 {
+  swagger: Icsd.IProperty<Icsd.IString>
+  info: Icsd.IProperty<Icsd.IComponent<I.IInfo2Definition, I.IInfo2>>
+  host: Icsd.IProperty<Icsd.IString>
+  basePath: Icsd.IProperty<Icsd.IString>
+  schemes: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
+  consumes: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
+  produces: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
+  paths: Icsd.IProperty<Icsd.IComponent<I.IPaths2Definition, I.IPaths2>>
+  definitions: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ISchema2Definition, I.ISchema2>>>
+  parameters: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IParameter2Definition, I.IParameter2>>>
+  responses: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IResponse2Definition, I.IResponse2>>>
+  securityDefinitions: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ISecurityScheme2Definition, I.ISecurityScheme2>>>
+  security: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISecurityRequirement2Definition, I.ISecurityRequirement2>>>
+  tags: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ITag2Definition, I.ITag2>>>
+  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

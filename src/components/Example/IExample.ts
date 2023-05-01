@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -45,6 +46,13 @@ export interface IExample3 extends IExampleComponent {
   description?: string
   value?: any
   externalValue?: string
+}
+
+export interface IExampleValidatorsMap3 {
+  summary: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
+  value: Icsd.IProperty<any>
+  externalValue: Icsd.IProperty<Icsd.IString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

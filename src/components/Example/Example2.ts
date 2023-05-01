@@ -14,14 +14,14 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IExample2Definition, I.IExample2> | null = null
+let cachedSchema: Icsd.ISchemaDefinition<I.IExample2Definition, I.IExample2> | null = null
 
 const additionalProperties: any = {
   type: 'any'
@@ -59,12 +59,12 @@ export class Example extends EnforcerComponent<I.IExample2Definition> implements
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: I.IExampleSchemaProcessor): ISchema.ISchemaDefinition<I.IExample2Definition, I.IExample2> {
+  static getSchemaDefinition (_data: I.IExampleSchemaProcessor): Icsd.ISchemaDefinition<I.IExample2Definition, I.IExample2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: ISchema.ISchemaDefinition<I.IExample2Definition, I.IExample2> = {
+    const result: Icsd.ISchemaDefinition<I.IExample2Definition, I.IExample2> = {
       type: 'object',
       allowsSchemaExtensions: false,
       additionalProperties

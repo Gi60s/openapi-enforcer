@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,15 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> | null = null
+type IValidatorsMap = I.IEncodingValidatorsMap3
 
-interface IValidatorsMap {
-  contentType: ISchema.IProperty<ISchema.IString>
-  headers: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IHeader3Definition, I.IHeader3>>>
-  style: ISchema.IProperty<ISchema.IString>
-  explode: ISchema.IProperty<ISchema.IBoolean>
-  allowReserved: ISchema.IProperty<ISchema.IBoolean>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> | null = null
 
 export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implements I.IEncoding3 {
   [S.Extensions]: Record<string, any> = {}
@@ -52,13 +46,13 @@ export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implemen
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#encoding-object'
   }
 
-  static getSchemaDefinition (_data: I.IEncodingSchemaProcessor): ISchema.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> {
+  static getSchemaDefinition (_data: I.IEncodingSchemaProcessor): Icsd.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> = {
+    const result: Icsd.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

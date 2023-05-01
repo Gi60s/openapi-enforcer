@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -50,6 +51,18 @@ export interface IPathItem2 extends IPathItemComponent {
   parameters?: I.IParameter2[]
 }
 
+export interface IPathItemValidatorsMap2 {
+  $ref: Icsd.IProperty<Icsd.IString>
+  get: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
+  put: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
+  post: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
+  _delete: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
+  options: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
+  head: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
+  patch: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
+  parameters: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IParameter2Definition, I.IParameter2>>>
+}
+
 export interface IPathItem3Definition {
   [Extensions: `x-${string}`]: any
   $ref?: string
@@ -82,6 +95,22 @@ export interface IPathItem3 extends IPathItemComponent {
   trace?: I.IOperation3
   servers?: I.IServer3[]
   parameters?: I.IParameter3[]
+}
+
+export interface IPathItemValidatorsMap3 {
+  $ref: Icsd.IProperty<Icsd.IString>
+  summary: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
+  get: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
+  put: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
+  post: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
+  _delete: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
+  options: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
+  head: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
+  patch: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
+  trace: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
+  servers: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IServer3Definition, I.IServer3>>>
+  parameters: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IParameter3Definition, I.IParameter3>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

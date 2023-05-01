@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -46,6 +47,17 @@ export interface IOpenAPI3 extends IOpenAPIComponent {
   security?: I.ISecurityRequirement3[]
   tags?: I.ITag3[]
   externalDocs?: I.IExternalDocumentation3
+}
+
+export interface IOpenAPIValidatorsMap3 {
+  openapi: Icsd.IProperty<Icsd.IString>
+  info: Icsd.IProperty<Icsd.IComponent<I.IInfo3Definition, I.IInfo3>>
+  servers: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IServer3Definition, I.IServer3>>>
+  paths: Icsd.IProperty<Icsd.IComponent<I.IPaths3Definition, I.IPaths3>>
+  components: Icsd.IProperty<Icsd.IComponent<I.IComponents3Definition, I.IComponents3>>
+  security: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISecurityRequirement3Definition, I.ISecurityRequirement3>>>
+  tags: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ITag3Definition, I.ITag3>>>
+  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

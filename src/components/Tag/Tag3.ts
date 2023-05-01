@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,13 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.ITag3Definition, I.ITag3> | null = null
+type IValidatorsMap = I.ITagValidatorsMap3
 
-interface IValidatorsMap {
-  name: ISchema.IProperty<ISchema.IString>
-  description: ISchema.IProperty<ISchema.IString>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.ITag3Definition, I.ITag3> | null = null
 
 export class Tag extends EnforcerComponent<I.ITag3Definition> implements I.ITag3 {
   [S.Extensions]: Record<string, any> = {}
@@ -50,13 +46,13 @@ export class Tag extends EnforcerComponent<I.ITag3Definition> implements I.ITag3
     '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#tag-object'
   }
 
-  static getSchemaDefinition (_data: I.ITagSchemaProcessor): ISchema.ISchemaDefinition<I.ITag3Definition, I.ITag3> {
+  static getSchemaDefinition (_data: I.ITagSchemaProcessor): Icsd.ISchemaDefinition<I.ITag3Definition, I.ITag3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.ITag3Definition, I.ITag3> = {
+    const result: Icsd.ISchemaDefinition<I.ITag3Definition, I.ITag3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

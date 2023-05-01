@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,12 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.ILicense2Definition, I.ILicense2> | null = null
+type IValidatorsMap = I.ILicenseValidatorsMap2
 
-interface IValidatorsMap {
-  name: ISchema.IProperty<ISchema.IString>
-  url: ISchema.IProperty<ISchema.IString>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.ILicense2Definition, I.ILicense2> | null = null
 
 export class License extends EnforcerComponent<I.ILicense2Definition> implements I.ILicense2 {
   [S.Extensions]: Record<string, any> = {}
@@ -49,13 +46,13 @@ export class License extends EnforcerComponent<I.ILicense2Definition> implements
     '3.0.3': true
   }
 
-  static getSchemaDefinition (_data: I.ILicenseSchemaProcessor): ISchema.ISchemaDefinition<I.ILicense2Definition, I.ILicense2> {
+  static getSchemaDefinition (_data: I.ILicenseSchemaProcessor): Icsd.ISchemaDefinition<I.ILicense2Definition, I.ILicense2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.ILicense2Definition, I.ILicense2> = {
+    const result: Icsd.ISchemaDefinition<I.ILicense2Definition, I.ILicense2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

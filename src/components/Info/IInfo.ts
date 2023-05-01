@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -44,6 +45,15 @@ export interface IInfo2 extends IInfoComponent {
   version: string
 }
 
+export interface IInfoValidatorsMap2 {
+  title: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
+  termsOfService: Icsd.IProperty<Icsd.IString>
+  contact: Icsd.IProperty<Icsd.IComponent<I.IContact2Definition, I.IContact2>>
+  license: Icsd.IProperty<Icsd.IComponent<I.ILicense2Definition, I.ILicense2>>
+  version: Icsd.IProperty<Icsd.IString>
+}
+
 export interface IInfo3Definition {
   [Extensions: `x-${string}`]: any
   title: string
@@ -62,6 +72,15 @@ export interface IInfo3 extends IInfoComponent {
   contact?: I.IContact3
   license?: I.ILicense3
   version: string
+}
+
+export interface IInfoValidatorsMap3 {
+  title: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
+  termsOfService: Icsd.IProperty<Icsd.IString>
+  contact: Icsd.IProperty<Icsd.IComponent<I.IContact3Definition, I.IContact3>>
+  license: Icsd.IProperty<Icsd.IComponent<I.ILicense3Definition, I.ILicense3>>
+  version: Icsd.IProperty<Icsd.IString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

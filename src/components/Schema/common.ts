@@ -1,8 +1,9 @@
-import { ISchema2Definition, ISchema3Definition, ISchema2, ISchema3 } from './ISchema'
+import { ISchema2Definition, ISchema3Definition, ISchema2, ISchema3, ISchemaValidatorsMap3 } from './ISchema'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { IExceptionData, IExceptionLevel } from '../../Exception/IException'
 import * as I from '../IInternalTypes'
 import * as C from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { IComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 
 type Definition = ISchema2Definition | ISchema3Definition
 type ISchema = ISchema2 | ISchema3
@@ -53,40 +54,63 @@ export function discriminate<T extends ISchema> (value: object): { key: string, 
   }
 }
 
-export function schemaDefinition (processor: I.ISchemaSchemaProcessor, schema: C.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> | C.ISchemaDefinition<I.ISchema3Definition, I.ISchema3>): void {
+export function schemaDefinition (processor: I.ISchemaSchemaProcessor,
+  validators: I.ISchemaValidatorsMap2 | ISchemaValidatorsMap3,
+  schema: C.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> | C.ISchemaDefinition<I.ISchema3Definition, I.ISchema3>): void {
+
   const { definition, exception } = processor
   const type = determineSchemaType(definition)
   const ctor = processor.component.constructor
-  schema.properties?.forEach(property => {
-    switch (property.name) {
-      case 'additionalProperties':
-        property.schema = {
-          type: 'oneOf',
-          oneOf: [
-            {
-              condition: ({ definition }) =>
-                typeof definition !== 'boolean',
-              schema: {
-                type: 'component',
-                allowsRef: true,
-                component: ctor
-              }
-            },
-            {
-              condition: ({ definition }) => typeof definition === 'boolean',
-              schema: { type: 'boolean' }
-            }
-          ]
-        }
-        property.notAllowed = type !== 'object' ? 'PROPERTY_NOT_ALLOWED_UNLESS_OBJECT' : undefined
-        break
-    }
-  })
 
-  processor.after = () => {
-    if (type === undefined && !('allOf' in definition) && !('anyOf' in definition) && !('oneOf' in definition) && !('not' in definition)) {
+  const additionalProperties = validators.additionalProperties
+  additionalProperties.schema.oneOf = [
+    {
+      condition: (value) => typeof value !== 'boolean',
+      schema: {
+        type: 'component',
+        allowsRef: true,
+        component: ctor
+      }
+    },
+    {
+      condition: (value) => typeof value === 'boolean',
+      schema: { type: 'boolean' }
+    }
+  ]
+  additionalProperties.notAllowed = type !== 'object' ? 'PROPERTY_NOT_ALLOWED_UNLESS_OBJECT' : undefined
+
+  // TODO: type may be string and format may make it numeric, so due a numeric type lookup here
+  validators.maximum.notAllowed = type !== 'number' && type !== 'integer' ? 'PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC' : undefined
+  validators.minimum.notAllowed = type !== 'number' && type !== 'integer' ? 'PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC' : undefined
+  validators.multipleOf.notAllowed = type !== 'number' && type !== 'integer' ? 'PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC' : undefined
+
+  schema.validate = () => {
+    const isTypeExempt = ('allOf' in definition) || ('anyOf' in definition) || ('oneOf' in definition) || ('not' in definition)
+    if (!isTypeExempt) {
+      if (type === undefined) {
+        exception.add({
+          code: 'SCHEMA_TYPE_INDETERMINATE',
+          id: ctor.id,
+          level: 'error',
+          locations: [processor.getLocation('value')],
+          metadata: {}
+        })
+      } else if (!('type' in definition)) {
+        exception.add({
+          code: 'SCHEMA_TYPE_NOT_SPECIFIED',
+          id: ctor.id,
+          level: 'warn',
+          locations: [processor.getLocation('value')],
+          metadata: {
+            determinedType: type
+          }
+        })
+      }
+    }
+
+    if (Array.isArray(definition.allOf) && definition.allOf.length === 0) {
       exception.add({
-        code: 'SCHEMA_TYPE_INDETERMINATE',
+        code: 'ARRAY_EMPTY',
         id: ctor.id,
         level: 'warn',
         locations: [processor.getLocation('value')],

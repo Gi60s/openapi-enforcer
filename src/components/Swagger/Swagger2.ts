@@ -14,7 +14,7 @@
 import { IComponentSpec, IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as ISchema from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as Loader from '../../Loader'
 import * as I from '../IInternalTypes'
 import * as S from '../Symbols'
@@ -22,25 +22,9 @@ import * as S from '../Symbols'
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: ISchema.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> | null = null
+type IValidatorsMap = I.ISwaggerValidatorsMap2
 
-interface IValidatorsMap {
-  swagger: ISchema.IProperty<ISchema.IString>
-  info: ISchema.IProperty<ISchema.IComponent<I.IInfo2Definition, I.IInfo2>>
-  host: ISchema.IProperty<ISchema.IString>
-  basePath: ISchema.IProperty<ISchema.IString>
-  schemes: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  consumes: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  produces: ISchema.IProperty<ISchema.IArray<ISchema.IString>>
-  paths: ISchema.IProperty<ISchema.IComponent<I.IPaths2Definition, I.IPaths2>>
-  definitions: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ISchema2Definition, I.ISchema2>>>
-  parameters: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IParameter2Definition, I.IParameter2>>>
-  responses: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.IResponse2Definition, I.IResponse2>>>
-  securityDefinitions: ISchema.IProperty<ISchema.IObject<ISchema.IComponent<I.ISecurityScheme2Definition, I.ISecurityScheme2>>>
-  security: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ISecurityRequirement2Definition, I.ISecurityRequirement2>>>
-  tags: ISchema.IProperty<ISchema.IArray<ISchema.IComponent<I.ITag2Definition, I.ITag2>>>
-  externalDocs: ISchema.IProperty<ISchema.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
-}
+let cachedSchema: Icsd.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> | null = null
 
 export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements I.ISwagger2 {
   [S.Extensions]: Record<string, any> = {}
@@ -62,13 +46,13 @@ export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements
     '3.0.3': false
   }
 
-  static getSchemaDefinition (_data: I.ISwaggerSchemaProcessor): ISchema.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> {
+  static getSchemaDefinition (_data: I.ISwaggerSchemaProcessor): Icsd.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: ISchema.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> = {
+    const result: Icsd.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [

@@ -60,8 +60,53 @@ describe.only('Schema', () => {
       })
     })
 
-    describe('property: allOf', () => {
+    describe.only('property: allOf', () => {
+      it('does not need a type specified', () => {
+        test(Schema => {
+          const es = Schema.validate({ allOf: [] })
+          expect(es).not.to.have.exceptionError()
+        })
+      })
 
+      it('must be an array', () => {
+        test(Schema => {
+          // @ts-expect-error
+          const es = Schema.validate({ allOf: {} })
+          expect(es).to.have.exceptionErrorCode('VALUE_TYPE_INVALID')
+        })
+      })
+
+      it('will warn of an empty array', () => {
+        test(Schema => {
+          const es = Schema.validate({ allOf: [] })
+          expect(es).to.have.exceptionWarningCode('ARRAY_EMPTY')
+        })
+      })
+
+      it('validates all items', () => {
+        test(Schema => {
+          const es = Schema.validate({
+            allOf: [
+              { x: 5, default: true }, // property "x" is unknown
+              { type: 'string', maximum: 5 } // type is string, "maximum" requires a numeric type/format
+            ]
+          })
+          expect(es).to.have.exceptionErrorCode('PROPERTY_UNKNOWN', false)
+          expect(es).to.have.exceptionErrorCode('PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC', false)
+        })
+      })
+
+      it('validates that all items are of the same type', () => {
+
+      })
+
+      it('validates that all items are of the same format', () => {
+
+      })
+
+      it('handles nested allOf schemas', () => {
+
+      })
     })
 
     describe('property: anyOf', () => {
@@ -169,10 +214,17 @@ describe.only('Schema', () => {
     })
 
     describe('property: type', () => {
-      it('will warn if schema type is indeterminate', () => {
+      it('will warn if the schema type is not specified', () => {
+        test(Schema => {
+          const es = Schema.validate({ additionalProperties: true })
+          expect(es).to.have.exceptionWarningCode('SCHEMA_TYPE_NOT_SPECIFIED')
+        })
+      })
+
+      it('will produce an error if schema type is indeterminate', () => {
         test(Schema => {
           const es = Schema.validate({})
-          expect(es).to.have.exceptionWarningCode('SCHEMA_TYPE_INDETERMINATE')
+          expect(es).to.have.exceptionErrorCode('SCHEMA_TYPE_INDETERMINATE')
         })
       })
 

@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -35,6 +36,11 @@ export interface ILicense2 extends ILicenseComponent {
   url?: string
 }
 
+export interface ILicenseValidatorsMap2 {
+  name: Icsd.IProperty<Icsd.IString>
+  url: Icsd.IProperty<Icsd.IString>
+}
+
 export interface ILicense3Definition {
   [Extensions: `x-${string}`]: any
   name: string
@@ -45,6 +51,11 @@ export interface ILicense3 extends ILicenseComponent {
   [Extensions]: Record<string, any>
   name: string
   url?: string
+}
+
+export interface ILicenseValidatorsMap3 {
+  name: Icsd.IProperty<Icsd.IString>
+  url: Icsd.IProperty<Icsd.IString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

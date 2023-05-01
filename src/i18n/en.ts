@@ -1,6 +1,7 @@
 import { II18nMessagesMap } from './i18n'
 
 export const language: II18nMessagesMap = {
+  ARRAY_EMPTY: 'The array is empty.',
   COMPONENT_NAME_INVALID: 'Component {{componentsNamespace}} property names can only contain letters, numbers, dots, ' +
     'dashes, and underscores. The property {{propertyName}} is not valid.',
   CONTENT_TYPE_INVALID: 'Content-type appears to be invalid: {{contentType}}.',
@@ -41,7 +42,7 @@ export const language: II18nMessagesMap = {
   PROPERTIES_MUTUALLY_EXCLUSIVE: 'These properties are mutually exclusive: {{propertyNames}}.',
   PROPERTY_NOT_ALLOWED: 'The property {{propertyName}} is not allowed',
   PROPERTY_NOT_ALLOWED_UNLESS_ARRAY: 'The property {{propertyName}} is only allowed for schemas of type "array".',
-  PROPERTY_NOT_ALLOWED_UNLESS_NUMBER: 'The property {{propertyName}} is only allowed for schemas of type "integer" or "number".',
+  PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC: 'The property {{propertyName}} is only allowed for schemas that are numeric.',
   PROPERTY_NOT_ALLOWED_UNLESS_OBJECT: 'The property {{propertyName}} is only allowed for schemas of type "object".',
   PROPERTY_NOT_ALLOWED_UNLESS_STRING: 'The property {{propertyName}} is only allowed for schemas of type "string".',
   PROPERTY_NOT_ALLOWED_UNLESS_VERSION: 'The property {{propertyName}} is not allowed for this version of the OpenAPI specification.',
@@ -75,6 +76,7 @@ export const language: II18nMessagesMap = {
   SCHEMA_TYPE_INDETERMINATE: 'The schema type was not provided and could not be determined.',
   SCHEMA_TYPE_INVALID: 'The schema type {{type}} is not valid. Expected one of: {{expectedTypes}}.',
   SCHEMA_TYPE_INVALID_FILE: 'The schema type "file" cannot be used in a schema that is a dependency to another schema.',
+  SCHEMA_TYPE_NOT_SPECIFIED: 'The schema type is not specified but has been determined to be type {{determinedType}}.',
   SUMMERY_EXCEEDS_RECOMMENDED_LENGTH: 'The summary should be less than 120 characters in length.',
   URL_INVALID: 'URL appears to be invalid: {{url}}.',
   VALUE_OUT_OF_RANGE_MAX: 'The {description} {{value}} must be less than {OR_EQUAL} {{maximum}}.',

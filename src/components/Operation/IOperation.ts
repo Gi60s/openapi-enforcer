@@ -12,6 +12,7 @@
  */
 
 import { IComponentInstance } from '../IComponent'
+import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import * as I from '../IInternalTypes'
 import { Extensions } from '../Symbols'
 // <!# Custom Content Begin: HEADER #!>
@@ -63,6 +64,21 @@ export interface IOperation2 extends IOperationComponent {
   security?: I.ISecurityRequirement2[]
 }
 
+export interface IOperationValidatorsMap2 {
+  tags: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
+  summary: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
+  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
+  operationId: Icsd.IProperty<Icsd.IString>
+  consumes: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
+  produces: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
+  parameters: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IParameter2Definition, I.IParameter2>>>
+  responses: Icsd.IProperty<Icsd.IComponent<I.IResponses2Definition, I.IResponses2>>
+  schemes: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
+  deprecated: Icsd.IProperty<Icsd.IBoolean>
+  security: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISecurityRequirement2Definition, I.ISecurityRequirement2>>>
+}
+
 export interface IOperation3Definition {
   [Extensions: `x-${string}`]: any
   tags?: string[]
@@ -93,6 +109,21 @@ export interface IOperation3 extends IOperationComponent {
   deprecated?: boolean
   security?: I.ISecurityRequirement3[]
   servers?: I.IServer3[]
+}
+
+export interface IOperationValidatorsMap3 {
+  tags: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
+  summary: Icsd.IProperty<Icsd.IString>
+  description: Icsd.IProperty<Icsd.IString>
+  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
+  operationId: Icsd.IProperty<Icsd.IString>
+  parameters: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IParameter3Definition, I.IParameter3>>>
+  requestBody: Icsd.IProperty<Icsd.IComponent<I.IRequestBody3Definition, I.IRequestBody3>>
+  responses: Icsd.IProperty<Icsd.IComponent<I.IResponses3Definition, I.IResponses3>>
+  callbacks: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ICallback3Definition, I.ICallback3>>>
+  deprecated: Icsd.IProperty<Icsd.IBoolean>
+  security: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISecurityRequirement3Definition, I.ISecurityRequirement3>>>
+  servers: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IServer3Definition, I.IServer3>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
