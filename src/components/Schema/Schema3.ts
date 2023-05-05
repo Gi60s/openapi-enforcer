@@ -651,23 +651,7 @@ function getValidatorsMap (): IValidatorsMap {
     additionalProperties: {
       name: 'additionalProperties',
       schema: {
-        type: 'oneOf',
-        oneOf: [
-          {
-            condition: () => true,
-            schema: {
-              type: 'component',
-              allowsRef: true,
-              component: I.Schema3
-            }
-          },
-          {
-            condition: () => false,
-            schema: {
-              type: 'boolean'
-            }
-          }
-        ]
+        type: 'any' // will be replaced with smart getter to determine actual type
       }
     },
     description: {

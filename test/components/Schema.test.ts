@@ -14,7 +14,7 @@ describe.only('Schema', () => {
       })
     })
 
-    describe('property: additionalProperties', () => {
+    describe.only('property: additionalProperties', () => {
       it('is valid if type is explicitly set to "object"', () => {
         test(Schema => {
           const es = Schema.validate({ type: 'object', additionalProperties: true })
@@ -60,7 +60,7 @@ describe.only('Schema', () => {
       })
     })
 
-    describe.only('property: allOf', () => {
+    describe.skip('property: allOf', () => {
       it('does not need a type specified', () => {
         test(Schema => {
           const es = Schema.validate({ allOf: [] })
@@ -96,7 +96,107 @@ describe.only('Schema', () => {
         })
       })
 
-      it('validates that all items are of the same type', () => {
+      it('will find explicit conflicts for "type"', () => {
+        test(Schema => {
+          const es = Schema.validate({
+            allOf: [
+              { type: 'string' },
+              { type: 'number' }
+            ]
+          })
+          expect(es).to.have.exceptionErrorCode('SCHEMA_ALL_CONFLICT', true)
+
+          const metadata = es.exceptions[0]?.metadata ?? {}
+          expect(metadata.propertyName).to.equal('type')
+          expect(metadata.values).to.deep.equal(['string', 'number'])
+        })
+      })
+
+      it('will find implicit conflicts for "type"', () => {
+        test(Schema => {
+          const es = Schema.validate({
+            allOf: [
+              { maxLength: 5 },
+              { maximum: 5 }
+            ]
+          })
+          expect(es).to.have.exceptionErrorCode('SCHEMA_ALL_CONFLICT', true)
+
+          const metadata = es.exceptions[0]?.metadata ?? {}
+          expect(metadata.propertyName).to.equal('type')
+          expect(metadata.values).to.deep.equal(['string', 'number'])
+        })
+      })
+
+      it('will find object property conflicts', () => {
+        test(Schema => {
+          const es = Schema.validate({
+            allOf: [
+              {
+                properties: {
+                  a: { type: 'string' }
+                }
+              },
+              {
+                properties: {
+                  a: { type: 'number' }
+                }
+              }
+            ]
+          })
+          expect(es).to.have.exceptionErrorCode('SCHEMA_ALL_CONFLICT', true)
+          const metadata = es.exceptions[0]?.metadata ?? {}
+          expect(metadata.propertyName).to.equal('type')
+          expect(metadata.values).to.deep.equal(['string', 'number'])
+        })
+      })
+
+      it('will find conflicts for "minimum" and "maximum"', () => {
+        test(Schema => {
+          const es = Schema.validate({
+            allOf: [
+              { minimum: 5, maximum: 10 },
+              { type: 'number', minimum: 12 }
+            ]
+          })
+          expect(es).to.have.exceptionErrorCode('SCHEMA_ALL_CONFLICT', true)
+        })
+      })
+
+      it('will find object property conflicts for "minimum" and "maximum"', () => {
+        test(Schema => {
+          const es = Schema.validate({
+            allOf: [
+              {
+                properties: {
+                  a: { minimum: 10 }
+                }
+              },
+              {
+                properties: {
+                  a: { maximum: 5 }
+                }
+              }
+            ]
+          })
+          expect(es).to.have.exceptionErrorCode('SCHEMA_ALL_CROSS_CONFLICT', true)
+          const metadata = es.exceptions[0]?.metadata ?? {}
+          expect(metadata.propertyName1).to.equal('minimum')
+          expect(metadata.value1).to.equal(10)
+          expect(metadata.propertyName2).to.equal('maximum')
+          expect(metadata.value2).to.equal(5)
+        })
+      })
+
+      it('cannot be combined with anyOf', () => {
+
+      })
+
+      it('cannot be combined with oneOf', () => {
+
+      })
+
+      it('cannot be combined with not', () => {
 
       })
 

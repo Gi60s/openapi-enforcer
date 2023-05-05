@@ -3,12 +3,14 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { IExceptionData, IExceptionLevel } from '../../Exception/IException'
 import * as I from '../IInternalTypes'
 import * as C from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { getLocation } from '../../Loader'
+import { deepEqual } from '../../util'
 
+type IAllOfConflicts = Record<string, { context: Array<{ definition: Definition, key: string }>, values: any[] }>
 type Definition = ISchema2Definition | ISchema3Definition
 type ISchema = ISchema2 | ISchema3
 
-// const rxNumber = /^-?\d+(?:\.\d+)?$/
+const schemaDerivedPropertiesMap = new WeakMap<Definition, Definition>()
 
 export function deserialize (value: string, options: { strict: boolean } | undefined): any {
   return null
@@ -57,26 +59,26 @@ export function discriminate<T extends ISchema> (value: object): { key: string, 
 export function schemaDefinition (processor: I.ISchemaSchemaProcessor,
   validators: I.ISchemaValidatorsMap2 | ISchemaValidatorsMap3,
   schema: C.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> | C.ISchemaDefinition<I.ISchema3Definition, I.ISchema3>): void {
-
   const { definition, exception } = processor
   const type = determineSchemaType(definition)
   const ctor = processor.component.constructor
 
   const additionalProperties = validators.additionalProperties
-  additionalProperties.schema.oneOf = [
-    {
-      condition: (value) => typeof value !== 'boolean',
-      schema: {
-        type: 'component',
-        allowsRef: true,
-        component: ctor
+  Object.defineProperty(additionalProperties, 'schema', {
+    get (): C.IBoolean | C.IComponent<any, any> {
+      const definition = processor.definition
+      const value = definition.additionalProperties ?? true
+      if (typeof value === 'boolean') {
+        return { type: 'boolean', default: true }
+      } else {
+        return {
+          type: 'component',
+          allowsRef: true,
+          component: ctor
+        }
       }
-    },
-    {
-      condition: (value) => typeof value === 'boolean',
-      schema: { type: 'boolean' }
     }
-  ]
+  })
   additionalProperties.notAllowed = type !== 'object' ? 'PROPERTY_NOT_ALLOWED_UNLESS_OBJECT' : undefined
 
   // TODO: type may be string and format may make it numeric, so due a numeric type lookup here
@@ -117,7 +119,42 @@ export function schemaDefinition (processor: I.ISchemaSchemaProcessor,
         metadata: {}
       })
     }
+
+    if (Array.isArray(definition.allOf)) {
+      const conflicts: IAllOfConflicts = {}
+      findAllOfConflicts(definition, conflicts)
+      Object.keys(conflicts).forEach(key => {
+        if (conflicts[key].values.length > 1) {
+          exception.add({
+            code: 'SCHEMA_ALL_CONFLICT',
+            id: ctor.id,
+            level: 'error',
+            locations: conflicts[key].context.map(context => getLocation(context.definition, context.key, 'value')),
+            metadata: {
+              propertyName: key,
+              values: conflicts[key].values
+            }
+          })
+        }
+      })
+    }
   }
+}
+
+/**
+ * Get the property for a schema. If the property is not found then try to determine the property value, otherwise
+ * use a default value.
+ * @param schema
+ * @param propertyName
+ * @param defaultValue
+ */
+export function getSchemaProperty<T> (schema: Definition, propertyName: keyof Definition, defaultValue?: T): T | undefined {
+  if (schema[propertyName] !== undefined) return schema[propertyName] as T
+  if (Array.isArray(schema.allOf)) {
+    const found = (schema.allOf as Definition[]).find(s => s[propertyName] !== undefined)
+    if (found !== undefined) return found[propertyName] as T
+  }
+  return defaultValue
 }
 
 // /**
@@ -140,15 +177,15 @@ export function schemaDefinition (processor: I.ISchemaSchemaProcessor,
 //   }
 // }
 
-export function getSchemaProperty<T=any> (schema: Definition, path: string[]): T | undefined {
-  let node: any = schema
-  const length = path.length
-  for (let i = 0; i < length; i++) {
-    node = node[path[i]]
-    if (node === undefined) return
-  }
-  return node as T
-}
+// export function getSchemaProperty<T=any> (schema: Definition, path: string[]): T | undefined {
+//   let node: any = schema
+//   const length = path.length
+//   for (let i = 0; i < length; i++) {
+//     node = node[path[i]]
+//     if (node === undefined) return
+//   }
+//   return node as T
+// }
 
 // /**
 //  * Given an object path, traverse schemas properties and additional properties to find the schema associated with the path.
@@ -238,3 +275,79 @@ export function validateMaxMin (exceptionStore: ExceptionStore,
     }
   }
 }
+
+function addAllOfConflict (conflicts: IAllOfConflicts, definition: Definition, key: keyof Definition): void {
+  const conflict = conflicts[key]
+  const value = definition[key]
+  if (conflict === undefined) {
+    conflicts[key] = {
+      context: [{ definition, key }],
+      values: [value]
+    }
+  } else if (!deepEqual(conflict.values[0], value)) {
+    conflict.context.push({ definition, key })
+    conflict.values.push(value)
+  }
+}
+
+function findAllOfConflicts (definition: Definition, conflicts: IAllOfConflicts, map = new Map<object, null>()): void {
+  if (definition.allOf === undefined) return
+  if (map.has(definition)) return
+  map.set(definition, null)
+
+  ;(Object.keys(definition) as Array<keyof Definition>).forEach(key => {
+    addAllOfConflict(conflicts, definition, key)
+  })
+
+  definition.allOf.forEach(def => {
+    if ('allOf' in def) return findAllOfConflicts(def, conflicts, map)
+
+    // TODO: handle anyOf, oneOf, and not. If "not" then we assume no more conflicts
+
+    ;(Object.keys(def) as Array<keyof Definition>).forEach(key => {
+      addAllOfConflict(conflicts, def as Definition, key)
+    })
+
+    if (!('type' in def)) {
+      const type = determineSchemaType(def as Definition)
+      if (type !== undefined) {
+        addAllOfConflict(conflicts, def as Definition, 'type')
+      }
+    }
+  })
+}
+
+// property values that must be equal across all schemas
+// const mustBeEqual = ['format', 'type', 'uniqueItems', 'nullable']
+
+// property values that are ignored across schemas
+// const ignored = ['title', 'xml', 'externalDocs', 'deprecated']
+
+// gather minimums and use to compare against maximums
+// only compare properties based on first determined type - if we determine the type is number then ignore "maxLength", "maxItems", "maxProperties"
+// if type is number and minimum equals maximum and either exclusiveMinimum or exclusiveMaximum causes conflict then report it
+// const minimums: ['minimum', 'minLength', 'minItems', 'minProperties']
+// const maximums: ['maximum', 'maxLength', 'maxItems', 'maxProperties']
+
+
+/*
+allOf: 'Schema|Reference[]',
+oneOf: 'Schema|Reference[]',
+anyOf: 'Schema|Reference[]',
+not: 'Schema|Reference',
+exclusiveMaximum: 'boolean',
+exclusiveMinimum: 'boolean',
+pattern: 'string',
+enum: 'any[]',
+multipleOf: 'number',
+required: 'string[]',
+items: 'Schema|Reference',
+properties: 'Schema|Reference{}',
+additionalProperties: 'Schema|Reference|boolean',
+description: 'string',
+default: 'any',
+discriminator: 'Discriminator',
+readOnly: 'boolean',
+writeOnly: 'boolean',
+example: 'any',
+ */

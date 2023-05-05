@@ -158,7 +158,7 @@ export interface ISchemaValidatorsMap2 {
   items: Icsd.IProperty<Icsd.IComponent<I.ISchema2Definition, I.ISchema2>>
   allOf: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISchema2Definition, I.ISchema2>>>
   properties: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ISchema2Definition, I.ISchema2>>>
-  additionalProperties: Icsd.IProperty<Icsd.IOneOf>
+  additionalProperties: Icsd.IProperty<Icsd.IAny>
   discriminator: Icsd.IProperty<Icsd.IString>
   readOnly: Icsd.IProperty<Icsd.IBoolean>
   xml: Icsd.IProperty<Icsd.IComponent<I.IXml2Definition, I.IXml2>>
@@ -268,7 +268,7 @@ export interface ISchemaValidatorsMap3 {
   required: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
   items: Icsd.IProperty<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>
   properties: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>>
-  additionalProperties: Icsd.IProperty<Icsd.IOneOf>
+  additionalProperties: Icsd.IProperty<Icsd.IAny>
   description: Icsd.IProperty<Icsd.IString>
   format: Icsd.IProperty<Icsd.IString>
   _default: Icsd.IProperty<any>

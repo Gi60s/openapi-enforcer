@@ -15,28 +15,29 @@ export function allOfMerge (exception: ExceptionStore, definitions: IDefinition[
 
   if (types.size > 1) {
     exception.add({
-      code: 'SCHEMA_ALL_TYPES_CONFLICT',
+      code: 'SCHEMA_ALL_CONFLICT',
       id: 'SCHEMA',
       level: 'error',
       locations: typesLocations,
       metadata: {
-        types: Array.from(types)
+        propertyName: 'type',
+        values: Array.from(types)
       }
     })
   }
 
   if (formats.size > 1) {
     exception.add({
-      code: 'SCHEMA_ALL_FORMATS_CONFLICT',
+      code: 'SCHEMA_ALL_CONFLICT',
       id: 'SCHEMA',
       level: 'error',
       locations: formatsLocations,
       metadata: {
-        formats: Array.from(formats)
+        propertyName: 'format',
+        values: Array.from(formats)
       }
     })
   }
-
 }
 
 function getMergeTypes (schemas: IDefinition[], types: Set<string>, formats: Set<string>, typesLocations: ILocation[], formatsLocations: ILocation[]): void {

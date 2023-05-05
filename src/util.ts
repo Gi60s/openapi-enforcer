@@ -26,6 +26,35 @@ export function copy<T> (value: T, map: Map<any, any> = new Map()): T {
   }
 }
 
+export function deepEqual (a: any, b: any): boolean {
+  const aType = Array.isArray(a) ? 'array' : typeof a
+  const bType = Array.isArray(b) ? 'array' : typeof b
+  if (aType !== bType) return false
+  if (aType === 'object' && (a === null) !== (b === null)) return false
+  if (a === null) return true
+
+  if (aType === 'array') {
+    const length = a.length
+    if (length !== b.length) return false
+    for (let i = 0; i < length; i++) {
+      if (!deepEqual(a[i], b[i])) return false
+    }
+    return true
+  } else if (aType === 'object') {
+    const aProps = Object.keys(a)
+    const bProps = Object.keys(b)
+    const length = aProps.length
+    if (length !== bProps.length) return false
+    for (let i = 0; i < length; i++) {
+      const key = aProps[i]
+      if (!deepEqual(a[key], b[key])) return false
+    }
+    return true
+  } else {
+    return a === b
+  }
+}
+
 /**
  * If a function has been deprecated, use this function to provide a console message once every 10 minutes when
  * called.
