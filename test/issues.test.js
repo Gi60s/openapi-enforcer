@@ -353,4 +353,120 @@ describe('documented issues fixes', () => {
         })
     });
 
+    describe.skip('issue-156 validate non-primitives in request query string', () => {
+        let def
+        let param
+        beforeEach(async () => {
+            param = {
+                name: 'arrayenums',
+                in: 'query',
+                schema: {
+                    type: 'array',
+                    items: {
+                        type: 'string',
+                        enum: ['Foo', 'Bar', 'Baz']
+                    }
+                }
+            }
+            def = {
+                openapi: '3.0.0',
+                info: { title: '', version: 'v1' },
+                paths: {
+                    '/foo': {
+                        get: {
+                            parameters: [param],
+                            responses: {
+                                200: { description: 'ok' }
+                            }
+                        }
+                    }
+                }
+            }
+
+        })
+
+        it('will allow query string in path using exploded form style', async () => {
+            Object.assign(param, { explode: true, style: 'form' })
+            const [openapi] = await Enforcer(def, { hideWarnings: true, fullResult: true })
+            const [ req, error ] = openapi.request({
+                method: 'GET',
+                path: '/foo?arrayenums=Foo&arrayenums=Bar'
+            })
+            expect(req.query.arrayenums).to.deep.equal(['Foo', 'Bar'])
+        })
+
+        it('will allow query string in path using form style', async () => {
+            Object.assign(param, { explode: false, style: 'form' })
+            const [openapi] = await Enforcer(def, { hideWarnings: true, fullResult: true })
+            const [ req, error ] = openapi.request({
+                method: 'GET',
+                path: '/foo?arrayenums=Foo,Bar'
+            })
+            expect(req.query.arrayenums).to.deep.equal(['Foo', 'Bar'])
+        })
+
+        it('will allow query string in path using exploded space delimited style', async () => {
+            Object.assign(param, { explode: true, style: 'spaceDelimited' })
+            const [openapi] = await Enforcer(def, { hideWarnings: true, fullResult: true })
+            const [ req, error ] = openapi.request({
+                method: 'GET',
+                path: '/foo?arrayenums=Foo&arrayenums=Bar'
+            })
+            expect(req.query.arrayenums).to.deep.equal(['Foo', 'Bar'])
+        })
+
+        it('will allow query string in path using space delimited style', async () => {
+            Object.assign(param, { explode: false, style: 'spaceDelimited' })
+            const [openapi] = await Enforcer(def, { hideWarnings: true, fullResult: true })
+            const [ req, error ] = openapi.request({
+                method: 'GET',
+                path: '/foo?arrayenums=Foo%20Bar'
+            })
+            expect(req.query.arrayenums).to.deep.equal(['Foo', 'Bar'])
+        })
+
+        it('will allow query string in path using exploded pipe delimited style', async () => {
+            Object.assign(param, { explode: true, style: 'pipeDelimited' })
+            const [openapi] = await Enforcer(def, { hideWarnings: true, fullResult: true })
+            const [ req, error ] = openapi.request({
+                method: 'GET',
+                path: '/foo?arrayenums=Foo&arrayenums=Bar'
+            })
+            expect(req.query.arrayenums).to.deep.equal(['Foo', 'Bar'])
+        })
+
+        it('will allow query string in path using pipe delimited style', async () => {
+            Object.assign(param, { explode: false, style: 'pipeDelimited' })
+            const [openapi] = await Enforcer(def, { hideWarnings: true, fullResult: true })
+            const [ req, error ] = openapi.request({
+                method: 'GET',
+                path: '/foo?arrayenums=Foo|Bar'
+            })
+            expect(req.query.arrayenums).to.deep.equal(['Foo', 'Bar'])
+        })
+
+        it('will allow an array of strings in query map', async () => {
+            const [openapi] = await Enforcer(def, { hideWarnings: true, fullResult: true })
+            const [ req, error ] = openapi.request({
+                method: 'GET',
+                path: '/foo',
+                query: {
+                    arrayenums: ['Foo', 'Bar']
+                }
+            })
+            expect(error).to.equal(undefined)
+        })
+
+        it('will allow a string of style form', async () => {
+            const [ req, error ] = openapi.request({
+                method: 'GET',
+                path: '/foo',
+                query: {
+                    arrayenums: ['Foo', 'Bar']
+                }
+            })
+            expect(error).to.equal(undefined)
+        })
+    })
+
 });
