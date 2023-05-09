@@ -6,17 +6,27 @@ import * as C from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { getLocation } from '../../Loader'
 import { deepEqual } from '../../util'
 
-type IAllOfConflicts = Record<string, { context: Array<{ definition: Definition, key: string }>, values: any[] }>
-type Definition = ISchema2Definition | ISchema3Definition
+type IDefinition = ISchema2Definition | ISchema3Definition
+type IDefinitionKeys = Array<keyof IDefinition>
 type ISchema = ISchema2 | ISchema3
 
-const schemaDerivedPropertiesMap = new WeakMap<Definition, Definition>()
+interface IAllOfData {
+  definition: IDefinition
+  value: any
+}
+
+
+const allOfMustBeEqualProperties = ['format', 'nullable', 'type', 'uniqueItems']
+const allOfMinimumProperties = ['minimum', 'minLength', 'minItems', 'minProperties'] as IDefinitionKeys
+const allOfMaximumProperties = ['maximum', 'maxLength', 'maxItems', 'maxProperties'] as IDefinitionKeys
+
+const derivedDefinitionMap = new WeakMap<IDefinition, IDefinition>()
 
 export function deserialize (value: string, options: { strict: boolean } | undefined): any {
   return null
 }
 
-export function determineSchemaType (definition: I.ISchemaDefinition | I.ISchema): string | undefined {
+export function determineSchemaType (definition: I.ISchemaDefinition | I.ISchema): 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string' | undefined {
   if (definition.type !== undefined) return definition.type
   if ('items' in definition ||
     'maxItems' in definition ||
@@ -87,6 +97,11 @@ export function schemaDefinition (processor: I.ISchemaSchemaProcessor,
   validators.multipleOf.notAllowed = type !== 'number' && type !== 'integer' ? 'PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC' : undefined
 
   schema.validate = () => {
+    const { definition } = processor
+
+    const derived: IDefinition = Object.assign({}, definition, { type })
+    derivedDefinitionMap.set(definition, derived)
+
     const isTypeExempt = ('allOf' in definition) || ('anyOf' in definition) || ('oneOf' in definition) || ('not' in definition)
     if (!isTypeExempt) {
       if (type === undefined) {
@@ -121,18 +136,32 @@ export function schemaDefinition (processor: I.ISchemaSchemaProcessor,
     }
 
     if (Array.isArray(definition.allOf)) {
-      const conflicts: IAllOfConflicts = {}
-      findAllOfConflicts(definition, conflicts)
-      Object.keys(conflicts).forEach(key => {
-        if (conflicts[key].values.length > 1) {
+      const allOf = (definition.allOf as IDefinition[]).filter((s: any) => !('$ref' in s))
+
+      // first check that any properties that must be equal are equal
+      ;(allOfMustBeEqualProperties as Array<keyof IDefinition>).forEach(key => {
+        const conflicts: IAllOfData[] = []
+        let hasConflicts = false
+        allOf.forEach((definition, index) => {
+          // it should always get the derived schema because it was set already during the validator of the child schema
+          const schema = derivedDefinitionMap.get(definition) ?? definition
+          if (key in schema) {
+            const value = schema[key]
+            if (derived[key] === undefined) derived[key] = value
+            conflicts.push({ definition, value })
+            if (index > 0 && !deepEqual(conflicts[0].value, value)) hasConflicts = true
+          }
+        })
+
+        if (hasConflicts) {
           exception.add({
             code: 'SCHEMA_ALL_CONFLICT',
             id: ctor.id,
             level: 'error',
-            locations: conflicts[key].context.map(context => getLocation(context.definition, context.key, 'value')),
+            locations: conflicts.map(conflict => getLocation(conflict.definition, key, 'value')),
             metadata: {
               propertyName: key,
-              values: conflicts[key].values
+              values: Array.from(new Set(conflicts.map(c => c.value)))
             }
           })
         }
@@ -148,10 +177,10 @@ export function schemaDefinition (processor: I.ISchemaSchemaProcessor,
  * @param propertyName
  * @param defaultValue
  */
-export function getSchemaProperty<T> (schema: Definition, propertyName: keyof Definition, defaultValue?: T): T | undefined {
+export function getSchemaProperty<T> (schema: IDefinition, propertyName: keyof IDefinition, defaultValue?: T): T | undefined {
   if (schema[propertyName] !== undefined) return schema[propertyName] as T
   if (Array.isArray(schema.allOf)) {
-    const found = (schema.allOf as Definition[]).find(s => s[propertyName] !== undefined)
+    const found = (schema.allOf as IDefinition[]).find(s => s[propertyName] !== undefined)
     if (found !== undefined) return found[propertyName] as T
   }
   return defaultValue
@@ -276,58 +305,17 @@ export function validateMaxMin (exceptionStore: ExceptionStore,
   }
 }
 
-function addAllOfConflict (conflicts: IAllOfConflicts, definition: Definition, key: keyof Definition): void {
-  const conflict = conflicts[key]
-  const value = definition[key]
-  if (conflict === undefined) {
-    conflicts[key] = {
-      context: [{ definition, key }],
-      values: [value]
-    }
-  } else if (!deepEqual(conflict.values[0], value)) {
-    conflict.context.push({ definition, key })
-    conflict.values.push(value)
-  }
-}
-
-function findAllOfConflicts (definition: Definition, conflicts: IAllOfConflicts, map = new Map<object, null>()): void {
-  if (definition.allOf === undefined) return
-  if (map.has(definition)) return
-  map.set(definition, null)
-
-  ;(Object.keys(definition) as Array<keyof Definition>).forEach(key => {
-    addAllOfConflict(conflicts, definition, key)
-  })
-
-  definition.allOf.forEach(def => {
-    if ('allOf' in def) return findAllOfConflicts(def, conflicts, map)
-
-    // TODO: handle anyOf, oneOf, and not. If "not" then we assume no more conflicts
-
-    ;(Object.keys(def) as Array<keyof Definition>).forEach(key => {
-      addAllOfConflict(conflicts, def as Definition, key)
-    })
-
-    if (!('type' in def)) {
-      const type = determineSchemaType(def as Definition)
-      if (type !== undefined) {
-        addAllOfConflict(conflicts, def as Definition, 'type')
-      }
-    }
-  })
-}
-
 // property values that must be equal across all schemas
-// const mustBeEqual = ['format', 'type', 'uniqueItems', 'nullable']
+// format, type, uniqueItems, nullable
 
 // property values that are ignored across schemas
-// const ignored = ['title', 'xml', 'externalDocs', 'deprecated']
+// title, xml, externalDocs, deprecated
 
 // gather minimums and use to compare against maximums
 // only compare properties based on first determined type - if we determine the type is number then ignore "maxLength", "maxItems", "maxProperties"
 // if type is number and minimum equals maximum and either exclusiveMinimum or exclusiveMaximum causes conflict then report it
-// const minimums: ['minimum', 'minLength', 'minItems', 'minProperties']
-// const maximums: ['maximum', 'maxLength', 'maxItems', 'maxProperties']
+// minimums: minimum, minLength, minItems, minProperties
+// maximums: maximum, maxLength, maxItems, maxProperties
 
 
 /*

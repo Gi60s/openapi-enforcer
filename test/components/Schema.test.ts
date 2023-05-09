@@ -14,7 +14,7 @@ describe.only('Schema', () => {
       })
     })
 
-    describe.only('property: additionalProperties', () => {
+    describe('property: additionalProperties', () => {
       it('is valid if type is explicitly set to "object"', () => {
         test(Schema => {
           const es = Schema.validate({ type: 'object', additionalProperties: true })
@@ -60,7 +60,7 @@ describe.only('Schema', () => {
       })
     })
 
-    describe.skip('property: allOf', () => {
+    describe.only('property: allOf', () => {
       it('does not need a type specified', () => {
         test(Schema => {
           const es = Schema.validate({ allOf: [] })
@@ -122,7 +122,7 @@ describe.only('Schema', () => {
           })
           expect(es).to.have.exceptionErrorCode('SCHEMA_ALL_CONFLICT', true)
 
-          const metadata = es.exceptions[0]?.metadata ?? {}
+          const metadata = es.exceptions.find(ex => ex.code === 'SCHEMA_ALL_CONFLICT')?.metadata ?? {}
           expect(metadata.propertyName).to.equal('type')
           expect(metadata.values).to.deep.equal(['string', 'number'])
         })
@@ -145,7 +145,7 @@ describe.only('Schema', () => {
             ]
           })
           expect(es).to.have.exceptionErrorCode('SCHEMA_ALL_CONFLICT', true)
-          const metadata = es.exceptions[0]?.metadata ?? {}
+          const metadata = es.exceptions.find(ex => ex.code === 'SCHEMA_ALL_CONFLICT')?.metadata ?? {}
           expect(metadata.propertyName).to.equal('type')
           expect(metadata.values).to.deep.equal(['string', 'number'])
         })
