@@ -13,3 +13,4 @@
 
 export * from './IEncoding'
 export { Encoding as Encoding3 } from './Encoding3'
+export { Encoding as Encoding3a } from './Encoding3a'

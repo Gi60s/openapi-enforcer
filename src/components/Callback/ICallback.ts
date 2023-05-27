@@ -12,29 +12,43 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { IPathItem3, IPathItem3Definition } from '../PathItem'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface ICallbackComponent extends IComponentInstance {
+export type ICallback = ICallback3 | ICallback3a
+export type ICallbackDefinition = ICallback3Definition | ICallback3aDefinition
+export type ICallback3SchemaProcessor = SchemaProcessor<ICallback3Definition, ICallback3>
+export type ICallback3aSchemaProcessor = SchemaProcessor<ICallback3aDefinition, ICallback3a>
+export type ICallbackSchemaProcessor = ICallback3SchemaProcessor | ICallback3aSchemaProcessor
+
+export interface ICallbackBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // Put your code here.
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface ICallback3Definition {
-  [Extensions: `x-${string}`]: any
-  [key: `http${string}`]: I.IPathItem3Definition
-  [key: `{$${string}`]: I.IPathItem3Definition
+  [extensions: `x-${string}`]: any
+  [path: `http${string}`]: IPathItem3Definition
+  [path: `{$${string}`]: IPathItem3Definition
 }
 
-export interface ICallback3 extends ICallbackComponent {
-  [Extensions]: Record<string, any>
-  [key: `http${string}`]: I.IPathItem3
-  [key: `{$${string}`]: I.IPathItem3
+export interface ICallback3 extends ICallbackBase {
+  extensions: Record<string, any>
+  [path: `http${string}`]: IPathItem3
+  [path: `{$${string}`]: IPathItem3
+}
+
+export interface ICallback3aDefinition {
+  [extensions: `x-${string}`]: any
+}
+
+export interface ICallback3a extends ICallbackBase {
+  extensions: Record<string, any>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

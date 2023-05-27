@@ -12,37 +12,51 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IPathsComponent extends IComponentInstance {
+export type IPaths = IPaths2 | IPaths3 | IPaths3a
+export type IPathsDefinition = IPaths2Definition | IPaths3Definition | IPaths3aDefinition
+export type IPaths2SchemaProcessor = SchemaProcessor<IPaths2Definition, IPaths2>
+export type IPaths3SchemaProcessor = SchemaProcessor<IPaths3Definition, IPaths3>
+export type IPaths3aSchemaProcessor = SchemaProcessor<IPaths3aDefinition, IPaths3a>
+export type IPathsSchemaProcessor = IPaths2SchemaProcessor | IPaths3SchemaProcessor | IPaths3aSchemaProcessor
+
+export interface IPathsBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // Put your code here.
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IPaths2Definition {
-  [Extensions: `x-${string}`]: any
-  [key: `/${string}`]: I.IPathItem2Definition
+  [extensions: `x-${string}`]: any
+  [path: `/${string}`]: PathItem
 }
 
-export interface IPaths2 extends IPathsComponent {
-  [Extensions]: Record<string, any>
-  [key: `/${string}`]: I.IPathItem2
+export interface IPaths2 extends IPathsBase {
+  extensions: Record<string, any>
+  [path: `/${string}`]: PathItem
 }
 
 export interface IPaths3Definition {
-  [Extensions: `x-${string}`]: any
-  [key: `/${string}`]: I.IPathItem3Definition
+  [extensions: `x-${string}`]: any
+  [path: `/${string}`]: PathItem
 }
 
-export interface IPaths3 extends IPathsComponent {
-  [Extensions]: Record<string, any>
-  [key: `/${string}`]: I.IPathItem3
+export interface IPaths3 extends IPathsBase {
+  extensions: Record<string, any>
+  [path: `/${string}`]: PathItem
+}
+
+export interface IPaths3aDefinition {
+  [extensions: `x-${string}`]: any
+}
+
+export interface IPaths3a extends IPathsBase {
+  extensions: Record<string, any>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

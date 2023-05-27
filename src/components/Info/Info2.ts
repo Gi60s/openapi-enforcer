@@ -12,24 +12,29 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Contact2, IContact2, IContact2Definition } from '../Contact'
+import { License2, ILicense2, ILicense2Definition } from '../License'
+import { Info as InfoBase } from './Info'
+import { IInfo2, IInfo2Definition, IInfo2SchemaProcessor, IInfoValidatorsMap2 as IValidatorsMap } from './IInfo'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IInfoValidatorsMap2
+let cachedSchema: ISDSchemaDefinition<IInfo2Definition, IInfo2> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IInfo2Definition, I.IInfo2> | null = null
+export class Info extends InfoBase implements IInfo2 {
+  public extensions: Record<string, any> = {}
+  public title!: string
+  public description?: string
+  public termsOfService?: string
+  public contact?: IContact2
+  public license?: ILicense2
+  public version!: string
 
-export class Info extends EnforcerComponent<I.IInfo2Definition> implements I.IInfo2 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IInfo2Definition, version?: IVersion) {
+  constructor (definition: IInfo2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +48,17 @@ export class Info extends EnforcerComponent<I.IInfo2Definition> implements I.IIn
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IInfoSchemaProcessor): Icsd.ISchemaDefinition<I.IInfo2Definition, I.IInfo2> {
+  static getSchemaDefinition (_data: IInfo2SchemaProcessor): ISDSchemaDefinition<IInfo2Definition, IInfo2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IInfo2Definition, I.IInfo2> = {
+    const result: ISDSchemaDefinition<IInfo2Definition, IInfo2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -73,95 +79,51 @@ export class Info extends EnforcerComponent<I.IInfo2Definition> implements I.IIn
     return result
   }
 
-  static create (definition?: Partial<I.IInfo2Definition> | Info | undefined): Info {
+  static create (definition?: Partial<IInfo2Definition> | Info | undefined): Info {
     if (definition instanceof Info) {
-      return new Info(Object.assign({}, definition as unknown) as I.IInfo2Definition)
+      return new Info(Object.assign({}, definition as unknown) as IInfo2Definition)
     } else {
       return new Info(Object.assign({
         title: '',
         version: ''
-      }, definition) as I.IInfo2Definition)
+      }, definition) as IInfo2Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.IInfo2Definition> | Info | string | undefined): Promise<Info> {
+  static async createAsync (definition?: Partial<IInfo2Definition> | Info | string | undefined): Promise<Info> {
     if (definition instanceof Info) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IInfo2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IInfo2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IInfo2Definition>> (definition?: T | undefined): I.IInfo2Definition & T {
+  static createDefinition<T extends Partial<IInfo2Definition>> (definition?: T | undefined): IInfo2Definition & T {
     return Object.assign({
       title: '',
       version: ''
-    }, definition) as I.IInfo2Definition & T
+    }, definition) as IInfo2Definition & T
   }
 
-  static validate (definition: I.IInfo2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IInfo2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IInfo2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IInfo2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get title (): string {
-    return this.getProperty('title')
-  }
-
-  set title (value: string) {
-    this.setProperty('title', value)
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get termsOfService (): string | undefined {
-    return this.getProperty('termsOfService')
-  }
-
-  set termsOfService (value: string | undefined) {
-    this.setProperty('termsOfService', value)
-  }
-
-  get contact (): I.IContact2 | undefined {
-    return this.getProperty('contact')
-  }
-
-  set contact (value: I.IContact2 | undefined) {
-    this.setProperty('contact', value)
-  }
-
-  get license (): I.ILicense2 | undefined {
-    return this.getProperty('license')
-  }
-
-  set license (value: I.ILicense2 | undefined) {
-    this.setProperty('license', value)
-  }
-
-  get version (): string {
-    return this.getProperty('version')
-  }
-
-  set version (value: string) {
-    this.setProperty('version', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -189,7 +151,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Contact2
+        component: Contact2
       }
     },
     license: {
@@ -197,7 +159,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.License2
+        component: License2
       }
     },
     version: {

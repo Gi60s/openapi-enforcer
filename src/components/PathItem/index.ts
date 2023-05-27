@@ -14,3 +14,4 @@
 export * from './IPathItem'
 export { PathItem as PathItem2 } from './PathItem2'
 export { PathItem as PathItem3 } from './PathItem3'
+export { PathItem as PathItem3a } from './PathItem3a'

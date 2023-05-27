@@ -12,24 +12,24 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Contact as ContactBase } from './Contact'
+import { IContact3, IContact3Definition, IContact3SchemaProcessor, IContactValidatorsMap3 as IValidatorsMap } from './IContact'
 // <!# Custom Content Begin: HEADER #!>
 import { validate } from './common'
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IContactValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IContact3Definition, IContact3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IContact3Definition, I.IContact3> | null = null
+export class Contact extends ContactBase implements IContact3 {
+  public extensions: Record<string, any> = {}
+  public name?: string
+  public url?: string
+  public email?: string
 
-export class Contact extends EnforcerComponent<I.IContact3Definition> implements I.IContact3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IContact3Definition, version?: IVersion) {
+  constructor (definition: IContact3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +43,17 @@ export class Contact extends EnforcerComponent<I.IContact3Definition> implements
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#contact-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#contact-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#contact-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#contact-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#contact-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IContactSchemaProcessor): Icsd.ISchemaDefinition<I.IContact3Definition, I.IContact3> {
+  static getSchemaDefinition (_data: IContact3SchemaProcessor): ISDSchemaDefinition<IContact3Definition, IContact3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IContact3Definition, I.IContact3> = {
+    const result: ISDSchemaDefinition<IContact3Definition, IContact3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -72,61 +73,41 @@ export class Contact extends EnforcerComponent<I.IContact3Definition> implements
     return result
   }
 
-  static create (definition?: Partial<I.IContact3Definition> | Contact | undefined): Contact {
-    return new Contact(Object.assign({}, definition) as I.IContact3Definition)
+  static create (definition?: Partial<IContact3Definition> | Contact | undefined): Contact {
+    return new Contact(Object.assign({}, definition) as IContact3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IContact3Definition> | Contact | string | undefined): Promise<Contact> {
+  static async createAsync (definition?: Partial<IContact3Definition> | Contact | string | undefined): Promise<Contact> {
     if (definition instanceof Contact) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IContact3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IContact3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IContact3Definition>> (definition?: T | undefined): I.IContact3Definition & T {
-    return Object.assign({}, definition) as I.IContact3Definition & T
+  static createDefinition<T extends Partial<IContact3Definition>> (definition?: T | undefined): IContact3Definition & T {
+    return Object.assign({}, definition) as IContact3Definition & T
   }
 
-  static validate (definition: I.IContact3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IContact3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IContact3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IContact3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get name (): string | undefined {
-    return this.getProperty('name')
-  }
-
-  set name (value: string | undefined) {
-    this.setProperty('name', value)
-  }
-
-  get url (): string | undefined {
-    return this.getProperty('url')
-  }
-
-  set url (value: string | undefined) {
-    this.setProperty('url', value)
-  }
-
-  get email (): string | undefined {
-    return this.getProperty('email')
-  }
-
-  set email (value: string | undefined) {
-    this.setProperty('email', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
 
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {

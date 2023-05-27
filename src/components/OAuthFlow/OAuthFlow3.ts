@@ -12,24 +12,25 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { OAuthFlow as OAuthFlowBase } from './OAuthFlow'
+import { IOAuthFlow3, IOAuthFlow3Definition, IOAuthFlow3SchemaProcessor, IOAuthFlowValidatorsMap3 as IValidatorsMap } from './IOAuthFlow'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IOAuthFlowValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IOAuthFlow3Definition, IOAuthFlow3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IOAuthFlow3Definition, I.IOAuthFlow3> | null = null
+export class OAuthFlow extends OAuthFlowBase implements IOAuthFlow3 {
+  public extensions: Record<string, any> = {}
+  public authorizationUrl?: string
+  public tokenUrl?: string
+  public refreshUrl?: string
+  public scopes?: Record<string, string>
 
-export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implements I.IOAuthFlow3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IOAuthFlow3Definition, version?: IVersion) {
+  constructor (definition: IOAuthFlow3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +44,17 @@ export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implem
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#oauth-flow-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#oauth-flow-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#oauth-flow-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#oauth-flow-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#oauth-flow-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IOAuthFlowSchemaProcessor): Icsd.ISchemaDefinition<I.IOAuthFlow3Definition, I.IOAuthFlow3> {
+  static getSchemaDefinition (_data: IOAuthFlow3SchemaProcessor): ISDSchemaDefinition<IOAuthFlow3Definition, IOAuthFlow3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IOAuthFlow3Definition, I.IOAuthFlow3> = {
+    const result: ISDSchemaDefinition<IOAuthFlow3Definition, IOAuthFlow3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -71,69 +73,41 @@ export class OAuthFlow extends EnforcerComponent<I.IOAuthFlow3Definition> implem
     return result
   }
 
-  static create (definition?: Partial<I.IOAuthFlow3Definition> | OAuthFlow | undefined): OAuthFlow {
-    return new OAuthFlow(Object.assign({}, definition) as I.IOAuthFlow3Definition)
+  static create (definition?: Partial<IOAuthFlow3Definition> | OAuthFlow | undefined): OAuthFlow {
+    return new OAuthFlow(Object.assign({}, definition) as IOAuthFlow3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IOAuthFlow3Definition> | OAuthFlow | string | undefined): Promise<OAuthFlow> {
+  static async createAsync (definition?: Partial<IOAuthFlow3Definition> | OAuthFlow | string | undefined): Promise<OAuthFlow> {
     if (definition instanceof OAuthFlow) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IOAuthFlow3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IOAuthFlow3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IOAuthFlow3Definition>> (definition?: T | undefined): I.IOAuthFlow3Definition & T {
-    return Object.assign({}, definition) as I.IOAuthFlow3Definition & T
+  static createDefinition<T extends Partial<IOAuthFlow3Definition>> (definition?: T | undefined): IOAuthFlow3Definition & T {
+    return Object.assign({}, definition) as IOAuthFlow3Definition & T
   }
 
-  static validate (definition: I.IOAuthFlow3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IOAuthFlow3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IOAuthFlow3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IOAuthFlow3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get authorizationUrl (): string | undefined {
-    return this.getProperty('authorizationUrl')
-  }
-
-  set authorizationUrl (value: string | undefined) {
-    this.setProperty('authorizationUrl', value)
-  }
-
-  get tokenUrl (): string | undefined {
-    return this.getProperty('tokenUrl')
-  }
-
-  set tokenUrl (value: string | undefined) {
-    this.setProperty('tokenUrl', value)
-  }
-
-  get refreshUrl (): string | undefined {
-    return this.getProperty('refreshUrl')
-  }
-
-  set refreshUrl (value: string | undefined) {
-    this.setProperty('refreshUrl', value)
-  }
-
-  get scopes (): Record<string, string> | undefined {
-    return this.getProperty('scopes')
-  }
-
-  set scopes (value: Record<string, string> | undefined) {
-    this.setProperty('scopes', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {

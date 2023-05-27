@@ -13,3 +13,4 @@
 
 export * from './ILink'
 export { Link as Link3 } from './Link3'
+export { Link as Link3a } from './Link3a'

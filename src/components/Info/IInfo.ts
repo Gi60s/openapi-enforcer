@@ -12,75 +12,113 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { IContact2, IContact2Definition, IContact3, IContact3Definition, IContact3a, IContact3aDefinition } from '../Contact'
+import { ILicense2, ILicense2Definition, ILicense3, ILicense3Definition, ILicense3a, ILicense3aDefinition } from '../License'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IInfoComponent extends IComponentInstance {
+export type IInfo = IInfo2 | IInfo3 | IInfo3a
+export type IInfoDefinition = IInfo2Definition | IInfo3Definition | IInfo3aDefinition
+export type IInfo2SchemaProcessor = SchemaProcessor<IInfo2Definition, IInfo2>
+export type IInfo3SchemaProcessor = SchemaProcessor<IInfo3Definition, IInfo3>
+export type IInfo3aSchemaProcessor = SchemaProcessor<IInfo3aDefinition, IInfo3a>
+export type IInfoSchemaProcessor = IInfo2SchemaProcessor | IInfo3SchemaProcessor | IInfo3aSchemaProcessor
+
+export interface IInfoBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // Put your code here.
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IInfo2Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   title: string
   description?: string
   termsOfService?: string
-  contact?: I.IContact2Definition
-  license?: I.ILicense2Definition
+  contact?: IContact2Definition
+  license?: ILicense2Definition
   version: string
 }
 
-export interface IInfo2 extends IInfoComponent {
-  [Extensions]: Record<string, any>
+export interface IInfo2 extends IInfoBase {
+  extensions: Record<string, any>
   title: string
   description?: string
   termsOfService?: string
-  contact?: I.IContact2
-  license?: I.ILicense2
+  contact?: IContact2
+  license?: ILicense2
   version: string
 }
 
 export interface IInfoValidatorsMap2 {
-  title: Icsd.IProperty<Icsd.IString>
-  description: Icsd.IProperty<Icsd.IString>
-  termsOfService: Icsd.IProperty<Icsd.IString>
-  contact: Icsd.IProperty<Icsd.IComponent<I.IContact2Definition, I.IContact2>>
-  license: Icsd.IProperty<Icsd.IComponent<I.ILicense2Definition, I.ILicense2>>
-  version: Icsd.IProperty<Icsd.IString>
+  title: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  termsOfService: ISDProperty<ISDString>
+  contact: ISDProperty<ISDComponent<IContact2Definition, IContact2>>
+  license: ISDProperty<ISDComponent<ILicense2Definition, ILicense2>>
+  version: ISDProperty<ISDString>
 }
 
 export interface IInfo3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   title: string
   description?: string
   termsOfService?: string
-  contact?: I.IContact3Definition
-  license?: I.ILicense3Definition
+  contact?: IContact3Definition
+  license?: ILicense3Definition
   version: string
 }
 
-export interface IInfo3 extends IInfoComponent {
-  [Extensions]: Record<string, any>
+export interface IInfo3 extends IInfoBase {
+  extensions: Record<string, any>
   title: string
   description?: string
   termsOfService?: string
-  contact?: I.IContact3
-  license?: I.ILicense3
+  contact?: IContact3
+  license?: ILicense3
   version: string
 }
 
 export interface IInfoValidatorsMap3 {
-  title: Icsd.IProperty<Icsd.IString>
-  description: Icsd.IProperty<Icsd.IString>
-  termsOfService: Icsd.IProperty<Icsd.IString>
-  contact: Icsd.IProperty<Icsd.IComponent<I.IContact3Definition, I.IContact3>>
-  license: Icsd.IProperty<Icsd.IComponent<I.ILicense3Definition, I.ILicense3>>
-  version: Icsd.IProperty<Icsd.IString>
+  title: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  termsOfService: ISDProperty<ISDString>
+  contact: ISDProperty<ISDComponent<IContact3Definition, IContact3>>
+  license: ISDProperty<ISDComponent<ILicense3Definition, ILicense3>>
+  version: ISDProperty<ISDString>
+}
+
+export interface IInfo3aDefinition {
+  [extensions: `x-${string}`]: any
+  title: string
+  description?: string
+  termsOfService?: string
+  contact?: IContact3aDefinition
+  license?: ILicense3aDefinition
+  version: string
+}
+
+export interface IInfo3a extends IInfoBase {
+  extensions: Record<string, any>
+  title: string
+  description?: string
+  termsOfService?: string
+  contact?: IContact3a
+  license?: ILicense3a
+  version: string
+}
+
+export interface IInfoValidatorsMap3a {
+  title: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  termsOfService: ISDProperty<ISDString>
+  contact: ISDProperty<ISDComponent<IContact3aDefinition, IContact3a>>
+  license: ISDProperty<ISDComponent<ILicense3aDefinition, ILicense3a>>
+  version: ISDProperty<ISDString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

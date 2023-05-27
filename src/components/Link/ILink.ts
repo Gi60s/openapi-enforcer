@@ -12,46 +12,82 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDObject, ISDAny, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { IServer3, IServer3Definition, IServer3a, IServer3aDefinition } from '../Server'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface ILinkComponent extends IComponentInstance {
+export type ILink = ILink3 | ILink3a
+export type ILinkDefinition = ILink3Definition | ILink3aDefinition
+export type ILink3SchemaProcessor = SchemaProcessor<ILink3Definition, ILink3>
+export type ILink3aSchemaProcessor = SchemaProcessor<ILink3aDefinition, ILink3a>
+export type ILinkSchemaProcessor = ILink3SchemaProcessor | ILink3aSchemaProcessor
+
+export interface ILinkBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
 // Put your code here.
 // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface ILink3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   operationRef?: string
   operationId?: string
   parameters?: Record<string, any>
   requestBody?: any
   description?: string
-  server?: I.IServer3Definition
+  server?: IServer3Definition
 }
 
-export interface ILink3 extends ILinkComponent {
-  [Extensions]: Record<string, any>
+export interface ILink3 extends ILinkBase {
+  extensions: Record<string, any>
   operationRef?: string
   operationId?: string
   parameters?: Record<string, any>
   requestBody?: any
   description?: string
-  server?: I.IServer3
+  server?: IServer3
 }
 
 export interface ILinkValidatorsMap3 {
-  operationRef: Icsd.IProperty<Icsd.IString>
-  operationId: Icsd.IProperty<Icsd.IString>
-  parameters: Icsd.IProperty<Icsd.IObject<any>>
-  requestBody: Icsd.IProperty<any>
-  description: Icsd.IProperty<Icsd.IString>
-  server: Icsd.IProperty<Icsd.IComponent<I.IServer3Definition, I.IServer3>>
+  operationRef: ISDProperty<ISDString>
+  operationId: ISDProperty<ISDString>
+  parameters: ISDProperty<ISDObject<ISDAny>>
+  requestBody: ISDProperty<ISDAny>
+  description: ISDProperty<ISDString>
+  server: ISDProperty<ISDComponent<IServer3Definition, IServer3>>
+}
+
+export interface ILink3aDefinition {
+  [extensions: `x-${string}`]: any
+  operationRef?: string
+  operationId?: string
+  parameters?: Record<string, any>
+  requestBody?: any
+  description?: string
+  server?: IServer3aDefinition
+}
+
+export interface ILink3a extends ILinkBase {
+  extensions: Record<string, any>
+  operationRef?: string
+  operationId?: string
+  parameters?: Record<string, any>
+  requestBody?: any
+  description?: string
+  server?: IServer3a
+}
+
+export interface ILinkValidatorsMap3a {
+  operationRef: ISDProperty<ISDString>
+  operationId: ISDProperty<ISDString>
+  parameters: ISDProperty<ISDObject<ISDAny>>
+  requestBody: ISDProperty<ISDAny>
+  description: ISDProperty<ISDString>
+  server: ISDProperty<ISDComponent<IServer3aDefinition, IServer3a>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

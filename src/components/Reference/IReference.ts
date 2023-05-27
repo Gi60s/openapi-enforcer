@@ -12,12 +12,21 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IReferenceComponent extends IComponentInstance {
+export type IReference = IReference2 | IReference3 | IReference3a
+export type IReferenceDefinition = IReference2Definition | IReference3Definition | IReference3aDefinition
+export type IReference2SchemaProcessor = SchemaProcessor<IReference2Definition, IReference2>
+export type IReference3SchemaProcessor = SchemaProcessor<IReference3Definition, IReference3>
+export type IReference3aSchemaProcessor = SchemaProcessor<IReference3aDefinition, IReference3a>
+export type IReferenceSchemaProcessor = IReference2SchemaProcessor | IReference3SchemaProcessor | IReference3aSchemaProcessor
+
+export interface IReferenceBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // Put your code here.
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
@@ -27,24 +36,38 @@ export interface IReference2Definition {
   $ref: string
 }
 
-export interface IReference2 extends IReferenceComponent {
+export interface IReference2 extends IReferenceBase {
   $ref: string
 }
 
 export interface IReferenceValidatorsMap2 {
-  $ref: Icsd.IProperty<Icsd.IString>
+  $ref: ISDProperty<ISDString>
 }
 
 export interface IReference3Definition {
   $ref: string
 }
 
-export interface IReference3 extends IReferenceComponent {
+export interface IReference3 extends IReferenceBase {
   $ref: string
 }
 
 export interface IReferenceValidatorsMap3 {
-  $ref: Icsd.IProperty<Icsd.IString>
+  $ref: ISDProperty<ISDString>
+}
+
+export interface IReference3aDefinition {
+  [extensions: `x-${string}`]: any
+  $ref: string
+}
+
+export interface IReference3a extends IReferenceBase {
+  extensions: Record<string, any>
+  $ref: string
+}
+
+export interface IReferenceValidatorsMap3a {
+  $ref: ISDProperty<ISDString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

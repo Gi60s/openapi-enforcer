@@ -12,24 +12,28 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Server3, IServer3, IServer3Definition } from '../Server'
+import { Link as LinkBase } from './Link'
+import { ILink3, ILink3Definition, ILink3SchemaProcessor, ILinkValidatorsMap3 as IValidatorsMap } from './ILink'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.ILinkValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<ILink3Definition, ILink3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.ILink3Definition, I.ILink3> | null = null
+export class Link extends LinkBase implements ILink3 {
+  public extensions: Record<string, any> = {}
+  public operationRef?: string
+  public operationId?: string
+  public parameters?: Record<string, any>
+  public requestBody?: any
+  public description?: string
+  public server?: IServer3
 
-export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILink3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.ILink3Definition, version?: IVersion) {
+  constructor (definition: ILink3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +47,17 @@ export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILi
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#link-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#link-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#link-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#link-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#link-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.ILinkSchemaProcessor): Icsd.ISchemaDefinition<I.ILink3Definition, I.ILink3> {
+  static getSchemaDefinition (_data: ILink3SchemaProcessor): ISDSchemaDefinition<ILink3Definition, ILink3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.ILink3Definition, I.ILink3> = {
+    const result: ISDSchemaDefinition<ILink3Definition, ILink3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -73,85 +78,41 @@ export class Link extends EnforcerComponent<I.ILink3Definition> implements I.ILi
     return result
   }
 
-  static create (definition?: Partial<I.ILink3Definition> | Link | undefined): Link {
-    return new Link(Object.assign({}, definition) as I.ILink3Definition)
+  static create (definition?: Partial<ILink3Definition> | Link | undefined): Link {
+    return new Link(Object.assign({}, definition) as ILink3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.ILink3Definition> | Link | string | undefined): Promise<Link> {
+  static async createAsync (definition?: Partial<ILink3Definition> | Link | string | undefined): Promise<Link> {
     if (definition instanceof Link) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.ILink3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<ILink3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.ILink3Definition>> (definition?: T | undefined): I.ILink3Definition & T {
-    return Object.assign({}, definition) as I.ILink3Definition & T
+  static createDefinition<T extends Partial<ILink3Definition>> (definition?: T | undefined): ILink3Definition & T {
+    return Object.assign({}, definition) as ILink3Definition & T
   }
 
-  static validate (definition: I.ILink3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: ILink3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.ILink3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: ILink3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get operationRef (): string | undefined {
-    return this.getProperty('operationRef')
-  }
-
-  set operationRef (value: string | undefined) {
-    this.setProperty('operationRef', value)
-  }
-
-  get operationId (): string | undefined {
-    return this.getProperty('operationId')
-  }
-
-  set operationId (value: string | undefined) {
-    this.setProperty('operationId', value)
-  }
-
-  get parameters (): Record<string, any> | undefined {
-    return this.getProperty('parameters')
-  }
-
-  set parameters (value: Record<string, any> | undefined) {
-    this.setProperty('parameters', value)
-  }
-
-  get requestBody (): any | undefined {
-    return this.getProperty('requestBody')
-  }
-
-  set requestBody (value: any | undefined) {
-    this.setProperty('requestBody', value)
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get server (): I.IServer3 | undefined {
-    return this.getProperty('server')
-  }
-
-  set server (value: I.IServer3 | undefined) {
-    this.setProperty('server', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -193,7 +154,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Server3
+        component: Server3
       }
     }
   }

@@ -12,24 +12,23 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { License as LicenseBase } from './License'
+import { ILicense2, ILicense2Definition, ILicense2SchemaProcessor, ILicenseValidatorsMap2 as IValidatorsMap } from './ILicense'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.ILicenseValidatorsMap2
+let cachedSchema: ISDSchemaDefinition<ILicense2Definition, ILicense2> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.ILicense2Definition, I.ILicense2> | null = null
+export class License extends LicenseBase implements ILicense2 {
+  public extensions: Record<string, any> = {}
+  public name!: string
+  public url?: string
 
-export class License extends EnforcerComponent<I.ILicense2Definition> implements I.ILicense2 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.ILicense2Definition, version?: IVersion) {
+  constructor (definition: ILicense2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +42,17 @@ export class License extends EnforcerComponent<I.ILicense2Definition> implements
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.ILicenseSchemaProcessor): Icsd.ISchemaDefinition<I.ILicense2Definition, I.ILicense2> {
+  static getSchemaDefinition (_data: ILicense2SchemaProcessor): ISDSchemaDefinition<ILicense2Definition, ILicense2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.ILicense2Definition, I.ILicense2> = {
+    const result: ISDSchemaDefinition<ILicense2Definition, ILicense2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -69,61 +69,49 @@ export class License extends EnforcerComponent<I.ILicense2Definition> implements
     return result
   }
 
-  static create (definition?: Partial<I.ILicense2Definition> | License | undefined): License {
+  static create (definition?: Partial<ILicense2Definition> | License | undefined): License {
     if (definition instanceof License) {
-      return new License(Object.assign({}, definition as unknown) as I.ILicense2Definition)
+      return new License(Object.assign({}, definition as unknown) as ILicense2Definition)
     } else {
       return new License(Object.assign({
         name: ''
-      }, definition) as I.ILicense2Definition)
+      }, definition) as ILicense2Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.ILicense2Definition> | License | string | undefined): Promise<License> {
+  static async createAsync (definition?: Partial<ILicense2Definition> | License | string | undefined): Promise<License> {
     if (definition instanceof License) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.ILicense2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<ILicense2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.ILicense2Definition>> (definition?: T | undefined): I.ILicense2Definition & T {
+  static createDefinition<T extends Partial<ILicense2Definition>> (definition?: T | undefined): ILicense2Definition & T {
     return Object.assign({
       name: ''
-    }, definition) as I.ILicense2Definition & T
+    }, definition) as ILicense2Definition & T
   }
 
-  static validate (definition: I.ILicense2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: ILicense2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.ILicense2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: ILicense2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get name (): string {
-    return this.getProperty('name')
-  }
-
-  set name (value: string) {
-    this.setProperty('name', value)
-  }
-
-  get url (): string | undefined {
-    return this.getProperty('url')
-  }
-
-  set url (value: string | undefined) {
-    this.setProperty('url', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {

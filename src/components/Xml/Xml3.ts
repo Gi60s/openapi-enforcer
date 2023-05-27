@@ -12,24 +12,26 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Xml as XmlBase } from './Xml'
+import { IXml3, IXml3Definition, IXml3SchemaProcessor, IXmlValidatorsMap3 as IValidatorsMap } from './IXml'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IXmlValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IXml3Definition, IXml3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IXml3Definition, I.IXml3> | null = null
+export class Xml extends XmlBase implements IXml3 {
+  public extensions: Record<string, any> = {}
+  public name?: string
+  public namespace?: string
+  public prefix?: string
+  public attribute?: boolean
+  public wrapped?: boolean
 
-export class Xml extends EnforcerComponent<I.IXml3Definition> implements I.IXml3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IXml3Definition, version?: IVersion) {
+  constructor (definition: IXml3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +45,17 @@ export class Xml extends EnforcerComponent<I.IXml3Definition> implements I.IXml3
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#xml-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#xml-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#xml-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#xml-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#xml-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IXmlSchemaProcessor): Icsd.ISchemaDefinition<I.IXml3Definition, I.IXml3> {
+  static getSchemaDefinition (_data: IXml3SchemaProcessor): ISDSchemaDefinition<IXml3Definition, IXml3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IXml3Definition, I.IXml3> = {
+    const result: ISDSchemaDefinition<IXml3Definition, IXml3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -72,77 +75,41 @@ export class Xml extends EnforcerComponent<I.IXml3Definition> implements I.IXml3
     return result
   }
 
-  static create (definition?: Partial<I.IXml3Definition> | Xml | undefined): Xml {
-    return new Xml(Object.assign({}, definition) as I.IXml3Definition)
+  static create (definition?: Partial<IXml3Definition> | Xml | undefined): Xml {
+    return new Xml(Object.assign({}, definition) as IXml3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IXml3Definition> | Xml | string | undefined): Promise<Xml> {
+  static async createAsync (definition?: Partial<IXml3Definition> | Xml | string | undefined): Promise<Xml> {
     if (definition instanceof Xml) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IXml3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IXml3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IXml3Definition>> (definition?: T | undefined): I.IXml3Definition & T {
-    return Object.assign({}, definition) as I.IXml3Definition & T
+  static createDefinition<T extends Partial<IXml3Definition>> (definition?: T | undefined): IXml3Definition & T {
+    return Object.assign({}, definition) as IXml3Definition & T
   }
 
-  static validate (definition: I.IXml3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IXml3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IXml3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IXml3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get name (): string | undefined {
-    return this.getProperty('name')
-  }
-
-  set name (value: string | undefined) {
-    this.setProperty('name', value)
-  }
-
-  get namespace (): string | undefined {
-    return this.getProperty('namespace')
-  }
-
-  set namespace (value: string | undefined) {
-    this.setProperty('namespace', value)
-  }
-
-  get prefix (): string | undefined {
-    return this.getProperty('prefix')
-  }
-
-  set prefix (value: string | undefined) {
-    this.setProperty('prefix', value)
-  }
-
-  get attribute (): boolean | undefined {
-    return this.getProperty('attribute')
-  }
-
-  set attribute (value: boolean | undefined) {
-    this.setProperty('attribute', value)
-  }
-
-  get wrapped (): boolean | undefined {
-    return this.getProperty('wrapped')
-  }
-
-  set wrapped (value: boolean | undefined) {
-    this.setProperty('wrapped', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {

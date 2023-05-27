@@ -14,3 +14,4 @@
 export * from './IParameter'
 export { Parameter as Parameter2 } from './Parameter2'
 export { Parameter as Parameter3 } from './Parameter3'
+export { Parameter as Parameter3a } from './Parameter3a'

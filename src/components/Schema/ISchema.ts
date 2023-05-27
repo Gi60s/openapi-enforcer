@@ -12,9 +12,13 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDAny, ISDNumber, ISDBoolean, ISDArray, ISDComponent, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { IReference2, IReference2Definition, IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
+import { IXml2, IXml2Definition, IXml3, IXml3Definition, IXml3a, IXml3aDefinition } from '../Xml'
+import { IExternalDocumentation2, IExternalDocumentation2Definition, IExternalDocumentation3, IExternalDocumentation3Definition, IExternalDocumentation3a, IExternalDocumentation3aDefinition } from '../ExternalDocumentation'
+import { IDiscriminator3, IDiscriminator3Definition, IDiscriminator3a, IDiscriminator3aDefinition } from '../Discriminator'
+
 // <!# Custom Content Begin: HEADER #!>
 import { Result } from '../../Result'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
@@ -55,7 +59,14 @@ export interface ISchemaHookResult {
 
 // <!# Custom Content End: HEADER #!>
 
-interface ISchemaComponent extends IComponentInstance {
+export type ISchema = ISchema2 | ISchema3 | ISchema3a
+export type ISchemaDefinition = ISchema2Definition | ISchema3Definition | ISchema3aDefinition
+export type ISchema2SchemaProcessor = SchemaProcessor<ISchema2Definition, ISchema2>
+export type ISchema3SchemaProcessor = SchemaProcessor<ISchema3Definition, ISchema3>
+export type ISchema3aSchemaProcessor = SchemaProcessor<ISchema3aDefinition, ISchema3a>
+export type ISchemaSchemaProcessor = ISchema2SchemaProcessor | ISchema3SchemaProcessor | ISchema3aSchemaProcessor
+
+export interface ISchemaBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   deserialize: (value: string, options?: { strict: boolean }) => any
   discriminate: (value: object) => { key: string, name: string, schema: ISchemaComponent }
@@ -69,7 +80,7 @@ interface ISchemaComponent extends IComponentInstance {
 }
 
 export interface ISchema2Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   format?: string
   title?: string
   description?: string
@@ -89,20 +100,20 @@ export interface ISchema2Definition {
   enum?: any[]
   multipleOf?: number
   required?: string[]
-  type?: 'array'|'boolean'|'integer'|'number'|'object'|'string'
-  items?: I.ISchema2Definition
-  allOf?: Array<I.ISchema2Definition | I.IReference2Definition>
-  properties?: Record<string, I.ISchema2Definition | I.IReference2Definition>
-  additionalProperties?: I.ISchema2Definition | boolean | I.IReference2Definition
+  type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
+  items?: ISchema2Definition
+  allOf?: Array<ISchema2Definition | IReference2Definition>
+  properties?: Record<string, ISchema2Definition | IReference2Definition>
+  additionalProperties?: ISchema2Definition | IReference2Definition | boolean
   discriminator?: string
   readOnly?: boolean
-  xml?: I.IXml2Definition
-  externalDocs?: I.IExternalDocumentation2Definition
+  xml?: IXml2Definition
+  externalDocs?: IExternalDocumentation2Definition
   example?: any
 }
 
-export interface ISchema2 extends ISchemaComponent {
-  [Extensions]: Record<string, any>
+export interface ISchema2 extends ISchemaBase {
+  extensions: Record<string, any>
   format?: string
   title?: string
   description?: string
@@ -122,57 +133,57 @@ export interface ISchema2 extends ISchemaComponent {
   enum?: any[]
   multipleOf?: number
   required?: string[]
-  type?: 'array'|'boolean'|'integer'|'number'|'object'|'string'
-  items?: I.ISchema2
-  allOf?: I.ISchema2[]
-  properties?: Record<string, I.ISchema2>
-  additionalProperties?: I.ISchema2 | boolean
+  type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
+  items?: ISchema2
+  allOf?: Array<ISchema2 | IReference2>
+  properties?: Record<string, ISchema2 | IReference2>
+  additionalProperties?: ISchema2 | IReference2 | boolean
   discriminator?: string
   readOnly?: boolean
-  xml?: I.IXml2
-  externalDocs?: I.IExternalDocumentation2
+  xml?: IXml2
+  externalDocs?: IExternalDocumentation2
   example?: any
 }
 
 export interface ISchemaValidatorsMap2 {
-  format: Icsd.IProperty<Icsd.IString>
-  title: Icsd.IProperty<Icsd.IString>
-  description: Icsd.IProperty<Icsd.IString>
-  _default: Icsd.IProperty<any>
-  maximum: Icsd.IProperty<Icsd.INumber>
-  exclusiveMaximum: Icsd.IProperty<Icsd.IBoolean>
-  minimum: Icsd.IProperty<Icsd.INumber>
-  exclusiveMinimum: Icsd.IProperty<Icsd.IBoolean>
-  maxLength: Icsd.IProperty<Icsd.INumber>
-  minLength: Icsd.IProperty<Icsd.INumber>
-  pattern: Icsd.IProperty<Icsd.IString>
-  maxItems: Icsd.IProperty<Icsd.INumber>
-  minItems: Icsd.IProperty<Icsd.INumber>
-  maxProperties: Icsd.IProperty<Icsd.INumber>
-  minProperties: Icsd.IProperty<Icsd.INumber>
-  uniqueItems: Icsd.IProperty<Icsd.IBoolean>
-  _enum: Icsd.IProperty<Icsd.IArray<any>>
-  multipleOf: Icsd.IProperty<Icsd.INumber>
-  required: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
-  type: Icsd.IProperty<Icsd.IString>
-  items: Icsd.IProperty<Icsd.IComponent<I.ISchema2Definition, I.ISchema2>>
-  allOf: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISchema2Definition, I.ISchema2>>>
-  properties: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ISchema2Definition, I.ISchema2>>>
-  additionalProperties: Icsd.IProperty<Icsd.IAny>
-  discriminator: Icsd.IProperty<Icsd.IString>
-  readOnly: Icsd.IProperty<Icsd.IBoolean>
-  xml: Icsd.IProperty<Icsd.IComponent<I.IXml2Definition, I.IXml2>>
-  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
-  example: Icsd.IProperty<any>
+  format: ISDProperty<ISDString>
+  title: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  _default: ISDProperty<ISDAny>
+  maximum: ISDProperty<ISDNumber>
+  exclusiveMaximum: ISDProperty<ISDBoolean>
+  minimum: ISDProperty<ISDNumber>
+  exclusiveMinimum: ISDProperty<ISDBoolean>
+  maxLength: ISDProperty<ISDNumber>
+  minLength: ISDProperty<ISDNumber>
+  pattern: ISDProperty<ISDString>
+  maxItems: ISDProperty<ISDNumber>
+  minItems: ISDProperty<ISDNumber>
+  maxProperties: ISDProperty<ISDNumber>
+  minProperties: ISDProperty<ISDNumber>
+  uniqueItems: ISDProperty<ISDBoolean>
+  _enum: ISDProperty<ISDArray<ISDAny>>
+  multipleOf: ISDProperty<ISDNumber>
+  required: ISDProperty<ISDArray<ISDString>>
+  type: ISDProperty<ISDString>
+  items: ISDProperty<ISDComponent<ISchema2Definition, ISchema2>>
+  allOf: ISDProperty<ISDArray<ISDComponent<ISchema2Definition, ISchema2> | ISDComponent<IReference2Definition, IReference2>>>
+  properties: ISDProperty<ISDObject<ISDComponent<ISchema2Definition, ISchema2> | ISDComponent<IReference2Definition, IReference2>>>
+  additionalProperties: ISDProperty<ISDComponent<ISchema2Definition, ISchema2> | ISDComponent<IReference2Definition, IReference2> | ISDBoolean>
+  discriminator: ISDProperty<ISDString>
+  readOnly: ISDProperty<ISDBoolean>
+  xml: ISDProperty<ISDComponent<IXml2Definition, IXml2>>
+  externalDocs: ISDProperty<ISDComponent<IExternalDocumentation2Definition, IExternalDocumentation2>>
+  example: ISDProperty<ISDAny>
 }
 
 export interface ISchema3Definition {
-  [Extensions: `x-${string}`]: any
-  type?: 'array'|'boolean'|'integer'|'number'|'object'|'string'
-  allOf?: Array<I.ISchema3Definition | I.IReference3Definition>
-  oneOf?: Array<I.ISchema3Definition | I.IReference3Definition>
-  anyOf?: Array<I.ISchema3Definition | I.IReference3Definition>
-  not?: I.ISchema3Definition | I.IReference3Definition
+  [extensions: `x-${string}`]: any
+  type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
+  allOf?: Array<ISchema3Definition | IReference3Definition>
+  oneOf?: Array<ISchema3Definition | IReference3Definition>
+  anyOf?: Array<ISchema3Definition | IReference3Definition>
+  not?: ISchema3Definition | IReference3Definition
   title?: string
   maximum?: number
   exclusiveMaximum?: boolean
@@ -189,29 +200,29 @@ export interface ISchema3Definition {
   enum?: any[]
   multipleOf?: number
   required?: string[]
-  items?: I.ISchema3Definition | I.IReference3Definition
-  properties?: Record<string, I.ISchema3Definition | I.IReference3Definition>
-  additionalProperties?: I.ISchema3Definition | boolean | I.IReference3Definition
+  items?: ISchema3Definition | IReference3Definition
+  properties?: Record<string, ISchema3Definition | IReference3Definition>
+  additionalProperties?: ISchema3Definition | IReference3Definition | boolean
   description?: string
   format?: string
   default?: any
   nullable?: boolean
-  discriminator?: I.IDiscriminator3Definition
+  discriminator?: IDiscriminator3Definition
   readOnly?: boolean
   writeOnly?: boolean
-  xml?: I.IXml3Definition
-  externalDocs?: I.IExternalDocumentation3Definition
+  xml?: IXml3Definition
+  externalDocs?: IExternalDocumentation3Definition
   example?: any
   deprecated?: boolean
 }
 
-export interface ISchema3 extends ISchemaComponent {
-  [Extensions]: Record<string, any>
-  type?: 'array'|'boolean'|'integer'|'number'|'object'|'string'
-  allOf?: I.ISchema3[]
-  oneOf?: I.ISchema3[]
-  anyOf?: I.ISchema3[]
-  not?: I.ISchema3
+export interface ISchema3 extends ISchemaBase {
+  extensions: Record<string, any>
+  type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
+  allOf?: Array<ISchema3 | IReference3>
+  oneOf?: Array<ISchema3 | IReference3>
+  anyOf?: Array<ISchema3 | IReference3>
+  not?: ISchema3 | IReference3
   title?: string
   maximum?: number
   exclusiveMaximum?: boolean
@@ -228,58 +239,174 @@ export interface ISchema3 extends ISchemaComponent {
   enum?: any[]
   multipleOf?: number
   required?: string[]
-  items?: I.ISchema3
-  properties?: Record<string, I.ISchema3>
-  additionalProperties?: I.ISchema3 | boolean
+  items?: ISchema3 | IReference3
+  properties?: Record<string, ISchema3 | IReference3>
+  additionalProperties?: ISchema3 | IReference3 | boolean
   description?: string
   format?: string
   default?: any
   nullable?: boolean
-  discriminator?: I.IDiscriminator3
+  discriminator?: IDiscriminator3
   readOnly?: boolean
   writeOnly?: boolean
-  xml?: I.IXml3
-  externalDocs?: I.IExternalDocumentation3
+  xml?: IXml3
+  externalDocs?: IExternalDocumentation3
   example?: any
   deprecated?: boolean
 }
 
 export interface ISchemaValidatorsMap3 {
-  type: Icsd.IProperty<Icsd.IString>
-  allOf: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>>
-  oneOf: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>>
-  anyOf: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>>
-  not: Icsd.IProperty<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>
-  title: Icsd.IProperty<Icsd.IString>
-  maximum: Icsd.IProperty<Icsd.INumber>
-  exclusiveMaximum: Icsd.IProperty<Icsd.IBoolean>
-  minimum: Icsd.IProperty<Icsd.INumber>
-  exclusiveMinimum: Icsd.IProperty<Icsd.IBoolean>
-  maxLength: Icsd.IProperty<Icsd.INumber>
-  minLength: Icsd.IProperty<Icsd.INumber>
-  pattern: Icsd.IProperty<Icsd.IString>
-  maxItems: Icsd.IProperty<Icsd.INumber>
-  minItems: Icsd.IProperty<Icsd.INumber>
-  maxProperties: Icsd.IProperty<Icsd.INumber>
-  minProperties: Icsd.IProperty<Icsd.INumber>
-  uniqueItems: Icsd.IProperty<Icsd.IBoolean>
-  _enum: Icsd.IProperty<Icsd.IArray<any>>
-  multipleOf: Icsd.IProperty<Icsd.INumber>
-  required: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
-  items: Icsd.IProperty<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>
-  properties: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>>
-  additionalProperties: Icsd.IProperty<Icsd.IAny>
-  description: Icsd.IProperty<Icsd.IString>
-  format: Icsd.IProperty<Icsd.IString>
-  _default: Icsd.IProperty<any>
-  nullable: Icsd.IProperty<Icsd.IBoolean>
-  discriminator: Icsd.IProperty<Icsd.IComponent<I.IDiscriminator3Definition, I.IDiscriminator3>>
-  readOnly: Icsd.IProperty<Icsd.IBoolean>
-  writeOnly: Icsd.IProperty<Icsd.IBoolean>
-  xml: Icsd.IProperty<Icsd.IComponent<I.IXml3Definition, I.IXml3>>
-  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
-  example: Icsd.IProperty<any>
-  deprecated: Icsd.IProperty<Icsd.IBoolean>
+  type: ISDProperty<ISDString>
+  allOf: ISDProperty<ISDArray<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>>
+  oneOf: ISDProperty<ISDArray<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>>
+  anyOf: ISDProperty<ISDArray<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>>
+  not: ISDProperty<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>
+  title: ISDProperty<ISDString>
+  maximum: ISDProperty<ISDNumber>
+  exclusiveMaximum: ISDProperty<ISDBoolean>
+  minimum: ISDProperty<ISDNumber>
+  exclusiveMinimum: ISDProperty<ISDBoolean>
+  maxLength: ISDProperty<ISDNumber>
+  minLength: ISDProperty<ISDNumber>
+  pattern: ISDProperty<ISDString>
+  maxItems: ISDProperty<ISDNumber>
+  minItems: ISDProperty<ISDNumber>
+  maxProperties: ISDProperty<ISDNumber>
+  minProperties: ISDProperty<ISDNumber>
+  uniqueItems: ISDProperty<ISDBoolean>
+  _enum: ISDProperty<ISDArray<ISDAny>>
+  multipleOf: ISDProperty<ISDNumber>
+  required: ISDProperty<ISDArray<ISDString>>
+  items: ISDProperty<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>
+  properties: ISDProperty<ISDObject<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>>
+  additionalProperties: ISDProperty<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3> | ISDBoolean>
+  description: ISDProperty<ISDString>
+  format: ISDProperty<ISDString>
+  _default: ISDProperty<ISDAny>
+  nullable: ISDProperty<ISDBoolean>
+  discriminator: ISDProperty<ISDComponent<IDiscriminator3Definition, IDiscriminator3>>
+  readOnly: ISDProperty<ISDBoolean>
+  writeOnly: ISDProperty<ISDBoolean>
+  xml: ISDProperty<ISDComponent<IXml3Definition, IXml3>>
+  externalDocs: ISDProperty<ISDComponent<IExternalDocumentation3Definition, IExternalDocumentation3>>
+  example: ISDProperty<ISDAny>
+  deprecated: ISDProperty<ISDBoolean>
+}
+
+export interface ISchema3aDefinition {
+  [extensions: `x-${string}`]: any
+  type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string' | Array<'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'>
+  allOf?: Array<ISchema3aDefinition | IReference3aDefinition>
+  oneOf?: Array<ISchema3aDefinition | IReference3aDefinition>
+  anyOf?: Array<ISchema3aDefinition | IReference3aDefinition>
+  not?: ISchema3aDefinition | IReference3aDefinition
+  title?: string
+  maximum?: number
+  exclusiveMaximum?: boolean
+  minimum?: number
+  exclusiveMinimum?: boolean
+  maxLength?: number
+  minLength?: number
+  pattern?: string
+  maxItems?: number
+  minItems?: number
+  maxProperties?: number
+  minProperties?: number
+  uniqueItems?: boolean
+  enum?: any[]
+  multipleOf?: number
+  required?: string[]
+  items?: ISchema3aDefinition | IReference3aDefinition
+  properties?: Record<string, ISchema3aDefinition | IReference3aDefinition>
+  additionalProperties?: ISchema3aDefinition | IReference3aDefinition | boolean
+  description?: string
+  format?: string
+  default?: any
+  nullable?: boolean
+  discriminator?: IDiscriminator3aDefinition
+  readOnly?: boolean
+  writeOnly?: boolean
+  xml?: IXml3aDefinition
+  externalDocs?: IExternalDocumentation3aDefinition
+  example?: any
+  deprecated?: boolean
+}
+
+export interface ISchema3a extends ISchemaBase {
+  extensions: Record<string, any>
+  type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string' | Array<'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'>
+  allOf?: Array<ISchema3a | IReference3a>
+  oneOf?: Array<ISchema3a | IReference3a>
+  anyOf?: Array<ISchema3a | IReference3a>
+  not?: ISchema3a | IReference3a
+  title?: string
+  maximum?: number
+  exclusiveMaximum?: boolean
+  minimum?: number
+  exclusiveMinimum?: boolean
+  maxLength?: number
+  minLength?: number
+  pattern?: string
+  maxItems?: number
+  minItems?: number
+  maxProperties?: number
+  minProperties?: number
+  uniqueItems?: boolean
+  enum?: any[]
+  multipleOf?: number
+  required?: string[]
+  items?: ISchema3a | IReference3a
+  properties?: Record<string, ISchema3a | IReference3a>
+  additionalProperties?: ISchema3a | IReference3a | boolean
+  description?: string
+  format?: string
+  default?: any
+  nullable?: boolean
+  discriminator?: IDiscriminator3a
+  readOnly?: boolean
+  writeOnly?: boolean
+  xml?: IXml3a
+  externalDocs?: IExternalDocumentation3a
+  example?: any
+  deprecated?: boolean
+}
+
+export interface ISchemaValidatorsMap3a {
+  type: ISDProperty<ISDString | ISDArray<ISDString>>
+  allOf: ISDProperty<ISDArray<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  oneOf: ISDProperty<ISDArray<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  anyOf: ISDProperty<ISDArray<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  not: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>
+  title: ISDProperty<ISDString>
+  maximum: ISDProperty<ISDNumber>
+  exclusiveMaximum: ISDProperty<ISDBoolean>
+  minimum: ISDProperty<ISDNumber>
+  exclusiveMinimum: ISDProperty<ISDBoolean>
+  maxLength: ISDProperty<ISDNumber>
+  minLength: ISDProperty<ISDNumber>
+  pattern: ISDProperty<ISDString>
+  maxItems: ISDProperty<ISDNumber>
+  minItems: ISDProperty<ISDNumber>
+  maxProperties: ISDProperty<ISDNumber>
+  minProperties: ISDProperty<ISDNumber>
+  uniqueItems: ISDProperty<ISDBoolean>
+  _enum: ISDProperty<ISDArray<ISDAny>>
+  multipleOf: ISDProperty<ISDNumber>
+  required: ISDProperty<ISDArray<ISDString>>
+  items: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>
+  properties: ISDProperty<ISDObject<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  additionalProperties: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a> | ISDBoolean>
+  description: ISDProperty<ISDString>
+  format: ISDProperty<ISDString>
+  _default: ISDProperty<ISDAny>
+  nullable: ISDProperty<ISDBoolean>
+  discriminator: ISDProperty<ISDComponent<IDiscriminator3aDefinition, IDiscriminator3a>>
+  readOnly: ISDProperty<ISDBoolean>
+  writeOnly: ISDProperty<ISDBoolean>
+  xml: ISDProperty<ISDComponent<IXml3aDefinition, IXml3a>>
+  externalDocs: ISDProperty<ISDComponent<IExternalDocumentation3aDefinition, IExternalDocumentation3a>>
+  example: ISDProperty<ISDAny>
+  deprecated: ISDProperty<ISDBoolean>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

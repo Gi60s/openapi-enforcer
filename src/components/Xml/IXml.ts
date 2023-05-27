@@ -12,20 +12,28 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDBoolean } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IXmlComponent extends IComponentInstance {
+export type IXml = IXml2 | IXml3 | IXml3a
+export type IXmlDefinition = IXml2Definition | IXml3Definition | IXml3aDefinition
+export type IXml2SchemaProcessor = SchemaProcessor<IXml2Definition, IXml2>
+export type IXml3SchemaProcessor = SchemaProcessor<IXml3Definition, IXml3>
+export type IXml3aSchemaProcessor = SchemaProcessor<IXml3aDefinition, IXml3a>
+export type IXmlSchemaProcessor = IXml2SchemaProcessor | IXml3SchemaProcessor | IXml3aSchemaProcessor
+
+export interface IXmlBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // Put your code here.
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IXml2Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   name?: string
   namespace?: string
   prefix?: string
@@ -33,8 +41,8 @@ export interface IXml2Definition {
   wrapped?: boolean
 }
 
-export interface IXml2 extends IXmlComponent {
-  [Extensions]: Record<string, any>
+export interface IXml2 extends IXmlBase {
+  extensions: Record<string, any>
   name?: string
   namespace?: string
   prefix?: string
@@ -43,15 +51,15 @@ export interface IXml2 extends IXmlComponent {
 }
 
 export interface IXmlValidatorsMap2 {
-  name: Icsd.IProperty<Icsd.IString>
-  namespace: Icsd.IProperty<Icsd.IString>
-  prefix: Icsd.IProperty<Icsd.IString>
-  attribute: Icsd.IProperty<Icsd.IBoolean>
-  wrapped: Icsd.IProperty<Icsd.IBoolean>
+  name: ISDProperty<ISDString>
+  namespace: ISDProperty<ISDString>
+  prefix: ISDProperty<ISDString>
+  attribute: ISDProperty<ISDBoolean>
+  wrapped: ISDProperty<ISDBoolean>
 }
 
 export interface IXml3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   name?: string
   namespace?: string
   prefix?: string
@@ -59,8 +67,8 @@ export interface IXml3Definition {
   wrapped?: boolean
 }
 
-export interface IXml3 extends IXmlComponent {
-  [Extensions]: Record<string, any>
+export interface IXml3 extends IXmlBase {
+  extensions: Record<string, any>
   name?: string
   namespace?: string
   prefix?: string
@@ -69,11 +77,37 @@ export interface IXml3 extends IXmlComponent {
 }
 
 export interface IXmlValidatorsMap3 {
-  name: Icsd.IProperty<Icsd.IString>
-  namespace: Icsd.IProperty<Icsd.IString>
-  prefix: Icsd.IProperty<Icsd.IString>
-  attribute: Icsd.IProperty<Icsd.IBoolean>
-  wrapped: Icsd.IProperty<Icsd.IBoolean>
+  name: ISDProperty<ISDString>
+  namespace: ISDProperty<ISDString>
+  prefix: ISDProperty<ISDString>
+  attribute: ISDProperty<ISDBoolean>
+  wrapped: ISDProperty<ISDBoolean>
+}
+
+export interface IXml3aDefinition {
+  [extensions: `x-${string}`]: any
+  name?: string
+  namespace?: string
+  prefix?: string
+  attribute?: boolean
+  wrapped?: boolean
+}
+
+export interface IXml3a extends IXmlBase {
+  extensions: Record<string, any>
+  name?: string
+  namespace?: string
+  prefix?: string
+  attribute?: boolean
+  wrapped?: boolean
+}
+
+export interface IXmlValidatorsMap3a {
+  name: ISDProperty<ISDString>
+  namespace: ISDProperty<ISDString>
+  prefix: ISDProperty<ISDString>
+  attribute: ISDProperty<ISDBoolean>
+  wrapped: ISDProperty<ISDBoolean>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

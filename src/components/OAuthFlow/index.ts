@@ -13,3 +13,4 @@
 
 export * from './IOAuthFlow'
 export { OAuthFlow as OAuthFlow3 } from './OAuthFlow3'
+export { OAuthFlow as OAuthFlow3a } from './OAuthFlow3a'

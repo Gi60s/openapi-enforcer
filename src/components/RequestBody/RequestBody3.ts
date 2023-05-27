@@ -12,24 +12,24 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { RequestBody as RequestBodyBase } from './RequestBody'
+import { IRequestBody3, IRequestBody3Definition, IRequestBody3SchemaProcessor, IRequestBodyValidatorsMap3 as IValidatorsMap } from './IRequestBody'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IRequestBodyValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IRequestBody3Definition, IRequestBody3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> | null = null
+export class RequestBody extends RequestBodyBase implements IRequestBody3 {
+  public extensions: Record<string, any> = {}
+  public description?: string
+  public content?: Record<string, IMediaType3>
+  public required?: boolean
 
-export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> implements I.IRequestBody3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IRequestBody3Definition, version?: IVersion) {
+  constructor (definition: IRequestBody3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +43,17 @@ export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> im
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#request-body-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#request-body-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#request-body-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#request-body-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#request-body-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IRequestBodySchemaProcessor): Icsd.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> {
+  static getSchemaDefinition (_data: IRequestBody3SchemaProcessor): ISDSchemaDefinition<IRequestBody3Definition, IRequestBody3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IRequestBody3Definition, I.IRequestBody3> = {
+    const result: ISDSchemaDefinition<IRequestBody3Definition, IRequestBody3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -70,61 +71,41 @@ export class RequestBody extends EnforcerComponent<I.IRequestBody3Definition> im
     return result
   }
 
-  static create (definition?: Partial<I.IRequestBody3Definition> | RequestBody | undefined): RequestBody {
-    return new RequestBody(Object.assign({}, definition) as I.IRequestBody3Definition)
+  static create (definition?: Partial<IRequestBody3Definition> | RequestBody | undefined): RequestBody {
+    return new RequestBody(Object.assign({}, definition) as IRequestBody3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IRequestBody3Definition> | RequestBody | string | undefined): Promise<RequestBody> {
+  static async createAsync (definition?: Partial<IRequestBody3Definition> | RequestBody | string | undefined): Promise<RequestBody> {
     if (definition instanceof RequestBody) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IRequestBody3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IRequestBody3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IRequestBody3Definition>> (definition?: T | undefined): I.IRequestBody3Definition & T {
-    return Object.assign({}, definition) as I.IRequestBody3Definition & T
+  static createDefinition<T extends Partial<IRequestBody3Definition>> (definition?: T | undefined): IRequestBody3Definition & T {
+    return Object.assign({}, definition) as IRequestBody3Definition & T
   }
 
-  static validate (definition: I.IRequestBody3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IRequestBody3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IRequestBody3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IRequestBody3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get content (): Record<string, I.IMediaType3> | undefined {
-    return this.getProperty('content')
-  }
-
-  set content (value: Record<string, I.IMediaType3> | undefined) {
-    this.setProperty('content', value)
-  }
-
-  get required (): boolean | undefined {
-    return this.getProperty('required')
-  }
-
-  set required (value: boolean | undefined) {
-    this.setProperty('required', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -141,7 +122,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: false,
-          component: I.MediaType3
+          component: MediaType3
         }
       }
     },

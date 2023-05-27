@@ -12,11 +12,11 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Discriminator as DiscriminatorBase } from './Discriminator'
+import { IDiscriminator3, IDiscriminator3Definition, IDiscriminator3SchemaProcessor, IDiscriminatorValidatorsMap3 as IValidatorsMap } from './IDiscriminator'
 // <!# Custom Content Begin: HEADER #!>
 // import { traverseFromNode } from '../../Loader/loader-common'
 // import { getLocation } from '../../Loader'
@@ -24,12 +24,13 @@ import * as I from '../IInternalTypes'
 // import { getNormalizedSchema, getSchemaPropertyValue } from '../Schema/common'
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IDiscriminatorValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IDiscriminator3Definition, IDiscriminator3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> | null = null
+export class Discriminator extends DiscriminatorBase implements IDiscriminator3 {
+  public propertyName!: string
+  public mapping?: Record<string, string>
 
-export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition> implements I.IDiscriminator3 {
-  constructor (definition: I.IDiscriminator3Definition, version?: IVersion) {
+  constructor (definition: IDiscriminator3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +44,17 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#discriminator-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#discriminator-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#discriminator-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#discriminator-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#discriminator-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IDiscriminatorSchemaProcessor): Icsd.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> {
+  static getSchemaDefinition (_data: IDiscriminator3SchemaProcessor): ISDSchemaDefinition<IDiscriminator3Definition, IDiscriminator3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IDiscriminator3Definition, I.IDiscriminator3> = {
+    const result: ISDSchemaDefinition<IDiscriminator3Definition, IDiscriminator3> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [
@@ -199,61 +201,49 @@ export class Discriminator extends EnforcerComponent<I.IDiscriminator3Definition
     return result
   }
 
-  static create (definition?: Partial<I.IDiscriminator3Definition> | Discriminator | undefined): Discriminator {
+  static create (definition?: Partial<IDiscriminator3Definition> | Discriminator | undefined): Discriminator {
     if (definition instanceof Discriminator) {
-      return new Discriminator(Object.assign({}, definition as unknown) as I.IDiscriminator3Definition)
+      return new Discriminator(Object.assign({}, definition as unknown) as IDiscriminator3Definition)
     } else {
       return new Discriminator(Object.assign({
         propertyName: ''
-      }, definition) as I.IDiscriminator3Definition)
+      }, definition) as IDiscriminator3Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.IDiscriminator3Definition> | Discriminator | string | undefined): Promise<Discriminator> {
+  static async createAsync (definition?: Partial<IDiscriminator3Definition> | Discriminator | string | undefined): Promise<Discriminator> {
     if (definition instanceof Discriminator) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IDiscriminator3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IDiscriminator3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IDiscriminator3Definition>> (definition?: T | undefined): I.IDiscriminator3Definition & T {
+  static createDefinition<T extends Partial<IDiscriminator3Definition>> (definition?: T | undefined): IDiscriminator3Definition & T {
     return Object.assign({
       propertyName: ''
-    }, definition) as I.IDiscriminator3Definition & T
+    }, definition) as IDiscriminator3Definition & T
   }
 
-  static validate (definition: I.IDiscriminator3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IDiscriminator3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IDiscriminator3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IDiscriminator3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get propertyName (): string {
-    return this.getProperty('propertyName')
-  }
-
-  set propertyName (value: string) {
-    this.setProperty('propertyName', value)
-  }
-
-  get mapping (): Record<string, string> | undefined {
-    return this.getProperty('mapping')
-  }
-
-  set mapping (value: Record<string, string> | undefined) {
-    this.setProperty('mapping', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {

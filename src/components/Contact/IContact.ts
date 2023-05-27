@@ -12,56 +12,84 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IContactComponent extends IComponentInstance {
+export type IContact = IContact2 | IContact3 | IContact3a
+export type IContactDefinition = IContact2Definition | IContact3Definition | IContact3aDefinition
+export type IContact2SchemaProcessor = SchemaProcessor<IContact2Definition, IContact2>
+export type IContact3SchemaProcessor = SchemaProcessor<IContact3Definition, IContact3>
+export type IContact3aSchemaProcessor = SchemaProcessor<IContact3aDefinition, IContact3a>
+export type IContactSchemaProcessor = IContact2SchemaProcessor | IContact3SchemaProcessor | IContact3aSchemaProcessor
+
+export interface IContactBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // Put your code here.
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IContact2Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   name?: string
   url?: string
   email?: string
 }
 
-export interface IContact2 extends IContactComponent {
-  [Extensions]: Record<string, any>
+export interface IContact2 extends IContactBase {
+  extensions: Record<string, any>
   name?: string
   url?: string
   email?: string
 }
 
 export interface IContactValidatorsMap2 {
-  name: Icsd.IProperty<Icsd.IString>
-  url: Icsd.IProperty<Icsd.IString>
-  email: Icsd.IProperty<Icsd.IString>
+  name: ISDProperty<ISDString>
+  url: ISDProperty<ISDString>
+  email: ISDProperty<ISDString>
 }
 
 export interface IContact3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   name?: string
   url?: string
   email?: string
 }
 
-export interface IContact3 extends IContactComponent {
-  [Extensions]: Record<string, any>
+export interface IContact3 extends IContactBase {
+  extensions: Record<string, any>
   name?: string
   url?: string
   email?: string
 }
 
 export interface IContactValidatorsMap3 {
-  name: Icsd.IProperty<Icsd.IString>
-  url: Icsd.IProperty<Icsd.IString>
-  email: Icsd.IProperty<Icsd.IString>
+  name: ISDProperty<ISDString>
+  url: ISDProperty<ISDString>
+  email: ISDProperty<ISDString>
+}
+
+export interface IContact3aDefinition {
+  [extensions: `x-${string}`]: any
+  name?: string
+  url?: string
+  email?: string
+}
+
+export interface IContact3a extends IContactBase {
+  extensions: Record<string, any>
+  name?: string
+  url?: string
+  email?: string
+}
+
+export interface IContactValidatorsMap3a {
+  name: ISDProperty<ISDString>
+  url: ISDProperty<ISDString>
+  email: ISDProperty<ISDString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

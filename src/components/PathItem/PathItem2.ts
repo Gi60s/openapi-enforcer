@@ -12,24 +12,31 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Operation2, IOperation2, IOperation2Definition } from '../Operation'
+import { PathItem as PathItemBase } from './PathItem'
+import { IPathItem2, IPathItem2Definition, IPathItem2SchemaProcessor, IPathItemValidatorsMap2 as IValidatorsMap } from './IPathItem'
 // <!# Custom Content Begin: HEADER #!>
 import { validate } from './common'
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IPathItemValidatorsMap2
+let cachedSchema: ISDSchemaDefinition<IPathItem2Definition, IPathItem2> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> | null = null
+export class PathItem extends PathItemBase implements IPathItem2 {
+  public extensions: Record<string, any> = {}
+  public $ref?: string
+  public get?: IOperation2
+  public put?: IOperation2
+  public post?: IOperation2
+  public delete?: IOperation2
+  public options?: IOperation2
+  public head?: IOperation2
+  public patch?: IOperation2
+  public parameters?: Array<IParameter2 | IReference2>
 
-export class PathItem extends EnforcerComponent<I.IPathItem2Definition> implements I.IPathItem2 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IPathItem2Definition, version?: IVersion) {
+  constructor (definition: IPathItem2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +50,17 @@ export class PathItem extends EnforcerComponent<I.IPathItem2Definition> implemen
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IPathItemSchemaProcessor): Icsd.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> {
+  static getSchemaDefinition (_data: IPathItem2SchemaProcessor): ISDSchemaDefinition<IPathItem2Definition, IPathItem2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IPathItem2Definition, I.IPathItem2> = {
+    const result: ISDSchemaDefinition<IPathItem2Definition, IPathItem2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -76,109 +84,41 @@ export class PathItem extends EnforcerComponent<I.IPathItem2Definition> implemen
     return result
   }
 
-  static create (definition?: Partial<I.IPathItem2Definition> | PathItem | undefined): PathItem {
-    return new PathItem(Object.assign({}, definition) as I.IPathItem2Definition)
+  static create (definition?: Partial<IPathItem2Definition> | PathItem | undefined): PathItem {
+    return new PathItem(Object.assign({}, definition) as IPathItem2Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IPathItem2Definition> | PathItem | string | undefined): Promise<PathItem> {
+  static async createAsync (definition?: Partial<IPathItem2Definition> | PathItem | string | undefined): Promise<PathItem> {
     if (definition instanceof PathItem) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IPathItem2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IPathItem2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IPathItem2Definition>> (definition?: T | undefined): I.IPathItem2Definition & T {
-    return Object.assign({}, definition) as I.IPathItem2Definition & T
+  static createDefinition<T extends Partial<IPathItem2Definition>> (definition?: T | undefined): IPathItem2Definition & T {
+    return Object.assign({}, definition) as IPathItem2Definition & T
   }
 
-  static validate (definition: I.IPathItem2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IPathItem2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IPathItem2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IPathItem2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get $ref (): string | undefined {
-    return this.getProperty('$ref')
-  }
-
-  set $ref (value: string | undefined) {
-    this.setProperty('$ref', value)
-  }
-
-  get get (): I.IOperation2 | undefined {
-    return this.getProperty('get')
-  }
-
-  set get (value: I.IOperation2 | undefined) {
-    this.setProperty('get', value)
-  }
-
-  get put (): I.IOperation2 | undefined {
-    return this.getProperty('put')
-  }
-
-  set put (value: I.IOperation2 | undefined) {
-    this.setProperty('put', value)
-  }
-
-  get post (): I.IOperation2 | undefined {
-    return this.getProperty('post')
-  }
-
-  set post (value: I.IOperation2 | undefined) {
-    this.setProperty('post', value)
-  }
-
-  get delete (): I.IOperation2 | undefined {
-    return this.getProperty('delete')
-  }
-
-  set delete (value: I.IOperation2 | undefined) {
-    this.setProperty('delete', value)
-  }
-
-  get options (): I.IOperation2 | undefined {
-    return this.getProperty('options')
-  }
-
-  set options (value: I.IOperation2 | undefined) {
-    this.setProperty('options', value)
-  }
-
-  get head (): I.IOperation2 | undefined {
-    return this.getProperty('head')
-  }
-
-  set head (value: I.IOperation2 | undefined) {
-    this.setProperty('head', value)
-  }
-
-  get patch (): I.IOperation2 | undefined {
-    return this.getProperty('patch')
-  }
-
-  set patch (value: I.IOperation2 | undefined) {
-    this.setProperty('patch', value)
-  }
-
-  get parameters (): I.IParameter2[] | undefined {
-    return this.getProperty('parameters')
-  }
-
-  set parameters (value: I.IParameter2[] | undefined) {
-    this.setProperty('parameters', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -193,7 +133,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Operation2
+        component: Operation2
       }
     },
     put: {
@@ -201,7 +141,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Operation2
+        component: Operation2
       }
     },
     post: {
@@ -209,7 +149,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Operation2
+        component: Operation2
       }
     },
     _delete: {
@@ -217,7 +157,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Operation2
+        component: Operation2
       }
     },
     options: {
@@ -225,7 +165,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Operation2
+        component: Operation2
       }
     },
     head: {
@@ -233,7 +173,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Operation2
+        component: Operation2
       }
     },
     patch: {
@@ -241,7 +181,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Operation2
+        component: Operation2
       }
     },
     parameters: {
@@ -251,7 +191,7 @@ function getValidatorsMap (): IValidatorsMap {
         items: {
           type: 'component',
           allowsRef: true,
-          component: I.Parameter2
+          component: Parameter2
         }
       }
     }

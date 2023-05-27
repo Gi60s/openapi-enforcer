@@ -12,24 +12,39 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Info2, IInfo2, IInfo2Definition } from '../Info'
+import { Paths2, IPaths2, IPaths2Definition } from '../Paths'
+import { ExternalDocumentation2, IExternalDocumentation2, IExternalDocumentation2Definition } from '../ExternalDocumentation'
+import { Swagger as SwaggerBase } from './Swagger'
+import { ISwagger2, ISwagger2Definition, ISwagger2SchemaProcessor, ISwaggerValidatorsMap2 as IValidatorsMap } from './ISwagger'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.ISwaggerValidatorsMap2
+let cachedSchema: ISDSchemaDefinition<ISwagger2Definition, ISwagger2> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> | null = null
+export class Swagger extends SwaggerBase implements ISwagger2 {
+  public extensions: Record<string, any> = {}
+  public swagger!: '2.0'
+  public info!: IInfo2
+  public host?: string
+  public basePath?: string
+  public schemes?: Array<'http' | 'https' | 'ws' | 'wss'>
+  public consumes?: string[]
+  public produces?: string[]
+  public paths!: IPaths2
+  public definitions?: Record<string, ISchema2>
+  public parameters?: Record<string, IParameter2>
+  public responses?: Record<string, IResponse2>
+  public securityDefinitions?: Record<string, ISecurityScheme2>
+  public security?: ISecurityRequirement2[]
+  public tags?: ITag2[]
+  public externalDocs?: IExternalDocumentation2
 
-export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements I.ISwagger2 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.ISwagger2Definition, version?: IVersion) {
+  constructor (definition: ISwagger2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +58,17 @@ export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements
     '3.0.0': false,
     '3.0.1': false,
     '3.0.2': false,
-    '3.0.3': false
+    '3.0.3': false,
+    '3.1.0': false
   }
 
-  static getSchemaDefinition (_data: I.ISwaggerSchemaProcessor): Icsd.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> {
+  static getSchemaDefinition (_data: ISwagger2SchemaProcessor): ISDSchemaDefinition<ISwagger2Definition, ISwagger2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.ISwagger2Definition, I.ISwagger2> = {
+    const result: ISDSchemaDefinition<ISwagger2Definition, ISwagger2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -88,169 +104,53 @@ export class Swagger extends EnforcerComponent<I.ISwagger2Definition> implements
     return result
   }
 
-  static create (definition?: Partial<I.ISwagger2Definition> | Swagger | undefined): Swagger {
+  static create (definition?: Partial<ISwagger2Definition> | Swagger | undefined): Swagger {
     if (definition instanceof Swagger) {
-      return new Swagger(Object.assign({}, definition as unknown) as I.ISwagger2Definition)
+      return new Swagger(Object.assign({}, definition as unknown) as ISwagger2Definition)
     } else {
       return new Swagger(Object.assign({
         swagger: '2.0',
-        info: I.Info2.create(),
-        paths: I.Paths2.create()
-      }, definition) as I.ISwagger2Definition)
+        info: Info2.create(),
+        paths: Paths2.create()
+      }, definition) as ISwagger2Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.ISwagger2Definition> | Swagger | string | undefined): Promise<Swagger> {
+  static async createAsync (definition?: Partial<ISwagger2Definition> | Swagger | string | undefined): Promise<Swagger> {
     if (definition instanceof Swagger) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.ISwagger2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<ISwagger2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.ISwagger2Definition>> (definition?: T | undefined): I.ISwagger2Definition & T {
+  static createDefinition<T extends Partial<ISwagger2Definition>> (definition?: T | undefined): ISwagger2Definition & T {
     return Object.assign({
       swagger: '2.0',
-      info: I.Info2.create(),
-      paths: I.Paths2.create()
-    }, definition) as I.ISwagger2Definition & T
+      info: Info2.create(),
+      paths: Paths2.create()
+    }, definition) as ISwagger2Definition & T
   }
 
-  static validate (definition: I.ISwagger2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: ISwagger2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.ISwagger2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: ISwagger2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get swagger (): '2.0' {
-    return this.getProperty('swagger')
-  }
-
-  set swagger (value: '2.0') {
-    this.setProperty('swagger', value)
-  }
-
-  get info (): I.IInfo2 {
-    return this.getProperty('info')
-  }
-
-  set info (value: I.IInfo2) {
-    this.setProperty('info', value)
-  }
-
-  get host (): string | undefined {
-    return this.getProperty('host')
-  }
-
-  set host (value: string | undefined) {
-    this.setProperty('host', value)
-  }
-
-  get basePath (): string | undefined {
-    return this.getProperty('basePath')
-  }
-
-  set basePath (value: string | undefined) {
-    this.setProperty('basePath', value)
-  }
-
-  get schemes (): Array<'http'|'https'|'ws'|'wss'> | undefined {
-    return this.getProperty('schemes')
-  }
-
-  set schemes (value: Array<'http'|'https'|'ws'|'wss'> | undefined) {
-    this.setProperty('schemes', value)
-  }
-
-  get consumes (): string[] | undefined {
-    return this.getProperty('consumes')
-  }
-
-  set consumes (value: string[] | undefined) {
-    this.setProperty('consumes', value)
-  }
-
-  get produces (): string[] | undefined {
-    return this.getProperty('produces')
-  }
-
-  set produces (value: string[] | undefined) {
-    this.setProperty('produces', value)
-  }
-
-  get paths (): I.IPaths2 {
-    return this.getProperty('paths')
-  }
-
-  set paths (value: I.IPaths2) {
-    this.setProperty('paths', value)
-  }
-
-  get definitions (): Record<string, I.ISchema2> | undefined {
-    return this.getProperty('definitions')
-  }
-
-  set definitions (value: Record<string, I.ISchema2> | undefined) {
-    this.setProperty('definitions', value)
-  }
-
-  get parameters (): Record<string, I.IParameter2> | undefined {
-    return this.getProperty('parameters')
-  }
-
-  set parameters (value: Record<string, I.IParameter2> | undefined) {
-    this.setProperty('parameters', value)
-  }
-
-  get responses (): Record<string, I.IResponse2> | undefined {
-    return this.getProperty('responses')
-  }
-
-  set responses (value: Record<string, I.IResponse2> | undefined) {
-    this.setProperty('responses', value)
-  }
-
-  get securityDefinitions (): Record<string, I.ISecurityScheme2> | undefined {
-    return this.getProperty('securityDefinitions')
-  }
-
-  set securityDefinitions (value: Record<string, I.ISecurityScheme2> | undefined) {
-    this.setProperty('securityDefinitions', value)
-  }
-
-  get security (): I.ISecurityRequirement2[] | undefined {
-    return this.getProperty('security')
-  }
-
-  set security (value: I.ISecurityRequirement2[] | undefined) {
-    this.setProperty('security', value)
-  }
-
-  get tags (): I.ITag2[] | undefined {
-    return this.getProperty('tags')
-  }
-
-  set tags (value: I.ITag2[] | undefined) {
-    this.setProperty('tags', value)
-  }
-
-  get externalDocs (): I.IExternalDocumentation2 | undefined {
-    return this.getProperty('externalDocs')
-  }
-
-  set externalDocs (value: I.IExternalDocumentation2 | undefined) {
-    this.setProperty('externalDocs', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -268,7 +168,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Info2
+        component: Info2
       }
     },
     host: {
@@ -317,7 +217,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Paths2
+        component: Paths2
       }
     },
     definitions: {
@@ -327,7 +227,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: false,
-          component: I.Schema2
+          component: Schema2
         }
       }
     },
@@ -338,7 +238,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: false,
-          component: I.Parameter2
+          component: Parameter2
         }
       }
     },
@@ -349,7 +249,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: false,
-          component: I.Response2
+          component: Response2
         }
       }
     },
@@ -360,7 +260,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: false,
-          component: I.SecurityScheme2
+          component: SecurityScheme2
         }
       }
     },
@@ -371,7 +271,7 @@ function getValidatorsMap (): IValidatorsMap {
         items: {
           type: 'component',
           allowsRef: false,
-          component: I.SecurityRequirement2
+          component: SecurityRequirement2
         }
       }
     },
@@ -382,7 +282,7 @@ function getValidatorsMap (): IValidatorsMap {
         items: {
           type: 'component',
           allowsRef: false,
-          component: I.Tag2
+          component: Tag2
         }
       }
     },
@@ -391,7 +291,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.ExternalDocumentation2
+        component: ExternalDocumentation2
       }
     }
   }

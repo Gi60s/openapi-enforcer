@@ -14,3 +14,4 @@
 export * from './IOperation'
 export { Operation as Operation2 } from './Operation2'
 export { Operation as Operation3 } from './Operation3'
+export { Operation as Operation3a } from './Operation3a'

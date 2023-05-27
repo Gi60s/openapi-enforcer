@@ -12,105 +12,163 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDComponent, ISDArray } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { IOperation2, IOperation2Definition, IOperation3, IOperation3Definition, IOperation3a, IOperation3aDefinition } from '../Operation'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IPathItemComponent extends IComponentInstance {
+export type IPathItem = IPathItem2 | IPathItem3 | IPathItem3a
+export type IPathItemDefinition = IPathItem2Definition | IPathItem3Definition | IPathItem3aDefinition
+export type IPathItem2SchemaProcessor = SchemaProcessor<IPathItem2Definition, IPathItem2>
+export type IPathItem3SchemaProcessor = SchemaProcessor<IPathItem3Definition, IPathItem3>
+export type IPathItem3aSchemaProcessor = SchemaProcessor<IPathItem3aDefinition, IPathItem3a>
+export type IPathItemSchemaProcessor = IPathItem2SchemaProcessor | IPathItem3SchemaProcessor | IPathItem3aSchemaProcessor
+
+export interface IPathItemBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // Put your code here.
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IPathItem2Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   $ref?: string
-  get?: I.IOperation2Definition
-  put?: I.IOperation2Definition
-  post?: I.IOperation2Definition
-  delete?: I.IOperation2Definition
-  options?: I.IOperation2Definition
-  head?: I.IOperation2Definition
-  patch?: I.IOperation2Definition
-  parameters?: Array<I.IParameter2Definition | I.IReference2Definition>
+  get?: IOperation2Definition
+  put?: IOperation2Definition
+  post?: IOperation2Definition
+  delete?: IOperation2Definition
+  options?: IOperation2Definition
+  head?: IOperation2Definition
+  patch?: IOperation2Definition
+  parameters?: Array<IParameter2Definition | IReference2Definition>
 }
 
-export interface IPathItem2 extends IPathItemComponent {
-  [Extensions]: Record<string, any>
+export interface IPathItem2 extends IPathItemBase {
+  extensions: Record<string, any>
   $ref?: string
-  get?: I.IOperation2
-  put?: I.IOperation2
-  post?: I.IOperation2
-  delete?: I.IOperation2
-  options?: I.IOperation2
-  head?: I.IOperation2
-  patch?: I.IOperation2
-  parameters?: I.IParameter2[]
+  get?: IOperation2
+  put?: IOperation2
+  post?: IOperation2
+  delete?: IOperation2
+  options?: IOperation2
+  head?: IOperation2
+  patch?: IOperation2
+  parameters?: Array<IParameter2 | IReference2>
 }
 
 export interface IPathItemValidatorsMap2 {
-  $ref: Icsd.IProperty<Icsd.IString>
-  get: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
-  put: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
-  post: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
-  _delete: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
-  options: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
-  head: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
-  patch: Icsd.IProperty<Icsd.IComponent<I.IOperation2Definition, I.IOperation2>>
-  parameters: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IParameter2Definition, I.IParameter2>>>
+  $ref: ISDProperty<ISDString>
+  get: ISDProperty<ISDComponent<IOperation2Definition, IOperation2>>
+  put: ISDProperty<ISDComponent<IOperation2Definition, IOperation2>>
+  post: ISDProperty<ISDComponent<IOperation2Definition, IOperation2>>
+  _delete: ISDProperty<ISDComponent<IOperation2Definition, IOperation2>>
+  options: ISDProperty<ISDComponent<IOperation2Definition, IOperation2>>
+  head: ISDProperty<ISDComponent<IOperation2Definition, IOperation2>>
+  patch: ISDProperty<ISDComponent<IOperation2Definition, IOperation2>>
+  parameters: ISDProperty<ISDArray<ISDComponent<IParameter2Definition, IParameter2> | ISDComponent<IReference2Definition, IReference2>>>
 }
 
 export interface IPathItem3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   $ref?: string
   summary?: string
   description?: string
-  get?: I.IOperation3Definition
-  put?: I.IOperation3Definition
-  post?: I.IOperation3Definition
-  delete?: I.IOperation3Definition
-  options?: I.IOperation3Definition
-  head?: I.IOperation3Definition
-  patch?: I.IOperation3Definition
-  trace?: I.IOperation3Definition
-  servers?: I.IServer3Definition[]
-  parameters?: Array<I.IParameter3Definition | I.IReference3Definition>
+  get?: IOperation3Definition
+  put?: IOperation3Definition
+  post?: IOperation3Definition
+  delete?: IOperation3Definition
+  options?: IOperation3Definition
+  head?: IOperation3Definition
+  patch?: IOperation3Definition
+  trace?: IOperation3Definition
+  servers?: IServer3Definition[]
+  parameters?: Array<IParameter3Definition | IReference3Definition>
 }
 
-export interface IPathItem3 extends IPathItemComponent {
-  [Extensions]: Record<string, any>
+export interface IPathItem3 extends IPathItemBase {
+  extensions: Record<string, any>
   $ref?: string
   summary?: string
   description?: string
-  get?: I.IOperation3
-  put?: I.IOperation3
-  post?: I.IOperation3
-  delete?: I.IOperation3
-  options?: I.IOperation3
-  head?: I.IOperation3
-  patch?: I.IOperation3
-  trace?: I.IOperation3
-  servers?: I.IServer3[]
-  parameters?: I.IParameter3[]
+  get?: IOperation3
+  put?: IOperation3
+  post?: IOperation3
+  delete?: IOperation3
+  options?: IOperation3
+  head?: IOperation3
+  patch?: IOperation3
+  trace?: IOperation3
+  servers?: IServer3[]
+  parameters?: Array<IParameter3 | IReference3>
 }
 
 export interface IPathItemValidatorsMap3 {
-  $ref: Icsd.IProperty<Icsd.IString>
-  summary: Icsd.IProperty<Icsd.IString>
-  description: Icsd.IProperty<Icsd.IString>
-  get: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
-  put: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
-  post: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
-  _delete: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
-  options: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
-  head: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
-  patch: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
-  trace: Icsd.IProperty<Icsd.IComponent<I.IOperation3Definition, I.IOperation3>>
-  servers: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IServer3Definition, I.IServer3>>>
-  parameters: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IParameter3Definition, I.IParameter3>>>
+  $ref: ISDProperty<ISDString>
+  summary: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  get: ISDProperty<ISDComponent<IOperation3Definition, IOperation3>>
+  put: ISDProperty<ISDComponent<IOperation3Definition, IOperation3>>
+  post: ISDProperty<ISDComponent<IOperation3Definition, IOperation3>>
+  _delete: ISDProperty<ISDComponent<IOperation3Definition, IOperation3>>
+  options: ISDProperty<ISDComponent<IOperation3Definition, IOperation3>>
+  head: ISDProperty<ISDComponent<IOperation3Definition, IOperation3>>
+  patch: ISDProperty<ISDComponent<IOperation3Definition, IOperation3>>
+  trace: ISDProperty<ISDComponent<IOperation3Definition, IOperation3>>
+  servers: ISDProperty<ISDArray<ISDComponent<IServer3Definition, IServer3>>>
+  parameters: ISDProperty<ISDArray<ISDComponent<IParameter3Definition, IParameter3> | ISDComponent<IReference3Definition, IReference3>>>
+}
+
+export interface IPathItem3aDefinition {
+  [extensions: `x-${string}`]: any
+  $ref?: string
+  summary?: string
+  description?: string
+  get?: IOperation3aDefinition
+  put?: IOperation3aDefinition
+  post?: IOperation3aDefinition
+  delete?: IOperation3aDefinition
+  options?: IOperation3aDefinition
+  head?: IOperation3aDefinition
+  patch?: IOperation3aDefinition
+  trace?: IOperation3aDefinition
+  servers?: IServer3aDefinition[]
+  parameters?: Array<IParameter3aDefinition | IReference3aDefinition>
+}
+
+export interface IPathItem3a extends IPathItemBase {
+  extensions: Record<string, any>
+  $ref?: string
+  summary?: string
+  description?: string
+  get?: IOperation3a
+  put?: IOperation3a
+  post?: IOperation3a
+  delete?: IOperation3a
+  options?: IOperation3a
+  head?: IOperation3a
+  patch?: IOperation3a
+  trace?: IOperation3a
+  servers?: IServer3a[]
+  parameters?: Array<IParameter3a | IReference3a>
+}
+
+export interface IPathItemValidatorsMap3a {
+  $ref: ISDProperty<ISDString>
+  summary: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  get: ISDProperty<ISDComponent<IOperation3aDefinition, IOperation3a>>
+  put: ISDProperty<ISDComponent<IOperation3aDefinition, IOperation3a>>
+  post: ISDProperty<ISDComponent<IOperation3aDefinition, IOperation3a>>
+  _delete: ISDProperty<ISDComponent<IOperation3aDefinition, IOperation3a>>
+  options: ISDProperty<ISDComponent<IOperation3aDefinition, IOperation3a>>
+  head: ISDProperty<ISDComponent<IOperation3aDefinition, IOperation3a>>
+  patch: ISDProperty<ISDComponent<IOperation3aDefinition, IOperation3a>>
+  trace: ISDProperty<ISDComponent<IOperation3aDefinition, IOperation3a>>
+  servers: ISDProperty<ISDArray<ISDComponent<IServer3aDefinition, IServer3a>>>
+  parameters: ISDProperty<ISDArray<ISDComponent<IParameter3aDefinition, IParameter3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

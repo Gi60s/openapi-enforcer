@@ -12,24 +12,30 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { OAuthFlows3, IOAuthFlows3, IOAuthFlows3Definition } from '../OAuthFlows'
+import { SecurityScheme as SecuritySchemeBase } from './SecurityScheme'
+import { ISecurityScheme3, ISecurityScheme3Definition, ISecurityScheme3SchemaProcessor, ISecuritySchemeValidatorsMap3 as IValidatorsMap } from './ISecurityScheme'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.ISecuritySchemeValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<ISecurityScheme3Definition, ISecurityScheme3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> | null = null
+export class SecurityScheme extends SecuritySchemeBase implements ISecurityScheme3 {
+  public extensions: Record<string, any> = {}
+  public type?: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect'
+  public description?: string
+  public name?: string
+  public in?: 'query' | 'header' | 'cookie'
+  public scheme?: string
+  public bearerFormat?: string
+  public flows?: IOAuthFlows3
+  public openIdConnectUrl?: string
 
-export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definition> implements I.ISecurityScheme3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.ISecurityScheme3Definition, version?: IVersion) {
+  constructor (definition: ISecurityScheme3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +49,17 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definiti
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#security-scheme-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#security-scheme-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#security-scheme-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-scheme-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-scheme-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.ISecuritySchemeSchemaProcessor): Icsd.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> {
+  static getSchemaDefinition (_data: ISecurityScheme3SchemaProcessor): ISDSchemaDefinition<ISecurityScheme3Definition, ISecurityScheme3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.ISecurityScheme3Definition, I.ISecurityScheme3> = {
+    const result: ISDSchemaDefinition<ISecurityScheme3Definition, ISecurityScheme3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -75,101 +82,41 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme3Definiti
     return result
   }
 
-  static create (definition?: Partial<I.ISecurityScheme3Definition> | SecurityScheme | undefined): SecurityScheme {
-    return new SecurityScheme(Object.assign({}, definition) as I.ISecurityScheme3Definition)
+  static create (definition?: Partial<ISecurityScheme3Definition> | SecurityScheme | undefined): SecurityScheme {
+    return new SecurityScheme(Object.assign({}, definition) as ISecurityScheme3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.ISecurityScheme3Definition> | SecurityScheme | string | undefined): Promise<SecurityScheme> {
+  static async createAsync (definition?: Partial<ISecurityScheme3Definition> | SecurityScheme | string | undefined): Promise<SecurityScheme> {
     if (definition instanceof SecurityScheme) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.ISecurityScheme3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<ISecurityScheme3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.ISecurityScheme3Definition>> (definition?: T | undefined): I.ISecurityScheme3Definition & T {
-    return Object.assign({}, definition) as I.ISecurityScheme3Definition & T
+  static createDefinition<T extends Partial<ISecurityScheme3Definition>> (definition?: T | undefined): ISecurityScheme3Definition & T {
+    return Object.assign({}, definition) as ISecurityScheme3Definition & T
   }
 
-  static validate (definition: I.ISecurityScheme3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: ISecurityScheme3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.ISecurityScheme3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: ISecurityScheme3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get type (): 'apiKey'|'http'|'oauth2'|'openIdConnect' | undefined {
-    return this.getProperty('type')
-  }
-
-  set type (value: 'apiKey'|'http'|'oauth2'|'openIdConnect' | undefined) {
-    this.setProperty('type', value)
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get name (): string | undefined {
-    return this.getProperty('name')
-  }
-
-  set name (value: string | undefined) {
-    this.setProperty('name', value)
-  }
-
-  get in (): 'query'|'header'|'cookie' | undefined {
-    return this.getProperty('in')
-  }
-
-  set in (value: 'query'|'header'|'cookie' | undefined) {
-    this.setProperty('in', value)
-  }
-
-  get scheme (): string | undefined {
-    return this.getProperty('scheme')
-  }
-
-  set scheme (value: string | undefined) {
-    this.setProperty('scheme', value)
-  }
-
-  get bearerFormat (): string | undefined {
-    return this.getProperty('bearerFormat')
-  }
-
-  set bearerFormat (value: string | undefined) {
-    this.setProperty('bearerFormat', value)
-  }
-
-  get flows (): I.IOAuthFlows3 | undefined {
-    return this.getProperty('flows')
-  }
-
-  set flows (value: I.IOAuthFlows3 | undefined) {
-    this.setProperty('flows', value)
-  }
-
-  get openIdConnectUrl (): string | undefined {
-    return this.getProperty('openIdConnectUrl')
-  }
-
-  set openIdConnectUrl (value: string | undefined) {
-    this.setProperty('openIdConnectUrl', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -216,7 +163,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.OAuthFlows3
+        component: OAuthFlows3
       }
     },
     openIdConnectUrl: {

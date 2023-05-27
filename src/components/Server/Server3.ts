@@ -12,24 +12,24 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Server as ServerBase } from './Server'
+import { IServer3, IServer3Definition, IServer3SchemaProcessor, IServerValidatorsMap3 as IValidatorsMap } from './IServer'
 // <!# Custom Content Begin: HEADER #!>
 import { isUrl } from '../validations'
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IServerValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IServer3Definition, IServer3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IServer3Definition, I.IServer3> | null = null
+export class Server extends ServerBase implements IServer3 {
+  public extensions: Record<string, any> = {}
+  public url!: string
+  public description?: string
+  public variables?: Record<string, IServerVariable3>
 
-export class Server extends EnforcerComponent<I.IServer3Definition> implements I.IServer3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IServer3Definition, version?: IVersion) {
+  constructor (definition: IServer3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +43,17 @@ export class Server extends EnforcerComponent<I.IServer3Definition> implements I
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#server-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#server-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#server-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#server-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IServerSchemaProcessor): Icsd.ISchemaDefinition<I.IServer3Definition, I.IServer3> {
+  static getSchemaDefinition (_data: IServer3SchemaProcessor): ISDSchemaDefinition<IServer3Definition, IServer3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IServer3Definition, I.IServer3> = {
+    const result: ISDSchemaDefinition<IServer3Definition, IServer3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -72,69 +73,49 @@ export class Server extends EnforcerComponent<I.IServer3Definition> implements I
     return result
   }
 
-  static create (definition?: Partial<I.IServer3Definition> | Server | undefined): Server {
+  static create (definition?: Partial<IServer3Definition> | Server | undefined): Server {
     if (definition instanceof Server) {
-      return new Server(Object.assign({}, definition as unknown) as I.IServer3Definition)
+      return new Server(Object.assign({}, definition as unknown) as IServer3Definition)
     } else {
       return new Server(Object.assign({
         url: ''
-      }, definition) as I.IServer3Definition)
+      }, definition) as IServer3Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.IServer3Definition> | Server | string | undefined): Promise<Server> {
+  static async createAsync (definition?: Partial<IServer3Definition> | Server | string | undefined): Promise<Server> {
     if (definition instanceof Server) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IServer3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IServer3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IServer3Definition>> (definition?: T | undefined): I.IServer3Definition & T {
+  static createDefinition<T extends Partial<IServer3Definition>> (definition?: T | undefined): IServer3Definition & T {
     return Object.assign({
       url: ''
-    }, definition) as I.IServer3Definition & T
+    }, definition) as IServer3Definition & T
   }
 
-  static validate (definition: I.IServer3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IServer3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IServer3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IServer3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get url (): string {
-    return this.getProperty('url')
-  }
-
-  set url (value: string) {
-    this.setProperty('url', value)
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get variables (): Record<string, I.IServerVariable3> | undefined {
-    return this.getProperty('variables')
-  }
-
-  set variables (value: Record<string, I.IServerVariable3> | undefined) {
-    this.setProperty('variables', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
 
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -158,7 +139,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: false,
-          component: I.ServerVariable3
+          component: ServerVariable3
         }
       }
     }

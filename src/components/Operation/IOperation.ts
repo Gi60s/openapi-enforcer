@@ -12,14 +12,25 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDArray, ISDString, ISDComponent, ISDBoolean, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { IExternalDocumentation2, IExternalDocumentation2Definition, IExternalDocumentation3, IExternalDocumentation3Definition, IExternalDocumentation3a, IExternalDocumentation3aDefinition } from '../ExternalDocumentation'
+import { IResponses2, IResponses2Definition, IResponses3, IResponses3Definition, IResponses3a, IResponses3aDefinition } from '../Responses'
+import { IRequestBody3, IRequestBody3Definition, IRequestBody3a, IRequestBody3aDefinition } from '../RequestBody'
+import { IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
+
 // <!# Custom Content Begin: HEADER #!>
 import { ContentType } from '../../ContentType/ContentType'
 // <!# Custom Content End: HEADER #!>
 
-interface IOperationComponent extends IComponentInstance {
+export type IOperation = IOperation2 | IOperation3 | IOperation3a
+export type IOperationDefinition = IOperation2Definition | IOperation3Definition | IOperation3aDefinition
+export type IOperation2SchemaProcessor = SchemaProcessor<IOperation2Definition, IOperation2>
+export type IOperation3SchemaProcessor = SchemaProcessor<IOperation3Definition, IOperation3>
+export type IOperation3aSchemaProcessor = SchemaProcessor<IOperation3aDefinition, IOperation3a>
+export type IOperationSchemaProcessor = IOperation2SchemaProcessor | IOperation3SchemaProcessor | IOperation3aSchemaProcessor
+
+export interface IOperationBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // getResponsesThatCanProduceContentType: (contentType: string | ContentType) => Array<{ code: number | 'default', response: IResponse2 }>
   getAcceptedResponseTypes: (statusCode: number | 'default', accepted: string) => ContentType[]
@@ -33,97 +44,144 @@ interface IOperationComponent extends IComponentInstance {
 }
 
 export interface IOperation2Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   tags?: string[]
   summary?: string
   description?: string
-  externalDocs?: I.IExternalDocumentation2Definition
+  externalDocs?: IExternalDocumentation2Definition
   operationId?: string
   consumes?: string[]
   produces?: string[]
-  parameters?: Array<I.IParameter2Definition | I.IReference2Definition>
-  responses: I.IResponses2Definition
-  schemes?: Array<'http'|'https'|'ws'|'wss'>
+  parameters?: Array<IParameter2Definition | IReference2Definition>
+  responses: IResponses2Definition
+  schemes?: Array<'http' | 'https' | 'ws' | 'wss'>
   deprecated?: boolean
-  security?: I.ISecurityRequirement2Definition[]
+  security?: ISecurityRequirement2Definition[]
 }
 
-export interface IOperation2 extends IOperationComponent {
-  [Extensions]: Record<string, any>
+export interface IOperation2 extends IOperationBase {
+  extensions: Record<string, any>
   tags?: string[]
   summary?: string
   description?: string
-  externalDocs?: I.IExternalDocumentation2
+  externalDocs?: IExternalDocumentation2
   operationId?: string
   consumes?: string[]
   produces?: string[]
-  parameters?: I.IParameter2[]
-  responses: I.IResponses2
-  schemes?: Array<'http'|'https'|'ws'|'wss'>
+  parameters?: Array<IParameter2 | IReference2>
+  responses: IResponses2
+  schemes?: Array<'http' | 'https' | 'ws' | 'wss'>
   deprecated?: boolean
-  security?: I.ISecurityRequirement2[]
+  security?: ISecurityRequirement2[]
 }
 
 export interface IOperationValidatorsMap2 {
-  tags: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
-  summary: Icsd.IProperty<Icsd.IString>
-  description: Icsd.IProperty<Icsd.IString>
-  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
-  operationId: Icsd.IProperty<Icsd.IString>
-  consumes: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
-  produces: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
-  parameters: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IParameter2Definition, I.IParameter2>>>
-  responses: Icsd.IProperty<Icsd.IComponent<I.IResponses2Definition, I.IResponses2>>
-  schemes: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
-  deprecated: Icsd.IProperty<Icsd.IBoolean>
-  security: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISecurityRequirement2Definition, I.ISecurityRequirement2>>>
+  tags: ISDProperty<ISDArray<ISDString>>
+  summary: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  externalDocs: ISDProperty<ISDComponent<IExternalDocumentation2Definition, IExternalDocumentation2>>
+  operationId: ISDProperty<ISDString>
+  consumes: ISDProperty<ISDArray<ISDString>>
+  produces: ISDProperty<ISDArray<ISDString>>
+  parameters: ISDProperty<ISDArray<ISDComponent<IParameter2Definition, IParameter2> | ISDComponent<IReference2Definition, IReference2>>>
+  responses: ISDProperty<ISDComponent<IResponses2Definition, IResponses2>>
+  schemes: ISDProperty<ISDArray<ISDString>>
+  deprecated: ISDProperty<ISDBoolean>
+  security: ISDProperty<ISDArray<ISDComponent<ISecurityRequirement2Definition, ISecurityRequirement2>>>
 }
 
 export interface IOperation3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   tags?: string[]
   summary?: string
   description?: string
-  externalDocs?: I.IExternalDocumentation3Definition
+  externalDocs?: IExternalDocumentation3Definition
   operationId?: string
-  parameters?: Array<I.IParameter3Definition | I.IReference3Definition>
-  requestBody?: I.IRequestBody3Definition | I.IReference3Definition
-  responses: I.IResponses3Definition
-  callbacks?: Record<string, I.ICallback3Definition | I.IReference3Definition>
+  parameters?: Array<IParameter3Definition | IReference3Definition>
+  requestBody?: IRequestBody3Definition | IReference3Definition
+  responses: IResponses3Definition
+  callbacks?: Record<string, ICallback3Definition | IReference3Definition>
   deprecated?: boolean
-  security?: I.ISecurityRequirement3Definition[]
-  servers?: I.IServer3Definition[]
+  security?: ISecurityRequirement3Definition[]
+  servers?: IServer3Definition[]
 }
 
-export interface IOperation3 extends IOperationComponent {
-  [Extensions]: Record<string, any>
+export interface IOperation3 extends IOperationBase {
+  extensions: Record<string, any>
   tags?: string[]
   summary?: string
   description?: string
-  externalDocs?: I.IExternalDocumentation3
+  externalDocs?: IExternalDocumentation3
   operationId?: string
-  parameters?: I.IParameter3[]
-  requestBody?: I.IRequestBody3
-  responses: I.IResponses3
-  callbacks?: Record<string, I.ICallback3>
+  parameters?: Array<IParameter3 | IReference3>
+  requestBody?: IRequestBody3 | IReference3
+  responses: IResponses3
+  callbacks?: Record<string, ICallback3 | IReference3>
   deprecated?: boolean
-  security?: I.ISecurityRequirement3[]
-  servers?: I.IServer3[]
+  security?: ISecurityRequirement3[]
+  servers?: IServer3[]
 }
 
 export interface IOperationValidatorsMap3 {
-  tags: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
-  summary: Icsd.IProperty<Icsd.IString>
-  description: Icsd.IProperty<Icsd.IString>
-  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation3Definition, I.IExternalDocumentation3>>
-  operationId: Icsd.IProperty<Icsd.IString>
-  parameters: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IParameter3Definition, I.IParameter3>>>
-  requestBody: Icsd.IProperty<Icsd.IComponent<I.IRequestBody3Definition, I.IRequestBody3>>
-  responses: Icsd.IProperty<Icsd.IComponent<I.IResponses3Definition, I.IResponses3>>
-  callbacks: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ICallback3Definition, I.ICallback3>>>
-  deprecated: Icsd.IProperty<Icsd.IBoolean>
-  security: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISecurityRequirement3Definition, I.ISecurityRequirement3>>>
-  servers: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.IServer3Definition, I.IServer3>>>
+  tags: ISDProperty<ISDArray<ISDString>>
+  summary: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  externalDocs: ISDProperty<ISDComponent<IExternalDocumentation3Definition, IExternalDocumentation3>>
+  operationId: ISDProperty<ISDString>
+  parameters: ISDProperty<ISDArray<ISDComponent<IParameter3Definition, IParameter3> | ISDComponent<IReference3Definition, IReference3>>>
+  requestBody: ISDProperty<ISDComponent<IRequestBody3Definition, IRequestBody3> | ISDComponent<IReference3Definition, IReference3>>
+  responses: ISDProperty<ISDComponent<IResponses3Definition, IResponses3>>
+  callbacks: ISDProperty<ISDObject<ISDComponent<ICallback3Definition, ICallback3> | ISDComponent<IReference3Definition, IReference3>>>
+  deprecated: ISDProperty<ISDBoolean>
+  security: ISDProperty<ISDArray<ISDComponent<ISecurityRequirement3Definition, ISecurityRequirement3>>>
+  servers: ISDProperty<ISDArray<ISDComponent<IServer3Definition, IServer3>>>
+}
+
+export interface IOperation3aDefinition {
+  [extensions: `x-${string}`]: any
+  tags?: string[]
+  summary?: string
+  description?: string
+  externalDocs?: IExternalDocumentation3aDefinition
+  operationId?: string
+  parameters?: Array<IParameter3aDefinition | IReference3aDefinition>
+  requestBody?: IRequestBody3aDefinition | IReference3aDefinition
+  responses: IResponses3aDefinition
+  callbacks?: Record<string, ICallback3aDefinition | IReference3aDefinition>
+  deprecated?: boolean
+  security?: ISecurityRequirement3aDefinition[]
+  servers?: IServer3aDefinition[]
+}
+
+export interface IOperation3a extends IOperationBase {
+  extensions: Record<string, any>
+  tags?: string[]
+  summary?: string
+  description?: string
+  externalDocs?: IExternalDocumentation3a
+  operationId?: string
+  parameters?: Array<IParameter3a | IReference3a>
+  requestBody?: IRequestBody3a | IReference3a
+  responses: IResponses3a
+  callbacks?: Record<string, ICallback3a | IReference3a>
+  deprecated?: boolean
+  security?: ISecurityRequirement3a[]
+  servers?: IServer3a[]
+}
+
+export interface IOperationValidatorsMap3a {
+  tags: ISDProperty<ISDArray<ISDString>>
+  summary: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  externalDocs: ISDProperty<ISDComponent<IExternalDocumentation3aDefinition, IExternalDocumentation3a>>
+  operationId: ISDProperty<ISDString>
+  parameters: ISDProperty<ISDArray<ISDComponent<IParameter3aDefinition, IParameter3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  requestBody: ISDProperty<ISDComponent<IRequestBody3aDefinition, IRequestBody3a> | ISDComponent<IReference3aDefinition, IReference3a>>
+  responses: ISDProperty<ISDComponent<IResponses3aDefinition, IResponses3a>>
+  callbacks: ISDProperty<ISDObject<ISDComponent<ICallback3aDefinition, ICallback3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  deprecated: ISDProperty<ISDBoolean>
+  security: ISDProperty<ISDArray<ISDComponent<ISecurityRequirement3aDefinition, ISecurityRequirement3a>>>
+  servers: ISDProperty<ISDArray<ISDComponent<IServer3aDefinition, IServer3a>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

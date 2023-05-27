@@ -12,12 +12,20 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IDiscriminatorComponent extends IComponentInstance {
+export type IDiscriminator = IDiscriminator3 | IDiscriminator3a
+export type IDiscriminatorDefinition = IDiscriminator3Definition | IDiscriminator3aDefinition
+export type IDiscriminator3SchemaProcessor = SchemaProcessor<IDiscriminator3Definition, IDiscriminator3>
+export type IDiscriminator3aSchemaProcessor = SchemaProcessor<IDiscriminator3aDefinition, IDiscriminator3a>
+export type IDiscriminatorSchemaProcessor = IDiscriminator3SchemaProcessor | IDiscriminator3aSchemaProcessor
+
+export interface IDiscriminatorBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
 // Put your code here.
 // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
@@ -28,14 +36,31 @@ export interface IDiscriminator3Definition {
   mapping?: Record<string, string>
 }
 
-export interface IDiscriminator3 extends IDiscriminatorComponent {
+export interface IDiscriminator3 extends IDiscriminatorBase {
   propertyName: string
   mapping?: Record<string, string>
 }
 
 export interface IDiscriminatorValidatorsMap3 {
-  propertyName: Icsd.IProperty<Icsd.IString>
-  mapping: Icsd.IProperty<Icsd.IObject<Icsd.IString>>
+  propertyName: ISDProperty<ISDString>
+  mapping: ISDProperty<ISDObject<ISDString>>
+}
+
+export interface IDiscriminator3aDefinition {
+  [extensions: `x-${string}`]: any
+  propertyName: string
+  mapping?: Record<string, string>
+}
+
+export interface IDiscriminator3a extends IDiscriminatorBase {
+  extensions: Record<string, any>
+  propertyName: string
+  mapping?: Record<string, string>
+}
+
+export interface IDiscriminatorValidatorsMap3a {
+  propertyName: ISDProperty<ISDString>
+  mapping: ISDProperty<ISDObject<ISDString>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

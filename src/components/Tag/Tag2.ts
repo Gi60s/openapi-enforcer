@@ -12,24 +12,25 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { ExternalDocumentation2, IExternalDocumentation2, IExternalDocumentation2Definition } from '../ExternalDocumentation'
+import { Tag as TagBase } from './Tag'
+import { ITag2, ITag2Definition, ITag2SchemaProcessor, ITagValidatorsMap2 as IValidatorsMap } from './ITag'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.ITagValidatorsMap2
+let cachedSchema: ISDSchemaDefinition<ITag2Definition, ITag2> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.ITag2Definition, I.ITag2> | null = null
+export class Tag extends TagBase implements ITag2 {
+  public extensions: Record<string, any> = {}
+  public name!: string
+  public description?: string
+  public externalDocs?: IExternalDocumentation2
 
-export class Tag extends EnforcerComponent<I.ITag2Definition> implements I.ITag2 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.ITag2Definition, version?: IVersion) {
+  constructor (definition: ITag2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +44,17 @@ export class Tag extends EnforcerComponent<I.ITag2Definition> implements I.ITag2
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.ITagSchemaProcessor): Icsd.ISchemaDefinition<I.ITag2Definition, I.ITag2> {
+  static getSchemaDefinition (_data: ITag2SchemaProcessor): ISDSchemaDefinition<ITag2Definition, ITag2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.ITag2Definition, I.ITag2> = {
+    const result: ISDSchemaDefinition<ITag2Definition, ITag2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -70,69 +72,49 @@ export class Tag extends EnforcerComponent<I.ITag2Definition> implements I.ITag2
     return result
   }
 
-  static create (definition?: Partial<I.ITag2Definition> | Tag | undefined): Tag {
+  static create (definition?: Partial<ITag2Definition> | Tag | undefined): Tag {
     if (definition instanceof Tag) {
-      return new Tag(Object.assign({}, definition as unknown) as I.ITag2Definition)
+      return new Tag(Object.assign({}, definition as unknown) as ITag2Definition)
     } else {
       return new Tag(Object.assign({
         name: ''
-      }, definition) as I.ITag2Definition)
+      }, definition) as ITag2Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.ITag2Definition> | Tag | string | undefined): Promise<Tag> {
+  static async createAsync (definition?: Partial<ITag2Definition> | Tag | string | undefined): Promise<Tag> {
     if (definition instanceof Tag) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.ITag2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<ITag2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.ITag2Definition>> (definition?: T | undefined): I.ITag2Definition & T {
+  static createDefinition<T extends Partial<ITag2Definition>> (definition?: T | undefined): ITag2Definition & T {
     return Object.assign({
       name: ''
-    }, definition) as I.ITag2Definition & T
+    }, definition) as ITag2Definition & T
   }
 
-  static validate (definition: I.ITag2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: ITag2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.ITag2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: ITag2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get name (): string {
-    return this.getProperty('name')
-  }
-
-  set name (value: string) {
-    this.setProperty('name', value)
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get externalDocs (): I.IExternalDocumentation2 | undefined {
-    return this.getProperty('externalDocs')
-  }
-
-  set externalDocs (value: I.IExternalDocumentation2 | undefined) {
-    this.setProperty('externalDocs', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -154,7 +136,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.ExternalDocumentation2
+        component: ExternalDocumentation2
       }
     }
   }

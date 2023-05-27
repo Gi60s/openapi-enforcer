@@ -18,4 +18,4 @@ export interface IEnforcerExtensionDefinition {
 // false - this version is not supported for this component according to the spec
 export type IComponentSpec = Record<IVersion, string | boolean>
 
-export type IVersion = '2.0' | '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3'
+export type IVersion = '2.0' | '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3' | '3.1.0'

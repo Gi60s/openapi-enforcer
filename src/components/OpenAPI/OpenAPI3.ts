@@ -12,24 +12,33 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Info3, IInfo3, IInfo3Definition } from '../Info'
+import { Paths3, IPaths3, IPaths3Definition } from '../Paths'
+import { Components3, IComponents3, IComponents3Definition } from '../Components'
+import { ExternalDocumentation3, IExternalDocumentation3, IExternalDocumentation3Definition } from '../ExternalDocumentation'
+import { OpenAPI as OpenAPIBase } from './OpenAPI'
+import { IOpenAPI3, IOpenAPI3Definition, IOpenAPI3SchemaProcessor, IOpenAPIValidatorsMap3 as IValidatorsMap } from './IOpenAPI'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IOpenAPIValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IOpenAPI3Definition, IOpenAPI3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> | null = null
+export class OpenAPI extends OpenAPIBase implements IOpenAPI3 {
+  public extensions: Record<string, any> = {}
+  public openapi!: '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3'
+  public info!: IInfo3
+  public servers?: IServer3[]
+  public paths!: IPaths3
+  public components?: IComponents3
+  public security?: ISecurityRequirement3[]
+  public tags?: ITag3[]
+  public externalDocs?: IExternalDocumentation3
 
-export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements I.IOpenAPI3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IOpenAPI3Definition, version?: IVersion) {
+  constructor (definition: IOpenAPI3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +52,17 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#openapi-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#openapi-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#openapi-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#openapi-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#openapi-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IOpenAPISchemaProcessor): Icsd.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> {
+  static getSchemaDefinition (_data: IOpenAPI3SchemaProcessor): ISDSchemaDefinition<IOpenAPI3Definition, IOpenAPI3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IOpenAPI3Definition, I.IOpenAPI3> = {
+    const result: ISDSchemaDefinition<IOpenAPI3Definition, IOpenAPI3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -81,113 +91,53 @@ export class OpenAPI extends EnforcerComponent<I.IOpenAPI3Definition> implements
     return result
   }
 
-  static create (definition?: Partial<I.IOpenAPI3Definition> | OpenAPI | undefined): OpenAPI {
+  static create (definition?: Partial<IOpenAPI3Definition> | OpenAPI | undefined): OpenAPI {
     if (definition instanceof OpenAPI) {
-      return new OpenAPI(Object.assign({}, definition as unknown) as I.IOpenAPI3Definition)
+      return new OpenAPI(Object.assign({}, definition as unknown) as IOpenAPI3Definition)
     } else {
       return new OpenAPI(Object.assign({
         openapi: '3.0.0',
-        info: I.Info3.create(),
-        paths: I.Paths3.create()
-      }, definition) as I.IOpenAPI3Definition)
+        info: Info3.create(),
+        paths: Paths3.create()
+      }, definition) as IOpenAPI3Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.IOpenAPI3Definition> | OpenAPI | string | undefined): Promise<OpenAPI> {
+  static async createAsync (definition?: Partial<IOpenAPI3Definition> | OpenAPI | string | undefined): Promise<OpenAPI> {
     if (definition instanceof OpenAPI) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IOpenAPI3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IOpenAPI3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IOpenAPI3Definition>> (definition?: T | undefined): I.IOpenAPI3Definition & T {
+  static createDefinition<T extends Partial<IOpenAPI3Definition>> (definition?: T | undefined): IOpenAPI3Definition & T {
     return Object.assign({
       openapi: '3.0.0',
-      info: I.Info3.create(),
-      paths: I.Paths3.create()
-    }, definition) as I.IOpenAPI3Definition & T
+      info: Info3.create(),
+      paths: Paths3.create()
+    }, definition) as IOpenAPI3Definition & T
   }
 
-  static validate (definition: I.IOpenAPI3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IOpenAPI3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IOpenAPI3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IOpenAPI3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get openapi (): '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3' {
-    return this.getProperty('openapi')
-  }
-
-  set openapi (value: '3.0.0'|'3.0.1'|'3.0.2'|'3.0.3') {
-    this.setProperty('openapi', value)
-  }
-
-  get info (): I.IInfo3 {
-    return this.getProperty('info')
-  }
-
-  set info (value: I.IInfo3) {
-    this.setProperty('info', value)
-  }
-
-  get servers (): I.IServer3[] | undefined {
-    return this.getProperty('servers')
-  }
-
-  set servers (value: I.IServer3[] | undefined) {
-    this.setProperty('servers', value)
-  }
-
-  get paths (): I.IPaths3 {
-    return this.getProperty('paths')
-  }
-
-  set paths (value: I.IPaths3) {
-    this.setProperty('paths', value)
-  }
-
-  get components (): I.IComponents3 | undefined {
-    return this.getProperty('components')
-  }
-
-  set components (value: I.IComponents3 | undefined) {
-    this.setProperty('components', value)
-  }
-
-  get security (): I.ISecurityRequirement3[] | undefined {
-    return this.getProperty('security')
-  }
-
-  set security (value: I.ISecurityRequirement3[] | undefined) {
-    this.setProperty('security', value)
-  }
-
-  get tags (): I.ITag3[] | undefined {
-    return this.getProperty('tags')
-  }
-
-  set tags (value: I.ITag3[] | undefined) {
-    this.setProperty('tags', value)
-  }
-
-  get externalDocs (): I.IExternalDocumentation3 | undefined {
-    return this.getProperty('externalDocs')
-  }
-
-  set externalDocs (value: I.IExternalDocumentation3 | undefined) {
-    this.setProperty('externalDocs', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
 
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -205,7 +155,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Info3
+        component: Info3
       }
     },
     servers: {
@@ -215,7 +165,7 @@ function getValidatorsMap (): IValidatorsMap {
         items: {
           type: 'component',
           allowsRef: false,
-          component: I.Server3
+          component: Server3
         }
       }
     },
@@ -225,7 +175,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Paths3
+        component: Paths3
       }
     },
     components: {
@@ -233,7 +183,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Components3
+        component: Components3
       }
     },
     security: {
@@ -243,7 +193,7 @@ function getValidatorsMap (): IValidatorsMap {
         items: {
           type: 'component',
           allowsRef: false,
-          component: I.SecurityRequirement3
+          component: SecurityRequirement3
         }
       }
     },
@@ -254,7 +204,7 @@ function getValidatorsMap (): IValidatorsMap {
         items: {
           type: 'component',
           allowsRef: false,
-          component: I.Tag3
+          component: Tag3
         }
       }
     },
@@ -263,7 +213,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.ExternalDocumentation3
+        component: ExternalDocumentation3
       }
     }
   }

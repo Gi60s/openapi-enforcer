@@ -12,44 +12,29 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition, ISD[path: `/${string}`]: PathItem } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Paths as PathsBase } from './Paths'
+import { IPaths2, IPaths2Definition, IPaths2SchemaProcessor } from './IPaths'
 // <!# Custom Content Begin: HEADER #!>
 import { build, validate, findPathMatches } from './common'
 import { IFindPathMatchesOptions, IFindPathMatchesResult } from '../PathItem'
 import * as config from '../../global-config'
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IPaths2Definition, I.IPaths2> | null = null
+let cachedSchema: ISDSchemaDefinition<IPaths2Definition, IPaths2> | null = null
 
-const additionalProperties: Icsd.IComponent<I.IPathItem2Definition, I.IPathItem2> = {
-  type: 'component',
-  allowsRef: false,
-  component: I.PathItem2
+const additionalProperties: ISD[path: `/${string}`]: PathItem = {
+  type: '[path: `/${string}`]: PathItem'
 }
 
-export class Paths extends EnforcerComponent<I.IPaths2Definition> implements I.IPaths2 {
-  [S.Extensions]: Record<string, any> = {};
-  [key: `/${string}`]: I.IPathItem2
+export class Paths extends PathsBase implements IPaths2 {
+  public extensions: Record<string, any> = {};
+  [path: `/${string}`]: PathItem
 
-  constructor (definition: I.IPaths2Definition, version?: IVersion) {
+  constructor (definition: IPaths2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
-    Object.keys(definition).forEach(key => {
-      Object.defineProperty(this, key, {
-        configurable: true,
-        enumerable: true,
-        get () {
-          return this.getProperty(key)
-        },
-        set (value) {
-          this.setProperty(key, value)
-        }
-      })
-    })
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
     // <!# Custom Content End: CONSTRUCTOR #!>
@@ -62,15 +47,16 @@ export class Paths extends EnforcerComponent<I.IPaths2Definition> implements I.I
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IPathsSchemaProcessor): Icsd.ISchemaDefinition<I.IPaths2Definition, I.IPaths2> {
+  static getSchemaDefinition (_data: IPaths2SchemaProcessor): ISDSchemaDefinition<IPaths2Definition, IPaths2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: Icsd.ISchemaDefinition<I.IPaths2Definition, I.IPaths2> = {
+    const result: ISDSchemaDefinition<IPaths2Definition, IPaths2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties
@@ -85,29 +71,29 @@ export class Paths extends EnforcerComponent<I.IPaths2Definition> implements I.I
     return result
   }
 
-  static create (definition?: Partial<I.IPaths2Definition> | Paths | undefined): Paths {
-    return new Paths(Object.assign({}, definition) as I.IPaths2Definition)
+  static create (definition?: Partial<IPaths2Definition> | Paths | undefined): Paths {
+    return new Paths(Object.assign({}, definition) as IPaths2Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IPaths2Definition> | Paths | string | undefined): Promise<Paths> {
+  static async createAsync (definition?: Partial<IPaths2Definition> | Paths | string | undefined): Promise<Paths> {
     if (definition instanceof Paths) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IPaths2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IPaths2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IPaths2Definition>> (definition?: T | undefined): I.IPaths2Definition & T {
-    return Object.assign({}, definition) as I.IPaths2Definition & T
+  static createDefinition<T extends Partial<IPaths2Definition>> (definition?: T | undefined): IPaths2Definition & T {
+    return Object.assign({}, definition) as IPaths2Definition & T
   }
 
-  static validate (definition: I.IPaths2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IPaths2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IPaths2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IPaths2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
   }
@@ -120,6 +106,10 @@ export class Paths extends EnforcerComponent<I.IPaths2Definition> implements I.I
   }
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 // <!# Custom Content Begin: FOOTER #!>
 // Put your code here.

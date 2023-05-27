@@ -14,3 +14,4 @@
 export * from './IHeader'
 export { Header as Header2 } from './Header2'
 export { Header as Header3 } from './Header3'
+export { Header as Header3a } from './Header3a'

@@ -14,3 +14,4 @@
 export * from './IXml'
 export { Xml as Xml2 } from './Xml2'
 export { Xml as Xml3 } from './Xml3'
+export { Xml as Xml3a } from './Xml3a'

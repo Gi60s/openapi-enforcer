@@ -13,3 +13,4 @@
 
 export * from './IItems'
 export { Items as Items2 } from './Items2'
+export { Items as Items3a } from './Items3a'

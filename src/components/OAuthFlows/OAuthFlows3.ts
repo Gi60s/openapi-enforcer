@@ -12,24 +12,26 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { OAuth Flow3, IOAuth Flow3, IOAuth Flow3Definition } from '../OAuth Flow'
+import { OAuthFlows as OAuthFlowsBase } from './OAuthFlows'
+import { IOAuthFlows3, IOAuthFlows3Definition, IOAuthFlows3SchemaProcessor, IOAuthFlowsValidatorsMap3 as IValidatorsMap } from './IOAuthFlows'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IOAuthFlowsValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IOAuthFlows3Definition, IOAuthFlows3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IOAuthFlows3Definition, I.IOAuthFlows3> | null = null
+export class OAuthFlows extends OAuthFlowsBase implements IOAuthFlows3 {
+  public extensions: Record<string, any> = {}
+  public implicit?: IOAuth Flow3
+  public password?: IOAuth Flow3
+  public clientCredentials?: IOAuth Flow3
+  public authorizationCode?: IOAuth Flow3
 
-export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> implements I.IOAuthFlows3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IOAuthFlows3Definition, version?: IVersion) {
+  constructor (definition: IOAuthFlows3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +45,17 @@ export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> impl
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#oauth-flows-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#oauth-flows-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#oauth-flows-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#oauth-flows-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#oauth-flows-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IOAuthFlowsSchemaProcessor): Icsd.ISchemaDefinition<I.IOAuthFlows3Definition, I.IOAuthFlows3> {
+  static getSchemaDefinition (_data: IOAuthFlows3SchemaProcessor): ISDSchemaDefinition<IOAuthFlows3Definition, IOAuthFlows3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IOAuthFlows3Definition, I.IOAuthFlows3> = {
+    const result: ISDSchemaDefinition<IOAuthFlows3Definition, IOAuthFlows3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -71,69 +74,41 @@ export class OAuthFlows extends EnforcerComponent<I.IOAuthFlows3Definition> impl
     return result
   }
 
-  static create (definition?: Partial<I.IOAuthFlows3Definition> | OAuthFlows | undefined): OAuthFlows {
-    return new OAuthFlows(Object.assign({}, definition) as I.IOAuthFlows3Definition)
+  static create (definition?: Partial<IOAuthFlows3Definition> | OAuthFlows | undefined): OAuthFlows {
+    return new OAuthFlows(Object.assign({}, definition) as IOAuthFlows3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IOAuthFlows3Definition> | OAuthFlows | string | undefined): Promise<OAuthFlows> {
+  static async createAsync (definition?: Partial<IOAuthFlows3Definition> | OAuthFlows | string | undefined): Promise<OAuthFlows> {
     if (definition instanceof OAuthFlows) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IOAuthFlows3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IOAuthFlows3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IOAuthFlows3Definition>> (definition?: T | undefined): I.IOAuthFlows3Definition & T {
-    return Object.assign({}, definition) as I.IOAuthFlows3Definition & T
+  static createDefinition<T extends Partial<IOAuthFlows3Definition>> (definition?: T | undefined): IOAuthFlows3Definition & T {
+    return Object.assign({}, definition) as IOAuthFlows3Definition & T
   }
 
-  static validate (definition: I.IOAuthFlows3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IOAuthFlows3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IOAuthFlows3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IOAuthFlows3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get implicit (): I.IOAuthFlow3 | undefined {
-    return this.getProperty('implicit')
-  }
-
-  set implicit (value: I.IOAuthFlow3 | undefined) {
-    this.setProperty('implicit', value)
-  }
-
-  get password (): I.IOAuthFlow3 | undefined {
-    return this.getProperty('password')
-  }
-
-  set password (value: I.IOAuthFlow3 | undefined) {
-    this.setProperty('password', value)
-  }
-
-  get clientCredentials (): I.IOAuthFlow3 | undefined {
-    return this.getProperty('clientCredentials')
-  }
-
-  set clientCredentials (value: I.IOAuthFlow3 | undefined) {
-    this.setProperty('clientCredentials', value)
-  }
-
-  get authorizationCode (): I.IOAuthFlow3 | undefined {
-    return this.getProperty('authorizationCode')
-  }
-
-  set authorizationCode (value: I.IOAuthFlow3 | undefined) {
-    this.setProperty('authorizationCode', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -142,7 +117,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.OAuthFlow3
+        component: OAuth Flow3
       }
     },
     password: {
@@ -150,7 +125,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.OAuthFlow3
+        component: OAuth Flow3
       }
     },
     clientCredentials: {
@@ -158,7 +133,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.OAuthFlow3
+        component: OAuth Flow3
       }
     },
     authorizationCode: {
@@ -166,7 +141,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.OAuthFlow3
+        component: OAuth Flow3
       }
     }
   }

@@ -14,3 +14,4 @@
 export * from './ISecurityScheme'
 export { SecurityScheme as SecurityScheme2 } from './SecurityScheme2'
 export { SecurityScheme as SecurityScheme3 } from './SecurityScheme3'
+export { SecurityScheme as SecurityScheme3a } from './SecurityScheme3a'

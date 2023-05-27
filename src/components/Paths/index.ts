@@ -14,3 +14,4 @@
 export * from './IPaths'
 export { Paths as Paths2 } from './Paths2'
 export { Paths as Paths3 } from './Paths3'
+export { Paths as Paths3a } from './Paths3a'

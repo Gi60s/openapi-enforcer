@@ -12,36 +12,44 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDAny } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IExampleComponent extends IComponentInstance {
+export type IExample = IExample2 | IExample3 | IExample3a
+export type IExampleDefinition = IExample2Definition | IExample3Definition | IExample3aDefinition
+export type IExample2SchemaProcessor = SchemaProcessor<IExample2Definition, IExample2>
+export type IExample3SchemaProcessor = SchemaProcessor<IExample3Definition, IExample3>
+export type IExample3aSchemaProcessor = SchemaProcessor<IExample3aDefinition, IExample3a>
+export type IExampleSchemaProcessor = IExample2SchemaProcessor | IExample3SchemaProcessor | IExample3aSchemaProcessor
+
+export interface IExampleBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // Put your code here.
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IExample2Definition {
-  items: Record<string, any >
+  any
 }
 
-export interface IExample2 extends IExampleComponent {
-  items: Record<string, any >
+export interface IExample2 extends IExampleBase {
+  any
 }
 
 export interface IExample3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   summary?: string
   description?: string
   value?: any
   externalValue?: string
 }
 
-export interface IExample3 extends IExampleComponent {
-  [Extensions]: Record<string, any>
+export interface IExample3 extends IExampleBase {
+  extensions: Record<string, any>
   summary?: string
   description?: string
   value?: any
@@ -49,10 +57,33 @@ export interface IExample3 extends IExampleComponent {
 }
 
 export interface IExampleValidatorsMap3 {
-  summary: Icsd.IProperty<Icsd.IString>
-  description: Icsd.IProperty<Icsd.IString>
-  value: Icsd.IProperty<any>
-  externalValue: Icsd.IProperty<Icsd.IString>
+  summary: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  value: ISDProperty<ISDAny>
+  externalValue: ISDProperty<ISDString>
+}
+
+export interface IExample3aDefinition {
+  [extensions: `x-${string}`]: any
+  summary?: string
+  description?: string
+  value?: any
+  externalValue?: string
+}
+
+export interface IExample3a extends IExampleBase {
+  extensions: Record<string, any>
+  summary?: string
+  description?: string
+  value?: any
+  externalValue?: string
+}
+
+export interface IExampleValidatorsMap3a {
+  summary: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  value: ISDProperty<ISDAny>
+  externalValue: ISDProperty<ISDString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

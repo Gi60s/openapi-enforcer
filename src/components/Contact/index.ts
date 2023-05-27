@@ -14,3 +14,4 @@
 export * from './IContact'
 export { Contact as Contact2 } from './Contact2'
 export { Contact as Contact3 } from './Contact3'
+export { Contact as Contact3a } from './Contact3a'

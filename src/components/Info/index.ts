@@ -14,3 +14,4 @@
 export * from './IInfo'
 export { Info as Info2 } from './Info2'
 export { Info as Info3 } from './Info3'
+export { Info as Info3a } from './Info3a'

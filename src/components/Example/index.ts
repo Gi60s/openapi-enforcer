@@ -14,3 +14,4 @@
 export * from './IExample'
 export { Example as Example2 } from './Example2'
 export { Example as Example3 } from './Example3'
+export { Example as Example3a } from './Example3a'

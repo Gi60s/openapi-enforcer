@@ -12,24 +12,30 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Components as ComponentsBase } from './Components'
+import { IComponents3, IComponents3Definition, IComponents3SchemaProcessor, IComponentsValidatorsMap3 as IValidatorsMap } from './IComponents'
 // <!# Custom Content Begin: HEADER #!>
 const rxPropertyName = /^[a-zA-Z0-9._-]+$/
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IComponentsValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IComponents3Definition, IComponents3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IComponents3Definition, I.IComponents3> | null = null
+export class Components extends ComponentsBase implements IComponents3 {
+  public extensions: Record<string, any> = {}
+  public schemas?: Record<string, ISchema3 | IReference3>
+  public responses?: Record<string, IResponse3 | IReference3>
+  public parameters?: Record<string, IParameter3 | IReference3>
+  public examples?: Record<string, IExample3 | IReference3>
+  public requestBodies?: Record<string, IRequestBody3 | IReference3>
+  public headers?: Record<string, IHeader3 | IReference3>
+  public securitySchemes?: Record<string, ISecurityScheme3 | IReference3>
+  public links?: Record<string, ILink3 | IReference3>
+  public callbacks?: Record<string, ICallback3 | IReference3>
 
-export class Components extends EnforcerComponent<I.IComponents3Definition> implements I.IComponents3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IComponents3Definition, version?: IVersion) {
+  constructor (definition: IComponents3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +49,17 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#components-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#components-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#components-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#components-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#components-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IComponentsSchemaProcessor): Icsd.ISchemaDefinition<I.IComponents3Definition, I.IComponents3> {
+  static getSchemaDefinition (_data: IComponents3SchemaProcessor): ISDSchemaDefinition<IComponents3Definition, IComponents3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IComponents3Definition, I.IComponents3> = {
+    const result: ISDSchemaDefinition<IComponents3Definition, IComponents3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -101,109 +108,41 @@ export class Components extends EnforcerComponent<I.IComponents3Definition> impl
     return result
   }
 
-  static create (definition?: Partial<I.IComponents3Definition> | Components | undefined): Components {
-    return new Components(Object.assign({}, definition) as I.IComponents3Definition)
+  static create (definition?: Partial<IComponents3Definition> | Components | undefined): Components {
+    return new Components(Object.assign({}, definition) as IComponents3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IComponents3Definition> | Components | string | undefined): Promise<Components> {
+  static async createAsync (definition?: Partial<IComponents3Definition> | Components | string | undefined): Promise<Components> {
     if (definition instanceof Components) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IComponents3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IComponents3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IComponents3Definition>> (definition?: T | undefined): I.IComponents3Definition & T {
-    return Object.assign({}, definition) as I.IComponents3Definition & T
+  static createDefinition<T extends Partial<IComponents3Definition>> (definition?: T | undefined): IComponents3Definition & T {
+    return Object.assign({}, definition) as IComponents3Definition & T
   }
 
-  static validate (definition: I.IComponents3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IComponents3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IComponents3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IComponents3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get schemas (): Record<string, I.ISchema3> | undefined {
-    return this.getProperty('schemas')
-  }
-
-  set schemas (value: Record<string, I.ISchema3> | undefined) {
-    this.setProperty('schemas', value)
-  }
-
-  get responses (): Record<string, I.IResponse3> | undefined {
-    return this.getProperty('responses')
-  }
-
-  set responses (value: Record<string, I.IResponse3> | undefined) {
-    this.setProperty('responses', value)
-  }
-
-  get parameters (): Record<string, I.IParameter3> | undefined {
-    return this.getProperty('parameters')
-  }
-
-  set parameters (value: Record<string, I.IParameter3> | undefined) {
-    this.setProperty('parameters', value)
-  }
-
-  get examples (): Record<string, I.IExample3> | undefined {
-    return this.getProperty('examples')
-  }
-
-  set examples (value: Record<string, I.IExample3> | undefined) {
-    this.setProperty('examples', value)
-  }
-
-  get requestBodies (): Record<string, I.IRequestBody3> | undefined {
-    return this.getProperty('requestBodies')
-  }
-
-  set requestBodies (value: Record<string, I.IRequestBody3> | undefined) {
-    this.setProperty('requestBodies', value)
-  }
-
-  get headers (): Record<string, I.IHeader3> | undefined {
-    return this.getProperty('headers')
-  }
-
-  set headers (value: Record<string, I.IHeader3> | undefined) {
-    this.setProperty('headers', value)
-  }
-
-  get securitySchemes (): Record<string, I.ISecurityScheme3> | undefined {
-    return this.getProperty('securitySchemes')
-  }
-
-  set securitySchemes (value: Record<string, I.ISecurityScheme3> | undefined) {
-    this.setProperty('securitySchemes', value)
-  }
-
-  get links (): Record<string, I.ILink3> | undefined {
-    return this.getProperty('links')
-  }
-
-  set links (value: Record<string, I.ILink3> | undefined) {
-    this.setProperty('links', value)
-  }
-
-  get callbacks (): Record<string, I.ICallback3> | undefined {
-    return this.getProperty('callbacks')
-  }
-
-  set callbacks (value: Record<string, I.ICallback3> | undefined) {
-    this.setProperty('callbacks', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -214,7 +153,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Schema3
+          component: Schema3
         }
       }
     },
@@ -225,7 +164,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Response3
+          component: Response3
         }
       }
     },
@@ -236,7 +175,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Parameter3
+          component: Parameter3
         }
       }
     },
@@ -247,7 +186,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Example3
+          component: Example3
         }
       }
     },
@@ -258,7 +197,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.RequestBody3
+          component: RequestBody3
         }
       }
     },
@@ -269,7 +208,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Header3
+          component: Header3
         }
       }
     },
@@ -280,7 +219,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.SecurityScheme3
+          component: SecurityScheme3
         }
       }
     },
@@ -291,7 +230,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Link3
+          component: Link3
         }
       }
     },
@@ -302,7 +241,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Callback3
+          component: Callback3
         }
       }
     }

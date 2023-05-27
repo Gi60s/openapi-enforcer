@@ -13,3 +13,4 @@
 
 export * from './IComponents'
 export { Components as Components3 } from './Components3'
+export { Components as Components3a } from './Components3a'

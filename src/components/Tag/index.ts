@@ -14,3 +14,4 @@
 export * from './ITag'
 export { Tag as Tag2 } from './Tag2'
 export { Tag as Tag3 } from './Tag3'
+export { Tag as Tag3a } from './Tag3a'

@@ -12,41 +12,29 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
+import { ISDSchemaDefinition, ISDArray, ISDString } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { SecurityRequirement as SecurityRequirementBase } from './SecurityRequirement'
+import { ISecurityRequirement2, ISecurityRequirement2Definition, ISecurityRequirement2SchemaProcessor } from './ISecurityRequirement'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: Icsd.ISchemaDefinition<I.ISecurityRequirement2Definition, I.ISecurityRequirement2> | null = null
+let cachedSchema: ISDSchemaDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> | null = null
 
-const additionalProperties: Icsd.IArray<Icsd.IString> = {
+const additionalProperties: ISDArray<ISDString> = {
   type: 'array',
   items: {
     type: 'string'
   }
 }
 
-export class SecurityRequirement extends EnforcerComponent<I.ISecurityRequirement2Definition> implements I.ISecurityRequirement2 {
-  items!: Record<string, string[]>
+export class SecurityRequirement extends SecurityRequirementBase implements ISecurityRequirement2 {
+  string[]
 
-  constructor (definition: I.ISecurityRequirement2Definition, version?: IVersion) {
+  constructor (definition: ISecurityRequirement2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
-    Object.keys(definition).forEach(key => {
-      Object.defineProperty(this, key, {
-        configurable: true,
-        enumerable: true,
-        get () {
-          return this.getProperty(key)
-        },
-        set (value) {
-          this.setProperty(key, value)
-        }
-      })
-    })
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
     // <!# Custom Content End: CONSTRUCTOR #!>
@@ -59,15 +47,16 @@ export class SecurityRequirement extends EnforcerComponent<I.ISecurityRequiremen
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.ISecurityRequirementSchemaProcessor): Icsd.ISchemaDefinition<I.ISecurityRequirement2Definition, I.ISecurityRequirement2> {
+  static getSchemaDefinition (_data: ISecurityRequirement2SchemaProcessor): ISDSchemaDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: Icsd.ISchemaDefinition<I.ISecurityRequirement2Definition, I.ISecurityRequirement2> = {
+    const result: ISDSchemaDefinition<ISecurityRequirement2Definition, ISecurityRequirement2> = {
       type: 'object',
       allowsSchemaExtensions: false,
       additionalProperties
@@ -81,29 +70,29 @@ export class SecurityRequirement extends EnforcerComponent<I.ISecurityRequiremen
     return result
   }
 
-  static create (definition?: Partial<I.ISecurityRequirement2Definition> | SecurityRequirement | undefined): SecurityRequirement {
-    return new SecurityRequirement(Object.assign({}, definition) as I.ISecurityRequirement2Definition)
+  static create (definition?: Partial<ISecurityRequirement2Definition> | SecurityRequirement | undefined): SecurityRequirement {
+    return new SecurityRequirement(Object.assign({}, definition) as ISecurityRequirement2Definition)
   }
 
-  static async createAsync (definition?: Partial<I.ISecurityRequirement2Definition> | SecurityRequirement | string | undefined): Promise<SecurityRequirement> {
+  static async createAsync (definition?: Partial<ISecurityRequirement2Definition> | SecurityRequirement | string | undefined): Promise<SecurityRequirement> {
     if (definition instanceof SecurityRequirement) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.ISecurityRequirement2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<ISecurityRequirement2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.ISecurityRequirement2Definition>> (definition?: T | undefined): I.ISecurityRequirement2Definition & T {
-    return Object.assign({}, definition) as I.ISecurityRequirement2Definition & T
+  static createDefinition<T extends Partial<ISecurityRequirement2Definition>> (definition?: T | undefined): ISecurityRequirement2Definition & T {
+    return Object.assign({}, definition) as ISecurityRequirement2Definition & T
   }
 
-  static validate (definition: I.ISecurityRequirement2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: ISecurityRequirement2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.ISecurityRequirement2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: ISecurityRequirement2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
   }
@@ -112,6 +101,10 @@ export class SecurityRequirement extends EnforcerComponent<I.ISecurityRequiremen
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 // <!# Custom Content Begin: FOOTER #!>
 // Put your code here.

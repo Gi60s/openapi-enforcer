@@ -12,24 +12,29 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { SecurityScheme as SecuritySchemeBase } from './SecurityScheme'
+import { ISecurityScheme2, ISecurityScheme2Definition, ISecurityScheme2SchemaProcessor, ISecuritySchemeValidatorsMap2 as IValidatorsMap } from './ISecurityScheme'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.ISecuritySchemeValidatorsMap2
+let cachedSchema: ISDSchemaDefinition<ISecurityScheme2Definition, ISecurityScheme2> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.ISecurityScheme2Definition, I.ISecurityScheme2> | null = null
+export class SecurityScheme extends SecuritySchemeBase implements ISecurityScheme2 {
+  public extensions: Record<string, any> = {}
+  public type!: 'basic' | 'apiKey' | 'oauth2'
+  public description?: string
+  public name?: string
+  public in?: 'query' | 'header'
+  public flow?: 'implicit' | 'password' | 'application' | 'accessCode'
+  public authorizationUrl?: string
+  public tokenUrl?: string
+  public scopes?: Record<string, string>
 
-export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definition> implements I.ISecurityScheme2 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.ISecurityScheme2Definition, version?: IVersion) {
+  constructor (definition: ISecurityScheme2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +48,17 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definiti
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.ISecuritySchemeSchemaProcessor): Icsd.ISchemaDefinition<I.ISecurityScheme2Definition, I.ISecurityScheme2> {
+  static getSchemaDefinition (_data: ISecurityScheme2SchemaProcessor): ISDSchemaDefinition<ISecurityScheme2Definition, ISecurityScheme2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.ISecurityScheme2Definition, I.ISecurityScheme2> = {
+    const result: ISDSchemaDefinition<ISecurityScheme2Definition, ISecurityScheme2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -75,109 +81,49 @@ export class SecurityScheme extends EnforcerComponent<I.ISecurityScheme2Definiti
     return result
   }
 
-  static create (definition?: Partial<I.ISecurityScheme2Definition> | SecurityScheme | undefined): SecurityScheme {
+  static create (definition?: Partial<ISecurityScheme2Definition> | SecurityScheme | undefined): SecurityScheme {
     if (definition instanceof SecurityScheme) {
-      return new SecurityScheme(Object.assign({}, definition as unknown) as I.ISecurityScheme2Definition)
+      return new SecurityScheme(Object.assign({}, definition as unknown) as ISecurityScheme2Definition)
     } else {
       return new SecurityScheme(Object.assign({
         type: 'basic'
-      }, definition) as I.ISecurityScheme2Definition)
+      }, definition) as ISecurityScheme2Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.ISecurityScheme2Definition> | SecurityScheme | string | undefined): Promise<SecurityScheme> {
+  static async createAsync (definition?: Partial<ISecurityScheme2Definition> | SecurityScheme | string | undefined): Promise<SecurityScheme> {
     if (definition instanceof SecurityScheme) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.ISecurityScheme2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<ISecurityScheme2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.ISecurityScheme2Definition>> (definition?: T | undefined): I.ISecurityScheme2Definition & T {
+  static createDefinition<T extends Partial<ISecurityScheme2Definition>> (definition?: T | undefined): ISecurityScheme2Definition & T {
     return Object.assign({
       type: 'basic'
-    }, definition) as I.ISecurityScheme2Definition & T
+    }, definition) as ISecurityScheme2Definition & T
   }
 
-  static validate (definition: I.ISecurityScheme2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: ISecurityScheme2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.ISecurityScheme2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: ISecurityScheme2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get type (): 'basic'|'apiKey'|'oauth2' {
-    return this.getProperty('type')
-  }
-
-  set type (value: 'basic'|'apiKey'|'oauth2') {
-    this.setProperty('type', value)
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get name (): string | undefined {
-    return this.getProperty('name')
-  }
-
-  set name (value: string | undefined) {
-    this.setProperty('name', value)
-  }
-
-  get in (): 'query'|'header' | undefined {
-    return this.getProperty('in')
-  }
-
-  set in (value: 'query'|'header' | undefined) {
-    this.setProperty('in', value)
-  }
-
-  get flow (): 'implicit'|'password'|'application'|'accessCode' | undefined {
-    return this.getProperty('flow')
-  }
-
-  set flow (value: 'implicit'|'password'|'application'|'accessCode' | undefined) {
-    this.setProperty('flow', value)
-  }
-
-  get authorizationUrl (): string | undefined {
-    return this.getProperty('authorizationUrl')
-  }
-
-  set authorizationUrl (value: string | undefined) {
-    this.setProperty('authorizationUrl', value)
-  }
-
-  get tokenUrl (): string | undefined {
-    return this.getProperty('tokenUrl')
-  }
-
-  set tokenUrl (value: string | undefined) {
-    this.setProperty('tokenUrl', value)
-  }
-
-  get scopes (): Record<string, string> | undefined {
-    return this.getProperty('scopes')
-  }
-
-  set scopes (value: Record<string, string> | undefined) {
-    this.setProperty('scopes', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {

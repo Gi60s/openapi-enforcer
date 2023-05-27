@@ -12,44 +12,36 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition, ISDObject, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Response3, IResponse3, IResponse3Definition } from '../Response'
+import { Reference3, IReference3, IReference3Definition } from '../Reference'
+import { Responses as ResponsesBase } from './Responses'
+import { IResponses3, IResponses3Definition, IResponses3SchemaProcessor, IResponsesValidatorsMap3 as IValidatorsMap } from './IResponses'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IResponsesValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IResponses3Definition, IResponses3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IResponses3Definition, I.IResponses3> | null = null
-
-const additionalProperties: Icsd.IComponent<I.IResponse3Definition, I.IResponse3> = {
-  type: 'component',
-  allowsRef: true,
-  component: I.Response3
+const additionalProperties: ISDObject<ISDComponent<IResponse3Definition, IResponse3> | ISDComponent<IReference3Definition, IReference3>> = {
+  type: 'object',
+  additionalProperties: {
+    type: 'component',
+    allowsRef: true,
+    component: Response3
+  }
 }
 
-export class Responses extends EnforcerComponent<I.IResponses3Definition> implements I.IResponses3 {
-  [S.Extensions]: Record<string, any> = {};
-  [key: number]: I.IResponse3
+export class Responses extends ResponsesBase implements IResponses3 {
+  public extensions: Record<string, any> = {};
+  public default?: IResponse3 | IReference3
+  Record<string, IResponse3
+  IReference3>
 
-  constructor (definition: I.IResponses3Definition, version?: IVersion) {
+  constructor (definition: IResponses3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
-    Object.keys(definition).forEach(key => {
-      Object.defineProperty(this, key, {
-        configurable: true,
-        enumerable: true,
-        get () {
-          return this.getProperty(key)
-        },
-        set (value) {
-          this.setProperty(key, value)
-        }
-      })
-    })
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
     // <!# Custom Content End: CONSTRUCTOR #!>
@@ -62,16 +54,17 @@ export class Responses extends EnforcerComponent<I.IResponses3Definition> implem
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#responses-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#responses-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#responses-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#responses-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#responses-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IResponsesSchemaProcessor): Icsd.ISchemaDefinition<I.IResponses3Definition, I.IResponses3> {
+  static getSchemaDefinition (_data: IResponses3SchemaProcessor): ISDSchemaDefinition<IResponses3Definition, IResponses3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IResponses3Definition, I.IResponses3> = {
+    const result: ISDSchemaDefinition<IResponses3Definition, IResponses3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       additionalProperties,
@@ -88,45 +81,41 @@ export class Responses extends EnforcerComponent<I.IResponses3Definition> implem
     return result
   }
 
-  static create (definition?: Partial<I.IResponses3Definition> | Responses | undefined): Responses {
-    return new Responses(Object.assign({}, definition) as I.IResponses3Definition)
+  static create (definition?: Partial<IResponses3Definition> | Responses | undefined): Responses {
+    return new Responses(Object.assign({}, definition) as IResponses3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IResponses3Definition> | Responses | string | undefined): Promise<Responses> {
+  static async createAsync (definition?: Partial<IResponses3Definition> | Responses | string | undefined): Promise<Responses> {
     if (definition instanceof Responses) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IResponses3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IResponses3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IResponses3Definition>> (definition?: T | undefined): I.IResponses3Definition & T {
-    return Object.assign({}, definition) as I.IResponses3Definition & T
+  static createDefinition<T extends Partial<IResponses3Definition>> (definition?: T | undefined): IResponses3Definition & T {
+    return Object.assign({}, definition) as IResponses3Definition & T
   }
 
-  static validate (definition: I.IResponses3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IResponses3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IResponses3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IResponses3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get default (): I.IResponse3 | undefined {
-    return this.getProperty('default')
-  }
-
-  set default (value: I.IResponse3 | undefined) {
-    this.setProperty('default', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -135,7 +124,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: true,
-        component: I.Response3
+        component: Response3
       }
     }
   }

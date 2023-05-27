@@ -12,73 +12,81 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDComponent, ISDArray, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { IInfo2, IInfo2Definition } from '../Info'
+import { IPaths2, IPaths2Definition } from '../Paths'
+import { IExternalDocumentation2, IExternalDocumentation2Definition } from '../ExternalDocumentation'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface ISwaggerComponent extends IComponentInstance {
+export type ISwagger = ISwagger2
+export type ISwaggerDefinition = ISwagger2Definition
+export type ISwagger2SchemaProcessor = SchemaProcessor<ISwagger2Definition, ISwagger2>
+export type ISwaggerSchemaProcessor = ISwagger2SchemaProcessor
+
+export interface ISwaggerBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
 // Put your code here.
 // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface ISwagger2Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   swagger: '2.0'
-  info: I.IInfo2Definition
+  info: IInfo2Definition
   host?: string
   basePath?: string
-  schemes?: Array<'http'|'https'|'ws'|'wss'>
+  schemes?: Array<'http' | 'https' | 'ws' | 'wss'>
   consumes?: string[]
   produces?: string[]
-  paths: I.IPaths2Definition
-  definitions?: Record<string, I.ISchema2Definition>
-  parameters?: Record<string, I.IParameter2Definition>
-  responses?: Record<string, I.IResponse2Definition>
-  securityDefinitions?: Record<string, I.ISecurityScheme2Definition>
-  security?: I.ISecurityRequirement2Definition[]
-  tags?: I.ITag2Definition[]
-  externalDocs?: I.IExternalDocumentation2Definition
+  paths: IPaths2Definition
+  definitions?: Record<string, ISchema2Definition>
+  parameters?: Record<string, IParameter2Definition>
+  responses?: Record<string, IResponse2Definition>
+  securityDefinitions?: Record<string, ISecurityScheme2Definition>
+  security?: ISecurityRequirement2Definition[]
+  tags?: ITag2Definition[]
+  externalDocs?: IExternalDocumentation2Definition
 }
 
-export interface ISwagger2 extends ISwaggerComponent {
-  [Extensions]: Record<string, any>
+export interface ISwagger2 extends ISwaggerBase {
+  extensions: Record<string, any>
   swagger: '2.0'
-  info: I.IInfo2
+  info: IInfo2
   host?: string
   basePath?: string
-  schemes?: Array<'http'|'https'|'ws'|'wss'>
+  schemes?: Array<'http' | 'https' | 'ws' | 'wss'>
   consumes?: string[]
   produces?: string[]
-  paths: I.IPaths2
-  definitions?: Record<string, I.ISchema2>
-  parameters?: Record<string, I.IParameter2>
-  responses?: Record<string, I.IResponse2>
-  securityDefinitions?: Record<string, I.ISecurityScheme2>
-  security?: I.ISecurityRequirement2[]
-  tags?: I.ITag2[]
-  externalDocs?: I.IExternalDocumentation2
+  paths: IPaths2
+  definitions?: Record<string, ISchema2>
+  parameters?: Record<string, IParameter2>
+  responses?: Record<string, IResponse2>
+  securityDefinitions?: Record<string, ISecurityScheme2>
+  security?: ISecurityRequirement2[]
+  tags?: ITag2[]
+  externalDocs?: IExternalDocumentation2
 }
 
 export interface ISwaggerValidatorsMap2 {
-  swagger: Icsd.IProperty<Icsd.IString>
-  info: Icsd.IProperty<Icsd.IComponent<I.IInfo2Definition, I.IInfo2>>
-  host: Icsd.IProperty<Icsd.IString>
-  basePath: Icsd.IProperty<Icsd.IString>
-  schemes: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
-  consumes: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
-  produces: Icsd.IProperty<Icsd.IArray<Icsd.IString>>
-  paths: Icsd.IProperty<Icsd.IComponent<I.IPaths2Definition, I.IPaths2>>
-  definitions: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ISchema2Definition, I.ISchema2>>>
-  parameters: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IParameter2Definition, I.IParameter2>>>
-  responses: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IResponse2Definition, I.IResponse2>>>
-  securityDefinitions: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.ISecurityScheme2Definition, I.ISecurityScheme2>>>
-  security: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ISecurityRequirement2Definition, I.ISecurityRequirement2>>>
-  tags: Icsd.IProperty<Icsd.IArray<Icsd.IComponent<I.ITag2Definition, I.ITag2>>>
-  externalDocs: Icsd.IProperty<Icsd.IComponent<I.IExternalDocumentation2Definition, I.IExternalDocumentation2>>
+  swagger: ISDProperty<ISDString>
+  info: ISDProperty<ISDComponent<IInfo2Definition, IInfo2>>
+  host: ISDProperty<ISDString>
+  basePath: ISDProperty<ISDString>
+  schemes: ISDProperty<ISDArray<ISDString>>
+  consumes: ISDProperty<ISDArray<ISDString>>
+  produces: ISDProperty<ISDArray<ISDString>>
+  paths: ISDProperty<ISDComponent<IPaths2Definition, IPaths2>>
+  definitions: ISDProperty<ISDObject<ISDComponent<ISchema2Definition, ISchema2>>>
+  parameters: ISDProperty<ISDObject<ISDComponent<IParameter2Definition, IParameter2>>>
+  responses: ISDProperty<ISDObject<ISDComponent<IResponse2Definition, IResponse2>>>
+  securityDefinitions: ISDProperty<ISDObject<ISDComponent<ISecurityScheme2Definition, ISecurityScheme2>>>
+  security: ISDProperty<ISDArray<ISDComponent<ISecurityRequirement2Definition, ISecurityRequirement2>>>
+  tags: ISDProperty<ISDArray<ISDComponent<ITag2Definition, ITag2>>>
+  externalDocs: ISDProperty<ISDComponent<IExternalDocumentation2Definition, IExternalDocumentation2>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

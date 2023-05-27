@@ -12,26 +12,39 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { ExternalDocumentation3, IExternalDocumentation3, IExternalDocumentation3Definition } from '../ExternalDocumentation'
+import { Responses3, IResponses3, IResponses3Definition } from '../Responses'
+import { RequestBody3, IRequestBody3, IRequestBody3Definition } from '../RequestBody'
+import { Reference3, IReference3, IReference3Definition } from '../Reference'
+import { Operation as OperationBase } from './Operation'
+import { IOperation3, IOperation3Definition, IOperation3SchemaProcessor, IOperationValidatorsMap3 as IValidatorsMap } from './IOperation'
 // <!# Custom Content Begin: HEADER #!>
 import { ContentType } from '../../ContentType/ContentType'
 import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
 import { validate, getMergedParameters, mergeParameters, operationWillAcceptContentType } from './common'
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IOperationValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IOperation3Definition, IOperation3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> | null = null
+export class Operation extends OperationBase implements IOperation3 {
+  public extensions: Record<string, any> = {}
+  public tags?: string[]
+  public summary?: string
+  public description?: string
+  public externalDocs?: IExternalDocumentation3
+  public operationId?: string
+  public parameters?: Array<IParameter3 | IReference3>
+  public requestBody?: IRequestBody3 | IReference3
+  public responses!: IResponses3
+  public callbacks?: Record<string, ICallback3 | IReference3>
+  public deprecated?: boolean
+  public security?: ISecurityRequirement3[]
+  public servers?: IServer3[]
 
-export class Operation extends EnforcerComponent<I.IOperation3Definition> implements I.IOperation3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IOperation3Definition, version?: IVersion) {
+  constructor (definition: IOperation3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     this.getPropertyHook('parameters', (parameters: I.IParameter3[] | undefined) => {
@@ -49,16 +62,17 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#operation-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#operation-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#operation-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#operation-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#operation-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IOperationSchemaProcessor): Icsd.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> {
+  static getSchemaDefinition (_data: IOperation3SchemaProcessor): ISDSchemaDefinition<IOperation3Definition, IOperation3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IOperation3Definition, I.IOperation3> = {
+    const result: ISDSchemaDefinition<IOperation3Definition, IOperation3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -88,135 +102,39 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
     return result
   }
 
-  static create (definition?: Partial<I.IOperation3Definition> | Operation | undefined): Operation {
+  static create (definition?: Partial<IOperation3Definition> | Operation | undefined): Operation {
     if (definition instanceof Operation) {
-      return new Operation(Object.assign({}, definition as unknown) as I.IOperation3Definition)
+      return new Operation(Object.assign({}, definition as unknown) as IOperation3Definition)
     } else {
       return new Operation(Object.assign({
-        responses: I.Responses3.create()
-      }, definition) as I.IOperation3Definition)
+        responses: Responses3.create()
+      }, definition) as IOperation3Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.IOperation3Definition> | Operation | string | undefined): Promise<Operation> {
+  static async createAsync (definition?: Partial<IOperation3Definition> | Operation | string | undefined): Promise<Operation> {
     if (definition instanceof Operation) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IOperation3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IOperation3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IOperation3Definition>> (definition?: T | undefined): I.IOperation3Definition & T {
+  static createDefinition<T extends Partial<IOperation3Definition>> (definition?: T | undefined): IOperation3Definition & T {
     return Object.assign({
-      responses: I.Responses3.create()
-    }, definition) as I.IOperation3Definition & T
+      responses: Responses3.create()
+    }, definition) as IOperation3Definition & T
   }
 
-  static validate (definition: I.IOperation3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IOperation3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IOperation3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IOperation3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get tags (): string[] | undefined {
-    return this.getProperty('tags')
-  }
-
-  set tags (value: string[] | undefined) {
-    this.setProperty('tags', value)
-  }
-
-  get summary (): string | undefined {
-    return this.getProperty('summary')
-  }
-
-  set summary (value: string | undefined) {
-    this.setProperty('summary', value)
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get externalDocs (): I.IExternalDocumentation3 | undefined {
-    return this.getProperty('externalDocs')
-  }
-
-  set externalDocs (value: I.IExternalDocumentation3 | undefined) {
-    this.setProperty('externalDocs', value)
-  }
-
-  get operationId (): string | undefined {
-    return this.getProperty('operationId')
-  }
-
-  set operationId (value: string | undefined) {
-    this.setProperty('operationId', value)
-  }
-
-  get parameters (): I.IParameter3[] | undefined {
-    return this.getProperty('parameters')
-  }
-
-  set parameters (value: I.IParameter3[] | undefined) {
-    this.setProperty('parameters', value)
-  }
-
-  get requestBody (): I.IRequestBody3 | undefined {
-    return this.getProperty('requestBody')
-  }
-
-  set requestBody (value: I.IRequestBody3 | undefined) {
-    this.setProperty('requestBody', value)
-  }
-
-  get responses (): I.IResponses3 {
-    return this.getProperty('responses')
-  }
-
-  set responses (value: I.IResponses3) {
-    this.setProperty('responses', value)
-  }
-
-  get callbacks (): Record<string, I.ICallback3> | undefined {
-    return this.getProperty('callbacks')
-  }
-
-  set callbacks (value: Record<string, I.ICallback3> | undefined) {
-    this.setProperty('callbacks', value)
-  }
-
-  get deprecated (): boolean | undefined {
-    return this.getProperty('deprecated')
-  }
-
-  set deprecated (value: boolean | undefined) {
-    this.setProperty('deprecated', value)
-  }
-
-  get security (): I.ISecurityRequirement3[] | undefined {
-    return this.getProperty('security')
-  }
-
-  set security (value: I.ISecurityRequirement3[] | undefined) {
-    this.setProperty('security', value)
-  }
-
-  get servers (): I.IServer3[] | undefined {
-    return this.getProperty('servers')
-  }
-
-  set servers (value: I.IServer3[] | undefined) {
-    this.setProperty('servers', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
@@ -258,6 +176,10 @@ export class Operation extends EnforcerComponent<I.IOperation3Definition> implem
   // <!# Custom Content End: BODY #!>
 }
 
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
+
 function getValidatorsMap (): IValidatorsMap {
   return {
     tags: {
@@ -286,7 +208,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.ExternalDocumentation3
+        component: ExternalDocumentation3
       }
     },
     operationId: {
@@ -302,7 +224,7 @@ function getValidatorsMap (): IValidatorsMap {
         items: {
           type: 'component',
           allowsRef: true,
-          component: I.Parameter3
+          component: Parameter3
         }
       }
     },
@@ -311,7 +233,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: true,
-        component: I.RequestBody3
+        component: RequestBody3
       }
     },
     responses: {
@@ -320,7 +242,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Responses3
+        component: Responses3
       }
     },
     callbacks: {
@@ -330,7 +252,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Callback3
+          component: Callback3
         }
       }
     },
@@ -347,7 +269,7 @@ function getValidatorsMap (): IValidatorsMap {
         items: {
           type: 'component',
           allowsRef: false,
-          component: I.SecurityRequirement3
+          component: SecurityRequirement3
         }
       }
     },
@@ -358,7 +280,7 @@ function getValidatorsMap (): IValidatorsMap {
         items: {
           type: 'component',
           allowsRef: false,
-          component: I.Server3
+          component: Server3
         }
       }
     }

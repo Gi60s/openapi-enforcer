@@ -12,24 +12,26 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Encoding as EncodingBase } from './Encoding'
+import { IEncoding3, IEncoding3Definition, IEncoding3SchemaProcessor, IEncodingValidatorsMap3 as IValidatorsMap } from './IEncoding'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IEncodingValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IEncoding3Definition, IEncoding3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> | null = null
+export class Encoding extends EncodingBase implements IEncoding3 {
+  public extensions: Record<string, any> = {}
+  public contentType?: string
+  public headers?: Record<string, IHeader3 | IReference3>
+  public style?: string
+  public explode?: boolean
+  public allowReserved?: boolean
 
-export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implements I.IEncoding3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IEncoding3Definition, version?: IVersion) {
+  constructor (definition: IEncoding3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +45,17 @@ export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implemen
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#encoding-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#encoding-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#encoding-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#encoding-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#encoding-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IEncodingSchemaProcessor): Icsd.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> {
+  static getSchemaDefinition (_data: IEncoding3SchemaProcessor): ISDSchemaDefinition<IEncoding3Definition, IEncoding3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IEncoding3Definition, I.IEncoding3> = {
+    const result: ISDSchemaDefinition<IEncoding3Definition, IEncoding3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -72,77 +75,41 @@ export class Encoding extends EnforcerComponent<I.IEncoding3Definition> implemen
     return result
   }
 
-  static create (definition?: Partial<I.IEncoding3Definition> | Encoding | undefined): Encoding {
-    return new Encoding(Object.assign({}, definition) as I.IEncoding3Definition)
+  static create (definition?: Partial<IEncoding3Definition> | Encoding | undefined): Encoding {
+    return new Encoding(Object.assign({}, definition) as IEncoding3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IEncoding3Definition> | Encoding | string | undefined): Promise<Encoding> {
+  static async createAsync (definition?: Partial<IEncoding3Definition> | Encoding | string | undefined): Promise<Encoding> {
     if (definition instanceof Encoding) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IEncoding3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IEncoding3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IEncoding3Definition>> (definition?: T | undefined): I.IEncoding3Definition & T {
-    return Object.assign({}, definition) as I.IEncoding3Definition & T
+  static createDefinition<T extends Partial<IEncoding3Definition>> (definition?: T | undefined): IEncoding3Definition & T {
+    return Object.assign({}, definition) as IEncoding3Definition & T
   }
 
-  static validate (definition: I.IEncoding3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IEncoding3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IEncoding3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IEncoding3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get contentType (): string | undefined {
-    return this.getProperty('contentType')
-  }
-
-  set contentType (value: string | undefined) {
-    this.setProperty('contentType', value)
-  }
-
-  get headers (): Record<string, I.IHeader3> | undefined {
-    return this.getProperty('headers')
-  }
-
-  set headers (value: Record<string, I.IHeader3> | undefined) {
-    this.setProperty('headers', value)
-  }
-
-  get style (): string | undefined {
-    return this.getProperty('style')
-  }
-
-  set style (value: string | undefined) {
-    this.setProperty('style', value)
-  }
-
-  get explode (): boolean | undefined {
-    return this.getProperty('explode')
-  }
-
-  set explode (value: boolean | undefined) {
-    this.setProperty('explode', value)
-  }
-
-  get allowReserved (): boolean | undefined {
-    return this.getProperty('allowReserved')
-  }
-
-  set allowReserved (value: boolean | undefined) {
-    this.setProperty('allowReserved', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -159,7 +126,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Header3
+          component: Header3
         }
       }
     },

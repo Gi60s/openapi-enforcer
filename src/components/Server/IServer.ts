@@ -12,37 +12,63 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDObject, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IServerComponent extends IComponentInstance {
+export type IServer = IServer3 | IServer3a
+export type IServerDefinition = IServer3Definition | IServer3aDefinition
+export type IServer3SchemaProcessor = SchemaProcessor<IServer3Definition, IServer3>
+export type IServer3aSchemaProcessor = SchemaProcessor<IServer3aDefinition, IServer3a>
+export type IServerSchemaProcessor = IServer3SchemaProcessor | IServer3aSchemaProcessor
+
+export interface IServerBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
 // Put your code here.
 // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IServer3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   url: string
   description?: string
-  variables?: Record<string, I.IServerVariable3Definition>
+  variables?: Record<string, IServerVariable3Definition>
 }
 
-export interface IServer3 extends IServerComponent {
-  [Extensions]: Record<string, any>
+export interface IServer3 extends IServerBase {
+  extensions: Record<string, any>
   url: string
   description?: string
-  variables?: Record<string, I.IServerVariable3>
+  variables?: Record<string, IServerVariable3>
 }
 
 export interface IServerValidatorsMap3 {
-  url: Icsd.IProperty<Icsd.IString>
-  description: Icsd.IProperty<Icsd.IString>
-  variables: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IServerVariable3Definition, I.IServerVariable3>>>
+  url: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  variables: ISDProperty<ISDObject<ISDComponent<IServerVariable3Definition, IServerVariable3>>>
+}
+
+export interface IServer3aDefinition {
+  [extensions: `x-${string}`]: any
+  url: string
+  description?: string
+  variables?: Record<string, IServerVariable3aDefinition>
+}
+
+export interface IServer3a extends IServerBase {
+  extensions: Record<string, any>
+  url: string
+  description?: string
+  variables?: Record<string, IServerVariable3a>
+}
+
+export interface IServerValidatorsMap3a {
+  url: ISDProperty<ISDString>
+  description: ISDProperty<ISDString>
+  variables: ISDProperty<ISDObject<ISDComponent<IServerVariable3aDefinition, IServerVariable3a>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

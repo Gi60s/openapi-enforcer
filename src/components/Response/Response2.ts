@@ -12,24 +12,28 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Schema2, ISchema2, ISchema2Definition } from '../Schema'
+import { Reference2, IReference2, IReference2Definition } from '../Reference'
+import { Example2, IExample2, IExample2Definition } from '../Example'
+import { Response as ResponseBase } from './Response'
+import { IResponse2, IResponse2Definition, IResponse2SchemaProcessor, IResponseValidatorsMap2 as IValidatorsMap } from './IResponse'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IResponseValidatorsMap2
+let cachedSchema: ISDSchemaDefinition<IResponse2Definition, IResponse2> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> | null = null
+export class Response extends ResponseBase implements IResponse2 {
+  public extensions: Record<string, any> = {}
+  public description!: string
+  public schema?: ISchema2 | IReference2
+  public headers?: Record<string, IHeader2>
+  public examples?: IExample2
 
-export class Response extends EnforcerComponent<I.IResponse2Definition> implements I.IResponse2 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IResponse2Definition, version?: IVersion) {
+  constructor (definition: IResponse2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +47,17 @@ export class Response extends EnforcerComponent<I.IResponse2Definition> implemen
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IResponseSchemaProcessor): Icsd.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> {
+  static getSchemaDefinition (_data: IResponse2SchemaProcessor): ISDSchemaDefinition<IResponse2Definition, IResponse2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IResponse2Definition, I.IResponse2> = {
+    const result: ISDSchemaDefinition<IResponse2Definition, IResponse2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -71,77 +76,49 @@ export class Response extends EnforcerComponent<I.IResponse2Definition> implemen
     return result
   }
 
-  static create (definition?: Partial<I.IResponse2Definition> | Response | undefined): Response {
+  static create (definition?: Partial<IResponse2Definition> | Response | undefined): Response {
     if (definition instanceof Response) {
-      return new Response(Object.assign({}, definition as unknown) as I.IResponse2Definition)
+      return new Response(Object.assign({}, definition as unknown) as IResponse2Definition)
     } else {
       return new Response(Object.assign({
         description: ''
-      }, definition) as I.IResponse2Definition)
+      }, definition) as IResponse2Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.IResponse2Definition> | Response | string | undefined): Promise<Response> {
+  static async createAsync (definition?: Partial<IResponse2Definition> | Response | string | undefined): Promise<Response> {
     if (definition instanceof Response) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IResponse2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IResponse2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IResponse2Definition>> (definition?: T | undefined): I.IResponse2Definition & T {
+  static createDefinition<T extends Partial<IResponse2Definition>> (definition?: T | undefined): IResponse2Definition & T {
     return Object.assign({
       description: ''
-    }, definition) as I.IResponse2Definition & T
+    }, definition) as IResponse2Definition & T
   }
 
-  static validate (definition: I.IResponse2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IResponse2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IResponse2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IResponse2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get description (): string {
-    return this.getProperty('description')
-  }
-
-  set description (value: string) {
-    this.setProperty('description', value)
-  }
-
-  get schema (): I.ISchema2 | undefined {
-    return this.getProperty('schema')
-  }
-
-  set schema (value: I.ISchema2 | undefined) {
-    this.setProperty('schema', value)
-  }
-
-  get headers (): Record<string, I.IHeader2> | undefined {
-    return this.getProperty('headers')
-  }
-
-  set headers (value: Record<string, I.IHeader2> | undefined) {
-    this.setProperty('headers', value)
-  }
-
-  get examples (): I.IExample2 | undefined {
-    return this.getProperty('examples')
-  }
-
-  set examples (value: I.IExample2 | undefined) {
-    this.setProperty('examples', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -157,7 +134,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: true,
-        component: I.Schema2
+        component: Schema2
       }
     },
     headers: {
@@ -167,7 +144,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: false,
-          component: I.Header2
+          component: Header2
         }
       }
     },
@@ -176,7 +153,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Example2
+        component: Example2
       }
     }
   }

@@ -12,21 +12,21 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Reference as ReferenceBase } from './Reference'
+import { IReference2, IReference2Definition, IReference2SchemaProcessor, IReferenceValidatorsMap2 as IValidatorsMap } from './IReference'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IReferenceValidatorsMap2
+let cachedSchema: ISDSchemaDefinition<IReference2Definition, IReference2> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IReference2Definition, I.IReference2> | null = null
+export class Reference extends ReferenceBase implements IReference2 {
+  public $ref!: string
 
-export class Reference extends EnforcerComponent<I.IReference2Definition> implements I.IReference2 {
-  constructor (definition: I.IReference2Definition, version?: IVersion) {
+  constructor (definition: IReference2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -40,16 +40,17 @@ export class Reference extends EnforcerComponent<I.IReference2Definition> implem
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IReferenceSchemaProcessor): Icsd.ISchemaDefinition<I.IReference2Definition, I.IReference2> {
+  static getSchemaDefinition (_data: IReference2SchemaProcessor): ISDSchemaDefinition<IReference2Definition, IReference2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IReference2Definition, I.IReference2> = {
+    const result: ISDSchemaDefinition<IReference2Definition, IReference2> = {
       type: 'object',
       allowsSchemaExtensions: false,
       properties: [
@@ -65,53 +66,49 @@ export class Reference extends EnforcerComponent<I.IReference2Definition> implem
     return result
   }
 
-  static create (definition?: Partial<I.IReference2Definition> | Reference | undefined): Reference {
+  static create (definition?: Partial<IReference2Definition> | Reference | undefined): Reference {
     if (definition instanceof Reference) {
-      return new Reference(Object.assign({}, definition as unknown) as I.IReference2Definition)
+      return new Reference(Object.assign({}, definition as unknown) as IReference2Definition)
     } else {
       return new Reference(Object.assign({
         $ref: ''
-      }, definition) as I.IReference2Definition)
+      }, definition) as IReference2Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.IReference2Definition> | Reference | string | undefined): Promise<Reference> {
+  static async createAsync (definition?: Partial<IReference2Definition> | Reference | string | undefined): Promise<Reference> {
     if (definition instanceof Reference) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IReference2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IReference2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IReference2Definition>> (definition?: T | undefined): I.IReference2Definition & T {
+  static createDefinition<T extends Partial<IReference2Definition>> (definition?: T | undefined): IReference2Definition & T {
     return Object.assign({
       $ref: ''
-    }, definition) as I.IReference2Definition & T
+    }, definition) as IReference2Definition & T
   }
 
-  static validate (definition: I.IReference2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IReference2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IReference2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IReference2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get $ref (): string {
-    return this.getProperty('$ref')
-  }
-
-  set $ref (value: string) {
-    this.setProperty('$ref', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {

@@ -12,24 +12,27 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Schema3, ISchema3, ISchema3Definition } from '../Schema'
+import { Reference3, IReference3, IReference3Definition } from '../Reference'
+import { MediaType as MediaTypeBase } from './MediaType'
+import { IMediaType3, IMediaType3Definition, IMediaType3SchemaProcessor, IMediaTypeValidatorsMap3 as IValidatorsMap } from './IMediaType'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IMediaTypeValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IMediaType3Definition, IMediaType3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> | null = null
+export class MediaType extends MediaTypeBase implements IMediaType3 {
+  public extensions: Record<string, any> = {}
+  public schema?: ISchema3 | IReference3
+  public example?: any
+  public examples?: Record<string, IExample3 | IReference3>
+  public encoding?: Record<string, IEncoding3>
 
-export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implements I.IMediaType3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IMediaType3Definition, version?: IVersion) {
+  constructor (definition: IMediaType3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +46,17 @@ export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implem
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#media-type-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#media-type-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#media-type-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#media-type-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#media-type-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IMediaTypeSchemaProcessor): Icsd.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> {
+  static getSchemaDefinition (_data: IMediaType3SchemaProcessor): ISDSchemaDefinition<IMediaType3Definition, IMediaType3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IMediaType3Definition, I.IMediaType3> = {
+    const result: ISDSchemaDefinition<IMediaType3Definition, IMediaType3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -71,69 +75,41 @@ export class MediaType extends EnforcerComponent<I.IMediaType3Definition> implem
     return result
   }
 
-  static create (definition?: Partial<I.IMediaType3Definition> | MediaType | undefined): MediaType {
-    return new MediaType(Object.assign({}, definition) as I.IMediaType3Definition)
+  static create (definition?: Partial<IMediaType3Definition> | MediaType | undefined): MediaType {
+    return new MediaType(Object.assign({}, definition) as IMediaType3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IMediaType3Definition> | MediaType | string | undefined): Promise<MediaType> {
+  static async createAsync (definition?: Partial<IMediaType3Definition> | MediaType | string | undefined): Promise<MediaType> {
     if (definition instanceof MediaType) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IMediaType3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IMediaType3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IMediaType3Definition>> (definition?: T | undefined): I.IMediaType3Definition & T {
-    return Object.assign({}, definition) as I.IMediaType3Definition & T
+  static createDefinition<T extends Partial<IMediaType3Definition>> (definition?: T | undefined): IMediaType3Definition & T {
+    return Object.assign({}, definition) as IMediaType3Definition & T
   }
 
-  static validate (definition: I.IMediaType3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IMediaType3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IMediaType3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IMediaType3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get schema (): I.ISchema3 | undefined {
-    return this.getProperty('schema')
-  }
-
-  set schema (value: I.ISchema3 | undefined) {
-    this.setProperty('schema', value)
-  }
-
-  get example (): any | undefined {
-    return this.getProperty('example')
-  }
-
-  set example (value: any | undefined) {
-    this.setProperty('example', value)
-  }
-
-  get examples (): Record<string, I.IExample3> | undefined {
-    return this.getProperty('examples')
-  }
-
-  set examples (value: Record<string, I.IExample3> | undefined) {
-    this.setProperty('examples', value)
-  }
-
-  get encoding (): Record<string, I.IEncoding3> | undefined {
-    return this.getProperty('encoding')
-  }
-
-  set encoding (value: Record<string, I.IEncoding3> | undefined) {
-    this.setProperty('encoding', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -142,7 +118,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: true,
-        component: I.Schema3
+        component: Schema3
       }
     },
     example: {
@@ -158,7 +134,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Example3
+          component: Example3
         }
       }
     },
@@ -169,7 +145,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: false,
-          component: I.Encoding3
+          component: Encoding3
         }
       }
     }

@@ -12,26 +12,36 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDComponent, ISDAny, ISDNumber, ISDBoolean, ISDArray, ISD='simple', ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { IItems2, IItems2Definition } from '../Items'
+import { ISchema3, ISchema3Definition, ISchema3a, ISchema3aDefinition } from '../Schema'
+import { IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IHeaderComponent extends IComponentInstance {
+export type IHeader = IHeader2 | IHeader3 | IHeader3a
+export type IHeaderDefinition = IHeader2Definition | IHeader3Definition | IHeader3aDefinition
+export type IHeader2SchemaProcessor = SchemaProcessor<IHeader2Definition, IHeader2>
+export type IHeader3SchemaProcessor = SchemaProcessor<IHeader3Definition, IHeader3>
+export type IHeader3aSchemaProcessor = SchemaProcessor<IHeader3aDefinition, IHeader3a>
+export type IHeaderSchemaProcessor = IHeader2SchemaProcessor | IHeader3SchemaProcessor | IHeader3aSchemaProcessor
+
+export interface IHeaderBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // Put your code here.
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IHeader2Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   description?: string
-  type: 'array'|'boolean'|'integer'|'number'|'string'
+  type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
   format?: string
-  items?: I.IItems2Definition
-  collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'
+  items?: IItems2Definition
+  collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   default?: any
   maximum?: number
   exclusiveMaximum?: boolean
@@ -47,13 +57,13 @@ export interface IHeader2Definition {
   multipleOf?: number
 }
 
-export interface IHeader2 extends IHeaderComponent {
-  [Extensions]: Record<string, any>
+export interface IHeader2 extends IHeaderBase {
+  extensions: Record<string, any>
   description?: string
-  type: 'array'|'boolean'|'integer'|'number'|'string'
+  type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
   format?: string
-  items?: I.IItems2
-  collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'
+  items?: IItems2
+  collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   default?: any
   maximum?: number
   exclusiveMaximum?: boolean
@@ -70,68 +80,112 @@ export interface IHeader2 extends IHeaderComponent {
 }
 
 export interface IHeaderValidatorsMap2 {
-  description: Icsd.IProperty<Icsd.IString>
-  type: Icsd.IProperty<Icsd.IString>
-  format: Icsd.IProperty<Icsd.IString>
-  items: Icsd.IProperty<Icsd.IComponent<I.IItems2Definition, I.IItems2>>
-  collectionFormat: Icsd.IProperty<Icsd.IString>
-  _default: Icsd.IProperty<any>
-  maximum: Icsd.IProperty<Icsd.INumber>
-  exclusiveMaximum: Icsd.IProperty<Icsd.IBoolean>
-  minimum: Icsd.IProperty<Icsd.INumber>
-  exclusiveMinimum: Icsd.IProperty<Icsd.IBoolean>
-  maxLength: Icsd.IProperty<Icsd.INumber>
-  minLength: Icsd.IProperty<Icsd.INumber>
-  pattern: Icsd.IProperty<Icsd.IString>
-  maxItems: Icsd.IProperty<Icsd.INumber>
-  minItems: Icsd.IProperty<Icsd.INumber>
-  uniqueItems: Icsd.IProperty<Icsd.IBoolean>
-  _enum: Icsd.IProperty<Icsd.IArray<any>>
-  multipleOf: Icsd.IProperty<Icsd.INumber>
+  description: ISDProperty<ISDString>
+  type: ISDProperty<ISDString>
+  format: ISDProperty<ISDString>
+  items: ISDProperty<ISDComponent<IItems2Definition, IItems2>>
+  collectionFormat: ISDProperty<ISDString>
+  _default: ISDProperty<ISDAny>
+  maximum: ISDProperty<ISDNumber>
+  exclusiveMaximum: ISDProperty<ISDBoolean>
+  minimum: ISDProperty<ISDNumber>
+  exclusiveMinimum: ISDProperty<ISDBoolean>
+  maxLength: ISDProperty<ISDNumber>
+  minLength: ISDProperty<ISDNumber>
+  pattern: ISDProperty<ISDString>
+  maxItems: ISDProperty<ISDNumber>
+  minItems: ISDProperty<ISDNumber>
+  uniqueItems: ISDProperty<ISDBoolean>
+  _enum: ISDProperty<ISDArray<ISDAny>>
+  multipleOf: ISDProperty<ISDNumber>
 }
 
 export interface IHeader3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   description?: string
   required?: boolean
   deprecated?: boolean
   allowEmptyValue?: boolean
-  style?: 'simple'
+  style?: ='simple'
   explode?: boolean
   allowReserved?: boolean
-  schema?: I.ISchema3Definition | I.IReference3Definition
+  schema?: ISchema3Definition | IReference3Definition
   example?: any
-  examples?: Record<string, I.IExample3Definition | I.IReference3Definition>
-  content?: Record<string, I.IMediaType3Definition>
+  examples?: Record<string, IExample3Definition | IReference3Definition>
+  content?: Record<string, IMediaType3Definition>
 }
 
-export interface IHeader3 extends IHeaderComponent {
-  [Extensions]: Record<string, any>
+export interface IHeader3 extends IHeaderBase {
+  extensions: Record<string, any>
   description?: string
   required?: boolean
   deprecated?: boolean
   allowEmptyValue?: boolean
-  style?: 'simple'
+  style?: ='simple'
   explode?: boolean
   allowReserved?: boolean
-  schema?: I.ISchema3
+  schema?: ISchema3 | IReference3
   example?: any
-  examples?: Record<string, I.IExample3>
-  content?: Record<string, I.IMediaType3>
+  examples?: Record<string, IExample3 | IReference3>
+  content?: Record<string, IMediaType3>
 }
 
 export interface IHeaderValidatorsMap3 {
-  description: Icsd.IProperty<Icsd.IString>
-  required: Icsd.IProperty<Icsd.IBoolean>
-  deprecated: Icsd.IProperty<Icsd.IBoolean>
-  allowEmptyValue: Icsd.IProperty<Icsd.IBoolean>
-  style: Icsd.IProperty<Icsd.IString>
-  explode: Icsd.IProperty<Icsd.IBoolean>
-  allowReserved: Icsd.IProperty<Icsd.IBoolean>
-  schema: Icsd.IProperty<Icsd.IComponent<I.ISchema3Definition, I.ISchema3>>
-  example: Icsd.IProperty<any>
-  examples: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IExample3Definition, I.IExample3>>>
-  content: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IMediaType3Definition, I.IMediaType3>>>
+  description: ISDProperty<ISDString>
+  required: ISDProperty<ISDBoolean>
+  deprecated: ISDProperty<ISDBoolean>
+  allowEmptyValue: ISDProperty<ISDBoolean>
+  style: ISDProperty<ISD='simple'>
+  explode: ISDProperty<ISDBoolean>
+  allowReserved: ISDProperty<ISDBoolean>
+  schema: ISDProperty<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>
+  example: ISDProperty<ISDAny>
+  examples: ISDProperty<ISDObject<ISDComponent<IExample3Definition, IExample3> | ISDComponent<IReference3Definition, IReference3>>>
+  content: ISDProperty<ISDObject<ISDComponent<IMediaType3Definition, IMediaType3>>>
+}
+
+export interface IHeader3aDefinition {
+  [extensions: `x-${string}`]: any
+  description?: string
+  required?: boolean
+  deprecated?: boolean
+  allowEmptyValue?: boolean
+  style?: ='simple'
+  explode?: boolean
+  allowReserved?: boolean
+  schema?: ISchema3aDefinition | IReference3aDefinition
+  example?: any
+  examples?: Record<string, IExample3aDefinition | IReference3aDefinition>
+  content?: Record<string, IMediaType3aDefinition>
+}
+
+export interface IHeader3a extends IHeaderBase {
+  extensions: Record<string, any>
+  description?: string
+  required?: boolean
+  deprecated?: boolean
+  allowEmptyValue?: boolean
+  style?: ='simple'
+  explode?: boolean
+  allowReserved?: boolean
+  schema?: ISchema3a | IReference3a
+  example?: any
+  examples?: Record<string, IExample3a | IReference3a>
+  content?: Record<string, IMediaType3a>
+}
+
+export interface IHeaderValidatorsMap3a {
+  description: ISDProperty<ISDString>
+  required: ISDProperty<ISDBoolean>
+  deprecated: ISDProperty<ISDBoolean>
+  allowEmptyValue: ISDProperty<ISDBoolean>
+  style: ISDProperty<ISD='simple'>
+  explode: ISDProperty<ISDBoolean>
+  allowReserved: ISDProperty<ISDBoolean>
+  schema: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>
+  example: ISDProperty<ISDAny>
+  examples: ISDProperty<ISDObject<ISDComponent<IExample3aDefinition, IExample3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  content: ISDProperty<ISDObject<ISDComponent<IMediaType3aDefinition, IMediaType3a>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

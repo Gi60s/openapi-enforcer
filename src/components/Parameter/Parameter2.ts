@@ -12,24 +12,46 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Schema2, ISchema2, ISchema2Definition } from '../Schema'
+import { Items2, IItems2, IItems2Definition } from '../Items'
+import { Parameter as ParameterBase } from './Parameter'
+import { IParameter2, IParameter2Definition, IParameter2SchemaProcessor, IParameterValidatorsMap2 as IValidatorsMap } from './IParameter'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IParameterValidatorsMap2
+let cachedSchema: ISDSchemaDefinition<IParameter2Definition, IParameter2> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IParameter2Definition, I.IParameter2> | null = null
+export class Parameter extends ParameterBase implements IParameter2 {
+  public extensions: Record<string, any> = {}
+  public name!: string
+  public in!: 'body' | 'formData' | 'header' | 'path' | 'query'
+  public description?: string
+  public required?: boolean
+  public schema?: ISchema2
+  public type?: 'array' | 'boolean' | 'file' | 'integer' | 'number' | 'string'
+  public format?: string
+  public allowEmptyValue?: boolean
+  public items?: IItems2
+  public collectionFormat?: ='csv' | 'ssv' | 'tsv' | 'pipes' | 'multi'
+  public default?: any
+  public maximum?: number
+  public exclusiveMaximum?: boolean
+  public minimum?: number
+  public exclusiveMinimum?: boolean
+  public maxLength?: number
+  public minLength?: number
+  public pattern?: string
+  public maxItems?: number
+  public minItems?: number
+  public uniqueItems?: boolean
+  public enum?: any[]
+  public multipleOf?: number
 
-export class Parameter extends EnforcerComponent<I.IParameter2Definition> implements I.IParameter2 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IParameter2Definition, version?: IVersion) {
+  constructor (definition: IParameter2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +65,17 @@ export class Parameter extends EnforcerComponent<I.IParameter2Definition> implem
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IParameterSchemaProcessor): Icsd.ISchemaDefinition<I.IParameter2Definition, I.IParameter2> {
+  static getSchemaDefinition (_data: IParameter2SchemaProcessor): ISDSchemaDefinition<IParameter2Definition, IParameter2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IParameter2Definition, I.IParameter2> = {
+    const result: ISDSchemaDefinition<IParameter2Definition, IParameter2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -90,231 +113,51 @@ export class Parameter extends EnforcerComponent<I.IParameter2Definition> implem
     return result
   }
 
-  static create (definition?: Partial<I.IParameter2Definition> | Parameter | undefined): Parameter {
+  static create (definition?: Partial<IParameter2Definition> | Parameter | undefined): Parameter {
     if (definition instanceof Parameter) {
-      return new Parameter(Object.assign({}, definition as unknown) as I.IParameter2Definition)
+      return new Parameter(Object.assign({}, definition as unknown) as IParameter2Definition)
     } else {
       return new Parameter(Object.assign({
         name: '',
         in: 'body'
-      }, definition) as I.IParameter2Definition)
+      }, definition) as IParameter2Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.IParameter2Definition> | Parameter | string | undefined): Promise<Parameter> {
+  static async createAsync (definition?: Partial<IParameter2Definition> | Parameter | string | undefined): Promise<Parameter> {
     if (definition instanceof Parameter) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IParameter2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IParameter2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IParameter2Definition>> (definition?: T | undefined): I.IParameter2Definition & T {
+  static createDefinition<T extends Partial<IParameter2Definition>> (definition?: T | undefined): IParameter2Definition & T {
     return Object.assign({
       name: '',
       in: 'body'
-    }, definition) as I.IParameter2Definition & T
+    }, definition) as IParameter2Definition & T
   }
 
-  static validate (definition: I.IParameter2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IParameter2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IParameter2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IParameter2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get name (): string {
-    return this.getProperty('name')
-  }
-
-  set name (value: string) {
-    this.setProperty('name', value)
-  }
-
-  get in (): 'body'|'formData'|'header'|'path'|'query' {
-    return this.getProperty('in')
-  }
-
-  set in (value: 'body'|'formData'|'header'|'path'|'query') {
-    this.setProperty('in', value)
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get required (): boolean | undefined {
-    return this.getProperty('required')
-  }
-
-  set required (value: boolean | undefined) {
-    this.setProperty('required', value)
-  }
-
-  get schema (): I.ISchema2 | undefined {
-    return this.getProperty('schema')
-  }
-
-  set schema (value: I.ISchema2 | undefined) {
-    this.setProperty('schema', value)
-  }
-
-  get type (): 'array'|'boolean'|'file'|'integer'|'number'|'string' | undefined {
-    return this.getProperty('type')
-  }
-
-  set type (value: 'array'|'boolean'|'file'|'integer'|'number'|'string' | undefined) {
-    this.setProperty('type', value)
-  }
-
-  get format (): string | undefined {
-    return this.getProperty('format')
-  }
-
-  set format (value: string | undefined) {
-    this.setProperty('format', value)
-  }
-
-  get allowEmptyValue (): boolean | undefined {
-    return this.getProperty('allowEmptyValue')
-  }
-
-  set allowEmptyValue (value: boolean | undefined) {
-    this.setProperty('allowEmptyValue', value)
-  }
-
-  get items (): I.IItems2 | undefined {
-    return this.getProperty('items')
-  }
-
-  set items (value: I.IItems2 | undefined) {
-    this.setProperty('items', value)
-  }
-
-  get collectionFormat (): 'csv'|'ssv'|'tsv'|'pipes'|'multi' | undefined {
-    return this.getProperty('collectionFormat')
-  }
-
-  set collectionFormat (value: 'csv'|'ssv'|'tsv'|'pipes'|'multi' | undefined) {
-    this.setProperty('collectionFormat', value)
-  }
-
-  get default (): any | undefined {
-    return this.getProperty('default')
-  }
-
-  set default (value: any | undefined) {
-    this.setProperty('default', value)
-  }
-
-  get maximum (): number | undefined {
-    return this.getProperty('maximum')
-  }
-
-  set maximum (value: number | undefined) {
-    this.setProperty('maximum', value)
-  }
-
-  get exclusiveMaximum (): boolean | undefined {
-    return this.getProperty('exclusiveMaximum')
-  }
-
-  set exclusiveMaximum (value: boolean | undefined) {
-    this.setProperty('exclusiveMaximum', value)
-  }
-
-  get minimum (): number | undefined {
-    return this.getProperty('minimum')
-  }
-
-  set minimum (value: number | undefined) {
-    this.setProperty('minimum', value)
-  }
-
-  get exclusiveMinimum (): boolean | undefined {
-    return this.getProperty('exclusiveMinimum')
-  }
-
-  set exclusiveMinimum (value: boolean | undefined) {
-    this.setProperty('exclusiveMinimum', value)
-  }
-
-  get maxLength (): number | undefined {
-    return this.getProperty('maxLength')
-  }
-
-  set maxLength (value: number | undefined) {
-    this.setProperty('maxLength', value)
-  }
-
-  get minLength (): number | undefined {
-    return this.getProperty('minLength')
-  }
-
-  set minLength (value: number | undefined) {
-    this.setProperty('minLength', value)
-  }
-
-  get pattern (): string | undefined {
-    return this.getProperty('pattern')
-  }
-
-  set pattern (value: string | undefined) {
-    this.setProperty('pattern', value)
-  }
-
-  get maxItems (): number | undefined {
-    return this.getProperty('maxItems')
-  }
-
-  set maxItems (value: number | undefined) {
-    this.setProperty('maxItems', value)
-  }
-
-  get minItems (): number | undefined {
-    return this.getProperty('minItems')
-  }
-
-  set minItems (value: number | undefined) {
-    this.setProperty('minItems', value)
-  }
-
-  get uniqueItems (): boolean | undefined {
-    return this.getProperty('uniqueItems')
-  }
-
-  set uniqueItems (value: boolean | undefined) {
-    this.setProperty('uniqueItems', value)
-  }
-
-  get enum (): any[] | undefined {
-    return this.getProperty('enum')
-  }
-
-  set enum (value: any[] | undefined) {
-    this.setProperty('enum', value)
-  }
-
-  get multipleOf (): number | undefined {
-    return this.getProperty('multipleOf')
-  }
-
-  set multipleOf (value: number | undefined) {
-    this.setProperty('multipleOf', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -350,7 +193,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Schema2
+        component: Schema2
       }
     },
     type: {
@@ -377,14 +220,28 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Items2
+        component: Items2
       }
     },
     collectionFormat: {
       name: 'collectionFormat',
       schema: {
-        type: 'string',
-        enum: ['csv', 'ssv', 'tsv', 'pipes', 'multi']
+        type: 'oneOf',
+        oneOf: [
+          {
+            condition: data => ,
+            schema: {
+              type: '='csv''
+            }
+          },
+          {
+            condition: data => typeof data.definition === 'string',
+            schema: {
+              type: 'string',
+              enum: ['ssv', 'tsv', 'pipes', 'multi']
+            }
+          }
+        ]
       }
     },
     _default: {

@@ -13,3 +13,4 @@
 
 export * from './ICallback'
 export { Callback as Callback3 } from './Callback3'
+export { Callback as Callback3a } from './Callback3a'

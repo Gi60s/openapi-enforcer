@@ -13,3 +13,4 @@
 
 export * from './IMediaType'
 export { MediaType as MediaType3 } from './MediaType3'
+export { MediaType as MediaType3a } from './MediaType3a'

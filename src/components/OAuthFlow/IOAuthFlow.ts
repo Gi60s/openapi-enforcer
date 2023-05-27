@@ -12,28 +12,35 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IOAuthFlowComponent extends IComponentInstance {
+export type IOAuthFlow = IOAuthFlow3 | IOAuthFlow3a
+export type IOAuthFlowDefinition = IOAuthFlow3Definition | IOAuthFlow3aDefinition
+export type IOAuthFlow3SchemaProcessor = SchemaProcessor<IOAuthFlow3Definition, IOAuthFlow3>
+export type IOAuthFlow3aSchemaProcessor = SchemaProcessor<IOAuthFlow3aDefinition, IOAuthFlow3a>
+export type IOAuthFlowSchemaProcessor = IOAuthFlow3SchemaProcessor | IOAuthFlow3aSchemaProcessor
+
+export interface IOAuthFlowBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
 // Put your code here.
 // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IOAuthFlow3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   authorizationUrl?: string
   tokenUrl?: string
   refreshUrl?: string
   scopes?: Record<string, string>
 }
 
-export interface IOAuthFlow3 extends IOAuthFlowComponent {
-  [Extensions]: Record<string, any>
+export interface IOAuthFlow3 extends IOAuthFlowBase {
+  extensions: Record<string, any>
   authorizationUrl?: string
   tokenUrl?: string
   refreshUrl?: string
@@ -41,10 +48,33 @@ export interface IOAuthFlow3 extends IOAuthFlowComponent {
 }
 
 export interface IOAuthFlowValidatorsMap3 {
-  authorizationUrl: Icsd.IProperty<Icsd.IString>
-  tokenUrl: Icsd.IProperty<Icsd.IString>
-  refreshUrl: Icsd.IProperty<Icsd.IString>
-  scopes: Icsd.IProperty<Icsd.IObject<Icsd.IString>>
+  authorizationUrl: ISDProperty<ISDString>
+  tokenUrl: ISDProperty<ISDString>
+  refreshUrl: ISDProperty<ISDString>
+  scopes: ISDProperty<ISDObject<ISDString>>
+}
+
+export interface IOAuthFlow3aDefinition {
+  [extensions: `x-${string}`]: any
+  authorizationUrl?: string
+  tokenUrl?: string
+  refreshUrl?: string
+  scopes?: Record<string, string>
+}
+
+export interface IOAuthFlow3a extends IOAuthFlowBase {
+  extensions: Record<string, any>
+  authorizationUrl?: string
+  tokenUrl?: string
+  refreshUrl?: string
+  scopes?: Record<string, string>
+}
+
+export interface IOAuthFlowValidatorsMap3a {
+  authorizationUrl: ISDProperty<ISDString>
+  tokenUrl: ISDProperty<ISDString>
+  refreshUrl: ISDProperty<ISDString>
+  scopes: ISDProperty<ISDObject<ISDString>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

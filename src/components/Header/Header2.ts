@@ -12,24 +12,40 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Items2, IItems2, IItems2Definition } from '../Items'
+import { Header as HeaderBase } from './Header'
+import { IHeader2, IHeader2Definition, IHeader2SchemaProcessor, IHeaderValidatorsMap2 as IValidatorsMap } from './IHeader'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IHeaderValidatorsMap2
+let cachedSchema: ISDSchemaDefinition<IHeader2Definition, IHeader2> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IHeader2Definition, I.IHeader2> | null = null
+export class Header extends HeaderBase implements IHeader2 {
+  public extensions: Record<string, any> = {}
+  public description?: string
+  public type!: 'array' | 'boolean' | 'integer' | 'number' | 'string'
+  public format?: string
+  public items?: IItems2
+  public collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
+  public default?: any
+  public maximum?: number
+  public exclusiveMaximum?: boolean
+  public minimum?: number
+  public exclusiveMinimum?: boolean
+  public maxLength?: number
+  public minLength?: number
+  public pattern?: string
+  public maxItems?: number
+  public minItems?: number
+  public uniqueItems?: boolean
+  public enum?: any[]
+  public multipleOf?: number
 
-export class Header extends EnforcerComponent<I.IHeader2Definition> implements I.IHeader2 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IHeader2Definition, version?: IVersion) {
+  constructor (definition: IHeader2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +59,17 @@ export class Header extends EnforcerComponent<I.IHeader2Definition> implements I
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IHeaderSchemaProcessor): Icsd.ISchemaDefinition<I.IHeader2Definition, I.IHeader2> {
+  static getSchemaDefinition (_data: IHeader2SchemaProcessor): ISDSchemaDefinition<IHeader2Definition, IHeader2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IHeader2Definition, I.IHeader2> = {
+    const result: ISDSchemaDefinition<IHeader2Definition, IHeader2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -85,189 +102,49 @@ export class Header extends EnforcerComponent<I.IHeader2Definition> implements I
     return result
   }
 
-  static create (definition?: Partial<I.IHeader2Definition> | Header | undefined): Header {
+  static create (definition?: Partial<IHeader2Definition> | Header | undefined): Header {
     if (definition instanceof Header) {
-      return new Header(Object.assign({}, definition as unknown) as I.IHeader2Definition)
+      return new Header(Object.assign({}, definition as unknown) as IHeader2Definition)
     } else {
       return new Header(Object.assign({
         type: 'array'
-      }, definition) as I.IHeader2Definition)
+      }, definition) as IHeader2Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.IHeader2Definition> | Header | string | undefined): Promise<Header> {
+  static async createAsync (definition?: Partial<IHeader2Definition> | Header | string | undefined): Promise<Header> {
     if (definition instanceof Header) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IHeader2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IHeader2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IHeader2Definition>> (definition?: T | undefined): I.IHeader2Definition & T {
+  static createDefinition<T extends Partial<IHeader2Definition>> (definition?: T | undefined): IHeader2Definition & T {
     return Object.assign({
       type: 'array'
-    }, definition) as I.IHeader2Definition & T
+    }, definition) as IHeader2Definition & T
   }
 
-  static validate (definition: I.IHeader2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IHeader2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IHeader2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IHeader2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get type (): 'array'|'boolean'|'integer'|'number'|'string' {
-    return this.getProperty('type')
-  }
-
-  set type (value: 'array'|'boolean'|'integer'|'number'|'string') {
-    this.setProperty('type', value)
-  }
-
-  get format (): string | undefined {
-    return this.getProperty('format')
-  }
-
-  set format (value: string | undefined) {
-    this.setProperty('format', value)
-  }
-
-  get items (): I.IItems2 | undefined {
-    return this.getProperty('items')
-  }
-
-  set items (value: I.IItems2 | undefined) {
-    this.setProperty('items', value)
-  }
-
-  get collectionFormat (): 'csv'|'ssv'|'tsv'|'pipes' | undefined {
-    return this.getProperty('collectionFormat')
-  }
-
-  set collectionFormat (value: 'csv'|'ssv'|'tsv'|'pipes' | undefined) {
-    this.setProperty('collectionFormat', value)
-  }
-
-  get default (): any | undefined {
-    return this.getProperty('default')
-  }
-
-  set default (value: any | undefined) {
-    this.setProperty('default', value)
-  }
-
-  get maximum (): number | undefined {
-    return this.getProperty('maximum')
-  }
-
-  set maximum (value: number | undefined) {
-    this.setProperty('maximum', value)
-  }
-
-  get exclusiveMaximum (): boolean | undefined {
-    return this.getProperty('exclusiveMaximum')
-  }
-
-  set exclusiveMaximum (value: boolean | undefined) {
-    this.setProperty('exclusiveMaximum', value)
-  }
-
-  get minimum (): number | undefined {
-    return this.getProperty('minimum')
-  }
-
-  set minimum (value: number | undefined) {
-    this.setProperty('minimum', value)
-  }
-
-  get exclusiveMinimum (): boolean | undefined {
-    return this.getProperty('exclusiveMinimum')
-  }
-
-  set exclusiveMinimum (value: boolean | undefined) {
-    this.setProperty('exclusiveMinimum', value)
-  }
-
-  get maxLength (): number | undefined {
-    return this.getProperty('maxLength')
-  }
-
-  set maxLength (value: number | undefined) {
-    this.setProperty('maxLength', value)
-  }
-
-  get minLength (): number | undefined {
-    return this.getProperty('minLength')
-  }
-
-  set minLength (value: number | undefined) {
-    this.setProperty('minLength', value)
-  }
-
-  get pattern (): string | undefined {
-    return this.getProperty('pattern')
-  }
-
-  set pattern (value: string | undefined) {
-    this.setProperty('pattern', value)
-  }
-
-  get maxItems (): number | undefined {
-    return this.getProperty('maxItems')
-  }
-
-  set maxItems (value: number | undefined) {
-    this.setProperty('maxItems', value)
-  }
-
-  get minItems (): number | undefined {
-    return this.getProperty('minItems')
-  }
-
-  set minItems (value: number | undefined) {
-    this.setProperty('minItems', value)
-  }
-
-  get uniqueItems (): boolean | undefined {
-    return this.getProperty('uniqueItems')
-  }
-
-  set uniqueItems (value: boolean | undefined) {
-    this.setProperty('uniqueItems', value)
-  }
-
-  get enum (): any[] | undefined {
-    return this.getProperty('enum')
-  }
-
-  set enum (value: any[] | undefined) {
-    this.setProperty('enum', value)
-  }
-
-  get multipleOf (): number | undefined {
-    return this.getProperty('multipleOf')
-  }
-
-  set multipleOf (value: number | undefined) {
-    this.setProperty('multipleOf', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -296,7 +173,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Items2
+        component: Items2
       }
     },
     collectionFormat: {

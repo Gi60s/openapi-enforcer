@@ -12,43 +12,75 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDObject, ISDComponent, ISDBoolean } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IEncodingComponent extends IComponentInstance {
+export type IEncoding = IEncoding3 | IEncoding3a
+export type IEncodingDefinition = IEncoding3Definition | IEncoding3aDefinition
+export type IEncoding3SchemaProcessor = SchemaProcessor<IEncoding3Definition, IEncoding3>
+export type IEncoding3aSchemaProcessor = SchemaProcessor<IEncoding3aDefinition, IEncoding3a>
+export type IEncodingSchemaProcessor = IEncoding3SchemaProcessor | IEncoding3aSchemaProcessor
+
+export interface IEncodingBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
 // Put your code here.
 // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IEncoding3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   contentType?: string
-  headers?: Record<string, I.IHeader3Definition | I.IReference3Definition>
+  headers?: Record<string, IHeader3Definition | IReference3Definition>
   style?: string
   explode?: boolean
   allowReserved?: boolean
 }
 
-export interface IEncoding3 extends IEncodingComponent {
-  [Extensions]: Record<string, any>
+export interface IEncoding3 extends IEncodingBase {
+  extensions: Record<string, any>
   contentType?: string
-  headers?: Record<string, I.IHeader3>
+  headers?: Record<string, IHeader3 | IReference3>
   style?: string
   explode?: boolean
   allowReserved?: boolean
 }
 
 export interface IEncodingValidatorsMap3 {
-  contentType: Icsd.IProperty<Icsd.IString>
-  headers: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IHeader3Definition, I.IHeader3>>>
-  style: Icsd.IProperty<Icsd.IString>
-  explode: Icsd.IProperty<Icsd.IBoolean>
-  allowReserved: Icsd.IProperty<Icsd.IBoolean>
+  contentType: ISDProperty<ISDString>
+  headers: ISDProperty<ISDObject<ISDComponent<IHeader3Definition, IHeader3> | ISDComponent<IReference3Definition, IReference3>>>
+  style: ISDProperty<ISDString>
+  explode: ISDProperty<ISDBoolean>
+  allowReserved: ISDProperty<ISDBoolean>
+}
+
+export interface IEncoding3aDefinition {
+  [extensions: `x-${string}`]: any
+  contentType?: string
+  headers?: Record<string, IHeader3aDefinition | IReference3aDefinition>
+  style?: string
+  explode?: boolean
+  allowReserved?: boolean
+}
+
+export interface IEncoding3a extends IEncodingBase {
+  extensions: Record<string, any>
+  contentType?: string
+  headers?: Record<string, IHeader3a | IReference3a>
+  style?: string
+  explode?: boolean
+  allowReserved?: boolean
+}
+
+export interface IEncodingValidatorsMap3a {
+  contentType: ISDProperty<ISDString>
+  headers: ISDProperty<ISDObject<ISDComponent<IHeader3aDefinition, IHeader3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  style: ISDProperty<ISDString>
+  explode: ISDProperty<ISDBoolean>
+  allowReserved: ISDProperty<ISDBoolean>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

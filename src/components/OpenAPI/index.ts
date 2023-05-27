@@ -13,3 +13,4 @@
 
 export * from './IOpenAPI'
 export { OpenAPI as OpenAPI3 } from './OpenAPI3'
+export { OpenAPI as OpenAPI3a } from './OpenAPI3a'

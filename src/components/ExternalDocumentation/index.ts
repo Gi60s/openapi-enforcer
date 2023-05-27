@@ -14,3 +14,4 @@
 export * from './IExternalDocumentation'
 export { ExternalDocumentation as ExternalDocumentation2 } from './ExternalDocumentation2'
 export { ExternalDocumentation as ExternalDocumentation3 } from './ExternalDocumentation3'
+export { ExternalDocumentation as ExternalDocumentation3a } from './ExternalDocumentation3a'

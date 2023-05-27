@@ -13,3 +13,4 @@
 
 export * from './IServerVariable'
 export { ServerVariable as ServerVariable3 } from './ServerVariable3'
+export { ServerVariable as ServerVariable3a } from './ServerVariable3a'

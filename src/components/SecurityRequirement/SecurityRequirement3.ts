@@ -12,41 +12,29 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
+import { ISDSchemaDefinition, ISDArray, ISDString } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { SecurityRequirement as SecurityRequirementBase } from './SecurityRequirement'
+import { ISecurityRequirement3, ISecurityRequirement3Definition, ISecurityRequirement3SchemaProcessor } from './ISecurityRequirement'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: Icsd.ISchemaDefinition<I.ISecurityRequirement3Definition, I.ISecurityRequirement3> | null = null
+let cachedSchema: ISDSchemaDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> | null = null
 
-const additionalProperties: Icsd.IArray<Icsd.IString> = {
+const additionalProperties: ISDArray<ISDString> = {
   type: 'array',
   items: {
     type: 'string'
   }
 }
 
-export class SecurityRequirement extends EnforcerComponent<I.ISecurityRequirement3Definition> implements I.ISecurityRequirement3 {
-  items!: Record<string, string[]>
+export class SecurityRequirement extends SecurityRequirementBase implements ISecurityRequirement3 {
+  string[]
 
-  constructor (definition: I.ISecurityRequirement3Definition, version?: IVersion) {
+  constructor (definition: ISecurityRequirement3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
-    Object.keys(definition).forEach(key => {
-      Object.defineProperty(this, key, {
-        configurable: true,
-        enumerable: true,
-        get () {
-          return this.getProperty(key)
-        },
-        set (value) {
-          this.setProperty(key, value)
-        }
-      })
-    })
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
     // <!# Custom Content End: CONSTRUCTOR #!>
@@ -59,15 +47,16 @@ export class SecurityRequirement extends EnforcerComponent<I.ISecurityRequiremen
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#security-requirement-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#security-requirement-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#security-requirement-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-requirement-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#security-requirement-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.ISecurityRequirementSchemaProcessor): Icsd.ISchemaDefinition<I.ISecurityRequirement3Definition, I.ISecurityRequirement3> {
+  static getSchemaDefinition (_data: ISecurityRequirement3SchemaProcessor): ISDSchemaDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: Icsd.ISchemaDefinition<I.ISecurityRequirement3Definition, I.ISecurityRequirement3> = {
+    const result: ISDSchemaDefinition<ISecurityRequirement3Definition, ISecurityRequirement3> = {
       type: 'object',
       allowsSchemaExtensions: false,
       additionalProperties
@@ -81,29 +70,29 @@ export class SecurityRequirement extends EnforcerComponent<I.ISecurityRequiremen
     return result
   }
 
-  static create (definition?: Partial<I.ISecurityRequirement3Definition> | SecurityRequirement | undefined): SecurityRequirement {
-    return new SecurityRequirement(Object.assign({}, definition) as I.ISecurityRequirement3Definition)
+  static create (definition?: Partial<ISecurityRequirement3Definition> | SecurityRequirement | undefined): SecurityRequirement {
+    return new SecurityRequirement(Object.assign({}, definition) as ISecurityRequirement3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.ISecurityRequirement3Definition> | SecurityRequirement | string | undefined): Promise<SecurityRequirement> {
+  static async createAsync (definition?: Partial<ISecurityRequirement3Definition> | SecurityRequirement | string | undefined): Promise<SecurityRequirement> {
     if (definition instanceof SecurityRequirement) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.ISecurityRequirement3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<ISecurityRequirement3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.ISecurityRequirement3Definition>> (definition?: T | undefined): I.ISecurityRequirement3Definition & T {
-    return Object.assign({}, definition) as I.ISecurityRequirement3Definition & T
+  static createDefinition<T extends Partial<ISecurityRequirement3Definition>> (definition?: T | undefined): ISecurityRequirement3Definition & T {
+    return Object.assign({}, definition) as ISecurityRequirement3Definition & T
   }
 
-  static validate (definition: I.ISecurityRequirement3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: ISecurityRequirement3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.ISecurityRequirement3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: ISecurityRequirement3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
   }
@@ -112,6 +101,10 @@ export class SecurityRequirement extends EnforcerComponent<I.ISecurityRequiremen
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 // <!# Custom Content Begin: FOOTER #!>
 // Put your code here.

@@ -14,3 +14,4 @@
 export * from './IResponse'
 export { Response as Response2 } from './Response2'
 export { Response as Response3 } from './Response3'
+export { Response as Response3a } from './Response3a'

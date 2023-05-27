@@ -12,24 +12,25 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Example as ExampleBase } from './Example'
+import { IExample3, IExample3Definition, IExample3SchemaProcessor, IExampleValidatorsMap3 as IValidatorsMap } from './IExample'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IExampleValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IExample3Definition, IExample3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IExample3Definition, I.IExample3> | null = null
+export class Example extends ExampleBase implements IExample3 {
+  public extensions: Record<string, any> = {}
+  public summary?: string
+  public description?: string
+  public value?: any
+  public externalValue?: string
 
-export class Example extends EnforcerComponent<I.IExample3Definition> implements I.IExample3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IExample3Definition, version?: IVersion) {
+  constructor (definition: IExample3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +44,17 @@ export class Example extends EnforcerComponent<I.IExample3Definition> implements
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#example-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#example-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#example-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#example-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#example-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IExampleSchemaProcessor): Icsd.ISchemaDefinition<I.IExample3Definition, I.IExample3> {
+  static getSchemaDefinition (_data: IExample3SchemaProcessor): ISDSchemaDefinition<IExample3Definition, IExample3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IExample3Definition, I.IExample3> = {
+    const result: ISDSchemaDefinition<IExample3Definition, IExample3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -71,69 +73,41 @@ export class Example extends EnforcerComponent<I.IExample3Definition> implements
     return result
   }
 
-  static create (definition?: Partial<I.IExample3Definition> | Example | undefined): Example {
-    return new Example(Object.assign({}, definition) as I.IExample3Definition)
+  static create (definition?: Partial<IExample3Definition> | Example | undefined): Example {
+    return new Example(Object.assign({}, definition) as IExample3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IExample3Definition> | Example | string | undefined): Promise<Example> {
+  static async createAsync (definition?: Partial<IExample3Definition> | Example | string | undefined): Promise<Example> {
     if (definition instanceof Example) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IExample3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IExample3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IExample3Definition>> (definition?: T | undefined): I.IExample3Definition & T {
-    return Object.assign({}, definition) as I.IExample3Definition & T
+  static createDefinition<T extends Partial<IExample3Definition>> (definition?: T | undefined): IExample3Definition & T {
+    return Object.assign({}, definition) as IExample3Definition & T
   }
 
-  static validate (definition: I.IExample3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IExample3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IExample3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IExample3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get summary (): string | undefined {
-    return this.getProperty('summary')
-  }
-
-  set summary (value: string | undefined) {
-    this.setProperty('summary', value)
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get value (): any | undefined {
-    return this.getProperty('value')
-  }
-
-  set value (value: any | undefined) {
-    this.setProperty('value', value)
-  }
-
-  get externalValue (): string | undefined {
-    return this.getProperty('externalValue')
-  }
-
-  set externalValue (value: string | undefined) {
-    this.setProperty('externalValue', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {

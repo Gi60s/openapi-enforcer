@@ -12,12 +12,15 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Reference3, IReference3, IReference3Definition } from '../Reference'
+import { Xml3, IXml3, IXml3Definition } from '../Xml'
+import { ExternalDocumentation3, IExternalDocumentation3, IExternalDocumentation3Definition } from '../ExternalDocumentation'
+import { Discriminator3, IDiscriminator3, IDiscriminator3Definition } from '../Discriminator'
+import { Schema as SchemaBase } from './Schema'
+import { ISchema3, ISchema3Definition, ISchema3SchemaProcessor, ISchemaValidatorsMap3 as IValidatorsMap } from './ISchema'
 // <!# Custom Content Begin: HEADER #!>
 import {
   ISchemaHookHandler,
@@ -30,12 +33,45 @@ import * as common from './common'
 import { Result } from '../../Result'
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.ISchemaValidatorsMap3
+export class Schema extends SchemaBase implements ISchema3 {
+  public extensions: Record<string, any> = {}
+  public type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
+  public allOf?: Array<ISchema3 | IReference3>
+  public oneOf?: Array<ISchema3 | IReference3>
+  public anyOf?: Array<ISchema3 | IReference3>
+  public not?: ISchema3 | IReference3
+  public title?: string
+  public maximum?: number
+  public exclusiveMaximum?: boolean
+  public minimum?: number
+  public exclusiveMinimum?: boolean
+  public maxLength?: number
+  public minLength?: number
+  public pattern?: string
+  public maxItems?: number
+  public minItems?: number
+  public maxProperties?: number
+  public minProperties?: number
+  public uniqueItems?: boolean
+  public enum?: any[]
+  public multipleOf?: number
+  public required?: string[]
+  public items?: ISchema3 | IReference3
+  public properties?: Record<string, ISchema3 | IReference3>
+  public additionalProperties?: ISchema3 | IReference3 | boolean
+  public description?: string
+  public format?: string
+  public default?: any
+  public nullable?: boolean
+  public discriminator?: IDiscriminator3
+  public readOnly?: boolean
+  public writeOnly?: boolean
+  public xml?: IXml3
+  public externalDocs?: IExternalDocumentation3
+  public example?: any
+  public deprecated?: boolean
 
-export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I.ISchema3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.ISchema3Definition, version?: IVersion) {
+  constructor (definition: ISchema3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -49,12 +85,13 @@ export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#schema-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#schema-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#schema-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#schema-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#schema-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.ISchemaSchemaProcessor): Icsd.ISchemaDefinition<I.ISchema3Definition, I.ISchema3> {
+  static getSchemaDefinition (_data: ISchema3SchemaProcessor): ISDSchemaDefinition<ISchema3Definition, ISchema3> {
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.ISchema3Definition, I.ISchema3> = {
+    const result: ISDSchemaDefinition<ISchema3Definition, ISchema3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -131,311 +168,31 @@ export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I
     return result
   }
 
-  static create (definition?: Partial<I.ISchema3Definition> | Schema | undefined): Schema {
-    return new Schema(Object.assign({}, definition) as I.ISchema3Definition)
+  static create (definition?: Partial<ISchema3Definition> | Schema | undefined): Schema {
+    return new Schema(Object.assign({}, definition) as ISchema3Definition)
   }
 
-  static async createAsync (definition?: Partial<I.ISchema3Definition> | Schema | string | undefined): Promise<Schema> {
+  static async createAsync (definition?: Partial<ISchema3Definition> | Schema | string | undefined): Promise<Schema> {
     if (definition instanceof Schema) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.ISchema3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<ISchema3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.ISchema3Definition>> (definition?: T | undefined): I.ISchema3Definition & T {
-    return Object.assign({}, definition) as I.ISchema3Definition & T
+  static createDefinition<T extends Partial<ISchema3Definition>> (definition?: T | undefined): ISchema3Definition & T {
+    return Object.assign({}, definition) as ISchema3Definition & T
   }
 
-  static validate (definition: I.ISchema3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: ISchema3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.ISchema3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: ISchema3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get type (): 'array'|'boolean'|'integer'|'number'|'object'|'string' | undefined {
-    return this.getProperty('type')
-  }
-
-  set type (value: 'array'|'boolean'|'integer'|'number'|'object'|'string' | undefined) {
-    this.setProperty('type', value)
-  }
-
-  get allOf (): I.ISchema3[] | undefined {
-    return this.getProperty('allOf')
-  }
-
-  set allOf (value: I.ISchema3[] | undefined) {
-    this.setProperty('allOf', value)
-  }
-
-  get oneOf (): I.ISchema3[] | undefined {
-    return this.getProperty('oneOf')
-  }
-
-  set oneOf (value: I.ISchema3[] | undefined) {
-    this.setProperty('oneOf', value)
-  }
-
-  get anyOf (): I.ISchema3[] | undefined {
-    return this.getProperty('anyOf')
-  }
-
-  set anyOf (value: I.ISchema3[] | undefined) {
-    this.setProperty('anyOf', value)
-  }
-
-  get not (): I.ISchema3 | undefined {
-    return this.getProperty('not')
-  }
-
-  set not (value: I.ISchema3 | undefined) {
-    this.setProperty('not', value)
-  }
-
-  get title (): string | undefined {
-    return this.getProperty('title')
-  }
-
-  set title (value: string | undefined) {
-    this.setProperty('title', value)
-  }
-
-  get maximum (): number | undefined {
-    return this.getProperty('maximum')
-  }
-
-  set maximum (value: number | undefined) {
-    this.setProperty('maximum', value)
-  }
-
-  get exclusiveMaximum (): boolean | undefined {
-    return this.getProperty('exclusiveMaximum')
-  }
-
-  set exclusiveMaximum (value: boolean | undefined) {
-    this.setProperty('exclusiveMaximum', value)
-  }
-
-  get minimum (): number | undefined {
-    return this.getProperty('minimum')
-  }
-
-  set minimum (value: number | undefined) {
-    this.setProperty('minimum', value)
-  }
-
-  get exclusiveMinimum (): boolean | undefined {
-    return this.getProperty('exclusiveMinimum')
-  }
-
-  set exclusiveMinimum (value: boolean | undefined) {
-    this.setProperty('exclusiveMinimum', value)
-  }
-
-  get maxLength (): number | undefined {
-    return this.getProperty('maxLength')
-  }
-
-  set maxLength (value: number | undefined) {
-    this.setProperty('maxLength', value)
-  }
-
-  get minLength (): number | undefined {
-    return this.getProperty('minLength')
-  }
-
-  set minLength (value: number | undefined) {
-    this.setProperty('minLength', value)
-  }
-
-  get pattern (): string | undefined {
-    return this.getProperty('pattern')
-  }
-
-  set pattern (value: string | undefined) {
-    this.setProperty('pattern', value)
-  }
-
-  get maxItems (): number | undefined {
-    return this.getProperty('maxItems')
-  }
-
-  set maxItems (value: number | undefined) {
-    this.setProperty('maxItems', value)
-  }
-
-  get minItems (): number | undefined {
-    return this.getProperty('minItems')
-  }
-
-  set minItems (value: number | undefined) {
-    this.setProperty('minItems', value)
-  }
-
-  get maxProperties (): number | undefined {
-    return this.getProperty('maxProperties')
-  }
-
-  set maxProperties (value: number | undefined) {
-    this.setProperty('maxProperties', value)
-  }
-
-  get minProperties (): number | undefined {
-    return this.getProperty('minProperties')
-  }
-
-  set minProperties (value: number | undefined) {
-    this.setProperty('minProperties', value)
-  }
-
-  get uniqueItems (): boolean | undefined {
-    return this.getProperty('uniqueItems')
-  }
-
-  set uniqueItems (value: boolean | undefined) {
-    this.setProperty('uniqueItems', value)
-  }
-
-  get enum (): any[] | undefined {
-    return this.getProperty('enum')
-  }
-
-  set enum (value: any[] | undefined) {
-    this.setProperty('enum', value)
-  }
-
-  get multipleOf (): number | undefined {
-    return this.getProperty('multipleOf')
-  }
-
-  set multipleOf (value: number | undefined) {
-    this.setProperty('multipleOf', value)
-  }
-
-  get required (): string[] | undefined {
-    return this.getProperty('required')
-  }
-
-  set required (value: string[] | undefined) {
-    this.setProperty('required', value)
-  }
-
-  get items (): I.ISchema3 | undefined {
-    return this.getProperty('items')
-  }
-
-  set items (value: I.ISchema3 | undefined) {
-    this.setProperty('items', value)
-  }
-
-  get properties (): Record<string, I.ISchema3> | undefined {
-    return this.getProperty('properties')
-  }
-
-  set properties (value: Record<string, I.ISchema3> | undefined) {
-    this.setProperty('properties', value)
-  }
-
-  get additionalProperties (): I.ISchema3 | boolean | undefined {
-    return this.getProperty('additionalProperties')
-  }
-
-  set additionalProperties (value: I.ISchema3 | boolean | undefined) {
-    this.setProperty('additionalProperties', value)
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get format (): string | undefined {
-    return this.getProperty('format')
-  }
-
-  set format (value: string | undefined) {
-    this.setProperty('format', value)
-  }
-
-  get default (): any | undefined {
-    return this.getProperty('default')
-  }
-
-  set default (value: any | undefined) {
-    this.setProperty('default', value)
-  }
-
-  get nullable (): boolean | undefined {
-    return this.getProperty('nullable')
-  }
-
-  set nullable (value: boolean | undefined) {
-    this.setProperty('nullable', value)
-  }
-
-  get discriminator (): I.IDiscriminator3 | undefined {
-    return this.getProperty('discriminator')
-  }
-
-  set discriminator (value: I.IDiscriminator3 | undefined) {
-    this.setProperty('discriminator', value)
-  }
-
-  get readOnly (): boolean | undefined {
-    return this.getProperty('readOnly')
-  }
-
-  set readOnly (value: boolean | undefined) {
-    this.setProperty('readOnly', value)
-  }
-
-  get writeOnly (): boolean | undefined {
-    return this.getProperty('writeOnly')
-  }
-
-  set writeOnly (value: boolean | undefined) {
-    this.setProperty('writeOnly', value)
-  }
-
-  get xml (): I.IXml3 | undefined {
-    return this.getProperty('xml')
-  }
-
-  set xml (value: I.IXml3 | undefined) {
-    this.setProperty('xml', value)
-  }
-
-  get externalDocs (): I.IExternalDocumentation3 | undefined {
-    return this.getProperty('externalDocs')
-  }
-
-  set externalDocs (value: I.IExternalDocumentation3 | undefined) {
-    this.setProperty('externalDocs', value)
-  }
-
-  get example (): any | undefined {
-    return this.getProperty('example')
-  }
-
-  set example (value: any | undefined) {
-    this.setProperty('example', value)
-  }
-
-  get deprecated (): boolean | undefined {
-    return this.getProperty('deprecated')
-  }
-
-  set deprecated (value: boolean | undefined) {
-    this.setProperty('deprecated', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
@@ -477,6 +234,10 @@ export class Schema extends EnforcerComponent<I.ISchema3Definition> implements I
   // <!# Custom Content End: BODY #!>
 }
 
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
+
 function getValidatorsMap (): IValidatorsMap {
   return {
     type: {
@@ -493,7 +254,7 @@ function getValidatorsMap (): IValidatorsMap {
         items: {
           type: 'component',
           allowsRef: true,
-          component: I.Schema3
+          component: Schema3
         }
       }
     },
@@ -504,7 +265,7 @@ function getValidatorsMap (): IValidatorsMap {
         items: {
           type: 'component',
           allowsRef: true,
-          component: I.Schema3
+          component: Schema3
         }
       }
     },
@@ -515,7 +276,7 @@ function getValidatorsMap (): IValidatorsMap {
         items: {
           type: 'component',
           allowsRef: true,
-          component: I.Schema3
+          component: Schema3
         }
       }
     },
@@ -524,7 +285,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: true,
-        component: I.Schema3
+        component: Schema3
       }
     },
     title: {
@@ -634,7 +395,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: true,
-        component: I.Schema3
+        component: Schema3
       }
     },
     properties: {
@@ -644,14 +405,30 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Schema3
+          component: Schema3
         }
       }
     },
     additionalProperties: {
       name: 'additionalProperties',
       schema: {
-        type: 'any' // will be replaced with smart getter to determine actual type
+        type: 'oneOf',
+        oneOf: [
+          {
+            condition: data => typeof data.definition === 'object',
+            schema: {
+              type: 'component',
+              allowsRef: true,
+              component: Schema3
+            }
+          },
+          {
+            condition: data => typeof data.definition === 'boolean',
+            schema: {
+              type: 'boolean'
+            }
+          }
+        ]
       }
     },
     description: {
@@ -683,7 +460,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Discriminator3
+        component: Discriminator3
       }
     },
     readOnly: {
@@ -703,7 +480,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.Xml3
+        component: Xml3
       }
     },
     externalDocs: {
@@ -711,7 +488,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: I.ExternalDocumentation3
+        component: ExternalDocumentation3
       }
     },
     example: {

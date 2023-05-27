@@ -12,31 +12,47 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface ISecurityRequirementComponent extends IComponentInstance {
+export type ISecurityRequirement = ISecurityRequirement2 | ISecurityRequirement3 | ISecurityRequirement3a
+export type ISecurityRequirementDefinition = ISecurityRequirement2Definition | ISecurityRequirement3Definition | ISecurityRequirement3aDefinition
+export type ISecurityRequirement2SchemaProcessor = SchemaProcessor<ISecurityRequirement2Definition, ISecurityRequirement2>
+export type ISecurityRequirement3SchemaProcessor = SchemaProcessor<ISecurityRequirement3Definition, ISecurityRequirement3>
+export type ISecurityRequirement3aSchemaProcessor = SchemaProcessor<ISecurityRequirement3aDefinition, ISecurityRequirement3a>
+export type ISecurityRequirementSchemaProcessor = ISecurityRequirement2SchemaProcessor | ISecurityRequirement3SchemaProcessor | ISecurityRequirement3aSchemaProcessor
+
+export interface ISecurityRequirementBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // Put your code here.
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface ISecurityRequirement2Definition {
-  items: Record<string, string[] >
+  string[]
 }
 
-export interface ISecurityRequirement2 extends ISecurityRequirementComponent {
-  items: Record<string, string[] >
+export interface ISecurityRequirement2 extends ISecurityRequirementBase {
+  string[]
 }
 
 export interface ISecurityRequirement3Definition {
-  items: Record<string, string[] >
+  string[]
 }
 
-export interface ISecurityRequirement3 extends ISecurityRequirementComponent {
-  items: Record<string, string[] >
+export interface ISecurityRequirement3 extends ISecurityRequirementBase {
+  string[]
+}
+
+export interface ISecurityRequirement3aDefinition {
+  [extensions: `x-${string}`]: any
+}
+
+export interface ISecurityRequirement3a extends ISecurityRequirementBase {
+  extensions: Record<string, any>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

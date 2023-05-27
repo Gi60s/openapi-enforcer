@@ -14,3 +14,4 @@
 export * from './ILicense'
 export { License as License2 } from './License2'
 export { License as License3 } from './License3'
+export { License as License3a } from './License3a'

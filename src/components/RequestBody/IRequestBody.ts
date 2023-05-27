@@ -12,37 +12,63 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDObject, ISDComponent, ISDBoolean } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IRequestBodyComponent extends IComponentInstance {
+export type IRequestBody = IRequestBody3 | IRequestBody3a
+export type IRequestBodyDefinition = IRequestBody3Definition | IRequestBody3aDefinition
+export type IRequestBody3SchemaProcessor = SchemaProcessor<IRequestBody3Definition, IRequestBody3>
+export type IRequestBody3aSchemaProcessor = SchemaProcessor<IRequestBody3aDefinition, IRequestBody3a>
+export type IRequestBodySchemaProcessor = IRequestBody3SchemaProcessor | IRequestBody3aSchemaProcessor
+
+export interface IRequestBodyBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
 // Put your code here.
 // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IRequestBody3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   description?: string
-  content?: Record<string, I.IMediaType3Definition>
+  content?: Record<string, IMediaType3Definition>
   required?: boolean
 }
 
-export interface IRequestBody3 extends IRequestBodyComponent {
-  [Extensions]: Record<string, any>
+export interface IRequestBody3 extends IRequestBodyBase {
+  extensions: Record<string, any>
   description?: string
-  content?: Record<string, I.IMediaType3>
+  content?: Record<string, IMediaType3>
   required?: boolean
 }
 
 export interface IRequestBodyValidatorsMap3 {
-  description: Icsd.IProperty<Icsd.IString>
-  content: Icsd.IProperty<Icsd.IObject<Icsd.IComponent<I.IMediaType3Definition, I.IMediaType3>>>
-  required: Icsd.IProperty<Icsd.IBoolean>
+  description: ISDProperty<ISDString>
+  content: ISDProperty<ISDObject<ISDComponent<IMediaType3Definition, IMediaType3>>>
+  required: ISDProperty<ISDBoolean>
+}
+
+export interface IRequestBody3aDefinition {
+  [extensions: `x-${string}`]: any
+  description?: string
+  content?: Record<string, IMediaType3aDefinition>
+  required?: boolean
+}
+
+export interface IRequestBody3a extends IRequestBodyBase {
+  extensions: Record<string, any>
+  description?: string
+  content?: Record<string, IMediaType3a>
+  required?: boolean
+}
+
+export interface IRequestBodyValidatorsMap3a {
+  description: ISDProperty<ISDString>
+  content: ISDProperty<ISDObject<ISDComponent<IMediaType3aDefinition, IMediaType3a>>>
+  required: ISDProperty<ISDBoolean>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

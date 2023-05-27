@@ -14,3 +14,4 @@
 export * from './ISchema'
 export { Schema as Schema2 } from './Schema2'
 export { Schema as Schema3 } from './Schema3'
+export { Schema as Schema3a } from './Schema3a'

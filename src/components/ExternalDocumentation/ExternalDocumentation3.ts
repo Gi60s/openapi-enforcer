@@ -12,24 +12,23 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { ExternalDocumentation as ExternalDocumentationBase } from './ExternalDocumentation'
+import { IExternalDocumentation3, IExternalDocumentation3Definition, IExternalDocumentation3SchemaProcessor, IExternalDocumentationValidatorsMap3 as IValidatorsMap } from './IExternalDocumentation'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IExternalDocumentationValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IExternalDocumentation3Definition, IExternalDocumentation3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IExternalDocumentation3Definition, I.IExternalDocumentation3> | null = null
+export class ExternalDocumentation extends ExternalDocumentationBase implements IExternalDocumentation3 {
+  public extensions: Record<string, any> = {}
+  public description?: string
+  public url!: string
 
-export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocumentation3Definition> implements I.IExternalDocumentation3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IExternalDocumentation3Definition, version?: IVersion) {
+  constructor (definition: IExternalDocumentation3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +42,17 @@ export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocument
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#external-documentation-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#external-documentation-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#external-documentation-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#external-documentation-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#external-documentation-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IExternalDocumentationSchemaProcessor): Icsd.ISchemaDefinition<I.IExternalDocumentation3Definition, I.IExternalDocumentation3> {
+  static getSchemaDefinition (_data: IExternalDocumentation3SchemaProcessor): ISDSchemaDefinition<IExternalDocumentation3Definition, IExternalDocumentation3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IExternalDocumentation3Definition, I.IExternalDocumentation3> = {
+    const result: ISDSchemaDefinition<IExternalDocumentation3Definition, IExternalDocumentation3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -69,61 +69,49 @@ export class ExternalDocumentation extends EnforcerComponent<I.IExternalDocument
     return result
   }
 
-  static create (definition?: Partial<I.IExternalDocumentation3Definition> | ExternalDocumentation | undefined): ExternalDocumentation {
+  static create (definition?: Partial<IExternalDocumentation3Definition> | ExternalDocumentation | undefined): ExternalDocumentation {
     if (definition instanceof ExternalDocumentation) {
-      return new ExternalDocumentation(Object.assign({}, definition as unknown) as I.IExternalDocumentation3Definition)
+      return new ExternalDocumentation(Object.assign({}, definition as unknown) as IExternalDocumentation3Definition)
     } else {
       return new ExternalDocumentation(Object.assign({
         url: ''
-      }, definition) as I.IExternalDocumentation3Definition)
+      }, definition) as IExternalDocumentation3Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.IExternalDocumentation3Definition> | ExternalDocumentation | string | undefined): Promise<ExternalDocumentation> {
+  static async createAsync (definition?: Partial<IExternalDocumentation3Definition> | ExternalDocumentation | string | undefined): Promise<ExternalDocumentation> {
     if (definition instanceof ExternalDocumentation) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IExternalDocumentation3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IExternalDocumentation3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IExternalDocumentation3Definition>> (definition?: T | undefined): I.IExternalDocumentation3Definition & T {
+  static createDefinition<T extends Partial<IExternalDocumentation3Definition>> (definition?: T | undefined): IExternalDocumentation3Definition & T {
     return Object.assign({
       url: ''
-    }, definition) as I.IExternalDocumentation3Definition & T
+    }, definition) as IExternalDocumentation3Definition & T
   }
 
-  static validate (definition: I.IExternalDocumentation3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IExternalDocumentation3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IExternalDocumentation3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IExternalDocumentation3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get url (): string {
-    return this.getProperty('url')
-  }
-
-  set url (value: string) {
-    this.setProperty('url', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {

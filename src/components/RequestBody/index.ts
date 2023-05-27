@@ -13,3 +13,4 @@
 
 export * from './IRequestBody'
 export { RequestBody as RequestBody3 } from './RequestBody3'
+export { RequestBody as RequestBody3a } from './RequestBody3a'

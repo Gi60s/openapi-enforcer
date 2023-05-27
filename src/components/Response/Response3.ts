@@ -12,24 +12,25 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Response as ResponseBase } from './Response'
+import { IResponse3, IResponse3Definition, IResponse3SchemaProcessor, IResponseValidatorsMap3 as IValidatorsMap } from './IResponse'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IResponseValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IResponse3Definition, IResponse3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> | null = null
+export class Response extends ResponseBase implements IResponse3 {
+  public extensions: Record<string, any> = {}
+  public description!: string
+  public headers?: Record<string, IHeader3 | IReference3>
+  public content?: Record<string, IMediaType3>
+  public links?: Record<string, ILink3 | IReference3>
 
-export class Response extends EnforcerComponent<I.IResponse3Definition> implements I.IResponse3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IResponse3Definition, version?: IVersion) {
+  constructor (definition: IResponse3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +44,17 @@ export class Response extends EnforcerComponent<I.IResponse3Definition> implemen
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#response-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#response-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#response-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#response-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#response-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IResponseSchemaProcessor): Icsd.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> {
+  static getSchemaDefinition (_data: IResponse3SchemaProcessor): ISDSchemaDefinition<IResponse3Definition, IResponse3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IResponse3Definition, I.IResponse3> = {
+    const result: ISDSchemaDefinition<IResponse3Definition, IResponse3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -71,77 +73,49 @@ export class Response extends EnforcerComponent<I.IResponse3Definition> implemen
     return result
   }
 
-  static create (definition?: Partial<I.IResponse3Definition> | Response | undefined): Response {
+  static create (definition?: Partial<IResponse3Definition> | Response | undefined): Response {
     if (definition instanceof Response) {
-      return new Response(Object.assign({}, definition as unknown) as I.IResponse3Definition)
+      return new Response(Object.assign({}, definition as unknown) as IResponse3Definition)
     } else {
       return new Response(Object.assign({
         description: ''
-      }, definition) as I.IResponse3Definition)
+      }, definition) as IResponse3Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.IResponse3Definition> | Response | string | undefined): Promise<Response> {
+  static async createAsync (definition?: Partial<IResponse3Definition> | Response | string | undefined): Promise<Response> {
     if (definition instanceof Response) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IResponse3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IResponse3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IResponse3Definition>> (definition?: T | undefined): I.IResponse3Definition & T {
+  static createDefinition<T extends Partial<IResponse3Definition>> (definition?: T | undefined): IResponse3Definition & T {
     return Object.assign({
       description: ''
-    }, definition) as I.IResponse3Definition & T
+    }, definition) as IResponse3Definition & T
   }
 
-  static validate (definition: I.IResponse3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IResponse3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IResponse3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IResponse3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get description (): string {
-    return this.getProperty('description')
-  }
-
-  set description (value: string) {
-    this.setProperty('description', value)
-  }
-
-  get headers (): Record<string, I.IHeader3> | undefined {
-    return this.getProperty('headers')
-  }
-
-  set headers (value: Record<string, I.IHeader3> | undefined) {
-    this.setProperty('headers', value)
-  }
-
-  get content (): Record<string, I.IMediaType3> | undefined {
-    return this.getProperty('content')
-  }
-
-  set content (value: Record<string, I.IMediaType3> | undefined) {
-    this.setProperty('content', value)
-  }
-
-  get links (): Record<string, I.ILink3> | undefined {
-    return this.getProperty('links')
-  }
-
-  set links (value: Record<string, I.ILink3> | undefined) {
-    this.setProperty('links', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {
@@ -159,7 +133,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Header3
+          component: Header3
         }
       }
     },
@@ -170,7 +144,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: false,
-          component: I.MediaType3
+          component: MediaType3
         }
       }
     },
@@ -181,7 +155,7 @@ function getValidatorsMap (): IValidatorsMap {
         additionalProperties: {
           type: 'component',
           allowsRef: true,
-          component: I.Link3
+          component: Link3
         }
       }
     }

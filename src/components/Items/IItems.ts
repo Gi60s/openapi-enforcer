@@ -12,25 +12,31 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as I from '../IInternalTypes'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDComponent, ISDAny, ISDNumber, ISDBoolean, ISDArray } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface IItemsComponent extends IComponentInstance {
+export type IItems = IItems2 | IItems3a
+export type IItemsDefinition = IItems2Definition | IItems3aDefinition
+export type IItems2SchemaProcessor = SchemaProcessor<IItems2Definition, IItems2>
+export type IItems3aSchemaProcessor = SchemaProcessor<IItems3aDefinition, IItems3a>
+export type IItemsSchemaProcessor = IItems2SchemaProcessor | IItems3aSchemaProcessor
+
+export interface IItemsBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
 // Put your code here.
 // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface IItems2Definition {
-  [Extensions: `x-${string}`]: any
-  type: 'array'|'boolean'|'integer'|'number'|'string'
+  [extensions: `x-${string}`]: any
+  type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
   format?: string
-  items?: I.IItems2Definition
-  collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'
+  items?: IItems2Definition
+  collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   default?: any
   maximum?: number
   exclusiveMaximum?: boolean
@@ -46,12 +52,12 @@ export interface IItems2Definition {
   multipleOf?: number
 }
 
-export interface IItems2 extends IItemsComponent {
-  [Extensions]: Record<string, any>
-  type: 'array'|'boolean'|'integer'|'number'|'string'
+export interface IItems2 extends IItemsBase {
+  extensions: Record<string, any>
+  type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
   format?: string
-  items?: I.IItems2
-  collectionFormat?: 'csv'|'ssv'|'tsv'|'pipes'
+  items?: IItems2
+  collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   default?: any
   maximum?: number
   exclusiveMaximum?: boolean
@@ -68,23 +74,31 @@ export interface IItems2 extends IItemsComponent {
 }
 
 export interface IItemsValidatorsMap2 {
-  type: Icsd.IProperty<Icsd.IString>
-  format: Icsd.IProperty<Icsd.IString>
-  items: Icsd.IProperty<Icsd.IComponent<I.IItems2Definition, I.IItems2>>
-  collectionFormat: Icsd.IProperty<Icsd.IString>
-  _default: Icsd.IProperty<any>
-  maximum: Icsd.IProperty<Icsd.INumber>
-  exclusiveMaximum: Icsd.IProperty<Icsd.IBoolean>
-  minimum: Icsd.IProperty<Icsd.INumber>
-  exclusiveMinimum: Icsd.IProperty<Icsd.IBoolean>
-  maxLength: Icsd.IProperty<Icsd.INumber>
-  minLength: Icsd.IProperty<Icsd.INumber>
-  pattern: Icsd.IProperty<Icsd.IString>
-  maxItems: Icsd.IProperty<Icsd.INumber>
-  minItems: Icsd.IProperty<Icsd.INumber>
-  uniqueItems: Icsd.IProperty<Icsd.IBoolean>
-  _enum: Icsd.IProperty<Icsd.IArray<any>>
-  multipleOf: Icsd.IProperty<Icsd.INumber>
+  type: ISDProperty<ISDString>
+  format: ISDProperty<ISDString>
+  items: ISDProperty<ISDComponent<IItems2Definition, IItems2>>
+  collectionFormat: ISDProperty<ISDString>
+  _default: ISDProperty<ISDAny>
+  maximum: ISDProperty<ISDNumber>
+  exclusiveMaximum: ISDProperty<ISDBoolean>
+  minimum: ISDProperty<ISDNumber>
+  exclusiveMinimum: ISDProperty<ISDBoolean>
+  maxLength: ISDProperty<ISDNumber>
+  minLength: ISDProperty<ISDNumber>
+  pattern: ISDProperty<ISDString>
+  maxItems: ISDProperty<ISDNumber>
+  minItems: ISDProperty<ISDNumber>
+  uniqueItems: ISDProperty<ISDBoolean>
+  _enum: ISDProperty<ISDArray<ISDAny>>
+  multipleOf: ISDProperty<ISDNumber>
+}
+
+export interface IItems3aDefinition {
+  [extensions: `x-${string}`]: any
+}
+
+export interface IItems3a extends IItemsBase {
+  extensions: Record<string, any>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

@@ -12,38 +12,26 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
+import { ISDSchemaDefinition, ISDAny } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Example as ExampleBase } from './Example'
+import { IExample2, IExample2Definition, IExample2SchemaProcessor } from './IExample'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IExample2Definition, I.IExample2> | null = null
+let cachedSchema: ISDSchemaDefinition<IExample2Definition, IExample2> | null = null
 
-const additionalProperties: any = {
+const additionalProperties: ISDAny = {
   type: 'any'
 }
 
-export class Example extends EnforcerComponent<I.IExample2Definition> implements I.IExample2 {
-  items!: Record<string, any>
+export class Example extends ExampleBase implements IExample2 {
+  any
 
-  constructor (definition: I.IExample2Definition, version?: IVersion) {
+  constructor (definition: IExample2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
-    Object.keys(definition).forEach(key => {
-      Object.defineProperty(this, key, {
-        configurable: true,
-        enumerable: true,
-        get () {
-          return this.getProperty(key)
-        },
-        set (value) {
-          this.setProperty(key, value)
-        }
-      })
-    })
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
     // <!# Custom Content End: CONSTRUCTOR #!>
@@ -56,15 +44,16 @@ export class Example extends EnforcerComponent<I.IExample2Definition> implements
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IExampleSchemaProcessor): Icsd.ISchemaDefinition<I.IExample2Definition, I.IExample2> {
+  static getSchemaDefinition (_data: IExample2SchemaProcessor): ISDSchemaDefinition<IExample2Definition, IExample2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
-    const result: Icsd.ISchemaDefinition<I.IExample2Definition, I.IExample2> = {
+    const result: ISDSchemaDefinition<IExample2Definition, IExample2> = {
       type: 'object',
       allowsSchemaExtensions: false,
       additionalProperties
@@ -78,29 +67,29 @@ export class Example extends EnforcerComponent<I.IExample2Definition> implements
     return result
   }
 
-  static create (definition?: Partial<I.IExample2Definition> | Example | undefined): Example {
-    return new Example(Object.assign({}, definition) as I.IExample2Definition)
+  static create (definition?: Partial<IExample2Definition> | Example | undefined): Example {
+    return new Example(Object.assign({}, definition) as IExample2Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IExample2Definition> | Example | string | undefined): Promise<Example> {
+  static async createAsync (definition?: Partial<IExample2Definition> | Example | string | undefined): Promise<Example> {
     if (definition instanceof Example) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IExample2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IExample2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IExample2Definition>> (definition?: T | undefined): I.IExample2Definition & T {
-    return Object.assign({}, definition) as I.IExample2Definition & T
+  static createDefinition<T extends Partial<IExample2Definition>> (definition?: T | undefined): IExample2Definition & T {
+    return Object.assign({}, definition) as IExample2Definition & T
   }
 
-  static validate (definition: I.IExample2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IExample2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IExample2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IExample2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
   }
@@ -109,6 +98,10 @@ export class Example extends EnforcerComponent<I.IExample2Definition> implements
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 // <!# Custom Content Begin: FOOTER #!>
 // Put your code here.

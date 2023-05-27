@@ -12,24 +12,38 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Schema3, ISchema3, ISchema3Definition } from '../Schema'
+import { Reference3, IReference3, IReference3Definition } from '../Reference'
+import { Record<Example|Reference>3, IRecord<Example|Reference>3, IRecord<Example|Reference>3Definition } from '../Record<Example|Reference>'
+import { Record<MediaType>3, IRecord<MediaType>3, IRecord<MediaType>3Definition } from '../Record<MediaType>'
+import { Parameter as ParameterBase } from './Parameter'
+import { IParameter3, IParameter3Definition, IParameter3SchemaProcessor, IParameterValidatorsMap3 as IValidatorsMap } from './IParameter'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IParameterValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<IParameter3Definition, IParameter3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IParameter3Definition, I.IParameter3> | null = null
+export class Parameter extends ParameterBase implements IParameter3 {
+  public extensions: Record<string, any> = {}
+  public name?: string!
+  public in!: 'cookie' | 'header' | 'path' | 'query'
+  public description?: string
+  public required?: boolean
+  public deprecated?: boolean
+  public allowEmptyValue?: boolean
+  public style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'pipeDelimited' | 'simple' | 'spaceDelimited'
+  public explode?: boolean
+  public allowReserved?: boolean
+  public schema?: ISchema3 | IReference3
+  public example?: any
+  public examples?: IRecord<Example|Reference>3
+  public content?: IRecord<MediaType>3
 
-export class Parameter extends EnforcerComponent<I.IParameter3Definition> implements I.IParameter3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IParameter3Definition, version?: IVersion) {
+  constructor (definition: IParameter3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +57,17 @@ export class Parameter extends EnforcerComponent<I.IParameter3Definition> implem
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#parameter-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#parameter-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#parameter-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#parameter-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#parameter-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IParameterSchemaProcessor): Icsd.ISchemaDefinition<I.IParameter3Definition, I.IParameter3> {
+  static getSchemaDefinition (_data: IParameter3SchemaProcessor): ISDSchemaDefinition<IParameter3Definition, IParameter3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IParameter3Definition, I.IParameter3> = {
+    const result: ISDSchemaDefinition<IParameter3Definition, IParameter3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -80,145 +95,39 @@ export class Parameter extends EnforcerComponent<I.IParameter3Definition> implem
     return result
   }
 
-  static create (definition?: Partial<I.IParameter3Definition> | Parameter | undefined): Parameter {
+  static create (definition?: Partial<IParameter3Definition> | Parameter | undefined): Parameter {
     if (definition instanceof Parameter) {
-      return new Parameter(Object.assign({}, definition as unknown) as I.IParameter3Definition)
+      return new Parameter(Object.assign({}, definition as unknown) as IParameter3Definition)
     } else {
       return new Parameter(Object.assign({
-        name: '',
         in: 'cookie'
-      }, definition) as I.IParameter3Definition)
+      }, definition) as IParameter3Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.IParameter3Definition> | Parameter | string | undefined): Promise<Parameter> {
+  static async createAsync (definition?: Partial<IParameter3Definition> | Parameter | string | undefined): Promise<Parameter> {
     if (definition instanceof Parameter) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IParameter3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IParameter3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IParameter3Definition>> (definition?: T | undefined): I.IParameter3Definition & T {
+  static createDefinition<T extends Partial<IParameter3Definition>> (definition?: T | undefined): IParameter3Definition & T {
     return Object.assign({
-      name: '',
       in: 'cookie'
-    }, definition) as I.IParameter3Definition & T
+    }, definition) as IParameter3Definition & T
   }
 
-  static validate (definition: I.IParameter3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IParameter3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IParameter3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IParameter3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get name (): string {
-    return this.getProperty('name')
-  }
-
-  set name (value: string) {
-    this.setProperty('name', value)
-  }
-
-  get in (): 'cookie'|'header'|'path'|'query' {
-    return this.getProperty('in')
-  }
-
-  set in (value: 'cookie'|'header'|'path'|'query') {
-    this.setProperty('in', value)
-  }
-
-  get description (): string | undefined {
-    return this.getProperty('description')
-  }
-
-  set description (value: string | undefined) {
-    this.setProperty('description', value)
-  }
-
-  get required (): boolean | undefined {
-    return this.getProperty('required')
-  }
-
-  set required (value: boolean | undefined) {
-    this.setProperty('required', value)
-  }
-
-  get deprecated (): boolean | undefined {
-    return this.getProperty('deprecated')
-  }
-
-  set deprecated (value: boolean | undefined) {
-    this.setProperty('deprecated', value)
-  }
-
-  get allowEmptyValue (): boolean | undefined {
-    return this.getProperty('allowEmptyValue')
-  }
-
-  set allowEmptyValue (value: boolean | undefined) {
-    this.setProperty('allowEmptyValue', value)
-  }
-
-  get style (): 'deepObject'|'form'|'label'|'matrix'|'pipeDelimited'|'simple'|'spaceDelimited' | undefined {
-    return this.getProperty('style')
-  }
-
-  set style (value: 'deepObject'|'form'|'label'|'matrix'|'pipeDelimited'|'simple'|'spaceDelimited' | undefined) {
-    this.setProperty('style', value)
-  }
-
-  get explode (): boolean | undefined {
-    return this.getProperty('explode')
-  }
-
-  set explode (value: boolean | undefined) {
-    this.setProperty('explode', value)
-  }
-
-  get allowReserved (): boolean | undefined {
-    return this.getProperty('allowReserved')
-  }
-
-  set allowReserved (value: boolean | undefined) {
-    this.setProperty('allowReserved', value)
-  }
-
-  get schema (): I.ISchema3 | undefined {
-    return this.getProperty('schema')
-  }
-
-  set schema (value: I.ISchema3 | undefined) {
-    this.setProperty('schema', value)
-  }
-
-  get example (): any | undefined {
-    return this.getProperty('example')
-  }
-
-  set example (value: any | undefined) {
-    this.setProperty('example', value)
-  }
-
-  get examples (): Record<string, I.IExample3> | undefined {
-    return this.getProperty('examples')
-  }
-
-  set examples (value: Record<string, I.IExample3> | undefined) {
-    this.setProperty('examples', value)
-  }
-
-  get content (): Record<string, I.IMediaType3> | undefined {
-    return this.getProperty('content')
-  }
-
-  set content (value: Record<string, I.IMediaType3> | undefined) {
-    this.setProperty('content', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
@@ -226,13 +135,16 @@ export class Parameter extends EnforcerComponent<I.IParameter3Definition> implem
   // <!# Custom Content End: BODY #!>
 }
 
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
+
 function getValidatorsMap (): IValidatorsMap {
   return {
     name: {
       name: 'name',
-      required: true,
       schema: {
-        type: 'string'
+        type: 'string!'
       }
     },
     _in: {
@@ -291,7 +203,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: true,
-        component: I.Schema3
+        component: Schema3
       }
     },
     example: {
@@ -303,23 +215,17 @@ function getValidatorsMap (): IValidatorsMap {
     examples: {
       name: 'examples',
       schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: true,
-          component: I.Example3
-        }
+        type: 'component',
+        allowsRef: false,
+        component: Record<Example|Reference>3
       }
     },
     content: {
       name: 'content',
       schema: {
-        type: 'object',
-        additionalProperties: {
-          type: 'component',
-          allowsRef: false,
-          component: I.MediaType3
-        }
+        type: 'component',
+        allowsRef: false,
+        component: Record<MediaType>3
       }
     }
   }

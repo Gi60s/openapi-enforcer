@@ -166,6 +166,11 @@ export function schemaDefinition (processor: I.ISchemaSchemaProcessor,
           })
         }
       })
+
+      if (derived.type === 'object') {
+        const conflicts: IAllOfData[] = []
+        allOfDeepObjectComparison(allOf, conflicts)
+      }
     }
   }
 }
@@ -303,6 +308,14 @@ export function validateMaxMin (exceptionStore: ExceptionStore,
       return data
     }
   }
+}
+
+function allOfDeepObjectComparison (schemas: IDefinition[], conflicts: IAllOfData[]) {
+  schemas
+    .filter(schema => determineSchemaType(schema) === 'object')
+    .forEach(schema => {
+      
+    })
 }
 
 // property values that must be equal across all schemas

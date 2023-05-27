@@ -12,24 +12,23 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { License as LicenseBase } from './License'
+import { ILicense3, ILicense3Definition, ILicense3SchemaProcessor, ILicenseValidatorsMap3 as IValidatorsMap } from './ILicense'
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.ILicenseValidatorsMap3
+let cachedSchema: ISDSchemaDefinition<ILicense3Definition, ILicense3> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.ILicense3Definition, I.ILicense3> | null = null
+export class License extends LicenseBase implements ILicense3 {
+  public extensions: Record<string, any> = {}
+  public name!: string
+  public url?: string
 
-export class License extends EnforcerComponent<I.ILicense3Definition> implements I.ILicense3 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.ILicense3Definition, version?: IVersion) {
+  constructor (definition: ILicense3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +42,17 @@ export class License extends EnforcerComponent<I.ILicense3Definition> implements
     '3.0.0': 'https://spec.openapis.org/oas/v3.0.0#license-object',
     '3.0.1': 'https://spec.openapis.org/oas/v3.0.1#license-object',
     '3.0.2': 'https://spec.openapis.org/oas/v3.0.2#license-object',
-    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#license-object'
+    '3.0.3': 'https://spec.openapis.org/oas/v3.0.3#license-object',
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.ILicenseSchemaProcessor): Icsd.ISchemaDefinition<I.ILicense3Definition, I.ILicense3> {
+  static getSchemaDefinition (_data: ILicense3SchemaProcessor): ISDSchemaDefinition<ILicense3Definition, ILicense3> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.ILicense3Definition, I.ILicense3> = {
+    const result: ISDSchemaDefinition<ILicense3Definition, ILicense3> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -69,61 +69,49 @@ export class License extends EnforcerComponent<I.ILicense3Definition> implements
     return result
   }
 
-  static create (definition?: Partial<I.ILicense3Definition> | License | undefined): License {
+  static create (definition?: Partial<ILicense3Definition> | License | undefined): License {
     if (definition instanceof License) {
-      return new License(Object.assign({}, definition as unknown) as I.ILicense3Definition)
+      return new License(Object.assign({}, definition as unknown) as ILicense3Definition)
     } else {
       return new License(Object.assign({
         name: ''
-      }, definition) as I.ILicense3Definition)
+      }, definition) as ILicense3Definition)
     }
   }
 
-  static async createAsync (definition?: Partial<I.ILicense3Definition> | License | string | undefined): Promise<License> {
+  static async createAsync (definition?: Partial<ILicense3Definition> | License | string | undefined): Promise<License> {
     if (definition instanceof License) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.ILicense3Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<ILicense3Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.ILicense3Definition>> (definition?: T | undefined): I.ILicense3Definition & T {
+  static createDefinition<T extends Partial<ILicense3Definition>> (definition?: T | undefined): ILicense3Definition & T {
     return Object.assign({
       name: ''
-    }, definition) as I.ILicense3Definition & T
+    }, definition) as ILicense3Definition & T
   }
 
-  static validate (definition: I.ILicense3Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: ILicense3Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.ILicense3Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: ILicense3Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get name (): string {
-    return this.getProperty('name')
-  }
-
-  set name (value: string) {
-    this.setProperty('name', value)
-  }
-
-  get url (): string | undefined {
-    return this.getProperty('url')
-  }
-
-  set url (value: string | undefined) {
-    this.setProperty('url', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
   // Put your code here.
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {

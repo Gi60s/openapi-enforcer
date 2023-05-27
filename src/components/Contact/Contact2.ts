@@ -12,24 +12,24 @@
  */
 
 import { IComponentSpec, IVersion } from '../IComponent'
-import { EnforcerComponent } from '../Component'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as Loader from '../../Loader'
-import * as I from '../IInternalTypes'
-import * as S from '../Symbols'
+import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Contact as ContactBase } from './Contact'
+import { IContact2, IContact2Definition, IContact2SchemaProcessor, IContactValidatorsMap2 as IValidatorsMap } from './IContact'
 // <!# Custom Content Begin: HEADER #!>
 import { validate } from './common'
 // <!# Custom Content End: HEADER #!>
 
-type IValidatorsMap = I.IContactValidatorsMap2
+let cachedSchema: ISDSchemaDefinition<IContact2Definition, IContact2> | null = null
 
-let cachedSchema: Icsd.ISchemaDefinition<I.IContact2Definition, I.IContact2> | null = null
+export class Contact extends ContactBase implements IContact2 {
+  public extensions: Record<string, any> = {}
+  public name?: string
+  public url?: string
+  public email?: string
 
-export class Contact extends EnforcerComponent<I.IContact2Definition> implements I.IContact2 {
-  [S.Extensions]: Record<string, any> = {}
-
-  constructor (definition: I.IContact2Definition, version?: IVersion) {
+  constructor (definition: IContact2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
     // Put your code here.
@@ -43,16 +43,17 @@ export class Contact extends EnforcerComponent<I.IContact2Definition> implements
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (_data: I.IContactSchemaProcessor): Icsd.ISchemaDefinition<I.IContact2Definition, I.IContact2> {
+  static getSchemaDefinition (_data: IContact2SchemaProcessor): ISDSchemaDefinition<IContact2Definition, IContact2> {
     if (cachedSchema !== null) {
       return cachedSchema
     }
 
     const validators = getValidatorsMap()
-    const result: Icsd.ISchemaDefinition<I.IContact2Definition, I.IContact2> = {
+    const result: ISDSchemaDefinition<IContact2Definition, IContact2> = {
       type: 'object',
       allowsSchemaExtensions: true,
       properties: [
@@ -72,61 +73,41 @@ export class Contact extends EnforcerComponent<I.IContact2Definition> implements
     return result
   }
 
-  static create (definition?: Partial<I.IContact2Definition> | Contact | undefined): Contact {
-    return new Contact(Object.assign({}, definition) as I.IContact2Definition)
+  static create (definition?: Partial<IContact2Definition> | Contact | undefined): Contact {
+    return new Contact(Object.assign({}, definition) as IContact2Definition)
   }
 
-  static async createAsync (definition?: Partial<I.IContact2Definition> | Contact | string | undefined): Promise<Contact> {
+  static async createAsync (definition?: Partial<IContact2Definition> | Contact | string | undefined): Promise<Contact> {
     if (definition instanceof Contact) {
       return await this.createAsync(Object.assign({}, definition))
     } else {
-      if (definition !== undefined) definition = await Loader.loadAsyncAndThrow(definition)
-      return this.create(definition as Partial<I.IContact2Definition>)
+      if (definition !== undefined) definition = await loadAsyncAndThrow(definition)
+      return this.create(definition as Partial<IContact2Definition>)
     }
   }
 
-  static createDefinition<T extends Partial<I.IContact2Definition>> (definition?: T | undefined): I.IContact2Definition & T {
-    return Object.assign({}, definition) as I.IContact2Definition & T
+  static createDefinition<T extends Partial<IContact2Definition>> (definition?: T | undefined): IContact2Definition & T {
+    return Object.assign({}, definition) as IContact2Definition & T
   }
 
-  static validate (definition: I.IContact2Definition, version?: IVersion): ExceptionStore {
+  static validate (definition: IContact2Definition, version?: IVersion): ExceptionStore {
     return super.validate(definition, version, arguments[2])
   }
 
-  static async validateAsync (definition: I.IContact2Definition | string, version?: IVersion): Promise<ExceptionStore> {
-    const result = await Loader.loadAsync(definition)
+  static async validateAsync (definition: IContact2Definition | string, version?: IVersion): Promise<ExceptionStore> {
+    const result = await loadAsync(definition)
     if (result.error !== undefined) return result.exceptionStore as ExceptionStore
     return super.validate(result.value, version, arguments[2])
-  }
-
-  get name (): string | undefined {
-    return this.getProperty('name')
-  }
-
-  set name (value: string | undefined) {
-    this.setProperty('name', value)
-  }
-
-  get url (): string | undefined {
-    return this.getProperty('url')
-  }
-
-  set url (value: string | undefined) {
-    this.setProperty('url', value)
-  }
-
-  get email (): string | undefined {
-    return this.getProperty('email')
-  }
-
-  set email (value: string | undefined) {
-    this.setProperty('email', value)
   }
 
   // <!# Custom Content Begin: BODY #!>
 
   // <!# Custom Content End: BODY #!>
 }
+
+// <!# Custom Content Begin: AFTER_COMPONENT #!>
+// Put your code here.
+// <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {
   return {

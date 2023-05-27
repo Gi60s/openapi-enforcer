@@ -14,3 +14,4 @@
 export * from './IReference'
 export { Reference as Reference2 } from './Reference2'
 export { Reference as Reference3 } from './Reference3'
+export { Reference as Reference3a } from './Reference3a'

@@ -12,50 +12,75 @@
  */
 
 import { IComponentInstance } from '../IComponent'
-import * as Icsd from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { Extensions } from '../Symbols'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
 // <!# Custom Content End: HEADER #!>
 
-interface ILicenseComponent extends IComponentInstance {
+export type ILicense = ILicense2 | ILicense3 | ILicense3a
+export type ILicenseDefinition = ILicense2Definition | ILicense3Definition | ILicense3aDefinition
+export type ILicense2SchemaProcessor = SchemaProcessor<ILicense2Definition, ILicense2>
+export type ILicense3SchemaProcessor = SchemaProcessor<ILicense3Definition, ILicense3>
+export type ILicense3aSchemaProcessor = SchemaProcessor<ILicense3aDefinition, ILicense3a>
+export type ILicenseSchemaProcessor = ILicense2SchemaProcessor | ILicense3SchemaProcessor | ILicense3aSchemaProcessor
+
+export interface ILicenseBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   // Put your code here.
   // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
 }
 
 export interface ILicense2Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   name: string
   url?: string
 }
 
-export interface ILicense2 extends ILicenseComponent {
-  [Extensions]: Record<string, any>
+export interface ILicense2 extends ILicenseBase {
+  extensions: Record<string, any>
   name: string
   url?: string
 }
 
 export interface ILicenseValidatorsMap2 {
-  name: Icsd.IProperty<Icsd.IString>
-  url: Icsd.IProperty<Icsd.IString>
+  name: ISDProperty<ISDString>
+  url: ISDProperty<ISDString>
 }
 
 export interface ILicense3Definition {
-  [Extensions: `x-${string}`]: any
+  [extensions: `x-${string}`]: any
   name: string
   url?: string
 }
 
-export interface ILicense3 extends ILicenseComponent {
-  [Extensions]: Record<string, any>
+export interface ILicense3 extends ILicenseBase {
+  extensions: Record<string, any>
   name: string
   url?: string
 }
 
 export interface ILicenseValidatorsMap3 {
-  name: Icsd.IProperty<Icsd.IString>
-  url: Icsd.IProperty<Icsd.IString>
+  name: ISDProperty<ISDString>
+  url: ISDProperty<ISDString>
+}
+
+export interface ILicense3aDefinition {
+  [extensions: `x-${string}`]: any
+  name: string
+  url?: string
+}
+
+export interface ILicense3a extends ILicenseBase {
+  extensions: Record<string, any>
+  name: string
+  url?: string
+}
+
+export interface ILicenseValidatorsMap3a {
+  name: ISDProperty<ISDString>
+  url: ISDProperty<ISDString>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

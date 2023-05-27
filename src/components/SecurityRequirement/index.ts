@@ -14,3 +14,4 @@
 export * from './ISecurityRequirement'
 export { SecurityRequirement as SecurityRequirement2 } from './SecurityRequirement2'
 export { SecurityRequirement as SecurityRequirement3 } from './SecurityRequirement3'
+export { SecurityRequirement as SecurityRequirement3a } from './SecurityRequirement3a'

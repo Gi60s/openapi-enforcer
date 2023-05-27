@@ -13,3 +13,4 @@
 
 export * from './IDiscriminator'
 export { Discriminator as Discriminator3 } from './Discriminator3'
+export { Discriminator as Discriminator3a } from './Discriminator3a'
