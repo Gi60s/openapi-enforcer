@@ -11,11 +11,12 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Operation3a, IOperation3a, IOperation3aDefinition } from '../Operation'
+import { Operation3a, IOperation3a } from '../Operation'
 import { PathItem as PathItemBase } from './PathItem'
 import { IPathItem3a, IPathItem3aDefinition, IPathItem3aSchemaProcessor, IPathItemValidatorsMap3a as IValidatorsMap } from './IPathItem'
 // <!# Custom Content Begin: HEADER #!>
@@ -38,7 +39,7 @@ export class PathItem extends PathItemBase implements IPathItem3a {
   public patch?: IOperation3a
   public trace?: IOperation3a
   public servers?: IServer3a[]
-  public parameters?: Array<IParameter3a | IReference3a>
+  public parameters?: IParameter3a[]
 
   constructor (definition: IPathItem3aDefinition, version?: IVersion) {
     super(definition, version, arguments[2])

@@ -11,12 +11,12 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Response3a, IResponse3a, IResponse3aDefinition } from '../Response'
-import { Reference3a, IReference3a, IReference3aDefinition } from '../Reference'
+import { Response3a, IResponse3a } from '../Response'
 import { Responses as ResponsesBase } from './Responses'
 import { IResponses3a, IResponses3aDefinition, IResponses3aSchemaProcessor, IResponsesValidatorsMap3a as IValidatorsMap } from './IResponses'
 // <!# Custom Content Begin: HEADER #!>
@@ -27,7 +27,7 @@ let cachedSchema: ISDSchemaDefinition<IResponses3aDefinition, IResponses3a> | nu
 
 export class Responses extends ResponsesBase implements IResponses3a {
   public extensions: Record<string, any> = {}
-  public default?: IResponse3a | IReference3a
+  public default?: IResponse3a
 
   constructor (definition: IResponses3aDefinition, version?: IVersion) {
     super(definition, version, arguments[2])

@@ -11,6 +11,7 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
@@ -25,15 +26,15 @@ let cachedSchema: ISDSchemaDefinition<IComponents3aDefinition, IComponents3a> | 
 
 export class Components extends ComponentsBase implements IComponents3a {
   public extensions: Record<string, any> = {}
-  public schemas?: Record<string, ISchema3a | IReference3a>
-  public responses?: Record<string, IResponse3a | IReference3a>
-  public parameters?: Record<string, IParameter3a | IReference3a>
-  public examples?: Record<string, IExample3a | IReference3a>
-  public requestBodies?: Record<string, IRequestBody3a | IReference3a>
-  public headers?: Record<string, IHeader3a | IReference3a>
-  public securitySchemes?: Record<string, ISecurityScheme3a | IReference3a>
-  public links?: Record<string, ILink3a | IReference3a>
-  public callbacks?: Record<string, ICallback3a | IReference3a>
+  public schemas?: Record<string, ISchema3a>
+  public responses?: Record<string, IResponse3a>
+  public parameters?: Record<string, IParameter3a>
+  public examples?: Record<string, IExample3a>
+  public requestBodies?: Record<string, IRequestBody3a>
+  public headers?: Record<string, IHeader3a>
+  public securitySchemes?: Record<string, ISecurityScheme3a>
+  public links?: Record<string, ILink3a>
+  public callbacks?: Record<string, ICallback3a>
 
   constructor (definition: IComponents3aDefinition, version?: IVersion) {
     super(definition, version, arguments[2])

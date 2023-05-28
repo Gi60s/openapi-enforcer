@@ -11,13 +11,13 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Schema2, ISchema2, ISchema2Definition } from '../Schema'
-import { Reference2, IReference2, IReference2Definition } from '../Reference'
-import { Example2, IExample2, IExample2Definition } from '../Example'
+import { Schema2, ISchema2 } from '../Schema'
+import { Example2, IExample2 } from '../Example'
 import { Response as ResponseBase } from './Response'
 import { IResponse2, IResponse2Definition, IResponse2SchemaProcessor, IResponseValidatorsMap2 as IValidatorsMap } from './IResponse'
 // <!# Custom Content Begin: HEADER #!>
@@ -29,7 +29,7 @@ let cachedSchema: ISDSchemaDefinition<IResponse2Definition, IResponse2> | null =
 export class Response extends ResponseBase implements IResponse2 {
   public extensions: Record<string, any> = {}
   public description!: string
-  public schema?: ISchema2 | IReference2
+  public schema?: ISchema2
   public headers?: Record<string, IHeader2>
   public examples?: IExample2
 

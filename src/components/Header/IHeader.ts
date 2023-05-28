@@ -124,9 +124,9 @@ export interface IHeader3 extends IHeaderBase {
   style?: ='simple'
   explode?: boolean
   allowReserved?: boolean
-  schema?: ISchema3 | IReference3
+  schema?: ISchema3
   example?: any
-  examples?: Record<string, IExample3 | IReference3>
+  examples?: Record<string, IExample3>
   content?: Record<string, IMediaType3>
 }
 
@@ -168,9 +168,9 @@ export interface IHeader3a extends IHeaderBase {
   style?: ='simple'
   explode?: boolean
   allowReserved?: boolean
-  schema?: ISchema3a | IReference3a
+  schema?: ISchema3a
   example?: any
-  examples?: Record<string, IExample3a | IReference3a>
+  examples?: Record<string, IExample3a>
   content?: Record<string, IMediaType3a>
 }
 

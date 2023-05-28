@@ -11,11 +11,12 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Items2, IItems2, IItems2Definition } from '../Items'
+import { Items2, IItems2 } from '../Items'
 import { Header as HeaderBase } from './Header'
 import { IHeader2, IHeader2Definition, IHeader2SchemaProcessor, IHeaderValidatorsMap2 as IValidatorsMap } from './IHeader'
 // <!# Custom Content Begin: HEADER #!>

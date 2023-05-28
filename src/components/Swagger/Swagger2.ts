@@ -11,13 +11,14 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Info2, IInfo2, IInfo2Definition } from '../Info'
-import { Paths2, IPaths2, IPaths2Definition } from '../Paths'
-import { ExternalDocumentation2, IExternalDocumentation2, IExternalDocumentation2Definition } from '../ExternalDocumentation'
+import { Info2, IInfo2 } from '../Info'
+import { Paths2, IPaths2 } from '../Paths'
+import { ExternalDocumentation2, IExternalDocumentation2 } from '../ExternalDocumentation'
 import { Swagger as SwaggerBase } from './Swagger'
 import { ISwagger2, ISwagger2Definition, ISwagger2SchemaProcessor, ISwaggerValidatorsMap2 as IValidatorsMap } from './ISwagger'
 // <!# Custom Content Begin: HEADER #!>

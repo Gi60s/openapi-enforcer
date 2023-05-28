@@ -11,14 +11,14 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Schema3, ISchema3, ISchema3Definition } from '../Schema'
-import { Reference3, IReference3, IReference3Definition } from '../Reference'
-import { Record<Example|Reference>3, IRecord<Example|Reference>3, IRecord<Example|Reference>3Definition } from '../Record<Example|Reference>'
-import { Record<MediaType>3, IRecord<MediaType>3, IRecord<MediaType>3Definition } from '../Record<MediaType>'
+import { Schema3, ISchema3 } from '../Schema'
+import { Record<Example|Reference>3, IRecord<Example|Reference>3 } from '../Record<Example|Reference>'
+import { Record<MediaType>3, IRecord<MediaType>3 } from '../Record<MediaType>'
 import { Parameter as ParameterBase } from './Parameter'
 import { IParameter3, IParameter3Definition, IParameter3SchemaProcessor, IParameterValidatorsMap3 as IValidatorsMap } from './IParameter'
 // <!# Custom Content Begin: HEADER #!>
@@ -38,7 +38,7 @@ export class Parameter extends ParameterBase implements IParameter3 {
   public style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'pipeDelimited' | 'simple' | 'spaceDelimited'
   public explode?: boolean
   public allowReserved?: boolean
-  public schema?: ISchema3 | IReference3
+  public schema?: ISchema3
   public example?: any
   public examples?: IRecord<Example|Reference>3
   public content?: IRecord<MediaType>3

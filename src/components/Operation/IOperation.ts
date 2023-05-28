@@ -68,7 +68,7 @@ export interface IOperation2 extends IOperationBase {
   operationId?: string
   consumes?: string[]
   produces?: string[]
-  parameters?: Array<IParameter2 | IReference2>
+  parameters?: IParameter2[]
   responses: IResponses2
   schemes?: Array<'http' | 'https' | 'ws' | 'wss'>
   deprecated?: boolean
@@ -113,10 +113,10 @@ export interface IOperation3 extends IOperationBase {
   description?: string
   externalDocs?: IExternalDocumentation3
   operationId?: string
-  parameters?: Array<IParameter3 | IReference3>
-  requestBody?: IRequestBody3 | IReference3
+  parameters?: IParameter3[]
+  requestBody?: IRequestBody3
   responses: IResponses3
-  callbacks?: Record<string, ICallback3 | IReference3>
+  callbacks?: Record<string, ICallback3>
   deprecated?: boolean
   security?: ISecurityRequirement3[]
   servers?: IServer3[]
@@ -160,10 +160,10 @@ export interface IOperation3a extends IOperationBase {
   description?: string
   externalDocs?: IExternalDocumentation3a
   operationId?: string
-  parameters?: Array<IParameter3a | IReference3a>
-  requestBody?: IRequestBody3a | IReference3a
+  parameters?: IParameter3a[]
+  requestBody?: IRequestBody3a
   responses: IResponses3a
-  callbacks?: Record<string, ICallback3a | IReference3a>
+  callbacks?: Record<string, ICallback3a>
   deprecated?: boolean
   security?: ISecurityRequirement3a[]
   servers?: IServer3a[]

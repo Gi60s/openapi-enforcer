@@ -43,9 +43,9 @@ export interface IMediaType3Definition {
 
 export interface IMediaType3 extends IMediaTypeBase {
   extensions: Record<string, any>
-  schema?: ISchema3 | IReference3
+  schema?: ISchema3
   example?: any
-  examples?: Record<string, IExample3 | IReference3>
+  examples?: Record<string, IExample3>
   encoding?: Record<string, IEncoding3>
 }
 
@@ -66,9 +66,9 @@ export interface IMediaType3aDefinition {
 
 export interface IMediaType3a extends IMediaTypeBase {
   extensions: Record<string, any>
-  schema?: ISchema3a | IReference3a
+  schema?: ISchema3a
   example?: any
-  examples?: Record<string, IExample3a | IReference3a>
+  examples?: Record<string, IExample3a>
   encoding?: Record<string, IEncoding3a>
 }
 

@@ -11,11 +11,12 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition, ISDObject, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { PathItem3, IPathItem3, IPathItem3Definition } from '../PathItem'
+import { PathItem3, IPathItem3 } from '../PathItem'
 import { Callback as CallbackBase } from './Callback'
 import { ICallback3, ICallback3Definition, ICallback3SchemaProcessor } from './ICallback'
 // <!# Custom Content Begin: HEADER #!>

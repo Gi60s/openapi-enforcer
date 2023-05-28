@@ -44,7 +44,7 @@ export interface IResponse2Definition {
 export interface IResponse2 extends IResponseBase {
   extensions: Record<string, any>
   description: string
-  schema?: ISchema2 | IReference2
+  schema?: ISchema2
   headers?: Record<string, IHeader2>
   examples?: IExample2
 }
@@ -67,9 +67,9 @@ export interface IResponse3Definition {
 export interface IResponse3 extends IResponseBase {
   extensions: Record<string, any>
   description: string
-  headers?: Record<string, IHeader3 | IReference3>
+  headers?: Record<string, IHeader3>
   content?: Record<string, IMediaType3>
-  links?: Record<string, ILink3 | IReference3>
+  links?: Record<string, ILink3>
 }
 
 export interface IResponseValidatorsMap3 {
@@ -90,9 +90,9 @@ export interface IResponse3aDefinition {
 export interface IResponse3a extends IResponseBase {
   extensions: Record<string, any>
   description: string
-  headers?: Record<string, IHeader3a | IReference3a>
+  headers?: Record<string, IHeader3a>
   content?: Record<string, IMediaType3a>
-  links?: Record<string, ILink3a | IReference3a>
+  links?: Record<string, ILink3a>
 }
 
 export interface IResponseValidatorsMap3a {

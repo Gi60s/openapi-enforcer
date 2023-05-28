@@ -11,12 +11,12 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition, ISDObject, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Response2, IResponse2, IResponse2Definition } from '../Response'
-import { Reference2, IReference2, IReference2Definition } from '../Reference'
+import { Response2, IResponse2 } from '../Response'
 import { Responses as ResponsesBase } from './Responses'
 import { IResponses2, IResponses2Definition, IResponses2SchemaProcessor, IResponsesValidatorsMap2 as IValidatorsMap } from './IResponses'
 // <!# Custom Content Begin: HEADER #!>
@@ -36,9 +36,8 @@ const additionalProperties: ISDObject<ISDComponent<IResponse2Definition, IRespon
 
 export class Responses extends ResponsesBase implements IResponses2 {
   public extensions: Record<string, any> = {};
-  public default?: IResponse2 | IReference2
-  Record<string, IResponse2
-  IReference2>
+  public default?: IResponse2
+  Record<string, IResponse2>
 
   constructor (definition: IResponses2Definition, version?: IVersion) {
     super(definition, version, arguments[2])

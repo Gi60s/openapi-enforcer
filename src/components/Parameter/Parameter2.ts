@@ -11,12 +11,13 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Schema2, ISchema2, ISchema2Definition } from '../Schema'
-import { Items2, IItems2, IItems2Definition } from '../Items'
+import { Schema2, ISchema2 } from '../Schema'
+import { Items2, IItems2 } from '../Items'
 import { Parameter as ParameterBase } from './Parameter'
 import { IParameter2, IParameter2Definition, IParameter2SchemaProcessor, IParameterValidatorsMap2 as IValidatorsMap } from './IParameter'
 // <!# Custom Content Begin: HEADER #!>

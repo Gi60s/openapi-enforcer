@@ -11,14 +11,15 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Info3, IInfo3, IInfo3Definition } from '../Info'
-import { Paths3, IPaths3, IPaths3Definition } from '../Paths'
-import { Components3, IComponents3, IComponents3Definition } from '../Components'
-import { ExternalDocumentation3, IExternalDocumentation3, IExternalDocumentation3Definition } from '../ExternalDocumentation'
+import { Info3, IInfo3 } from '../Info'
+import { Paths3, IPaths3 } from '../Paths'
+import { Components3, IComponents3 } from '../Components'
+import { ExternalDocumentation3, IExternalDocumentation3 } from '../ExternalDocumentation'
 import { OpenAPI as OpenAPIBase } from './OpenAPI'
 import { IOpenAPI3, IOpenAPI3Definition, IOpenAPI3SchemaProcessor, IOpenAPIValidatorsMap3 as IValidatorsMap } from './IOpenAPI'
 // <!# Custom Content Begin: HEADER #!>

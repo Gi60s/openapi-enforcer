@@ -135,9 +135,9 @@ export interface ISchema2 extends ISchemaBase {
   required?: string[]
   type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
   items?: ISchema2
-  allOf?: Array<ISchema2 | IReference2>
-  properties?: Record<string, ISchema2 | IReference2>
-  additionalProperties?: ISchema2 | IReference2 | boolean
+  allOf?: ISchema2[]
+  properties?: Record<string, ISchema2>
+  additionalProperties?: ISchema2 | boolean
   discriminator?: string
   readOnly?: boolean
   xml?: IXml2
@@ -219,10 +219,10 @@ export interface ISchema3Definition {
 export interface ISchema3 extends ISchemaBase {
   extensions: Record<string, any>
   type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
-  allOf?: Array<ISchema3 | IReference3>
-  oneOf?: Array<ISchema3 | IReference3>
-  anyOf?: Array<ISchema3 | IReference3>
-  not?: ISchema3 | IReference3
+  allOf?: ISchema3[]
+  oneOf?: ISchema3[]
+  anyOf?: ISchema3[]
+  not?: ISchema3
   title?: string
   maximum?: number
   exclusiveMaximum?: boolean
@@ -239,9 +239,9 @@ export interface ISchema3 extends ISchemaBase {
   enum?: any[]
   multipleOf?: number
   required?: string[]
-  items?: ISchema3 | IReference3
-  properties?: Record<string, ISchema3 | IReference3>
-  additionalProperties?: ISchema3 | IReference3 | boolean
+  items?: ISchema3
+  properties?: Record<string, ISchema3>
+  additionalProperties?: ISchema3 | boolean
   description?: string
   format?: string
   default?: any
@@ -335,10 +335,10 @@ export interface ISchema3aDefinition {
 export interface ISchema3a extends ISchemaBase {
   extensions: Record<string, any>
   type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string' | Array<'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'>
-  allOf?: Array<ISchema3a | IReference3a>
-  oneOf?: Array<ISchema3a | IReference3a>
-  anyOf?: Array<ISchema3a | IReference3a>
-  not?: ISchema3a | IReference3a
+  allOf?: ISchema3a[]
+  oneOf?: ISchema3a[]
+  anyOf?: ISchema3a[]
+  not?: ISchema3a
   title?: string
   maximum?: number
   exclusiveMaximum?: boolean
@@ -355,9 +355,9 @@ export interface ISchema3a extends ISchemaBase {
   enum?: any[]
   multipleOf?: number
   required?: string[]
-  items?: ISchema3a | IReference3a
-  properties?: Record<string, ISchema3a | IReference3a>
-  additionalProperties?: ISchema3a | IReference3a | boolean
+  items?: ISchema3a
+  properties?: Record<string, ISchema3a>
+  additionalProperties?: ISchema3a | boolean
   description?: string
   format?: string
   default?: any

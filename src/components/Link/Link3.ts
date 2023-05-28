@@ -11,11 +11,12 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Server3, IServer3, IServer3Definition } from '../Server'
+import { Server3, IServer3 } from '../Server'
 import { Link as LinkBase } from './Link'
 import { ILink3, ILink3Definition, ILink3SchemaProcessor, ILinkValidatorsMap3 as IValidatorsMap } from './ILink'
 // <!# Custom Content Begin: HEADER #!>

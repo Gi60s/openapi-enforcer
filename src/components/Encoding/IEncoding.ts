@@ -43,7 +43,7 @@ export interface IEncoding3Definition {
 export interface IEncoding3 extends IEncodingBase {
   extensions: Record<string, any>
   contentType?: string
-  headers?: Record<string, IHeader3 | IReference3>
+  headers?: Record<string, IHeader3>
   style?: string
   explode?: boolean
   allowReserved?: boolean
@@ -69,7 +69,7 @@ export interface IEncoding3aDefinition {
 export interface IEncoding3a extends IEncodingBase {
   extensions: Record<string, any>
   contentType?: string
-  headers?: Record<string, IHeader3a | IReference3a>
+  headers?: Record<string, IHeader3a>
   style?: string
   explode?: boolean
   allowReserved?: boolean

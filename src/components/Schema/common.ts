@@ -26,37 +26,37 @@ export function deserialize (value: string, options: { strict: boolean } | undef
   return null
 }
 
-export function determineSchemaType (definition: I.ISchemaDefinition | I.ISchema): 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string' | undefined {
-  if (definition.type !== undefined) return definition.type
-  if ('items' in definition ||
-    'maxItems' in definition ||
-    'minItems' in definition ||
-    'uniqueItems' in definition ||
-    Array.isArray(definition.default) ||
-    Array.isArray(definition.enum?.[0])) return 'array'
-  if ('additionalProperties' in definition ||
-    'discriminator' in definition ||
-    'properties' in definition ||
-    'maxProperties' in definition ||
-    'minProperties' in definition ||
-    'required' in definition ||
-    (typeof definition.default === 'object' && definition.default !== null) ||
-    (typeof definition.enum?.[0] === 'object' && definition.enum[0] !== null)) return 'object'
-  if ('maximum' in definition ||
-    'minimum' in definition ||
-    'exclusiveMaximum' in definition ||
-    'exclusiveMinimum' in definition ||
-    'multipleOf' in definition ||
-    typeof definition.default === 'number' ||
-    typeof definition.enum?.[0] === 'number') return 'number'
-  if ('maxLength' in definition ||
-    'minLength' in definition ||
-    'pattern' in definition ||
-    typeof definition.default === 'string' ||
-    typeof definition.enum?.[0] === 'string') return 'string'
-  if (typeof definition.default === 'boolean' ||
-    typeof definition.enum?.[0] === 'boolean') return 'boolean'
-}
+// export function determineSchemaType (definition: I.ISchemaDefinition | I.ISchema): 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string' | undefined {
+//   if (definition.type !== undefined) return definition.type
+//   if ('items' in definition ||
+//     'maxItems' in definition ||
+//     'minItems' in definition ||
+//     'uniqueItems' in definition ||
+//     Array.isArray(definition.default) ||
+//     Array.isArray(definition.enum?.[0])) return 'array'
+//   if ('additionalProperties' in definition ||
+//     'discriminator' in definition ||
+//     'properties' in definition ||
+//     'maxProperties' in definition ||
+//     'minProperties' in definition ||
+//     'required' in definition ||
+//     (typeof definition.default === 'object' && definition.default !== null) ||
+//     (typeof definition.enum?.[0] === 'object' && definition.enum[0] !== null)) return 'object'
+//   if ('maximum' in definition ||
+//     'minimum' in definition ||
+//     'exclusiveMaximum' in definition ||
+//     'exclusiveMinimum' in definition ||
+//     'multipleOf' in definition ||
+//     typeof definition.default === 'number' ||
+//     typeof definition.enum?.[0] === 'number') return 'number'
+//   if ('maxLength' in definition ||
+//     'minLength' in definition ||
+//     'pattern' in definition ||
+//     typeof definition.default === 'string' ||
+//     typeof definition.enum?.[0] === 'string') return 'string'
+//   if (typeof definition.default === 'boolean' ||
+//     typeof definition.enum?.[0] === 'boolean') return 'boolean'
+// }
 
 export function discriminate<T extends ISchema> (value: object): { key: string, name: string, schema: T } {
   return {
@@ -314,7 +314,7 @@ function allOfDeepObjectComparison (schemas: IDefinition[], conflicts: IAllOfDat
   schemas
     .filter(schema => determineSchemaType(schema) === 'object')
     .forEach(schema => {
-      
+
     })
 }
 

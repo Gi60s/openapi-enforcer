@@ -43,9 +43,8 @@ export interface IResponses2Definition {
 
 export interface IResponses2 extends IResponsesBase {
   extensions: Record<string, any>
-  Record<string, IResponse2
-  IReference2>
-  default?: IResponse2 | IReference2
+  Record<string, IResponse2>
+  default?: IResponse2
 }
 
 export interface IResponsesValidatorsMap2 {
@@ -61,9 +60,8 @@ export interface IResponses3Definition {
 
 export interface IResponses3 extends IResponsesBase {
   extensions: Record<string, any>
-  Record<string, IResponse3
-  IReference3>
-  default?: IResponse3 | IReference3
+  Record<string, IResponse3>
+  default?: IResponse3
 }
 
 export interface IResponsesValidatorsMap3 {
@@ -77,7 +75,7 @@ export interface IResponses3aDefinition {
 
 export interface IResponses3a extends IResponsesBase {
   extensions: Record<string, any>
-  default?: IResponse3a | IReference3a
+  default?: IResponse3a
 }
 
 export interface IResponsesValidatorsMap3a {

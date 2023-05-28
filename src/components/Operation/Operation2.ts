@@ -11,12 +11,13 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { ExternalDocumentation2, IExternalDocumentation2, IExternalDocumentation2Definition } from '../ExternalDocumentation'
-import { Responses2, IResponses2, IResponses2Definition } from '../Responses'
+import { ExternalDocumentation2, IExternalDocumentation2 } from '../ExternalDocumentation'
+import { Responses2, IResponses2 } from '../Responses'
 import { Operation as OperationBase } from './Operation'
 import { IOperation2, IOperation2Definition, IOperation2SchemaProcessor, IOperationValidatorsMap2 as IValidatorsMap } from './IOperation'
 // <!# Custom Content Begin: HEADER #!>
@@ -41,7 +42,7 @@ export class Operation extends OperationBase implements IOperation2 {
   public operationId?: string
   public consumes?: string[]
   public produces?: string[]
-  public parameters?: Array<IParameter2 | IReference2>
+  public parameters?: IParameter2[]
   public responses!: IResponses2
   public schemes?: Array<'http' | 'https' | 'ws' | 'wss'>
   public deprecated?: boolean

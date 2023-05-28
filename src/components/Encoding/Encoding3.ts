@@ -11,6 +11,7 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
@@ -26,7 +27,7 @@ let cachedSchema: ISDSchemaDefinition<IEncoding3Definition, IEncoding3> | null =
 export class Encoding extends EncodingBase implements IEncoding3 {
   public extensions: Record<string, any> = {}
   public contentType?: string
-  public headers?: Record<string, IHeader3 | IReference3>
+  public headers?: Record<string, IHeader3>
   public style?: string
   public explode?: boolean
   public allowReserved?: boolean

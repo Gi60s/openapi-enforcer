@@ -46,15 +46,15 @@ export interface IComponents3Definition {
 
 export interface IComponents3 extends IComponentsBase {
   extensions: Record<string, any>
-  schemas?: Record<string, ISchema3 | IReference3>
-  responses?: Record<string, IResponse3 | IReference3>
-  parameters?: Record<string, IParameter3 | IReference3>
-  examples?: Record<string, IExample3 | IReference3>
-  requestBodies?: Record<string, IRequestBody3 | IReference3>
-  headers?: Record<string, IHeader3 | IReference3>
-  securitySchemes?: Record<string, ISecurityScheme3 | IReference3>
-  links?: Record<string, ILink3 | IReference3>
-  callbacks?: Record<string, ICallback3 | IReference3>
+  schemas?: Record<string, ISchema3>
+  responses?: Record<string, IResponse3>
+  parameters?: Record<string, IParameter3>
+  examples?: Record<string, IExample3>
+  requestBodies?: Record<string, IRequestBody3>
+  headers?: Record<string, IHeader3>
+  securitySchemes?: Record<string, ISecurityScheme3>
+  links?: Record<string, ILink3>
+  callbacks?: Record<string, ICallback3>
 }
 
 export interface IComponentsValidatorsMap3 {
@@ -84,15 +84,15 @@ export interface IComponents3aDefinition {
 
 export interface IComponents3a extends IComponentsBase {
   extensions: Record<string, any>
-  schemas?: Record<string, ISchema3a | IReference3a>
-  responses?: Record<string, IResponse3a | IReference3a>
-  parameters?: Record<string, IParameter3a | IReference3a>
-  examples?: Record<string, IExample3a | IReference3a>
-  requestBodies?: Record<string, IRequestBody3a | IReference3a>
-  headers?: Record<string, IHeader3a | IReference3a>
-  securitySchemes?: Record<string, ISecurityScheme3a | IReference3a>
-  links?: Record<string, ILink3a | IReference3a>
-  callbacks?: Record<string, ICallback3a | IReference3a>
+  schemas?: Record<string, ISchema3a>
+  responses?: Record<string, IResponse3a>
+  parameters?: Record<string, IParameter3a>
+  examples?: Record<string, IExample3a>
+  requestBodies?: Record<string, IRequestBody3a>
+  headers?: Record<string, IHeader3a>
+  securitySchemes?: Record<string, ISecurityScheme3a>
+  links?: Record<string, ILink3a>
+  callbacks?: Record<string, ICallback3a>
 }
 
 export interface IComponentsValidatorsMap3a {

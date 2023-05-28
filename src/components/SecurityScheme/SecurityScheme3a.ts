@@ -11,11 +11,12 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { OAuthFlows3a, IOAuthFlows3a, IOAuthFlows3aDefinition } from '../OAuthFlows'
+import { OAuthFlows3a, IOAuthFlows3a } from '../OAuthFlows'
 import { SecurityScheme as SecuritySchemeBase } from './SecurityScheme'
 import { ISecurityScheme3a, ISecurityScheme3aDefinition, ISecurityScheme3aSchemaProcessor, ISecuritySchemeValidatorsMap3a as IValidatorsMap } from './ISecurityScheme'
 // <!# Custom Content Begin: HEADER #!>

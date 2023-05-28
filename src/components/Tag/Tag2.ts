@@ -11,11 +11,12 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { ExternalDocumentation2, IExternalDocumentation2, IExternalDocumentation2Definition } from '../ExternalDocumentation'
+import { ExternalDocumentation2, IExternalDocumentation2 } from '../ExternalDocumentation'
 import { Tag as TagBase } from './Tag'
 import { ITag2, ITag2Definition, ITag2SchemaProcessor, ITagValidatorsMap2 as IValidatorsMap } from './ITag'
 // <!# Custom Content Begin: HEADER #!>

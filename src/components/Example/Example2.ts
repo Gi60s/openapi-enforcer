@@ -11,6 +11,7 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition, ISDAny } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'

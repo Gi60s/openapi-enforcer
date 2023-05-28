@@ -1,7 +1,12 @@
+/* eslint-disable import/no-duplicates */
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
 import { IExternalDocumentationDefinition, IExternalDocumentationBase } from './IExternalDocumentation'
+
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
 
 export abstract class ExternalDocumentation extends EnforcerComponent<IExternalDocumentationDefinition> implements IExternalDocumentationBase {
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
@@ -16,3 +21,7 @@ export abstract class ExternalDocumentation extends EnforcerComponent<IExternalD
   // Put your code here.
   // <!# Custom Content End: METHODS #!>
 }
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>

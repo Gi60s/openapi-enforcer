@@ -11,17 +11,17 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Reference2, IReference2, IReference2Definition } from '../Reference'
-import { Xml2, IXml2, IXml2Definition } from '../Xml'
-import { ExternalDocumentation2, IExternalDocumentation2, IExternalDocumentation2Definition } from '../ExternalDocumentation'
+import { Xml2, IXml2 } from '../Xml'
+import { ExternalDocumentation2, IExternalDocumentation2 } from '../ExternalDocumentation'
 import { Schema as SchemaBase } from './Schema'
 import { ISchema2, ISchema2Definition, ISchema2SchemaProcessor, ISchemaValidatorsMap2 as IValidatorsMap } from './ISchema'
 // <!# Custom Content Begin: HEADER #!>
-import * as common from './common'
+
 // <!# Custom Content End: HEADER #!>
 
 export class Schema extends SchemaBase implements ISchema2 {
@@ -47,9 +47,9 @@ export class Schema extends SchemaBase implements ISchema2 {
   public required?: string[]
   public type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
   public items?: ISchema2
-  public allOf?: Array<ISchema2 | IReference2>
-  public properties?: Record<string, ISchema2 | IReference2>
-  public additionalProperties?: ISchema2 | IReference2 | boolean
+  public allOf?: ISchema2[]
+  public properties?: Record<string, ISchema2>
+  public additionalProperties?: ISchema2 | boolean
   public discriminator?: string
   public readOnly?: boolean
   public xml?: IXml2
@@ -113,7 +113,7 @@ export class Schema extends SchemaBase implements ISchema2 {
     }
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
-    common.schemaDefinition(_data, validators, result)
+    super.commonSchemaDefinition(_data, validators, result)
     // <!# Custom Content End: SCHEMA_DEFINITION #!>
 
     return result

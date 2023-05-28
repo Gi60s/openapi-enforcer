@@ -11,14 +11,14 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Reference3a, IReference3a, IReference3aDefinition } from '../Reference'
-import { Xml3a, IXml3a, IXml3aDefinition } from '../Xml'
-import { ExternalDocumentation3a, IExternalDocumentation3a, IExternalDocumentation3aDefinition } from '../ExternalDocumentation'
-import { Discriminator3a, IDiscriminator3a, IDiscriminator3aDefinition } from '../Discriminator'
+import { Xml3a, IXml3a } from '../Xml'
+import { ExternalDocumentation3a, IExternalDocumentation3a } from '../ExternalDocumentation'
+import { Discriminator3a, IDiscriminator3a } from '../Discriminator'
 import { Schema as SchemaBase } from './Schema'
 import { ISchema3a, ISchema3aDefinition, ISchema3aSchemaProcessor, ISchemaValidatorsMap3a as IValidatorsMap } from './ISchema'
 // <!# Custom Content Begin: HEADER #!>
@@ -30,10 +30,10 @@ let cachedSchema: ISDSchemaDefinition<ISchema3aDefinition, ISchema3a> | null = n
 export class Schema extends SchemaBase implements ISchema3a {
   public extensions: Record<string, any> = {}
   public type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string' | Array<'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'>
-  public allOf?: Array<ISchema3a | IReference3a>
-  public oneOf?: Array<ISchema3a | IReference3a>
-  public anyOf?: Array<ISchema3a | IReference3a>
-  public not?: ISchema3a | IReference3a
+  public allOf?: ISchema3a[]
+  public oneOf?: ISchema3a[]
+  public anyOf?: ISchema3a[]
+  public not?: ISchema3a
   public title?: string
   public maximum?: number
   public exclusiveMaximum?: boolean
@@ -50,9 +50,9 @@ export class Schema extends SchemaBase implements ISchema3a {
   public enum?: any[]
   public multipleOf?: number
   public required?: string[]
-  public items?: ISchema3a | IReference3a
-  public properties?: Record<string, ISchema3a | IReference3a>
-  public additionalProperties?: ISchema3a | IReference3a | boolean
+  public items?: ISchema3a
+  public properties?: Record<string, ISchema3a>
+  public additionalProperties?: ISchema3a | boolean
   public description?: string
   public format?: string
   public default?: any

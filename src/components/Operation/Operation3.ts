@@ -11,14 +11,14 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { ExternalDocumentation3, IExternalDocumentation3, IExternalDocumentation3Definition } from '../ExternalDocumentation'
-import { Responses3, IResponses3, IResponses3Definition } from '../Responses'
-import { RequestBody3, IRequestBody3, IRequestBody3Definition } from '../RequestBody'
-import { Reference3, IReference3, IReference3Definition } from '../Reference'
+import { ExternalDocumentation3, IExternalDocumentation3 } from '../ExternalDocumentation'
+import { Responses3, IResponses3 } from '../Responses'
+import { RequestBody3, IRequestBody3 } from '../RequestBody'
 import { Operation as OperationBase } from './Operation'
 import { IOperation3, IOperation3Definition, IOperation3SchemaProcessor, IOperationValidatorsMap3 as IValidatorsMap } from './IOperation'
 // <!# Custom Content Begin: HEADER #!>
@@ -36,10 +36,10 @@ export class Operation extends OperationBase implements IOperation3 {
   public description?: string
   public externalDocs?: IExternalDocumentation3
   public operationId?: string
-  public parameters?: Array<IParameter3 | IReference3>
-  public requestBody?: IRequestBody3 | IReference3
+  public parameters?: IParameter3[]
+  public requestBody?: IRequestBody3
   public responses!: IResponses3
-  public callbacks?: Record<string, ICallback3 | IReference3>
+  public callbacks?: Record<string, ICallback3>
   public deprecated?: boolean
   public security?: ISecurityRequirement3[]
   public servers?: IServer3[]

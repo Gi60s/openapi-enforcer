@@ -11,12 +11,13 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Contact2, IContact2, IContact2Definition } from '../Contact'
-import { License2, ILicense2, ILicense2Definition } from '../License'
+import { Contact2, IContact2 } from '../Contact'
+import { License2, ILicense2 } from '../License'
 import { Info as InfoBase } from './Info'
 import { IInfo2, IInfo2Definition, IInfo2SchemaProcessor, IInfoValidatorsMap2 as IValidatorsMap } from './IInfo'
 // <!# Custom Content Begin: HEADER #!>

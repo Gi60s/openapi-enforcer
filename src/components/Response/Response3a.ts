@@ -11,6 +11,7 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
@@ -26,9 +27,9 @@ let cachedSchema: ISDSchemaDefinition<IResponse3aDefinition, IResponse3a> | null
 export class Response extends ResponseBase implements IResponse3a {
   public extensions: Record<string, any> = {}
   public description!: string
-  public headers?: Record<string, IHeader3a | IReference3a>
+  public headers?: Record<string, IHeader3a>
   public content?: Record<string, IMediaType3a>
-  public links?: Record<string, ILink3a | IReference3a>
+  public links?: Record<string, ILink3a>
 
   constructor (definition: IResponse3aDefinition, version?: IVersion) {
     super(definition, version, arguments[2])

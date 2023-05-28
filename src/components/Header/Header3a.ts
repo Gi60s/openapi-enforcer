@@ -11,12 +11,12 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Schema3a, ISchema3a, ISchema3aDefinition } from '../Schema'
-import { Reference3a, IReference3a, IReference3aDefinition } from '../Reference'
+import { Schema3a, ISchema3a } from '../Schema'
 import { Header as HeaderBase } from './Header'
 import { IHeader3a, IHeader3aDefinition, IHeader3aSchemaProcessor, IHeaderValidatorsMap3a as IValidatorsMap } from './IHeader'
 // <!# Custom Content Begin: HEADER #!>
@@ -34,9 +34,9 @@ export class Header extends HeaderBase implements IHeader3a {
   public style?: ='simple'
   public explode?: boolean
   public allowReserved?: boolean
-  public schema?: ISchema3a | IReference3a
+  public schema?: ISchema3a
   public example?: any
-  public examples?: Record<string, IExample3a | IReference3a>
+  public examples?: Record<string, IExample3a>
   public content?: Record<string, IMediaType3a>
 
   constructor (definition: IHeader3aDefinition, version?: IVersion) {

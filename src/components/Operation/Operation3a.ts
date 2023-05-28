@@ -11,14 +11,14 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { ExternalDocumentation3a, IExternalDocumentation3a, IExternalDocumentation3aDefinition } from '../ExternalDocumentation'
-import { Responses3a, IResponses3a, IResponses3aDefinition } from '../Responses'
-import { RequestBody3a, IRequestBody3a, IRequestBody3aDefinition } from '../RequestBody'
-import { Reference3a, IReference3a, IReference3aDefinition } from '../Reference'
+import { ExternalDocumentation3a, IExternalDocumentation3a } from '../ExternalDocumentation'
+import { Responses3a, IResponses3a } from '../Responses'
+import { RequestBody3a, IRequestBody3a } from '../RequestBody'
 import { Operation as OperationBase } from './Operation'
 import { IOperation3a, IOperation3aDefinition, IOperation3aSchemaProcessor, IOperationValidatorsMap3a as IValidatorsMap } from './IOperation'
 // <!# Custom Content Begin: HEADER #!>
@@ -34,10 +34,10 @@ export class Operation extends OperationBase implements IOperation3a {
   public description?: string
   public externalDocs?: IExternalDocumentation3a
   public operationId?: string
-  public parameters?: Array<IParameter3a | IReference3a>
-  public requestBody?: IRequestBody3a | IReference3a
+  public parameters?: IParameter3a[]
+  public requestBody?: IRequestBody3a
   public responses!: IResponses3a
-  public callbacks?: Record<string, ICallback3a | IReference3a>
+  public callbacks?: Record<string, ICallback3a>
   public deprecated?: boolean
   public security?: ISecurityRequirement3a[]
   public servers?: IServer3a[]

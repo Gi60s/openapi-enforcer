@@ -11,12 +11,12 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Schema3, ISchema3, ISchema3Definition } from '../Schema'
-import { Reference3, IReference3, IReference3Definition } from '../Reference'
+import { Schema3, ISchema3 } from '../Schema'
 import { MediaType as MediaTypeBase } from './MediaType'
 import { IMediaType3, IMediaType3Definition, IMediaType3SchemaProcessor, IMediaTypeValidatorsMap3 as IValidatorsMap } from './IMediaType'
 // <!# Custom Content Begin: HEADER #!>
@@ -27,9 +27,9 @@ let cachedSchema: ISDSchemaDefinition<IMediaType3Definition, IMediaType3> | null
 
 export class MediaType extends MediaTypeBase implements IMediaType3 {
   public extensions: Record<string, any> = {}
-  public schema?: ISchema3 | IReference3
+  public schema?: ISchema3
   public example?: any
-  public examples?: Record<string, IExample3 | IReference3>
+  public examples?: Record<string, IExample3>
   public encoding?: Record<string, IEncoding3>
 
   constructor (definition: IMediaType3Definition, version?: IVersion) {

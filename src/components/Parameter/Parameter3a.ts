@@ -11,14 +11,14 @@
  *  code.
  */
 
+/* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { Schema3a, ISchema3a, ISchema3aDefinition } from '../Schema'
-import { Reference3a, IReference3a, IReference3aDefinition } from '../Reference'
-import { Record<Example|Reference>3a, IRecord<Example|Reference>3a, IRecord<Example|Reference>3aDefinition } from '../Record<Example|Reference>'
-import { Record<MediaType>3a, IRecord<MediaType>3a, IRecord<MediaType>3aDefinition } from '../Record<MediaType>'
+import { Schema3a, ISchema3a } from '../Schema'
+import { Record<Example|Reference>3a, IRecord<Example|Reference>3a } from '../Record<Example|Reference>'
+import { Record<MediaType>3a, IRecord<MediaType>3a } from '../Record<MediaType>'
 import { Parameter as ParameterBase } from './Parameter'
 import { IParameter3a, IParameter3aDefinition, IParameter3aSchemaProcessor, IParameterValidatorsMap3a as IValidatorsMap } from './IParameter'
 // <!# Custom Content Begin: HEADER #!>
@@ -38,7 +38,7 @@ export class Parameter extends ParameterBase implements IParameter3a {
   public style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'pipeDelimited' | 'simple' | 'spaceDelimited'
   public explode?: boolean
   public allowReserved?: boolean
-  public schema?: ISchema3a | IReference3a
+  public schema?: ISchema3a
   public example?: any
   public examples?: IRecord<Example|Reference>3a
   public content?: IRecord<MediaType>3a

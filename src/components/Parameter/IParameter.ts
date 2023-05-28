@@ -145,7 +145,7 @@ export interface IParameter3 extends IParameterBase {
   style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'pipeDelimited' | 'simple' | 'spaceDelimited'
   explode?: boolean
   allowReserved?: boolean
-  schema?: ISchema3 | IReference3
+  schema?: ISchema3
   example?: any
   examples?: IRecord<Example|Reference>3
   content?: IRecord<MediaType>3
@@ -195,7 +195,7 @@ export interface IParameter3a extends IParameterBase {
   style?: 'deepObject' | 'form' | 'label' | 'matrix' | 'pipeDelimited' | 'simple' | 'spaceDelimited'
   explode?: boolean
   allowReserved?: boolean
-  schema?: ISchema3a | IReference3a
+  schema?: ISchema3a
   example?: any
   examples?: IRecord<Example|Reference>3a
   content?: IRecord<MediaType>3a

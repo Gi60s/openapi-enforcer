@@ -56,7 +56,7 @@ export interface IPathItem2 extends IPathItemBase {
   options?: IOperation2
   head?: IOperation2
   patch?: IOperation2
-  parameters?: Array<IParameter2 | IReference2>
+  parameters?: IParameter2[]
 }
 
 export interface IPathItemValidatorsMap2 {
@@ -102,7 +102,7 @@ export interface IPathItem3 extends IPathItemBase {
   patch?: IOperation3
   trace?: IOperation3
   servers?: IServer3[]
-  parameters?: Array<IParameter3 | IReference3>
+  parameters?: IParameter3[]
 }
 
 export interface IPathItemValidatorsMap3 {
@@ -152,7 +152,7 @@ export interface IPathItem3a extends IPathItemBase {
   patch?: IOperation3a
   trace?: IOperation3a
   servers?: IServer3a[]
-  parameters?: Array<IParameter3a | IReference3a>
+  parameters?: IParameter3a[]
 }
 
 export interface IPathItemValidatorsMap3a {
