@@ -16,6 +16,12 @@ import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor
 import { ISDProperty, ISDString, ISDComponent, ISDArray, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IInfo2, IInfo2Definition } from '../Info'
 import { IPaths2, IPaths2Definition } from '../Paths'
+import { ISchema2, ISchema2Definition } from '../Schema'
+import { IParameter2, IParameter2Definition } from '../Parameter'
+import { IResponse2, IResponse2Definition } from '../Response'
+import { ISecurityScheme2, ISecurityScheme2Definition } from '../SecurityScheme'
+import { ISecurityRequirement2, ISecurityRequirement2Definition } from '../SecurityRequirement'
+import { ITag2, ITag2Definition } from '../Tag'
 import { IExternalDocumentation2, IExternalDocumentation2Definition } from '../ExternalDocumentation'
 
 // <!# Custom Content Begin: HEADER #!>

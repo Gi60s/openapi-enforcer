@@ -14,6 +14,7 @@
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ISDProperty, ISDString, ISDObject, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { IServerVariable3, IServerVariable3Definition, IServerVariable3a, IServerVariable3aDefinition } from '../ServerVariable'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.

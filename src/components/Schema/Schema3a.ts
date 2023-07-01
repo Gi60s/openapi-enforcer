@@ -167,12 +167,18 @@ export class Schema extends SchemaBase implements ISchema3a {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  // Put your code here.
+  discriminate (value: object): { key: string, name: string, schema: ISchema3a } {
+    return {
+      key: '',
+      name: '',
+      schema: new Schema({ type: 'string' })
+    }
+  }
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: AFTER_COMPONENT #!>
-// Put your code here.
+const Schema3a = Schema
 // <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {

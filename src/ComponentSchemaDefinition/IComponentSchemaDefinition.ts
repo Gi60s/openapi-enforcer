@@ -55,11 +55,11 @@ export interface ISDNumber extends Base<number> {
   enum?: number[]
 }
 
-export interface ISDOneOf extends Base<any> {
+export interface ISDOneOf<OneOfSchemaType=ISDSchema> extends Base<any> {
   type: 'oneOf'
   oneOf: Array<{
     condition: (definition: any, key: string, data: SchemaProcessor) => boolean
-    schema: ISDSchema
+    schema: OneOfSchemaType
   }>
   // error: (data: SchemaProcessor) => void // only called by validator, not builder
 }

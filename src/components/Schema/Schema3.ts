@@ -22,15 +22,7 @@ import { Discriminator3, IDiscriminator3 } from '../Discriminator'
 import { Schema as SchemaBase } from './Schema'
 import { ISchema3, ISchema3Definition, ISchema3SchemaProcessor, ISchemaValidatorsMap3 as IValidatorsMap } from './ISchema'
 // <!# Custom Content Begin: HEADER #!>
-import {
-  ISchemaHookHandler,
-  ISchemaHookResult,
-  ISchemaHookType, ISchemaPopulateOptions,
-  ISchemaRandomOptions,
-  ISchemaValidateOptions
-} from './ISchema'
-import * as common from './common'
-import { Result } from '../../Result'
+
 // <!# Custom Content End: HEADER #!>
 
 export class Schema extends SchemaBase implements ISchema3 {
@@ -135,7 +127,7 @@ export class Schema extends SchemaBase implements ISchema3 {
 
     // <!# Custom Content Begin: SCHEMA_DEFINITION #!>
     // Put your code here.
-    common.schemaDefinition(_data, validators, result)
+    SchemaBase.commonSchemaDefinition(_data, validators, result)
 
     // TODO: The discriminator attribute is legal only when using one of the composite keywords oneOf, anyOf, allOf.
     const processor = _data
@@ -196,46 +188,18 @@ export class Schema extends SchemaBase implements ISchema3 {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  hook (type: ISchemaHookType, handler: ISchemaHookHandler): ISchemaHookResult {
+  discriminate (value: object): { key: string, name: string, schema: ISchema3 } {
     return {
-      done: false,
-      hasException: false,
-      value: null
+      key: '',
+      name: '',
+      schema: new Schema({ type: 'string' })
     }
-  }
-
-  deserialize (value: string, options: { strict: boolean } | undefined): any {
-    return common.deserialize(value, options)
-  }
-
-  discriminate (value: object): { key: string, name: string, schema: I.Schema2 } {
-    return common.discriminate<I.Schema2>(value)
-  }
-
-  populate (params: Record<string, any>, value: object, options?: ISchemaPopulateOptions): Result<object> {
-    return new Result({})
-  }
-
-  random (value: any, options?: ISchemaRandomOptions): Result<object> {
-    return new Result({})
-  }
-
-  serialize (value: any): Result {
-    return new Result({})
-  }
-
-  unhook (type: ISchemaHookType, handler: ISchemaHookHandler): void {
-
-  }
-
-  validate (value: any, options?: ISchemaValidateOptions): ExceptionStore | undefined {
-    return undefined
   }
   // <!# Custom Content End: BODY #!>
 }
 
 // <!# Custom Content Begin: AFTER_COMPONENT #!>
-// Put your code here.
+const Schema3 = Schema
 // <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {

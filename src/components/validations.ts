@@ -52,7 +52,6 @@ export function parametersAreUnique (data: SchemaProcessor<IPathItemDefinition, 
           code: 'PARAMETER_NAMESPACE_CONFLICT',
           level: 'error',
           locations: parameters.map(parameter => {
-            // @ts-expect-error
             const index = definition.parameters?.indexOf(parameter)
             return getLocation(parameters, index, 'value')
           }),

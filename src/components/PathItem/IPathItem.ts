@@ -15,6 +15,9 @@ import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ISDProperty, ISDString, ISDComponent, ISDArray } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IOperation2, IOperation2Definition, IOperation3, IOperation3Definition, IOperation3a, IOperation3aDefinition } from '../Operation'
+import { IParameter2, IParameter2Definition, IParameter3, IParameter3Definition, IParameter3a, IParameter3aDefinition } from '../Parameter'
+import { IReference2, IReference2Definition, IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
+import { IServer3, IServer3Definition, IServer3a, IServer3aDefinition } from '../Server'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -68,7 +71,7 @@ export interface IPathItemValidatorsMap2 {
   options: ISDProperty<ISDComponent<IOperation2Definition, IOperation2>>
   head: ISDProperty<ISDComponent<IOperation2Definition, IOperation2>>
   patch: ISDProperty<ISDComponent<IOperation2Definition, IOperation2>>
-  parameters: ISDProperty<ISDArray<ISDComponent<IParameter2Definition, IParameter2> | ISDComponent<IReference2Definition, IReference2>>>
+  parameters: ISDProperty<ISDArray<ISDComponent<IParameter2Definition, IParameter2>>>
 }
 
 export interface IPathItem3Definition {
@@ -118,7 +121,7 @@ export interface IPathItemValidatorsMap3 {
   patch: ISDProperty<ISDComponent<IOperation3Definition, IOperation3>>
   trace: ISDProperty<ISDComponent<IOperation3Definition, IOperation3>>
   servers: ISDProperty<ISDArray<ISDComponent<IServer3Definition, IServer3>>>
-  parameters: ISDProperty<ISDArray<ISDComponent<IParameter3Definition, IParameter3> | ISDComponent<IReference3Definition, IReference3>>>
+  parameters: ISDProperty<ISDArray<ISDComponent<IParameter3Definition, IParameter3>>>
 }
 
 export interface IPathItem3aDefinition {
@@ -168,7 +171,7 @@ export interface IPathItemValidatorsMap3a {
   patch: ISDProperty<ISDComponent<IOperation3aDefinition, IOperation3a>>
   trace: ISDProperty<ISDComponent<IOperation3aDefinition, IOperation3a>>
   servers: ISDProperty<ISDArray<ISDComponent<IServer3aDefinition, IServer3a>>>
-  parameters: ISDProperty<ISDArray<ISDComponent<IParameter3aDefinition, IParameter3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  parameters: ISDProperty<ISDArray<ISDComponent<IParameter3aDefinition, IParameter3a>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

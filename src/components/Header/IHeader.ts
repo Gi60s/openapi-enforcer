@@ -13,10 +13,12 @@
 
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
-import { ISDProperty, ISDString, ISDComponent, ISDAny, ISDNumber, ISDBoolean, ISDArray, ISD='simple', ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDProperty, ISDString, ISDComponent, ISDAny, ISDNumber, ISDBoolean, ISDArray, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IItems2, IItems2Definition } from '../Items'
 import { ISchema3, ISchema3Definition, ISchema3a, ISchema3aDefinition } from '../Schema'
-import { IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
+import { IReference3Definition, IReference3aDefinition } from '../Reference'
+import { IExample3, IExample3Definition, IExample3a, IExample3aDefinition } from '../Example'
+import { IMediaType3, IMediaType3Definition, IMediaType3a, IMediaType3aDefinition } from '../MediaType'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -106,7 +108,7 @@ export interface IHeader3Definition {
   required?: boolean
   deprecated?: boolean
   allowEmptyValue?: boolean
-  style?: ='simple'
+  style?: 'simple'
   explode?: boolean
   allowReserved?: boolean
   schema?: ISchema3Definition | IReference3Definition
@@ -121,7 +123,7 @@ export interface IHeader3 extends IHeaderBase {
   required?: boolean
   deprecated?: boolean
   allowEmptyValue?: boolean
-  style?: ='simple'
+  style?: 'simple'
   explode?: boolean
   allowReserved?: boolean
   schema?: ISchema3
@@ -135,12 +137,12 @@ export interface IHeaderValidatorsMap3 {
   required: ISDProperty<ISDBoolean>
   deprecated: ISDProperty<ISDBoolean>
   allowEmptyValue: ISDProperty<ISDBoolean>
-  style: ISDProperty<ISD='simple'>
+  style: ISDProperty<ISDString>
   explode: ISDProperty<ISDBoolean>
   allowReserved: ISDProperty<ISDBoolean>
-  schema: ISDProperty<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>
+  schema: ISDProperty<ISDComponent<ISchema3Definition, ISchema3>>
   example: ISDProperty<ISDAny>
-  examples: ISDProperty<ISDObject<ISDComponent<IExample3Definition, IExample3> | ISDComponent<IReference3Definition, IReference3>>>
+  examples: ISDProperty<ISDObject<ISDComponent<IExample3Definition, IExample3>>>
   content: ISDProperty<ISDObject<ISDComponent<IMediaType3Definition, IMediaType3>>>
 }
 
@@ -150,7 +152,7 @@ export interface IHeader3aDefinition {
   required?: boolean
   deprecated?: boolean
   allowEmptyValue?: boolean
-  style?: ='simple'
+  style?: 'simple'
   explode?: boolean
   allowReserved?: boolean
   schema?: ISchema3aDefinition | IReference3aDefinition
@@ -165,7 +167,7 @@ export interface IHeader3a extends IHeaderBase {
   required?: boolean
   deprecated?: boolean
   allowEmptyValue?: boolean
-  style?: ='simple'
+  style?: 'simple'
   explode?: boolean
   allowReserved?: boolean
   schema?: ISchema3a
@@ -179,12 +181,12 @@ export interface IHeaderValidatorsMap3a {
   required: ISDProperty<ISDBoolean>
   deprecated: ISDProperty<ISDBoolean>
   allowEmptyValue: ISDProperty<ISDBoolean>
-  style: ISDProperty<ISD='simple'>
+  style: ISDProperty<ISDString>
   explode: ISDProperty<ISDBoolean>
   allowReserved: ISDProperty<ISDBoolean>
-  schema: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>
+  schema: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a>>
   example: ISDProperty<ISDAny>
-  examples: ISDProperty<ISDObject<ISDComponent<IExample3aDefinition, IExample3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  examples: ISDProperty<ISDObject<ISDComponent<IExample3aDefinition, IExample3a>>>
   content: ISDProperty<ISDObject<ISDComponent<IMediaType3aDefinition, IMediaType3a>>>
 }
 

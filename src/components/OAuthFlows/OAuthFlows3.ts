@@ -16,7 +16,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
-import { OAuth Flow3, IOAuth Flow3 } from '../OAuth Flow'
+import { OAuthFlow3, IOAuthFlow3 } from '../OAuthFlow'
 import { OAuthFlows as OAuthFlowsBase } from './OAuthFlows'
 import { IOAuthFlows3, IOAuthFlows3Definition, IOAuthFlows3SchemaProcessor, IOAuthFlowsValidatorsMap3 as IValidatorsMap } from './IOAuthFlows'
 // <!# Custom Content Begin: HEADER #!>
@@ -27,10 +27,10 @@ let cachedSchema: ISDSchemaDefinition<IOAuthFlows3Definition, IOAuthFlows3> | nu
 
 export class OAuthFlows extends OAuthFlowsBase implements IOAuthFlows3 {
   public extensions: Record<string, any> = {}
-  public implicit?: IOAuth Flow3
-  public password?: IOAuth Flow3
-  public clientCredentials?: IOAuth Flow3
-  public authorizationCode?: IOAuth Flow3
+  public implicit?: IOAuthFlow3
+  public password?: IOAuthFlow3
+  public clientCredentials?: IOAuthFlow3
+  public authorizationCode?: IOAuthFlow3
 
   constructor (definition: IOAuthFlows3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -118,7 +118,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: OAuth Flow3
+        component: OAuthFlow3
       }
     },
     password: {
@@ -126,7 +126,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: OAuth Flow3
+        component: OAuthFlow3
       }
     },
     clientCredentials: {
@@ -134,7 +134,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: OAuth Flow3
+        component: OAuthFlow3
       }
     },
     authorizationCode: {
@@ -142,7 +142,7 @@ function getValidatorsMap (): IValidatorsMap {
       schema: {
         type: 'component',
         allowsRef: false,
-        component: OAuth Flow3
+        component: OAuthFlow3
       }
     }
   }

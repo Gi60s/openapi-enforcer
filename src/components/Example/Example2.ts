@@ -14,7 +14,7 @@
 /* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import { ISDSchemaDefinition, ISDAny } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDSchemaDefinition, ISDObject, ISDAny } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
 import { Example as ExampleBase } from './Example'
 import { IExample2, IExample2Definition, IExample2SchemaProcessor } from './IExample'
@@ -24,12 +24,15 @@ import { IExample2, IExample2Definition, IExample2SchemaProcessor } from './IExa
 
 let cachedSchema: ISDSchemaDefinition<IExample2Definition, IExample2> | null = null
 
-const additionalProperties: ISDAny = {
-  type: 'any'
+const additionalProperties: ISDObject<ISDAny> = {
+  type: 'object',
+  additionalProperties: {
+    type: 'any'
+  }
 }
 
 export class Example extends ExampleBase implements IExample2 {
-  any
+  [key: string]: Record<string, any>
 
   constructor (definition: IExample2Definition, version?: IVersion) {
     super(definition, version, arguments[2])

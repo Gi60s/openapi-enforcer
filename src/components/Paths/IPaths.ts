@@ -13,6 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { IPathItem2, IPathItem2Definition, IPathItem3, IPathItem3Definition } from '../PathItem'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -33,22 +34,22 @@ export interface IPathsBase extends IComponentInstance {
 
 export interface IPaths2Definition {
   [extensions: `x-${string}`]: any
-  [path: `/${string}`]: PathItem
+  [path: `/${string}`]: [path: `/${string}`]: IPathItem2Definition
 }
 
 export interface IPaths2 extends IPathsBase {
   extensions: Record<string, any>
-  [path: `/${string}`]: PathItem
+  [path: `/${string}`]: [path: `/${string}`]: IPathItem2
 }
 
 export interface IPaths3Definition {
   [extensions: `x-${string}`]: any
-  [path: `/${string}`]: PathItem
+  [path: `/${string}`]: [path: `/${string}`]: IPathItem3Definition
 }
 
 export interface IPaths3 extends IPathsBase {
   extensions: Record<string, any>
-  [path: `/${string}`]: PathItem
+  [path: `/${string}`]: [path: `/${string}`]: IPathItem3
 }
 
 export interface IPaths3aDefinition {

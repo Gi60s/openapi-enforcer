@@ -14,6 +14,16 @@
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ISDProperty, ISDObject, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISchema3, ISchema3Definition, ISchema3a, ISchema3aDefinition } from '../Schema'
+import { IReference3Definition, IReference3aDefinition } from '../Reference'
+import { IResponse3, IResponse3Definition, IResponse3a, IResponse3aDefinition } from '../Response'
+import { IParameter3, IParameter3Definition, IParameter3a, IParameter3aDefinition } from '../Parameter'
+import { IExample3, IExample3Definition, IExample3a, IExample3aDefinition } from '../Example'
+import { IRequestBody3, IRequestBody3Definition, IRequestBody3a, IRequestBody3aDefinition } from '../RequestBody'
+import { IHeader3, IHeader3Definition, IHeader3a, IHeader3aDefinition } from '../Header'
+import { ISecurityScheme3, ISecurityScheme3Definition, ISecurityScheme3a, ISecurityScheme3aDefinition } from '../SecurityScheme'
+import { ILink3, ILink3Definition, ILink3a, ILink3aDefinition } from '../Link'
+import { ICallback3, ICallback3Definition, ICallback3a, ICallback3aDefinition } from '../Callback'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -58,15 +68,15 @@ export interface IComponents3 extends IComponentsBase {
 }
 
 export interface IComponentsValidatorsMap3 {
-  schemas: ISDProperty<ISDObject<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>>
-  responses: ISDProperty<ISDObject<ISDComponent<IResponse3Definition, IResponse3> | ISDComponent<IReference3Definition, IReference3>>>
-  parameters: ISDProperty<ISDObject<ISDComponent<IParameter3Definition, IParameter3> | ISDComponent<IReference3Definition, IReference3>>>
-  examples: ISDProperty<ISDObject<ISDComponent<IExample3Definition, IExample3> | ISDComponent<IReference3Definition, IReference3>>>
-  requestBodies: ISDProperty<ISDObject<ISDComponent<IRequestBody3Definition, IRequestBody3> | ISDComponent<IReference3Definition, IReference3>>>
-  headers: ISDProperty<ISDObject<ISDComponent<IHeader3Definition, IHeader3> | ISDComponent<IReference3Definition, IReference3>>>
-  securitySchemes: ISDProperty<ISDObject<ISDComponent<ISecurityScheme3Definition, ISecurityScheme3> | ISDComponent<IReference3Definition, IReference3>>>
-  links: ISDProperty<ISDObject<ISDComponent<ILink3Definition, ILink3> | ISDComponent<IReference3Definition, IReference3>>>
-  callbacks: ISDProperty<ISDObject<ISDComponent<ICallback3Definition, ICallback3> | ISDComponent<IReference3Definition, IReference3>>>
+  schemas: ISDProperty<ISDObject<ISDComponent<ISchema3Definition, ISchema3>>>
+  responses: ISDProperty<ISDObject<ISDComponent<IResponse3Definition, IResponse3>>>
+  parameters: ISDProperty<ISDObject<ISDComponent<IParameter3Definition, IParameter3>>>
+  examples: ISDProperty<ISDObject<ISDComponent<IExample3Definition, IExample3>>>
+  requestBodies: ISDProperty<ISDObject<ISDComponent<IRequestBody3Definition, IRequestBody3>>>
+  headers: ISDProperty<ISDObject<ISDComponent<IHeader3Definition, IHeader3>>>
+  securitySchemes: ISDProperty<ISDObject<ISDComponent<ISecurityScheme3Definition, ISecurityScheme3>>>
+  links: ISDProperty<ISDObject<ISDComponent<ILink3Definition, ILink3>>>
+  callbacks: ISDProperty<ISDObject<ISDComponent<ICallback3Definition, ICallback3>>>
 }
 
 export interface IComponents3aDefinition {
@@ -96,15 +106,15 @@ export interface IComponents3a extends IComponentsBase {
 }
 
 export interface IComponentsValidatorsMap3a {
-  schemas: ISDProperty<ISDObject<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  responses: ISDProperty<ISDObject<ISDComponent<IResponse3aDefinition, IResponse3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  parameters: ISDProperty<ISDObject<ISDComponent<IParameter3aDefinition, IParameter3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  examples: ISDProperty<ISDObject<ISDComponent<IExample3aDefinition, IExample3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  requestBodies: ISDProperty<ISDObject<ISDComponent<IRequestBody3aDefinition, IRequestBody3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  headers: ISDProperty<ISDObject<ISDComponent<IHeader3aDefinition, IHeader3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  securitySchemes: ISDProperty<ISDObject<ISDComponent<ISecurityScheme3aDefinition, ISecurityScheme3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  links: ISDProperty<ISDObject<ISDComponent<ILink3aDefinition, ILink3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  callbacks: ISDProperty<ISDObject<ISDComponent<ICallback3aDefinition, ICallback3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  schemas: ISDProperty<ISDObject<ISDComponent<ISchema3aDefinition, ISchema3a>>>
+  responses: ISDProperty<ISDObject<ISDComponent<IResponse3aDefinition, IResponse3a>>>
+  parameters: ISDProperty<ISDObject<ISDComponent<IParameter3aDefinition, IParameter3a>>>
+  examples: ISDProperty<ISDObject<ISDComponent<IExample3aDefinition, IExample3a>>>
+  requestBodies: ISDProperty<ISDObject<ISDComponent<IRequestBody3aDefinition, IRequestBody3a>>>
+  headers: ISDProperty<ISDObject<ISDComponent<IHeader3aDefinition, IHeader3a>>>
+  securitySchemes: ISDProperty<ISDObject<ISDComponent<ISecurityScheme3aDefinition, ISecurityScheme3a>>>
+  links: ISDProperty<ISDObject<ISDComponent<ILink3aDefinition, ILink3a>>>
+  callbacks: ISDProperty<ISDObject<ISDComponent<ICallback3aDefinition, ICallback3a>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

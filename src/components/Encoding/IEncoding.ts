@@ -14,6 +14,8 @@
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ISDProperty, ISDString, ISDObject, ISDComponent, ISDBoolean } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { IHeader3, IHeader3Definition, IHeader3a, IHeader3aDefinition } from '../Header'
+import { IReference3Definition, IReference3aDefinition } from '../Reference'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -51,7 +53,7 @@ export interface IEncoding3 extends IEncodingBase {
 
 export interface IEncodingValidatorsMap3 {
   contentType: ISDProperty<ISDString>
-  headers: ISDProperty<ISDObject<ISDComponent<IHeader3Definition, IHeader3> | ISDComponent<IReference3Definition, IReference3>>>
+  headers: ISDProperty<ISDObject<ISDComponent<IHeader3Definition, IHeader3>>>
   style: ISDProperty<ISDString>
   explode: ISDProperty<ISDBoolean>
   allowReserved: ISDProperty<ISDBoolean>
@@ -77,7 +79,7 @@ export interface IEncoding3a extends IEncodingBase {
 
 export interface IEncodingValidatorsMap3a {
   contentType: ISDProperty<ISDString>
-  headers: ISDProperty<ISDObject<ISDComponent<IHeader3aDefinition, IHeader3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  headers: ISDProperty<ISDObject<ISDComponent<IHeader3aDefinition, IHeader3a>>>
   style: ISDProperty<ISDString>
   explode: ISDProperty<ISDBoolean>
   allowReserved: ISDProperty<ISDBoolean>

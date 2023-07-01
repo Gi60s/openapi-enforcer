@@ -17,6 +17,8 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
 import { Schema3, ISchema3 } from '../Schema'
+import { Example3, IExample3 } from '../Example'
+import { Encoding3, IEncoding3 } from '../Encoding'
 import { MediaType as MediaTypeBase } from './MediaType'
 import { IMediaType3, IMediaType3Definition, IMediaType3SchemaProcessor, IMediaTypeValidatorsMap3 as IValidatorsMap } from './IMediaType'
 // <!# Custom Content Begin: HEADER #!>

@@ -33,11 +33,11 @@ export interface IExampleBase extends IComponentInstance {
 }
 
 export interface IExample2Definition {
-  any
+  [key: string]: Record<string, any>
 }
 
 export interface IExample2 extends IExampleBase {
-  any
+  [key: string]: Record<string, any>
 }
 
 export interface IExample3Definition {

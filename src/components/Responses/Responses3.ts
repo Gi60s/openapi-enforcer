@@ -20,12 +20,12 @@ import { Response3, IResponse3 } from '../Response'
 import { Responses as ResponsesBase } from './Responses'
 import { IResponses3, IResponses3Definition, IResponses3SchemaProcessor, IResponsesValidatorsMap3 as IValidatorsMap } from './IResponses'
 // <!# Custom Content Begin: HEADER #!>
-// Put your code here.
+import { IResponse3Definition } from '../Response'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISDSchemaDefinition<IResponses3Definition, IResponses3> | null = null
 
-const additionalProperties: ISDObject<ISDComponent<IResponse3Definition, IResponse3> | ISDComponent<IReference3Definition, IReference3>> = {
+const additionalProperties: ISDObject<ISDComponent<IResponse3Definition, IResponse3>> = {
   type: 'object',
   additionalProperties: {
     type: 'component',
@@ -35,9 +35,9 @@ const additionalProperties: ISDObject<ISDComponent<IResponse3Definition, IRespon
 }
 
 export class Responses extends ResponsesBase implements IResponses3 {
-  public extensions: Record<string, any> = {};
+  public extensions: Record<string, any> = {}
   public default?: IResponse3
-  Record<string, IResponse3>
+  [key: number]: Record<string, IResponse3>
 
   constructor (definition: IResponses3Definition, version?: IVersion) {
     super(definition, version, arguments[2])

@@ -14,6 +14,7 @@
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ISDProperty, ISDString, ISDObject, ISDComponent, ISDBoolean } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { IMediaType3, IMediaType3Definition, IMediaType3a, IMediaType3aDefinition } from '../MediaType'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.

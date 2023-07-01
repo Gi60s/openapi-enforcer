@@ -14,25 +14,31 @@
 /* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import { ISDSchemaDefinition, ISD[path: `/${string}`]: PathItem } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDSchemaDefinition, ISDObject, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { PathItem2, IPathItem2 } from '../PathItem'
 import { Paths as PathsBase } from './Paths'
 import { IPaths2, IPaths2Definition, IPaths2SchemaProcessor } from './IPaths'
 // <!# Custom Content Begin: HEADER #!>
 import { build, validate, findPathMatches } from './common'
-import { IFindPathMatchesOptions, IFindPathMatchesResult } from '../PathItem'
+import { IFindPathMatchesOptions, IFindPathMatchesResult, IPathItem2Definition } from '../PathItem'
 import * as config from '../../global-config'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISDSchemaDefinition<IPaths2Definition, IPaths2> | null = null
 
-const additionalProperties: ISD[path: `/${string}`]: PathItem = {
-  type: '[path: `/${string}`]: PathItem'
+const additionalProperties: ISDObject<ISDComponent<IPathItem2Definition, IPathItem2>> = {
+  type: 'object',
+  additionalProperties: {
+    type: 'component',
+    allowsRef: false,
+    component: PathItem2
+  }
 }
 
 export class Paths extends PathsBase implements IPaths2 {
   public extensions: Record<string, any> = {};
-  [path: `/${string}`]: PathItem
+  [path: `/${string}`]: [path: `/${string}`]: IPathItem2
 
   constructor (definition: IPaths2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -101,7 +107,6 @@ export class Paths extends PathsBase implements IPaths2 {
 
   // <!# Custom Content Begin: BODY #!>
   findMatches (path: string, options?: IFindPathMatchesOptions): IFindPathMatchesResult {
-
     return findPathMatches(this, path,
       config.normalize<IFindPathMatchesOptions>('components.paths.findPathMatches', options) as Required<IFindPathMatchesOptions>)
   }

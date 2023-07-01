@@ -37,7 +37,7 @@ export class Parameter extends ParameterBase implements IParameter2 {
   public format?: string
   public allowEmptyValue?: boolean
   public items?: IItems2
-  public collectionFormat?: ='csv' | 'ssv' | 'tsv' | 'pipes' | 'multi'
+  public collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi'
   public default?: any
   public maximum?: number
   public exclusiveMaximum?: boolean
@@ -227,22 +227,8 @@ function getValidatorsMap (): IValidatorsMap {
     collectionFormat: {
       name: 'collectionFormat',
       schema: {
-        type: 'oneOf',
-        oneOf: [
-          {
-            condition: data => ,
-            schema: {
-              type: '='csv''
-            }
-          },
-          {
-            condition: data => typeof data.definition === 'string',
-            schema: {
-              type: 'string',
-              enum: ['ssv', 'tsv', 'pipes', 'multi']
-            }
-          }
-        ]
+        type: 'string',
+        enum: ['csv', 'ssv', 'tsv', 'pipes', 'multi']
       }
     },
     _default: {

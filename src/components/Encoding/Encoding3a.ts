@@ -16,6 +16,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { Header3a, IHeader3a } from '../Header'
 import { Encoding as EncodingBase } from './Encoding'
 import { IEncoding3a, IEncoding3aDefinition, IEncoding3aSchemaProcessor, IEncodingValidatorsMap3a as IValidatorsMap } from './IEncoding'
 // <!# Custom Content Begin: HEADER #!>

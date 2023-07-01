@@ -33,14 +33,14 @@ export interface ICallbackBase extends IComponentInstance {
 
 export interface ICallback3Definition {
   [extensions: `x-${string}`]: any
-  [path: `http${string}`]: IPathItem3Definition
-  [path: `{$${string}`]: IPathItem3Definition
+  [path: `http${string}`]: [path: `http${string}`]: IPathItem3Definition
+  [path: `{$${string}`]: [path: `{$${string}`]: IPathItem3Definition
 }
 
 export interface ICallback3 extends ICallbackBase {
   extensions: Record<string, any>
-  [path: `http${string}`]: IPathItem3
-  [path: `{$${string}`]: IPathItem3
+  [path: `http${string}`]: [path: `http${string}`]: IPathItem3
+  [path: `{$${string}`]: [path: `{$${string}`]: IPathItem3
 }
 
 export interface ICallback3aDefinition {

@@ -15,7 +15,9 @@ import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ISDProperty, ISDComponent, ISDAny, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ISchema3, ISchema3Definition, ISchema3a, ISchema3aDefinition } from '../Schema'
-import { IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
+import { IReference3Definition, IReference3aDefinition } from '../Reference'
+import { IExample3, IExample3Definition, IExample3a, IExample3aDefinition } from '../Example'
+import { IEncoding3, IEncoding3Definition, IEncoding3a, IEncoding3aDefinition } from '../Encoding'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -50,9 +52,9 @@ export interface IMediaType3 extends IMediaTypeBase {
 }
 
 export interface IMediaTypeValidatorsMap3 {
-  schema: ISDProperty<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>
+  schema: ISDProperty<ISDComponent<ISchema3Definition, ISchema3>>
   example: ISDProperty<ISDAny>
-  examples: ISDProperty<ISDObject<ISDComponent<IExample3Definition, IExample3> | ISDComponent<IReference3Definition, IReference3>>>
+  examples: ISDProperty<ISDObject<ISDComponent<IExample3Definition, IExample3>>>
   encoding: ISDProperty<ISDObject<ISDComponent<IEncoding3Definition, IEncoding3>>>
 }
 
@@ -73,9 +75,9 @@ export interface IMediaType3a extends IMediaTypeBase {
 }
 
 export interface IMediaTypeValidatorsMap3a {
-  schema: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>
+  schema: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a>>
   example: ISDProperty<ISDAny>
-  examples: ISDProperty<ISDObject<ISDComponent<IExample3aDefinition, IExample3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  examples: ISDProperty<ISDObject<ISDComponent<IExample3aDefinition, IExample3a>>>
   encoding: ISDProperty<ISDObject<ISDComponent<IEncoding3aDefinition, IEncoding3a>>>
 }
 

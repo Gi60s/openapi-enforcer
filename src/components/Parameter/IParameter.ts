@@ -13,12 +13,12 @@
 
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
-import { ISDProperty, ISDString, ISDBoolean, ISDComponent, ISD='csv', ISDAny, ISDNumber, ISDArray, ISDString! } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDProperty, ISDString, ISDBoolean, ISDComponent, ISDAny, ISDNumber, ISDArray, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ISchema2, ISchema2Definition, ISchema3, ISchema3Definition, ISchema3a, ISchema3aDefinition } from '../Schema'
 import { IItems2, IItems2Definition } from '../Items'
-import { IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
-import { IRecord<Example|Reference>3, IRecord<Example|Reference>3Definition, IRecord<Example|Reference>3a, IRecord<Example|Reference>3aDefinition } from '../Record<Example|Reference>'
-import { IRecord<MediaType>3, IRecord<MediaType>3Definition, IRecord<MediaType>3a, IRecord<MediaType>3aDefinition } from '../Record<MediaType>'
+import { IReference3Definition, IReference3aDefinition } from '../Reference'
+import { IExample3, IExample3Definition, IExample3a, IExample3aDefinition } from '../Example'
+import { IMediaType3, IMediaType3Definition, IMediaType3a, IMediaType3aDefinition } from '../MediaType'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -48,7 +48,7 @@ export interface IParameter2Definition {
   format?: string
   allowEmptyValue?: boolean
   items?: IItems2Definition
-  collectionFormat?: ='csv' | 'ssv' | 'tsv' | 'pipes' | 'multi'
+  collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi'
   default?: any
   maximum?: number
   exclusiveMaximum?: boolean
@@ -75,7 +75,7 @@ export interface IParameter2 extends IParameterBase {
   format?: string
   allowEmptyValue?: boolean
   items?: IItems2
-  collectionFormat?: ='csv' | 'ssv' | 'tsv' | 'pipes' | 'multi'
+  collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi'
   default?: any
   maximum?: number
   exclusiveMaximum?: boolean
@@ -101,7 +101,7 @@ export interface IParameterValidatorsMap2 {
   format: ISDProperty<ISDString>
   allowEmptyValue: ISDProperty<ISDBoolean>
   items: ISDProperty<ISDComponent<IItems2Definition, IItems2>>
-  collectionFormat: ISDProperty<ISD='csv' | ISDString>
+  collectionFormat: ISDProperty<ISDString>
   _default: ISDProperty<ISDAny>
   maximum: ISDProperty<ISDNumber>
   exclusiveMaximum: ISDProperty<ISDBoolean>
@@ -119,7 +119,7 @@ export interface IParameterValidatorsMap2 {
 
 export interface IParameter3Definition {
   [extensions: `x-${string}`]: any
-  name?: string!
+  name: string
   in: 'cookie' | 'header' | 'path' | 'query'
   description?: string
   required?: boolean
@@ -130,13 +130,13 @@ export interface IParameter3Definition {
   allowReserved?: boolean
   schema?: ISchema3Definition | IReference3Definition
   example?: any
-  examples?: IRecord<Example|Reference>3Definition
-  content?: IRecord<MediaType>3Definition
+  examples?: Record<string, IExample3Definition | IReference3Definition>
+  content?: Record<string, IMediaType3Definition>
 }
 
 export interface IParameter3 extends IParameterBase {
   extensions: Record<string, any>
-  name?: string!
+  name: string
   in: 'cookie' | 'header' | 'path' | 'query'
   description?: string
   required?: boolean
@@ -147,12 +147,12 @@ export interface IParameter3 extends IParameterBase {
   allowReserved?: boolean
   schema?: ISchema3
   example?: any
-  examples?: IRecord<Example|Reference>3
-  content?: IRecord<MediaType>3
+  examples?: Record<string, IExample3>
+  content?: Record<string, IMediaType3>
 }
 
 export interface IParameterValidatorsMap3 {
-  name: ISDProperty<ISDString!>
+  name: ISDProperty<ISDString>
   _in: ISDProperty<ISDString>
   description: ISDProperty<ISDString>
   required: ISDProperty<ISDBoolean>
@@ -161,15 +161,15 @@ export interface IParameterValidatorsMap3 {
   style: ISDProperty<ISDString>
   explode: ISDProperty<ISDBoolean>
   allowReserved: ISDProperty<ISDBoolean>
-  schema: ISDProperty<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>
+  schema: ISDProperty<ISDComponent<ISchema3Definition, ISchema3>>
   example: ISDProperty<ISDAny>
-  examples: ISDProperty<ISDComponent<IRecord<Example|Reference>3Definition, IRecord<Example|Reference>3>>
-  content: ISDProperty<ISDComponent<IRecord<MediaType>3Definition, IRecord<MediaType>3>>
+  examples: ISDProperty<ISDObject<ISDComponent<IExample3Definition, IExample3>>>
+  content: ISDProperty<ISDObject<ISDComponent<IMediaType3Definition, IMediaType3>>>
 }
 
 export interface IParameter3aDefinition {
   [extensions: `x-${string}`]: any
-  name?: string!
+  name: string
   in: 'cookie' | 'header' | 'path' | 'query'
   description?: string
   required?: boolean
@@ -180,13 +180,13 @@ export interface IParameter3aDefinition {
   allowReserved?: boolean
   schema?: ISchema3aDefinition | IReference3aDefinition
   example?: any
-  examples?: IRecord<Example|Reference>3aDefinition
-  content?: IRecord<MediaType>3aDefinition
+  examples?: Record<string, IExample3aDefinition | IReference3aDefinition>
+  content?: Record<string, IMediaType3aDefinition>
 }
 
 export interface IParameter3a extends IParameterBase {
   extensions: Record<string, any>
-  name?: string!
+  name: string
   in: 'cookie' | 'header' | 'path' | 'query'
   description?: string
   required?: boolean
@@ -197,12 +197,12 @@ export interface IParameter3a extends IParameterBase {
   allowReserved?: boolean
   schema?: ISchema3a
   example?: any
-  examples?: IRecord<Example|Reference>3a
-  content?: IRecord<MediaType>3a
+  examples?: Record<string, IExample3a>
+  content?: Record<string, IMediaType3a>
 }
 
 export interface IParameterValidatorsMap3a {
-  name: ISDProperty<ISDString!>
+  name: ISDProperty<ISDString>
   _in: ISDProperty<ISDString>
   description: ISDProperty<ISDString>
   required: ISDProperty<ISDBoolean>
@@ -211,10 +211,10 @@ export interface IParameterValidatorsMap3a {
   style: ISDProperty<ISDString>
   explode: ISDProperty<ISDBoolean>
   allowReserved: ISDProperty<ISDBoolean>
-  schema: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>
+  schema: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a>>
   example: ISDProperty<ISDAny>
-  examples: ISDProperty<ISDComponent<IRecord<Example|Reference>3aDefinition, IRecord<Example|Reference>3a>>
-  content: ISDProperty<ISDComponent<IRecord<MediaType>3aDefinition, IRecord<MediaType>3a>>
+  examples: ISDProperty<ISDObject<ISDComponent<IExample3aDefinition, IExample3a>>>
+  content: ISDProperty<ISDObject<ISDComponent<IMediaType3aDefinition, IMediaType3a>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

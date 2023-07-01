@@ -141,7 +141,7 @@ export class Items extends ItemsBase implements IItems2 {
 }
 
 // <!# Custom Content Begin: AFTER_COMPONENT #!>
-// Put your code here.
+const Items2 = Items
 // <!# Custom Content End: AFTER_COMPONENT #!>
 
 function getValidatorsMap (): IValidatorsMap {

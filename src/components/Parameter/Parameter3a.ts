@@ -17,8 +17,8 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
 import { Schema3a, ISchema3a } from '../Schema'
-import { Record<Example|Reference>3a, IRecord<Example|Reference>3a } from '../Record<Example|Reference>'
-import { Record<MediaType>3a, IRecord<MediaType>3a } from '../Record<MediaType>'
+import { Example3a, IExample3a } from '../Example'
+import { MediaType3a, IMediaType3a } from '../MediaType'
 import { Parameter as ParameterBase } from './Parameter'
 import { IParameter3a, IParameter3aDefinition, IParameter3aSchemaProcessor, IParameterValidatorsMap3a as IValidatorsMap } from './IParameter'
 // <!# Custom Content Begin: HEADER #!>
@@ -29,7 +29,7 @@ let cachedSchema: ISDSchemaDefinition<IParameter3aDefinition, IParameter3a> | nu
 
 export class Parameter extends ParameterBase implements IParameter3a {
   public extensions: Record<string, any> = {}
-  public name?: string!
+  public name!: string
   public in!: 'cookie' | 'header' | 'path' | 'query'
   public description?: string
   public required?: boolean
@@ -40,8 +40,8 @@ export class Parameter extends ParameterBase implements IParameter3a {
   public allowReserved?: boolean
   public schema?: ISchema3a
   public example?: any
-  public examples?: IRecord<Example|Reference>3a
-  public content?: IRecord<MediaType>3a
+  public examples?: Record<string, IExample3a>
+  public content?: Record<string, IMediaType3a>
 
   constructor (definition: IParameter3aDefinition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -100,6 +100,7 @@ export class Parameter extends ParameterBase implements IParameter3a {
       return new Parameter(Object.assign({}, definition as unknown) as IParameter3aDefinition)
     } else {
       return new Parameter(Object.assign({
+        name: '',
         in: 'cookie'
       }, definition) as IParameter3aDefinition)
     }
@@ -116,6 +117,7 @@ export class Parameter extends ParameterBase implements IParameter3a {
 
   static createDefinition<T extends Partial<IParameter3aDefinition>> (definition?: T | undefined): IParameter3aDefinition & T {
     return Object.assign({
+      name: '',
       in: 'cookie'
     }, definition) as IParameter3aDefinition & T
   }
@@ -143,8 +145,9 @@ function getValidatorsMap (): IValidatorsMap {
   return {
     name: {
       name: 'name',
+      required: true,
       schema: {
-        type: 'string!'
+        type: 'string'
       }
     },
     _in: {
@@ -215,17 +218,23 @@ function getValidatorsMap (): IValidatorsMap {
     examples: {
       name: 'examples',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Record<Example|Reference>3a
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: true,
+          component: Example3a
+        }
       }
     },
     content: {
       name: 'content',
       schema: {
-        type: 'component',
-        allowsRef: false,
-        component: Record<MediaType>3a
+        type: 'object',
+        additionalProperties: {
+          type: 'component',
+          allowsRef: false,
+          component: MediaType3a
+        }
       }
     }
   }

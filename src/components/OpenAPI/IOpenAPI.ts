@@ -15,8 +15,11 @@ import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ISDProperty, ISDString, ISDComponent, ISDArray } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IInfo3, IInfo3Definition, IInfo3a, IInfo3aDefinition } from '../Info'
+import { IServer3, IServer3Definition, IServer3a, IServer3aDefinition } from '../Server'
 import { IPaths3, IPaths3Definition, IPaths3a, IPaths3aDefinition } from '../Paths'
 import { IComponents3, IComponents3Definition, IComponents3a, IComponents3aDefinition } from '../Components'
+import { ISecurityRequirement3, ISecurityRequirement3Definition, ISecurityRequirement3a, ISecurityRequirement3aDefinition } from '../SecurityRequirement'
+import { ITag3, ITag3Definition, ITag3a, ITag3aDefinition } from '../Tag'
 import { IExternalDocumentation3, IExternalDocumentation3Definition, IExternalDocumentation3a, IExternalDocumentation3aDefinition } from '../ExternalDocumentation'
 
 // <!# Custom Content Begin: HEADER #!>

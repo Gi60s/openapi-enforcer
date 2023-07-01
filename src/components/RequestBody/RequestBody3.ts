@@ -16,6 +16,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { MediaType3, IMediaType3 } from '../MediaType'
 import { RequestBody as RequestBodyBase } from './RequestBody'
 import { IRequestBody3, IRequestBody3Definition, IRequestBody3SchemaProcessor, IRequestBodyValidatorsMap3 as IValidatorsMap } from './IRequestBody'
 // <!# Custom Content Begin: HEADER #!>

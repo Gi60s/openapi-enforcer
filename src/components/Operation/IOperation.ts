@@ -15,9 +15,13 @@ import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ISDProperty, ISDArray, ISDString, ISDComponent, ISDBoolean, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IExternalDocumentation2, IExternalDocumentation2Definition, IExternalDocumentation3, IExternalDocumentation3Definition, IExternalDocumentation3a, IExternalDocumentation3aDefinition } from '../ExternalDocumentation'
+import { IParameter2, IParameter2Definition, IParameter3, IParameter3Definition, IParameter3a, IParameter3aDefinition } from '../Parameter'
+import { IReference2Definition, IReference3Definition, IReference3aDefinition } from '../Reference'
 import { IResponses2, IResponses2Definition, IResponses3, IResponses3Definition, IResponses3a, IResponses3aDefinition } from '../Responses'
+import { ISecurityRequirement2, ISecurityRequirement2Definition, ISecurityRequirement3, ISecurityRequirement3Definition, ISecurityRequirement3a, ISecurityRequirement3aDefinition } from '../SecurityRequirement'
 import { IRequestBody3, IRequestBody3Definition, IRequestBody3a, IRequestBody3aDefinition } from '../RequestBody'
-import { IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
+import { ICallback3, ICallback3Definition, ICallback3a, ICallback3aDefinition } from '../Callback'
+import { IServer3, IServer3Definition, IServer3a, IServer3aDefinition } from '../Server'
 
 // <!# Custom Content Begin: HEADER #!>
 import { ContentType } from '../../ContentType/ContentType'
@@ -83,7 +87,7 @@ export interface IOperationValidatorsMap2 {
   operationId: ISDProperty<ISDString>
   consumes: ISDProperty<ISDArray<ISDString>>
   produces: ISDProperty<ISDArray<ISDString>>
-  parameters: ISDProperty<ISDArray<ISDComponent<IParameter2Definition, IParameter2> | ISDComponent<IReference2Definition, IReference2>>>
+  parameters: ISDProperty<ISDArray<ISDComponent<IParameter2Definition, IParameter2>>>
   responses: ISDProperty<ISDComponent<IResponses2Definition, IResponses2>>
   schemes: ISDProperty<ISDArray<ISDString>>
   deprecated: ISDProperty<ISDBoolean>
@@ -128,10 +132,10 @@ export interface IOperationValidatorsMap3 {
   description: ISDProperty<ISDString>
   externalDocs: ISDProperty<ISDComponent<IExternalDocumentation3Definition, IExternalDocumentation3>>
   operationId: ISDProperty<ISDString>
-  parameters: ISDProperty<ISDArray<ISDComponent<IParameter3Definition, IParameter3> | ISDComponent<IReference3Definition, IReference3>>>
-  requestBody: ISDProperty<ISDComponent<IRequestBody3Definition, IRequestBody3> | ISDComponent<IReference3Definition, IReference3>>
+  parameters: ISDProperty<ISDArray<ISDComponent<IParameter3Definition, IParameter3>>>
+  requestBody: ISDProperty<ISDComponent<IRequestBody3Definition, IRequestBody3>>
   responses: ISDProperty<ISDComponent<IResponses3Definition, IResponses3>>
-  callbacks: ISDProperty<ISDObject<ISDComponent<ICallback3Definition, ICallback3> | ISDComponent<IReference3Definition, IReference3>>>
+  callbacks: ISDProperty<ISDObject<ISDComponent<ICallback3Definition, ICallback3>>>
   deprecated: ISDProperty<ISDBoolean>
   security: ISDProperty<ISDArray<ISDComponent<ISecurityRequirement3Definition, ISecurityRequirement3>>>
   servers: ISDProperty<ISDArray<ISDComponent<IServer3Definition, IServer3>>>
@@ -175,10 +179,10 @@ export interface IOperationValidatorsMap3a {
   description: ISDProperty<ISDString>
   externalDocs: ISDProperty<ISDComponent<IExternalDocumentation3aDefinition, IExternalDocumentation3a>>
   operationId: ISDProperty<ISDString>
-  parameters: ISDProperty<ISDArray<ISDComponent<IParameter3aDefinition, IParameter3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  requestBody: ISDProperty<ISDComponent<IRequestBody3aDefinition, IRequestBody3a> | ISDComponent<IReference3aDefinition, IReference3a>>
+  parameters: ISDProperty<ISDArray<ISDComponent<IParameter3aDefinition, IParameter3a>>>
+  requestBody: ISDProperty<ISDComponent<IRequestBody3aDefinition, IRequestBody3a>>
   responses: ISDProperty<ISDComponent<IResponses3aDefinition, IResponses3a>>
-  callbacks: ISDProperty<ISDObject<ISDComponent<ICallback3aDefinition, ICallback3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  callbacks: ISDProperty<ISDObject<ISDComponent<ICallback3aDefinition, ICallback3a>>>
   deprecated: ISDProperty<ISDBoolean>
   security: ISDProperty<ISDArray<ISDComponent<ISecurityRequirement3aDefinition, ISecurityRequirement3a>>>
   servers: ISDProperty<ISDArray<ISDComponent<IServer3aDefinition, IServer3a>>>

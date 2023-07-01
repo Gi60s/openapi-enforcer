@@ -15,8 +15,11 @@ import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ISDProperty, ISDString, ISDComponent, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { ISchema2, ISchema2Definition } from '../Schema'
-import { IReference2, IReference2Definition } from '../Reference'
+import { IReference2, IReference2Definition, IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
+import { IHeader2, IHeader2Definition, IHeader3, IHeader3Definition, IHeader3a, IHeader3aDefinition } from '../Header'
 import { IExample2, IExample2Definition } from '../Example'
+import { IMediaType3, IMediaType3Definition, IMediaType3a, IMediaType3aDefinition } from '../MediaType'
+import { ILink3, ILink3Definition, ILink3a, ILink3aDefinition } from '../Link'
 
 // <!# Custom Content Begin: HEADER #!>
 // <!# Custom Content End: HEADER #!>
@@ -51,7 +54,7 @@ export interface IResponse2 extends IResponseBase {
 
 export interface IResponseValidatorsMap2 {
   description: ISDProperty<ISDString>
-  schema: ISDProperty<ISDComponent<ISchema2Definition, ISchema2> | ISDComponent<IReference2Definition, IReference2>>
+  schema: ISDProperty<ISDComponent<ISchema2Definition, ISchema2>>
   headers: ISDProperty<ISDObject<ISDComponent<IHeader2Definition, IHeader2>>>
   examples: ISDProperty<ISDComponent<IExample2Definition, IExample2>>
 }
@@ -74,9 +77,9 @@ export interface IResponse3 extends IResponseBase {
 
 export interface IResponseValidatorsMap3 {
   description: ISDProperty<ISDString>
-  headers: ISDProperty<ISDObject<ISDComponent<IHeader3Definition, IHeader3> | ISDComponent<IReference3Definition, IReference3>>>
+  headers: ISDProperty<ISDObject<ISDComponent<IHeader3Definition, IHeader3>>>
   content: ISDProperty<ISDObject<ISDComponent<IMediaType3Definition, IMediaType3>>>
-  links: ISDProperty<ISDObject<ISDComponent<ILink3Definition, ILink3> | ISDComponent<IReference3Definition, IReference3>>>
+  links: ISDProperty<ISDObject<ISDComponent<ILink3Definition, ILink3>>>
 }
 
 export interface IResponse3aDefinition {
@@ -97,9 +100,9 @@ export interface IResponse3a extends IResponseBase {
 
 export interface IResponseValidatorsMap3a {
   description: ISDProperty<ISDString>
-  headers: ISDProperty<ISDObject<ISDComponent<IHeader3aDefinition, IHeader3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  headers: ISDProperty<ISDObject<ISDComponent<IHeader3aDefinition, IHeader3a>>>
   content: ISDProperty<ISDObject<ISDComponent<IMediaType3aDefinition, IMediaType3a>>>
-  links: ISDProperty<ISDObject<ISDComponent<ILink3aDefinition, ILink3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
+  links: ISDProperty<ISDObject<ISDComponent<ILink3aDefinition, ILink3a>>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

@@ -19,10 +19,7 @@ import { loadAsync, loadAsyncAndThrow } from '../../Loader'
 import { Discriminator as DiscriminatorBase } from './Discriminator'
 import { IDiscriminator3, IDiscriminator3Definition, IDiscriminator3SchemaProcessor, IDiscriminatorValidatorsMap3 as IValidatorsMap } from './IDiscriminator'
 // <!# Custom Content Begin: HEADER #!>
-// import { traverseFromNode } from '../../Loader/loader-common'
-// import { getLocation } from '../../Loader'
-// import { ISchema3Definition } from '../IInternalTypes'
-// import { getNormalizedSchema, getSchemaPropertyValue } from '../Schema/common'
+import { ISchema3Definition } from '../Schema'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISDSchemaDefinition<IDiscriminator3Definition, IDiscriminator3> | null = null
@@ -70,7 +67,7 @@ export class Discriminator extends DiscriminatorBase implements IDiscriminator3 
       const { id, reference } = processor.component
 
       if (processor.parent !== null) {
-        const parentDefinition = processor.parent.definition as I.ISchema3Definition
+        const parentDefinition = processor.parent.definition as ISchema3Definition
         processor.store.discriminatorSchemas.push({
           definition,
           processor: processor.parent,

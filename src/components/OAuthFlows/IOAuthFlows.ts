@@ -14,7 +14,7 @@
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ISDProperty, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IOAuth Flow3, IOAuth Flow3Definition, IOAuth Flow3a, IOAuth Flow3aDefinition } from '../OAuth Flow'
+import { IOAuthFlow3, IOAuthFlow3Definition, IOAuthFlow3a, IOAuthFlow3aDefinition } from '../OAuthFlow'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -34,48 +34,48 @@ export interface IOAuthFlowsBase extends IComponentInstance {
 
 export interface IOAuthFlows3Definition {
   [extensions: `x-${string}`]: any
-  implicit?: IOAuth Flow3Definition
-  password?: IOAuth Flow3Definition
-  clientCredentials?: IOAuth Flow3Definition
-  authorizationCode?: IOAuth Flow3Definition
+  implicit?: IOAuthFlow3Definition
+  password?: IOAuthFlow3Definition
+  clientCredentials?: IOAuthFlow3Definition
+  authorizationCode?: IOAuthFlow3Definition
 }
 
 export interface IOAuthFlows3 extends IOAuthFlowsBase {
   extensions: Record<string, any>
-  implicit?: IOAuth Flow3
-  password?: IOAuth Flow3
-  clientCredentials?: IOAuth Flow3
-  authorizationCode?: IOAuth Flow3
+  implicit?: IOAuthFlow3
+  password?: IOAuthFlow3
+  clientCredentials?: IOAuthFlow3
+  authorizationCode?: IOAuthFlow3
 }
 
 export interface IOAuthFlowsValidatorsMap3 {
-  implicit: ISDProperty<ISDComponent<IOAuth Flow3Definition, IOAuth Flow3>>
-  password: ISDProperty<ISDComponent<IOAuth Flow3Definition, IOAuth Flow3>>
-  clientCredentials: ISDProperty<ISDComponent<IOAuth Flow3Definition, IOAuth Flow3>>
-  authorizationCode: ISDProperty<ISDComponent<IOAuth Flow3Definition, IOAuth Flow3>>
+  implicit: ISDProperty<ISDComponent<IOAuthFlow3Definition, IOAuthFlow3>>
+  password: ISDProperty<ISDComponent<IOAuthFlow3Definition, IOAuthFlow3>>
+  clientCredentials: ISDProperty<ISDComponent<IOAuthFlow3Definition, IOAuthFlow3>>
+  authorizationCode: ISDProperty<ISDComponent<IOAuthFlow3Definition, IOAuthFlow3>>
 }
 
 export interface IOAuthFlows3aDefinition {
   [extensions: `x-${string}`]: any
-  implicit?: IOAuth Flow3aDefinition
-  password?: IOAuth Flow3aDefinition
-  clientCredentials?: IOAuth Flow3aDefinition
-  authorizationCode?: IOAuth Flow3aDefinition
+  implicit?: IOAuthFlow3aDefinition
+  password?: IOAuthFlow3aDefinition
+  clientCredentials?: IOAuthFlow3aDefinition
+  authorizationCode?: IOAuthFlow3aDefinition
 }
 
 export interface IOAuthFlows3a extends IOAuthFlowsBase {
   extensions: Record<string, any>
-  implicit?: IOAuth Flow3a
-  password?: IOAuth Flow3a
-  clientCredentials?: IOAuth Flow3a
-  authorizationCode?: IOAuth Flow3a
+  implicit?: IOAuthFlow3a
+  password?: IOAuthFlow3a
+  clientCredentials?: IOAuthFlow3a
+  authorizationCode?: IOAuthFlow3a
 }
 
 export interface IOAuthFlowsValidatorsMap3a {
-  implicit: ISDProperty<ISDComponent<IOAuth Flow3aDefinition, IOAuth Flow3a>>
-  password: ISDProperty<ISDComponent<IOAuth Flow3aDefinition, IOAuth Flow3a>>
-  clientCredentials: ISDProperty<ISDComponent<IOAuth Flow3aDefinition, IOAuth Flow3a>>
-  authorizationCode: ISDProperty<ISDComponent<IOAuth Flow3aDefinition, IOAuth Flow3a>>
+  implicit: ISDProperty<ISDComponent<IOAuthFlow3aDefinition, IOAuthFlow3a>>
+  password: ISDProperty<ISDComponent<IOAuthFlow3aDefinition, IOAuthFlow3a>>
+  clientCredentials: ISDProperty<ISDComponent<IOAuthFlow3aDefinition, IOAuthFlow3a>>
+  authorizationCode: ISDProperty<ISDComponent<IOAuthFlow3aDefinition, IOAuthFlow3a>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

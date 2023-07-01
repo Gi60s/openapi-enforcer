@@ -17,13 +17,8 @@ import {
   ISchema3a, ISchema3aDefinition
 } from './ISchema'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import * as common from './common'
 import { Result } from '../../Result'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import * as C from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { deepEqual } from '../../util'
-import { getLocation } from '../../Loader'
-import * as I from '../IInternalTypes'
 
 type ISchemaDefinitionResult = ISDSchemaDefinition<ISchema2Definition, ISchema2> | ISDSchemaDefinition<ISchema3Definition, ISchema3> | ISDSchemaDefinition<ISchema3aDefinition, ISchema3a>
 type IValidatorsMap = ISchemaValidatorsMap2 | ISchemaValidatorsMap3 | ISchemaValidatorsMap3a
@@ -50,16 +45,10 @@ export abstract class Schema extends EnforcerComponent<ISchemaDefinition> implem
   }
 
   deserialize (value: string, options: { strict: boolean } | undefined): any {
-    return common.deserialize(value, options)
+    return null
   }
 
-  discriminate (value: object): { key: string, name: string, schema: ISchema } {
-    return {
-      key: '',
-      name: '',
-      schema: {}
-    }
-  }
+  abstract discriminate (value: object): { key: string, name: string, schema: ISchema }
 
   populate (params: Record<string, any>, value: object, options?: ISchemaPopulateOptions): Result<object> {
     return new Result({})
@@ -94,7 +83,7 @@ export abstract class Schema extends EnforcerComponent<ISchemaDefinition> implem
     validators.minimum.notAllowed = type !== 'number' && type !== 'integer' ? 'PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC' : undefined
     validators.multipleOf.notAllowed = type !== 'number' && type !== 'integer' ? 'PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC' : undefined
 
-    schema.validate = () => {
+    result.validate = () => {
       const { definition } = processor
 
       const derived: ISchemaDefinition = Object.assign({}, definition, { type })
@@ -133,50 +122,52 @@ export abstract class Schema extends EnforcerComponent<ISchemaDefinition> implem
         })
       }
 
-      if (Array.isArray(definition.allOf)) {
-        const allOf = (definition.allOf as IDefinition[]).filter((s: any) => !('$ref' in s))
+      // if (Array.isArray(definition.allOf)) {
+      //   const allOf = (definition.allOf as IDefinition[]).filter((s: any) => !('$ref' in s))
+      //
+      //     // first check that any properties that must be equal are equal
+      //   ;(allOfMustBeEqualProperties as Array<keyof IDefinition>).forEach(key => {
+      //     const conflicts: IAllOfData[] = []
+      //     let hasConflicts = false
+      //     allOf.forEach((definition, index) => {
+      //       // it should always get the derived schema because it was set already during the validator of the child schema
+      //       const schema = derivedDefinitionMap.get(definition) ?? definition
+      //       if (key in schema) {
+      //         const value = schema[key]
+      //         if (derived[key] === undefined) derived[key] = value
+      //         conflicts.push({ definition, value })
+      //         if (index > 0 && !deepEqual(conflicts[0].value, value)) hasConflicts = true
+      //       }
+      //     })
+      //
+      //     if (hasConflicts) {
+      //       exception.add({
+      //         code: 'SCHEMA_ALL_CONFLICT',
+      //         id: ctor.id,
+      //         level: 'error',
+      //         locations: conflicts.map(conflict => getLocation(conflict.definition, key, 'value')),
+      //         metadata: {
+      //           propertyName: key,
+      //           values: Array.from(new Set(conflicts.map(c => c.value)))
+      //         }
+      //       })
+      //     }
+      //   })
+      //
+      //   if (derived.type === 'object') {
+      //     const conflicts: IAllOfData[] = []
+      //     allOfDeepObjectComparison(allOf, conflicts)
+      //   }
+      // }
 
-          // first check that any properties that must be equal are equal
-        ;(allOfMustBeEqualProperties as Array<keyof IDefinition>).forEach(key => {
-          const conflicts: IAllOfData[] = []
-          let hasConflicts = false
-          allOf.forEach((definition, index) => {
-            // it should always get the derived schema because it was set already during the validator of the child schema
-            const schema = derivedDefinitionMap.get(definition) ?? definition
-            if (key in schema) {
-              const value = schema[key]
-              if (derived[key] === undefined) derived[key] = value
-              conflicts.push({ definition, value })
-              if (index > 0 && !deepEqual(conflicts[0].value, value)) hasConflicts = true
-            }
-          })
-
-          if (hasConflicts) {
-            exception.add({
-              code: 'SCHEMA_ALL_CONFLICT',
-              id: ctor.id,
-              level: 'error',
-              locations: conflicts.map(conflict => getLocation(conflict.definition, key, 'value')),
-              metadata: {
-                propertyName: key,
-                values: Array.from(new Set(conflicts.map(c => c.value)))
-              }
-            })
-          }
-        })
-
-        if (derived.type === 'object') {
-          const conflicts: IAllOfData[] = []
-          allOfDeepObjectComparison(allOf, conflicts)
-        }
-      }
+      // TODO: additional validations
     }
   }
   // <!# Custom Content End: METHODS #!>
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-function determineSchemaType (definition: I.ISchemaDefinition | I.ISchema): 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string' | undefined {
+function determineSchemaType (definition: ISchemaDefinition | ISchema): 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string' | Array<'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'> | undefined {
   if (definition.type !== undefined) return definition.type
   if ('items' in definition ||
     'maxItems' in definition ||

@@ -17,6 +17,8 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
 import { Schema3a, ISchema3a } from '../Schema'
+import { Example3a, IExample3a } from '../Example'
+import { MediaType3a, IMediaType3a } from '../MediaType'
 import { Header as HeaderBase } from './Header'
 import { IHeader3a, IHeader3aDefinition, IHeader3aSchemaProcessor, IHeaderValidatorsMap3a as IValidatorsMap } from './IHeader'
 // <!# Custom Content Begin: HEADER #!>
@@ -31,7 +33,7 @@ export class Header extends HeaderBase implements IHeader3a {
   public required?: boolean
   public deprecated?: boolean
   public allowEmptyValue?: boolean
-  public style?: ='simple'
+  public style?: 'simple'
   public explode?: boolean
   public allowReserved?: boolean
   public schema?: ISchema3a
@@ -154,7 +156,8 @@ function getValidatorsMap (): IValidatorsMap {
     style: {
       name: 'style',
       schema: {
-        type: '='simple''
+        type: 'string',
+        enum: ['simple']
       }
     },
     explode: {

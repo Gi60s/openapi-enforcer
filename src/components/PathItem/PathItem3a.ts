@@ -17,6 +17,8 @@ import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
 import { Operation3a, IOperation3a } from '../Operation'
+import { Parameter3a, IParameter3a } from '../Parameter'
+import { Server3a, IServer3a } from '../Server'
 import { PathItem as PathItemBase } from './PathItem'
 import { IPathItem3a, IPathItem3aDefinition, IPathItem3aSchemaProcessor, IPathItemValidatorsMap3a as IValidatorsMap } from './IPathItem'
 // <!# Custom Content Begin: HEADER #!>

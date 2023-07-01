@@ -13,7 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
-import { ISDProperty, ISDString, ISDAny, ISDNumber, ISDBoolean, ISDArray, ISDComponent, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDProperty, ISDString, ISDAny, ISDNumber, ISDBoolean, ISDArray, ISDComponent, ISDObject, ISDOneOf } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IReference2, IReference2Definition, IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
 import { IXml2, IXml2Definition, IXml3, IXml3Definition, IXml3a, IXml3aDefinition } from '../Xml'
 import { IExternalDocumentation2, IExternalDocumentation2Definition, IExternalDocumentation3, IExternalDocumentation3Definition, IExternalDocumentation3a, IExternalDocumentation3aDefinition } from '../ExternalDocumentation'
@@ -69,7 +69,7 @@ export type ISchemaSchemaProcessor = ISchema2SchemaProcessor | ISchema3SchemaPro
 export interface ISchemaBase extends IComponentInstance {
   // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
   deserialize: (value: string, options?: { strict: boolean }) => any
-  discriminate: (value: object) => { key: string, name: string, schema: ISchemaComponent }
+  discriminate: (value: object) => { key: string, name: string, schema: ISchema }
   hook: (type: ISchemaHookType, handler: ISchemaHookHandler) => ISchemaHookResult
   populate: (params: Record<string, any>, value: object, options?: ISchemaPopulateOptions) => Result
   random: (value: any, options?: ISchemaRandomOptions) => Result<object>
@@ -167,9 +167,9 @@ export interface ISchemaValidatorsMap2 {
   required: ISDProperty<ISDArray<ISDString>>
   type: ISDProperty<ISDString>
   items: ISDProperty<ISDComponent<ISchema2Definition, ISchema2>>
-  allOf: ISDProperty<ISDArray<ISDComponent<ISchema2Definition, ISchema2> | ISDComponent<IReference2Definition, IReference2>>>
-  properties: ISDProperty<ISDObject<ISDComponent<ISchema2Definition, ISchema2> | ISDComponent<IReference2Definition, IReference2>>>
-  additionalProperties: ISDProperty<ISDComponent<ISchema2Definition, ISchema2> | ISDComponent<IReference2Definition, IReference2> | ISDBoolean>
+  allOf: ISDProperty<ISDArray<ISDComponent<ISchema2Definition, ISchema2>>>
+  properties: ISDProperty<ISDObject<ISDComponent<ISchema2Definition, ISchema2>>>
+  additionalProperties: ISDProperty<ISDOneOf<ISDComponent<ISchema2Definition, ISchema2> | ISDBoolean>>
   discriminator: ISDProperty<ISDString>
   readOnly: ISDProperty<ISDBoolean>
   xml: ISDProperty<ISDComponent<IXml2Definition, IXml2>>
@@ -257,10 +257,10 @@ export interface ISchema3 extends ISchemaBase {
 
 export interface ISchemaValidatorsMap3 {
   type: ISDProperty<ISDString>
-  allOf: ISDProperty<ISDArray<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>>
-  oneOf: ISDProperty<ISDArray<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>>
-  anyOf: ISDProperty<ISDArray<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>>
-  not: ISDProperty<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>
+  allOf: ISDProperty<ISDArray<ISDComponent<ISchema3Definition, ISchema3>>>
+  oneOf: ISDProperty<ISDArray<ISDComponent<ISchema3Definition, ISchema3>>>
+  anyOf: ISDProperty<ISDArray<ISDComponent<ISchema3Definition, ISchema3>>>
+  not: ISDProperty<ISDComponent<ISchema3Definition, ISchema3>>
   title: ISDProperty<ISDString>
   maximum: ISDProperty<ISDNumber>
   exclusiveMaximum: ISDProperty<ISDBoolean>
@@ -277,9 +277,9 @@ export interface ISchemaValidatorsMap3 {
   _enum: ISDProperty<ISDArray<ISDAny>>
   multipleOf: ISDProperty<ISDNumber>
   required: ISDProperty<ISDArray<ISDString>>
-  items: ISDProperty<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>
-  properties: ISDProperty<ISDObject<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3>>>
-  additionalProperties: ISDProperty<ISDComponent<ISchema3Definition, ISchema3> | ISDComponent<IReference3Definition, IReference3> | ISDBoolean>
+  items: ISDProperty<ISDComponent<ISchema3Definition, ISchema3>>
+  properties: ISDProperty<ISDObject<ISDComponent<ISchema3Definition, ISchema3>>>
+  additionalProperties: ISDProperty<ISDOneOf<ISDComponent<ISchema3Definition, ISchema3> | ISDBoolean>>
   description: ISDProperty<ISDString>
   format: ISDProperty<ISDString>
   _default: ISDProperty<ISDAny>
@@ -372,11 +372,11 @@ export interface ISchema3a extends ISchemaBase {
 }
 
 export interface ISchemaValidatorsMap3a {
-  type: ISDProperty<ISDString | ISDArray<ISDString>>
-  allOf: ISDProperty<ISDArray<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  oneOf: ISDProperty<ISDArray<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  anyOf: ISDProperty<ISDArray<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  not: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>
+  type: ISDProperty<ISDOneOf<ISDString | ISDArray<ISDString>>>
+  allOf: ISDProperty<ISDArray<ISDComponent<ISchema3aDefinition, ISchema3a>>>
+  oneOf: ISDProperty<ISDArray<ISDComponent<ISchema3aDefinition, ISchema3a>>>
+  anyOf: ISDProperty<ISDArray<ISDComponent<ISchema3aDefinition, ISchema3a>>>
+  not: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a>>
   title: ISDProperty<ISDString>
   maximum: ISDProperty<ISDNumber>
   exclusiveMaximum: ISDProperty<ISDBoolean>
@@ -393,9 +393,9 @@ export interface ISchemaValidatorsMap3a {
   _enum: ISDProperty<ISDArray<ISDAny>>
   multipleOf: ISDProperty<ISDNumber>
   required: ISDProperty<ISDArray<ISDString>>
-  items: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>
-  properties: ISDProperty<ISDObject<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a>>>
-  additionalProperties: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDComponent<IReference3aDefinition, IReference3a> | ISDBoolean>
+  items: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a>>
+  properties: ISDProperty<ISDObject<ISDComponent<ISchema3aDefinition, ISchema3a>>>
+  additionalProperties: ISDProperty<ISDOneOf<ISDComponent<ISchema3aDefinition, ISchema3a> | ISDBoolean>>
   description: ISDProperty<ISDString>
   format: ISDProperty<ISDString>
   _default: ISDProperty<ISDAny>

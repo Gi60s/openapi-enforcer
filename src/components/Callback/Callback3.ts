@@ -36,8 +36,8 @@ const additionalProperties: ISDObject<ISDComponent<IPathItem3Definition, IPathIt
 
 export class Callback extends CallbackBase implements ICallback3 {
   public extensions: Record<string, any> = {};
-  [path: `http${string}`]: IPathItem3
-  [path: `{$${string}`]: IPathItem3
+  [path: `http${string}`]: [path: `http${string}`]: IPathItem3
+  [path: `{$${string}`]: [path: `{$${string}`]: IPathItem3
 
   constructor (definition: ICallback3Definition, version?: IVersion) {
     super(definition, version, arguments[2])

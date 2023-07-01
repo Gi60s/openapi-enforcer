@@ -16,6 +16,7 @@ import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
+import { ServerVariable3, IServerVariable3 } from '../ServerVariable'
 import { Server as ServerBase } from './Server'
 import { IServer3, IServer3Definition, IServer3SchemaProcessor, IServerValidatorsMap3 as IValidatorsMap } from './IServer'
 // <!# Custom Content Begin: HEADER #!>

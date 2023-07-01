@@ -148,7 +148,11 @@ export class Schema extends SchemaBase implements ISchema2 {
 
   // <!# Custom Content Begin: BODY #!>
   discriminate (value: object): { key: string, name: string, schema: Schema } {
-    return super.discriminate(value)
+    return {
+      key: '',
+      name: '',
+      schema: new Schema({})
+    }
   }
   // <!# Custom Content End: BODY #!>
 }

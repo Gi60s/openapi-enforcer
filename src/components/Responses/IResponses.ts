@@ -36,36 +36,34 @@ export interface IResponsesBase extends IComponentInstance {
 
 export interface IResponses2Definition {
   [extensions: `x-${string}`]: any
-  Record<string, IResponse2Definition
-  IReference2Definition>
+  [key: number]: Record<string, IResponse2Definition | IReference2Definition>
   default?: IResponse2Definition | IReference2Definition
 }
 
 export interface IResponses2 extends IResponsesBase {
   extensions: Record<string, any>
-  Record<string, IResponse2>
+  [key: number]: Record<string, IResponse2>
   default?: IResponse2
 }
 
 export interface IResponsesValidatorsMap2 {
-  _default: ISDProperty<ISDComponent<IResponse2Definition, IResponse2> | ISDComponent<IReference2Definition, IReference2>>
+  _default: ISDProperty<ISDComponent<IResponse2Definition, IResponse2>>
 }
 
 export interface IResponses3Definition {
   [extensions: `x-${string}`]: any
-  Record<string, IResponse3Definition
-  IReference3Definition>
+  [key: number]: Record<string, IResponse3Definition | IReference3Definition>
   default?: IResponse3Definition | IReference3Definition
 }
 
 export interface IResponses3 extends IResponsesBase {
   extensions: Record<string, any>
-  Record<string, IResponse3>
+  [key: number]: Record<string, IResponse3>
   default?: IResponse3
 }
 
 export interface IResponsesValidatorsMap3 {
-  _default: ISDProperty<ISDComponent<IResponse3Definition, IResponse3> | ISDComponent<IReference3Definition, IReference3>>
+  _default: ISDProperty<ISDComponent<IResponse3Definition, IResponse3>>
 }
 
 export interface IResponses3aDefinition {
@@ -79,7 +77,7 @@ export interface IResponses3a extends IResponsesBase {
 }
 
 export interface IResponsesValidatorsMap3a {
-  _default: ISDProperty<ISDComponent<IResponse3aDefinition, IResponse3a> | ISDComponent<IReference3aDefinition, IReference3a>>
+  _default: ISDProperty<ISDComponent<IResponse3aDefinition, IResponse3a>>
 }
 
 // <!# Custom Content Begin: FOOTER #!>

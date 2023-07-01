@@ -1,13 +1,13 @@
 import { ISchema2Definition, ISchema3Definition, ISchema2, ISchema3, ISchemaValidatorsMap3 } from './ISchema'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
 import { IExceptionData, IExceptionLevel } from '../../Exception/IException'
-import * as I from '../IInternalTypes'
-import * as C from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { getLocation } from '../../Loader'
-import { deepEqual } from '../../util'
+// import * as I from '../IInternalTypes'
+// import * as C from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+// import { getLocation } from '../../Loader'
+// import { deepEqual } from '../../util'
 
 type IDefinition = ISchema2Definition | ISchema3Definition
-type IDefinitionKeys = Array<keyof IDefinition>
+// type IDefinitionKeys = Array<keyof IDefinition>
 type ISchema = ISchema2 | ISchema3
 
 interface IAllOfData {
@@ -16,9 +16,9 @@ interface IAllOfData {
 }
 
 
-const allOfMustBeEqualProperties = ['format', 'nullable', 'type', 'uniqueItems']
-const allOfMinimumProperties = ['minimum', 'minLength', 'minItems', 'minProperties'] as IDefinitionKeys
-const allOfMaximumProperties = ['maximum', 'maxLength', 'maxItems', 'maxProperties'] as IDefinitionKeys
+// const allOfMustBeEqualProperties = ['format', 'nullable', 'type', 'uniqueItems']
+// const allOfMinimumProperties = ['minimum', 'minLength', 'minItems', 'minProperties'] as IDefinitionKeys
+// const allOfMaximumProperties = ['maximum', 'maxLength', 'maxItems', 'maxProperties'] as IDefinitionKeys
 
 const derivedDefinitionMap = new WeakMap<IDefinition, IDefinition>()
 
@@ -66,114 +66,114 @@ export function discriminate<T extends ISchema> (value: object): { key: string, 
   }
 }
 
-export function schemaDefinition (processor: I.ISchemaSchemaProcessor,
-  validators: I.ISchemaValidatorsMap2 | ISchemaValidatorsMap3,
-  schema: C.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> | C.ISchemaDefinition<I.ISchema3Definition, I.ISchema3>): void {
-  const { definition, exception } = processor
-  const type = determineSchemaType(definition)
-  const ctor = processor.component.constructor
-
-  const additionalProperties = validators.additionalProperties
-  Object.defineProperty(additionalProperties, 'schema', {
-    get (): C.IBoolean | C.IComponent<any, any> {
-      const definition = processor.definition
-      const value = definition.additionalProperties ?? true
-      if (typeof value === 'boolean') {
-        return { type: 'boolean', default: true }
-      } else {
-        return {
-          type: 'component',
-          allowsRef: true,
-          component: ctor
-        }
-      }
-    }
-  })
-  additionalProperties.notAllowed = type !== 'object' ? 'PROPERTY_NOT_ALLOWED_UNLESS_OBJECT' : undefined
-
-  // TODO: type may be string and format may make it numeric, so due a numeric type lookup here
-  validators.maximum.notAllowed = type !== 'number' && type !== 'integer' ? 'PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC' : undefined
-  validators.minimum.notAllowed = type !== 'number' && type !== 'integer' ? 'PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC' : undefined
-  validators.multipleOf.notAllowed = type !== 'number' && type !== 'integer' ? 'PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC' : undefined
-
-  schema.validate = () => {
-    const { definition } = processor
-
-    const derived: IDefinition = Object.assign({}, definition, { type })
-    derivedDefinitionMap.set(definition, derived)
-
-    const isTypeExempt = ('allOf' in definition) || ('anyOf' in definition) || ('oneOf' in definition) || ('not' in definition)
-    if (!isTypeExempt) {
-      if (type === undefined) {
-        exception.add({
-          code: 'SCHEMA_TYPE_INDETERMINATE',
-          id: ctor.id,
-          level: 'error',
-          locations: [processor.getLocation('value')],
-          metadata: {}
-        })
-      } else if (!('type' in definition)) {
-        exception.add({
-          code: 'SCHEMA_TYPE_NOT_SPECIFIED',
-          id: ctor.id,
-          level: 'warn',
-          locations: [processor.getLocation('value')],
-          metadata: {
-            determinedType: type
-          }
-        })
-      }
-    }
-
-    if (Array.isArray(definition.allOf) && definition.allOf.length === 0) {
-      exception.add({
-        code: 'ARRAY_EMPTY',
-        id: ctor.id,
-        level: 'warn',
-        locations: [processor.getLocation('value')],
-        metadata: {}
-      })
-    }
-
-    if (Array.isArray(definition.allOf)) {
-      const allOf = (definition.allOf as IDefinition[]).filter((s: any) => !('$ref' in s))
-
-      // first check that any properties that must be equal are equal
-      ;(allOfMustBeEqualProperties as Array<keyof IDefinition>).forEach(key => {
-        const conflicts: IAllOfData[] = []
-        let hasConflicts = false
-        allOf.forEach((definition, index) => {
-          // it should always get the derived schema because it was set already during the validator of the child schema
-          const schema = derivedDefinitionMap.get(definition) ?? definition
-          if (key in schema) {
-            const value = schema[key]
-            if (derived[key] === undefined) derived[key] = value
-            conflicts.push({ definition, value })
-            if (index > 0 && !deepEqual(conflicts[0].value, value)) hasConflicts = true
-          }
-        })
-
-        if (hasConflicts) {
-          exception.add({
-            code: 'SCHEMA_ALL_CONFLICT',
-            id: ctor.id,
-            level: 'error',
-            locations: conflicts.map(conflict => getLocation(conflict.definition, key, 'value')),
-            metadata: {
-              propertyName: key,
-              values: Array.from(new Set(conflicts.map(c => c.value)))
-            }
-          })
-        }
-      })
-
-      if (derived.type === 'object') {
-        const conflicts: IAllOfData[] = []
-        allOfDeepObjectComparison(allOf, conflicts)
-      }
-    }
-  }
-}
+// export function schemaDefinition (processor: I.ISchemaSchemaProcessor,
+//   validators: I.ISchemaValidatorsMap2 | ISchemaValidatorsMap3,
+//   schema: C.ISchemaDefinition<I.ISchema2Definition, I.ISchema2> | C.ISchemaDefinition<I.ISchema3Definition, I.ISchema3>): void {
+//   const { definition, exception } = processor
+//   const type = determineSchemaType(definition)
+//   const ctor = processor.component.constructor
+//
+//   const additionalProperties = validators.additionalProperties
+//   Object.defineProperty(additionalProperties, 'schema', {
+//     get (): C.IBoolean | C.IComponent<any, any> {
+//       const definition = processor.definition
+//       const value = definition.additionalProperties ?? true
+//       if (typeof value === 'boolean') {
+//         return { type: 'boolean', default: true }
+//       } else {
+//         return {
+//           type: 'component',
+//           allowsRef: true,
+//           component: ctor
+//         }
+//       }
+//     }
+//   })
+//   additionalProperties.notAllowed = type !== 'object' ? 'PROPERTY_NOT_ALLOWED_UNLESS_OBJECT' : undefined
+//
+//   // TODO: type may be string and format may make it numeric, so due a numeric type lookup here
+//   validators.maximum.notAllowed = type !== 'number' && type !== 'integer' ? 'PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC' : undefined
+//   validators.minimum.notAllowed = type !== 'number' && type !== 'integer' ? 'PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC' : undefined
+//   validators.multipleOf.notAllowed = type !== 'number' && type !== 'integer' ? 'PROPERTY_NOT_ALLOWED_UNLESS_NUMERIC' : undefined
+//
+//   schema.validate = () => {
+//     const { definition } = processor
+//
+//     const derived: IDefinition = Object.assign({}, definition, { type })
+//     derivedDefinitionMap.set(definition, derived)
+//
+//     const isTypeExempt = ('allOf' in definition) || ('anyOf' in definition) || ('oneOf' in definition) || ('not' in definition)
+//     if (!isTypeExempt) {
+//       if (type === undefined) {
+//         exception.add({
+//           code: 'SCHEMA_TYPE_INDETERMINATE',
+//           id: ctor.id,
+//           level: 'error',
+//           locations: [processor.getLocation('value')],
+//           metadata: {}
+//         })
+//       } else if (!('type' in definition)) {
+//         exception.add({
+//           code: 'SCHEMA_TYPE_NOT_SPECIFIED',
+//           id: ctor.id,
+//           level: 'warn',
+//           locations: [processor.getLocation('value')],
+//           metadata: {
+//             determinedType: type
+//           }
+//         })
+//       }
+//     }
+//
+//     if (Array.isArray(definition.allOf) && definition.allOf.length === 0) {
+//       exception.add({
+//         code: 'ARRAY_EMPTY',
+//         id: ctor.id,
+//         level: 'warn',
+//         locations: [processor.getLocation('value')],
+//         metadata: {}
+//       })
+//     }
+//
+//     if (Array.isArray(definition.allOf)) {
+//       const allOf = (definition.allOf as IDefinition[]).filter((s: any) => !('$ref' in s))
+//
+//       // first check that any properties that must be equal are equal
+//       ;(allOfMustBeEqualProperties as Array<keyof IDefinition>).forEach(key => {
+//         const conflicts: IAllOfData[] = []
+//         let hasConflicts = false
+//         allOf.forEach((definition, index) => {
+//           // it should always get the derived schema because it was set already during the validator of the child schema
+//           const schema = derivedDefinitionMap.get(definition) ?? definition
+//           if (key in schema) {
+//             const value = schema[key]
+//             if (derived[key] === undefined) derived[key] = value
+//             conflicts.push({ definition, value })
+//             if (index > 0 && !deepEqual(conflicts[0].value, value)) hasConflicts = true
+//           }
+//         })
+//
+//         if (hasConflicts) {
+//           exception.add({
+//             code: 'SCHEMA_ALL_CONFLICT',
+//             id: ctor.id,
+//             level: 'error',
+//             locations: conflicts.map(conflict => getLocation(conflict.definition, key, 'value')),
+//             metadata: {
+//               propertyName: key,
+//               values: Array.from(new Set(conflicts.map(c => c.value)))
+//             }
+//           })
+//         }
+//       })
+//
+//       if (derived.type === 'object') {
+//         const conflicts: IAllOfData[] = []
+//         allOfDeepObjectComparison(allOf, conflicts)
+//       }
+//     }
+//   }
+// }
 
 /**
  * Get the property for a schema. If the property is not found then try to determine the property value, otherwise
@@ -182,14 +182,14 @@ export function schemaDefinition (processor: I.ISchemaSchemaProcessor,
  * @param propertyName
  * @param defaultValue
  */
-export function getSchemaProperty<T> (schema: IDefinition, propertyName: keyof IDefinition, defaultValue?: T): T | undefined {
-  if (schema[propertyName] !== undefined) return schema[propertyName] as T
-  if (Array.isArray(schema.allOf)) {
-    const found = (schema.allOf as IDefinition[]).find(s => s[propertyName] !== undefined)
-    if (found !== undefined) return found[propertyName] as T
-  }
-  return defaultValue
-}
+// export function getSchemaProperty<T> (schema: IDefinition, propertyName: keyof IDefinition, defaultValue?: T): T | undefined {
+//   if (schema[propertyName] !== undefined) return schema[propertyName] as T
+//   if (Array.isArray(schema.allOf)) {
+//     const found = (schema.allOf as IDefinition[]).find(s => s[propertyName] !== undefined)
+//     if (found !== undefined) return found[propertyName] as T
+//   }
+//   return defaultValue
+// }
 
 // /**
 //  * Generate a schema definition object that has default properties added, allOf schemas merged, oneOf or anyOf schemas
@@ -308,14 +308,6 @@ export function validateMaxMin (exceptionStore: ExceptionStore,
       return data
     }
   }
-}
-
-function allOfDeepObjectComparison (schemas: IDefinition[], conflicts: IAllOfData[]) {
-  schemas
-    .filter(schema => determineSchemaType(schema) === 'object')
-    .forEach(schema => {
-
-    })
 }
 
 // property values that must be equal across all schemas
