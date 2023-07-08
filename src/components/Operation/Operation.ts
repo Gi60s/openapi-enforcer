@@ -2,7 +2,14 @@
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
-import { IOperationDefinition, IOperationBase } from './IOperation'
+import {
+  IOperationDefinition,
+  IOperationBase,
+  IOperationParseOptions,
+  IOperationParseRequest,
+  IOperationParseRequestResponse
+} from './IOperation'
+import { ContentType } from '../../ContentType/ContentType'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -18,7 +25,13 @@ export abstract class Operation extends EnforcerComponent<IOperationDefinition> 
   }
 
   // <!# Custom Content Begin: METHODS #!>
-  // Put your code here.
+  abstract getAcceptedResponseTypes (statusCode: number | 'default', accepted: string): ContentType[]
+  abstract parseBody (body: string | object, options?: IOperationParseOptions): any
+  abstract parseHeaders (headers: Record<string, string>, options?: IOperationParseOptions): Record<string, any>
+  abstract parsePath (path: string, options?: IOperationParseOptions): Record<string, any>
+  abstract parseQuery (query: string, options?: IOperationParseOptions & { allowOtherQueryParameters?: boolean }): Record<string, string | string[] | undefined>
+  abstract parseRequest (request: IOperationParseRequest, options?: IOperationParseOptions & { allowOtherQueryParameters?: boolean }): IOperationParseRequestResponse
+  abstract willAcceptContentType (contentType: string | ContentType): boolean
   // <!# Custom Content End: METHODS #!>
 }
 

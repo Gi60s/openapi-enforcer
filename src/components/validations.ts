@@ -52,7 +52,7 @@ export function parametersAreUnique (data: SchemaProcessor<IPathItemDefinition, 
           code: 'PARAMETER_NAMESPACE_CONFLICT',
           level: 'error',
           locations: parameters.map(parameter => {
-            const index = definition.parameters?.indexOf(parameter)
+            const index = definition.parameters?.indexOf(parameter as IParameterDefinition)
             return getLocation(parameters, index, 'value')
           }),
           metadata: { parameters },

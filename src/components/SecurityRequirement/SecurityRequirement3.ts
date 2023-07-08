@@ -32,7 +32,7 @@ const additionalProperties: ISDArray<ISDString> = {
 }
 
 export class SecurityRequirement extends SecurityRequirementBase implements ISecurityRequirement3 {
-  string[]
+  properties!: Record<string, string[] | undefined>
 
   constructor (definition: ISecurityRequirement3Definition, version?: IVersion) {
     super(definition, version, arguments[2])

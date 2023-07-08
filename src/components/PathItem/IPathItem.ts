@@ -16,7 +16,7 @@ import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor
 import { ISDProperty, ISDString, ISDComponent, ISDArray } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IOperation2, IOperation2Definition, IOperation3, IOperation3Definition, IOperation3a, IOperation3aDefinition } from '../Operation'
 import { IParameter2, IParameter2Definition, IParameter3, IParameter3Definition, IParameter3a, IParameter3aDefinition } from '../Parameter'
-import { IReference2, IReference2Definition, IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
+import { IReference2Definition, IReference3Definition, IReference3aDefinition } from '../Reference'
 import { IServer3, IServer3Definition, IServer3a, IServer3aDefinition } from '../Server'
 
 // <!# Custom Content Begin: HEADER #!>

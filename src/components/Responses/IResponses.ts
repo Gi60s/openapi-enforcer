@@ -15,7 +15,7 @@ import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ISDProperty, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IResponse2, IResponse2Definition, IResponse3, IResponse3Definition, IResponse3a, IResponse3aDefinition } from '../Response'
-import { IReference2, IReference2Definition, IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
+import { IReference2Definition, IReference3Definition, IReference3aDefinition } from '../Reference'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.

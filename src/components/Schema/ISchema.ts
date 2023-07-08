@@ -14,7 +14,7 @@
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ISDProperty, ISDString, ISDAny, ISDNumber, ISDBoolean, ISDArray, ISDComponent, ISDObject, ISDOneOf } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
-import { IReference2, IReference2Definition, IReference3, IReference3Definition, IReference3a, IReference3aDefinition } from '../Reference'
+import { IReference2Definition, IReference3Definition, IReference3aDefinition } from '../Reference'
 import { IXml2, IXml2Definition, IXml3, IXml3Definition, IXml3a, IXml3aDefinition } from '../Xml'
 import { IExternalDocumentation2, IExternalDocumentation2Definition, IExternalDocumentation3, IExternalDocumentation3Definition, IExternalDocumentation3a, IExternalDocumentation3aDefinition } from '../ExternalDocumentation'
 import { IDiscriminator3, IDiscriminator3Definition, IDiscriminator3a, IDiscriminator3aDefinition } from '../Discriminator'
