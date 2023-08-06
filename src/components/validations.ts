@@ -10,7 +10,7 @@ import {
 export function isUrl (key: string, data: SchemaProcessor): void {
   const { definition, exception } = data
   const { reference, id } = data.component
-  const url = (definition as any)[key]
+  const url = definition[key]
   if (url !== undefined && !rx.url.test(url)) {
     exception.add({
       id,
@@ -45,14 +45,14 @@ export function parametersAreUnique (data: SchemaProcessor<IPathItemDefinition, 
 
   Object.keys(existing).forEach(name => {
     Object.keys(existing[name]).forEach(at => {
-      const parameters = existing[name][at]
+      const parameters = existing[name][at].filter(p => !('$ref' in p))
       if (parameters.length > 0) {
         exception.add({
           id,
           code: 'PARAMETER_NAMESPACE_CONFLICT',
           level: 'error',
           locations: parameters.map(parameter => {
-            const index = definition.parameters?.indexOf(parameter as IParameterDefinition)
+            const index = (definition.parameters as IParameterDefinition[])?.indexOf(parameter)
             return getLocation(parameters, index, 'value')
           }),
           metadata: { parameters },
@@ -86,7 +86,7 @@ export function mutuallyExclusiveProperties (properties: string[], data: SchemaP
   const { reference, id } = data.component
   const propertiesFound: string[] = []
   properties.forEach(property => {
-    if ((definition as any)[property] !== undefined) {
+    if (definition[property] !== undefined) {
       propertiesFound.push(property)
     }
   })

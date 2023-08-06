@@ -26,7 +26,9 @@ import { Server3a, IServer3a } from '../Server'
 import { Operation as OperationBase } from './Operation'
 import { IOperation3a, IOperation3aDefinition, IOperation3aSchemaProcessor, IOperationValidatorsMap3a as IValidatorsMap } from './IOperation'
 // <!# Custom Content Begin: HEADER #!>
-// Put your code here.
+import { ContentType } from '../../ContentType/ContentType'
+import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
+import { operationWillAcceptContentType } from './common'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISDSchemaDefinition<IOperation3aDefinition, IOperation3a> | null = null
@@ -133,7 +135,43 @@ export class Operation extends OperationBase implements IOperation3a {
   }
 
   // <!# Custom Content Begin: BODY #!>
-  // Put your code here.
+  getAcceptedResponseTypes (statusCode: number | 'default', accepts: string): ContentType[] {
+    const response = statusCode === 'default'
+      ? this.responses.default
+      : this.responses.properties[statusCode]
+    if (response === undefined) return []
+
+    const produces = Object.keys(response.content ?? {})
+      .map(ContentType.fromString)
+      .filter(c => c !== undefined) as ContentType[]
+
+    return ContentType.filterProducedTypesByAccepted(accepts, produces)
+  }
+
+  parseBody (body: string | object, options?: IOperationParseOptions): any {
+    return null
+  }
+
+  parseHeaders (headers: Record<string, string>, options?: IOperationParseOptions): Record<string, any> {
+    return {}
+  }
+
+  parsePath (path: string, options?: IOperationParseOptions): Record<string, any> {
+    return {}
+  }
+
+  parseQuery (query: string, options?: IOperationParseOptions & { allowOtherQueryParameters?: boolean }): Record<string, any> {
+    return {}
+  }
+
+  parseRequest (request: IOperationParseRequest, options?: IOperationParseOptions & { allowOtherQueryParameters?: boolean }): IOperationParseRequestResponse {
+    return {}
+  }
+
+  willAcceptContentType (contentType: string | ContentType): boolean {
+    const consumes = Object.keys(this.requestBody?.content ?? {})
+    return operationWillAcceptContentType(contentType, consumes)
+  }
   // <!# Custom Content End: BODY #!>
 }
 

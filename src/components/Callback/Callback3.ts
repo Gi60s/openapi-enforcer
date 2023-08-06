@@ -14,30 +14,29 @@
 /* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import { ISDSchemaDefinition, ISDObject, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDSchemaDefinition, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
 import { PathItem3, IPathItem3 } from '../PathItem'
 import { Callback as CallbackBase } from './Callback'
 import { ICallback3, ICallback3Definition, ICallback3SchemaProcessor } from './ICallback'
 // <!# Custom Content Begin: HEADER #!>
-// Put your code here.
+import { IPathItem3Definition } from '../PathItem'
 // <!# Custom Content End: HEADER #!>
 
 let cachedSchema: ISDSchemaDefinition<ICallback3Definition, ICallback3> | null = null
 
-const additionalProperties: ISDObject<ISDComponent<IPathItem3Definition, IPathItem3>> = {
-  type: 'object',
-  additionalProperties: {
-    type: 'component',
-    allowsRef: false,
-    component: PathItem3
-  }
+const additionalProperties: ISDComponent<IPathItem3Definition, IPathItem3> = {
+  type: 'component',
+  allowsRef: false,
+  component: PathItem3
 }
 
 export class Callback extends CallbackBase implements ICallback3 {
-  public extensions: Record<string, any> = {};
-  [path: `http${string}`]: [path: `http${string}`]: IPathItem3
-  [path: `{$${string}`]: [path: `{$${string}`]: IPathItem3
+  public extensions: Record<string, any> = {}
+  public properties!: {
+    [path: `http${string}`]: IPathItem3
+    [path: `{$${string}`]: IPathItem3
+  }
 
   constructor (definition: ICallback3Definition, version?: IVersion) {
     super(definition, version, arguments[2])

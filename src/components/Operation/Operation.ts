@@ -2,17 +2,11 @@
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { IVersion } from '../IComponent'
 import { EnforcerComponent } from '../Component'
-import {
-  IOperationDefinition,
-  IOperationBase,
-  IOperationParseOptions,
-  IOperationParseRequest,
-  IOperationParseRequestResponse
-} from './IOperation'
-import { ContentType } from '../../ContentType/ContentType'
+import { IOperationDefinition, IOperationBase } from './IOperation'
 
 // <!# Custom Content Begin: HEADER #!>
-// Put your code here.
+import { ContentType } from '../../ContentType/ContentType'
+import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
 // <!# Custom Content End: HEADER #!>
 
 export abstract class Operation extends EnforcerComponent<IOperationDefinition> implements IOperationBase {

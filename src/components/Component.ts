@@ -5,9 +5,10 @@ import { ExceptionStore } from '../Exception/ExceptionStore'
 import { getLocation, load } from '../Loader'
 import { getMessage } from '../i18n/i18n'
 import { IDefinition } from './IInternalTypes'
+import { ISDObject, ISDSchema, ISDSchemaDefinition } from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
 
 type ISchemaDefinitionMap<Definition extends IDefinition, Built extends typeof EnforcerComponent<Definition>> =
-  WeakMap<Definition, WeakMap<Built, S.ISchemaDefinition<any, any>>>
+  WeakMap<Definition, WeakMap<Built, ISDSchemaDefinition<any, any>>>
 
 const definitionSchemaMap: ISchemaDefinitionMap<any, any> = new WeakMap()
 
@@ -114,10 +115,11 @@ export class EnforcerComponent<Definition extends IDefinition> {
     '3.0.0': false,
     '3.0.1': false,
     '3.0.2': false,
-    '3.0.3': false
+    '3.0.3': false,
+    '3.1.0': false
   }
 
-  static getSchemaDefinition (data: SchemaProcessor): S.ISchemaDefinition<any, any> {
+  static getSchemaDefinition (data: SchemaProcessor): ISDSchemaDefinition<any, any> {
     throw new Error(getMessage('NOT_IMPLEMENTED'))
   }
 
@@ -184,7 +186,7 @@ export class EnforcerComponent<Definition extends IDefinition> {
       const previouslyProcessed = validateDefinition(processor)
 
       if (!previouslyProcessed) {
-        const schema = processor.schema as S.ISchemaDefinition<any, any>
+        const schema = processor.schema as ISDSchemaDefinition<any, any>
         if (typeof schema.validate === 'function') {
           schema.validate(processor)
         }
@@ -203,8 +205,7 @@ export class EnforcerComponent<Definition extends IDefinition> {
   }
 }
 
-function validateChild (processor: SchemaProcessor, key: string, definition: any, schema: S.ISchema): void {
-
+function validateChild (processor: SchemaProcessor, key: string, definition: any, schema: ISDSchema): void {
   if (schema.type === 'oneOf') {
     const length = schema.oneOf.length
     const oneOf = schema.oneOf
@@ -297,7 +298,7 @@ function validateDefinition (processor: SchemaProcessor): boolean {
 
   if (actualType === 'object' && definition !== null && '$ref' in definition) {
     const key = processor.key
-    const parentSchema = processor.parent?.schema as S.IObject
+    const parentSchema = processor.parent?.schema as ISDObject
     const subSchema = processor.schema.type === 'oneOf'
       ? schema
       : parentSchema.properties?.find(s => s.name === key)?.schema ?? parentSchema.additionalProperties
@@ -354,7 +355,7 @@ function validateDefinition (processor: SchemaProcessor): boolean {
       validateChild(processor, String(index), def, schema.items)
     })
   } else if (type === 'object' || type === 'component') {
-    const s = schema as S.IObject
+    const s = schema as ISDObject
     const value: any = definition
     s.properties?.forEach(({ name, notAllowed, required }) => {
       if (value[name] === undefined && required === true && notAllowed === undefined) {

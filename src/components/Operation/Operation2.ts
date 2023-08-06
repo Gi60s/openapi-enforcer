@@ -28,6 +28,9 @@ import { getLocation } from '../../Loader'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
 import { ContentType } from '../../ContentType/ContentType'
 import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
+import { IPathItem2 } from '../PathItem'
+import { ISwagger2, ISwagger2Definition } from '../Swagger'
+import { IParameter2Definition } from '../Parameter'
 
 const multipartContentType = ContentType.fromString('multipart/form-data')
 const formUrlEncodedContentType = ContentType.fromString('application/x-www-form-urlencoded')
@@ -53,20 +56,20 @@ export class Operation extends OperationBase implements IOperation2 {
   constructor (definition: IOperation2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
-    this.getPropertyHook('parameters', (parameters?: I.IParameter2[]) => {
-      const pathItem = this.getParent<I.IPathItem2>('PathItem').component
-      const pathItemParameters: I.IParameter2[] = pathItem?.parameters ?? []
-      return mergeParameters(pathItemParameters, parameters) as I.IParameter2[]
+    this.getPropertyHook('parameters', (parameters?: IParameter2[]) => {
+      const pathItem = this.getParent<IPathItem2>('PathItem').component
+      const pathItemParameters: IParameter2[] = pathItem?.parameters ?? []
+      return mergeParameters(pathItemParameters, parameters) as IParameter2[]
     })
 
     this.getPropertyHook('consumes', (consumes?: string[]) => {
-      const swagger = this.getParent<I.ISwagger2>('Swagger').component
+      const swagger = this.getParent<ISwagger2>('Swagger').component
       const result = new Set<string>((swagger?.consumes ?? []).concat(consumes ?? []))
       return Array.from(result)
     })
 
     this.getPropertyHook('produces', (produces?: string[]) => {
-      const swagger = this.getParent<I.ISwagger2>('Swagger').component
+      const swagger = this.getParent<ISwagger2>('Swagger').component
       const result = new Set<string>((swagger?.produces ?? []).concat(produces ?? []))
       return Array.from(result)
     })
@@ -113,11 +116,11 @@ export class Operation extends OperationBase implements IOperation2 {
     result.validate = function (data) {
       const { definition, exception } = data
       const { reference, id } = data.component
-      const parameters = getMergedParameters(data) as I.IParameter2Definition[]
+      const parameters = getMergedParameters(data) as IParameter2Definition[]
       validate(data, parameters)
 
-      const bodies: I.IParameter2Definition[] = []
-      const forms: I.IParameter2Definition[] = []
+      const bodies: IParameter2Definition[] = []
+      const forms: IParameter2Definition[] = []
       parameters.forEach(parameter => {
         if (parameter.in === 'body') {
           bodies.push(parameter)
@@ -354,13 +357,13 @@ function getValidatorsMap (): IValidatorsMap {
 }
 
 // <!# Custom Content Begin: FOOTER #!>
-function getAllContentTypeStrings (data: SchemaProcessor<I.IOperation2Definition, I.IOperation2>, key: 'consumes' | 'produces', types: string[] | undefined): string[] {
-  const swagger = data.upTo<I.ISwagger2Definition, I.ISwagger2>('Swagger')
+function getAllContentTypeStrings (data: SchemaProcessor<IOperation2Definition, IOperation2>, key: 'consumes' | 'produces', types: string[] | undefined): string[] {
+  const swagger = data.upTo<ISwagger2Definition, ISwagger2>('Swagger')
   const result = new Set<string>((swagger?.built[key] ?? []).concat(types ?? []))
   return Array.from(result)
 }
 
-function validateContentTypes (contentTypes: string[] | undefined, key: 'consumes' | 'produces', data: SchemaProcessor<I.IOperation2Definition, I.IOperation2>): void {
+function validateContentTypes (contentTypes: string[] | undefined, key: 'consumes' | 'produces', data: SchemaProcessor<IOperation2Definition, IOperation2>): void {
   contentTypes?.forEach((contentType, index) => {
     if (!ContentType.isContentTypeString(contentType)) {
       const { definition, exception } = data

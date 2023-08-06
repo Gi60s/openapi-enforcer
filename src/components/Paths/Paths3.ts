@@ -14,12 +14,13 @@
 /* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import { ISDSchemaDefinition, ISDObject, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDSchemaDefinition, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
 import { PathItem3, IPathItem3 } from '../PathItem'
 import { Paths as PathsBase } from './Paths'
 import { IPaths3, IPaths3Definition, IPaths3SchemaProcessor } from './IPaths'
 // <!# Custom Content Begin: HEADER #!>
+import { IPathItem3Definition } from '../PathItem'
 import { build, validate, findPathMatches } from './common'
 import { IFindPathMatchesOptions, IFindPathMatchesResult } from '../PathItem'
 import * as config from '../../global-config'
@@ -27,18 +28,17 @@ import * as config from '../../global-config'
 
 let cachedSchema: ISDSchemaDefinition<IPaths3Definition, IPaths3> | null = null
 
-const additionalProperties: ISDObject<ISDComponent<IPathItem3Definition, IPathItem3>> = {
-  type: 'object',
-  additionalProperties: {
-    type: 'component',
-    allowsRef: false,
-    component: PathItem3
-  }
+const additionalProperties: ISDComponent<IPathItem3Definition, IPathItem3> = {
+  type: 'component',
+  allowsRef: false,
+  component: PathItem3
 }
 
 export class Paths extends PathsBase implements IPaths3 {
-  public extensions: Record<string, any> = {};
-  [path: `/${string}`]: [path: `/${string}`]: IPathItem3
+  public extensions: Record<string, any> = {}
+  public properties!: {
+    [path: `/${string}`]: IPathItem3
+  }
 
   constructor (definition: IPaths3Definition, version?: IVersion) {
     super(definition, version, arguments[2])

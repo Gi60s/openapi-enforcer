@@ -36,13 +36,15 @@ export interface IResponsesBase extends IComponentInstance {
 
 export interface IResponses2Definition {
   [extensions: `x-${string}`]: any
-  [key: number]: Record<string, IResponse2Definition | IReference2Definition>
+  [code: number]: IResponse2Definition | IReference2Definition
   default?: IResponse2Definition | IReference2Definition
 }
 
 export interface IResponses2 extends IResponsesBase {
   extensions: Record<string, any>
-  [key: number]: Record<string, IResponse2>
+  properties: {
+    [code: number]: IResponse2
+  }
   default?: IResponse2
 }
 
@@ -52,13 +54,15 @@ export interface IResponsesValidatorsMap2 {
 
 export interface IResponses3Definition {
   [extensions: `x-${string}`]: any
-  [key: number]: Record<string, IResponse3Definition | IReference3Definition>
+  [code: number]: IResponse3Definition | IReference3Definition
   default?: IResponse3Definition | IReference3Definition
 }
 
 export interface IResponses3 extends IResponsesBase {
   extensions: Record<string, any>
-  [key: number]: Record<string, IResponse3>
+  properties: {
+    [code: number]: IResponse3
+  }
   default?: IResponse3
 }
 
@@ -68,11 +72,15 @@ export interface IResponsesValidatorsMap3 {
 
 export interface IResponses3aDefinition {
   [extensions: `x-${string}`]: any
+  [code: number]: IResponse3aDefinition | IReference3aDefinition
   default?: IResponse3aDefinition | IReference3aDefinition
 }
 
 export interface IResponses3a extends IResponsesBase {
   extensions: Record<string, any>
+  properties: {
+    [code: number]: IResponse3a
+  }
   default?: IResponse3a
 }
 

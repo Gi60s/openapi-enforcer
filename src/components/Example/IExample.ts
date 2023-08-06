@@ -33,11 +33,13 @@ export interface IExampleBase extends IComponentInstance {
 }
 
 export interface IExample2Definition {
-  [key: string]: Record<string, any>
+  [contentType: string]: any
 }
 
 export interface IExample2 extends IExampleBase {
-  [key: string]: Record<string, any>
+  properties: {
+    [contentType: string]: any
+  }
 }
 
 export interface IExample3Definition {

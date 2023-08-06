@@ -14,7 +14,7 @@
 /* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import { ISDSchemaDefinition, ISDObject, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDSchemaDefinition, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
 import { PathItem2, IPathItem2 } from '../PathItem'
 import { Paths as PathsBase } from './Paths'
@@ -27,18 +27,17 @@ import * as config from '../../global-config'
 
 let cachedSchema: ISDSchemaDefinition<IPaths2Definition, IPaths2> | null = null
 
-const additionalProperties: ISDObject<ISDComponent<IPathItem2Definition, IPathItem2>> = {
-  type: 'object',
-  additionalProperties: {
-    type: 'component',
-    allowsRef: false,
-    component: PathItem2
-  }
+const additionalProperties: ISDComponent<IPathItem2Definition, IPathItem2> = {
+  type: 'component',
+  allowsRef: false,
+  component: PathItem2
 }
 
 export class Paths extends PathsBase implements IPaths2 {
-  public extensions: Record<string, any> = {};
-  [path: `/${string}`]: [path: `/${string}`]: IPathItem2
+  public extensions: Record<string, any> = {}
+  public properties!: {
+    [path: `/${string}`]: IPathItem2
+  }
 
   constructor (definition: IPaths2Definition, version?: IVersion) {
     super(definition, version, arguments[2])

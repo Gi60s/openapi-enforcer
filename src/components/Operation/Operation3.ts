@@ -26,6 +26,7 @@ import { Server3, IServer3 } from '../Server'
 import { Operation as OperationBase } from './Operation'
 import { IOperation3, IOperation3Definition, IOperation3SchemaProcessor, IOperationValidatorsMap3 as IValidatorsMap } from './IOperation'
 // <!# Custom Content Begin: HEADER #!>
+import { IPathItem3 } from '../PathItem'
 import { ContentType } from '../../ContentType/ContentType'
 import { IOperationParseOptions, IOperationParseRequest, IOperationParseRequestResponse } from './IOperation'
 import { validate, getMergedParameters, mergeParameters, operationWillAcceptContentType } from './common'
@@ -51,10 +52,10 @@ export class Operation extends OperationBase implements IOperation3 {
   constructor (definition: IOperation3Definition, version?: IVersion) {
     super(definition, version, arguments[2])
     // <!# Custom Content Begin: CONSTRUCTOR #!>
-    this.getPropertyHook('parameters', (parameters: I.IParameter3[] | undefined) => {
-      const pathItem = this.getParent<I.IPathItem3>('PathItem').component
-      const pathItemParameters: I.IParameter3[] = pathItem?.parameters ?? []
-      return mergeParameters(pathItemParameters, parameters) as I.IParameter3[]
+    this.getPropertyHook('parameters', (parameters: IParameter3[] | undefined) => {
+      const pathItem = this.getParent<IPathItem3>('PathItem').component
+      const pathItemParameters: IParameter3[] = pathItem?.parameters ?? []
+      return mergeParameters(pathItemParameters, parameters) as IParameter3[]
     })
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
@@ -143,7 +144,9 @@ export class Operation extends OperationBase implements IOperation3 {
 
   // <!# Custom Content Begin: BODY #!>
   getAcceptedResponseTypes (statusCode: number | 'default', accepts: string): ContentType[] {
-    const response = this.responses[statusCode]
+    const response = statusCode === 'default'
+      ? this.responses.default
+      : this.responses.properties[statusCode]
     if (response === undefined) return []
 
     const produces = Object.keys(response.content ?? {})

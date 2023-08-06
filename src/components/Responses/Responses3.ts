@@ -14,7 +14,7 @@
 /* eslint-disable import/no-duplicates */
 import { IComponentSpec, IVersion } from '../IComponent'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import { ISDSchemaDefinition, ISDObject, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDSchemaDefinition, ISDComponent } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { loadAsync, loadAsyncAndThrow } from '../../Loader'
 import { Response3, IResponse3 } from '../Response'
 import { Responses as ResponsesBase } from './Responses'
@@ -25,19 +25,18 @@ import { IResponse3Definition } from '../Response'
 
 let cachedSchema: ISDSchemaDefinition<IResponses3Definition, IResponses3> | null = null
 
-const additionalProperties: ISDObject<ISDComponent<IResponse3Definition, IResponse3>> = {
-  type: 'object',
-  additionalProperties: {
-    type: 'component',
-    allowsRef: true,
-    component: Response3
-  }
+const additionalProperties: ISDComponent<IResponse3Definition, IResponse3> = {
+  type: 'component',
+  allowsRef: false,
+  component: Response3
 }
 
 export class Responses extends ResponsesBase implements IResponses3 {
   public extensions: Record<string, any> = {}
   public default?: IResponse3
-  [key: number]: Record<string, IResponse3>
+  public properties!: {
+    [code: number]: IResponse3
+  }
 
   constructor (definition: IResponses3Definition, version?: IVersion) {
     super(definition, version, arguments[2])

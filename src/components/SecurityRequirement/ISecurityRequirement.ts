@@ -32,19 +32,23 @@ export interface ISecurityRequirementBase extends IComponentInstance {
 }
 
 export interface ISecurityRequirement2Definition {
-  [key: string]: string[] | undefined
+  string: string[]
 }
 
 export interface ISecurityRequirement2 extends ISecurityRequirementBase {
-  properties: Record<string, string[] | undefined>
+  properties: {
+    string: string[]
+  }
 }
 
 export interface ISecurityRequirement3Definition {
-  [key: string]: string[] | undefined
+  string: string[]
 }
 
 export interface ISecurityRequirement3 extends ISecurityRequirementBase {
-  properties: Record<string, string[] | undefined>
+  properties: {
+    string: string[]
+  }
 }
 
 export interface ISecurityRequirement3aDefinition {

@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { EnforcerComponent } from '../src/components/Component'
 import { IComponentSpec, IVersion } from '../src/components/IComponent'
-import { ISchemaDefinition, IProperty } from '../src/ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDSchemaDefinition, ISDProperty } from '../src/ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { SchemaProcessor } from '../src/ComponentSchemaDefinition/SchemaProcessor'
 
 class Foo extends EnforcerComponent<any> {
@@ -16,14 +16,15 @@ class Foo extends EnforcerComponent<any> {
     '3.0.0': true,
     '3.0.1': true,
     '3.0.2': true,
-    '3.0.3': true
+    '3.0.3': true,
+    '3.1.0': true
   }
 
-  static getSchemaDefinition (data: SchemaProcessor): ISchemaDefinition<any, any> {
+  static getSchemaDefinition (data: SchemaProcessor): ISDSchemaDefinition<any, any> {
     return this.customValidator(data)
   }
 
-  static customValidator = function (data: SchemaProcessor): ISchemaDefinition<any, any> {
+  static customValidator = function (data: SchemaProcessor): ISDSchemaDefinition<any, any> {
     return {
       type: 'object',
       allowsSchemaExtensions: true
@@ -32,7 +33,7 @@ class Foo extends EnforcerComponent<any> {
 }
 
 describe('component validator', () => {
-  let schema: ISchemaDefinition<any, any> = {
+  let schema: ISDSchemaDefinition<any, any> = {
     type: 'object',
     allowsSchemaExtensions: true,
     properties: [
@@ -42,7 +43,7 @@ describe('component validator', () => {
       }
     ]
   }
-  let x: IProperty = schema.properties?.[0] as IProperty
+  let x: ISDProperty = schema.properties?.[0] as ISDProperty
 
   beforeEach(() => {
     schema = {
@@ -55,7 +56,7 @@ describe('component validator', () => {
         }
       ]
     }
-    x = schema.properties?.[0] as IProperty
+    x = schema.properties?.[0] as ISDProperty
     Foo.customValidator = () => schema
   })
 

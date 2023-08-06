@@ -28,6 +28,7 @@ import { Callback3, ICallback3 } from '../Callback'
 import { Components as ComponentsBase } from './Components'
 import { IComponents3, IComponents3Definition, IComponents3SchemaProcessor, IComponentsValidatorsMap3 as IValidatorsMap } from './IComponents'
 // <!# Custom Content Begin: HEADER #!>
+import { getLocation } from '../../Loader/loader-common'
 const rxPropertyName = /^[a-zA-Z0-9._-]+$/
 // <!# Custom Content End: HEADER #!>
 
@@ -89,7 +90,7 @@ export class Components extends ComponentsBase implements IComponents3 {
     result.validate = (data) => {
       const { definition, exception } = data
       const { reference, id } = data.component
-      const properties: Array<keyof I.IComponents3Definition> = ['schemas', 'responses',
+      const properties: Array<keyof IComponents3Definition> = ['schemas', 'responses',
         'parameters', 'examples', 'requestBodies', 'headers', 'securitySchemes', 'links', 'callbacks']
       properties.forEach(key => {
         const definitionSet = definition[key]
@@ -100,7 +101,7 @@ export class Components extends ComponentsBase implements IComponents3 {
                 id,
                 code: 'COMPONENT_NAME_INVALID',
                 level: 'error',
-                locations: [Loader.getLocation(definitionSet, name, 'key')],
+                locations: [getLocation(definitionSet, name, 'key')],
                 metadata: {
                   componentsNamespace: key,
                   propertyName: name

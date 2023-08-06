@@ -34,22 +34,26 @@ export interface IPathsBase extends IComponentInstance {
 
 export interface IPaths2Definition {
   [extensions: `x-${string}`]: any
-  [path: `/${string}`]: [path: `/${string}`]: IPathItem2Definition
+  [path: `/${string}`]: IPathItem2Definition
 }
 
 export interface IPaths2 extends IPathsBase {
   extensions: Record<string, any>
-  [path: `/${string}`]: [path: `/${string}`]: IPathItem2
+  properties: {
+    [path: `/${string}`]: IPathItem2
+  }
 }
 
 export interface IPaths3Definition {
   [extensions: `x-${string}`]: any
-  [path: `/${string}`]: [path: `/${string}`]: IPathItem3Definition
+  [path: `/${string}`]: IPathItem3Definition
 }
 
 export interface IPaths3 extends IPathsBase {
   extensions: Record<string, any>
-  [path: `/${string}`]: [path: `/${string}`]: IPathItem3
+  properties: {
+    [path: `/${string}`]: IPathItem3
+  }
 }
 
 export interface IPaths3aDefinition {

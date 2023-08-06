@@ -13,7 +13,7 @@ import {
   ISecuritySchemeDefinition, ISwaggerSchemaProcessor
 } from '../components/IInternalTypes'
 import { ILastly } from '../Lastly/ILastly'
-import { ISchema, ISchemaDefinition } from './IComponentSchemaDefinition'
+import { ISDSchema, ISDSchemaDefinition } from './IComponentSchemaDefinition'
 import { getLocation } from '../Loader'
 import { ILocation } from '../Locator/ILocator'
 // import * as S from './IComponentSchemaDefinition'
@@ -29,14 +29,14 @@ export class SchemaProcessor<Definition=any, Built=any> {
     id: string
     name: string
     reference: string
-    schema: ISchema
+    schema: ISDSchema
   }
 
   public definition: Definition
   public exception: ExceptionStore
   public key: string
   public lastly: ILastly
-  public schema: ISchema
+  public schema: ISDSchema
   public store: {
     documentRoot: IOpenAPISchemaProcessor | ISwaggerSchemaProcessor | undefined
     discriminatorSchemas: Array<{
@@ -82,7 +82,7 @@ export class SchemaProcessor<Definition=any, Built=any> {
     this.root = parent?.root ?? this as unknown as SchemaProcessor
     this.parent = parent ?? null
 
-    let schema: ISchema | null = null
+    let schema: ISDSchema | null = null
     if (ctor === null) {
       this.component = parent?.component ?? {
         constructor: EnforcerComponent,
@@ -103,22 +103,22 @@ export class SchemaProcessor<Definition=any, Built=any> {
       // eslint-disable-next-line @typescript-eslint/no-this-alias
       const _this = this
       Object.defineProperty(this.component, 'schema', {
-        get (): ISchemaDefinition<any, any> {
+        get (): ISDSchemaDefinition<any, any> {
           if (schema === null) schema = _this.component.constructor.getSchemaDefinition(this)
-          return schema as ISchemaDefinition<any, any>
+          return schema as ISDSchemaDefinition<any, any>
         }
       })
 
       Object.defineProperty(this, 'schema', {
-        get (): ISchemaDefinition<any, any> {
+        get (): ISDSchemaDefinition<any, any> {
           if (schema === null) schema = _this.component.constructor.getSchemaDefinition(this)
-          return schema as ISchemaDefinition<any, any>
+          return schema as ISDSchemaDefinition<any, any>
         }
       })
     }
   }
 
-  createChild (key: string, definition: any, built: any, component: EnforcerComponentClass | null, schema?: ISchema): SchemaProcessor {
+  createChild (key: string, definition: any, built: any, component: EnforcerComponentClass | null, schema?: ISDSchema): SchemaProcessor {
     if (component !== null) {
       const child = new SchemaProcessor<any, any>(this.mode, definition, null, component, this.version, this)
       child.key = key
@@ -127,7 +127,7 @@ export class SchemaProcessor<Definition=any, Built=any> {
     } else {
       const child = new SchemaProcessor<any, any>(this.mode, definition, built, null, this.version, this)
       child.key = key
-      child.schema = schema as ISchema
+      child.schema = schema as ISDSchema
       this.children[key] = child
       return child
     }
