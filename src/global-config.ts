@@ -1,12 +1,14 @@
 
 const configuration: Required<IConfiguration> = {
   'components.paths.findPathMatches.trimTrailingSlashes': true,
-  'components.paths.findPathMatches.useCaseSensitivePaths': true
+  'components.paths.findPathMatches.useCaseSensitivePaths': true,
+  'i18n.language': 'en'
 }
 
 export interface IConfiguration {
   'components.paths.findPathMatches.trimTrailingSlashes'?: boolean
   'components.paths.findPathMatches.useCaseSensitivePaths'?: boolean
+  'i18n.language'?: string
 }
 
 export function find<T> (key: string): T {

@@ -1,7 +1,6 @@
 import { II18nMessagesMap } from './i18n'
 
 export const language: II18nMessagesMap = {
-  ARRAY_EMPTY: 'The array is empty.',
   COMPONENT_NAME_INVALID: 'Component {{componentsNamespace}} property names can only contain letters, numbers, dots, ' +
     'dashes, and underscores. The property {{propertyName}} is not valid.',
   CONTENT_TYPE_INVALID: 'Content-type appears to be invalid: {{contentType}}.',
@@ -52,8 +51,9 @@ export const language: II18nMessagesMap = {
   REF_CONFLICT: 'The $ref property is not supported when other fields also exist. See issue ' +
     'https://github.com/OAI/OpenAPI-Specification/issues/2635',
   REF_NOT_RESOLVED: 'The reference could not be resolved: {{reference}}.',
-  SCHEMA_ALL_CONFLICT: 'Schema within "allOf" has property {{propertyName}} with conflicting values: {{values}}',
-  SCHEMA_ALL_CROSS_CONFLICT: 'Schema within "allOf" has conflicting property values with {{propertyName1}} set to {{value1}} and {{propertyName2}} set to {{value2}}.',
+  SCHEMA_ALLOF_CONFLICT: 'Schema within "allOf" has property {{propertyName}} with conflicting values.',
+  SCHEMA_ALLOF_CROSS_CONFLICT: 'Schema within "allOf" has conflicting property values with {{propertyName1}} and {{propertyName2}}.',
+  SCHEMA_ALLOF_EMPTY_ARRAY: 'The array must is empty.',
   SCHEMA_NOT_MET: 'The value {{value}} does not match any of the potential values.',
   SCHEMA_NOT_DESERIALIZABLE: 'The value could not be deserialized. {reason}',
   SCHEMA_NOT_RANDOMIZABLE: 'A random value could not be generated. {reason}',

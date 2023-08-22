@@ -45,7 +45,7 @@ export class Responses extends ResponsesBase implements IResponses3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'RESPONSES3'
+  static id: string = 'responses'
 
   static spec: IComponentSpec = {
     '2.0': true,

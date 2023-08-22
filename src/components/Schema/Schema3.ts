@@ -33,9 +33,9 @@ export class Schema extends SchemaBase implements ISchema3 {
   public anyOf?: ISchema3[]
   public not?: ISchema3
   public title?: string
-  public maximum?: number
+  public maximum?: any
   public exclusiveMaximum?: boolean
-  public minimum?: number
+  public minimum?: any
   public exclusiveMinimum?: boolean
   public maxLength?: number
   public minLength?: number
@@ -46,7 +46,7 @@ export class Schema extends SchemaBase implements ISchema3 {
   public minProperties?: number
   public uniqueItems?: boolean
   public enum?: any[]
-  public multipleOf?: number
+  public multipleOf?: any
   public required?: string[]
   public items?: ISchema3
   public properties?: Record<string, ISchema3>
@@ -70,7 +70,7 @@ export class Schema extends SchemaBase implements ISchema3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'SCHEMA3'
+  static id: string = 'schema'
 
   static spec: IComponentSpec = {
     '2.0': true,
@@ -261,7 +261,7 @@ function getValidatorsMap (): IValidatorsMap {
     maximum: {
       name: 'maximum',
       schema: {
-        type: 'number'
+        type: 'any'
       }
     },
     exclusiveMaximum: {
@@ -273,7 +273,7 @@ function getValidatorsMap (): IValidatorsMap {
     minimum: {
       name: 'minimum',
       schema: {
-        type: 'number'
+        type: 'any'
       }
     },
     exclusiveMinimum: {
@@ -342,7 +342,7 @@ function getValidatorsMap (): IValidatorsMap {
     multipleOf: {
       name: 'multipleOf',
       schema: {
-        type: 'number'
+        type: 'any'
       }
     },
     required: {

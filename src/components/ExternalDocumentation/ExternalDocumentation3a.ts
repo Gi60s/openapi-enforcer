@@ -36,7 +36,7 @@ export class ExternalDocumentation extends ExternalDocumentationBase implements 
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'EXTERNAL_DOCUMENTATION3A'
+  static id: string = 'externalDocumentation'
 
   static spec: IComponentSpec = {
     '2.0': true,

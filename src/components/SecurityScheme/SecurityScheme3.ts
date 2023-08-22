@@ -43,7 +43,7 @@ export class SecurityScheme extends SecuritySchemeBase implements ISecuritySchem
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'SECURITY_SCHEME3'
+  static id: string = 'securityScheme'
 
   static spec: IComponentSpec = {
     '2.0': true,

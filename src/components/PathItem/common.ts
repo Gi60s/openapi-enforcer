@@ -12,7 +12,7 @@ export const validate = function (data: SchemaProcessor<any, any>): void {
       id,
       code: 'REF_CONFLICT',
       level: 'warn',
-      locations: [getLocation(definition, '$ref', 'key')],
+      locations: [{ node: definition, key: 'ref', filter: 'key' }],
       reference: 'https://github.com/OAI/OpenAPI-Specification/issues/2635'
     })
   }

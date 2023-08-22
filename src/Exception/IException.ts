@@ -15,9 +15,15 @@ export interface IExceptionData {
   code: II18nMessageCode
   level: IExceptionLevel
   levelOverwritten?: boolean
-  locations: Array<ILocation | undefined>
+  locations: IExceptionLocation[]
   metadata?: Record<string, any>
   reference?: string
+}
+
+export interface IExceptionLocation {
+  node: object
+  key?: string | number
+  filter?: 'key' | 'value' | 'both'
 }
 
 export type IExceptionLevel = 'ignore' | 'info' | 'warn' | 'error'

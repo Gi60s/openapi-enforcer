@@ -47,6 +47,26 @@ chai.use(function (_chai, utils) {
     new Assertion(this._obj).to.be.instanceof(ExceptionStore)
     assertHasCodes(this, code, 'ignore', exclusive)
   })
+
+  Assertion.addMethod('exceptionErrorId', function (id: string, metadata?: Record<string, any>) {
+    new Assertion(this._obj).to.be.instanceof(ExceptionStore)
+    assertHasErrorId(this, 'error', id, metadata)
+  })
+
+  Assertion.addMethod('exceptionWarningId', function (id: string, metadata?: Record<string, any>) {
+    new Assertion(this._obj).to.be.instanceof(ExceptionStore)
+    assertHasErrorId(this, 'warn', id, metadata)
+  })
+
+  Assertion.addMethod('exceptionInfoId', function (id: string, metadata?: Record<string, any>) {
+    new Assertion(this._obj).to.be.instanceof(ExceptionStore)
+    assertHasErrorId(this, 'info', id, metadata)
+  })
+
+  Assertion.addMethod('exceptionIgnoredId', function (id: string, metadata?: Record<string, any>) {
+    new Assertion(this._obj).to.be.instanceof(ExceptionStore)
+    assertHasErrorId(this, 'ignore', id, metadata)
+  })
 })
 
 function assertHasCodes (context: AssertionStatic, code: II18nMessageCode, level: IExceptionLevel, exclusive: boolean): void {
@@ -105,6 +125,42 @@ function assertHasCodes (context: AssertionStatic, code: II18nMessageCode, level
         'expected #{this} to not only have error code #{exp}',
         [code],
         codes
+      )
+    }
+  }
+}
+
+function assertHasErrorId (context: AssertionStatic, level: IExceptionLevel, id: string, metadata?: Record<string, any>): void {
+  const es = context._obj as ExceptionStore
+  const match = es.exceptions.find(ex => {
+    if (ex.level !== level) return false
+    if (ex.id !== id) return false
+    if (metadata !== undefined) {
+      const m = ex.metadata
+      const keys = Object.keys(metadata)
+      const length = keys.length
+      for (let i = 0; i < length; i++) {
+        const key = keys[i]
+        if (m[key] !== metadata[key]) return false
+      }
+    }
+    return true
+  })
+
+  if (match === undefined) {
+    if (metadata === undefined) {
+      context.assert(
+        false,
+        `expected #{this} to have an exception with id matching '${id}'.`,
+        `expected #{this} not to have an exception with id matching '${id}'`,
+        [id]
+      )
+    } else {
+      context.assert(
+        false,
+        `expected #{this} to have an exception with id matching '${id}' and metadata matching ${JSON.stringify(metadata)}.`,
+        `expected #{this} not to have an exception with id matching '${id}' and metadata matching ${JSON.stringify(metadata)}.`,
+        [id, metadata]
       )
     }
   }

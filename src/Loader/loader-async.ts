@@ -2,7 +2,7 @@ import { ILineEnding, ILoader, ILoaderFunction, ILoaderMetadata, ILoaderOptions,
 import { Result } from '../Result'
 import {
   appendToPath,
-  applyPositionInformation, getLocation,
+  applyPositionInformation,
   map,
   normalizeLoaderMetadata,
   normalizeLoaderOptions, overwriteReplacementsWithCopies, rootNodeFileCache,
@@ -139,7 +139,7 @@ function handleFoundReference (data: ILoaderMetadata, node: any, found: any, par
       id: 'LOADER',
       code: 'REF_NOT_RESOLVED',
       level: 'error',
-      locations: [getLocation(node, '$ref', 'value')],
+      locations: [{ node, key: '$ref', filter: 'value' }],
       metadata: { reference: node.$ref }
     })
   }
@@ -215,7 +215,6 @@ function processJsonAst (ast: ValueNode, path: string, meta: ILoaderMetadata, is
 
 async function resolveAndLoadRefsAsync (path: string, options: ILoaderOptions, data: ILoaderMetadata, parent: object,
   key: string, map: Map<object, boolean>, chain: object[], replacements: ILoaderReplacements): Promise<void> {
-
   const promises: Array<Promise<void>> = []
   const node = (parent as Record<string, any>)[key]
   const isObject = node !== null && typeof node === 'object'

@@ -13,7 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
-import { ISDProperty, ISDString, ISDAny, ISDNumber, ISDBoolean, ISDArray, ISDComponent, ISDObject, ISDOneOf } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDProperty, ISDString, ISDAny, ISDBoolean, ISDNumber, ISDArray, ISDComponent, ISDObject, ISDOneOf } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IReference2Definition, IReference3Definition, IReference3aDefinition } from '../Reference'
 import { IXml2, IXml2Definition, IXml3, IXml3Definition, IXml3a, IXml3aDefinition } from '../Xml'
 import { IExternalDocumentation2, IExternalDocumentation2Definition, IExternalDocumentation3, IExternalDocumentation3Definition, IExternalDocumentation3a, IExternalDocumentation3aDefinition } from '../ExternalDocumentation'
@@ -46,6 +46,7 @@ export interface ISchemaRandomOptions {
 }
 
 export interface ISchemaValidateOptions {
+  allowDateString?: boolean
   readWriteMode?: 'read' | 'write'
 }
 
@@ -85,9 +86,9 @@ export interface ISchema2Definition {
   title?: string
   description?: string
   default?: any
-  maximum?: number
+  maximum?: any
   exclusiveMaximum?: boolean
-  minimum?: number
+  minimum?: any
   exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
@@ -98,7 +99,7 @@ export interface ISchema2Definition {
   minProperties?: number
   uniqueItems?: boolean
   enum?: any[]
-  multipleOf?: number
+  multipleOf?: any
   required?: string[]
   type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
   items?: ISchema2Definition
@@ -118,9 +119,9 @@ export interface ISchema2 extends ISchemaBase {
   title?: string
   description?: string
   default?: any
-  maximum?: number
+  maximum?: any
   exclusiveMaximum?: boolean
-  minimum?: number
+  minimum?: any
   exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
@@ -131,7 +132,7 @@ export interface ISchema2 extends ISchemaBase {
   minProperties?: number
   uniqueItems?: boolean
   enum?: any[]
-  multipleOf?: number
+  multipleOf?: any
   required?: string[]
   type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
   items?: ISchema2
@@ -150,9 +151,9 @@ export interface ISchemaValidatorsMap2 {
   title: ISDProperty<ISDString>
   description: ISDProperty<ISDString>
   _default: ISDProperty<ISDAny>
-  maximum: ISDProperty<ISDNumber>
+  maximum: ISDProperty<ISDAny>
   exclusiveMaximum: ISDProperty<ISDBoolean>
-  minimum: ISDProperty<ISDNumber>
+  minimum: ISDProperty<ISDAny>
   exclusiveMinimum: ISDProperty<ISDBoolean>
   maxLength: ISDProperty<ISDNumber>
   minLength: ISDProperty<ISDNumber>
@@ -163,7 +164,7 @@ export interface ISchemaValidatorsMap2 {
   minProperties: ISDProperty<ISDNumber>
   uniqueItems: ISDProperty<ISDBoolean>
   _enum: ISDProperty<ISDArray<ISDAny>>
-  multipleOf: ISDProperty<ISDNumber>
+  multipleOf: ISDProperty<ISDAny>
   required: ISDProperty<ISDArray<ISDString>>
   type: ISDProperty<ISDString>
   items: ISDProperty<ISDComponent<ISchema2Definition, ISchema2>>
@@ -185,9 +186,9 @@ export interface ISchema3Definition {
   anyOf?: Array<ISchema3Definition | IReference3Definition>
   not?: ISchema3Definition | IReference3Definition
   title?: string
-  maximum?: number
+  maximum?: any
   exclusiveMaximum?: boolean
-  minimum?: number
+  minimum?: any
   exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
@@ -198,7 +199,7 @@ export interface ISchema3Definition {
   minProperties?: number
   uniqueItems?: boolean
   enum?: any[]
-  multipleOf?: number
+  multipleOf?: any
   required?: string[]
   items?: ISchema3Definition | IReference3Definition
   properties?: Record<string, ISchema3Definition | IReference3Definition>
@@ -224,9 +225,9 @@ export interface ISchema3 extends ISchemaBase {
   anyOf?: ISchema3[]
   not?: ISchema3
   title?: string
-  maximum?: number
+  maximum?: any
   exclusiveMaximum?: boolean
-  minimum?: number
+  minimum?: any
   exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
@@ -237,7 +238,7 @@ export interface ISchema3 extends ISchemaBase {
   minProperties?: number
   uniqueItems?: boolean
   enum?: any[]
-  multipleOf?: number
+  multipleOf?: any
   required?: string[]
   items?: ISchema3
   properties?: Record<string, ISchema3>
@@ -262,9 +263,9 @@ export interface ISchemaValidatorsMap3 {
   anyOf: ISDProperty<ISDArray<ISDComponent<ISchema3Definition, ISchema3>>>
   not: ISDProperty<ISDComponent<ISchema3Definition, ISchema3>>
   title: ISDProperty<ISDString>
-  maximum: ISDProperty<ISDNumber>
+  maximum: ISDProperty<ISDAny>
   exclusiveMaximum: ISDProperty<ISDBoolean>
-  minimum: ISDProperty<ISDNumber>
+  minimum: ISDProperty<ISDAny>
   exclusiveMinimum: ISDProperty<ISDBoolean>
   maxLength: ISDProperty<ISDNumber>
   minLength: ISDProperty<ISDNumber>
@@ -275,7 +276,7 @@ export interface ISchemaValidatorsMap3 {
   minProperties: ISDProperty<ISDNumber>
   uniqueItems: ISDProperty<ISDBoolean>
   _enum: ISDProperty<ISDArray<ISDAny>>
-  multipleOf: ISDProperty<ISDNumber>
+  multipleOf: ISDProperty<ISDAny>
   required: ISDProperty<ISDArray<ISDString>>
   items: ISDProperty<ISDComponent<ISchema3Definition, ISchema3>>
   properties: ISDProperty<ISDObject<ISDComponent<ISchema3Definition, ISchema3>>>
@@ -301,9 +302,9 @@ export interface ISchema3aDefinition {
   anyOf?: Array<ISchema3aDefinition | IReference3aDefinition>
   not?: ISchema3aDefinition | IReference3aDefinition
   title?: string
-  maximum?: number
+  maximum?: any
   exclusiveMaximum?: boolean
-  minimum?: number
+  minimum?: any
   exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
@@ -314,7 +315,7 @@ export interface ISchema3aDefinition {
   minProperties?: number
   uniqueItems?: boolean
   enum?: any[]
-  multipleOf?: number
+  multipleOf?: any
   required?: string[]
   items?: ISchema3aDefinition | IReference3aDefinition
   properties?: Record<string, ISchema3aDefinition | IReference3aDefinition>
@@ -340,9 +341,9 @@ export interface ISchema3a extends ISchemaBase {
   anyOf?: ISchema3a[]
   not?: ISchema3a
   title?: string
-  maximum?: number
+  maximum?: any
   exclusiveMaximum?: boolean
-  minimum?: number
+  minimum?: any
   exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
@@ -353,7 +354,7 @@ export interface ISchema3a extends ISchemaBase {
   minProperties?: number
   uniqueItems?: boolean
   enum?: any[]
-  multipleOf?: number
+  multipleOf?: any
   required?: string[]
   items?: ISchema3a
   properties?: Record<string, ISchema3a>
@@ -378,9 +379,9 @@ export interface ISchemaValidatorsMap3a {
   anyOf: ISDProperty<ISDArray<ISDComponent<ISchema3aDefinition, ISchema3a>>>
   not: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a>>
   title: ISDProperty<ISDString>
-  maximum: ISDProperty<ISDNumber>
+  maximum: ISDProperty<ISDAny>
   exclusiveMaximum: ISDProperty<ISDBoolean>
-  minimum: ISDProperty<ISDNumber>
+  minimum: ISDProperty<ISDAny>
   exclusiveMinimum: ISDProperty<ISDBoolean>
   maxLength: ISDProperty<ISDNumber>
   minLength: ISDProperty<ISDNumber>
@@ -391,7 +392,7 @@ export interface ISchemaValidatorsMap3a {
   minProperties: ISDProperty<ISDNumber>
   uniqueItems: ISDProperty<ISDBoolean>
   _enum: ISDProperty<ISDArray<ISDAny>>
-  multipleOf: ISDProperty<ISDNumber>
+  multipleOf: ISDProperty<ISDAny>
   required: ISDProperty<ISDArray<ISDString>>
   items: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a>>
   properties: ISDProperty<ISDObject<ISDComponent<ISchema3aDefinition, ISchema3a>>>

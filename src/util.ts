@@ -1,5 +1,22 @@
 import rx from './rx'
 
+/**
+ * Get an array that returns the intersection of two or more arrays. For example, if one array contains [1, 2, 3] and
+ * another array contains [2, 3, 'foo'] then the intersect would be [2, 3]
+ * @param arrays
+ * @returns The intersecting array.
+ */
+export function arrayGetIntersection<T> (...arrays: T[][]): T[] {
+  if (arrays.length === 0) return []
+  let intersection: T[] = arrays[0]
+  const length = arrays.length
+  for (let i = 1; i < length && intersection.length > 0; i++) {
+    const array = arrays[i]
+    intersection = intersection.filter(item => array.includes(item))
+  }
+  return intersection
+}
+
 export function copy<T> (value: T, map: Map<any, any> = new Map()): T {
   if (value instanceof Date) {
     return new Date(+value) as unknown as T

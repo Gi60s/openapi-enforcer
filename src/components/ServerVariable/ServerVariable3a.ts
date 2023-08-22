@@ -37,7 +37,7 @@ export class ServerVariable extends ServerVariableBase implements IServerVariabl
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'SERVER_VARIABLE3A'
+  static id: string = 'serverVariable'
 
   static spec: IComponentSpec = {
     '2.0': false,

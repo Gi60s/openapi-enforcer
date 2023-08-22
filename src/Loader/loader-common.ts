@@ -66,6 +66,15 @@ export function convertPathToBreadcrumbs (path: string): string {
     .join(' > ')
 }
 
+/**
+ * Attempts to find the file path location of a node. It can optionally target a key that can be a number (for arrays)
+ * or a string (for objects) and specify whether the location information should represent the key's location, the value's
+ * location, or both.
+ * @param node The object or parent object to search for.
+ * @param key An array index or object property name.
+ * @param filter Whether to get the location of the 'key', 'value', or 'both'. Defaults to 'both'.
+ * @returns Undefined if the node has no known file location, otherwise it will attempt to give the location as specified by the filter falling back to using the entire object's location if the key cannot be found.
+ */
 export function getLocation (node: object, key?: string | number, filter: 'key' | 'value' | 'both' = 'both'): ILocation | undefined {
   const lookup = map.get(node)
   if (lookup === undefined) return
@@ -73,7 +82,9 @@ export function getLocation (node: object, key?: string | number, filter: 'key' 
   if (key !== undefined) {
     if (lookup.type === 'object') {
       const match = lookup.properties[key]
-      if (match !== undefined) {
+      if (match === undefined) {
+        return lookup.loc
+      } else {
         if (filter === 'both') {
           const key = match.key
           return {

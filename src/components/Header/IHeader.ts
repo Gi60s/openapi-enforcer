@@ -13,7 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
-import { ISDProperty, ISDString, ISDComponent, ISDAny, ISDNumber, ISDBoolean, ISDArray, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDProperty, ISDString, ISDComponent, ISDAny, ISDBoolean, ISDNumber, ISDArray, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { IItems2, IItems2Definition } from '../Items'
 import { ISchema3, ISchema3Definition, ISchema3a, ISchema3aDefinition } from '../Schema'
 import { IReference3Definition, IReference3aDefinition } from '../Reference'
@@ -45,9 +45,9 @@ export interface IHeader2Definition {
   items?: IItems2Definition
   collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   default?: any
-  maximum?: number
+  maximum?: any
   exclusiveMaximum?: boolean
-  minimum?: number
+  minimum?: any
   exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
@@ -56,7 +56,7 @@ export interface IHeader2Definition {
   minItems?: number
   uniqueItems?: boolean
   enum?: any[]
-  multipleOf?: number
+  multipleOf?: any
 }
 
 export interface IHeader2 extends IHeaderBase {
@@ -67,9 +67,9 @@ export interface IHeader2 extends IHeaderBase {
   items?: IItems2
   collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   default?: any
-  maximum?: number
+  maximum?: any
   exclusiveMaximum?: boolean
-  minimum?: number
+  minimum?: any
   exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
@@ -78,7 +78,7 @@ export interface IHeader2 extends IHeaderBase {
   minItems?: number
   uniqueItems?: boolean
   enum?: any[]
-  multipleOf?: number
+  multipleOf?: any
 }
 
 export interface IHeaderValidatorsMap2 {
@@ -88,9 +88,9 @@ export interface IHeaderValidatorsMap2 {
   items: ISDProperty<ISDComponent<IItems2Definition, IItems2>>
   collectionFormat: ISDProperty<ISDString>
   _default: ISDProperty<ISDAny>
-  maximum: ISDProperty<ISDNumber>
+  maximum: ISDProperty<ISDAny>
   exclusiveMaximum: ISDProperty<ISDBoolean>
-  minimum: ISDProperty<ISDNumber>
+  minimum: ISDProperty<ISDAny>
   exclusiveMinimum: ISDProperty<ISDBoolean>
   maxLength: ISDProperty<ISDNumber>
   minLength: ISDProperty<ISDNumber>
@@ -99,7 +99,7 @@ export interface IHeaderValidatorsMap2 {
   minItems: ISDProperty<ISDNumber>
   uniqueItems: ISDProperty<ISDBoolean>
   _enum: ISDProperty<ISDArray<ISDAny>>
-  multipleOf: ISDProperty<ISDNumber>
+  multipleOf: ISDProperty<ISDAny>
 }
 
 export interface IHeader3Definition {

@@ -38,7 +38,7 @@ export class Tag extends TagBase implements ITag3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'TAG3'
+  static id: string = 'tag'
 
   static spec: IComponentSpec = {
     '2.0': true,

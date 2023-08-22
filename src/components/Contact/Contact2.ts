@@ -37,7 +37,7 @@ export class Contact extends ContactBase implements IContact2 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'CONTACT2'
+  static id: string = 'contact'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#contact-object',

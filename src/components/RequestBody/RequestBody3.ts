@@ -38,7 +38,7 @@ export class RequestBody extends RequestBodyBase implements IRequestBody3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'REQUEST_BODY3'
+  static id: string = 'requestBody'
 
   static spec: IComponentSpec = {
     '2.0': false,

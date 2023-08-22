@@ -27,7 +27,7 @@ describe('exceptions', () => {
       id: 'X',
       code: 'VALUE_TYPE_INVALID',
       level: 'error',
-      locations: [getLocation(node, 'foo')],
+      locations: [{ node, key: 'foot' }],
       metadata: { value: 'foo', type: 'string', allowedTypes: ['boolean'] }
     })
     expect(store.error).not.to.equal(undefined)
@@ -57,14 +57,14 @@ describe('exceptions', () => {
       id: 'X',
       code: 'VALUE_TYPE_INVALID',
       level: 'error',
-      locations: [getLocation(node, 'foo', 'value')],
+      locations: [{ node, key: 'foo', filter: 'value' }],
       metadata: { value: 'foo', type: 'string', allowedTypes: 'boolean' }
     })
     store.add({
       id: 'X',
       code: 'URL_INVALID',
       level: 'error',
-      locations: [getLocation(node, 'foo', 'value')],
+      locations: [{ node, key: 'foo', filter: 'value' }],
       metadata: { url: 'hello' }
     })
     expect(store.error?.reportItems.length).to.equal(1)
@@ -87,8 +87,8 @@ describe('exceptions', () => {
       code: 'VALUE_TYPE_INVALID',
       level: 'error',
       locations: [
-        getLocation(node, 'foo', 'value'),
-        getLocation(node, 'bar', 'value')
+        { node, key: 'foo', filter: 'value' },
+        { node, key: 'bar', filter: 'value' }
       ],
       metadata: { value: 'foo', type: 'string', allowedTypes: 'boolean' }
     })

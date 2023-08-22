@@ -50,7 +50,7 @@ export class PathItem extends PathItemBase implements IPathItem3a {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'PATH_ITEM3A'
+  static id: string = 'pathItem'
 
   static spec: IComponentSpec = {
     '2.0': true,

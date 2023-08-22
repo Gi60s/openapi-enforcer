@@ -34,7 +34,7 @@ export class SecurityRequirement extends SecurityRequirementBase implements ISec
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'SECURITY_REQUIREMENT3A'
+  static id: string = 'securityRequirement'
 
   static spec: IComponentSpec = {
     '2.0': true,

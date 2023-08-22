@@ -3,7 +3,6 @@ import { Result } from '../Result'
 import {
   appendToPath,
   applyPositionInformation,
-  getLocation,
   map,
   normalizeLoaderMetadata,
   normalizeLoaderOptions, overwriteReplacementsWithCopies,
@@ -80,7 +79,7 @@ function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: 
           id: 'LOADER',
           code: 'REF_NOT_RESOLVED',
           level: 'error',
-          locations: [getLocation(node, '$ref', 'value')],
+          locations: [{ node, key: '$ref', filter: 'value' }],
           metadata: { reference: n.$ref }
         })
       } else {
@@ -90,7 +89,7 @@ function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: 
             id: 'LOADER',
             code: 'REF_NOT_RESOLVED',
             level: 'error',
-            locations: [getLocation(node, '$ref', 'value')],
+            locations: [{ node, key: '$ref', filter: 'value' }],
             metadata: { reference: n.$ref }
           })
         } else {
@@ -109,7 +108,7 @@ function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: 
         id: 'LOADER',
         code: 'REF_NOT_RESOLVED',
         level: 'error',
-        locations: [getLocation(node, '$ref', 'value')],
+        locations: [{ node, key: '$ref', filter: 'value' }],
         metadata: { reference: n.$ref }
       })
     }

@@ -39,7 +39,7 @@ export class Xml extends XmlBase implements IXml3a {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'XML3A'
+  static id: string = 'xml'
 
   static spec: IComponentSpec = {
     '2.0': true,

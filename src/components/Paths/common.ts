@@ -75,7 +75,7 @@ export const validate = function (this: IPaths2 | IPaths3, data: SchemaProcessor
       id,
       code: 'PATHS_EMPTY',
       level: 'ignore',
-      locations: [getLocation(definition)],
+      locations: [{ node: definition }],
       reference
     })
   } else {
@@ -90,7 +90,7 @@ export const validate = function (this: IPaths2 | IPaths3, data: SchemaProcessor
           id,
           code: 'PATH_MISSING_LEADING_SLASH',
           level: 'error',
-          locations: [getLocation(definition, path, 'key')],
+          locations: [{ node: definition, key: path, filter: 'key' }],
           metadata: { path },
           reference
         })
@@ -151,7 +151,9 @@ export const validate = function (this: IPaths2 | IPaths3, data: SchemaProcessor
           id,
           code: 'PATH_SPEC_CONFLICT',
           level: 'warn',
-          locations: item.paths.map(path => getLocation(definition, path, 'key')),
+          locations: item.paths.map(path => {
+            return { node: definition, key: path, filter: 'key' }
+          }),
           metadata: { paths: item.paths },
           reference
         })
@@ -160,7 +162,9 @@ export const validate = function (this: IPaths2 | IPaths3, data: SchemaProcessor
           id,
           code: 'PATH_OPERATION_CONFLICT',
           level: 'error',
-          locations: item.paths.map(path => getLocation(definition, path, 'key')),
+          locations: item.paths.map(path => {
+            return { node: definition, key: path, filter: 'key' }
+          }),
           metadata: { paths: item.paths },
           reference
         })
@@ -172,7 +176,9 @@ export const validate = function (this: IPaths2 | IPaths3, data: SchemaProcessor
         id,
         code: 'PATH_ENDINGS_INCONSISTENT',
         level: 'ignore',
-        locations: paths.map(path => getLocation(definition, path, 'key')),
+        locations: paths.map(path => {
+          return { node: definition, key: path, filter: 'key' }
+        }),
         metadata: { pathsEndingWithSlash, pathsEndingWithoutSlash }
       })
     }

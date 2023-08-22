@@ -46,7 +46,7 @@ export class Paths extends PathsBase implements IPaths2 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'PATHS2'
+  static id: string = 'paths'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#paths-object',

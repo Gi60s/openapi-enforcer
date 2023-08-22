@@ -28,7 +28,6 @@ import { Callback3, ICallback3 } from '../Callback'
 import { Components as ComponentsBase } from './Components'
 import { IComponents3, IComponents3Definition, IComponents3SchemaProcessor, IComponentsValidatorsMap3 as IValidatorsMap } from './IComponents'
 // <!# Custom Content Begin: HEADER #!>
-import { getLocation } from '../../Loader/loader-common'
 const rxPropertyName = /^[a-zA-Z0-9._-]+$/
 // <!# Custom Content End: HEADER #!>
 
@@ -53,7 +52,7 @@ export class Components extends ComponentsBase implements IComponents3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'COMPONENTS3'
+  static id: string = 'components'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -101,7 +100,7 @@ export class Components extends ComponentsBase implements IComponents3 {
                 id,
                 code: 'COMPONENT_NAME_INVALID',
                 level: 'error',
-                locations: [getLocation(definitionSet, name, 'key')],
+                locations: [{ node: definitionSet, key: name, filter: 'key' }],
                 metadata: {
                   componentsNamespace: key,
                   propertyName: name

@@ -36,7 +36,7 @@ export class ExternalDocumentation extends ExternalDocumentationBase implements 
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'EXTERNAL_DOCUMENTATION2'
+  static id: string = 'externalDocumentation'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#external-documentation-object',

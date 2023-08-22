@@ -4,7 +4,6 @@ import { smart } from '../util'
 export type II18nMessageCode = keyof II18nMessagesMap
 
 export interface II18nMessagesMap {
-  ARRAY_EMPTY: string
   COMPONENT_NAME_INVALID: string
   CONTENT_TYPE_INVALID: string
   DATA_STORE_REF_INVALID: string
@@ -46,8 +45,9 @@ export interface II18nMessagesMap {
   REF_CONFLICT: string
   REF_NOT_ALLOWED: string
   REF_NOT_RESOLVED: string
-  SCHEMA_ALL_CONFLICT: string
-  SCHEMA_ALL_CROSS_CONFLICT: string
+  SCHEMA_ALLOF_CONFLICT: string
+  SCHEMA_ALLOF_CROSS_CONFLICT: string
+  SCHEMA_ALLOF_EMPTY_ARRAY: string
   SCHEMA_NOT_MET: string
   SCHEMA_NOT_DESERIALIZABLE: string
   SCHEMA_NOT_RANDOMIZABLE: string

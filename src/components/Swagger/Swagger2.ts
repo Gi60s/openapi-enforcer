@@ -58,7 +58,7 @@ export class Swagger extends SwaggerBase implements ISwagger2 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'SWAGGER2'
+  static id: string = 'swagger'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#swagger-object',

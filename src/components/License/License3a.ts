@@ -36,7 +36,7 @@ export class License extends LicenseBase implements ILicense3a {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'LICENSE3A'
+  static id: string = 'license'
 
   static spec: IComponentSpec = {
     '2.0': true,

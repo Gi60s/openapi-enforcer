@@ -156,7 +156,7 @@ export class ExceptionStore {
       ignore: new ExceptionReportLevel(header.replace(/<level>/g, 'ignore'))
     }
 
-    // organize into level groups
+    // organize exceptions into level groups
     const levelGroups: Record<IExceptionLevel, Exception[]> = {
       error: [],
       warn: [],
@@ -165,20 +165,26 @@ export class ExceptionStore {
     }
     this.exceptions.forEach(exception => {
       const id = exception.id
-      if (exception.locations.length > 0) {
-        const usedLevels = new Set<IExceptionLevel>()
-        exception.locations.forEach(location => {
-          const level: IExceptionLevel = exception.levelOverwritten
-            ? exception.level
-            : overwrite[id] ?? exception.level
-          usedLevels.add(level)
-        })
-        Array.from(usedLevels).forEach(level => {
-          levelGroups[level].push(exception)
-        })
-      } else {
-        levelGroups[exception.level].push(exception)
-      }
+      const level: IExceptionLevel = exception.levelOverwritten
+        ? exception.level
+        : overwrite[id] ?? exception.level
+      levelGroups[level].push(exception)
+
+      // TODO: I'm not sure what I was doing here. Rewritten above. Delete below once tested
+      // if (exception.locations.length > 0) {
+      //   const usedLevels = new Set<IExceptionLevel>()
+      //   exception.locations.forEach(location => {
+      //     const level: IExceptionLevel = exception.levelOverwritten
+      //       ? exception.level
+      //       : overwrite[id] ?? exception.level
+      //     usedLevels.add(level)
+      //   })
+      //   Array.from(usedLevels).forEach(level => {
+      //     levelGroups[level].push(exception)
+      //   })
+      // } else {
+      //   levelGroups[exception.level].push(exception)
+      // }
     })
 
     // generate report groups

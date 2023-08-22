@@ -19,7 +19,7 @@ export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> impl
         code: 'SCHEMA_TYPE_FORMAT_BINARY_LENGTH',
         id: 'SCHEMA',
         level: 'error',
-        locations: [getLocation(definition, 'maxLength', 'value')],
+        locations: [{ node: definition, key: 'maxLength', filter: 'value' }],
         metadata: {
           lengthProperty: 'maxLength'
         }
@@ -30,7 +30,7 @@ export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> impl
         code: 'SCHEMA_TYPE_FORMAT_BINARY_LENGTH',
         id: 'SCHEMA',
         level: 'error',
-        locations: [getLocation(definition, 'minLength', 'value')],
+        locations: [{ node: definition, key: 'minLength', filter: 'value' }],
         metadata: {
           lengthProperty: 'minLength'
         }

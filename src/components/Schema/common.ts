@@ -127,7 +127,7 @@ export function discriminate<T extends ISchema> (value: object): { key: string, 
 //
 //     if (Array.isArray(definition.allOf) && definition.allOf.length === 0) {
 //       exception.add({
-//         code: 'ARRAY_EMPTY',
+//         code: 'arrayEmpty',
 //         id: ctor.id,
 //         level: 'warn',
 //         locations: [processor.getLocation('value')],

@@ -16,7 +16,7 @@ export function isUrl (key: string, data: SchemaProcessor): void {
       id,
       code: 'URL_INVALID',
       level: 'warn',
-      locations: [getLocation(definition, key, 'value')],
+      locations: [{ node: definition, key, filter: 'value' }],
       metadata: {
         url: url
       },
@@ -53,7 +53,7 @@ export function parametersAreUnique (data: SchemaProcessor<IPathItemDefinition, 
           level: 'error',
           locations: parameters.map(parameter => {
             const index = (definition.parameters as IParameterDefinition[])?.indexOf(parameter)
-            return getLocation(parameters, index, 'value')
+            return { node: parameters, key: index, filter: 'value' }
           }),
           metadata: { parameters },
           reference
@@ -73,7 +73,7 @@ export function parametersNotInPath (data: SchemaProcessor<IOperationDefinition,
         id,
         code: 'PARAMETER_NOT_IN_PATH',
         level: 'error',
-        locations: [getLocation(p)],
+        locations: [{ node: p }],
         metadata: { parameterName: p.name },
         reference
       })
@@ -96,7 +96,9 @@ export function mutuallyExclusiveProperties (properties: string[], data: SchemaP
       id,
       code: 'PROPERTIES_MUTUALLY_EXCLUSIVE',
       level: 'error',
-      locations: propertiesFound.map(p => getLocation(definition, p, 'key')),
+      locations: propertiesFound.map(p => {
+        return { node: definition, key: p, filter: 'key' }
+      }),
       metadata: {
         propertyNames: propertiesFound
       },

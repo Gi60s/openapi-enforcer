@@ -34,7 +34,7 @@ export class Items extends ItemsBase implements IItems3a {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'ITEMS3A'
+  static id: string = 'items'
 
   static spec: IComponentSpec = {
     '2.0': true,

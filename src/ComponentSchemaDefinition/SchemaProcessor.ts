@@ -14,8 +14,6 @@ import {
 } from '../components/IInternalTypes'
 import { ILastly } from '../Lastly/ILastly'
 import { ISDSchema, ISDSchemaDefinition } from './IComponentSchemaDefinition'
-import { getLocation } from '../Loader'
-import { ILocation } from '../Locator/ILocator'
 // import * as S from './IComponentSchemaDefinition'
 
 type EnforcerComponentClass = typeof EnforcerComponent<any>
@@ -131,12 +129,6 @@ export class SchemaProcessor<Definition=any, Built=any> {
       this.children[key] = child
       return child
     }
-  }
-
-  getLocation (position: 'key' | 'value' | 'both' = 'both'): ILocation | undefined {
-    return this.parent === null
-      ? getLocation(this.definition as unknown as object)
-      : getLocation(this.parent.definition, this.key, position)
   }
 
   getSiblingValue (key: string): any | undefined {

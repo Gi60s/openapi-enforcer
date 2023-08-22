@@ -46,7 +46,7 @@ export class Responses extends ResponsesBase implements IResponses2 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'RESPONSES2'
+  static id: string = 'responses'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#responses-object',

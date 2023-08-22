@@ -40,7 +40,7 @@ export class Example extends ExampleBase implements IExample2 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'EXAMPLE2'
+  static id: string = 'example'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#example-object',

@@ -127,7 +127,7 @@ export class EnforcerComponent<Definition extends IDefinition> {
     const isRoot = processor === undefined
     if (processor === undefined) {
       processor = new SchemaProcessor('validate', definition, {}, this, version)
-      const location = processor.getLocation()
+      const location = getLocation(definition)
       if (location === undefined) load(definition)
     }
 
@@ -137,7 +137,7 @@ export class EnforcerComponent<Definition extends IDefinition> {
 
     if (spec[v] === undefined) {
       exception.add({
-        id,
+        id: `${id}.version.notImplemented`,
         code: 'VERSION_NOT_IMPLEMENTED',
         level: 'error',
         locations: [],
@@ -148,7 +148,7 @@ export class EnforcerComponent<Definition extends IDefinition> {
       })
     } else if (spec[v] === false) {
       exception.add({
-        id,
+        id: `${id}.version.notSupported`,
         code: 'VERSION_NOT_SUPPORTED',
         level: 'error',
         locations: [],
@@ -160,7 +160,7 @@ export class EnforcerComponent<Definition extends IDefinition> {
       })
     } else if (spec[v] === true) {
       exception.add({
-        id,
+        id: `${id}.version.mismatch`,
         code: 'VERSION_MISMATCH',
         level: 'error',
         locations: [],
@@ -172,10 +172,10 @@ export class EnforcerComponent<Definition extends IDefinition> {
       })
     } else if (typeof definition !== 'object' || definition === null) {
       exception.add({
-        id,
+        id: `${id}.definition.invalid`,
         code: 'VALUE_TYPE_INVALID',
         level: 'error',
-        locations: [getLocation(definition)],
+        locations: [{ node: definition }],
         metadata: {
           expectedType: processor.component.name,
           value: definition
@@ -230,13 +230,14 @@ function validateChild (processor: SchemaProcessor, key: string, definition: any
 function validateDefinition (processor: SchemaProcessor): boolean {
   const { definition, exception, schema } = processor
   const { id, reference } = processor.component
+  const parentDefinition = processor.parent?.definition
 
   if (schema === undefined) {
     exception.add({
-      id,
+      id: `${id}.schema.notMet`,
       code: 'SCHEMA_NOT_MET',
       level: 'error',
-      locations: [processor.getLocation('value')],
+      locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
       metadata: {
         value: definition
       },
@@ -269,10 +270,10 @@ function validateDefinition (processor: SchemaProcessor): boolean {
 
   if (schema.notAllowed !== undefined) {
     exception.add({
-      id,
+      id: `${id}.schema.notAllowed`,
       code: schema.notAllowed,
       level: 'error',
-      locations: [processor.getLocation('key')],
+      locations: [{ node: parentDefinition, key: processor.key, filter: 'key' }],
       metadata: {
         propertyName: processor.key
       },
@@ -286,10 +287,10 @@ function validateDefinition (processor: SchemaProcessor): boolean {
       return false
     } else {
       exception.add({
-        id,
+        id: `${id}.null.invalid`,
         code: 'NULL_INVALID',
         level: 'error',
-        locations: [processor.getLocation('value')],
+        locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
         metadata: {},
         reference
       })
@@ -304,10 +305,10 @@ function validateDefinition (processor: SchemaProcessor): boolean {
       : parentSchema.properties?.find(s => s.name === key)?.schema ?? parentSchema.additionalProperties
     if (subSchema !== undefined && (!('allowsRef' in subSchema) || !subSchema.allowsRef)) {
       exception.add({
-        id,
+        id: `${id}.$ref.notAllowed`,
         code: 'REF_NOT_ALLOWED',
         level: 'warn',
-        locations: [getLocation(definition, '$ref', 'key')],
+        locations: [{ node: definition, key: '$ref', filter: 'key' }],
         metadata: {
           definition
         },
@@ -320,10 +321,10 @@ function validateDefinition (processor: SchemaProcessor): boolean {
 
   if (expectedType !== actualType && expectedType !== 'any' && expectedType !== 'oneOf') {
     exception.add({
-      id,
+      id: `${id}.${processor.key}.notValid`,
       code: 'VALUE_TYPE_INVALID',
       level: 'error',
-      locations: [processor.getLocation('value')],
+      locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
       metadata: {
         allowedTypes: expectedType,
         type: actualType,
@@ -336,10 +337,10 @@ function validateDefinition (processor: SchemaProcessor): boolean {
 
   if ('enum' in schema && schema.enum !== undefined && !schema.enum.includes(definition as never)) {
     exception.add({
-      id,
+      id: `${id}.${processor.key}.enumNotMet`,
       code: 'ENUM_NOT_MET',
       level: 'error',
-      locations: [processor.getLocation('value')],
+      locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
       metadata: {
         enum: schema.enum,
         value: definition
@@ -360,10 +361,10 @@ function validateDefinition (processor: SchemaProcessor): boolean {
     s.properties?.forEach(({ name, notAllowed, required }) => {
       if (value[name] === undefined && required === true && notAllowed === undefined) {
         exception.add({
-          id,
+          id: `${id}.${processor.key}.missing`,
           code: 'PROPERTY_MISSING',
           level: 'error',
-          locations: [processor.getLocation('value')],
+          locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
           metadata: {
             propertyName: name
           },
@@ -382,10 +383,10 @@ function validateDefinition (processor: SchemaProcessor): boolean {
             validateChild(processor, key, v, s.additionalProperties)
           } else {
             exception.add({
-              id,
+              id: `${id}.${key}.unknown`,
               code: 'PROPERTY_UNKNOWN',
               level: 'error',
-              locations: [getLocation(value, key, 'key')],
+              locations: [{ node: value, key, filter: 'key' }],
               metadata: {
                 propertyName: key
               },
@@ -394,10 +395,10 @@ function validateDefinition (processor: SchemaProcessor): boolean {
           }
         } else if (property.notAllowed !== undefined) {
           exception.add({
-            id,
+            id: `${id}.${key}.notAllowed`,
             code: property.notAllowed,
             level: 'error',
-            locations: [getLocation(value, key, 'key')],
+            locations: [{ node: value, key, filter: 'key' }],
             metadata: {
               propertyName: key
             },
@@ -412,10 +413,10 @@ function validateDefinition (processor: SchemaProcessor): boolean {
     const v = definition as unknown as number
     if (schema.integer === true && String(v) !== String(Math.round(v))) {
       exception.add({
-        id,
+        id: `${id}.${processor.key}.notValid`,
         code: 'VALUE_TYPE_INVALID',
         level: 'error',
-        locations: [processor.getLocation('value')],
+        locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
         metadata: {
           expectedType: 'integer',
           value: definition
@@ -425,10 +426,10 @@ function validateDefinition (processor: SchemaProcessor): boolean {
     }
     if (schema.minimum !== undefined && v < schema.minimum) {
       exception.add({
-        id,
+        id: `${id}.${processor.key}.outOfRange.min`,
         code: 'VALUE_OUT_OF_RANGE_MIN',
         level: 'error',
-        locations: [processor.getLocation('value')],
+        locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
         metadata: {
           minimum: schema.minimum,
           value: definition
@@ -438,10 +439,10 @@ function validateDefinition (processor: SchemaProcessor): boolean {
     }
     if (schema.maximum !== undefined && v > schema.maximum) {
       exception.add({
-        id,
+        id: `${id}.${processor.key}.outOfRange.max`,
         code: 'VALUE_OUT_OF_RANGE_MAX',
         level: 'error',
-        locations: [processor.getLocation('value')],
+        locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
         metadata: {
           exclusive: '',
           maximum: schema.maximum,

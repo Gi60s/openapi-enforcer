@@ -10,10 +10,14 @@ declare global {
       exceptionWarning(): void
       exceptionInfo(): void
       exceptionIgnored(): void
-      exceptionErrorCode(code: II18nMessageCode, exclusive?: boolean): void
-      exceptionWarningCode(code: II18nMessageCode, exclusive?: boolean): void
-      exceptionInfoCode(code: II18nMessageCode, exclusive?: boolean): void
-      exceptionIgnoredCode(code: II18nMessageCode, exclusive?: boolean): void
+      exceptionErrorCode(code: string, exclusive?: boolean): void
+      exceptionWarningCode(code: string, exclusive?: boolean): void
+      exceptionInfoCode(code: string, exclusive?: boolean): void
+      exceptionIgnoredCode(code: string, exclusive?: boolean): void
+      exceptionErrorId(id: string, metadata?: Record<string, any>): void
+      exceptionWarningId(id: string, metadata?: Record<string, any>): void
+      exceptionInfoId(id: string, metadata?: Record<string, any>): void
+      exceptionIgnoredId(id: string, metadata?: Record<string, any>): void
     }
   }
 }

@@ -34,7 +34,7 @@ export class Reference extends ReferenceBase implements IReference2 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'REFERENCE2'
+  static id: string = 'reference'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#reference-object',

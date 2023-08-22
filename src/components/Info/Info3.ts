@@ -42,7 +42,7 @@ export class Info extends InfoBase implements IInfo3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'INFO3'
+  static id: string = 'info'
 
   static spec: IComponentSpec = {
     '2.0': true,

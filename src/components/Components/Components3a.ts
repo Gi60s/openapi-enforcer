@@ -52,7 +52,7 @@ export class Components extends ComponentsBase implements IComponents3a {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'COMPONENTS3A'
+  static id: string = 'components'
 
   static spec: IComponentSpec = {
     '2.0': false,

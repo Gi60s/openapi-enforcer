@@ -50,7 +50,7 @@ export class Parameter extends ParameterBase implements IParameter3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'PARAMETER3'
+  static id: string = 'parameter'
 
   static spec: IComponentSpec = {
     '2.0': true,

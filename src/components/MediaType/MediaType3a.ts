@@ -41,7 +41,7 @@ export class MediaType extends MediaTypeBase implements IMediaType3a {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'MEDIA_TYPE3A'
+  static id: string = 'mediaType'
 
   static spec: IComponentSpec = {
     '2.0': false,

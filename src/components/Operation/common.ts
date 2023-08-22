@@ -40,7 +40,7 @@ export function validate (data: ISchemaProcessorData, mergedParameters: IFromPar
       id,
       code: 'PARAMETER_PATH_NOT_DEFINED',
       level: 'error',
-      locations: [getLocation(definition, 'parameters')],
+      locations: [{ node: definition, key: 'parameters', filter: 'value' }],
       metadata: {
         parameterNames: paramNamesInPathNotInParameters
       },
@@ -54,7 +54,7 @@ export function validate (data: ISchemaProcessorData, mergedParameters: IFromPar
       id,
       code: 'SUMMERY_EXCEEDS_RECOMMENDED_LENGTH',
       level: 'warn',
-      locations: [getLocation(definition, 'summary', 'value')],
+      locations: [{ node: definition, key: 'summary', filter: 'value' }],
       metadata: { summary: definition.summary },
       reference
     })
@@ -80,7 +80,9 @@ export function validate (data: ISchemaProcessorData, mergedParameters: IFromPar
           id,
           code: 'OPERATION_ID_NOT_UNIQUE',
           level: 'error',
-          locations: operations.map(def => getLocation(def, 'operationId', 'value')),
+          locations: operations.map(def => {
+            return { node: def, key: 'operationId', filter: 'value' }
+          }),
           metadata: {
             operationId
           },

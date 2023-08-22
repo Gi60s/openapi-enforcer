@@ -35,7 +35,7 @@ export class Discriminator extends DiscriminatorBase implements IDiscriminator3 
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'DISCRIMINATOR3'
+  static id: string = 'discriminator'
 
   static spec: IComponentSpec = {
     '2.0': false,
@@ -87,7 +87,7 @@ export class Discriminator extends DiscriminatorBase implements IDiscriminator3 
                   code: 'DISCRIMINATOR_ILLEGAL',
                   id,
                   level: 'error',
-                  locations: [processor.getLocation()],
+                  locations: [{ node: definition }],
                   metadata: {},
                   reference
                 })

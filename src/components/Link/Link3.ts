@@ -41,7 +41,7 @@ export class Link extends LinkBase implements ILink3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'LINK3'
+  static id: string = 'link'
 
   static spec: IComponentSpec = {
     '2.0': false,

@@ -76,7 +76,7 @@ export class Operation extends OperationBase implements IOperation2 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'OPERATION2'
+  static id: string = 'operation'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#operation-object',
@@ -134,7 +134,9 @@ export class Operation extends OperationBase implements IOperation2 {
           id,
           code: 'OPERATION_BODY_NOT_UNIQUE',
           level: 'error',
-          locations: bodies.map(parameter => getLocation(parameter)),
+          locations: bodies.map(parameter => {
+            return { node: parameter }
+          }),
           metadata: { bodyParameters: parameters },
           reference
         })
@@ -145,8 +147,9 @@ export class Operation extends OperationBase implements IOperation2 {
           id,
           code: 'OPERATION_BODY_FORM_CONFLICT',
           level: 'error',
-          locations: bodies.map(parameter => getLocation(parameter))
-            .concat(forms.map(parameter => getLocation(parameter))),
+          locations: bodies
+            .map(parameter => { return { node: parameter } })
+            .concat(forms.map(parameter => { return { node: parameter } })),
           metadata: { bodyParameters: parameters, formDataParameters: forms },
           reference
         })
@@ -166,7 +169,7 @@ export class Operation extends OperationBase implements IOperation2 {
             id,
             code: 'OPERATION_CONSUMES_FORM_DATA',
             level: 'warn',
-            locations: [getLocation(definition)],
+            locations: [{ node: definition }],
             metadata: {
               consumes: consumes.filter(v => v !== undefined).map(v => v.toString())
             }
@@ -368,11 +371,14 @@ function validateContentTypes (contentTypes: string[] | undefined, key: 'consume
     if (!ContentType.isContentTypeString(contentType)) {
       const { definition, exception } = data
       const { reference, id } = data.component
+      const node = definition[key] as string[]
       exception.add({
         id,
         code: 'CONTENT_TYPE_INVALID',
         level: 'warn',
-        locations: [getLocation(definition[key] as string[], index, 'value')],
+        locations: node.map((_, index) => {
+          return { node, key: index, filter: 'value' }
+        }),
         metadata: {
           contentType
         },

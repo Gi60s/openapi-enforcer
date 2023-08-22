@@ -10,7 +10,7 @@ describe('Components', () => {
             'my-._Schema': { type: 'string' }
           }
         })
-        expect(es.hasErrorByCode('COMPONENT_NAME_INVALID')).to.equal(false)
+        expect(es.hasErrorByCode('componentNameInvalid')).to.equal(false)
       })
 
       it('must be a valid component name', () => {
@@ -19,7 +19,7 @@ describe('Components', () => {
             '%': { type: 'string' }
           }
         })
-        expect(es.hasErrorByCode('COMPONENT_NAME_INVALID')).to.equal(true)
+        expect(es.hasErrorByCode('componentNameInvalid')).to.equal(true)
       })
     })
   ])

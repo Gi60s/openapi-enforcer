@@ -48,7 +48,7 @@ export class Header extends HeaderBase implements IHeader3a {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'HEADER3A'
+  static id: string = 'header'
 
   static spec: IComponentSpec = {
     '2.0': true,

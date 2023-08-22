@@ -13,7 +13,7 @@
 
 import { IComponentInstance } from '../IComponent'
 import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
-import { ISDProperty, ISDString, ISDComponent, ISDAny, ISDNumber, ISDBoolean, ISDArray } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { ISDProperty, ISDString, ISDComponent, ISDAny, ISDBoolean, ISDNumber, ISDArray } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 
 // <!# Custom Content Begin: HEADER #!>
 // Put your code here.
@@ -38,9 +38,9 @@ export interface IItems2Definition {
   items?: IItems2Definition
   collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   default?: any
-  maximum?: number
+  maximum?: any
   exclusiveMaximum?: boolean
-  minimum?: number
+  minimum?: any
   exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
@@ -49,7 +49,7 @@ export interface IItems2Definition {
   minItems?: number
   uniqueItems?: boolean
   enum?: any[]
-  multipleOf?: number
+  multipleOf?: any
 }
 
 export interface IItems2 extends IItemsBase {
@@ -59,9 +59,9 @@ export interface IItems2 extends IItemsBase {
   items?: IItems2
   collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   default?: any
-  maximum?: number
+  maximum?: any
   exclusiveMaximum?: boolean
-  minimum?: number
+  minimum?: any
   exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
@@ -70,7 +70,7 @@ export interface IItems2 extends IItemsBase {
   minItems?: number
   uniqueItems?: boolean
   enum?: any[]
-  multipleOf?: number
+  multipleOf?: any
 }
 
 export interface IItemsValidatorsMap2 {
@@ -79,9 +79,9 @@ export interface IItemsValidatorsMap2 {
   items: ISDProperty<ISDComponent<IItems2Definition, IItems2>>
   collectionFormat: ISDProperty<ISDString>
   _default: ISDProperty<ISDAny>
-  maximum: ISDProperty<ISDNumber>
+  maximum: ISDProperty<ISDAny>
   exclusiveMaximum: ISDProperty<ISDBoolean>
-  minimum: ISDProperty<ISDNumber>
+  minimum: ISDProperty<ISDAny>
   exclusiveMinimum: ISDProperty<ISDBoolean>
   maxLength: ISDProperty<ISDNumber>
   minLength: ISDProperty<ISDNumber>
@@ -90,7 +90,7 @@ export interface IItemsValidatorsMap2 {
   minItems: ISDProperty<ISDNumber>
   uniqueItems: ISDProperty<ISDBoolean>
   _enum: ISDProperty<ISDArray<ISDAny>>
-  multipleOf: ISDProperty<ISDNumber>
+  multipleOf: ISDProperty<ISDAny>
 }
 
 export interface IItems3aDefinition {

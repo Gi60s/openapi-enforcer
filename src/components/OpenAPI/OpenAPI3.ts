@@ -49,7 +49,7 @@ export class OpenAPI extends OpenAPIBase implements IOpenAPI3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'OPEN_API3'
+  static id: string = 'openAPI'
 
   static spec: IComponentSpec = {
     '2.0': false,

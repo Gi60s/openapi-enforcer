@@ -30,9 +30,9 @@ export class Schema extends SchemaBase implements ISchema2 {
   public title?: string
   public description?: string
   public default?: any
-  public maximum?: number
+  public maximum?: any
   public exclusiveMaximum?: boolean
-  public minimum?: number
+  public minimum?: any
   public exclusiveMinimum?: boolean
   public maxLength?: number
   public minLength?: number
@@ -43,7 +43,7 @@ export class Schema extends SchemaBase implements ISchema2 {
   public minProperties?: number
   public uniqueItems?: boolean
   public enum?: any[]
-  public multipleOf?: number
+  public multipleOf?: any
   public required?: string[]
   public type?: 'array' | 'boolean' | 'integer' | 'number' | 'object' | 'string'
   public items?: ISchema2
@@ -63,7 +63,7 @@ export class Schema extends SchemaBase implements ISchema2 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'SCHEMA2'
+  static id: string = 'schema'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#schema-object',
@@ -190,7 +190,7 @@ function getValidatorsMap (): IValidatorsMap {
     maximum: {
       name: 'maximum',
       schema: {
-        type: 'number'
+        type: 'any'
       }
     },
     exclusiveMaximum: {
@@ -202,7 +202,7 @@ function getValidatorsMap (): IValidatorsMap {
     minimum: {
       name: 'minimum',
       schema: {
-        type: 'number'
+        type: 'any'
       }
     },
     exclusiveMinimum: {
@@ -271,7 +271,7 @@ function getValidatorsMap (): IValidatorsMap {
     multipleOf: {
       name: 'multipleOf',
       schema: {
-        type: 'number'
+        type: 'any'
       }
     },
     required: {

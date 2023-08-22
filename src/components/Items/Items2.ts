@@ -31,9 +31,9 @@ export class Items extends ItemsBase implements IItems2 {
   public items?: IItems2
   public collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
   public default?: any
-  public maximum?: number
+  public maximum?: any
   public exclusiveMaximum?: boolean
-  public minimum?: number
+  public minimum?: any
   public exclusiveMinimum?: boolean
   public maxLength?: number
   public minLength?: number
@@ -42,7 +42,7 @@ export class Items extends ItemsBase implements IItems2 {
   public minItems?: number
   public uniqueItems?: boolean
   public enum?: any[]
-  public multipleOf?: number
+  public multipleOf?: any
 
   constructor (definition: IItems2Definition, version?: IVersion) {
     super(definition, version, arguments[2])
@@ -51,7 +51,7 @@ export class Items extends ItemsBase implements IItems2 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'ITEMS2'
+  static id: string = 'items'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#items-object',
@@ -184,7 +184,7 @@ function getValidatorsMap (): IValidatorsMap {
     maximum: {
       name: 'maximum',
       schema: {
-        type: 'number'
+        type: 'any'
       }
     },
     exclusiveMaximum: {
@@ -196,7 +196,7 @@ function getValidatorsMap (): IValidatorsMap {
     minimum: {
       name: 'minimum',
       schema: {
-        type: 'number'
+        type: 'any'
       }
     },
     exclusiveMinimum: {
@@ -253,7 +253,7 @@ function getValidatorsMap (): IValidatorsMap {
     multipleOf: {
       name: 'multipleOf',
       schema: {
-        type: 'number'
+        type: 'any'
       }
     }
   }

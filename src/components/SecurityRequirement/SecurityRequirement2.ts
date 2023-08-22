@@ -43,7 +43,7 @@ export class SecurityRequirement extends SecurityRequirementBase implements ISec
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'SECURITY_REQUIREMENT2'
+  static id: string = 'securityRequirement'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#security-requirement-object',

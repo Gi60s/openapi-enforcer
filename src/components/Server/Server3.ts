@@ -38,7 +38,7 @@ export class Server extends ServerBase implements IServer3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'SERVER3'
+  static id: string = 'server'
 
   static spec: IComponentSpec = {
     '2.0': false,

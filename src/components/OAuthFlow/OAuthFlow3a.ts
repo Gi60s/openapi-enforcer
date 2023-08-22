@@ -38,7 +38,7 @@ export class OAuthFlow extends OAuthFlowBase implements IOAuthFlow3a {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'OAUTH_FLOW3A'
+  static id: string = 'oAuthFlow'
 
   static spec: IComponentSpec = {
     '2.0': false,

@@ -45,7 +45,7 @@ export class PathItem extends PathItemBase implements IPathItem2 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'PATH_ITEM2'
+  static id: string = 'pathItem'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#path-item-object',

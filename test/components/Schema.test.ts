@@ -68,6 +68,13 @@ describe.only('Schema', () => {
         })
       })
 
+      it('can specify a type', () => {
+        test(Schema => {
+          const es = Schema.validate({ type: 'string', allOf: [] })
+          expect(es).not.to.have.exceptionError()
+        })
+      })
+
       it('must be an array', () => {
         test(Schema => {
           // @ts-expect-error
@@ -79,7 +86,7 @@ describe.only('Schema', () => {
       it('will warn of an empty array', () => {
         test(Schema => {
           const es = Schema.validate({ allOf: [] })
-          expect(es).to.have.exceptionWarningCode('ARRAY_EMPTY')
+          expect(es).to.have.exceptionWarningCode('schema.allOf.typeConflict')
         })
       })
 
@@ -96,60 +103,120 @@ describe.only('Schema', () => {
         })
       })
 
-      it('will find explicit conflicts for "type"', () => {
-        test(Schema => {
-          const es = Schema.validate({
-            allOf: [
-              { type: 'string' },
-              { type: 'number' }
-            ]
+      describe('type conflicts', () => {
+        it('will validate that parent defined types match allOf types', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              type: 'string',
+              allOf: [{ type: 'boolean' }]
+            })
+            expect(es).to.have.exceptionErrorId('schema.allOf.type.conflict', { propertyName: 'type' })
           })
-          expect(es).to.have.exceptionErrorCode('SCHEMA_ALL_CONFLICT', true)
+        })
 
-          const metadata = es.exceptions[0]?.metadata ?? {}
-          expect(metadata.propertyName).to.equal('type')
-          expect(metadata.values).to.deep.equal(['string', 'number'])
+        it('will find explicit conflicts for "type"', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                { type: 'string' },
+                { type: 'number' }
+              ]
+            })
+            expect(es).to.have.exceptionErrorId('schema.allOf.type.conflict', { propertyName: 'type' })
+          })
+        })
+
+        it('will not find implicit conflicts for "type"', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                { maxLength: 5 },
+                { maximum: 5 }
+              ]
+            })
+            expect(es).not.to.have.exceptionErrorId('schema.allOf.type.conflict')
+          })
         })
       })
 
-      it('will find implicit conflicts for "type"', () => {
-        test(Schema => {
-          const es = Schema.validate({
-            allOf: [
-              { maxLength: 5 },
-              { maximum: 5 }
-            ]
+      describe.only('format conflicts', () => {
+        it('will validate that parent defined format matches allOf formats', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              format: 'date',
+              allOf: [{ format: 'date-time' }]
+            })
+            expect(es).to.have.exceptionErrorId('schema.allOf.format.conflict', { propertyName: 'format' })
           })
-          expect(es).to.have.exceptionErrorCode('SCHEMA_ALL_CONFLICT', true)
+        })
 
-          const metadata = es.exceptions.find(ex => ex.code === 'SCHEMA_ALL_CONFLICT')?.metadata ?? {}
-          expect(metadata.propertyName).to.equal('type')
-          expect(metadata.values).to.deep.equal(['string', 'number'])
+        it('will find sibling conflicts for "format"', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                { format: 'binary' },
+                { format: 'date' }
+              ]
+            })
+            expect(es).to.have.exceptionErrorId('schema.allOf.format.conflict', { propertyName: 'format' })
+          })
         })
       })
 
-      it('will find object property conflicts', () => {
-        test(Schema => {
-          const es = Schema.validate({
-            allOf: [
-              {
-                properties: {
-                  a: { type: 'string' }
-                }
-              },
-              {
-                properties: {
-                  a: { type: 'number' }
-                }
-              }
-            ]
+      describe.only('minimum/maximum conflicts', () => {
+        it('will validate that parent defined minimum does not exceed child maximum', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              minimum: 5,
+              allOf: [{ maximum: 2 }]
+            })
+            expect(es).to.have.exceptionErrorId('schema.allOf.minMax.crossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
           })
-          expect(es).to.have.exceptionErrorCode('SCHEMA_ALL_CONFLICT', true)
-          const metadata = es.exceptions.find(ex => ex.code === 'SCHEMA_ALL_CONFLICT')?.metadata ?? {}
-          expect(metadata.propertyName).to.equal('type')
-          expect(metadata.values).to.deep.equal(['string', 'number'])
+        })
+
+        it('will validate that parent defined maximum does not exceed child minimum', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              maximum: 2,
+              allOf: [{ minimum: 5 }]
+            })
+            expect(es).to.have.exceptionErrorId('schema.allOf.minMax.crossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
+          })
+        })
+
+        it('will find sibling conflicts', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                { maximum: 2 },
+                { minimum: 5 }
+              ]
+            })
+            expect(es).to.have.exceptionErrorId('schema.allOf.minMax.crossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
+          })
+        })
+
+        it('will only report locations on conflicted values', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              minimum: 3, // conflict with max = 2
+              allOf: [
+                { maximum: 10 }, // not a conflict
+                { minimum: 9 }, // not a conflict
+                { minimum: 5 }, // conflict with max = 2
+                { maximum: 2 } // conflict with minimum = 5 and minimum = 3
+              ]
+            })
+            expect(es).to.have.exceptionErrorId('schema.allOf.minMax.crossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
+            const exception = es.exceptions.find(ex => ex.id === 'schema.allOf.minMax.crossConflict')
+            expect(exception?.locations.length).to.equal(3)
+          })
         })
       })
+
+
+
+
 
       it('will find conflicts for "minimum" and "maximum"', () => {
         test(Schema => {

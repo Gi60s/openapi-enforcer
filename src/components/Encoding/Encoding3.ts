@@ -40,7 +40,7 @@ export class Encoding extends EncodingBase implements IEncoding3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'ENCODING3'
+  static id: string = 'encoding'
 
   static spec: IComponentSpec = {
     '2.0': false,

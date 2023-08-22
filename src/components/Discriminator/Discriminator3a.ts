@@ -36,7 +36,7 @@ export class Discriminator extends DiscriminatorBase implements IDiscriminator3a
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'DISCRIMINATOR3A'
+  static id: string = 'discriminator'
 
   static spec: IComponentSpec = {
     '2.0': false,

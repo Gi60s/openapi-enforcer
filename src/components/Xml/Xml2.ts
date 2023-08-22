@@ -39,7 +39,7 @@ export class Xml extends XmlBase implements IXml2 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'XML2'
+  static id: string = 'xml'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#xml-object',

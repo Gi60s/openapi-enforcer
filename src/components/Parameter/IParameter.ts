@@ -50,9 +50,9 @@ export interface IParameter2Definition {
   items?: IItems2Definition
   collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi'
   default?: any
-  maximum?: number
+  maximum?: any
   exclusiveMaximum?: boolean
-  minimum?: number
+  minimum?: any
   exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
@@ -61,7 +61,7 @@ export interface IParameter2Definition {
   minItems?: number
   uniqueItems?: boolean
   enum?: any[]
-  multipleOf?: number
+  multipleOf?: any
 }
 
 export interface IParameter2 extends IParameterBase {
@@ -77,9 +77,9 @@ export interface IParameter2 extends IParameterBase {
   items?: IItems2
   collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi'
   default?: any
-  maximum?: number
+  maximum?: any
   exclusiveMaximum?: boolean
-  minimum?: number
+  minimum?: any
   exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
@@ -88,7 +88,7 @@ export interface IParameter2 extends IParameterBase {
   minItems?: number
   uniqueItems?: boolean
   enum?: any[]
-  multipleOf?: number
+  multipleOf?: any
 }
 
 export interface IParameterValidatorsMap2 {
@@ -103,9 +103,9 @@ export interface IParameterValidatorsMap2 {
   items: ISDProperty<ISDComponent<IItems2Definition, IItems2>>
   collectionFormat: ISDProperty<ISDString>
   _default: ISDProperty<ISDAny>
-  maximum: ISDProperty<ISDNumber>
+  maximum: ISDProperty<ISDAny>
   exclusiveMaximum: ISDProperty<ISDBoolean>
-  minimum: ISDProperty<ISDNumber>
+  minimum: ISDProperty<ISDAny>
   exclusiveMinimum: ISDProperty<ISDBoolean>
   maxLength: ISDProperty<ISDNumber>
   minLength: ISDProperty<ISDNumber>
@@ -114,7 +114,7 @@ export interface IParameterValidatorsMap2 {
   minItems: ISDProperty<ISDNumber>
   uniqueItems: ISDProperty<ISDBoolean>
   _enum: ISDProperty<ISDArray<ISDAny>>
-  multipleOf: ISDProperty<ISDNumber>
+  multipleOf: ISDProperty<ISDAny>
 }
 
 export interface IParameter3Definition {

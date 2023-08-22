@@ -42,7 +42,7 @@ export class Info extends InfoBase implements IInfo2 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'INFO2'
+  static id: string = 'info'
 
   static spec: IComponentSpec = {
     '2.0': 'https://spec.openapis.org/oas/v2.0#info-object',

@@ -34,7 +34,7 @@ export class Reference extends ReferenceBase implements IReference3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'REFERENCE3'
+  static id: string = 'reference'
 
   static spec: IComponentSpec = {
     '2.0': true,

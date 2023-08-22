@@ -38,7 +38,7 @@ export class Example extends ExampleBase implements IExample3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'EXAMPLE3'
+  static id: string = 'example'
 
   static spec: IComponentSpec = {
     '2.0': true,

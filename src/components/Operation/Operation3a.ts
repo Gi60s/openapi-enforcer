@@ -55,7 +55,7 @@ export class Operation extends OperationBase implements IOperation3a {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'OPERATION3A'
+  static id: string = 'operation'
 
   static spec: IComponentSpec = {
     '2.0': true,

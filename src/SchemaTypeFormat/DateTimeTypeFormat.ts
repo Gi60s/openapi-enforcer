@@ -21,7 +21,7 @@ export class DateTimeTypeFormat extends SchemaTypeFormat<string, Date> implement
         code: 'SCHEMA_TYPE_FORMAT_DATE_TIME_LENGTH',
         id: 'SCHEMA',
         level: 'error',
-        locations: [getLocation(definition, 'maxLength', 'value')],
+        locations: [{ node: definition, key: 'maxLength', filter: 'value' }],
         metadata: { lengthProperty: 'maxLength' }
       })
     }
@@ -30,7 +30,7 @@ export class DateTimeTypeFormat extends SchemaTypeFormat<string, Date> implement
         code: 'SCHEMA_TYPE_FORMAT_DATE_TIME_LENGTH',
         id: 'SCHEMA',
         level: 'error',
-        locations: [getLocation(definition, 'minLength', 'value')],
+        locations: [{ node: definition, key: 'minLength', filter: 'value' }],
         metadata: { lengthProperty: 'minLength' }
       })
     }

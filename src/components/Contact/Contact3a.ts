@@ -37,7 +37,7 @@ export class Contact extends ContactBase implements IContact3a {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'CONTACT3A'
+  static id: string = 'contact'
 
   static spec: IComponentSpec = {
     '2.0': true,

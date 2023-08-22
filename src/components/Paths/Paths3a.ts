@@ -34,7 +34,7 @@ export class Paths extends PathsBase implements IPaths3a {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'PATHS3A'
+  static id: string = 'paths'
 
   static spec: IComponentSpec = {
     '2.0': true,

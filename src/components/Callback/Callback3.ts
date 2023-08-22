@@ -45,7 +45,7 @@ export class Callback extends CallbackBase implements ICallback3 {
     // <!# Custom Content End: CONSTRUCTOR #!>
   }
 
-  static id: string = 'CALLBACK3'
+  static id: string = 'callback'
 
   static spec: IComponentSpec = {
     '2.0': false,
