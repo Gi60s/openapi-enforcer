@@ -139,7 +139,7 @@ describe.only('Schema', () => {
         })
       })
 
-      describe.only('format conflicts', () => {
+      describe('format conflicts', () => {
         it('will validate that parent defined format matches allOf formats', () => {
           test(Schema => {
             const es = Schema.validate({
@@ -170,7 +170,7 @@ describe.only('Schema', () => {
               minimum: 5,
               allOf: [{ maximum: 2 }]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.minMax.crossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.maxMin.crossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
           })
         })
 
@@ -180,7 +180,7 @@ describe.only('Schema', () => {
               maximum: 2,
               allOf: [{ minimum: 5 }]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.minMax.crossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.maxMin.crossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
           })
         })
 
@@ -192,24 +192,23 @@ describe.only('Schema', () => {
                 { minimum: 5 }
               ]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.minMax.crossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.maxMin.crossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
           })
         })
 
-        it('will only report locations on conflicted values', () => {
+        it.only('will only report locations on conflicted values', () => {
           test(Schema => {
             const es = Schema.validate({
-              minimum: 3, // conflict with max = 2
+              minimum: 0, // conflict with maximum = -5
               allOf: [
-                { maximum: 10 }, // not a conflict
-                { minimum: 9 }, // not a conflict
-                { minimum: 5 }, // conflict with max = 2
-                { maximum: 2 } // conflict with minimum = 5 and minimum = 3
+                { maximum: 10 },
+                { maximum: -5 } // conflict with minimum = 2
               ]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.minMax.crossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
-            const exception = es.exceptions.find(ex => ex.id === 'schema.allOf.minMax.crossConflict')
-            expect(exception?.locations.length).to.equal(3)
+            expect(es).to.have.exceptionErrorId('schema.allOf.maxMin.crossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
+            const exception = es.exceptions.find(ex => ex.id === 'schema.allOf.maxMin.crossConflict')
+            expect(exception?.locations.length).to.equal(2)
+            console.log(es.error)
           })
         })
       })

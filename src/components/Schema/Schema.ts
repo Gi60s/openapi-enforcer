@@ -399,20 +399,15 @@ function getMaxMinConflictLocations (items: IDefinition[], set: 'number' | 'leng
   const locations: IExceptionLocation[] = []
   items.forEach(item => {
     const max = item[maxKey as 'maximum']
-    if (max !== undefined && lowestMaximum !== undefined && lowestMaximum !== item && (lowestMaximum.value < max || (lowestMaximum.value === max && lowestMaximum.exclusive))) {
+    if (max !== undefined && highestMinimum !== undefined && highestMinimum.definition !== item && (highestMinimum.value > max || (highestMinimum.value === max && highestMinimum.exclusive))) {
       locations.push({ node: item, key: maxKey, filter: 'value' })
     }
 
     const min = item[minKey as 'minimum'] as number
-    if (min !== undefined && highestMinimum !== undefined && highestMinimum !== item && (highestMinimum.value > min || (highestMinimum.value === min && highestMinimum.exclusive))) {
-      locations.push({ node: item, key: maxKey, filter: 'value' })
+    if (min !== undefined && lowestMaximum !== undefined && lowestMaximum.definition !== item && (lowestMaximum.value < min || (lowestMaximum.value === min && lowestMaximum.exclusive))) {
+      locations.push({ node: item, key: minKey, filter: 'value' })
     }
   })
-
-  if (locations.length > 0) {
-    locations.unshift({ node: lowestMaximum.definition, key: maxKey, filter: 'value' })
-    locations.unshift({ node: highestMinimum.definition, key: minKey, filter: 'value' })
-  }
 
   return locations
 }
