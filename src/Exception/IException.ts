@@ -35,6 +35,6 @@ export interface IExceptionReportConfiguration {
 
 export interface IExceptionReportItem {
   paths: string[]
-  breadcrumbs: string[]
+  breadcrumbs: string[] // the breadcrumbs array is derived from the paths array, there is a one-to-one relationship
   exceptions: IException[]
 }

@@ -194,13 +194,45 @@ export class ExceptionStore {
         const reportItems = report.reportItems
         report.exceptions.push(exception)
 
-        // create locations strings (breadcrumbs + source)
-        const paths: string[] = exception.locations
+        // generate and sort path and location data
+        const pathObjects: Array<{
+          source: string
+          line?: number
+          column?: number
+          path: string
+        }> = exception.locations
           .map(loc => {
-            const source = loc.root.source
-            return loc.path + (source.length > 0 ? ' (' + source + ')' : '')
+            return {
+              source: loc.root.source,
+              path: loc.path,
+              line: loc.start?.line,
+              column: loc.start?.column
+            }
           })
-        paths.sort()
+        pathObjects.sort((p1, p2) => {
+          if (p1.source < p2.source) return -1
+          if (p1.source > p2.source) return 1
+          if (p1.line !== undefined && p2.line !== undefined) {
+            if (p1.line < p2.line) return -1
+            if (p1.line > p2.line) return 1
+          }
+          if (p1.column !== undefined && p2.column !== undefined) {
+            if (p1.column < p2.column) return -1
+            if (p1.column > p2.column) return 1
+          }
+          return p1.path < p2.path ? -1 : 1
+        })
+
+        // create locations strings (breadcrumbs + source)
+        const paths: string[] = pathObjects
+          .map(pathObject => {
+            let source = pathObject.source
+            if (pathObject.line !== undefined) {
+              if (source.length > 0) source += ' '
+              source += `${pathObject.line}:${pathObject.column as number}`
+            }
+            return pathObject.path + (source.length > 0 ? ' (' + source + ')' : '')
+          })
 
         // find and add to a group or create a group if not found
         const found = reportItems.find(r => {
