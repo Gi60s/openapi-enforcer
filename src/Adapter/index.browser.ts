@@ -1,5 +1,5 @@
 import { dirnameUrl, resolvePathFilter, resolveUrlPath, setEnvironment } from './Adapter'
-import '../Loader/loader.http-get'
+import '../Loader/loaders/loader.http-get'
 
 const [url] = window.location.href.split('?')
 

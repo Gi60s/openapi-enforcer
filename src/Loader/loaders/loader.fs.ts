@@ -1,6 +1,6 @@
 import fs from 'fs'
-import { ILoaderMatch } from './ILoader'
-import { define } from './loader-async'
+import { ILoaderMatch } from '../ILoader'
+import { define } from '../loader-async'
 
 // add file loader
 define('file-system-loader', async function (path, data) {

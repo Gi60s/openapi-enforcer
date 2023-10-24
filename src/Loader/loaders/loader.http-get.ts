@@ -1,7 +1,7 @@
-import { ILoaderMatch } from './ILoader'
-import { Adapter } from '../Adapter/Adapter'
-import { define } from './loader-async'
-import rx from '../rx'
+import { ILoaderMatch } from '../ILoader'
+import { Adapter } from '../../Adapter/Adapter'
+import { define } from '../loader-async'
+import rx from '../../rx'
 
 // add http(s) GET loader
 define('http-get', async function (path, data) {

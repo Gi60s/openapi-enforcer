@@ -1,6 +1,6 @@
 import { dirnameUrl, resolvePathFilter, resolveUrlPath, setEnvironment } from './Adapter'
-import '../Loader/loader.http-get'
-import '../Loader/loader.fs'
+import '../Loader/loaders/loader.http-get'
+import '../Loader/loaders/loader.fs'
 
 import Http, { IncomingMessage } from 'http'
 import Https from 'https'
