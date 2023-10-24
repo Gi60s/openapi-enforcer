@@ -17,6 +17,7 @@ export interface II18nMessagesMap {
   LOADER_YAML_PARSE_ERROR: string
   LOADER_YAML_SUPPORT_ERROR: string
   LOCATOR_INVALID_REFERENCE: string
+  LOADER_IN_MEMORY_NAME_INVALID: string
   NOT_IMPLEMENTED: string
   NULL_INVALID: string
   OPERATION_BODY_FORM_CONFLICT: string
@@ -125,7 +126,7 @@ export function getLanguageMessage (languageCode: string, messageCode: II18nMess
 }
 
 function injectMessageData (languageCode: string, message: string, data: Record<string, any> = {}): string {
-  const rx = /(?:{([a-z]+)})|(?:{{([a-z]+)}})/ig
+  const rx = /(?:{([a-z0-9]+)})|(?:{{([a-z0-9]+)}})/ig
   let result = ''
   let match = rx.exec(message)
   let offset = 0

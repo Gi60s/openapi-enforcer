@@ -16,6 +16,7 @@ export const language: II18nMessagesMap = {
   LOADER_YAML_PARSE_ERROR: 'Unable to parse YAML for one or more reasons: {reasons}.',
   LOADER_YAML_SUPPORT_ERROR: 'YAML anchors and aliases are not currently supported.',
   LOCATOR_INVALID_REFERENCE: 'Invalid reference. It must be a non-null object or an array.',
+  LOADER_IN_MEMORY_NAME_INVALID: 'File name not valid for in memory loader content. It must end with {{suffix}}. Received: {{name}}',
   NOT_IMPLEMENTED: 'Function not implemented',
   NULL_INVALID: 'Value cannot be null.',
   OPERATION_BODY_FORM_CONFLICT: 'Parameters can include a body parameter or one or more formData parameters, but not ' +
