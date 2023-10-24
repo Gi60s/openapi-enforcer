@@ -2,8 +2,10 @@ import { Schema2, Schema3 } from '../../src/components'
 import { expect } from 'chai'
 import { testMultipleComponents } from '../../test-resources/test-utils'
 import '../../test-resources/chai-exception-store'
+import { putInMemory } from '../../src/Loader/loaders/loader.memory'
+import { loadAsync } from '../../src/Loader'
 
-const { test } = testMultipleComponents([Schema2, Schema3])
+const { test, testAsync } = testMultipleComponents([Schema2, Schema3])
 
 describe.only('Schema', () => {
   describe('definition', () => {
@@ -196,15 +198,18 @@ describe.only('Schema', () => {
           })
         })
 
-        it.only('will only report locations on conflicted values', () => {
-          test(Schema => {
-            const es = Schema.validate({
+        it.only('will only report locations on conflicted values', async () => {
+          return await testAsync(async (Schema) => {
+            putInMemory('x.mem', {
               minimum: 0, // conflict with maximum = -5
               allOf: [
                 { maximum: 10 },
                 { maximum: -5 } // conflict with minimum = 2
               ]
             })
+            const def = await loadAsync('x.mem')
+
+            const es = Schema.validate(def.value)
             expect(es).to.have.exceptionErrorId('schema.allOf.maxMin.crossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
             const exception = es.exceptions.find(ex => ex.id === 'schema.allOf.maxMin.crossConflict')
             expect(exception?.locations.length).to.equal(2)
@@ -212,10 +217,6 @@ describe.only('Schema', () => {
           })
         })
       })
-
-
-
-
 
       it('will find conflicts for "minimum" and "maximum"', () => {
         test(Schema => {
