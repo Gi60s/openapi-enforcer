@@ -97,7 +97,8 @@ export class Components extends ComponentsBase implements IComponents3 {
           Object.keys(definitionSet).forEach(name => {
             if (!rxPropertyName.test(name)) {
               exception.add({
-                id,
+                component: id,
+                context: key,
                 code: 'COMPONENT_NAME_INVALID',
                 level: 'error',
                 locations: [{ node: definitionSet, key: name, filter: 'key' }],

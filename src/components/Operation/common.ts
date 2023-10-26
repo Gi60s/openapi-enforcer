@@ -37,7 +37,8 @@ export function validate (data: ISchemaProcessorData, mergedParameters: IFromPar
   })
   if (paramNamesInPathNotInParameters.length > 0) {
     exception.add({
-      id,
+      component: id,
+      context: 'parameters',
       code: 'PARAMETER_PATH_NOT_DEFINED',
       level: 'error',
       locations: [{ node: definition, key: 'parameters', filter: 'value' }],
@@ -51,7 +52,8 @@ export function validate (data: ISchemaProcessorData, mergedParameters: IFromPar
 
   if (definition.summary !== undefined && definition.summary.length >= 120) {
     exception.add({
-      id,
+      component: id,
+      context: 'summary',
       code: 'SUMMERY_EXCEEDS_RECOMMENDED_LENGTH',
       level: 'warn',
       locations: [{ node: definition, key: 'summary', filter: 'value' }],
@@ -77,7 +79,8 @@ export function validate (data: ISchemaProcessorData, mergedParameters: IFromPar
       const operations = operationIdMap[operationId]
       if (operations.length > 1) {
         exception.add({
-          id,
+          component: id,
+          context: 'operationId',
           code: 'OPERATION_ID_NOT_UNIQUE',
           level: 'error',
           locations: operations.map(def => {

@@ -88,7 +88,7 @@ describe.only('Schema', () => {
       it('will warn of an empty array', () => {
         test(Schema => {
           const es = Schema.validate({ allOf: [] })
-          expect(es).to.have.exceptionWarningCode('schema.allOf.typeConflict')
+          expect(es).to.have.exceptionWarningCode('SCHEMA_ALLOF_EMPTY_ARRAY')
         })
       })
 
@@ -165,14 +165,14 @@ describe.only('Schema', () => {
         })
       })
 
-      describe.only('minimum/maximum conflicts', () => {
+      describe('minimum/maximum conflicts', () => {
         it('will validate that parent defined minimum does not exceed child maximum', () => {
           test(Schema => {
             const es = Schema.validate({
               minimum: 5,
               allOf: [{ maximum: 2 }]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.maxMin.crossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
           })
         })
 
@@ -182,7 +182,7 @@ describe.only('Schema', () => {
               maximum: 2,
               allOf: [{ minimum: 5 }]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.maxMin.crossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
           })
         })
 
@@ -194,11 +194,11 @@ describe.only('Schema', () => {
                 { minimum: 5 }
               ]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.maxMin.crossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
           })
         })
 
-        it.only('will only report locations on conflicted values', async () => {
+        it('will only report locations on conflicted values', async () => {
           return await testAsync(async (Schema) => {
             putInMemory('x.mem', {
               minimum: 0, // conflict with maximum = -5
@@ -210,7 +210,8 @@ describe.only('Schema', () => {
             const def = await loadAsync('x.mem')
 
             const es = Schema.validate(def.value)
-            expect(es).to.have.exceptionErrorId('schema.allOf.maxMin.crossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
+            console.log(es.error)
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
             const exception = es.exceptions.find(ex => ex.id === 'schema.allOf.maxMin.crossConflict')
             expect(exception?.locations.length).to.equal(2)
             console.log(es.error)
@@ -226,7 +227,7 @@ describe.only('Schema', () => {
               { type: 'number', minimum: 12 }
             ]
           })
-          expect(es).to.have.exceptionErrorCode('SCHEMA_ALL_CONFLICT', true)
+          expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
         })
       })
 
@@ -246,7 +247,7 @@ describe.only('Schema', () => {
               }
             ]
           })
-          expect(es).to.have.exceptionErrorCode('SCHEMA_ALL_CROSS_CONFLICT', true)
+          expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
           const metadata = es.exceptions[0]?.metadata ?? {}
           expect(metadata.propertyName1).to.equal('minimum')
           expect(metadata.value1).to.equal(10)

@@ -84,8 +84,9 @@ export class Discriminator extends DiscriminatorBase implements IDiscriminator3 
             if (mode === 'validate') {
               if (!s.used) {
                 exception.add({
+                  component: id,
+                  context: 'discriminator',
                   code: 'DISCRIMINATOR_ILLEGAL',
-                  id,
                   level: 'error',
                   locations: [{ node: definition }],
                   metadata: {},

@@ -18,8 +18,9 @@ export class DateTimeTypeFormat extends SchemaTypeFormat<string, Date> implement
     const { exception, definition } = data
     if (definition.maxLength !== undefined && (definition.maxLength < 20 || definition.maxLength > 29)) {
       exception.add({
+        component: 'schema',
+        context: 'maxLength',
         code: 'SCHEMA_TYPE_FORMAT_DATE_TIME_LENGTH',
-        id: 'SCHEMA',
         level: 'error',
         locations: [{ node: definition, key: 'maxLength', filter: 'value' }],
         metadata: { lengthProperty: 'maxLength' }
@@ -27,8 +28,9 @@ export class DateTimeTypeFormat extends SchemaTypeFormat<string, Date> implement
     }
     if (definition.minLength !== undefined && (definition.minLength < 20 || definition.minLength > 29)) {
       exception.add({
+        component: 'schema',
+        context: 'minLength',
         code: 'SCHEMA_TYPE_FORMAT_DATE_TIME_LENGTH',
-        id: 'SCHEMA',
         level: 'error',
         locations: [{ node: definition, key: 'minLength', filter: 'value' }],
         metadata: { lengthProperty: 'minLength' }
@@ -41,8 +43,9 @@ export class DateTimeTypeFormat extends SchemaTypeFormat<string, Date> implement
       return value
     } else if (typeof value !== 'string' || !rx.dateTime.test(value)) {
       exceptionStore.add({
+        component: 'schema',
+        context: 'value',
         code: 'SCHEMA_TYPE_FORMAT_DATE_FORMAT',
-        id: 'SCHEMA',
         level: 'error',
         locations: []
       })
@@ -51,8 +54,9 @@ export class DateTimeTypeFormat extends SchemaTypeFormat<string, Date> implement
       const date = getDateFromValidDateString('date', value)
       if (date === null) {
         exceptionStore.add({
+          component: 'schema',
+          context: 'value',
           code: 'SCHEMA_TYPE_FORMAT_DATE_INVALID',
-          id: 'SCHEMA',
           level: 'error',
           locations: [],
           metadata: { value }
@@ -90,8 +94,9 @@ export class DateTimeTypeFormat extends SchemaTypeFormat<string, Date> implement
   validate (exceptionStore: ExceptionStore, schema: ISchema, value: Date): boolean {
     if (value instanceof Date && !isNaN(+value)) {
       exceptionStore.add({
+        component: 'schema',
+        context: 'value',
         code: 'SCHEMA_TYPE_FORMAT_DATE_INVALID',
-        id: 'SCHEMA',
         level: 'error',
         locations: [],
         metadata: { value }

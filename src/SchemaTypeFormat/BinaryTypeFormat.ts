@@ -16,8 +16,9 @@ export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> impl
     const { exception, definition } = data
     if (definition.maxLength !== undefined && definition.maxLength % 8 !== 0) {
       exception.add({
+        component: 'schema',
+        context: 'maxLength',
         code: 'SCHEMA_TYPE_FORMAT_BINARY_LENGTH',
-        id: 'SCHEMA',
         level: 'error',
         locations: [{ node: definition, key: 'maxLength', filter: 'value' }],
         metadata: {
@@ -27,8 +28,9 @@ export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> impl
     }
     if (definition.minLength !== undefined && definition.minLength % 8 !== 0) {
       exception.add({
+        component: 'schema',
+        context: 'minLength',
         code: 'SCHEMA_TYPE_FORMAT_BINARY_LENGTH',
-        id: 'SCHEMA',
         level: 'error',
         locations: [{ node: definition, key: 'minLength', filter: 'value' }],
         metadata: {
@@ -51,8 +53,9 @@ export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> impl
       return buffer
     } else {
       exceptionStore.add({
+        component: 'schema',
+        context: 'value',
         code: 'SCHEMA_NOT_DESERIALIZABLE',
-        id: 'SCHEMA',
         level: 'error',
         locations: [],
         metadata: {
@@ -82,8 +85,9 @@ export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> impl
       return value
     } else {
       exceptionStore.add({
+        component: 'schema',
+        context: 'value',
         code: 'SCHEMA_NOT_SERIALIZABLE_TYPE',
-        id: 'SCHEMA',
         level: 'error',
         locations: [],
         metadata: {
@@ -97,8 +101,9 @@ export class BinaryTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> impl
   validate (exceptionStore: ExceptionStore, schema: ISchema, value: ArrayBuffer): boolean {
     if (!(value instanceof ArrayBuffer)) {
       exceptionStore.add({
+        component: 'schema',
+        context: 'value',
         code: 'VALUE_TYPE_INVALID',
-        id: 'SCHEMA',
         level: 'error',
         locations: [],
         metadata: {

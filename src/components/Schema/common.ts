@@ -271,10 +271,11 @@ export function validateMaxMin (exceptionStore: ExceptionStore,
   if (maxPropertyName in schema && maximum !== undefined) {
     if ((exclusives && schema.exclusiveMaximum === true && value >= maximum) || value > maximum) {
       const data: IExceptionData = {
+        component: 'schema',
+        context: 'value',
         code: schema.exclusiveMaximum === true
           ? 'VALUE_OUT_OF_RANGE_MAX_EXCLUSIVE'
           : 'VALUE_OUT_OF_RANGE_MAX',
-        id: 'Schema',
         level,
         locations: [],
         metadata: {
@@ -292,10 +293,11 @@ export function validateMaxMin (exceptionStore: ExceptionStore,
   if (minPropertyName in schema && minimum !== undefined) {
     if ((exclusives && schema.exclusiveMinimum === true && value <= minimum) || value < minimum) {
       const data: IExceptionData = {
+        component: 'schema',
+        context: 'value',
         code: schema.exclusiveMinimum === true
           ? 'VALUE_OUT_OF_RANGE_MIN_EXCLUSIVE'
           : 'VALUE_OUT_OF_RANGE_MIN',
-        id: 'Schema',
         level,
         locations: [],
         metadata: {

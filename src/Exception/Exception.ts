@@ -2,9 +2,14 @@ import { IException, IExceptionData, IExceptionLevel, IExceptionLocation } from 
 import { ILocation } from '../Locator/ILocator'
 import { II18nMessageCode } from '../i18n/i18n'
 import { getLocation } from '../Loader'
+import { snakeCaseToCamelCase } from '../util'
+
+const snakeToCamelCaseCache: Record<string, string> = {}
 
 export class Exception implements IException {
   public readonly id: string
+  public readonly component: string
+  public readonly context: string
   public readonly code: II18nMessageCode
   public readonly level: IExceptionLevel
   public readonly levelOverwritten: boolean
@@ -14,7 +19,16 @@ export class Exception implements IException {
   #locationLookupFindings?: ILocation[]
 
   constructor (data: IExceptionData) {
-    this.id = data.id
+    let camelCaseCode = snakeToCamelCaseCache[data.code]
+    if (camelCaseCode === undefined) {
+      camelCaseCode = snakeToCamelCaseCache[data.code] = snakeCaseToCamelCase(data.code)
+    }
+
+    this.id = data.component + '.' +
+      data.context + '.' +
+      camelCaseCode
+    this.component = data.component
+    this.context = data.context
     this.code = data.code
     this.level = data.level
     this.levelOverwritten = data.levelOverwritten ?? false

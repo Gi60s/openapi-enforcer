@@ -136,7 +136,8 @@ function handleFoundReference (data: ILoaderMetadata, node: any, found: any, par
     }
   } else {
     data.exceptionStore.add({
-      id: 'LOADER',
+      component: 'loader',
+      context: '$ref',
       code: 'REF_NOT_RESOLVED',
       level: 'error',
       locations: [{ node, key: '$ref', filter: 'value' }],
@@ -346,7 +347,8 @@ async function runLoadersAsync (path: string, data: ILoaderMetadata): Promise<an
   }
 
   data.exceptionStore?.add({
-    id: 'LOADER',
+    component: 'loader',
+    context: 'source',
     code: 'LOADER_NOT_FOUND',
     level: 'error',
     locations: [],

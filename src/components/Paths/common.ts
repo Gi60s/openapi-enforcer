@@ -72,7 +72,8 @@ export const validate = function (this: IPaths2 | IPaths3, data: SchemaProcessor
     // according to the spec, it is allowed to have an empty paths object, but the user may want to know, so we
     // register it as an "ignore" and if the user wants then they can change the level
     exception.add({
-      id,
+      component: id,
+      context: 'definition',
       code: 'PATHS_EMPTY',
       level: 'ignore',
       locations: [{ node: definition }],
@@ -87,7 +88,8 @@ export const validate = function (this: IPaths2 | IPaths3, data: SchemaProcessor
       // look for paths that do not start with a slash
       if (path[0] !== '/') {
         exception.add({
-          id,
+          component: id,
+          context: path,
           code: 'PATH_MISSING_LEADING_SLASH',
           level: 'error',
           locations: [{ node: definition, key: path, filter: 'key' }],
@@ -148,7 +150,8 @@ export const validate = function (this: IPaths2 | IPaths3, data: SchemaProcessor
       const item = store[key]
       if (item.conflict === 'partial') {
         exception.add({
-          id,
+          component: id,
+          context: 'definition',
           code: 'PATH_SPEC_CONFLICT',
           level: 'warn',
           locations: item.paths.map(path => {
@@ -159,7 +162,8 @@ export const validate = function (this: IPaths2 | IPaths3, data: SchemaProcessor
         })
       } else if (item.conflict === 'full') {
         exception.add({
-          id,
+          component: id,
+          context: 'definition',
           code: 'PATH_OPERATION_CONFLICT',
           level: 'error',
           locations: item.paths.map(path => {
@@ -173,7 +177,8 @@ export const validate = function (this: IPaths2 | IPaths3, data: SchemaProcessor
 
     if (pathsEndingWithSlash.length > 0 && pathsEndingWithoutSlash.length > 0) {
       exception.add({
-        id,
+        component: id,
+        context: 'definition',
         code: 'PATH_ENDINGS_INCONSISTENT',
         level: 'ignore',
         locations: paths.map(path => {

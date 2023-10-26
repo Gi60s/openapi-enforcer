@@ -13,7 +13,8 @@ export function isUrl (key: string, data: SchemaProcessor): void {
   const url = definition[key]
   if (url !== undefined && !rx.url.test(url)) {
     exception.add({
-      id,
+      component: id,
+      context: 'url',
       code: 'URL_INVALID',
       level: 'warn',
       locations: [{ node: definition, key, filter: 'value' }],
@@ -48,7 +49,8 @@ export function parametersAreUnique (data: SchemaProcessor<IPathItemDefinition, 
       const parameters = existing[name][at].filter(p => !('$ref' in p))
       if (parameters.length > 0) {
         exception.add({
-          id,
+          component: id,
+          context: 'parameters',
           code: 'PARAMETER_NAMESPACE_CONFLICT',
           level: 'error',
           locations: parameters.map(parameter => {
@@ -70,7 +72,8 @@ export function parametersNotInPath (data: SchemaProcessor<IOperationDefinition,
   parameters.forEach((p) => {
     if (p.in === 'path' && !pathParameterNames.includes(p.name)) {
       exception.add({
-        id,
+        component: id,
+        context: 'parameters',
         code: 'PARAMETER_NOT_IN_PATH',
         level: 'error',
         locations: [{ node: p }],
@@ -93,7 +96,8 @@ export function mutuallyExclusiveProperties (properties: string[], data: SchemaP
 
   if (propertiesFound.length > 1) {
     exception.add({
-      id,
+      component: id,
+      context: 'definition',
       code: 'PROPERTIES_MUTUALLY_EXCLUSIVE',
       level: 'error',
       locations: propertiesFound.map(p => {

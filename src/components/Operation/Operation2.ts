@@ -131,7 +131,8 @@ export class Operation extends OperationBase implements IOperation2 {
 
       if (bodies.length > 1) {
         exception.add({
-          id,
+          component: id,
+          context: 'definition',
           code: 'OPERATION_BODY_NOT_UNIQUE',
           level: 'error',
           locations: bodies.map(parameter => {
@@ -144,7 +145,8 @@ export class Operation extends OperationBase implements IOperation2 {
 
       if (bodies.length > 0 && forms.length > 0) {
         exception.add({
-          id,
+          component: id,
+          context: 'definition',
           code: 'OPERATION_BODY_FORM_CONFLICT',
           level: 'error',
           locations: bodies
@@ -166,7 +168,8 @@ export class Operation extends OperationBase implements IOperation2 {
         const consumesFormData = consumes.find(c => c.isMatch(multipartContentType) || c.isMatch(formUrlEncodedContentType))
         if (consumesFormData === undefined) {
           exception.add({
-            id,
+            component: id,
+            context: 'operation',
             code: 'OPERATION_CONSUMES_FORM_DATA',
             level: 'warn',
             locations: [{ node: definition }],
@@ -373,7 +376,8 @@ function validateContentTypes (contentTypes: string[] | undefined, key: 'consume
       const { reference, id } = data.component
       const node = definition[key] as string[]
       exception.add({
-        id,
+        component: id,
+        context: key,
         code: 'CONTENT_TYPE_INVALID',
         level: 'warn',
         locations: node.map((_, index) => {

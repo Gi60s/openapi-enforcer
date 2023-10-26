@@ -76,7 +76,8 @@ function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: 
     } else if (typeof n.$ref === 'string') {
       if (!n.$ref.startsWith('#/')) {
         data.exceptionStore.add({
-          id: 'LOADER',
+          component: 'loader',
+          context: '$ref',
           code: 'REF_NOT_RESOLVED',
           level: 'error',
           locations: [{ node, key: '$ref', filter: 'value' }],
@@ -86,7 +87,8 @@ function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: 
         const found = traverse(data.root.node, n.$ref)
         if (found === undefined) {
           data.exceptionStore.add({
-            id: 'LOADER',
+            component: 'loader',
+            context: '$ref',
             code: 'REF_NOT_RESOLVED',
             level: 'error',
             locations: [{ node, key: '$ref', filter: 'value' }],
@@ -105,7 +107,8 @@ function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: 
       }
     } else {
       data.exceptionStore.add({
-        id: 'LOADER',
+        component: 'loader',
+        context: '$ref',
         code: 'REF_NOT_RESOLVED',
         level: 'error',
         locations: [{ node, key: '$ref', filter: 'value' }],

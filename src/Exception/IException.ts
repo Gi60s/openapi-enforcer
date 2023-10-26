@@ -11,7 +11,8 @@ export interface IException {
 }
 
 export interface IExceptionData {
-  id: string
+  component: string // the name of the component
+  context: string // the property name, "definition" if the entire definition, etc.
   code: II18nMessageCode
   level: IExceptionLevel
   levelOverwritten?: boolean

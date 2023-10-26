@@ -137,7 +137,8 @@ export class EnforcerComponent<Definition extends IDefinition> {
 
     if (spec[v] === undefined) {
       exception.add({
-        id: `${id}.version.notImplemented`,
+        component: id,
+        context: 'version',
         code: 'VERSION_NOT_IMPLEMENTED',
         level: 'error',
         locations: [],
@@ -148,7 +149,8 @@ export class EnforcerComponent<Definition extends IDefinition> {
       })
     } else if (spec[v] === false) {
       exception.add({
-        id: `${id}.version.notSupported`,
+        component: id,
+        context: 'version',
         code: 'VERSION_NOT_SUPPORTED',
         level: 'error',
         locations: [],
@@ -160,7 +162,8 @@ export class EnforcerComponent<Definition extends IDefinition> {
       })
     } else if (spec[v] === true) {
       exception.add({
-        id: `${id}.version.mismatch`,
+        component: id,
+        context: 'version',
         code: 'VERSION_MISMATCH',
         level: 'error',
         locations: [],
@@ -172,7 +175,8 @@ export class EnforcerComponent<Definition extends IDefinition> {
       })
     } else if (typeof definition !== 'object' || definition === null) {
       exception.add({
-        id: `${id}.definition.invalid`,
+        component: id,
+        context: 'definition',
         code: 'VALUE_TYPE_INVALID',
         level: 'error',
         locations: [{ node: definition }],
@@ -234,7 +238,8 @@ function validateDefinition (processor: SchemaProcessor): boolean {
 
   if (schema === undefined) {
     exception.add({
-      id: `${id}.schema.notMet`,
+      component: id,
+      context: 'definition',
       code: 'SCHEMA_NOT_MET',
       level: 'error',
       locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
@@ -270,7 +275,8 @@ function validateDefinition (processor: SchemaProcessor): boolean {
 
   if (schema.notAllowed !== undefined) {
     exception.add({
-      id: `${id}.schema.notAllowed`,
+      component: id,
+      context: processor.key,
       code: schema.notAllowed,
       level: 'error',
       locations: [{ node: parentDefinition, key: processor.key, filter: 'key' }],
@@ -287,7 +293,8 @@ function validateDefinition (processor: SchemaProcessor): boolean {
       return false
     } else {
       exception.add({
-        id: `${id}.null.invalid`,
+        component: id,
+        context: 'definition',
         code: 'NULL_INVALID',
         level: 'error',
         locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
@@ -305,7 +312,8 @@ function validateDefinition (processor: SchemaProcessor): boolean {
       : parentSchema.properties?.find(s => s.name === key)?.schema ?? parentSchema.additionalProperties
     if (subSchema !== undefined && (!('allowsRef' in subSchema) || !subSchema.allowsRef)) {
       exception.add({
-        id: `${id}.$ref.notAllowed`,
+        component: id,
+        context: '$ref',
         code: 'REF_NOT_ALLOWED',
         level: 'warn',
         locations: [{ node: definition, key: '$ref', filter: 'key' }],
@@ -321,7 +329,8 @@ function validateDefinition (processor: SchemaProcessor): boolean {
 
   if (expectedType !== actualType && expectedType !== 'any' && expectedType !== 'oneOf') {
     exception.add({
-      id: `${id}.${processor.key}.notValid`,
+      component: id,
+      context: processor.key,
       code: 'VALUE_TYPE_INVALID',
       level: 'error',
       locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
@@ -337,7 +346,8 @@ function validateDefinition (processor: SchemaProcessor): boolean {
 
   if ('enum' in schema && schema.enum !== undefined && !schema.enum.includes(definition as never)) {
     exception.add({
-      id: `${id}.${processor.key}.enumNotMet`,
+      component: id,
+      context: processor.key,
       code: 'ENUM_NOT_MET',
       level: 'error',
       locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
@@ -361,7 +371,8 @@ function validateDefinition (processor: SchemaProcessor): boolean {
     s.properties?.forEach(({ name, notAllowed, required }) => {
       if (value[name] === undefined && required === true && notAllowed === undefined) {
         exception.add({
-          id: `${id}.${processor.key}.missing`,
+          component: id,
+          context: processor.key,
           code: 'PROPERTY_MISSING',
           level: 'error',
           locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
@@ -383,7 +394,8 @@ function validateDefinition (processor: SchemaProcessor): boolean {
             validateChild(processor, key, v, s.additionalProperties)
           } else {
             exception.add({
-              id: `${id}.${key}.unknown`,
+              component: id,
+              context: key,
               code: 'PROPERTY_UNKNOWN',
               level: 'error',
               locations: [{ node: value, key, filter: 'key' }],
@@ -395,7 +407,8 @@ function validateDefinition (processor: SchemaProcessor): boolean {
           }
         } else if (property.notAllowed !== undefined) {
           exception.add({
-            id: `${id}.${key}.notAllowed`,
+            component: id,
+            context: key,
             code: property.notAllowed,
             level: 'error',
             locations: [{ node: value, key, filter: 'key' }],
@@ -413,7 +426,8 @@ function validateDefinition (processor: SchemaProcessor): boolean {
     const v = definition as unknown as number
     if (schema.integer === true && String(v) !== String(Math.round(v))) {
       exception.add({
-        id: `${id}.${processor.key}.notValid`,
+        component: id,
+        context: processor.key,
         code: 'VALUE_TYPE_INVALID',
         level: 'error',
         locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
@@ -426,7 +440,8 @@ function validateDefinition (processor: SchemaProcessor): boolean {
     }
     if (schema.minimum !== undefined && v < schema.minimum) {
       exception.add({
-        id: `${id}.${processor.key}.outOfRange.min`,
+        component: id,
+        context: processor.key,
         code: 'VALUE_OUT_OF_RANGE_MIN',
         level: 'error',
         locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],
@@ -439,7 +454,8 @@ function validateDefinition (processor: SchemaProcessor): boolean {
     }
     if (schema.maximum !== undefined && v > schema.maximum) {
       exception.add({
-        id: `${id}.${processor.key}.outOfRange.max`,
+        component: id,
+        context: processor.key,
         code: 'VALUE_OUT_OF_RANGE_MAX',
         level: 'error',
         locations: [{ node: parentDefinition, key: processor.key, filter: 'value' }],

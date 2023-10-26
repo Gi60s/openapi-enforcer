@@ -9,10 +9,11 @@ export const validate = function (data: SchemaProcessor<any, any>): void {
 
   if ('$ref' in definition && Object.keys(definition).length > 1) {
     exception.add({
-      id,
+      component: id,
+      context: '$ref',
       code: 'REF_CONFLICT',
       level: 'warn',
-      locations: [{ node: definition, key: 'ref', filter: 'key' }],
+      locations: [{ node: definition, key: '$ref', filter: 'key' }],
       reference: 'https://github.com/OAI/OpenAPI-Specification/issues/2635'
     })
   }

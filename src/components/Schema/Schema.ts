@@ -98,16 +98,18 @@ export abstract class Schema extends EnforcerComponent<ISchemaDefinition> implem
       if (!isTypeExempt) {
         if (type === undefined) {
           exception.add({
+            component: ctor.id,
+            context: 'type',
             code: 'SCHEMA_TYPE_INDETERMINATE',
-            id: ctor.id,
             level: 'error',
             locations: [{ node: definition }],
             metadata: {}
           })
         } else if (!('type' in definition)) {
           exception.add({
+            component: ctor.id,
+            context: 'type',
             code: 'SCHEMA_TYPE_NOT_SPECIFIED',
-            id: ctor.id,
             level: 'warn',
             locations: [{ node: definition, key: 'type' }],
             metadata: {
@@ -117,10 +119,12 @@ export abstract class Schema extends EnforcerComponent<ISchemaDefinition> implem
         }
       }
 
-      if (Array.isArray(definition.allOf) && definition.allOf.length === 0) {
+      const allOfIsArray = Array.isArray(definition.allOf)
+      if (allOfIsArray && (definition.allOf as any[]).length === 0) {
         exception.add({
+          component: ctor.id,
+          context: 'allOf',
           code: 'SCHEMA_ALLOF_EMPTY_ARRAY',
-          id: `${ctor.id}.allOf.arrayEmpty`,
           level: 'warn',
           locations: [{ node: definition, key: 'allOf', filter: 'value' }],
           metadata: {}
@@ -145,150 +149,182 @@ export abstract class Schema extends EnforcerComponent<ISchemaDefinition> implem
       readonly?: boolean
       writeonly?: boolean
        */
-      const allOf = ((definition.allOf ?? []) as IDefinition[]).filter((s: any) => !('$ref' in s))
-      const allOfLength = allOf.length
-      if (allOfLength > 0) {
-        const typeArrays: string[][] = []
-        const typeLocations: IExceptionLocation[] = []
-        const formats: string[] = []
-        const formatLocations: IExceptionLocation[] = []
-        const maxMinDefinitions: IDefinition[] = []
-        const maxMinLengthDefinitions: IDefinition[] = []
-        const maxMinItemsDefinitions: IDefinition[] = []
-        const maxMinPropertiesDefinitions: IDefinition[] = []
+      if (allOfIsArray) {
+        const allOf = ((definition.allOf ?? []) as IDefinition[]).filter((s: any) => !('$ref' in s))
+        const allOfLength = allOf.length
+        if (allOfLength > 0) {
+          const typeArrays: string[][] = []
+          const typeLocations: IExceptionLocation[] = []
+          const formats: string[] = []
+          const formatLocations: IExceptionLocation[] = []
+          const maxMinDefinitions: IDefinition[] = []
+          const maxMinLengthDefinitions: IDefinition[] = []
+          const maxMinItemsDefinitions: IDefinition[] = []
+          const maxMinPropertiesDefinitions: IDefinition[] = []
 
-        if (Array.isArray(definition.type)) {
-          typeArrays.push(definition.type)
-          typeLocations.push({ node: definition, key: 'type', filter: 'value' })
-        } else if (definition.type !== undefined) {
-          typeArrays.push([definition.type])
-          typeLocations.push({ node: definition, key: 'type', filter: 'value' })
-        }
-        if (definition.format !== undefined) {
-          const format = definition.format
-          if (!formats.includes(format)) formats.push(format)
-          formatLocations.push({ node: definition, key: 'format', filter: 'value' })
-        }
-        if (definition.maximum !== undefined || definition.minimum !== undefined) {
-          maxMinDefinitions.push(definition)
-        }
-        if (definition.maxLength !== undefined || definition.minLength !== undefined) {
-          maxMinLengthDefinitions.push(definition)
-        }
-        if (definition.maxItems !== undefined || definition.minItems !== undefined) {
-          maxMinItemsDefinitions.push(definition)
-        }
-        if (definition.maxProperties !== undefined || definition.minProperties !== undefined) {
-          maxMinPropertiesDefinitions.push(definition)
-        }
+          if (Array.isArray(definition.type)) {
+            typeArrays.push(definition.type)
+            typeLocations.push({
+              node: definition,
+              key: 'type',
+              filter: 'value'
+            })
+          } else if (definition.type !== undefined) {
+            typeArrays.push([definition.type])
+            typeLocations.push({
+              node: definition,
+              key: 'type',
+              filter: 'value'
+            })
+          }
+          if (definition.format !== undefined) {
+            const format = definition.format
+            if (!formats.includes(format)) formats.push(format)
+            formatLocations.push({
+              node: definition,
+              key: 'format',
+              filter: 'value'
+            })
+          }
+          if (definition.maximum !== undefined || definition.minimum !== undefined) {
+            maxMinDefinitions.push(definition)
+          }
+          if (definition.maxLength !== undefined || definition.minLength !== undefined) {
+            maxMinLengthDefinitions.push(definition)
+          }
+          if (definition.maxItems !== undefined || definition.minItems !== undefined) {
+            maxMinItemsDefinitions.push(definition)
+          }
+          if (definition.maxProperties !== undefined || definition.minProperties !== undefined) {
+            maxMinPropertiesDefinitions.push(definition)
+          }
 
-        allOf.forEach(def => {
-          if (Array.isArray(def.type)) {
-            typeArrays.push(def.type)
-            typeLocations.push({ node: def, key: 'type', filter: 'value' })
-          } else if (def.type !== undefined) {
-            typeArrays.push([def.type])
-            typeLocations.push({ node: def, key: 'type', filter: 'value' })
-          }
-          if (def.format !== undefined) {
-            if (!formats.includes(def.format)) formats.push(def.format)
-            formatLocations.push({ node: def, key: 'format', filter: 'value' })
-          }
-          if (def.maximum !== undefined || def.minimum !== undefined) {
-            maxMinDefinitions.push(def)
-          }
-          if (def.maxLength !== undefined || def.minLength !== undefined) {
-            maxMinLengthDefinitions.push(def)
-          }
-          if (def.maxItems !== undefined || def.minItems !== undefined) {
-            maxMinItemsDefinitions.push(def)
-          }
-          if (def.maxProperties !== undefined || def.minProperties !== undefined) {
-            maxMinPropertiesDefinitions.push(def)
-          }
-        })
-
-        const typesIntersection = arrayGetIntersection(...typeArrays)
-        if (typesIntersection.length === 0 && typeArrays.length > 0) {
-          exception.add({
-            id: `${ctor.id}.allOf.type.conflict`,
-            code: 'SCHEMA_ALLOF_CONFLICT',
-            level: 'error',
-            locations: typeLocations,
-            metadata: {
-              propertyName: 'type',
-              values: typeArrays
+          allOf.forEach(def => {
+            if (Array.isArray(def.type)) {
+              typeArrays.push(def.type)
+              typeLocations.push({
+                node: def,
+                key: 'type',
+                filter: 'value'
+              })
+            } else if (def.type !== undefined) {
+              typeArrays.push([def.type])
+              typeLocations.push({
+                node: def,
+                key: 'type',
+                filter: 'value'
+              })
+            }
+            if (def.format !== undefined) {
+              if (!formats.includes(def.format)) formats.push(def.format)
+              formatLocations.push({
+                node: def,
+                key: 'format',
+                filter: 'value'
+              })
+            }
+            if (def.maximum !== undefined || def.minimum !== undefined) {
+              maxMinDefinitions.push(def)
+            }
+            if (def.maxLength !== undefined || def.minLength !== undefined) {
+              maxMinLengthDefinitions.push(def)
+            }
+            if (def.maxItems !== undefined || def.minItems !== undefined) {
+              maxMinItemsDefinitions.push(def)
+            }
+            if (def.maxProperties !== undefined || def.minProperties !== undefined) {
+              maxMinPropertiesDefinitions.push(def)
             }
           })
-        }
 
-        if (formats.length > 1) {
-          exception.add({
-            id: `${ctor.id}.allOf.format.conflict`,
-            code: 'SCHEMA_ALLOF_CONFLICT',
-            level: 'error',
-            locations: formatLocations,
-            metadata: {
-              propertyName: 'format',
-              values: formats
-            }
-          })
-        }
+          const typesIntersection = arrayGetIntersection(...typeArrays)
+          if (typesIntersection.length === 0 && typeArrays.length > 0) {
+            exception.add({
+              component: ctor.id,
+              context: 'allOf',
+              code: 'SCHEMA_ALLOF_CONFLICT',
+              level: 'error',
+              locations: typeLocations,
+              metadata: {
+                propertyName: 'type',
+                values: typeArrays
+              }
+            })
+          }
 
-        const maxMinLocations = getMaxMinConflictLocations(maxMinDefinitions, 'number')
-        if (maxMinLocations.length > 0) {
-          exception.add({
-            id: `${ctor.id}.allOf.maxMin.crossConflict`,
-            code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
-            level: 'error',
-            locations: maxMinLocations,
-            metadata: {
-              propertyName1: 'maximum',
-              propertyName2: 'minimum'
-            }
-          })
-        }
+          if (formats.length > 1) {
+            exception.add({
+              component: ctor.id,
+              context: 'allOf',
+              code: 'SCHEMA_ALLOF_CONFLICT',
+              level: 'error',
+              locations: formatLocations,
+              metadata: {
+                propertyName: 'format',
+                values: formats
+              }
+            })
+          }
 
-        const maxMinLengthLocations = getMaxMinConflictLocations(maxMinLengthDefinitions, 'length')
-        if (maxMinLengthLocations.length > 0) {
-          exception.add({
-            id: `${ctor.id}.allOf.maxMinLength.crossConflict`,
-            code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
-            level: 'error',
-            locations: maxMinLengthLocations,
-            metadata: {
-              propertyName1: 'maxLength',
-              propertyName2: 'minLength'
-            }
-          })
-        }
+          const maxMinLocations = getMaxMinConflictLocations(maxMinDefinitions, 'number')
+          if (maxMinLocations.length > 0) {
+            exception.add({
+              component: ctor.id,
+              context: 'allOf',
+              code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
+              level: 'error',
+              locations: maxMinLocations,
+              metadata: {
+                propertyName1: 'maximum',
+                propertyName2: 'minimum'
+              }
+            })
+          }
 
-        const maxMinItemsLocations = getMaxMinConflictLocations(maxMinItemsDefinitions, 'items')
-        if (maxMinItemsLocations.length > 0) {
-          exception.add({
-            id: `${ctor.id}.allOf.maxMinItems.crossConflict`,
-            code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
-            level: 'error',
-            locations: maxMinItemsLocations,
-            metadata: {
-              propertyName1: 'maxItems',
-              propertyName2: 'minItems'
-            }
-          })
-        }
+          const maxMinLengthLocations = getMaxMinConflictLocations(maxMinLengthDefinitions, 'length')
+          if (maxMinLengthLocations.length > 0) {
+            exception.add({
+              component: ctor.id,
+              context: 'allOf',
+              code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
+              level: 'error',
+              locations: maxMinLengthLocations,
+              metadata: {
+                propertyName1: 'maxLength',
+                propertyName2: 'minLength'
+              }
+            })
+          }
 
-        const maxMinPropertiesLocations = getMaxMinConflictLocations(maxMinPropertiesDefinitions, 'properties')
-        if (maxMinPropertiesLocations.length > 0) {
-          exception.add({
-            id: `${ctor.id}.allOf.maxMinProperties.crossConflict`,
-            code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
-            level: 'error',
-            locations: maxMinPropertiesLocations,
-            metadata: {
-              propertyName1: 'maxProperties',
-              propertyName2: 'minProperties'
-            }
-          })
+          const maxMinItemsLocations = getMaxMinConflictLocations(maxMinItemsDefinitions, 'items')
+          if (maxMinItemsLocations.length > 0) {
+            exception.add({
+              component: ctor.id,
+              context: 'allOf',
+              code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
+              level: 'error',
+              locations: maxMinItemsLocations,
+              metadata: {
+                propertyName1: 'maxItems',
+                propertyName2: 'minItems'
+              }
+            })
+          }
+
+          const maxMinPropertiesLocations = getMaxMinConflictLocations(maxMinPropertiesDefinitions, 'properties')
+          if (maxMinPropertiesLocations.length > 0) {
+            exception.add({
+              component: ctor.id,
+              context: 'allOf',
+              code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
+              level: 'error',
+              locations: maxMinPropertiesLocations,
+              metadata: {
+                propertyName1: 'maxProperties',
+                propertyName2: 'minProperties'
+              }
+            })
+          }
         }
       }
 

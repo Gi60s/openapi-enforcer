@@ -12,7 +12,8 @@ describe('exceptions', () => {
   it('can add an exception', () => {
     const store = new ExceptionStore()
     store.add({
-      id: 'foo-not-a-boolean',
+      component: 'foo',
+      context: 'not-a-boolean',
       code: 'VALUE_TYPE_INVALID',
       level: 'error',
       locations: []
@@ -24,7 +25,8 @@ describe('exceptions', () => {
     const node = loadAndThrow({ foo: 5 })
     const store = new ExceptionStore()
     store.add({
-      id: 'X',
+      component: 'foo',
+      context: 'x',
       code: 'VALUE_TYPE_INVALID',
       level: 'error',
       locations: [{ node, key: 'foot' }],
@@ -54,14 +56,16 @@ describe('exceptions', () => {
     const store = new ExceptionStore()
     const node = loadAndThrow({ foo: 5 })
     store.add({
-      id: 'X',
+      component: 'foo',
+      context: 'x',
       code: 'VALUE_TYPE_INVALID',
       level: 'error',
       locations: [{ node, key: 'foo', filter: 'value' }],
       metadata: { value: 'foo', type: 'string', allowedTypes: 'boolean' }
     })
     store.add({
-      id: 'X',
+      component: 'foo',
+      context: 'x',
       code: 'URL_INVALID',
       level: 'error',
       locations: [{ node, key: 'foo', filter: 'value' }],
@@ -83,7 +87,8 @@ describe('exceptions', () => {
     const store = new ExceptionStore()
     const node = loadAndThrow({ foo: 5, bar: 6 })
     store.add({
-      id: 'X',
+      component: 'foo',
+      context: 'x',
       code: 'VALUE_TYPE_INVALID',
       level: 'error',
       locations: [
