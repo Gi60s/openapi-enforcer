@@ -2,10 +2,8 @@ import { Schema2, Schema3 } from '../../src/components'
 import { expect } from 'chai'
 import { testMultipleComponents } from '../../test-resources/test-utils'
 import '../../test-resources/chai-exception-store'
-import { putInMemory } from '../../src/Loader/loaders/loader.memory'
-import { loadAsync } from '../../src/Loader'
 
-const { test, testAsync } = testMultipleComponents([Schema2, Schema3])
+const { test } = testMultipleComponents([Schema2, Schema3])
 
 describe.only('Schema', () => {
   describe('definition', () => {
@@ -63,16 +61,16 @@ describe.only('Schema', () => {
     })
 
     describe.only('property: allOf', () => {
-      it('does not need a type specified', () => {
+      it('does not need a type specified as sibling to "allOf"', () => {
         test(Schema => {
-          const es = Schema.validate({ allOf: [] })
+          const es = Schema.validate({ allOf: [{ type: 'string' }] })
           expect(es).not.to.have.exceptionError()
         })
       })
 
       it('can specify a type', () => {
         test(Schema => {
-          const es = Schema.validate({ type: 'string', allOf: [] })
+          const es = Schema.validate({ type: 'string', allOf: [{ type: 'string' }] })
           expect(es).not.to.have.exceptionError()
         })
       })
@@ -85,10 +83,10 @@ describe.only('Schema', () => {
         })
       })
 
-      it('will warn of an empty array', () => {
+      it('will error if an empty array', () => {
         test(Schema => {
           const es = Schema.validate({ allOf: [] })
-          expect(es).to.have.exceptionWarningCode('SCHEMA_ALLOF_EMPTY_ARRAY')
+          expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_EMPTY_ARRAY')
         })
       })
 
@@ -112,7 +110,7 @@ describe.only('Schema', () => {
               type: 'string',
               allOf: [{ type: 'boolean' }]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.type.conflict', { propertyName: 'type' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofConflict', { propertyName: 'type' })
           })
         })
 
@@ -124,7 +122,7 @@ describe.only('Schema', () => {
                 { type: 'number' }
               ]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.type.conflict', { propertyName: 'type' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofConflict', { propertyName: 'type' })
           })
         })
 
@@ -148,7 +146,7 @@ describe.only('Schema', () => {
               format: 'date',
               allOf: [{ format: 'date-time' }]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.format.conflict', { propertyName: 'format' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofConflict', { propertyName: 'format' })
           })
         })
 
@@ -160,7 +158,7 @@ describe.only('Schema', () => {
                 { format: 'date' }
               ]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.format.conflict', { propertyName: 'format' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofConflict', { propertyName: 'format' })
           })
         })
       })
@@ -172,7 +170,7 @@ describe.only('Schema', () => {
               minimum: 5,
               allOf: [{ maximum: 2 }]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
           })
         })
 
@@ -182,7 +180,7 @@ describe.only('Schema', () => {
               maximum: 2,
               allOf: [{ minimum: 5 }]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
           })
         })
 
@@ -194,25 +192,22 @@ describe.only('Schema', () => {
                 { minimum: 5 }
               ]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
           })
         })
 
-        it('will only report locations on conflicted values', async () => {
-          return await testAsync(async (Schema) => {
-            putInMemory('x.mem', {
+        it('will only report locations on conflicted values', () => {
+          test((Schema) => {
+            const es = Schema.validate({
               minimum: 0, // conflict with maximum = -5
               allOf: [
                 { maximum: 10 },
                 { maximum: -5 } // conflict with minimum = 2
               ]
             })
-            const def = await loadAsync('x.mem')
-
-            const es = Schema.validate(def.value)
             console.log(es.error)
-            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'maximum', propertyName2: 'minimum' })
-            const exception = es.exceptions.find(ex => ex.id === 'schema.allOf.maxMin.crossConflict')
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
+            const exception = es.exceptions.find(ex => ex.id === 'schema.allOf.schemaAllofCrossConflict')
             expect(exception?.locations.length).to.equal(2)
             console.log(es.error)
           })
@@ -248,7 +243,49 @@ describe.only('Schema', () => {
             ]
           })
           expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
-          const metadata = es.exceptions[0]?.metadata ?? {}
+          const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CROSS_CONFLICT')?.metadata ?? {}
+          expect(metadata.propertyName1).to.equal('minimum')
+          expect(metadata.value1).to.equal(10)
+          expect(metadata.propertyName2).to.equal('maximum')
+          expect(metadata.value2).to.equal(5)
+        })
+      })
+
+      it('will find additionalProperties property conflicts for "minimum" and "maximum"', () => {
+        test(Schema => {
+          const es = Schema.validate({
+            allOf: [
+              {
+                additionalProperties: { minimum: 10 }
+              },
+              {
+                additionalProperties: { maximum: 5 }
+              }
+            ]
+          })
+          expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
+          const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CROSS_CONFLICT')?.metadata ?? {}
+          expect(metadata.propertyName1).to.equal('minimum')
+          expect(metadata.value1).to.equal(10)
+          expect(metadata.propertyName2).to.equal('maximum')
+          expect(metadata.value2).to.equal(5)
+        })
+      })
+
+      it('will find item property conflicts for "minimum" and "maximum"', () => {
+        test(Schema => {
+          const es = Schema.validate({
+            allOf: [
+              {
+                items: { minimum: 10 }
+              },
+              {
+                items: { maximum: 5 }
+              }
+            ]
+          })
+          expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
+          const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CROSS_CONFLICT')?.metadata ?? {}
           expect(metadata.propertyName1).to.equal('minimum')
           expect(metadata.value1).to.equal(10)
           expect(metadata.propertyName2).to.equal('maximum')
@@ -257,15 +294,57 @@ describe.only('Schema', () => {
       })
 
       it('cannot be combined with anyOf', () => {
-
+        test(Schema => {
+          const es = Schema.validate({
+            allOf: [{ type: 'string' }],
+            anyOf: [{ type: 'string' }]
+          })
+          if (Schema === Schema2) {
+            expect(es).to.have.exceptionErrorCode('PROPERTY_UNKNOWN', true)
+            const metadata = es.exceptions.find(e => e.code === 'PROPERTY_UNKNOWN')?.metadata ?? {}
+            expect(metadata.propertyName).to.equal('anyOf')
+          } else {
+            expect(es).to.have.exceptionErrorCode('SCHEMA_APPLICATOR_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_APPLICATOR_CONFLICT')?.metadata ?? {}
+            expect(metadata.applicators).to.deep.equal(['allOf', 'anyOf'])
+          }
+        })
       })
 
       it('cannot be combined with oneOf', () => {
-
+        test(Schema => {
+          const es = Schema.validate({
+            allOf: [{ type: 'string' }],
+            oneOf: [{ type: 'string' }]
+          })
+          if (Schema === Schema2) {
+            expect(es).to.have.exceptionErrorCode('PROPERTY_UNKNOWN', true)
+            const metadata = es.exceptions.find(e => e.code === 'PROPERTY_UNKNOWN')?.metadata ?? {}
+            expect(metadata.propertyName).to.equal('oneOf')
+          } else {
+            expect(es).to.have.exceptionErrorCode('SCHEMA_APPLICATOR_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_APPLICATOR_CONFLICT')?.metadata ?? {}
+            expect(metadata.applicators).to.deep.equal(['allOf', 'oneOf'])
+          }
+        })
       })
 
       it('cannot be combined with not', () => {
-
+        test(Schema => {
+          const es = Schema.validate({
+            allOf: [{ type: 'string' }],
+            not: { type: 'boolean' }
+          })
+          if (Schema === Schema2) {
+            expect(es).to.have.exceptionErrorCode('PROPERTY_UNKNOWN', true)
+            const metadata = es.exceptions.find(e => e.code === 'PROPERTY_UNKNOWN')?.metadata ?? {}
+            expect(metadata.propertyName).to.equal('not')
+          } else {
+            expect(es).to.have.exceptionErrorCode('SCHEMA_APPLICATOR_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_APPLICATOR_CONFLICT')?.metadata ?? {}
+            expect(metadata.applicators).to.deep.equal(['allOf', 'not'])
+          }
+        })
       })
 
       it('validates that all items are of the same format', () => {
