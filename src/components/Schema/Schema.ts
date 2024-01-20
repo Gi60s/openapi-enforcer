@@ -19,16 +19,30 @@ import {
 import { ISDSchemaDefinition } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
 import { Result } from '../../Result'
 import { ExceptionStore } from '../../Exception/ExceptionStore'
-import { II18nMessageCode } from '../../i18n/i18n'
-import { ILocation } from '../../Locator/ILocator'
-import { IExceptionData, IExceptionLevel, IExceptionLocation } from '../../Exception/IException'
+import { IExceptionLocation } from '../../Exception/IException'
 import { arrayGetIntersection } from '../../util'
 
 type ISchemaDefinitionResult = ISDSchemaDefinition<ISchema2Definition, ISchema2> | ISDSchemaDefinition<ISchema3Definition, ISchema3> | ISDSchemaDefinition<ISchema3aDefinition, ISchema3a>
 type IValidatorsMap = ISchemaValidatorsMap2 | ISchemaValidatorsMap3 | ISchemaValidatorsMap3a
 type IDefinition = ISchema2Definition | ISchema3Definition | ISchema3aDefinition
 
-const derivedDefinitionMap = new WeakMap<ISchemaDefinition, ISchemaDefinition>()
+interface IAllOfData {
+  definition: ISchemaDefinition
+  hasExceptions: boolean
+  typeLocations: IExceptionLocation[]
+  formatLocations: IExceptionLocation[]
+  maxMinLocations: IExceptionLocation[]
+  maxMinLengthLocations: IExceptionLocation[]
+  maxMinItemsLocations: IExceptionLocation[]
+  maxMinPropertiesLocations: IExceptionLocation[]
+}
+
+interface ICrossConflictData {
+  hasConflict: boolean
+  locations: IExceptionLocation[]
+}
+
+const allOfDataMap = new WeakMap<ISchemaDefinition, IAllOfData>()
 // <!# Custom Content End: HEADER #!>
 
 export abstract class Schema extends EnforcerComponent<ISchemaDefinition> implements ISchemaBase {
@@ -90,9 +104,6 @@ export abstract class Schema extends EnforcerComponent<ISchemaDefinition> implem
 
     result.validate = () => {
       const { definition } = processor
-
-      const derived: ISchemaDefinition = Object.assign({}, definition, { type })
-      derivedDefinitionMap.set(definition, derived)
 
       const applicators: string[] = []
       ;(processor.version === '2.0' ? ['allOf'] : ['allOf', 'anyOf', 'oneOf', 'not'])
@@ -252,7 +263,11 @@ function determineSchemaType (definition: ISchemaDefinition | ISchema): 'array' 
     typeof definition.enum?.[0] === 'boolean') return 'boolean'
 }
 
-function getMaxMinConflictLocations (items: IDefinition[], set: 'number' | 'length' | 'items' | 'properties'): IExceptionLocation[] {
+function getMaxMinConflictLocations (items: IDefinition[], set: 'number' | 'length' | 'items' | 'properties'): ICrossConflictData {
+  const result: ICrossConflictData = {
+    hasConflict: false,
+    locations: []
+  }
   const { maxKey, minKey } = (() => {
     switch (set) {
       case 'number': return { maxKey: 'maximum', minKey: 'minimum' }
@@ -277,22 +292,30 @@ function getMaxMinConflictLocations (items: IDefinition[], set: 'number' | 'leng
   })
 
   // if there either isn't a minimum or maximum then there are no conflicts
-  if (lowestMaximum === undefined || highestMinimum === undefined) return []
+  if (lowestMaximum === undefined || highestMinimum === undefined) return result
 
-  const locations: IExceptionLocation[] = []
+  const locations = result.locations
   items.forEach(item => {
+    if (maxKey in item) {
+      locations.push({ node: item, key: maxKey, filter: 'value' })
+    }
+
+    if (minKey in item) {
+      locations.push({ node: item, key: minKey, filter: 'value' })
+    }
+
     const max = item[maxKey as 'maximum']
     if (max !== undefined && highestMinimum !== undefined && highestMinimum.definition !== item && (highestMinimum.value > max || (highestMinimum.value === max && highestMinimum.exclusive))) {
-      locations.push({ node: item, key: maxKey, filter: 'value' })
+      result.hasConflict = true
     }
 
     const min = item[minKey as 'minimum'] as number
     if (min !== undefined && lowestMaximum !== undefined && lowestMaximum.definition !== item && (lowestMaximum.value < min || (lowestMaximum.value === min && lowestMaximum.exclusive))) {
-      locations.push({ node: item, key: minKey, filter: 'value' })
+      result.hasConflict = true
     }
   })
 
-  return locations
+  return result
 }
 
 function getMaxMinConflictValues (locations: IExceptionLocation[], minKey: string, maxKey: string): { lowestMaximum: number, highestMinimum: number } {
@@ -306,21 +329,35 @@ function getMaxMinConflictValues (locations: IExceptionLocation[], minKey: strin
   return { highestMinimum, lowestMaximum }
 }
 
-function validateAllOfSchemas (componentId: string, exception: ExceptionStore, definition: IDefinition | null, allOf: IDefinition[]): void {
+function validateAllOfSchemas (componentId: string, exception: ExceptionStore, definition: IDefinition | null, allOf: IDefinition[]): IAllOfData {
   const allOfLength = allOf.length
   const itemsDefinitions: IDefinition[] = []
   const additionalPropertiesDefinitions: IDefinition[] = []
   const propertiesDefinitions: Record<string, IDefinition[]> = {}
+  const typeLocations: IExceptionLocation[] = []
+  const formatLocations: IExceptionLocation[] = []
+  const mergedData: IAllOfData = {
+    definition: {},
+    hasExceptions: false,
+    typeLocations,
+    formatLocations,
+    maxMinLocations: [],
+    maxMinLengthLocations: [],
+    maxMinItemsLocations: [],
+    maxMinPropertiesLocations: []
+  }
 
   if (allOfLength > 0) {
     const typeArrays: string[][] = []
-    const typeLocations: IExceptionLocation[] = []
     const formats: string[] = []
-    const formatLocations: IExceptionLocation[] = []
     const maxMinDefinitions: IDefinition[] = []
     const maxMinLengthDefinitions: IDefinition[] = []
     const maxMinItemsDefinitions: IDefinition[] = []
     const maxMinPropertiesDefinitions: IDefinition[] = []
+
+    if (definition !== null) {
+      allOfDataMap.set(definition, mergedData)
+    }
 
     if (definition !== null) {
       if (Array.isArray(definition.type)) {
@@ -374,28 +411,50 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
     }
 
     allOf.forEach(def => {
-      if (Array.isArray(def.type)) {
-        typeArrays.push(def.type)
-        typeLocations.push({
-          node: def,
-          key: 'type',
-          filter: 'value'
-        })
-      } else if (def.type !== undefined) {
-        typeArrays.push([def.type])
-        typeLocations.push({
-          node: def,
-          key: 'type',
-          filter: 'value'
-        })
+      const hasAllOfData = def.allOf !== undefined && allOfDataMap.has(def)
+      const existingAllOfData = hasAllOfData ? allOfDataMap.get(def) as IAllOfData : null
+      const def2 = hasAllOfData
+        ? (allOfDataMap.get(def) as IAllOfData).definition
+        : def
+
+      if (Array.isArray(def2.type)) {
+        typeArrays.push(def2.type)
+        if (def.type !== undefined) {
+          typeLocations.push({
+            node: def,
+            key: 'type',
+            filter: 'value'
+          })
+        }
+        if (existingAllOfData !== null) {
+          typeLocations.push(...existingAllOfData.typeLocations)
+        }
+      } else if (def2.type !== undefined) {
+        typeArrays.push([def2.type])
+        if (def.type !== undefined) {
+          typeLocations.push({
+            node: def,
+            key: 'type',
+            filter: 'value'
+          })
+        }
+        if (existingAllOfData !== null) {
+          typeLocations.push(...existingAllOfData.typeLocations)
+        }
       }
-      if (def.format !== undefined) {
-        if (!formats.includes(def.format)) formats.push(def.format)
-        formatLocations.push({
-          node: def,
-          key: 'format',
-          filter: 'value'
-        })
+
+      if (def2.format !== undefined) {
+        if (!formats.includes(def2.format)) formats.push(def2.format)
+        if (def.format !== undefined) {
+          formatLocations.push({
+            node: def,
+            key: 'format',
+            filter: 'value'
+          })
+        }
+        if (existingAllOfData !== null) {
+          formatLocations.push(...existingAllOfData.formatLocations)
+        }
       }
       if (def.maximum !== undefined || def.minimum !== undefined) {
         maxMinDefinitions.push(def)
@@ -425,6 +484,7 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
 
     const typesIntersection = arrayGetIntersection(...typeArrays)
     if (typesIntersection.length === 0 && typeArrays.length > 0) {
+      mergedData.hasExceptions = true
       exception.add({
         component: componentId,
         context: 'allOf',
@@ -436,9 +496,12 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
           values: typeArrays
         }
       })
+    } else if (typesIntersection.length === 1) {
+      mergedData.definition.type = typesIntersection[0] as 'string' // could be a string array also
     }
 
     if (formats.length > 1) {
+      mergedData.hasExceptions = true
       exception.add({
         component: componentId,
         context: 'allOf',
@@ -450,17 +513,21 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
           values: formats
         }
       })
+    } else if (formats.length === 1) {
+      mergedData.definition.format = formats[0]
     }
 
     const maxMinLocations = getMaxMinConflictLocations(maxMinDefinitions, 'number')
-    if (maxMinLocations.length > 0) {
-      const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinLocations, 'minimum', 'maximum')
+    mergedData.maxMinLocations.push(...maxMinLocations.locations)
+    if (maxMinLocations.hasConflict) {
+      mergedData.hasExceptions = true
+      const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinLocations.locations, 'minimum', 'maximum')
       exception.add({
         component: componentId,
         context: 'allOf',
         code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
         level: 'error',
-        locations: maxMinLocations,
+        locations: maxMinLocations.locations,
         metadata: {
           propertyName1: 'minimum',
           propertyName2: 'maximum',
@@ -471,14 +538,16 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
     }
 
     const maxMinLengthLocations = getMaxMinConflictLocations(maxMinLengthDefinitions, 'length')
-    if (maxMinLengthLocations.length > 0) {
-      const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinLocations, 'minLength', 'maxLength')
+    mergedData.maxMinLengthLocations.push(...maxMinLengthLocations.locations)
+    if (maxMinLengthLocations.hasConflict) {
+      mergedData.hasExceptions = true
+      const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinLengthLocations.locations, 'minLength', 'maxLength')
       exception.add({
         component: componentId,
         context: 'allOf',
         code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
         level: 'error',
-        locations: maxMinLengthLocations,
+        locations: maxMinLengthLocations.locations,
         metadata: {
           propertyName1: 'minLength',
           propertyName2: 'maxLength',
@@ -489,14 +558,16 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
     }
 
     const maxMinItemsLocations = getMaxMinConflictLocations(maxMinItemsDefinitions, 'items')
-    if (maxMinItemsLocations.length > 0) {
-      const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinLocations, 'minItems', 'maxItems')
+    mergedData.maxMinLocations.push(...maxMinItemsLocations.locations)
+    if (maxMinItemsLocations.hasConflict) {
+      mergedData.hasExceptions = true
+      const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinItemsLocations.locations, 'minItems', 'maxItems')
       exception.add({
         component: componentId,
         context: 'allOf',
         code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
         level: 'error',
-        locations: maxMinItemsLocations,
+        locations: maxMinItemsLocations.locations,
         metadata: {
           propertyName1: 'minItems',
           propertyName2: 'maxItems',
@@ -507,14 +578,16 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
     }
 
     const maxMinPropertiesLocations = getMaxMinConflictLocations(maxMinPropertiesDefinitions, 'properties')
-    if (maxMinPropertiesLocations.length > 0) {
-      const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinLocations, 'minProperties', 'maxProperties')
+    mergedData.maxMinLocations.push(...maxMinPropertiesLocations.locations)
+    if (maxMinPropertiesLocations.hasConflict) {
+      mergedData.hasExceptions = true
+      const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinPropertiesLocations.locations, 'minProperties', 'maxProperties')
       exception.add({
         component: componentId,
         context: 'allOf',
         code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
         level: 'error',
-        locations: maxMinPropertiesLocations,
+        locations: maxMinPropertiesLocations.locations,
         metadata: {
           propertyName1: 'minProperties',
           propertyName2: 'maxProperties',
@@ -525,15 +598,35 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
     }
 
     if (itemsDefinitions.length > 1) {
-      validateAllOfSchemas(componentId, exception, null, itemsDefinitions)
+      const mergedItemsSchema = validateAllOfSchemas(componentId, exception, null, itemsDefinitions)
+      if (mergedItemsSchema === null) {
+        mergedData.hasExceptions = true
+      } else {
+        mergedData.definition.items = mergedItemsSchema.definition
+      }
     }
     if (additionalPropertiesDefinitions.length > 1) {
-      validateAllOfSchemas(componentId, exception, null, additionalPropertiesDefinitions)
+      const additionalPropertiesMergedSchema = validateAllOfSchemas(componentId, exception, null, additionalPropertiesDefinitions)
+      if (additionalPropertiesMergedSchema === null) {
+        mergedData.hasExceptions = true
+      } else {
+        mergedData.definition.additionalProperties = additionalPropertiesMergedSchema.definition
+      }
     }
     Object.keys(propertiesDefinitions).forEach(key => {
       const items = propertiesDefinitions[key]
-      if (items.length > 0) validateAllOfSchemas(componentId, exception, null, items)
+      mergedData.definition.properties = {}
+      if (items.length > 0) {
+        const propertyMergedSchema = validateAllOfSchemas(componentId, exception, null, items)
+        if (propertyMergedSchema === null) {
+          mergedData.hasExceptions = true
+        } else {
+          mergedData.definition.properties[key] = propertyMergedSchema.definition
+        }
+      }
     })
   }
+
+  return mergedData
 }
 // <!# Custom Content End: FOOTER #!>

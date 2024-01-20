@@ -52,7 +52,7 @@ export const language: II18nMessagesMap = {
   REF_CONFLICT: 'The $ref property is not supported when other fields also exist. See issue ' +
     'https://github.com/OAI/OpenAPI-Specification/issues/2635',
   REF_NOT_RESOLVED: 'The reference could not be resolved: {{reference}}.',
-  SCHEMA_ALLOF_CONFLICT: 'Schema within "allOf" has property {{propertyName}} with conflicting values.',
+  SCHEMA_ALLOF_CONFLICT: 'Schema within "allOf" has property {{propertyName}} with conflicting values: {{values}}',
   SCHEMA_ALLOF_CROSS_CONFLICT: 'Schema within "allOf" has conflicting property values with {{propertyName1}} ({value1}) and {{propertyName2}} ({value2}).',
   SCHEMA_ALLOF_EMPTY_ARRAY: 'The "allOf" property must contain at least one sub-schema.',
   SCHEMA_APPLICATOR_CONFLICT: 'A schema cannot contain more than one applicator. Contains: {{applicators}}',

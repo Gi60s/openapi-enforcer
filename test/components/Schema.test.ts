@@ -17,44 +17,62 @@ describe.only('Schema', () => {
     describe('property: additionalProperties', () => {
       it('is valid if type is explicitly set to "object"', () => {
         test(Schema => {
-          const es = Schema.validate({ type: 'object', additionalProperties: true })
+          const es = Schema.validate({
+            type: 'object',
+            additionalProperties: true
+          })
           expect(es).not.to.have.exceptionErrorCode('PROPERTY_NOT_ALLOWED_UNLESS_OBJECT')
         })
       })
 
       it('is not valid if type is explicitly set to something other than "object"', () => {
         test(Schema => {
-          const es = Schema.validate({ type: 'string', additionalProperties: true })
+          const es = Schema.validate({
+            type: 'string',
+            additionalProperties: true
+          })
           expect(es).to.have.exceptionErrorCode('PROPERTY_NOT_ALLOWED_UNLESS_OBJECT')
         })
       })
 
       it('can be a boolean', () => {
         test(Schema => {
-          const es = Schema.validate({ type: 'object', additionalProperties: false })
+          const es = Schema.validate({
+            type: 'object',
+            additionalProperties: false
+          })
           expect(es).not.to.have.exceptionErrorCode('VALUE_TYPE_INVALID')
         })
       })
 
       it('can be an object', () => {
         test(Schema => {
-          const es = Schema.validate({ type: 'object', additionalProperties: { type: 'string' } })
+          const es = Schema.validate({
+            type: 'object',
+            additionalProperties: { type: 'string' }
+          })
           expect(es).not.to.have.exceptionErrorCode('ENUM_NOT_MET')
         })
       })
 
       it('cannot be a string', () => {
         test(Schema => {
-          // @ts-expect-error
-          const es = Schema.validate({ type: 'object', additionalProperties: 'yes' })
+          const es = Schema.validate({
+            type: 'object',
+            // @ts-expect-error
+            additionalProperties: 'yes'
+          })
           expect(es).to.have.exceptionErrorCode('VALUE_TYPE_INVALID')
         })
       })
 
       it('will validate sub definition', () => {
         test(Schema => {
-          // @ts-expect-error
-          const es = Schema.validate({ type: 'object', additionalProperties: { type: 'not-a-type' } })
+          const es = Schema.validate({
+            type: 'object',
+            // @ts-expect-error
+            additionalProperties: { type: 'not-a-type' }
+          })
           expect(es).to.have.exceptionErrorCode('ENUM_NOT_MET')
         })
       })
@@ -70,7 +88,10 @@ describe.only('Schema', () => {
 
       it('can specify a type', () => {
         test(Schema => {
-          const es = Schema.validate({ type: 'string', allOf: [{ type: 'string' }] })
+          const es = Schema.validate({
+            type: 'string',
+            allOf: [{ type: 'string' }]
+          })
           expect(es).not.to.have.exceptionError()
         })
       })
@@ -94,8 +115,14 @@ describe.only('Schema', () => {
         test(Schema => {
           const es = Schema.validate({
             allOf: [
-              { x: 5, default: true }, // property "x" is unknown
-              { type: 'string', maximum: 5 } // type is string, "maximum" requires a numeric type/format
+              {
+                x: 5,
+                default: true
+              }, // property "x" is unknown
+              {
+                type: 'string',
+                maximum: 5
+              } // type is string, "maximum" requires a numeric type/format
             ]
           })
           expect(es).to.have.exceptionErrorCode('PROPERTY_UNKNOWN', false)
@@ -170,7 +197,10 @@ describe.only('Schema', () => {
               minimum: 5,
               allOf: [{ maximum: 2 }]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', {
+              propertyName1: 'minimum',
+              propertyName2: 'maximum'
+            })
           })
         })
 
@@ -180,7 +210,10 @@ describe.only('Schema', () => {
               maximum: 2,
               allOf: [{ minimum: 5 }]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', {
+              propertyName1: 'minimum',
+              propertyName2: 'maximum'
+            })
           })
         })
 
@@ -192,7 +225,10 @@ describe.only('Schema', () => {
                 { minimum: 5 }
               ]
             })
-            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', {
+              propertyName1: 'minimum',
+              propertyName2: 'maximum'
+            })
           })
         })
 
@@ -206,7 +242,10 @@ describe.only('Schema', () => {
               ]
             })
             console.log(es.error)
-            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', { propertyName1: 'minimum', propertyName2: 'maximum' })
+            expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', {
+              propertyName1: 'minimum',
+              propertyName2: 'maximum'
+            })
             const exception = es.exceptions.find(ex => ex.id === 'schema.allOf.schemaAllofCrossConflict')
             expect(exception?.locations.length).to.equal(2)
             console.log(es.error)
@@ -218,8 +257,14 @@ describe.only('Schema', () => {
         test(Schema => {
           const es = Schema.validate({
             allOf: [
-              { minimum: 5, maximum: 10 },
-              { type: 'number', minimum: 12 }
+              {
+                minimum: 5,
+                maximum: 10
+              },
+              {
+                type: 'number',
+                minimum: 12
+              }
             ]
           })
           expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
@@ -348,148 +393,348 @@ describe.only('Schema', () => {
       })
 
       it('validates that all items are of the same format', () => {
-
-      })
-
-      it('handles nested allOf schemas', () => {
-
-      })
-    })
-
-    describe('property: anyOf', () => {
-
-    })
-
-    describe('property: default', () => {
-
-    })
-
-    describe('property: deprecated', () => {
-
-    })
-
-    describe('property: description', () => {
-
-    })
-
-    describe('property: discriminator', () => {
-
-    })
-
-    describe('property: enum', () => {
-
-    })
-
-    describe('property: example', () => {
-
-    })
-
-    describe('property: exclusiveMaximum', () => {
-
-    })
-
-    describe('property: exclusiveMinimum', () => {
-
-    })
-
-    describe('property: format', () => {
-
-    })
-
-    describe('property: items', () => {
-
-    })
-
-    describe('property: maximum', () => {
-
-    })
-
-    describe('property: minimum', () => {
-
-    })
-
-    describe('property: maxItems', () => {
-
-    })
-
-    describe('property: minItems', () => {
-
-    })
-
-    describe('property: maxLength', () => {
-
-    })
-
-    describe('property: minLength', () => {
-
-    })
-
-    describe('property: maxProperties', () => {
-
-    })
-
-    describe('property: minProperties', () => {
-
-    })
-
-    describe('property: not', () => {
-
-    })
-
-    describe('property: nullable', () => {
-
-    })
-
-    describe('property: oneOf', () => {
-
-    })
-
-    describe('property: pattern', () => {
-
-    })
-
-    describe('property: properties', () => {
-
-    })
-
-    describe('property: readonly', () => {
-
-    })
-
-    describe('property: required', () => {
-
-    })
-
-    describe('property: type', () => {
-      it('will warn if the schema type is not specified', () => {
         test(Schema => {
-          const es = Schema.validate({ additionalProperties: true })
-          expect(es).to.have.exceptionWarningCode('SCHEMA_TYPE_NOT_SPECIFIED')
+          const es = Schema.validate({
+            allOf: [
+              {
+                type: 'string',
+                format: 'date'
+              },
+              {
+                type: 'string',
+                format: 'date-time'
+              }
+            ]
+          })
+          expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CONFLICT', true)
+          const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CONFLICT')?.metadata ?? {}
+          expect(metadata.propertyName).to.equal('format')
         })
       })
 
-      it('will produce an error if schema type is indeterminate', () => {
-        test(Schema => {
-          const es = Schema.validate({})
-          expect(es).to.have.exceptionErrorCode('SCHEMA_TYPE_INDETERMINATE')
+      describe('nested allOf schemas', () => {
+        it('validates types for single nested schema', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                {
+                  allOf: [
+                    {
+                      type: 'string',
+                      maxLength: 20
+                    },
+                    {
+                      type: 'string',
+                      maxLength: 15
+                    }
+                  ]
+                },
+                { type: 'boolean' }
+              ]
+            })
+            expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CONFLICT')?.metadata ?? {}
+            expect(metadata.propertyName).to.equal('type')
+          })
+        })
+
+        it('validates types for multiple nested schemas', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                {
+                  allOf: [
+                    {
+                      type: 'string',
+                      maxLength: 20
+                    },
+                    {
+                      type: 'string',
+                      maxLength: 15
+                    }
+                  ]
+                },
+                {
+                  allOf: [
+                    { type: 'boolean' }
+                  ]
+                }
+              ]
+            })
+            expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CONFLICT')?.metadata ?? {}
+            expect(metadata.propertyName).to.equal('type')
+          })
+        })
+
+        it('validates formats for single nested schema', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                {
+                  allOf: [
+                    {
+                      type: 'string',
+                      format: 'date'
+                    }
+                  ]
+                },
+                {
+                  type: 'string',
+                  format: 'date-time'
+                }
+              ]
+            })
+            expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CONFLICT')?.metadata ?? {}
+            expect(metadata.propertyName).to.equal('format')
+          })
+        })
+
+        it.only('validates maximum and minimum for single nested schema', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                {
+                  allOf: [
+                    {
+                      type: 'number',
+                      minimum: 0,
+                      maximum: 5
+                    }
+                  ]
+                },
+                {
+                  type: 'number',
+                  minimum: 10
+                }
+              ]
+            })
+            expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CROSS_CONFLICT')?.metadata ?? {}
+            expect(metadata.propertyName1).to.equal('minimum')
+            expect(metadata.propertyName2).to.equal('maximum')
+          })
+        })
+
+        it('validates maximum and minimum length for single nested schema', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                {
+                  allOf: [
+                    {
+                      type: 'string',
+                      minLength: 0,
+                      maxLength: 5
+                    }
+                  ]
+                },
+                {
+                  type: 'string',
+                  minLength: 10
+                }
+              ]
+            })
+            expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CROSS_CONFLICT')?.metadata ?? {}
+            expect(metadata.propertyName1).to.equal('minLength')
+            expect(metadata.propertyName2).to.equal('maxLength')
+          })
+        })
+
+        it('validates maximum and minimum items for single nested schema', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                {
+                  allOf: [
+                    {
+                      type: 'array',
+                      minItems: 0,
+                      maxItems: 5,
+                      items: { type: 'string' }
+                    }
+                  ]
+                },
+                {
+                  type: 'array',
+                  minItems: 10,
+                  items: { type: 'string' }
+                }
+              ]
+            })
+            expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CROSS_CONFLICT')?.metadata ?? {}
+            expect(metadata.propertyName1).to.equal('minItems')
+            expect(metadata.propertyName2).to.equal('maxItems')
+          })
+        })
+
+        it('validates maximum and minimum properties for single nested schema', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                {
+                  allOf: [
+                    {
+                      type: 'object',
+                      minProperties: 0,
+                      maxProperties: 5
+                    }
+                  ]
+                },
+                {
+                  type: 'object',
+                  minProperties: 10
+                }
+              ]
+            })
+            expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CROSS_CONFLICT')?.metadata ?? {}
+            expect(metadata.propertyName1).to.equal('minProperties')
+            expect(metadata.propertyName2).to.equal('maxProperties')
+          })
+        })
+
+        // TODO: allOf tests for items, additionalProperites, and properties
+      })
+
+      describe('property: anyOf', () => {
+
+      })
+
+      describe('property: default', () => {
+
+      })
+
+      describe('property: deprecated', () => {
+
+      })
+
+      describe('property: description', () => {
+
+      })
+
+      describe('property: discriminator', () => {
+
+      })
+
+      describe('property: enum', () => {
+
+      })
+
+      describe('property: example', () => {
+
+      })
+
+      describe('property: exclusiveMaximum', () => {
+
+      })
+
+      describe('property: exclusiveMinimum', () => {
+
+      })
+
+      describe('property: format', () => {
+
+      })
+
+      describe('property: items', () => {
+
+      })
+
+      describe('property: maximum', () => {
+
+      })
+
+      describe('property: minimum', () => {
+
+      })
+
+      describe('property: maxItems', () => {
+
+      })
+
+      describe('property: minItems', () => {
+
+      })
+
+      describe('property: maxLength', () => {
+
+      })
+
+      describe('property: minLength', () => {
+
+      })
+
+      describe('property: maxProperties', () => {
+
+      })
+
+      describe('property: minProperties', () => {
+
+      })
+
+      describe('property: not', () => {
+
+      })
+
+      describe('property: nullable', () => {
+
+      })
+
+      describe('property: oneOf', () => {
+
+      })
+
+      describe('property: pattern', () => {
+
+      })
+
+      describe('property: properties', () => {
+
+      })
+
+      describe('property: readonly', () => {
+
+      })
+
+      describe('property: required', () => {
+
+      })
+
+      describe('property: type', () => {
+        it('will warn if the schema type is not specified', () => {
+          test(Schema => {
+            const es = Schema.validate({ additionalProperties: true })
+            expect(es).to.have.exceptionWarningCode('SCHEMA_TYPE_NOT_SPECIFIED')
+          })
+        })
+
+        it('will produce an error if schema type is indeterminate', () => {
+          test(Schema => {
+            const es = Schema.validate({})
+            expect(es).to.have.exceptionErrorCode('SCHEMA_TYPE_INDETERMINATE')
+          })
+        })
+
+        it('requires a valid type', () => {
+          test(Schema => {
+            // @ts-expect-error
+            const es = Schema.validate({ type: 'foo' })
+            expect(es).to.have.exceptionErrorCode('ENUM_NOT_MET')
+          })
         })
       })
 
-      it('requires a valid type', () => {
-        test(Schema => {
-          // @ts-expect-error
-          const es = Schema.validate({ type: 'foo' })
-          expect(es).to.have.exceptionErrorCode('ENUM_NOT_MET')
-        })
+      describe('property: uniqueItems', () => {
+
       })
-    })
 
-    describe('property: uniqueItems', () => {
+      describe('property: writeonly', () => {
 
-    })
-
-    describe('property: writeonly', () => {
-
+      })
     })
   })
 })
