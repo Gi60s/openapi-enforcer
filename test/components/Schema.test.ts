@@ -2,6 +2,7 @@ import { Schema2, Schema3 } from '../../src/components'
 import { expect } from 'chai'
 import { testMultipleComponents } from '../../test-resources/test-utils'
 import '../../test-resources/chai-exception-store'
+import { getMinMaxConflicts } from '../../src/components/Schema/Schema'
 
 const { test } = testMultipleComponents([Schema2, Schema3])
 
@@ -735,6 +736,97 @@ describe.only('Schema', () => {
       describe('property: writeonly', () => {
 
       })
+    })
+  })
+
+  describe('getMinMaxConflicts', () => {
+    it('will return all locations regardless of conflicts', () => {
+      const data = getMinMaxConflicts(
+        [
+          { node: { minimum: 5 }, key: 'minimum', filter: 'value' },
+          { node: { minimum: 10 }, key: 'minimum', filter: 'value' }
+        ],
+        [
+          { node: { maximum: 8 }, key: 'maximum', filter: 'value' }
+        ]
+      )
+      expect(data.locations).to.have.length(3)
+    })
+
+    it('will not return conflict related data if there are no conflicts', () => {
+      const data = getMinMaxConflicts(
+        [
+          { node: { minimum: 5 }, key: 'minimum', filter: 'value' }
+        ],
+        [
+          { node: { maximum: 8 }, key: 'maximum', filter: 'value' }
+        ]
+      )
+      expect(data.hasConflict).to.equal(false)
+      expect(data).not.to.haveOwnProperty('lowestMaximum')
+      expect(data).not.to.haveOwnProperty('highestMinimum')
+      expect(data).not.to.haveOwnProperty('conflictingMinimumLocations')
+      expect(data).not.to.haveOwnProperty('conflictingMaximumLocations')
+    })
+
+    it('will return conflict related data if there are conflicts', () => {
+      const data = getMinMaxConflicts(
+        [
+          { node: { minimum: 5 }, key: 'minimum', filter: 'value' },
+          { node: { minimum: 10 }, key: 'minimum', filter: 'value' }
+        ],
+        [
+          { node: { maximum: 8 }, key: 'maximum', filter: 'value' }
+        ]
+      )
+      expect(data.hasConflict).to.equal(true)
+      expect(data).to.haveOwnProperty('lowestMaximum')
+      expect(data).to.haveOwnProperty('highestMinimum')
+      expect(data).to.haveOwnProperty('conflictingMinimumLocations')
+      expect(data).to.haveOwnProperty('conflictingMaximumLocations')
+    })
+
+    it('will identify the highest minimum and lowest maximum without exclusives', () => {
+      const data = getMinMaxConflicts(
+        [
+          { node: { minimum: 9 }, key: 'minimum', filter: 'value' },
+          { node: { minimum: 10 }, key: 'minimum', filter: 'value' },
+          { node: { minimum: 5 }, key: 'minimum', filter: 'value' }
+        ],
+        [
+          { node: { maximum: 8 }, key: 'maximum', filter: 'value' },
+          { node: { maximum: 8 }, key: 'maximum', filter: 'value' },
+          { node: { maximum: 18 }, key: 'maximum', filter: 'value' }
+        ]
+      )
+      expect(data.hasConflict).to.equal(true)
+      expect(data.highestMinimum?.value).to.equal(10)
+      expect(data.highestMinimum?.exclusive).to.equal(false)
+      expect(data.lowestMaximum?.value).to.equal(8)
+      expect(data.lowestMaximum?.exclusive).to.equal(false)
+    })
+
+    it('will identify the highest minimum and lowest maximum with exclusives', () => {
+      const data = getMinMaxConflicts(
+        [
+          { node: { minimum: 7 }, key: 'minimum', filter: 'value' },
+          { node: { minimum: 10 }, key: 'minimum', filter: 'value' },
+          { node: { minimum: 10, exclusiveMinimum: true }, key: 'minimum', filter: 'value' },
+          { node: { minimum: 5 }, key: 'minimum', filter: 'value' }
+        ],
+        [
+          { node: { maximum: 8 }, key: 'maximum', filter: 'value' },
+          { node: { maximum: 8, exclusiveMaximum: true }, key: 'maximum', filter: 'value' },
+          { node: { maximum: 18 }, key: 'maximum', filter: 'value' }
+        ]
+      )
+      expect(data.hasConflict).to.equal(true)
+      expect(data.highestMinimum?.value).to.equal(10)
+      expect(data.highestMinimum?.exclusive).to.equal(true)
+      expect(data.highestMinimum?.definition).to.deep.equal({ minimum: 10, exclusiveMinimum: true })
+      expect(data.lowestMaximum?.value).to.equal(8)
+      expect(data.lowestMaximum?.exclusive).to.equal(true)
+      expect(data.lowestMaximum?.definition).to.deep.equal({ maximum: 8, exclusiveMaximum: true })
     })
   })
 })

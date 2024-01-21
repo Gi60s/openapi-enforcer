@@ -5,14 +5,11 @@
     "incremental": true,
 
     "lib": [
-      "es2019",
-      "es2020.bigint",
-      "es2020.string",
-      "es2020.symbol.wellknown",
+      "es2022",
       "dom"
     ],
     "module": "commonjs",
-    "target": "es2019",
+    "target": "es2022",
 
     "strict": true,
     "noImplicitAny": true,

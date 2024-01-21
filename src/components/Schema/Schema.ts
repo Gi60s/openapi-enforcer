@@ -24,22 +24,37 @@ import { arrayGetIntersection } from '../../util'
 
 type ISchemaDefinitionResult = ISDSchemaDefinition<ISchema2Definition, ISchema2> | ISDSchemaDefinition<ISchema3Definition, ISchema3> | ISDSchemaDefinition<ISchema3aDefinition, ISchema3a>
 type IValidatorsMap = ISchemaValidatorsMap2 | ISchemaValidatorsMap3 | ISchemaValidatorsMap3a
-type IDefinition = ISchema2Definition | ISchema3Definition | ISchema3aDefinition
+type IDefinition = ISchemaDefinition
 
 interface IAllOfData {
-  definition: ISchemaDefinition
+  definition: IDefinition | null
+  mergedDefinition: IDefinition
   hasExceptions: boolean
   typeLocations: IExceptionLocation[]
   formatLocations: IExceptionLocation[]
-  maxMinLocations: IExceptionLocation[]
-  maxMinLengthLocations: IExceptionLocation[]
-  maxMinItemsLocations: IExceptionLocation[]
-  maxMinPropertiesLocations: IExceptionLocation[]
+  maxMinConflictData: ICrossConflictData
+  maxMinLengthConflictData: ICrossConflictData
+  maxMinItemsConflictData: ICrossConflictData
+  maxMinPropertiesConflictData: ICrossConflictData
 }
 
 interface ICrossConflictData {
   hasConflict: boolean
   locations: IExceptionLocation[]
+  minLocations: IExceptionLocation[]
+  maxLocations: IExceptionLocation[]
+  lowestMaximum?: IMinMaxData
+  highestMinimum?: IMinMaxData
+  conflictingMinimumLocations?: IExceptionLocation[]
+  conflictingMaximumLocations?: IExceptionLocation[]
+}
+
+interface IMinMaxData {
+  definition: IDefinition
+  location: IExceptionLocation
+  key: string
+  value: number
+  exclusive: boolean
 }
 
 const allOfDataMap = new WeakMap<ISchemaDefinition, IAllOfData>()
@@ -186,44 +201,6 @@ export abstract class Schema extends EnforcerComponent<ISchemaDefinition> implem
         validateAllOfSchemas(ctor.id, exception, definition, allOf)
       }
 
-      // if (Array.isArray(definition.allOf)) {
-      //   const allOf = (definition.allOf as IDefinition[]).filter((s: any) => !('$ref' in s))
-      //
-      //     // first check that any properties that must be equal are equal
-      //   ;(allOfMustBeEqualProperties as Array<keyof IDefinition>).forEach(key => {
-      //     const conflicts: IAllOfData[] = []
-      //     let hasConflicts = false
-      //     allOf.forEach((definition, index) => {
-      //       // it should always get the derived schema because it was set already during the validator of the child schema
-      //       const schema = derivedDefinitionMap.get(definition) ?? definition
-      //       if (key in schema) {
-      //         const value = schema[key]
-      //         if (derived[key] === undefined) derived[key] = value
-      //         conflicts.push({ definition, value })
-      //         if (index > 0 && !deepEqual(conflicts[0].value, value)) hasConflicts = true
-      //       }
-      //     })
-      //
-      //     if (hasConflicts) {
-      //       exception.add({
-      //         code: 'SCHEMA_ALL_CONFLICT',
-      //         id: ctor.id,
-      //         level: 'error',
-      //         locations: conflicts.map(conflict => getLocation(conflict.definition, key, 'value')),
-      //         metadata: {
-      //           propertyName: key,
-      //           values: Array.from(new Set(conflicts.map(c => c.value)))
-      //         }
-      //       })
-      //     }
-      //   })
-      //
-      //   if (derived.type === 'object') {
-      //     const conflicts: IAllOfData[] = []
-      //     allOfDeepObjectComparison(allOf, conflicts)
-      //   }
-      // }
-
       // TODO: additional validations
     }
   }
@@ -263,71 +240,77 @@ function determineSchemaType (definition: ISchemaDefinition | ISchema): 'array' 
     typeof definition.enum?.[0] === 'boolean') return 'boolean'
 }
 
-function getMaxMinConflictLocations (items: IDefinition[], set: 'number' | 'length' | 'items' | 'properties'): ICrossConflictData {
-  const result: ICrossConflictData = {
-    hasConflict: false,
-    locations: []
-  }
-  const { maxKey, minKey } = (() => {
-    switch (set) {
-      case 'number': return { maxKey: 'maximum', minKey: 'minimum' }
-      case 'length': return { maxKey: 'maxLength', minKey: 'minLength' }
-      case 'items': return { maxKey: 'maxItems', minKey: 'minItems' }
-      case 'properties': return { maxKey: 'maxProperties', minKey: 'minProperties' }
-    }
-  })()
-  let lowestMaximum: { definition: IDefinition, value: number, exclusive: boolean } | undefined
-  let highestMinimum: { definition: IDefinition, value: number, exclusive: boolean } | undefined
-
-  items.forEach(item => {
-    const max = item[maxKey as 'maximum']
-    if (max !== undefined && (lowestMaximum === undefined || lowestMaximum.value > max)) {
-      lowestMaximum = { definition: item, value: max, exclusive: (set === 'number' && item.exclusiveMaximum) ?? false }
-    }
-
-    const min = item[minKey as 'minimum'] as number
-    if (min !== undefined && (highestMinimum === undefined || highestMinimum.value < min)) {
-      highestMinimum = { definition: item, value: min, exclusive: (set === 'number' && item.exclusiveMinimum) ?? false }
-    }
-  })
-
-  // if there either isn't a minimum or maximum then there are no conflicts
-  if (lowestMaximum === undefined || highestMinimum === undefined) return result
-
-  const locations = result.locations
-  items.forEach(item => {
-    if (maxKey in item) {
-      locations.push({ node: item, key: maxKey, filter: 'value' })
-    }
-
-    if (minKey in item) {
-      locations.push({ node: item, key: minKey, filter: 'value' })
-    }
-
-    const max = item[maxKey as 'maximum']
-    if (max !== undefined && highestMinimum !== undefined && highestMinimum.definition !== item && (highestMinimum.value > max || (highestMinimum.value === max && highestMinimum.exclusive))) {
-      result.hasConflict = true
-    }
-
-    const min = item[minKey as 'minimum'] as number
-    if (min !== undefined && lowestMaximum !== undefined && lowestMaximum.definition !== item && (lowestMaximum.value < min || (lowestMaximum.value === min && lowestMaximum.exclusive))) {
-      result.hasConflict = true
-    }
-  })
-
-  return result
-}
-
-function getMaxMinConflictValues (locations: IExceptionLocation[], minKey: string, maxKey: string): { lowestMaximum: number, highestMinimum: number } {
-  let lowestMaximum = NaN
-  let highestMinimum = NaN
-  locations.forEach(loc => {
-    const node = loc.node as any
-    if (loc.key === minKey && (isNaN(highestMinimum) || highestMinimum < node[minKey])) highestMinimum = node[minKey]
-    if (loc.key === maxKey && (isNaN(lowestMaximum) || lowestMaximum > node[maxKey])) lowestMaximum = node[maxKey]
-  })
-  return { highestMinimum, lowestMaximum }
-}
+// function getMaxMinConflictLocations (items: IExceptionLocation[], set: 'number' | 'length' | 'items' | 'properties'): ICrossConflictData {
+//   const result: ICrossConflictData = {
+//     hasConflict: false,
+//     locations: []
+//   }
+//   const { maxKey, minKey } = (() => {
+//     switch (set) {
+//       case 'number': return { maxKey: 'maximum', minKey: 'minimum' }
+//       case 'length': return { maxKey: 'maxLength', minKey: 'minLength' }
+//       case 'items': return { maxKey: 'maxItems', minKey: 'minItems' }
+//       case 'properties': return { maxKey: 'maxProperties', minKey: 'minProperties' }
+//     }
+//   })()
+//   let lowestMaximum: IMinMaxData | undefined
+//   let highestMinimum: IMinMaxData | undefined
+//
+//   items.forEach(item => {
+//     const def = item.node as IDefinition
+//
+//     const max = def[maxKey as 'maximum']
+//     if (max !== undefined && (lowestMaximum === undefined || lowestMaximum.value > max)) {
+//       lowestMaximum = { definition: def, value: max, exclusive: (set === 'number' && def.exclusiveMaximum) ?? false }
+//       result.lowestMaximum = lowestMaximum
+//     }
+//
+//     const min = def[minKey as 'minimum'] as number
+//     if (min !== undefined && (highestMinimum === undefined || highestMinimum.value < min)) {
+//       highestMinimum = { definition: def, value: min, exclusive: (set === 'number' && def.exclusiveMinimum) ?? false }
+//       result.highestMinimum = highestMinimum
+//     }
+//   })
+//
+//   // if there either isn't a minimum or maximum then there are no conflicts
+//   if (lowestMaximum === undefined || highestMinimum === undefined) return result
+//
+//   const locations = result.locations
+//   items.forEach(item => {
+//     const def = item.node as IDefinition
+//
+//     if (maxKey in def) {
+//       locations.push({ node: def, key: maxKey, filter: 'value' })
+//     }
+//
+//     if (minKey in def) {
+//       locations.push({ node: def, key: minKey, filter: 'value' })
+//     }
+//
+//     const max = def[maxKey as 'maximum']
+//     if (max !== undefined && highestMinimum !== undefined && highestMinimum.definition !== def && (highestMinimum.value > max || (highestMinimum.value === max && highestMinimum.exclusive))) {
+//       result.hasConflict = true
+//     }
+//
+//     const min = def[minKey as 'minimum'] as number
+//     if (min !== undefined && lowestMaximum !== undefined && lowestMaximum.definition !== def && (lowestMaximum.value < min || (lowestMaximum.value === min && lowestMaximum.exclusive))) {
+//       result.hasConflict = true
+//     }
+//   })
+//
+//   return result
+// }
+//
+// function getMaxMinConflictValues (locations: IExceptionLocation[], minKey: string, maxKey: string): { lowestMaximum: number, highestMinimum: number } {
+//   let lowestMaximum = NaN
+//   let highestMinimum = NaN
+//   locations.forEach(loc => {
+//     const node = loc.node as any
+//     if (loc.key === minKey && (isNaN(highestMinimum) || highestMinimum < node[minKey])) highestMinimum = node[minKey]
+//     if (loc.key === maxKey && (isNaN(lowestMaximum) || lowestMaximum > node[maxKey])) lowestMaximum = node[maxKey]
+//   })
+//   return { highestMinimum, lowestMaximum }
+// }
 
 function validateAllOfSchemas (componentId: string, exception: ExceptionStore, definition: IDefinition | null, allOf: IDefinition[]): IAllOfData {
   const allOfLength = allOf.length
@@ -337,23 +320,28 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
   const typeLocations: IExceptionLocation[] = []
   const formatLocations: IExceptionLocation[] = []
   const mergedData: IAllOfData = {
-    definition: {},
+    definition: definition,
+    mergedDefinition: {},
     hasExceptions: false,
     typeLocations,
     formatLocations,
-    maxMinLocations: [],
-    maxMinLengthLocations: [],
-    maxMinItemsLocations: [],
-    maxMinPropertiesLocations: []
+    maxMinConflictData: { hasConflict: false, locations: [], minLocations: [], maxLocations: [] },
+    maxMinLengthConflictData: { hasConflict: false, locations: [], minLocations: [], maxLocations: [] },
+    maxMinItemsConflictData: { hasConflict: false, locations: [], minLocations: [], maxLocations: [] },
+    maxMinPropertiesConflictData: { hasConflict: false, locations: [], minLocations: [], maxLocations: [] }
   }
 
   if (allOfLength > 0) {
     const typeArrays: string[][] = []
     const formats: string[] = []
-    const maxMinDefinitions: IDefinition[] = []
-    const maxMinLengthDefinitions: IDefinition[] = []
-    const maxMinItemsDefinitions: IDefinition[] = []
-    const maxMinPropertiesDefinitions: IDefinition[] = []
+    const minLocations: IExceptionLocation[] = []
+    const maxLocations: IExceptionLocation[] = []
+    const minLengthLocations: IExceptionLocation[] = []
+    const maxLengthLocations: IExceptionLocation[] = []
+    const minItemsLocations: IExceptionLocation[] = []
+    const maxItemsLocations: IExceptionLocation[] = []
+    const minPropertiesLocations: IExceptionLocation[] = []
+    const maxPropertiesLocations: IExceptionLocation[] = []
 
     if (definition !== null) {
       allOfDataMap.set(definition, mergedData)
@@ -384,37 +372,50 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
           filter: 'value'
         })
       }
-      if (definition.maximum !== undefined || definition.minimum !== undefined) {
-        maxMinDefinitions.push(definition)
+      if (definition.minimum !== undefined) {
+        minLocations.push({ node: definition, key: 'minimum', filter: 'value' })
       }
-      if (definition.maxLength !== undefined || definition.minLength !== undefined) {
-        maxMinLengthDefinitions.push(definition)
+      if (definition.maximum !== undefined) {
+        maxLocations.push({ node: definition, key: 'maximum', filter: 'value' })
       }
-      if (definition.maxItems !== undefined || definition.minItems !== undefined) {
-        maxMinItemsDefinitions.push(definition)
+      if (definition.minLength !== undefined) {
+        minLengthLocations.push({ node: definition, key: 'minLength', filter: 'value' })
       }
-      if (definition.maxProperties !== undefined || definition.minProperties !== undefined) {
-        maxMinPropertiesDefinitions.push(definition)
+      if (definition.maxLength !== undefined) {
+        maxLengthLocations.push({ node: definition, key: 'maxLength', filter: 'value' })
       }
-      if (typeof definition.items === 'object' && definition.items !== null && !('$ref' in definition.items)) {
-        itemsDefinitions.push(definition.items)
+      if (definition.minItems !== undefined) {
+        minItemsLocations.push({ node: definition, key: 'minItems', filter: 'value' })
       }
-      if (typeof definition.additionalProperties === 'object' && definition.additionalProperties !== null && !('$ref' in definition.additionalProperties)) {
-        additionalPropertiesDefinitions.push(definition.additionalProperties)
+      if (definition.maxItems !== undefined) {
+        maxItemsLocations.push({ node: definition, key: 'maxItems', filter: 'value' })
       }
-      if (typeof definition.properties === 'object' && definition.properties !== null && !('$ref' in definition.properties)) {
-        Object.keys(definition.properties).forEach(key => {
-          if (propertiesDefinitions[key] === undefined) propertiesDefinitions[key] = []
-          propertiesDefinitions[key].push((definition.properties as Record<string, IDefinition>)[key])
-        })
+      if (definition.minProperties !== undefined) {
+        minPropertiesLocations.push({ node: definition, key: 'minProperties', filter: 'value' })
       }
+      if (definition.maxProperties !== undefined) {
+        maxPropertiesLocations.push({ node: definition, key: 'maxProperties', filter: 'value' })
+      }
+
+      // if (typeof definition.items === 'object' && definition.items !== null && !('$ref' in definition.items)) {
+      //   itemsDefinitions.push(definition)
+      // }
+      // if (typeof definition.additionalProperties === 'object' && definition.additionalProperties !== null && !('$ref' in definition.additionalProperties)) {
+      //   additionalPropertiesDefinitions.push(definition.additionalProperties)
+      // }
+      // if (typeof definition.properties === 'object' && definition.properties !== null && !('$ref' in definition.properties)) {
+      //   Object.keys(definition.properties).forEach(key => {
+      //     if (propertiesDefinitions[key] === undefined) propertiesDefinitions[key] = []
+      //     propertiesDefinitions[key].push((definition.properties as Record<string, IDefinition>)[key])
+      //   })
+      // }
     }
 
     allOf.forEach(def => {
       const hasAllOfData = def.allOf !== undefined && allOfDataMap.has(def)
       const existingAllOfData = hasAllOfData ? allOfDataMap.get(def) as IAllOfData : null
       const def2 = hasAllOfData
-        ? (allOfDataMap.get(def) as IAllOfData).definition
+        ? (allOfDataMap.get(def) as IAllOfData).mergedDefinition
         : def
 
       if (Array.isArray(def2.type)) {
@@ -456,30 +457,108 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
           formatLocations.push(...existingAllOfData.formatLocations)
         }
       }
-      if (def.maximum !== undefined || def.minimum !== undefined) {
-        maxMinDefinitions.push(def)
-      }
-      if (def.maxLength !== undefined || def.minLength !== undefined) {
-        maxMinLengthDefinitions.push(def)
-      }
-      if (def.maxItems !== undefined || def.minItems !== undefined) {
-        maxMinItemsDefinitions.push(def)
-      }
-      if (def.maxProperties !== undefined || def.minProperties !== undefined) {
-        maxMinPropertiesDefinitions.push(def)
-      }
-      if (typeof def.items === 'object' && def.items !== null && !('$ref' in def.items)) {
-        itemsDefinitions.push(def.items)
-      }
-      if (typeof def.additionalProperties === 'object' && def.additionalProperties !== null && !('$ref' in def.additionalProperties)) {
-        additionalPropertiesDefinitions.push(def.additionalProperties)
-      }
-      if (typeof def.properties === 'object' && def.properties !== null && !('$ref' in def.properties)) {
-        Object.keys(def.properties).forEach(key => {
-          if (propertiesDefinitions[key] === undefined) propertiesDefinitions[key] = []
-          propertiesDefinitions[key].push((def.properties as Record<string, IDefinition>)[key])
-        })
-      }
+
+      ;[
+        { key: 'minimum', k: 'maxMinConflictData', store: minLocations, type: 'minLocations' },
+        { key: 'maximum', k: 'maxMinConflictData', store: maxLocations, type: 'maxLocations' },
+        { key: 'minLength', k: 'maxMinLengthConflictData', store: minLengthLocations, type: 'minLocations' },
+        { key: 'maxLength', k: 'maxMinLengthConflictData', store: minLengthLocations, type: 'maxLocations' },
+        { key: 'minItems', k: 'maxMinItemsConflictData', store: minItemsLocations, type: 'minLocations' },
+        { key: 'maxItems', k: 'maxMinItemsConflictData', store: minItemsLocations, type: 'maxLocations' },
+        { key: 'minProperties', k: 'maxMinPropertiesConflictData', store: minPropertiesLocations, type: 'minLocations' },
+        { key: 'maxProperties', k: 'maxMinPropertiesConflictData', store: minPropertiesLocations, type: 'maxLocations' }
+      ].forEach(({ key, k, store, type }) => {
+        if ((def2 as any)[key] !== undefined) {
+          if ((def as any)[key] !== undefined) {
+            store.push({ node: def, key, filter: 'value' })
+          }
+          const conflictData = existingAllOfData?.[k as 'maxMinConflictData']
+          if (conflictData?.hasConflict === false) {
+            store.push(...conflictData[type as 'minLocations'])
+          }
+        }
+      })
+
+      // if (def2.minimum !== undefined) {
+      //   if (def.minimum !== undefined) {
+      //     minLocations.push({ node: def, key: 'minimum', filter: 'value' })
+      //   }
+      //   if (existingAllOfData?.maxMinConflictData.hasConflict === false) {
+      //     minLocations.push(...existingAllOfData.maxMinConflictData.minLocations)
+      //   }
+      // }
+      // if (def2.maximum !== undefined) {
+      //   if (def.maximum !== undefined) {
+      //     maxLocations.push({ node: def, key: 'maximum', filter: 'value' })
+      //   }
+      //   if (existingAllOfData?.maxMinConflictData.hasConflict === false) {
+      //     maxLocations.push(...existingAllOfData.maxMinConflictData.maxLocations)
+      //   }
+      // }
+      //
+      // if (def2.minLength !== undefined) {
+      //   if (def.minLength !== undefined) {
+      //     minLengthLocations.push({ node: def, key: 'minLength', filter: 'value' })
+      //   }
+      //   if (existingAllOfData?.maxMinLengthConflictData.hasConflict === false) {
+      //     minLengthLocations.push(...existingAllOfData.maxMinLengthConflictData.minLocations)
+      //   }
+      // }
+      // if (def2.maxLength !== undefined) {
+      //   if (def.maxLength !== undefined) {
+      //     maxLengthLocations.push({ node: def, key: 'maxLength', filter: 'value' })
+      //   }
+      //   if (existingAllOfData?.maxMinConflictData.hasConflict === false) {
+      //     maxLengthLocations.push(...existingAllOfData.maxMinLengthConflictData.maxLocations)
+      //   }
+      // }
+      //
+      // if (def2.minItems !== undefined) {
+      //   if (def.minItems !== undefined) {
+      //     minItemsLocations.push({ node: def, key: 'minItems', filter: 'value' })
+      //   }
+      //   if (existingAllOfData?.maxMinItemsConflictData.hasConflict === false) {
+      //     minItemsLocations.push(...existingAllOfData.maxMinItemsConflictData.minLocations)
+      //   }
+      // }
+      // if (def2.maxItems !== undefined) {
+      //   if (def.maxItems !== undefined) {
+      //     maxItemsLocations.push({ node: def, key: 'maxItems', filter: 'value' })
+      //   }
+      //   if (existingAllOfData?.maxMinItemsConflictData.hasConflict === false) {
+      //     maxItemsLocations.push(...existingAllOfData.maxMinItemsConflictData.maxLocations)
+      //   }
+      // }
+      //
+      // if (def2.minProperties !== undefined) {
+      //   if (def.minProperties !== undefined) {
+      //     minPropertiesLocations.push({ node: def, key: 'minProperties', filter: 'value' })
+      //   }
+      //   if (existingAllOfData?.maxMinPropertiesConflictData.hasConflict === false) {
+      //     minPropertiesLocations.push(...existingAllOfData.maxMinPropertiesConflictData.minLocations)
+      //   }
+      // }
+      // if (def2.maxProperties !== undefined) {
+      //   if (def.maxProperties !== undefined) {
+      //     maxPropertiesLocations.push({ node: def, key: 'maxProperties', filter: 'value' })
+      //   }
+      //   if (existingAllOfData?.maxMinPropertiesConflictData.hasConflict === false) {
+      //     maxPropertiesLocations.push(...existingAllOfData.maxMinPropertiesConflictData.maxLocations)
+      //   }
+      // }
+
+      // if (typeof def.items === 'object' && def.items !== null && !('$ref' in def.items)) {
+      //   itemsDefinitions.push(def.items)
+      // }
+      // if (typeof def.additionalProperties === 'object' && def.additionalProperties !== null && !('$ref' in def.additionalProperties)) {
+      //   additionalPropertiesDefinitions.push(def.additionalProperties)
+      // }
+      // if (typeof def.properties === 'object' && def.properties !== null && !('$ref' in def.properties)) {
+      //   Object.keys(def.properties).forEach(key => {
+      //     if (propertiesDefinitions[key] === undefined) propertiesDefinitions[key] = []
+      //     propertiesDefinitions[key].push((def.properties as Record<string, IDefinition>)[key])
+      //   })
+      // }
     })
 
     const typesIntersection = arrayGetIntersection(...typeArrays)
@@ -497,7 +576,7 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
         }
       })
     } else if (typesIntersection.length === 1) {
-      mergedData.definition.type = typesIntersection[0] as 'string' // could be a string array also
+      mergedData.mergedDefinition.type = typesIntersection[0] as 'string' // could be a string array also
     }
 
     if (formats.length > 1) {
@@ -514,95 +593,174 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
         }
       })
     } else if (formats.length === 1) {
-      mergedData.definition.format = formats[0]
+      mergedData.mergedDefinition.format = formats[0]
     }
 
-    const maxMinLocations = getMaxMinConflictLocations(maxMinDefinitions, 'number')
-    mergedData.maxMinLocations.push(...maxMinLocations.locations)
-    if (maxMinLocations.hasConflict) {
-      mergedData.hasExceptions = true
-      const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinLocations.locations, 'minimum', 'maximum')
-      exception.add({
-        component: componentId,
-        context: 'allOf',
-        code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
-        level: 'error',
-        locations: maxMinLocations.locations,
-        metadata: {
-          propertyName1: 'minimum',
-          propertyName2: 'maximum',
-          value1: highestMinimum,
-          value2: lowestMaximum
+    ;[
+      {
+        mergeKey: 'maxMinConflictData',
+        minLocations: minLocations,
+        maxLocations: maxLocations,
+        minKey: 'minimum',
+        maxKey: 'maximum'
+      },
+      {
+        mergeKey: 'maxMinLengthConflictData',
+        minLocations: minLengthLocations,
+        maxLocations: maxLengthLocations,
+        minKey: 'minLength',
+        maxKey: 'maxLength'
+      },
+      {
+        mergeKey: 'maxMinItemsConflictData',
+        minLocations: minItemsLocations,
+        maxLocations: maxItemsLocations,
+        minKey: 'minItems',
+        maxKey: 'maxItems'
+      },
+      {
+        mergeKey: 'maxMinPropertiesConflictData',
+        minLocations: minPropertiesLocations,
+        maxLocations: maxPropertiesLocations,
+        minKey: 'minProperties',
+        maxKey: 'maxProperties'
+      }
+    ].forEach(({ mergeKey, minLocations, maxLocations, minKey, maxKey }) => {
+      const minMaxConflicts = getMinMaxConflicts(minLocations, maxLocations)
+      mergedData[mergeKey as 'maxMinConflictData'] = minMaxConflicts
+      if (minMaxConflicts.hasConflict) {
+        exception.add({
+          component: componentId,
+          context: 'allOf',
+          code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
+          level: 'error',
+          locations: [
+            ...minMaxConflicts.conflictingMinimumLocations as IExceptionLocation[],
+            ...minMaxConflicts.conflictingMaximumLocations as IExceptionLocation[]
+          ],
+          metadata: {
+            propertyName1: minKey,
+            propertyName2: maxKey,
+            value1: minMaxConflicts.highestMinimum?.value,
+            value2: minMaxConflicts.lowestMaximum?.value
+          }
+        })
+      } else {
+        if (minLocations.length > 0) {
+          mergedData.mergedDefinition[minKey as 'minimum'] = minMaxConflicts.highestMinimum?.value
+          if (minKey === 'minimum') {
+            mergedData.mergedDefinition.exclusiveMinimum = minMaxConflicts.highestMinimum?.exclusive
+          }
         }
-      })
-    }
+        if (maxLocations.length > 0) {
+          mergedData.mergedDefinition[maxKey as 'maximum'] = minMaxConflicts.lowestMaximum?.value
+          if (maxKey === 'maximum') {
+            mergedData.mergedDefinition.exclusiveMaximum = minMaxConflicts.lowestMaximum?.exclusive
+          }
+        }
+      }
+    })
 
-    const maxMinLengthLocations = getMaxMinConflictLocations(maxMinLengthDefinitions, 'length')
-    mergedData.maxMinLengthLocations.push(...maxMinLengthLocations.locations)
-    if (maxMinLengthLocations.hasConflict) {
-      mergedData.hasExceptions = true
-      const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinLengthLocations.locations, 'minLength', 'maxLength')
-      exception.add({
-        component: componentId,
-        context: 'allOf',
-        code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
-        level: 'error',
-        locations: maxMinLengthLocations.locations,
-        metadata: {
-          propertyName1: 'minLength',
-          propertyName2: 'maxLength',
-          value1: highestMinimum,
-          value2: lowestMaximum
-        }
-      })
-    }
+    // const minMaxConflicts = getMinMaxConflicts(minLocations, maxLocations)
+    // mergedData.maxMinConflictData = minMaxConflicts
+    // if (minMaxConflicts.hasConflict) {
+    //   exception.add({
+    //     component: componentId,
+    //     context: 'allOf',
+    //     code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
+    //     level: 'error',
+    //     locations: [
+    //       ...minMaxConflicts.conflictingMinimumLocations as IExceptionLocation[],
+    //       ...minMaxConflicts.conflictingMaximumLocations as IExceptionLocation[]
+    //     ],
+    //     metadata: {
+    //       propertyName1: 'minimum',
+    //       propertyName2: 'maximum',
+    //       value1: minMaxConflicts.highestMinimum?.value,
+    //       value2: minMaxConflicts.lowestMaximum?.value
+    //     }
+    //   })
+    // } else {
+    //   if (minLocations.length > 0) {
+    //     mergedData.mergedDefinition.minimum = minMaxConflicts.highestMinimum?.value
+    //     mergedData.mergedDefinition.exclusiveMinimum = minMaxConflicts.highestMinimum?.exclusive
+    //   }
+    //   if (maxLocations.length > 0) {
+    //     mergedData.mergedDefinition.maximum = minMaxConflicts.lowestMaximum?.value
+    //     mergedData.mergedDefinition.exclusiveMaximum = minMaxConflicts.lowestMaximum?.exclusive
+    //   }
+    // }
 
-    const maxMinItemsLocations = getMaxMinConflictLocations(maxMinItemsDefinitions, 'items')
-    mergedData.maxMinLocations.push(...maxMinItemsLocations.locations)
-    if (maxMinItemsLocations.hasConflict) {
-      mergedData.hasExceptions = true
-      const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinItemsLocations.locations, 'minItems', 'maxItems')
-      exception.add({
-        component: componentId,
-        context: 'allOf',
-        code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
-        level: 'error',
-        locations: maxMinItemsLocations.locations,
-        metadata: {
-          propertyName1: 'minItems',
-          propertyName2: 'maxItems',
-          value1: highestMinimum,
-          value2: lowestMaximum
-        }
-      })
-    }
 
-    const maxMinPropertiesLocations = getMaxMinConflictLocations(maxMinPropertiesDefinitions, 'properties')
-    mergedData.maxMinLocations.push(...maxMinPropertiesLocations.locations)
-    if (maxMinPropertiesLocations.hasConflict) {
-      mergedData.hasExceptions = true
-      const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinPropertiesLocations.locations, 'minProperties', 'maxProperties')
-      exception.add({
-        component: componentId,
-        context: 'allOf',
-        code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
-        level: 'error',
-        locations: maxMinPropertiesLocations.locations,
-        metadata: {
-          propertyName1: 'minProperties',
-          propertyName2: 'maxProperties',
-          value1: highestMinimum,
-          value2: lowestMaximum
-        }
-      })
-    }
+
+
+
+    // const maxMinLengthLocations = getMaxMinConflictLocations(maxMinLengthDefinitions, 'length')
+    // mergedData.maxMinLengthLocations.push(...maxMinLengthLocations.locations)
+    // if (maxMinLengthLocations.hasConflict) {
+    //   mergedData.hasExceptions = true
+    //   const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinLengthLocations.locations, 'minLength', 'maxLength')
+    //   exception.add({
+    //     component: componentId,
+    //     context: 'allOf',
+    //     code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
+    //     level: 'error',
+    //     locations: maxMinLengthLocations.locations,
+    //     metadata: {
+    //       propertyName1: 'minLength',
+    //       propertyName2: 'maxLength',
+    //       value1: highestMinimum,
+    //       value2: lowestMaximum
+    //     }
+    //   })
+    // }
+    //
+    // const maxMinItemsLocations = getMaxMinConflictLocations(maxMinItemsDefinitions, 'items')
+    // mergedData.maxMinLocations.push(...maxMinItemsLocations.locations)
+    // if (maxMinItemsLocations.hasConflict) {
+    //   mergedData.hasExceptions = true
+    //   const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinItemsLocations.locations, 'minItems', 'maxItems')
+    //   exception.add({
+    //     component: componentId,
+    //     context: 'allOf',
+    //     code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
+    //     level: 'error',
+    //     locations: maxMinItemsLocations.locations,
+    //     metadata: {
+    //       propertyName1: 'minItems',
+    //       propertyName2: 'maxItems',
+    //       value1: highestMinimum,
+    //       value2: lowestMaximum
+    //     }
+    //   })
+    // }
+    //
+    // const maxMinPropertiesLocations = getMaxMinConflictLocations(maxMinPropertiesDefinitions, 'properties')
+    // mergedData.maxMinLocations.push(...maxMinPropertiesLocations.locations)
+    // if (maxMinPropertiesLocations.hasConflict) {
+    //   mergedData.hasExceptions = true
+    //   const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinPropertiesLocations.locations, 'minProperties', 'maxProperties')
+    //   exception.add({
+    //     component: componentId,
+    //     context: 'allOf',
+    //     code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
+    //     level: 'error',
+    //     locations: maxMinPropertiesLocations.locations,
+    //     metadata: {
+    //       propertyName1: 'minProperties',
+    //       propertyName2: 'maxProperties',
+    //       value1: highestMinimum,
+    //       value2: lowestMaximum
+    //     }
+    //   })
+    // }
 
     if (itemsDefinitions.length > 1) {
       const mergedItemsSchema = validateAllOfSchemas(componentId, exception, null, itemsDefinitions)
       if (mergedItemsSchema === null) {
         mergedData.hasExceptions = true
       } else {
-        mergedData.definition.items = mergedItemsSchema.definition
+        // mergedData.mergedDefinition.items = mergedItemsSchema.definition
       }
     }
     if (additionalPropertiesDefinitions.length > 1) {
@@ -610,23 +768,106 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
       if (additionalPropertiesMergedSchema === null) {
         mergedData.hasExceptions = true
       } else {
-        mergedData.definition.additionalProperties = additionalPropertiesMergedSchema.definition
+        // mergedData.mergedDefinition.additionalProperties = additionalPropertiesMergedSchema.definition
       }
     }
     Object.keys(propertiesDefinitions).forEach(key => {
       const items = propertiesDefinitions[key]
-      mergedData.definition.properties = {}
+      mergedData.mergedDefinition.properties = {}
       if (items.length > 0) {
         const propertyMergedSchema = validateAllOfSchemas(componentId, exception, null, items)
         if (propertyMergedSchema === null) {
           mergedData.hasExceptions = true
         } else {
-          mergedData.definition.properties[key] = propertyMergedSchema.definition
+          // mergedData.definition.properties[key] = propertyMergedSchema.definition
         }
       }
     })
   }
 
   return mergedData
+}
+
+export function getMinMaxConflicts (minLocations: IExceptionLocation[], maxLocations: IExceptionLocation[]): ICrossConflictData {
+  const locations = [...minLocations, ...maxLocations]
+  if (minLocations.length === 0 || maxLocations.length === 0) {
+    return {
+      hasConflict: false,
+      locations,
+      minLocations,
+      maxLocations
+    }
+  }
+
+  const minimums: IMinMaxData[] = minLocations.map(l => {
+    const definition = l.node as IDefinition
+    return {
+      definition,
+      location: l,
+      key: l.key as string,
+      value: definition[l.key as 'minimum'],
+      exclusive: (l.key === 'minimum' && definition.exclusiveMinimum) ?? false
+    }
+  })
+
+  minimums.sort((a, b) => {
+    if (a.value < b.value) return 1
+    if (a.value > b.value) return -1
+    if (a.exclusive) return -1
+    return 1
+  })
+
+  const maximums: IMinMaxData[] = maxLocations.map(l => {
+    const definition = l.node as IDefinition
+    return {
+      definition,
+      location: l,
+      key: l.key as string,
+      value: definition[l.key as 'maximum'],
+      exclusive: (l.key === 'maximum' && definition.exclusiveMaximum) ?? false
+    }
+  })
+
+  maximums.sort((a, b) => {
+    if (a.value < b.value) return -1
+    if (a.value > b.value) return 1
+    if (a.exclusive) return -1
+    return 1
+  })
+
+  const highestMinimum = minimums[0]
+  const lowestMaximum = maximums[0]
+
+  // determine which minimums are above the lowest maximum
+  const conflictingMinimums = minimums.filter(v => lowestMaximum.exclusive
+    ? v.value >= lowestMaximum.value
+    : v.value > lowestMaximum.value)
+
+  // determine which minimums are below the highest minimum
+  const conflictingMaximums = maximums.filter(v => highestMinimum.exclusive
+    ? v.value <= highestMinimum.value
+    : v.value < highestMinimum.value)
+
+  if (conflictingMinimums.length === 0) {
+    return {
+      hasConflict: false,
+      locations,
+      lowestMaximum,
+      highestMinimum,
+      minLocations,
+      maxLocations
+    }
+  } else {
+    return {
+      hasConflict: true,
+      conflictingMaximumLocations: conflictingMaximums.map(c => c.location),
+      conflictingMinimumLocations: conflictingMinimums.map(c => c.location),
+      locations,
+      lowestMaximum,
+      highestMinimum,
+      minLocations,
+      maxLocations
+    }
+  }
 }
 // <!# Custom Content End: FOOTER #!>
