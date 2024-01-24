@@ -79,7 +79,7 @@ describe.only('Schema', () => {
       })
     })
 
-    describe.only('property: allOf', () => {
+    describe('property: allOf', () => {
       it('does not need a type specified as sibling to "allOf"', () => {
         test(Schema => {
           const es = Schema.validate({ allOf: [{ type: 'string' }] })
@@ -242,14 +242,12 @@ describe.only('Schema', () => {
                 { maximum: -5 } // conflict with minimum = 2
               ]
             })
-            console.log(es.error)
             expect(es).to.have.exceptionErrorId('schema.allOf.schemaAllofCrossConflict', {
               propertyName1: 'minimum',
               propertyName2: 'maximum'
             })
             const exception = es.exceptions.find(ex => ex.id === 'schema.allOf.schemaAllofCrossConflict')
             expect(exception?.locations.length).to.equal(2)
-            console.log(es.error)
           })
         })
       })
@@ -393,26 +391,6 @@ describe.only('Schema', () => {
         })
       })
 
-      it('validates that all items are of the same format', () => {
-        test(Schema => {
-          const es = Schema.validate({
-            allOf: [
-              {
-                type: 'string',
-                format: 'date'
-              },
-              {
-                type: 'string',
-                format: 'date-time'
-              }
-            ]
-          })
-          expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CONFLICT', true)
-          const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CONFLICT')?.metadata ?? {}
-          expect(metadata.propertyName).to.equal('format')
-        })
-      })
-
       describe('nested allOf schemas', () => {
         it('validates types for single nested schema', () => {
           test(Schema => {
@@ -468,6 +446,34 @@ describe.only('Schema', () => {
           })
         })
 
+        it('validates types for deeply nested schemas', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                {
+                  allOf: [
+                    {
+                      allOf: [
+                        {
+                          type: 'string'
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  allOf: [
+                    { type: 'boolean' }
+                  ]
+                }
+              ]
+            })
+            expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CONFLICT')?.metadata ?? {}
+            expect(metadata.propertyName).to.equal('type')
+          })
+        })
+
         it('validates formats for single nested schema', () => {
           test(Schema => {
             const es = Schema.validate({
@@ -492,7 +498,7 @@ describe.only('Schema', () => {
           })
         })
 
-        it.only('validates maximum and minimum for single nested schema', () => {
+        it('validates maximum and minimum for single nested schema', () => {
           test(Schema => {
             const es = Schema.validate({
               allOf: [
@@ -502,6 +508,36 @@ describe.only('Schema', () => {
                       type: 'number',
                       minimum: 0,
                       maximum: 5
+                    }
+                  ]
+                },
+                {
+                  type: 'number',
+                  minimum: 10
+                }
+              ]
+            })
+            expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CROSS_CONFLICT')?.metadata ?? {}
+            expect(metadata.propertyName1).to.equal('minimum')
+            expect(metadata.propertyName2).to.equal('maximum')
+          })
+        })
+
+        it('validates maximum and minimum for deeply nested schema', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                {
+                  allOf: [
+                    {
+                      allOf: [
+                        {
+                          type: 'number',
+                          minimum: 0,
+                          maximum: 5
+                        }
+                      ]
                     }
                   ]
                 },
@@ -598,7 +634,86 @@ describe.only('Schema', () => {
           })
         })
 
-        // TODO: allOf tests for items, additionalProperites, and properties
+        it('will find nested item property conflicts for "minimum" and "maximum"', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                {
+                  allOf: [
+                    {
+                      items: { minimum: 10 }
+                    }
+                  ]
+                },
+                {
+                  items: { maximum: 5 }
+                }
+              ]
+            })
+            expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CROSS_CONFLICT')?.metadata ?? {}
+            expect(metadata.propertyName1).to.equal('minimum')
+            expect(metadata.value1).to.equal(10)
+            expect(metadata.propertyName2).to.equal('maximum')
+            expect(metadata.value2).to.equal(5)
+          })
+        })
+
+        it('will find nested additionalProperty conflicts for "minimum" and "maximum"', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                {
+                  allOf: [
+                    {
+                      additionalProperties: { minimum: 10 }
+                    }
+                  ]
+                },
+                {
+                  additionalProperties: { maximum: 5 }
+                }
+              ]
+            })
+            expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CROSS_CONFLICT')?.metadata ?? {}
+            expect(metadata.propertyName1).to.equal('minimum')
+            expect(metadata.value1).to.equal(10)
+            expect(metadata.propertyName2).to.equal('maximum')
+            expect(metadata.value2).to.equal(5)
+          })
+        })
+
+        it('will find nested property conflicts for "minimum" and "maximum"', () => {
+          test(Schema => {
+            const es = Schema.validate({
+              allOf: [
+                {
+                  allOf: [
+                    {
+                      properties: {
+                        a: { minimum: 10 }
+                      }
+                    }
+                  ]
+                },
+                {
+                  properties: {
+                    a: { maximum: 5 }
+                  }
+                }
+              ]
+            })
+            expect(es).to.have.exceptionErrorCode('SCHEMA_ALLOF_CROSS_CONFLICT', true)
+            const metadata = es.exceptions.find(e => e.code === 'SCHEMA_ALLOF_CROSS_CONFLICT')?.metadata ?? {}
+            expect(metadata.propertyName1).to.equal('minimum')
+            expect(metadata.value1).to.equal(10)
+            expect(metadata.propertyName2).to.equal('maximum')
+            expect(metadata.value2).to.equal(5)
+          })
+        })
+
+        // TODO: allOf tests for items, additionalProperties, and properties
       })
 
       describe('property: anyOf', () => {
@@ -753,7 +868,7 @@ describe.only('Schema', () => {
       expect(data.locations).to.have.length(3)
     })
 
-    it('will not return conflict related data if there are no conflicts', () => {
+    it('will correctly identify if there are no conflicts', () => {
       const data = getMinMaxConflicts(
         [
           { node: { minimum: 5 }, key: 'minimum', filter: 'value' }
@@ -763,10 +878,6 @@ describe.only('Schema', () => {
         ]
       )
       expect(data.hasConflict).to.equal(false)
-      expect(data).not.to.haveOwnProperty('lowestMaximum')
-      expect(data).not.to.haveOwnProperty('highestMinimum')
-      expect(data).not.to.haveOwnProperty('conflictingMinimumLocations')
-      expect(data).not.to.haveOwnProperty('conflictingMaximumLocations')
     })
 
     it('will return conflict related data if there are conflicts', () => {

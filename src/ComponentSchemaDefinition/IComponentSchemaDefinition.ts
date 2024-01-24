@@ -2,6 +2,8 @@ import { SchemaProcessor } from './SchemaProcessor'
 import { EnforcerComponent } from '../components/Component'
 import * as I from '../components/IInternalTypes'
 import { II18nMessageCode } from '../i18n/i18n'
+import { IExceptionData } from '../Exception/IException'
+import { ExceptionStore } from '../Exception/ExceptionStore'
 
 export interface ISDAny extends Base<any> {
   type: 'any'
@@ -61,7 +63,10 @@ export interface ISDOneOf<OneOfSchemaType=ISDSchema> extends Base<any> {
     condition: (definition: any, key: string, data: SchemaProcessor) => boolean
     schema: OneOfSchemaType
   }>
-  // error: (data: SchemaProcessor) => void // only called by validator, not builder
+  // If no oneOf conditions are met then "error" will be used to generate an exception.
+  // The string array is used for specifying allowed data types. The function is used for generating a
+  // custom error.
+  error: string[] | ((data: SchemaProcessor) => void)
 }
 
 export interface ISDObject<T=ISDSchema> extends Base<Record<string, any>> {

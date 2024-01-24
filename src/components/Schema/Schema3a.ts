@@ -189,7 +189,7 @@ function getValidatorsMap (): IValidatorsMap {
         type: 'oneOf',
         oneOf: [
           {
-            condition: data => Array.isArray(data.definition),
+            condition: definition => Array.isArray(definition),
             schema: {
               type: 'array',
               items: {
@@ -199,13 +199,14 @@ function getValidatorsMap (): IValidatorsMap {
             }
           },
           {
-            condition: data => typeof data.definition === 'string',
+            condition: definition => typeof definition === 'string',
             schema: {
               type: 'string',
               enum: ['array', 'boolean', 'integer', 'number', 'object', 'string']
             }
           }
-        ]
+        ],
+        error: ['string', 'string[]']
       }
     },
     allOf: {
@@ -376,7 +377,7 @@ function getValidatorsMap (): IValidatorsMap {
         type: 'oneOf',
         oneOf: [
           {
-            condition: data => typeof data.definition === 'object',
+            condition: definition => typeof definition === 'object',
             schema: {
               type: 'component',
               allowsRef: true,
@@ -384,12 +385,13 @@ function getValidatorsMap (): IValidatorsMap {
             }
           },
           {
-            condition: data => typeof data.definition === 'boolean',
+            condition: definition => typeof definition === 'boolean',
             schema: {
               type: 'boolean'
             }
           }
-        ]
+        ],
+        error: ['object', 'boolean']
       }
     },
     description: {

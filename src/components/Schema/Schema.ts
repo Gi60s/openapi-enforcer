@@ -32,6 +32,9 @@ interface IAllOfData {
   hasExceptions: boolean
   typeLocations: IExceptionLocation[]
   formatLocations: IExceptionLocation[]
+  itemsLocations: IExceptionLocation[]
+  additionalPropertiesLocations: IExceptionLocation[]
+  propertiesLocations: Record<string, IExceptionLocation[]>
   maxMinConflictData: ICrossConflictData
   maxMinLengthConflictData: ICrossConflictData
   maxMinItemsConflictData: ICrossConflictData
@@ -314,11 +317,11 @@ function determineSchemaType (definition: ISchemaDefinition | ISchema): 'array' 
 
 function validateAllOfSchemas (componentId: string, exception: ExceptionStore, definition: IDefinition | null, allOf: IDefinition[]): IAllOfData {
   const allOfLength = allOf.length
-  const itemsDefinitions: IDefinition[] = []
-  const additionalPropertiesDefinitions: IDefinition[] = []
-  const propertiesDefinitions: Record<string, IDefinition[]> = {}
   const typeLocations: IExceptionLocation[] = []
   const formatLocations: IExceptionLocation[] = []
+  const itemsLocations: IExceptionLocation[] = []
+  const additionalPropertiesLocations: IExceptionLocation[] = []
+  const propertiesLocations: Record<string, IExceptionLocation[]> = {}
   const mergedData: IAllOfData = {
     definition: definition,
     mergedDefinition: {},
@@ -328,7 +331,10 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
     maxMinConflictData: { hasConflict: false, locations: [], minLocations: [], maxLocations: [] },
     maxMinLengthConflictData: { hasConflict: false, locations: [], minLocations: [], maxLocations: [] },
     maxMinItemsConflictData: { hasConflict: false, locations: [], minLocations: [], maxLocations: [] },
-    maxMinPropertiesConflictData: { hasConflict: false, locations: [], minLocations: [], maxLocations: [] }
+    maxMinPropertiesConflictData: { hasConflict: false, locations: [], minLocations: [], maxLocations: [] },
+    itemsLocations,
+    additionalPropertiesLocations,
+    propertiesLocations
   }
 
   if (allOfLength > 0) {
@@ -342,6 +348,10 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
     const maxItemsLocations: IExceptionLocation[] = []
     const minPropertiesLocations: IExceptionLocation[] = []
     const maxPropertiesLocations: IExceptionLocation[] = []
+
+    // const itemsDefinitions: IDefinition[] = []
+    // const additionalPropertiesDefinitions: IDefinition[] = []
+    // const propertiesDefinitions: Record<string, IDefinition[]> = {}
 
     if (definition !== null) {
       allOfDataMap.set(definition, mergedData)
@@ -395,6 +405,18 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
       }
       if (definition.maxProperties !== undefined) {
         maxPropertiesLocations.push({ node: definition, key: 'maxProperties', filter: 'value' })
+      }
+      if (typeof definition.items === 'object' && definition.items !== null && !('$ref' in definition.items)) {
+        itemsLocations.push({ node: definition, key: 'items', filter: 'value' })
+      }
+      if (typeof definition.additionalProperties === 'object' && definition.additionalProperties !== null && !('$ref' in definition.additionalProperties)) {
+        additionalPropertiesLocations.push({ node: definition, key: 'additionalProperties', filter: 'value' })
+      }
+      if (typeof definition.properties === 'object' && definition.properties !== null && !('$ref' in definition.properties)) {
+        Object.keys(definition.properties).forEach(key => {
+          if (propertiesLocations[key] === undefined) propertiesLocations[key] = []
+          propertiesLocations[key].push({ node: definition.properties as Record<string, IDefinition>, key, filter: 'value' })
+        })
       }
 
       // if (typeof definition.items === 'object' && definition.items !== null && !('$ref' in definition.items)) {
@@ -458,15 +480,48 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
         }
       }
 
+      if (def2.items !== undefined) {
+        if (typeof def.items === 'object' && def.items !== null && !('$ref' in def.items)) {
+          itemsLocations.push({ node: def, key: 'items', filter: 'value' })
+        }
+        if (existingAllOfData !== null) {
+          itemsLocations.push(...existingAllOfData.itemsLocations)
+        }
+      }
+
+      if (def2.additionalProperties !== undefined) {
+        if (typeof def.additionalProperties === 'object' && def.additionalProperties !== null && !('$ref' in def.additionalProperties)) {
+          additionalPropertiesLocations.push({ node: def, key: 'additionalProperties', filter: 'value' })
+        }
+        if (existingAllOfData !== null) {
+          additionalPropertiesLocations.push(...existingAllOfData.additionalPropertiesLocations)
+        }
+      }
+
+      if (def2.properties !== undefined) {
+        if (typeof def.properties === 'object' && def.properties !== null && !('$ref' in def.properties)) {
+          Object.keys(def.properties).forEach(key => {
+            if (propertiesLocations[key] === undefined) propertiesLocations[key] = []
+            propertiesLocations[key].push({ node: def.properties as Record<string, IDefinition>, key, filter: 'value' })
+          })
+        }
+        if (existingAllOfData !== null && def2.properties !== null) {
+          Object.keys(def2.properties).forEach(key => {
+            if (propertiesLocations[key] === undefined) propertiesLocations[key] = []
+            propertiesLocations[key].push(...existingAllOfData.propertiesLocations[key])
+          })
+        }
+      }
+
       ;[
         { key: 'minimum', k: 'maxMinConflictData', store: minLocations, type: 'minLocations' },
         { key: 'maximum', k: 'maxMinConflictData', store: maxLocations, type: 'maxLocations' },
         { key: 'minLength', k: 'maxMinLengthConflictData', store: minLengthLocations, type: 'minLocations' },
-        { key: 'maxLength', k: 'maxMinLengthConflictData', store: minLengthLocations, type: 'maxLocations' },
+        { key: 'maxLength', k: 'maxMinLengthConflictData', store: maxLengthLocations, type: 'maxLocations' },
         { key: 'minItems', k: 'maxMinItemsConflictData', store: minItemsLocations, type: 'minLocations' },
-        { key: 'maxItems', k: 'maxMinItemsConflictData', store: minItemsLocations, type: 'maxLocations' },
+        { key: 'maxItems', k: 'maxMinItemsConflictData', store: maxItemsLocations, type: 'maxLocations' },
         { key: 'minProperties', k: 'maxMinPropertiesConflictData', store: minPropertiesLocations, type: 'minLocations' },
-        { key: 'maxProperties', k: 'maxMinPropertiesConflictData', store: minPropertiesLocations, type: 'maxLocations' }
+        { key: 'maxProperties', k: 'maxMinPropertiesConflictData', store: maxPropertiesLocations, type: 'maxLocations' }
       ].forEach(({ key, k, store, type }) => {
         if ((def2 as any)[key] !== undefined) {
           if ((def as any)[key] !== undefined) {
@@ -478,87 +533,6 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
           }
         }
       })
-
-      // if (def2.minimum !== undefined) {
-      //   if (def.minimum !== undefined) {
-      //     minLocations.push({ node: def, key: 'minimum', filter: 'value' })
-      //   }
-      //   if (existingAllOfData?.maxMinConflictData.hasConflict === false) {
-      //     minLocations.push(...existingAllOfData.maxMinConflictData.minLocations)
-      //   }
-      // }
-      // if (def2.maximum !== undefined) {
-      //   if (def.maximum !== undefined) {
-      //     maxLocations.push({ node: def, key: 'maximum', filter: 'value' })
-      //   }
-      //   if (existingAllOfData?.maxMinConflictData.hasConflict === false) {
-      //     maxLocations.push(...existingAllOfData.maxMinConflictData.maxLocations)
-      //   }
-      // }
-      //
-      // if (def2.minLength !== undefined) {
-      //   if (def.minLength !== undefined) {
-      //     minLengthLocations.push({ node: def, key: 'minLength', filter: 'value' })
-      //   }
-      //   if (existingAllOfData?.maxMinLengthConflictData.hasConflict === false) {
-      //     minLengthLocations.push(...existingAllOfData.maxMinLengthConflictData.minLocations)
-      //   }
-      // }
-      // if (def2.maxLength !== undefined) {
-      //   if (def.maxLength !== undefined) {
-      //     maxLengthLocations.push({ node: def, key: 'maxLength', filter: 'value' })
-      //   }
-      //   if (existingAllOfData?.maxMinConflictData.hasConflict === false) {
-      //     maxLengthLocations.push(...existingAllOfData.maxMinLengthConflictData.maxLocations)
-      //   }
-      // }
-      //
-      // if (def2.minItems !== undefined) {
-      //   if (def.minItems !== undefined) {
-      //     minItemsLocations.push({ node: def, key: 'minItems', filter: 'value' })
-      //   }
-      //   if (existingAllOfData?.maxMinItemsConflictData.hasConflict === false) {
-      //     minItemsLocations.push(...existingAllOfData.maxMinItemsConflictData.minLocations)
-      //   }
-      // }
-      // if (def2.maxItems !== undefined) {
-      //   if (def.maxItems !== undefined) {
-      //     maxItemsLocations.push({ node: def, key: 'maxItems', filter: 'value' })
-      //   }
-      //   if (existingAllOfData?.maxMinItemsConflictData.hasConflict === false) {
-      //     maxItemsLocations.push(...existingAllOfData.maxMinItemsConflictData.maxLocations)
-      //   }
-      // }
-      //
-      // if (def2.minProperties !== undefined) {
-      //   if (def.minProperties !== undefined) {
-      //     minPropertiesLocations.push({ node: def, key: 'minProperties', filter: 'value' })
-      //   }
-      //   if (existingAllOfData?.maxMinPropertiesConflictData.hasConflict === false) {
-      //     minPropertiesLocations.push(...existingAllOfData.maxMinPropertiesConflictData.minLocations)
-      //   }
-      // }
-      // if (def2.maxProperties !== undefined) {
-      //   if (def.maxProperties !== undefined) {
-      //     maxPropertiesLocations.push({ node: def, key: 'maxProperties', filter: 'value' })
-      //   }
-      //   if (existingAllOfData?.maxMinPropertiesConflictData.hasConflict === false) {
-      //     maxPropertiesLocations.push(...existingAllOfData.maxMinPropertiesConflictData.maxLocations)
-      //   }
-      // }
-
-      // if (typeof def.items === 'object' && def.items !== null && !('$ref' in def.items)) {
-      //   itemsDefinitions.push(def.items)
-      // }
-      // if (typeof def.additionalProperties === 'object' && def.additionalProperties !== null && !('$ref' in def.additionalProperties)) {
-      //   additionalPropertiesDefinitions.push(def.additionalProperties)
-      // }
-      // if (typeof def.properties === 'object' && def.properties !== null && !('$ref' in def.properties)) {
-      //   Object.keys(def.properties).forEach(key => {
-      //     if (propertiesDefinitions[key] === undefined) propertiesDefinitions[key] = []
-      //     propertiesDefinitions[key].push((def.properties as Record<string, IDefinition>)[key])
-      //   })
-      // }
     })
 
     const typesIntersection = arrayGetIntersection(...typeArrays)
@@ -595,6 +569,51 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
     } else if (formats.length === 1) {
       mergedData.mergedDefinition.format = formats[0]
     }
+
+    if (itemsLocations.length > 0) {
+      const itemsDefinitions = itemsLocations.map(l => (l.node as IDefinition).items) as IDefinition[]
+      const mergedItemsSchema = validateAllOfSchemas(componentId, exception, null, itemsDefinitions)
+      if (mergedItemsSchema.hasExceptions) {
+        mergedData.hasExceptions = true
+      } else {
+        mergedData.mergedDefinition.items = mergedItemsSchema.mergedDefinition
+      }
+    }
+
+    if (additionalPropertiesLocations.length > 0) {
+      const additionalPropertiesDefinitions = additionalPropertiesLocations.map(l => (l.node as IDefinition).additionalProperties) as IDefinition[]
+      const mergedAdditionalPropertiesSchema = validateAllOfSchemas(componentId, exception, null, additionalPropertiesDefinitions)
+      if (mergedAdditionalPropertiesSchema.hasExceptions) {
+        mergedData.hasExceptions = true
+      } else {
+        mergedData.mergedDefinition.additionalProperties = mergedAdditionalPropertiesSchema.mergedDefinition
+      }
+    }
+
+    Object.keys(propertiesLocations).forEach(key => {
+      const propertyDefinitions = propertiesLocations[key].map(l => (l.node as IDefinition['properties'])?.[key]) as IDefinition[]
+      const mergedPropertySchema = validateAllOfSchemas(componentId, exception, null, propertyDefinitions)
+      if (mergedPropertySchema.hasExceptions) {
+        mergedData.hasExceptions = true
+      } else {
+        if (mergedData.mergedDefinition.properties === undefined) mergedData.mergedDefinition.properties = {}
+        mergedData.mergedDefinition.properties[key] = mergedPropertySchema.mergedDefinition
+      }
+    })
+
+    // Object.keys(propertiesDefinitions).forEach(key => {
+    //   const items = propertiesDefinitions[key]
+    //   mergedData.mergedDefinition.properties = {}
+    //   if (items.length > 0) {
+    //     const propertyMergedSchema = validateAllOfSchemas(componentId, exception, null, items)
+    //     if (propertyMergedSchema.hasExceptions) {
+    //       mergedData.hasExceptions = true
+    //     } else {
+    //       if (mergedData.mergedDefinition.properties === undefined) mergedData.mergedDefinition.properties = {}
+    //       mergedData.mergedDefinition.properties[key] = propertyMergedSchema.definition as IDefinition
+    //     }
+    //   }
+    // })
 
     ;[
       {
@@ -657,129 +676,6 @@ function validateAllOfSchemas (componentId: string, exception: ExceptionStore, d
           if (maxKey === 'maximum') {
             mergedData.mergedDefinition.exclusiveMaximum = minMaxConflicts.lowestMaximum?.exclusive
           }
-        }
-      }
-    })
-
-    // const minMaxConflicts = getMinMaxConflicts(minLocations, maxLocations)
-    // mergedData.maxMinConflictData = minMaxConflicts
-    // if (minMaxConflicts.hasConflict) {
-    //   exception.add({
-    //     component: componentId,
-    //     context: 'allOf',
-    //     code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
-    //     level: 'error',
-    //     locations: [
-    //       ...minMaxConflicts.conflictingMinimumLocations as IExceptionLocation[],
-    //       ...minMaxConflicts.conflictingMaximumLocations as IExceptionLocation[]
-    //     ],
-    //     metadata: {
-    //       propertyName1: 'minimum',
-    //       propertyName2: 'maximum',
-    //       value1: minMaxConflicts.highestMinimum?.value,
-    //       value2: minMaxConflicts.lowestMaximum?.value
-    //     }
-    //   })
-    // } else {
-    //   if (minLocations.length > 0) {
-    //     mergedData.mergedDefinition.minimum = minMaxConflicts.highestMinimum?.value
-    //     mergedData.mergedDefinition.exclusiveMinimum = minMaxConflicts.highestMinimum?.exclusive
-    //   }
-    //   if (maxLocations.length > 0) {
-    //     mergedData.mergedDefinition.maximum = minMaxConflicts.lowestMaximum?.value
-    //     mergedData.mergedDefinition.exclusiveMaximum = minMaxConflicts.lowestMaximum?.exclusive
-    //   }
-    // }
-
-
-
-
-
-    // const maxMinLengthLocations = getMaxMinConflictLocations(maxMinLengthDefinitions, 'length')
-    // mergedData.maxMinLengthLocations.push(...maxMinLengthLocations.locations)
-    // if (maxMinLengthLocations.hasConflict) {
-    //   mergedData.hasExceptions = true
-    //   const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinLengthLocations.locations, 'minLength', 'maxLength')
-    //   exception.add({
-    //     component: componentId,
-    //     context: 'allOf',
-    //     code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
-    //     level: 'error',
-    //     locations: maxMinLengthLocations.locations,
-    //     metadata: {
-    //       propertyName1: 'minLength',
-    //       propertyName2: 'maxLength',
-    //       value1: highestMinimum,
-    //       value2: lowestMaximum
-    //     }
-    //   })
-    // }
-    //
-    // const maxMinItemsLocations = getMaxMinConflictLocations(maxMinItemsDefinitions, 'items')
-    // mergedData.maxMinLocations.push(...maxMinItemsLocations.locations)
-    // if (maxMinItemsLocations.hasConflict) {
-    //   mergedData.hasExceptions = true
-    //   const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinItemsLocations.locations, 'minItems', 'maxItems')
-    //   exception.add({
-    //     component: componentId,
-    //     context: 'allOf',
-    //     code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
-    //     level: 'error',
-    //     locations: maxMinItemsLocations.locations,
-    //     metadata: {
-    //       propertyName1: 'minItems',
-    //       propertyName2: 'maxItems',
-    //       value1: highestMinimum,
-    //       value2: lowestMaximum
-    //     }
-    //   })
-    // }
-    //
-    // const maxMinPropertiesLocations = getMaxMinConflictLocations(maxMinPropertiesDefinitions, 'properties')
-    // mergedData.maxMinLocations.push(...maxMinPropertiesLocations.locations)
-    // if (maxMinPropertiesLocations.hasConflict) {
-    //   mergedData.hasExceptions = true
-    //   const { lowestMaximum, highestMinimum } = getMaxMinConflictValues(maxMinPropertiesLocations.locations, 'minProperties', 'maxProperties')
-    //   exception.add({
-    //     component: componentId,
-    //     context: 'allOf',
-    //     code: 'SCHEMA_ALLOF_CROSS_CONFLICT',
-    //     level: 'error',
-    //     locations: maxMinPropertiesLocations.locations,
-    //     metadata: {
-    //       propertyName1: 'minProperties',
-    //       propertyName2: 'maxProperties',
-    //       value1: highestMinimum,
-    //       value2: lowestMaximum
-    //     }
-    //   })
-    // }
-
-    if (itemsDefinitions.length > 1) {
-      const mergedItemsSchema = validateAllOfSchemas(componentId, exception, null, itemsDefinitions)
-      if (mergedItemsSchema === null) {
-        mergedData.hasExceptions = true
-      } else {
-        // mergedData.mergedDefinition.items = mergedItemsSchema.definition
-      }
-    }
-    if (additionalPropertiesDefinitions.length > 1) {
-      const additionalPropertiesMergedSchema = validateAllOfSchemas(componentId, exception, null, additionalPropertiesDefinitions)
-      if (additionalPropertiesMergedSchema === null) {
-        mergedData.hasExceptions = true
-      } else {
-        // mergedData.mergedDefinition.additionalProperties = additionalPropertiesMergedSchema.definition
-      }
-    }
-    Object.keys(propertiesDefinitions).forEach(key => {
-      const items = propertiesDefinitions[key]
-      mergedData.mergedDefinition.properties = {}
-      if (items.length > 0) {
-        const propertyMergedSchema = validateAllOfSchemas(componentId, exception, null, items)
-        if (propertyMergedSchema === null) {
-          mergedData.hasExceptions = true
-        } else {
-          // mergedData.definition.properties[key] = propertyMergedSchema.definition
         }
       }
     })

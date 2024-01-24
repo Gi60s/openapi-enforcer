@@ -184,12 +184,13 @@ describe('component validator', () => {
             type: 'oneOf',
             oneOf: [
               {
-                condition: p => {
+                condition: (d, k, p) => {
                   return p.getSiblingValue('y') === 5
                 },
                 schema: { type: 'boolean' }
               }
-            ]
+            ],
+            error: ['...']
           }
         })
 
@@ -210,7 +211,7 @@ describe('component validator', () => {
             type: 'oneOf',
             oneOf: [
               {
-                condition: p => {
+                condition: (d, k, p) => {
                   return p.getSiblingValue('y') === 5
                 },
                 schema: { type: 'boolean' }
@@ -221,7 +222,8 @@ describe('component validator', () => {
                 },
                 schema: { type: 'string' }
               }
-            ]
+            ],
+            error: ['...']
           }
         })
 
@@ -322,14 +324,15 @@ describe('component validator', () => {
         type: 'oneOf',
         oneOf: [
           {
-            condition: d => typeof d.definition === 'string',
+            condition: definition => typeof definition === 'string',
             schema: { type: 'string' }
           },
           {
-            condition: d => typeof d.definition === 'number',
+            condition: definition => typeof definition === 'number',
             schema: { type: 'number' }
           }
-        ]
+        ],
+        error: ['...']
       }
       expect(Foo.validate({ x: 'foo' }).hasError).to.equal(false)
       expect(Foo.validate({ x: 1 }).hasError).to.equal(false)
@@ -343,10 +346,11 @@ describe('component validator', () => {
           type: 'oneOf',
           oneOf: [
             {
-              condition: d => true,
+              condition: () => true,
               schema: { type: 'component', allowsRef: true, component: Foo }
             }
-          ]
+          ],
+          error: ['...']
         }
       })
 
@@ -356,10 +360,11 @@ describe('component validator', () => {
           type: 'oneOf',
           oneOf: [
             {
-              condition: d => true,
+              condition: () => true,
               schema: { type: 'component', allowsRef: false, component: Foo }
             }
-          ]
+          ],
+          error: ['...']
         }
       })
 

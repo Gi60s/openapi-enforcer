@@ -5,7 +5,12 @@ import { ExceptionStore } from '../Exception/ExceptionStore'
 import { getLocation, load } from '../Loader'
 import { getMessage } from '../i18n/i18n'
 import { IDefinition } from './IInternalTypes'
-import { ISDObject, ISDSchema, ISDSchemaDefinition } from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import {
+  ISDObject,
+  ISDOneOf,
+  ISDSchema,
+  ISDSchemaDefinition
+} from '../ComponentSchemaDefinition/IComponentSchemaDefinition'
 
 type ISchemaDefinitionMap<Definition extends IDefinition, Built extends typeof EnforcerComponent<Definition>> =
   WeakMap<Definition, WeakMap<Built, ISDSchemaDefinition<any, any>>>
@@ -213,12 +218,36 @@ function validateChild (processor: SchemaProcessor, key: string, definition: any
   if (schema.type === 'oneOf') {
     const length = schema.oneOf.length
     const oneOf = schema.oneOf
+    let conditionMet = false
     for (let i = 0; i < length; i++) {
       const s = oneOf[i]
       if (s.condition(definition, key, processor)) {
         schema = s.schema
+        conditionMet = true
         break
       }
+    }
+    if (!conditionMet) {
+      const error = (schema as ISDOneOf).error
+      if (typeof error === 'function') {
+        error(processor)
+      } else {
+        const component = processor.component
+        processor.exception.add({
+          code: 'VALUE_TYPE_INVALID',
+          component: component.name,
+          context: key,
+          level: 'error',
+          locations: [{ node: definition, key, filter: 'value' }],
+          metadata: {
+            type: typeof definition,
+            value: definition,
+            allowedTypes: error
+          },
+          reference: component.reference
+        })
+      }
+      return
     }
   }
 
