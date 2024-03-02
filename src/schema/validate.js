@@ -34,6 +34,7 @@ module.exports = runValidate;
  * @param {boolean} [options.isExample] If the passed in value is an example then set this to true.
  * @param {boolean} [options.maxMin] Set to false to skip max min validation.
  * @param {'read', 'write} [options.readWriteMode] Set to 'read' if in read only mode or to 'write' if write only mode.
+ * @param {boolean} [options.ignoreUndefinedPropertyValues] Whether to ignore undefined property values during validation.
  * @returns {*}
  */
 function runValidate(exception, map, schema, originalValue, options) {
@@ -180,11 +181,13 @@ function runValidate(exception, map, schema, originalValue, options) {
                 })
                 : [];
             const keys = Object.keys(value);
+            const ignoreUndefinedProperties = util.ignoreUndefinedProperties(options);
 
             // validate each property in the value
             keys.forEach(key => {
                 // remove item for required remaining array
                 const index = required.indexOf(key);
+                if (value[key] === undefined && ignoreUndefinedProperties) return;
                 if (index !== -1) required.splice(index, 1);
 
                 if (properties.hasOwnProperty(key)) {

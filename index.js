@@ -89,7 +89,8 @@ async function Enforcer(definition, options) {
 Enforcer.config = {
     examplesWarnAdditionalProperty: true,
     useCaseSensitivePaths: true,
-    useNewRefParser: false
+    useNewRefParser: false,
+    ignoreUndefinedPropertyValues: false
 };
 
 Enforcer.bundle = async function (definition) {

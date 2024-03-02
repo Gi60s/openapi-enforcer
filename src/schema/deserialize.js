@@ -95,10 +95,13 @@ function runDeserialize(exception, map, schema, originalValue, options) {
             const additionalProperties = schema.additionalProperties;
             const properties = schema.properties || {};
             Object.keys(value).forEach(key => {
-                if (properties.hasOwnProperty(key)) {
-                    value[key] = runDeserialize(exception.at(key), map, properties[key], Value.inherit(value[key], { serialize }), options);
-                } else if (additionalProperties) {
-                    value[key] = runDeserialize(exception.at(key), map, additionalProperties, Value.inherit(value[key], { serialize }), options);
+                const nestedValue = value[key]
+                if (nestedValue !== undefined) {
+                    if (properties.hasOwnProperty(key)) {
+                        value[key] = runDeserialize(exception.at(key), map, properties[key], Value.inherit(value[key], {serialize}), options);
+                    } else if (additionalProperties) {
+                        value[key] = runDeserialize(exception.at(key), map, additionalProperties, Value.inherit(value[key], {serialize}), options);
+                    }
                 }
             });
 

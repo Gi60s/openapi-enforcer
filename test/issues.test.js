@@ -469,4 +469,129 @@ describe('documented issues fixes', () => {
         })
     })
 
+    describe('issue-161 - allow undefined values to be skipped during validation', () => {
+        let schema
+
+        before(() => {
+            schema = Enforcer.v3_0.Schema({
+                type: 'object',
+                required: ['bool'],
+                properties: {
+                    str: { type: 'string' },
+                    obj: {
+                        type: 'object',
+                        properties: {
+                            num: { type: 'string' }
+                        }
+                    },
+                    bool: { type: 'boolean' }
+                }
+            }).value
+        })
+
+        describe('global config allowUndefinedValuesInObjectValidation set to false', () => {
+            let previousConfigValue
+
+            before(() => {
+                previousConfigValue = Enforcer.config.ignoreUndefinedPropertyValues
+                Enforcer.config.ignoreUndefinedPropertyValues = false
+            })
+
+            after(() => {
+                Enforcer.config.ignoreUndefinedPropertyValues = previousConfigValue
+            })
+
+            it('validate will not allow undefined values', () => {
+                const err = schema.validate({
+                    str: 'hello',
+                    obj: undefined,
+                    bool: true
+                })
+                expect(err.toString().replace(/(\r)?\n/g, ' ')).to.match(/at: obj[\s\S]+?Received: undefined/)
+            })
+
+            it('validate will not allow undefined values for required properties', () => {
+                const err = schema.validate({
+                    a: 'hello',
+                    bool: undefined
+                })
+                expect(err.toString().replace(/(\r)?\n/g, ' ')).to.match(/at: bool[\s\S]+?Received: undefined/)
+            })
+
+            it('serialize will allow undefined values', () => {
+                const { error } = schema.serialize({
+                    a: 'hello',
+                    obj: undefined,
+                    bool: true
+                })
+                expect(error).to.equal(undefined)
+            })
+
+            it('validate will ignore undefined values when specified via the option', () => {
+                const err = schema.validate({
+                    a: 'hello',
+                    obj: undefined,
+                    bool: true
+                }, { ignoreUndefinedPropertyValues: true })
+                expect(err).to.equal(undefined)
+            })
+
+            it('validate will not allow undefined values for required properties even when ignored', () => {
+                const err = schema.validate({
+                    a: 'hello',
+                    bool: undefined
+                }, { ignoreUndefinedPropertyValues: true })
+                expect(err.toString()).to.contain('One or more required properties missing: bool')
+            })
+        })
+
+        describe('global config allowUndefinedValuesInObjectValidation set to true', () => {
+            let previousConfigValue
+
+            before(() => {
+                previousConfigValue = Enforcer.config.ignoreUndefinedPropertyValues
+                Enforcer.config.ignoreUndefinedPropertyValues = true
+            })
+
+            after(() => {
+                Enforcer.config.ignoreUndefinedPropertyValues = previousConfigValue
+            })
+
+            it('validate will allow undefined values', () => {
+                const err = schema.validate({
+                    str: 'hello',
+                    obj: undefined,
+                    bool: true
+                })
+                expect(err).to.equal(undefined)
+            })
+
+            it('validate will not allow undefined values for required properties', () => {
+                const err = schema.validate({
+                    a: 'hello',
+                    bool: undefined
+                })
+                expect(err.toString()).to.contain('One or more required properties missing: bool')
+            })
+
+            it('serialize will allow undefined values', () => {
+                const { error } = schema.serialize({
+                    a: 'hello',
+                    obj: undefined,
+                    bool: true
+                })
+                expect(error).to.equal(undefined)
+            })
+
+            it('validate will not ignore undefined values when specified via the option', () => {
+                const err = schema.validate({
+                    a: 'hello',
+                    obj: undefined,
+                    bool: true
+                }, { ignoreUndefinedPropertyValues: false })
+                expect(err.toString().replace(/(\r)?\n/g, ' ')).to.match(/at: obj[\s\S]+?Received: undefined/)
+            })
+        })
+    })
+
 });

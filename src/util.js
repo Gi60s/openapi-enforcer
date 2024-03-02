@@ -19,6 +19,7 @@ const queryString   = require('querystring');
 const rx            = require('./rx');
 
 const Exception = require('./exception');
+const Enforcer = require("../index");
 const rxMediaType = /^([\s\S]+?)\/(?:([\s\S]+?)\+)?([\s\S]+?)$/;
 const punctuation = ',,,,,,,,,,.................................:;!?';
 const punctuationCount = punctuation.length;
@@ -38,6 +39,7 @@ module.exports = {
     getDateFromValidDateString,
     getDefinitionType,
     greatestCommonDenominator,
+    ignoreUndefinedProperties,
     isDate,
     isNumber,
     isInteger,
@@ -317,6 +319,16 @@ function greatestCommonDenominator(x, y) {
         x = t;
     }
     return x;
+}
+
+/**
+ * @param {object} options
+ * @param {boolean} [options.ignoreUndefinedPropertyValues] Whether to ignore undefined property values during validation.
+ * @returns boolean
+ */
+function ignoreUndefinedProperties (options) {
+    if (options.ignoreUndefinedPropertyValues !== undefined) return options.ignoreUndefinedPropertyValues
+    return Enforcer.config.ignoreUndefinedPropertyValues
 }
 
 function isDate (value) {

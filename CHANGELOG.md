@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.23.0
+
+### Added
+
+- **You Can Ignore Undefined Property Values**
+
+  The default implementation complains of objects where a property is defined but set to `undefined`.
+  This will cause Schema instances to fail validations, serialization, and deserialization.
+  Now you have the option to set the global `Enforcer.config.ignoreUndefinedPropertyValues` to `true` or `false` (default)
+  or when calling a Schema instance's `validate` function you can specify the `ignoreUndefinedPropertyValues` as an option property.
+  Serialization and deserialization will now ignore undefined values in all cases.
+
 ## 1.22.3
 
 ### Security

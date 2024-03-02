@@ -206,7 +206,11 @@ const prototype = {
      * Check to see if the value is valid for this schema.
      * @param {*} value
      * @param {object} [options]
-     * @param {string} [options.readWriteMode] Can be undefined, "read", or "write"
+     * @param {boolean} [options.enum] Set to false to skip enum validation.
+     * @param {boolean} [options.isExample] If the passed in value is an example then set this to true.
+     * @param {boolean} [options.maxMin] Set to false to skip max min validation.
+     * @param {'read', 'write} [options.readWriteMode] Set to 'read' if in read only mode or to 'write' if write only mode.
+     * @param {boolean} [options.ignoreUndefinedPropertyValues] Whether to ignore undefined property values during validation.
      * @returns {EnforcerException|undefined}
      */
     validate: function(value, options) {
@@ -923,6 +927,7 @@ function buildInjector(rxGenerator) {
  * @param {boolean} [options.isExample] If the passed in value is an example then set this to true.
  * @param {boolean} [options.maxMin] Set to false to skip max min validation.
  * @param {'read', 'write} [options.readWriteMode] Set to 'read' if in read only mode or to 'write' if write only mode.
+ * @param {boolean} [options.ignoreUndefinedPropertyValues] Whether to ignore undefined property values during validation.
  * @returns {*}
  */
 function deserializeAndValidate(schema, exception, value, options) {
