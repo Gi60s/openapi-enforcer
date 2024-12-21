@@ -1,0 +1,123 @@
+import { ISchema, ISchemaTypeFormat } from './ISchemaTypeFormat'
+import { ExceptionStore } from '../Exception/ExceptionStore'
+import { SchemaTypeFormat } from './SchemaTypeFormat'
+import rx from '../rx'
+import * as R from '../random'
+import { validateMaxMin } from '../components/Schema/common'
+import { ISchemaSchemaProcessor } from '../components/IInternalTypes'
+import { getLocation } from '../Loader'
+
+// TODO: lots of testing around this - I'm confident this won't currently work.
+
+export class ByteTypeFormat extends SchemaTypeFormat<string, ArrayBuffer> implements ISchemaTypeFormat<string, ArrayBuffer> {
+  constructor () {
+    super('string', 'byte', [ArrayBuffer])
+  }
+
+  definitionValidator (data: ISchemaSchemaProcessor): void {
+    const { exception, definition } = data
+    if (definition.maxLength !== undefined && definition.maxLength % 4 !== 0) {
+      exception.add({
+        component: 'schema',
+        context: 'maxLength',
+        code: 'SCHEMA_TYPE_FORMAT_BINARY_LENGTH',
+        level: 'error',
+        locations: [{ node: definition, key: 'maxLength', filter: 'value' }],
+        metadata: {
+          lengthProperty: 'maxLength'
+        }
+      })
+    }
+    if (definition.minLength !== undefined && definition.minLength % 4 !== 0) {
+      exception.add({
+        component: 'schema',
+        context: 'minLength',
+        code: 'SCHEMA_TYPE_FORMAT_BINARY_LENGTH',
+        level: 'error',
+        locations: [{ node: definition, key: 'minLength', filter: 'value' }],
+        metadata: {
+          lengthProperty: 'minLength'
+        }
+      })
+    }
+  }
+
+  deserialize (exceptionStore: ExceptionStore, schema: ISchema, value: ArrayBuffer | string): ArrayBuffer {
+    if (value instanceof ArrayBuffer) {
+      return value
+    } else if (typeof value === 'string' && rx.byte.test(value)) {
+      const buffer = new ArrayBuffer(value.length * 4)
+      const view = new Uint16Array(buffer)
+      const length = value.length
+      for (let i = 0; i < length; i++) {
+        view[i] = value.charCodeAt(i)
+      }
+      return buffer
+    } else {
+      exceptionStore.add({
+        component: 'schema',
+        context: 'value',
+        code: 'SCHEMA_NOT_DESERIALIZABLE',
+        level: 'error',
+        locations: [],
+        metadata: {
+          // TODO: this wont work for i18n - make more error codes to address this
+          reason: 'The value was not a string of hexadecimal values.'
+        }
+      })
+      return new ArrayBuffer(0)
+    }
+  }
+
+  random (exceptionStore: ExceptionStore, schema: ISchema, options: unknown | undefined): ArrayBuffer {
+    const size = R.number({ minimum: schema.minLength ?? 0, maximum: schema.maximum })
+    const buffer = new ArrayBuffer(size)
+    const uint16View = new Uint16Array(buffer)
+    const length = uint16View.length
+    for (let i = 0; i < length; i++) {
+      uint16View[i] = Math.floor(Math.random() * 256)
+    }
+    return buffer
+  }
+
+  serialize (exceptionStore: ExceptionStore, schema: ISchema, value: ArrayBuffer | string): string {
+    if (value instanceof ArrayBuffer) {
+      return String.fromCharCode(...new Uint16Array(value))
+    } else if (typeof value === 'string' && rx.binary.test(value)) {
+      return value
+    } else {
+      exceptionStore.add({
+        component: 'schema',
+        context: 'value',
+        code: 'SCHEMA_NOT_SERIALIZABLE_TYPE',
+        level: 'error',
+        locations: [],
+        metadata: {
+          expectedType: 'ArrayBuffer'
+        }
+      })
+      return ''
+    }
+  }
+
+  validate (exceptionStore: ExceptionStore, schema: ISchema, value: ArrayBuffer): boolean {
+    if (!(value instanceof ArrayBuffer)) {
+      exceptionStore.add({
+        component: 'schema',
+        context: 'value',
+        code: 'VALUE_TYPE_INVALID',
+        level: 'error',
+        locations: [],
+        metadata: {
+          expectedType: 'ArrayBuffer',
+          value
+        }
+      })
+      return false
+    } else {
+      const exception = validateMaxMin(exceptionStore, schema, 'byte length', 'maxLength',
+        'minLength', true, 'error', value.byteLength, schema.maxLength, schema.minLength)
+      return exception === undefined
+    }
+  }
+}

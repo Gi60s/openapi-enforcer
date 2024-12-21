@@ -1,0 +1,28 @@
+paths:
+  /:
+    get:
+      responses:
+        200:
+          description: ok
+  /foo:
+    get:
+      responses:
+        $ref: '#/paths/~1/get/responses'
+components:
+  schemas:
+    A:
+      type: object
+      properties:
+        number:
+          type: number
+        type:
+          $ref: '#/components/schemas/A/properties/number/type'
+        object1:
+          type: object
+          properties:
+            x:
+              type: string
+        object2:
+          $ref: '#/components/schemas/A/properties/object1'
+        circular:
+          $ref: '#/components/schemas/A'

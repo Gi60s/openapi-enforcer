@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { IPartialSchema, IPartialSchemaDefinition, ISchema3, ISchema3Definition } from '../interfaces2/ISchema'
 import { IExample3, IExample3Definition } from '../interfaces2/IExample'
 import { IMediaType3, IMediaType3Definition } from '../interfaces2/IMediaType'
@@ -42,3 +43,200 @@ export interface IHeader3Definition {
   schema?: ISchema3Definition | IReferenceDefinition
   style?: 'simple'
 }
+=======
+/*
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!   IMPORTANT   !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ *
+ *  A portion of this file has been created from a template. You can only edit
+ *  content in some regions within this file. Look for a region that begins with
+ *  // <!# Custom Content Begin: *** #!>
+ *  and ends with
+ *  // <!# Custom Content End: *** #!>
+ *  where the *** is replaced by a string of some value. Within these custom
+ *  content regions you can edit the file without worrying about a loss of your
+ *  code.
+ */
+
+import { IComponentInstance } from '../IComponent'
+import { SchemaProcessor } from '../../ComponentSchemaDefinition/SchemaProcessor'
+import { ISDProperty, ISDString, ISDComponent, ISDAny, ISDBoolean, ISDNumber, ISDArray, ISDObject } from '../../ComponentSchemaDefinition/IComponentSchemaDefinition'
+import { IItems2, IItems2Definition } from '../Items'
+import { ISchema3, ISchema3Definition, ISchema3a, ISchema3aDefinition } from '../Schema'
+import { IReference3Definition, IReference3aDefinition } from '../Reference'
+import { IExample3, IExample3Definition, IExample3a, IExample3aDefinition } from '../Example'
+import { IMediaType3, IMediaType3Definition, IMediaType3a, IMediaType3aDefinition } from '../MediaType'
+
+// <!# Custom Content Begin: HEADER #!>
+// Put your code here.
+// <!# Custom Content End: HEADER #!>
+
+export type IHeader = IHeader2 | IHeader3 | IHeader3a
+export type IHeaderDefinition = IHeader2Definition | IHeader3Definition | IHeader3aDefinition
+export type IHeader2SchemaProcessor = SchemaProcessor<IHeader2Definition, IHeader2>
+export type IHeader3SchemaProcessor = SchemaProcessor<IHeader3Definition, IHeader3>
+export type IHeader3aSchemaProcessor = SchemaProcessor<IHeader3aDefinition, IHeader3a>
+export type IHeaderSchemaProcessor = IHeader2SchemaProcessor | IHeader3SchemaProcessor | IHeader3aSchemaProcessor
+
+export interface IHeaderBase extends IComponentInstance {
+  // <!# Custom Content Begin: COMPONENT_SHARED_PROPERTIES #!>
+  // Put your code here.
+  // <!# Custom Content End: COMPONENT_SHARED_PROPERTIES #!>
+}
+
+export interface IHeader2Definition {
+  [extensions: `x-${string}`]: any
+  description?: string
+  type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
+  format?: string
+  items?: IItems2Definition
+  collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
+  default?: any
+  maximum?: any
+  exclusiveMaximum?: boolean
+  minimum?: any
+  exclusiveMinimum?: boolean
+  maxLength?: number
+  minLength?: number
+  pattern?: string
+  maxItems?: number
+  minItems?: number
+  uniqueItems?: boolean
+  enum?: any[]
+  multipleOf?: any
+}
+
+export interface IHeader2 extends IHeaderBase {
+  extensions: Record<string, any>
+  description?: string
+  type: 'array' | 'boolean' | 'integer' | 'number' | 'string'
+  format?: string
+  items?: IItems2
+  collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes'
+  default?: any
+  maximum?: any
+  exclusiveMaximum?: boolean
+  minimum?: any
+  exclusiveMinimum?: boolean
+  maxLength?: number
+  minLength?: number
+  pattern?: string
+  maxItems?: number
+  minItems?: number
+  uniqueItems?: boolean
+  enum?: any[]
+  multipleOf?: any
+}
+
+export interface IHeaderValidatorsMap2 {
+  description: ISDProperty<ISDString>
+  type: ISDProperty<ISDString>
+  format: ISDProperty<ISDString>
+  items: ISDProperty<ISDComponent<IItems2Definition, IItems2>>
+  collectionFormat: ISDProperty<ISDString>
+  _default: ISDProperty<ISDAny>
+  maximum: ISDProperty<ISDAny>
+  exclusiveMaximum: ISDProperty<ISDBoolean>
+  minimum: ISDProperty<ISDAny>
+  exclusiveMinimum: ISDProperty<ISDBoolean>
+  maxLength: ISDProperty<ISDNumber>
+  minLength: ISDProperty<ISDNumber>
+  pattern: ISDProperty<ISDString>
+  maxItems: ISDProperty<ISDNumber>
+  minItems: ISDProperty<ISDNumber>
+  uniqueItems: ISDProperty<ISDBoolean>
+  _enum: ISDProperty<ISDArray<ISDAny>>
+  multipleOf: ISDProperty<ISDAny>
+}
+
+export interface IHeader3Definition {
+  [extensions: `x-${string}`]: any
+  description?: string
+  required?: boolean
+  deprecated?: boolean
+  allowEmptyValue?: boolean
+  style?: 'simple'
+  explode?: boolean
+  allowReserved?: boolean
+  schema?: ISchema3Definition | IReference3Definition
+  example?: any
+  examples?: Record<string, IExample3Definition | IReference3Definition>
+  content?: Record<string, IMediaType3Definition>
+}
+
+export interface IHeader3 extends IHeaderBase {
+  extensions: Record<string, any>
+  description?: string
+  required?: boolean
+  deprecated?: boolean
+  allowEmptyValue?: boolean
+  style?: 'simple'
+  explode?: boolean
+  allowReserved?: boolean
+  schema?: ISchema3
+  example?: any
+  examples?: Record<string, IExample3>
+  content?: Record<string, IMediaType3>
+}
+
+export interface IHeaderValidatorsMap3 {
+  description: ISDProperty<ISDString>
+  required: ISDProperty<ISDBoolean>
+  deprecated: ISDProperty<ISDBoolean>
+  allowEmptyValue: ISDProperty<ISDBoolean>
+  style: ISDProperty<ISDString>
+  explode: ISDProperty<ISDBoolean>
+  allowReserved: ISDProperty<ISDBoolean>
+  schema: ISDProperty<ISDComponent<ISchema3Definition, ISchema3>>
+  example: ISDProperty<ISDAny>
+  examples: ISDProperty<ISDObject<ISDComponent<IExample3Definition, IExample3>>>
+  content: ISDProperty<ISDObject<ISDComponent<IMediaType3Definition, IMediaType3>>>
+}
+
+export interface IHeader3aDefinition {
+  [extensions: `x-${string}`]: any
+  description?: string
+  required?: boolean
+  deprecated?: boolean
+  allowEmptyValue?: boolean
+  style?: 'simple'
+  explode?: boolean
+  allowReserved?: boolean
+  schema?: ISchema3aDefinition | IReference3aDefinition
+  example?: any
+  examples?: Record<string, IExample3aDefinition | IReference3aDefinition>
+  content?: Record<string, IMediaType3aDefinition>
+}
+
+export interface IHeader3a extends IHeaderBase {
+  extensions: Record<string, any>
+  description?: string
+  required?: boolean
+  deprecated?: boolean
+  allowEmptyValue?: boolean
+  style?: 'simple'
+  explode?: boolean
+  allowReserved?: boolean
+  schema?: ISchema3a
+  example?: any
+  examples?: Record<string, IExample3a>
+  content?: Record<string, IMediaType3a>
+}
+
+export interface IHeaderValidatorsMap3a {
+  description: ISDProperty<ISDString>
+  required: ISDProperty<ISDBoolean>
+  deprecated: ISDProperty<ISDBoolean>
+  allowEmptyValue: ISDProperty<ISDBoolean>
+  style: ISDProperty<ISDString>
+  explode: ISDProperty<ISDBoolean>
+  allowReserved: ISDProperty<ISDBoolean>
+  schema: ISDProperty<ISDComponent<ISchema3aDefinition, ISchema3a>>
+  example: ISDProperty<ISDAny>
+  examples: ISDProperty<ISDObject<ISDComponent<IExample3aDefinition, IExample3a>>>
+  content: ISDProperty<ISDObject<ISDComponent<IMediaType3aDefinition, IMediaType3a>>>
+}
+
+// <!# Custom Content Begin: FOOTER #!>
+// Put your code here.
+// <!# Custom Content End: FOOTER #!>
+>>>>>>> 6d74703054b8355f6c5a08dd3adde37b0d1950ec

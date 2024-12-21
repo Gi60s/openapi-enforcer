@@ -1,0 +1,119 @@
+import { ILoaderMetadata, ILoaderOptions, ILoaderReplacements } from './ILoader'
+import { Result } from '../Result'
+import {
+  appendToPath,
+  applyPositionInformation,
+  map,
+  normalizeLoaderMetadata,
+  normalizeLoaderOptions, overwriteReplacementsWithCopies,
+  traverse
+} from './loader-common'
+
+/**
+ * Accepts an object and resolves any $ref instances as long as those $refs are local to the current object. This method
+ * is also used to associate location information with an object.
+ * @param definition The object to load.
+ * @param [options] Load options.
+ * @param [options.dereference=true] Whether to resolve $ref values.
+ * @returns Result with the value of the loaded object.
+ */
+export function load (definition: object, options?: Partial<ILoaderOptions>): Result {
+  return loadWithData(definition, normalizeLoaderOptions(options), normalizeLoaderMetadata())
+}
+
+/**
+ * Accepts an object and resolves any $ref instances as long as those $refs are local to the current object. This method
+ * is also used to associate location information with an object. If an error is encountered then it will be thrown.
+ * @param definition The object to load.
+ * @param [options] Load options.
+ * @param [options.dereference=true] Whether to resolve $ref values.
+ * @returns The loaded object.
+ */
+export function loadAndThrow<T extends object=object> (definition: T, options?: ILoaderOptions): T {
+  const { error } = loadWithData(definition, normalizeLoaderOptions(options), normalizeLoaderMetadata())
+  if (error !== undefined) throw Error(error.toString())
+  return definition
+}
+
+function loadWithData (definition: object, options: ILoaderOptions, data: ILoaderMetadata): Result {
+  // if this object has already been loaded then we exit now
+  const found = map.get(definition)
+  if (found !== undefined) return new Result(definition)
+
+  data.root = { source: '', node: definition }
+  applyPositionInformation('#', definition, options, data)
+
+  const parent = { _: definition }
+  if (options.dereference) {
+    const replacements: ILoaderReplacements = []
+    resolveRefs('#', data, parent, '_', new Map(), [parent], replacements)
+    overwriteReplacementsWithCopies(replacements)
+  }
+  return new Result(parent._, data.exceptionStore)
+}
+
+function resolveRefs (path: string, data: ILoaderMetadata, parent: object, key: string, map: Map<object, boolean>, chain: object[], replacements: ILoaderReplacements): void {
+  const node = (parent as Record<string, any>)[key] as object
+  const isObject = node !== null && typeof node === 'object'
+  if (isObject) {
+    if (map.has(node)) return
+    map.set(node, true)
+  }
+
+  if (Array.isArray(node)) {
+    const length = node.length
+    for (let index = 0; index < length; index++) {
+      const i = String(index)
+      resolveRefs(appendToPath(path, i), data, node, i, map, chain.concat([node]), replacements)
+    }
+  } else if (isObject) {
+    const n = node as Record<string, any>
+    if (n.$ref === undefined) {
+      Object.keys(n)
+        .forEach(key => {
+          resolveRefs(appendToPath(path, key), data, n, key, map, chain.concat([node]), replacements)
+        })
+    } else if (typeof n.$ref === 'string') {
+      if (!n.$ref.startsWith('#/')) {
+        data.exceptionStore.add({
+          component: 'loader',
+          context: '$ref',
+          code: 'REF_NOT_RESOLVED',
+          level: 'error',
+          locations: [{ node, key: '$ref', filter: 'value' }],
+          metadata: { reference: n.$ref }
+        })
+      } else {
+        const found = traverse(data.root.node, n.$ref)
+        if (found === undefined) {
+          data.exceptionStore.add({
+            component: 'loader',
+            context: '$ref',
+            code: 'REF_NOT_RESOLVED',
+            level: 'error',
+            locations: [{ node, key: '$ref', filter: 'value' }],
+            metadata: { reference: n.$ref }
+          })
+        } else {
+          (parent as Record<string, any>)[key] = found
+          if (!chain.includes(found)) {
+            replacements.push({
+              parent,
+              key,
+              value: found
+            })
+          }
+        }
+      }
+    } else {
+      data.exceptionStore.add({
+        component: 'loader',
+        context: '$ref',
+        code: 'REF_NOT_RESOLVED',
+        level: 'error',
+        locations: [{ node, key: '$ref', filter: 'value' }],
+        metadata: { reference: n.$ref }
+      })
+    }
+  }
+}

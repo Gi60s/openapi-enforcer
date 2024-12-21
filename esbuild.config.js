@@ -14,7 +14,7 @@ const start = Date.now()
   if (directive !== 'browser') {
     await esbuild.build({
       outdir: './dist/node',
-      entryPoints: ['./src/index.ts'],
+      entryPoints: ['./src/Adapter/index.node.ts'],
       bundle: true,
       minify: false,
       keepNames: true,
@@ -32,7 +32,7 @@ const start = Date.now()
   if (directive !== 'node') {
     await esbuild.build({
       outdir: './dist/browser',
-      entryPoints: ['./src/index.ts'],
+      entryPoints: ['./src/Adapter/index.browser.ts'],
       external: ['http', 'https', 'os', 'path', 'util'],
       bundle: true,
       minify: true,
