@@ -1,7 +1,7 @@
 import { ComponentSchema, Version } from '../helpers/builder-validator-types'
 import { DefinitionException, Exception } from '../../Exception'
 import { OASComponent, componentValidate, LoaderOptions, loadRoot, normalizeLoaderOptions } from '../index'
-import { Components } from './Components'
+import { Components } from '../Components/Components3'
 import { ExternalDocumentation } from '../ExternalDocumentation'
 import { Info } from '../Info'
 import { Operation } from './Operation'

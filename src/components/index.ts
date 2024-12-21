@@ -295,7 +295,7 @@ export function build (data: BuilderData): any {
     } else if (schema.type === 'oneOf') {
       const match = schema.oneOf.find(item => item.condition(data, componentDef))
       if (match === undefined) {
-        throw Error('Definition does not meet any of the possible conditions. Received: ' + smart(definition))
+        throw Error('Definitions does not meet any of the possible conditions. Received: ' + smart(definition))
       } else {
         const matchedSchema = typeof match.schema === 'function' ? match.schema(data.component) : match.schema
         const child = {

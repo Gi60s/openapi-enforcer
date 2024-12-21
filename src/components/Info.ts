@@ -1,7 +1,7 @@
 import { componentValidate, OASComponent } from './index'
 import { ComponentSchema, Version } from './helpers/builder-validator-types'
 import { DefinitionException } from '../Exception'
-import { Contact } from './Contact'
+import { Contact } from './Contact/Contact'
 import { License } from './License'
 import { Info as Definition } from './helpers/definition-types'
 import { IInfo } from './interfaces/IInfo'

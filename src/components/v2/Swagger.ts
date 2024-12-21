@@ -6,7 +6,7 @@ import {
 import { DefinitionException } from '../../Exception'
 import { Result } from '../../utils/Result'
 import rx from '../../utils/rx'
-import { Definitions } from './Definitions'
+import { Definitions } from '../Definitions/Definitions'
 import { ExternalDocumentation } from '../ExternalDocumentation'
 import { Info } from '../Info'
 import { Operation } from './Operation'

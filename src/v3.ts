@@ -38,8 +38,8 @@ export {
 } from './components/helpers/function-interfaces'
 
 export { Callback } from './components/v3/Callback'
-export { Components } from './components/v3/Components'
-export { Contact } from './components/Contact'
+export { Components } from './components/Components/Components3'
+export { Contact } from './components/Contact/Contact'
 export { Discriminator } from './components/v3/Discriminator'
 export { Encoding } from './components/v3/Encoding'
 export { Example } from './components/v3/Example'

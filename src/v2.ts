@@ -27,8 +27,8 @@ export {
   Method
 } from './components/helpers/function-interfaces'
 
-export { Contact } from './components/Contact'
-export { Definitions } from './components/v2/Definitions'
+export { Contact } from './components/Contact/Contact'
+export { Definitions } from './components/Definitions/Definitions'
 export { ExternalDocumentation } from './components/ExternalDocumentation'
 export { Header } from './components/v2/Header'
 export { Info } from './components/Info'
