@@ -506,6 +506,35 @@ module.exports = {
                     type: 'array',
                     items: EnforcerRef('Schema')
                 },
+                contentEncoding: {
+                    allowed: ({major}) => major === 3,
+                    type: 'string',
+                    deserialize: ({ exception, result }) => {
+                        const validContentEncodings = ['base64', 'base64url'];
+                        if (!validContentEncodings.includes(result)) {
+                            exception.message(`Non standard contentEncoding "${result}" used for type "string"`);
+                            return /./;
+                        } else {
+                            return new RegExp(result);
+                        }
+                    },
+                    items: EnforcerRef('Schema')
+                },
+                contentMediaType: {
+                    allowed: ({major}) => major === 3,
+                    type: 'string',
+                    deserialize: ({ exception, result }) => {
+                        const validMediaType =/^\w+(\/(\*|[\w-]+))?$/;
+                        
+                        if (!validMediaType.test(result)) {
+                            exception.message(`Non standard contentMediaType "${result}" used for type "string"`);
+                            return /./;
+                        } else {
+                            return new RegExp(result);
+                        }
+                    },
+                    items: EnforcerRef('Schema')
+                },
                 default: {
                     freeForm: true,
                     type: ({ parent, definition }) => {
