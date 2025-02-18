@@ -1536,7 +1536,17 @@ describe("definition/schema", () => {
           expect(warning).to.be.undefined;
         });
 
-        it("allows base64 contentEncoding", () => {
+        it("allows base64 binary contentEncoding", () => {
+          const [, err, warning] = Enforcer.v3_0.Schema({
+            type: "string",
+            contentMediaType: "application/octet-stream",
+            contentEncoding: "base64",
+          });
+          expect(err).to.be.undefined;
+          expect(warning).to.be.undefined;
+        });
+
+        it("allows base64 image contentEncoding", () => {
           const [, err, warning] = Enforcer.v3_0.Schema({
             type: "string",
             contentMediaType: "image/png",

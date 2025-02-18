@@ -524,7 +524,7 @@ module.exports = {
                     allowed: ({major}) => major === 3,
                     type: 'string',
                     deserialize: ({ exception, result }) => {
-                        const validMediaType =/^\w+(\/(\*|\w+))?$/;
+                        const validMediaType =/^\w+(\/(\*|[\w-]+))?$/;
                         
                         if (!validMediaType.test(result)) {
                             exception.message(`Non standard contentMediaType "${result}" used for type "string"`);
